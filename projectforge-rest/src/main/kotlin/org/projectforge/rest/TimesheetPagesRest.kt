@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import org.projectforge.Constants
-import org.projectforge.business.common.ListStatisticsSupport
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -39,6 +38,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.*
+import org.projectforge.framework.utils.MarkdownBuilder
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.calendar.CalEventPagesRest
@@ -219,13 +219,13 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     resultSet.resultSet.forEach { timesheet ->
       duration += timesheet.getDuration()
     }
-    val stats = ListStatisticsSupport()
-    stats.append(
+    val md = MarkdownBuilder()
+    md.appendPipedValue(
       "timesheet.totalDuration",
       dateTimeFormatter.getPrettyFormattedDuration(duration),
-      ListStatisticsSupport.Color.BLUE
+      MarkdownBuilder.Color.BLUE
     )
-    myResultSet.addResultInfo(stats.asMarkdown)
+    myResultSet.addResultInfo(md.toString())
 
     return myResultSet
   }

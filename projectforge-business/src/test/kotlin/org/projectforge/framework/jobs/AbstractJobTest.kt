@@ -103,6 +103,24 @@ class AbstractJobTest {
     Assertions.assertTrue(job.isBlocking(newJob))
   }
 
+  @Test
+  fun displayDurationTest() {
+    Assertions.assertEquals("00:00s", AbstractJob.displayDuration(Date(System.currentTimeMillis())))
+    Assertions.assertEquals("00:01s", AbstractJob.displayDuration(Date(System.currentTimeMillis() - 1000)))
+    Assertions.assertEquals("00:01s", AbstractJob.displayDuration(Date(System.currentTimeMillis() + 1000)))
+    Assertions.assertEquals("00:59s", AbstractJob.displayDuration(Date(System.currentTimeMillis() - 59000)))
+    Assertions.assertEquals("01:00s", AbstractJob.displayDuration(Date(System.currentTimeMillis() - 60000)))
+    Assertions.assertEquals("01:00:00s", AbstractJob.displayDuration(Date(System.currentTimeMillis() - 1000 * 3600)))
+    Assertions.assertEquals(
+      "01:59:59s",
+      AbstractJob.displayDuration(Date(System.currentTimeMillis() - 1000 * 3600 * 2 + 1000)),
+    )
+    Assertions.assertEquals(
+      "109:59:59s",
+      AbstractJob.displayDuration(Date(System.currentTimeMillis() - 1000 * 3600 * 110 + 1000)),
+    )
+  }
+
   private fun createJob(
     title: String,
     area: String? = null,

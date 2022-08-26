@@ -327,7 +327,7 @@ public class StringHelper {
      * @return
      * @see StringUtils#leftPad(String, int, char)
      */
-    public static String format2DigitNumber(final int value) {
+    public static String format2DigitNumber(final Number value) {
         return StringUtils.leftPad(String.valueOf(value), 2, '0');
     }
 

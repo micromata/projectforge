@@ -109,7 +109,7 @@ public class StringHelperTest {
   @Test
   public void format2DigitNumber() {
     assertEquals("00", StringHelper.format2DigitNumber(0));
-    assertEquals("01", StringHelper.format2DigitNumber(1));
+    assertEquals("01", StringHelper.format2DigitNumber(1L));
     assertEquals("09", StringHelper.format2DigitNumber(9));
     assertEquals("10", StringHelper.format2DigitNumber(10));
     assertEquals("23", StringHelper.format2DigitNumber(23));

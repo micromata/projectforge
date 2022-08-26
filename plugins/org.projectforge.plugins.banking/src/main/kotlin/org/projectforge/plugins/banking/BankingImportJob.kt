@@ -27,10 +27,10 @@ import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import org.projectforge.SystemStatus
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.jobs.AbstractJob
+import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.rest.importer.AbstractImportJob
 import org.projectforge.rest.importer.ImportPairEntry
-import org.projectforge.rest.importer.ImportStorage
 
 private val log = KotlinLogging.logger {}
 
@@ -39,24 +39,17 @@ class BankingImportJob(
   val bankAccountDao: BankAccountDao,
   val bankAccountRecordDao: BankAccountRecordDao,
   val selectedEntries: List<ImportPairEntry<BankAccountRecord>>,
-) : AbstractJob(
+) : AbstractImportJob(
   translateMsg("plugins.banking.import.job.title", bankAccountDO.name),
   area = "BankingRecordsImport",
   queueName = "bankAccount#${bankAccountDO.id}",
   queueStrategy = QueueStrategy.PER_QUEUE_AND_USER,
   timeoutSeconds = 600,
 ) {
-  val result = ImportStorage.ImportResult()
-
   init {
     totalNumber = selectedEntries.size
     processedNumber = 0
   }
-
-  override val info: String?
-    get() {
-      return super.info
-    }
 
   override suspend fun run() {
     log.info { "Starting import job for bank account records..." }
@@ -92,8 +85,12 @@ class BankingImportJob(
           dbEntry.id = id
           dbEntry.checksum = dbEntry.buildCheckSum()
           dbEntry.isDeleted = false
-          bankAccountRecordDao.update(dbEntry)
-          result.updated += 1
+          val modStatus = bankAccountRecordDao.update(dbEntry)
+          if (modStatus != ModificationStatus.NONE) {
+            result.updated += 1
+          } else {
+            result.unmodified += 1
+          }
         } else {
           bankAccountRecordDao.markAsDeleted(dbEntry)
           result.deleted += 1

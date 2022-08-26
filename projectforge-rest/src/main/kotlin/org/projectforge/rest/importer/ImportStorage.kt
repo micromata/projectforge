@@ -23,16 +23,16 @@
 
 package org.projectforge.rest.importer
 
-import org.projectforge.business.common.ListStatisticsSupport
+import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.ui.UIAlert
-import org.projectforge.ui.UIColor
 
 abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   val importSettings: ImportSettings
 ) {
   private var idCounter = 0
+
+  var lastJobRun: AbstractImportJob? = null
+    protected set
 
   class DisplayOptions(
     var new: Boolean? = true,
@@ -42,19 +42,6 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
     var error: Boolean? = true,
     var unknown: Boolean? = true,
   )
-
-  class ImportResult(errorMessage: String? = null) {
-    var inserted: Int = 0
-    var deleted: Int = 0
-    var updated: Int = 0
-    var errorMessages: List<String>? = null
-
-    init {
-      if (errorMessage != null) {
-        errorMessages = listOf(errorMessage)
-      }
-    }
-  }
 
   /**
    * If the user is able to import data for different target entities, please set the targetEntity here.
@@ -86,6 +73,27 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
   val columnMapping = mutableMapOf<Int, ImportFieldSettings>()
 
   var pairEntries = mutableListOf<ImportPairEntry<O>>()
+
+  private val errors =  mutableListOf<String>()
+
+  val errorList: List<String>
+    get() {
+      synchronized(errors) {
+        return errors.toImmutableList()
+      }
+    }
+
+  fun clearErrors() {
+    synchronized(errors) {
+      errors.clear()
+    }
+  }
+
+  fun addError(error: String) {
+    synchronized(errors) {
+      errors.add(error)
+    }
+  }
 
   /**
    * @return [pairEntries], but with ensured id's.
@@ -124,23 +132,6 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
 
   var displayOptions = DisplayOptions()
 
-  var importResult: ImportResult? = null
-
-  val importResultAsAlert: UIAlert?
-    get() {
-      val markdown = asMarkdown(importResult) ?: return null
-      var color = UIColor.SECONDARY
-      if (importResult?.errorMessages?.isNotEmpty() == true) {
-        color = UIColor.DANGER
-      }
-      return UIAlert(
-        title = "import.result.title",
-        message = "$markdown\n\n",
-        markdown = true,
-        color = color,
-      )
-    }
-
 
   val info: ImportStorageInfo
     get() = ImportStorageInfo(this)
@@ -163,33 +154,4 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
    * Store or skip this entity after the setting of all properties.
    */
   abstract fun commitEntity(obj: O)
-
-  companion object {
-    fun asMarkdown(importResult: ImportStorage.ImportResult?): String? {
-      importResult ?: return null
-      val importStatsSupport = ListStatisticsSupport()
-      importStatsSupport.append(
-        "import.result.numberOfCreated",
-        NumberFormatter.format(importResult.inserted),
-        ListStatisticsSupport.Color.GREEN,
-      )
-      importStatsSupport.append(
-        "import.result.numberOfUpdated",
-        NumberFormatter.format(importResult.updated),
-        ListStatisticsSupport.Color.BLUE,
-      )
-      importStatsSupport.append(
-        "import.result.numberOfDeleted",
-        NumberFormatter.format(importResult.deleted),
-        ListStatisticsSupport.Color.RED,
-      )
-      val msg = StringBuilder()
-      msg.appendLine(importStatsSupport.asMarkdown)
-      importResult.errorMessages?.let {
-        msg.appendLine("### ${translate("errors")}")
-        msg.appendLine(it.joinToString("\n", "- ") { it })
-      }
-      return msg.toString()
-    }
-  }
 }

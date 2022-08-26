@@ -7,7 +7,7 @@ import DynamicProgress from '../../DynamicProgress';
 function CustomizedJobsMonitor(props) {
     const { values } = props;
     const {
-        variables, setVariables, callAction,
+        variables, ui, callAction,
     } = useContext(DynamicLayoutContext);
 
     const {
@@ -48,7 +48,7 @@ function CustomizedJobsMonitor(props) {
     useEffect(() => {
         interval.current = setInterval(
             () => fetchJobsList(),
-            fetchUpdateIntervalRef.current || 1000,
+            fetchUpdateIntervalRef.current || 2000,
         );
         return () => {
             clearInterval(interval.current);
@@ -70,11 +70,14 @@ function CustomizedJobsMonitor(props) {
                         onCancelClick={onCancelClick}
                         cancelConfirmMessage={cancelConfirmMessageRef.current}
                         cancelId={job.cancelId}
+                        info={job.info}
+                        infoColor={job.infoColor}
                     />
                 ))}
+                {!jobs || ui.translations['jobs.monitor.noJobsAvailable'] || 'No current jobs.'}
             </div>
         ),
-        [variables, setVariables],
+        [variables],
     );
 }
 

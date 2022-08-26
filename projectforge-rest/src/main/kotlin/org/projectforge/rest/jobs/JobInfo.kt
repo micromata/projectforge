@@ -77,11 +77,10 @@ class JobInfo(
       }
       job?.let {
         val progressTitle = StringBuilder()
-        progressTitle.append(job.title)
-          .append(" #")
+        progressTitle.append("#")
           .append(NumberFormatter.format(job.id))
           .append(", ")
-          .append(translate("jobs.status.${it.status.name.lowercase()}"))
+          .append(translate(it.status.i18nKey))
           .append(": ")
           .append(NumberFormatter.format(it.processedNumber))
           .append("/")
