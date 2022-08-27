@@ -23,8 +23,10 @@
 
 package org.projectforge.framework.jobs
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -65,13 +67,16 @@ class JobHandler {
     synchronized(jobs) {
       jobs.add(job)
     }
+    val userContext = ThreadLocalUserContext.userContext!!
+    val locale = ThreadLocalUserContext.locale!!
     thread {
       runBlocking {
-        ThreadLocalUserContext
-        //threadLocal.set("main")
-        job.coroutinesJob = launch { // (Dispatchers.Default + threadLocal {  }.asContextElement(value = "launch")) {
-          //val job = launch(Dispatchers.Default + threadLocal.asContextElement(value = "launch")) {
-          //yield()
+        job.coroutinesJob = launch(
+          Dispatchers.Default
+              + ThreadLocalUserContext.getUserAsContextElement(userContext)
+              + ThreadLocalUserContext.getLocaleAsContextElement(locale)
+        ) {
+          yield()
           job.start()
         }
         job.coroutinesJob.join()
