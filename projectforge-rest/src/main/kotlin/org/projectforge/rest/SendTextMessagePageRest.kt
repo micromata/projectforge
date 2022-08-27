@@ -112,7 +112,7 @@ class SendTextMessagePageRest {
   }
 
   fun getInitalMessageText(): String? {
-    return "${ThreadLocalUserContext.getUser()?.getFullname()}. ${translate("address.sendSms.doNotReply")}"
+    return "${ThreadLocalUserContext.user?.getFullname()}. ${translate("address.sendSms.doNotReply")}"
   }
 
 }

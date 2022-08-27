@@ -50,7 +50,7 @@ class PersonalAddressCache : AbstractCache() {
     private var ownersMap = mutableMapOf<Int, Map<Int, PersonalAddressDO>>()
 
     @JvmOverloads
-    fun getByAddressId(addressId: Int, owner: PFUserDO? = ThreadLocalUserContext.getUser()): PersonalAddressDO? {
+    fun getByAddressId(addressId: Int, owner: PFUserDO? = ThreadLocalUserContext.user): PersonalAddressDO? {
         owner?.id?.let { ownerId ->
             return getPersonalAddressList(ownerId)[addressId]
         }
@@ -58,7 +58,7 @@ class PersonalAddressCache : AbstractCache() {
     }
 
     @JvmOverloads
-    fun isPersonalAddress(addressId: Int?, owner: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean {
+    fun isPersonalAddress(addressId: Int?, owner: PFUserDO? = ThreadLocalUserContext.user): Boolean {
         return addressId != null && getByAddressId(addressId, owner)?.isFavorite == true
     }
 

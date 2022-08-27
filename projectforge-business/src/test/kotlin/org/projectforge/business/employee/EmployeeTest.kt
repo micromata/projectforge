@@ -275,7 +275,7 @@ class EmployeeTest : AbstractTestBase() {
                            hrAccess: Boolean = false,
                            groupDao: GroupDao? = null,
                            email: String? = null): EmployeeDO {
-            val loggedInUser = ThreadLocalUserContext.getUser()
+            val loggedInUser = ThreadLocalUserContext.user
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
             val useName = "${test.javaClass.simpleName}.$name"

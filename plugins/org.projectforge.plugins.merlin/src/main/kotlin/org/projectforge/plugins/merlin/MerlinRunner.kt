@@ -182,9 +182,9 @@ open class MerlinRunner {
         dto.pdfExport == true
       )
       if (merlinHandler.dataTransferPluginAvailable()) {
-        val receiver = ThreadLocalUserContext.getUser()
+        val receiver = ThreadLocalUserContext.user!!
         val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.id)
-        val personalBoxFilename = "${DateHelper.getFilenameFormatTimestamp(ThreadLocalUserContext.getTimeZone()).format(Date())}_${runner.zipFilename}"
+        val personalBoxFilename = "${DateHelper.getFilenameFormatTimestamp(ThreadLocalUserContext.timeZone).format(Date())}_${runner.zipFilename}"
         personalBox?.let {
           val description = translate("plugins.merlin.template.dataTransferUsage.resultZip")
           try {
@@ -595,7 +595,7 @@ open class MerlinRunner {
       "#PersonalBoxAsPdf_Description" // This string is also used in MerlinI18nResources.properties.
 
     fun initTemplateRunContext(templateRunContext: TemplateRunContext) {
-      val locale = ThreadLocalUserContext.getLocale()
+      val locale = ThreadLocalUserContext.locale
       templateRunContext.setLocale(DateFormats.getFormatString(DateFormatType.DATE), locale)
     }
   }

@@ -74,14 +74,14 @@ abstract class AbstractRestUserFilter(val userTokenType: UserTokenType) : Filter
     if (log.isDebugEnabled) {
       log.debug("Processing request ${RequestLog.asString(request as HttpServletRequest)}...")
     }
-    ThreadLocalUserContext.getUserContext()?.let { userContext ->
+    ThreadLocalUserContext.userContext?.let { userContext ->
       // Paranoia:
       SecurityLogging.logSecurityWarn(
         request as HttpServletRequest,
         this::class.java,
         "UserContext in ThreadLocal is given on request start!!!!!: ${userContext.user}"
       )
-      ThreadLocalUserContext.setUserContext(null)
+      ThreadLocalUserContext.userContext = null
     }
     restAuthenticationUtils.doFilter(request,
       response,

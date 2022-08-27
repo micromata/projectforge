@@ -143,7 +143,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
     val displayTitle = translate("fibu.rechnung.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Debitor invoices",

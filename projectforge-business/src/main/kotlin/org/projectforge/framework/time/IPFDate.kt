@@ -141,10 +141,10 @@ interface IPFDate<T> : Comparable<T> {
   fun format(formatter: DateTimeFormatter): String
 
   val dayOfWeekAsShortString: String?
-    get() = dayOfWeek.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.getLocale())
+    get() = dayOfWeek.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)
 
   val dayOfWeekAsString: String?
-    get() = dayOfWeek.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.getLocale())
+    get() = dayOfWeek.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)
 
   /**
    * Date part as ISO string: "yyyy-MM-dd" in UTC.

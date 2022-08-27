@@ -213,7 +213,7 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR))
       .add(
         MenuItemDef(MenuItemDefId.VACATION,
-          badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()) })
+          badgeCounter = { vacationMenuCounterCache.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.user) })
       )
       .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
@@ -457,10 +457,10 @@ open class MenuCreator {
       .add(
         MenuItemDef(MenuItemDefId.VACATION_ACCOUNT,
           badgeCounter = {
-            conflictingVacationsCache.numberOfConflicts(ThreadLocalUserContext.getUserId())
+            conflictingVacationsCache.numberOfConflicts(ThreadLocalUserContext.userId!!)
           },
           checkAccess = {
-            vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false)
+            vacationService.hasAccessToVacationService(ThreadLocalUserContext.user, false)
           })
       )
       .add(
@@ -468,7 +468,7 @@ open class MenuCreator {
           checkAccess =
           {
             // The visibility of this menu entry is evaluated by the login handler implementation.
-            Login.getInstance().isPasswordChangeSupported(ThreadLocalUserContext.getUser())
+            Login.getInstance().isPasswordChangeSupported(ThreadLocalUserContext.user)
           })
       )
       .add(
@@ -476,7 +476,7 @@ open class MenuCreator {
           checkAccess =
           {
             // The visibility of this menu entry is evaluated by the login handler implementation.
-            Login.getInstance().isWlanPasswordChangeSupported(ThreadLocalUserContext.getUser())
+            Login.getInstance().isWlanPasswordChangeSupported(ThreadLocalUserContext.user)
           })
       )
       .add(MenuItemDef(MenuItemDefId.USER_LIST)) // Visible for all.

@@ -113,7 +113,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       : ResponseEntity<ResponseAction> {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
-    check(ThreadLocalUserContext.getUserId() == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
+    check(ThreadLocalUserContext.userId == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
     val user = userDao.internalGetById(data.userId)
     user.firstname = data.firstname ?: user.firstname
     user.lastname = data.lastname ?: user.lastname
@@ -127,7 +127,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     user.sshPublicKey = data.sshPublicKey
     userService.updateMyAccount(user)
     data.employee?.let { employee ->
-      val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+      val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.userId)
       check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
       val userId = data.userId
       employeeService.updateAttribute(userId, employee.iban, "iban")
@@ -145,7 +145,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
-    val userId = ThreadLocalUserContext.getUserId()
+    val userId = ThreadLocalUserContext.userId!!
     val user = userDao.getById(userId)
     val data = MyAccountData(userId, user.username, user.firstname, user.lastname, user.mobilePhone)
 
@@ -157,7 +157,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       UserServicesRest.setToken(data, tokenType, authenticationsService.getTokenData(userId, tokenType))
     }
     data.groups = groupService.getGroupnames(userId)
-    data.locale = ThreadLocalUserContext.getLocale() ?: Locale("DEFAULT")
+    data.locale = ThreadLocalUserContext.locale ?: Locale("DEFAULT")
     data.dateFormat = user.dateFormat
     data.excelDateFormat = user.excelDateFormat
     data.timeNotation = user.timeNotation

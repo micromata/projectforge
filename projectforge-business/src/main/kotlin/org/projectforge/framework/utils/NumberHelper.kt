@@ -93,7 +93,7 @@ object NumberHelper {
    */
   @JvmStatic
   fun formatBytes(bytes: Long?): String {
-    return FormatterUtils.formatBytes(bytes, ThreadLocalUserContext.getLocale())
+    return FormatterUtils.formatBytes(bytes, ThreadLocalUserContext.locale!!)
   }
 
   /**
@@ -296,7 +296,7 @@ object NumberHelper {
    */
   @JvmStatic
   fun formatFraction2(value: Number?): String {
-    val locale = ThreadLocalUserContext.getLocale()
+    val locale = ThreadLocalUserContext.locale!!
     val format = getNumberFraction2Format(locale)
     return format.format(value)
   }

@@ -42,11 +42,11 @@ open class TimesheetRecentService {
   private lateinit var timesheetDao: TimesheetDao
 
   open fun getRecentTimesheets(): List<TimesheetRecentEntry> {
-    return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
+    return getRecentTimesheetsQueue(ThreadLocalUserContext.userId!!).recentList ?: emptyList()
   }
 
   open fun getRecentTimesheet(): TimesheetRecentEntry? {
-    return getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).recent
+    return getRecentTimesheetsQueue(ThreadLocalUserContext.userId!!).recent
   }
 
   /**
@@ -61,21 +61,21 @@ open class TimesheetRecentService {
       // Don't append empty entries.
       return
     }
-    getRecentTimesheetsQueue(ThreadLocalUserContext.getUserId()).append(entry)
+    getRecentTimesheetsQueue(ThreadLocalUserContext.userId!!).append(entry)
     if (!entry.location.isNullOrBlank()) {
-      getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).append(entry.location)
+      getRecentLocationsQueue(ThreadLocalUserContext.userId!!).append(entry.location)
     }
     entry.taskId?.let {
-      getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).append(it)
+      getRecentTaskIdsQueue(ThreadLocalUserContext.userId!!).append(it)
     }
   }
 
   open fun getRecentLocations(): List<String> {
-    return getRecentLocationsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
+    return getRecentLocationsQueue(ThreadLocalUserContext.userId!!).recentList ?: emptyList()
   }
 
   open fun getRecentTaskIds(): List<Int> {
-    return getRecentTaskIdsQueue(ThreadLocalUserContext.getUserId()).recentList ?: emptyList()
+    return getRecentTaskIdsQueue(ThreadLocalUserContext.userId!!).recentList ?: emptyList()
   }
 
   private fun getRecentTimesheetsQueue(userId: Int): RecentQueue<TimesheetRecentEntry> {

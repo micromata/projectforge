@@ -56,7 +56,7 @@ class TokenInfoPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("token") token: UserTokenType): FormLayoutData {
-    val userId = ThreadLocalUserContext.getUserId()
+    val userId = ThreadLocalUserContext.userId!!
 
     val data = TokenInfoData(
       authenticationsService.getUserAccessLogEntries(token, userId)?.asText("\n\n"),

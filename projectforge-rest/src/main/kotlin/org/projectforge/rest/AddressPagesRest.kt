@@ -35,7 +35,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -207,7 +207,7 @@ class AddressPagesRest
     val personalAddress = PersonalAddressDO()
     personalAddress.address = address
     personalAddress.isFavoriteCard = dto.isFavoriteCard
-    personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
+    personalAddressDao.setOwner(personalAddress, userId) // Set current logged in user as owner.
     personalAddressDao.saveOrUpdate(personalAddress)
 
     val session = request.getSession(false)

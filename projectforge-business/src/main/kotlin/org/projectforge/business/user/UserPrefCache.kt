@@ -65,7 +65,7 @@ class UserPrefCache : AbstractCache() {
      * be volatile stored in memory and will expire.
      */
     fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true, userId: Int?) {
-        val uid = userId ?: ThreadLocalUserContext.getUserId()
+        val uid = userId ?: ThreadLocalUserContext.userId!!
         if (accessChecker.isDemoUser(uid)) {
             // Store user pref for demo user only in user's session.
             return
@@ -82,7 +82,7 @@ class UserPrefCache : AbstractCache() {
      * Gets all user's entry for given area.
      */
     fun getEntries(area: String): List<UserPrefDO> {
-        val userId = ThreadLocalUserContext.getUserId()
+        val userId = ThreadLocalUserContext.userId!!
         val data = ensureAndGetUserPreferencesData(userId)
         checkRefresh()
         return data.getEntries(area).map { it.userPrefDO }
@@ -92,7 +92,7 @@ class UserPrefCache : AbstractCache() {
      * Gets the user's entry.
      */
     fun getEntry(area: String, name: String): Any? {
-        val userId = ThreadLocalUserContext.getUserId()
+        val userId = ThreadLocalUserContext.userId!!
         return getEntry(userId, area, name)
     }
 
@@ -101,11 +101,11 @@ class UserPrefCache : AbstractCache() {
      */
     @JvmOverloads
     fun <T> getEntry(area: String, name: String, clazz: Class<T>, userId: Int? = null): T? {
-        return getEntry(userId ?: ThreadLocalUserContext.getUserId(), area, name, clazz)
+        return getEntry(userId ?: ThreadLocalUserContext.userId!!, area, name, clazz)
     }
 
     fun removeEntry(area: String, name: String) {
-        val userId = ThreadLocalUserContext.getUserId()
+        val userId = ThreadLocalUserContext.userId!!
         if (accessChecker.isDemoUser(userId)) {
             // Store user pref for demo user only in user's session.
             return
@@ -199,8 +199,8 @@ class UserPrefCache : AbstractCache() {
     @Synchronized
     private fun flushToDB(userId: Int?, checkAccess: Boolean) {
         if (checkAccess) {
-            if (userId != ThreadLocalUserContext.getUserId()) {
-                log.error("User '" + ThreadLocalUserContext.getUserId()
+            if (userId != ThreadLocalUserContext.userId) {
+                log.error("User '" + ThreadLocalUserContext.userId
                         + "' has no access to write user preferences of other user '" + userId + "'.")
                 // No access.
                 return

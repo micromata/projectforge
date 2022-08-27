@@ -112,7 +112,7 @@ object LayoutListFilterUtils {
     }
     pagesRest.addMagicFilterElements(elements)
 
-    elements.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.label })
+    elements.sortWith(compareBy(ThreadLocalUserContext.localeComparator) { it.label })
     elements.forEach { container.add(it as UIElement) }
     return container
   }

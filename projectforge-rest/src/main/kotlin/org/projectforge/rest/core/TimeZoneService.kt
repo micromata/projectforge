@@ -34,7 +34,7 @@ import java.util.*
 @Component
 class TimeZoneService {
     class DisplayTimeZone(val value: String, val label: String) {
-        constructor(timeZone: TimeZone) : this(timeZone.id, "${timeZone.id} (${timeZone.getDisplayName(false, TimeZone.SHORT, ThreadLocalUserContext.getLocale())})")
+        constructor(timeZone: TimeZone) : this(timeZone.id, "${timeZone.id} (${timeZone.getDisplayName(false, TimeZone.SHORT, ThreadLocalUserContext.locale)})")
     }
 
     fun getAllTimeZones(): List<DisplayTimeZone> {
@@ -47,7 +47,7 @@ class TimeZoneService {
     }
 
     fun getTimeZones(timeZoneIds: Array<String>): List<DisplayTimeZone> {
-        val usersLocale = ThreadLocalUserContext.getLocale()
+        val usersLocale = ThreadLocalUserContext.locale
         val comparator = Collator.getInstance(usersLocale)
         val timeZones = timeZoneIds.map { DisplayTimeZone(TimeZone.getTimeZone(it)) }
         return timeZones.sortedWith(compareBy(comparator) { it.label })

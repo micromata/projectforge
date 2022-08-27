@@ -43,7 +43,7 @@ object UserTimeZone {
    */
   @JvmStatic
   @JvmOverloads
-  fun determineUserTimeZone(user: PFUserDO? = ThreadLocalUserContext.getUser()): TimeZone {
+  fun determineUserTimeZone(user: PFUserDO? = ThreadLocalUserContext.user): TimeZone {
     user?.timeZone?.let { timeZone -> return timeZone }
     return instance.defaultTimeZone ?: TimeZone.getDefault()
   }

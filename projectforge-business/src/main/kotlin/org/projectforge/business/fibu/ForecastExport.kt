@@ -113,13 +113,13 @@ open class ForecastExport { // open needed by Wicket.
     val baseDate: PFDay,
     val invoices: List<RechnungDO>
   ) {
-    val excelDateFormat = ThreadLocalUserContext.getUser()?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
+    val excelDateFormat = ThreadLocalUserContext.user?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
     val dateFormat = DateTimeFormatter.ofPattern(DateFormats.getFormatString(DateFormatType.DATE_SHORT))!!
-    val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.getLocale())
+    val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.locale)
     val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")
     val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
     val writerContext =
-      ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.getLocale()), workbook)
+      ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.locale), workbook)
     val orderMap = mutableMapOf<Int, AuftragDO>()
 
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:

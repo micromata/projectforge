@@ -56,7 +56,8 @@ class TimesheetFavoritesService {
       }
     }
 
-    fun hasLegacyFavoritesToMigrate(userId: Int): Boolean {
+    fun hasLegacyFavoritesToMigrate(userId: Int?): Boolean {
+      userId ?: return false
       synchronized(map) {
         map[userId]?.let { return it }
         // Not in cache:
@@ -145,13 +146,13 @@ class TimesheetFavoritesService {
     }
     if (modified) {
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, currentFavorites)
-      migrationCache.refresh(ThreadLocalUserContext.getUserId())
+      migrationCache.refresh(ThreadLocalUserContext.userId)
     }
     return currentFavorites
   }
 
   fun hasLegacyFavoritesToMigrate(): Boolean {
-    return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.getUserId())
+    return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.userId)
   }
 
   private fun hasLegacyFavoritesToMigrate(userId: Int): Boolean {

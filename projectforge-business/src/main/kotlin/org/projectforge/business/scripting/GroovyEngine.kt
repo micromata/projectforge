@@ -66,7 +66,7 @@ class GroovyEngine @JvmOverloads constructor(
   )
       : this(configurationService, mutableMapOf(), locale, timeZone)
 
-  private val locale = locale ?: ThreadLocalUserContext.getLocale()
+  private val locale = locale ?: ThreadLocalUserContext.locale!!
   private val timeZone = timeZone ?: Configuration.instance.defaultTimeZone
   private val htmlFormat = true
   private val groovyExecutor = GroovyExecutor()
@@ -170,7 +170,7 @@ class GroovyEngine @JvmOverloads constructor(
    * @see I18nHelper.getLocalizedMessage
    */
   fun getMessage(messageKey: String?, vararg params: Any?): String {
-    return getLocalizedMessage(locale!!, messageKey, *params)
+    return getLocalizedMessage(locale, messageKey, *params)
   }
 
   /**
@@ -180,7 +180,7 @@ class GroovyEngine @JvmOverloads constructor(
    * @see I18nHelper.getLocalizedString
    */
   fun getI18nString(key: String?): String {
-    val str = getLocalizedMessage(locale!!, key)
+    val str = getLocalizedMessage(locale, key)
     return if (htmlFormat) HtmlHelper.formatText(str, true) else str
   }
 
@@ -286,7 +286,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(i18nEnum: I18nEnum?): String {
     return if (i18nEnum == null) {
       ""
-    } else getLocalizedMessage(locale!!, i18nEnum.i18nKey)
+    } else getLocalizedMessage(locale, i18nEnum.i18nKey)
   }
 
   /**
@@ -342,7 +342,7 @@ class GroovyEngine @JvmOverloads constructor(
   fun getString(value: BigDecimal?): String {
     return if (value == null) {
       ""
-    } else format(value, locale!!)
+    } else format(value, locale)
   }
 
   fun getString(date: LocalDate?): String {

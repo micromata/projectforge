@@ -102,7 +102,7 @@ open class Favorites<T : AbstractFavorite>() {
     add(newFavorite) // If name is already given, a new name is set.
     val userPref = UserPrefDO()
     userPref.area = area
-    userPref.user = ThreadLocalUserContext.getUser()
+    userPref.user = ThreadLocalUserContext.user
     userPref.name = newFavorite.name
     val userPrefEntry = UserPrefEntryDO()
     userPrefEntry.parameter = parameter
@@ -116,7 +116,7 @@ open class Favorites<T : AbstractFavorite>() {
     add(newFavorite) // If name is already given, a new name is set.
     val userPref = UserPrefDO()
     userPref.area = area
-    userPref.user = ThreadLocalUserContext.getUser()
+    userPref.user = ThreadLocalUserContext.user
     userPref.name = newFavorite.name
     userPref.id = newFavorite.id
     userPref.valueObject = newFavorite
@@ -241,7 +241,7 @@ open class Favorites<T : AbstractFavorite>() {
           log.info("User tried to rename user pref with id #$id with name '${userPref.name}', but the new name doesn't differ.")
           return
         }
-        if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.getUserId(), area, newName)) {
+        if (userPrefDao.doesParameterNameAlreadyExist(id, ThreadLocalUserContext.userId, area, newName)) {
           log.warn("User tried to rename user pref with id #$id from '${userPref.name}' into '$newName', but another entry with this name already exist.")
         } else {
           userPref.name = newName

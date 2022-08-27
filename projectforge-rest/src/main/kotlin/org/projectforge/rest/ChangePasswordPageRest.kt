@@ -97,7 +97,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
       : ResponseEntity<ResponseAction> {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
-    val userId = data.userId ?: ThreadLocalUserContext.getUserId()
+    val userId = data.userId ?: ThreadLocalUserContext.userId!!
     val changeOwnPassword = checkChangeOwn(userId)
     if (!Arrays.equals(data.newPassword, data.passwordRepeat)) {
       val validationErrors = listOf(ValidationError.create("user.error.passwordAndRepeatDoesNotMatch"))
@@ -127,7 +127,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     loginPasswordI18nKey: String,
     caller: AbstractDynamicPageRest,
   ): FormLayoutData {
-    val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.getUserId()
+    val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.userId!!
     val changeOwnPassword = checkChangeOwn(userId)
 
     val data = ChangePasswordData(userId)
@@ -180,7 +180,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
   }
 
   private fun checkChangeOwn(userId: Int): Boolean {
-    return if (userId != ThreadLocalUserContext.getUserId()) {
+    return if (userId != ThreadLocalUserContext.userId) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
       false
     } else {

@@ -90,7 +90,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
   }
 
   private fun hasLoggedInUserAccess(ownerUserId: Int, throwException: Boolean = true): Boolean {
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.getUserId()) {
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.userId) {
       return true
     }
     if (throwException) {

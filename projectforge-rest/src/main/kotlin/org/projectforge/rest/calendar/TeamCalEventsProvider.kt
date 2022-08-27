@@ -73,7 +73,7 @@ open class TeamCalEventsProvider() {
     eventFilter.teamCals = teamCalendarIds
     eventFilter.startDate = start.utilDate
     eventFilter.endDate = end.utilDate
-    eventFilter.user = ThreadLocalUserContext.getUser()
+    eventFilter.user = ThreadLocalUserContext.user
     val teamEvents = teamEventDao.getEventList(eventFilter, true) ?: return
     teamEvents.forEach {
       val eventDO: TeamEventDO
@@ -144,7 +144,7 @@ open class TeamCalEventsProvider() {
         }
       }
       if (eventDO.hasRecurrence()) {
-        val recurrenceData = eventDO.getRecurrenceData(ThreadLocalUserContext.getTimeZone())
+        val recurrenceData = eventDO.getRecurrenceData(ThreadLocalUserContext.timeZone)
         val frequency = recurrenceData.frequency
         if (frequency != null) {
           val unitI18nKey = frequency.unitI18nKey

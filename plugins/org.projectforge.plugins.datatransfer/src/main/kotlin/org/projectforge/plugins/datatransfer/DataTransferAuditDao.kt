@@ -77,7 +77,7 @@ open class DataTransferAuditDao {
   open fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
     areaId ?: return null
     val area = dataTransferAreaDao.getById(areaId)
-    val loggedInUser = ThreadLocalUserContext.getUser()
+    val loggedInUser = ThreadLocalUserContext.user
     requireNotNull(loggedInUser)
     if (!dataTransferAreaDao.hasAccess(loggedInUser, area,null, OperationType.SELECT, false)) {
       // User has no select access to given area.

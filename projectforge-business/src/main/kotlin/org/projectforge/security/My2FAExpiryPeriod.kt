@@ -90,7 +90,7 @@ internal class My2FAExpiryPeriod(
    * @return true if the time stamp (epoch ms) of UserContext isn't null and isn't expired.
    */
   internal fun valid(action: String, request: HttpServletRequest? = null): Boolean {
-    var userContext = ThreadLocalUserContext.getUserContext()
+    var userContext = ThreadLocalUserContext.userContext
     if (userContext == null && request != null) {
       userContext = LoginService.getUserContext(request, false)
     }
@@ -111,7 +111,7 @@ internal class My2FAExpiryPeriod(
    * @return Remaining period in ms if last successful 2FA isn't expired, or 0, if 2FA is expired or never done before.
    */
   fun remainingPeriod(): Long {
-    val user = ThreadLocalUserContext.getUserContext()
+    val user = ThreadLocalUserContext.userContext
     val lastSuccessful2FA = user?.lastSuccessful2FA
     val limit = System.currentTimeMillis() - expiryMillis
     return if (lastSuccessful2FA != null && lastSuccessful2FA > limit) {

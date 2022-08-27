@@ -43,7 +43,7 @@ import org.projectforge.ui.UIColor
 abstract class AbstractImportJob(
   title: String,
   area: String? = null,
-  userId: Int? = ThreadLocalUserContext.getUserId(),
+  userId: Int? = ThreadLocalUserContext.userId,
   queueName: String? = null,
   /**
    * If true then jobs of same area, same queueName and same user are queued.
@@ -73,6 +73,7 @@ abstract class AbstractImportJob(
         errorMessages = listOf(errorMessage)
       }
     }
+
     val markdown: String
       get() {
         val md = MarkdownBuilder()
@@ -126,8 +127,10 @@ abstract class AbstractImportJob(
    */
   override val info: String
     get() {
-      var sb = StringBuilder()
+      val sb = StringBuilder()
       sb.append(super.info)
+        .appendLine()
+        .append(result.markdown)
       return sb.toString()
     }
 }

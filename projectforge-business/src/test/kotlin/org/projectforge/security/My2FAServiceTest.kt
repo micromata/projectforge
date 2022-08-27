@@ -48,7 +48,7 @@ class My2FAServiceTest : AbstractTestBase() {
       "User has no authenticator token, so OTP validation should fail."
     )
     userAuthenticationsService.createNewAuthenticatorToken() // Will update last successful 2FA (otherwise use will not see his 2FA settings.
-    ThreadLocalUserContext.getUserContext().lastSuccessful2FA = null // So delete it for the next test.
+    ThreadLocalUserContext.userContext!!.lastSuccessful2FA = null // So delete it for the next test.
     Assertions.assertEquals(
       OTPCheckResult.FAILED,
       my2FAService.validateAuthenticatorOTP("123456"),

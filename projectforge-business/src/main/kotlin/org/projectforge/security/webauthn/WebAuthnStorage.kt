@@ -41,7 +41,7 @@ class WebAuthnStorage {
   private lateinit var webAuthnEntryDao: WebAuthnEntryDao
 
   fun store(entry: WebAuthnEntryDO) {
-    entry.owner = ThreadLocalUserContext.getUser()
+    entry.owner = ThreadLocalUserContext.user
     webAuthnEntryDao.upsert(entry)
   }
 
@@ -50,12 +50,12 @@ class WebAuthnStorage {
   }
 
   fun load(credentialId: String): WebAuthnEntryDO? {
-    val owner = ThreadLocalUserContext.getUser()
+    val owner = ThreadLocalUserContext.user!!
     return webAuthnEntryDao.getEntry(owner.id, credentialId)
   }
 
   fun loadAll(ownerId: Int? = null): List<WebAuthnEntryDO> {
-    return webAuthnEntryDao.getEntries(ownerId ?: ThreadLocalUserContext.getUserId())
+    return webAuthnEntryDao.getEntries(ownerId ?: ThreadLocalUserContext.userId)
   }
 
   fun updateCounter(credentialId: ByteArray, signCount: Long) {
@@ -63,7 +63,7 @@ class WebAuthnStorage {
   }
 
   fun updateCounter(credentialId: String, signCount: Long) {
-    val owner = ThreadLocalUserContext.getUser()
+    val owner = ThreadLocalUserContext.user!!
     val entry = webAuthnEntryDao.getEntry(owner.id, credentialId)
     requireNotNull(entry) { "Can't update signCount for webauthn entry, because the entry for the owner with credential-id '$credentialId' doesn't exist." }
     entry.signCount = signCount

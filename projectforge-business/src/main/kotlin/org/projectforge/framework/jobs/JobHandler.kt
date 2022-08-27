@@ -67,7 +67,11 @@ class JobHandler {
     }
     thread {
       runBlocking {
-        job.coroutinesJob = launch {
+        ThreadLocalUserContext
+        //threadLocal.set("main")
+        job.coroutinesJob = launch { // (Dispatchers.Default + threadLocal {  }.asContextElement(value = "launch")) {
+          //val job = launch(Dispatchers.Default + threadLocal.asContextElement(value = "launch")) {
+          //yield()
           job.start()
         }
         job.coroutinesJob.join()
@@ -84,7 +88,7 @@ class JobHandler {
     if (job.readAccess()) {
       return job
     }
-    log.warn { "Logged-in user ${ThreadLocalUserContext.getUser()?.username} has no read access to requested job." }
+    log.warn { "Logged-in user ${ThreadLocalUserContext.user?.username} has no read access to requested job." }
     return null
   }
 
@@ -92,7 +96,7 @@ class JobHandler {
     if (job.writeAccess()) {
       internalCancelJob(job)
     }
-    log.warn { "Logged-in user ${ThreadLocalUserContext.getUser()?.username} has no write access to requested job. So job will not be cancelled." }
+    log.warn { "Logged-in user ${ThreadLocalUserContext.user?.username} has no write access to requested job. So job will not be cancelled." }
   }
 
   /**

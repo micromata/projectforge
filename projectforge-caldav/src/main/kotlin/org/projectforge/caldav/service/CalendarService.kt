@@ -54,7 +54,7 @@ class CalendarService {
     private lateinit var teamEventService: TeamEventService
 
     fun getCalendarList(user: User): List<Calendar> {
-        if (user.id != ThreadLocalUserContext.getUserId().toLong()) {
+        if (user.id != ThreadLocalUserContext.userId!!.toLong()) {
             throw AccessException("Logged-in user differs from the user requested.")
         }
         val calendars = teamCalDao.getList(BaseSearchFilter())

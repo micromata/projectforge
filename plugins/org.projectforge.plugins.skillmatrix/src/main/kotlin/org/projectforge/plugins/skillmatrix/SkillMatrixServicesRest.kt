@@ -70,7 +70,7 @@ class SkillMatrixServicesRest {
   fun exportFavoritesExcel(): ResponseEntity<Any> {
     log.info("Exporting skill matrix as Excel file.")
 
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
       val boldFont = workbook.createOrGetFont("bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)
@@ -90,7 +90,7 @@ class SkillMatrixServicesRest {
         sheet.setColumnWidth(it.ordinal, it.width * 256)
       }
       sheet.setAutoFilter()
-      val ownSkills = skillEntryDao.getSkills(ThreadLocalUserContext.getUser())
+      val ownSkills = skillEntryDao.getSkills(ThreadLocalUserContext.user!!)
       skillStatisticsCache.statistics.forEach { stats ->
         val row = sheet.createRow()
         if (ownSkills.any { it.normalizedSkill == SkillEntryDO.getNormalizedSkill(stats.skill) }) {

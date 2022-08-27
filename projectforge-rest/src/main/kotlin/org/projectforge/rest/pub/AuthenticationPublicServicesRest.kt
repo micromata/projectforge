@@ -32,7 +32,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.model.rest.UserObject
-import org.projectforge.rest.Authentication
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.security.SecurityLogging
@@ -111,7 +110,7 @@ open class AuthenticationPublicServicesRest {
      * Internal usage for test cases.
      */
     internal open fun createTemporaryToken(): String {
-        val uid = ThreadLocalUserContext.getUserId()
+        val uid = ThreadLocalUserContext.userId!!
         return createTemporaryToken(uid, System.currentTimeMillis())
     }
 

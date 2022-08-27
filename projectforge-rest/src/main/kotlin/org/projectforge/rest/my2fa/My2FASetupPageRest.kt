@@ -246,10 +246,10 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val user = userDao.internalGetById(ThreadLocalUserContext.getUserId())
+    val user = userDao.internalGetById(ThreadLocalUserContext.userId)
     user.mobilePhone = mobilePhone
     userDao.internalUpdate(user)
-    ThreadLocalUserContext.getUser()?.mobilePhone = mobilePhone // Update for showing the button 'send sms'
+    ThreadLocalUserContext.user?.mobilePhone = mobilePhone // Update for showing the button 'send sms'
     my2FASetupMenuBadge.refreshUserBadgeCounter()
     return UIToast.createToastResponseEntity(
       translate("operation.updated"), color = UIColor.SUCCESS, targetType = TargetType.UPDATE,
@@ -416,7 +416,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
         } else {
           val queryURL = TimeBased2FA.standard.getAuthenticatorUrl(
             authenticatorKey,
-            ThreadLocalUserContext.getUser().username!!,
+            ThreadLocalUserContext.user!!.username!!,
             domainService.plainDomain ?: "unknown"
           )
           val barcodeUrl = BarcodeServicesRest.getBarcodeGetUrl(queryURL)

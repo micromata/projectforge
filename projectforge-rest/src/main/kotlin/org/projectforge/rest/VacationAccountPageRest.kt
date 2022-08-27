@@ -135,10 +135,10 @@ class VacationAccountPageRest {
       // 1st any given user by request param is used,
       // 2nd the last chosen user from the user's preferences or, if none given:
       // 3rd the current loggedin user himself.
-      searchEmployeeId ?: getUserPref().employeeId ?: ThreadLocalUserContext.getUserContext().employeeId
+      searchEmployeeId ?: getUserPref().employeeId ?: ThreadLocalUserContext.userContext!!.employeeId
     } else {
       // For non HR users, only the user himself is assumed.
-      ThreadLocalUserContext.getUserContext().employeeId;
+      ThreadLocalUserContext.userContext!!.employeeId;
     }
     val employee = employeeDao.internalGetById(employeeId)
 
@@ -236,7 +236,7 @@ class VacationAccountPageRest {
       statistics = statistics,
       vacations = vacations,
       workingHoursStatistics = vacationService.getAverageWorkingTimeStats(
-        employee.user ?: ThreadLocalUserContext.getUser(), PFDay.fromOrNull(employee.eintrittsDatum)
+        employee.user ?: ThreadLocalUserContext.user!!, PFDay.fromOrNull(employee.eintrittsDatum)
       ).localizedMessage
     )
 

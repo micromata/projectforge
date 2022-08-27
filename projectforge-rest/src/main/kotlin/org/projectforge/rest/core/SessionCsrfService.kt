@@ -63,9 +63,9 @@ open class SessionCsrfService
     request: HttpServletRequest, postData: PostData<*>, logAction: String = "Modification"
   ): ResponseEntity<ResponseAction>? {
     val csrfToken = postData.serverData?.csrfToken
-    if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.getUserContext()?.loggedInByAuthenticationToken == true) {
+    if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.userContext?.loggedInByAuthenticationToken == true) {
       if (log.isDebugEnabled) {
-        log.debug { "User '${ThreadLocalUserContext.getUser()?.username}' logged in by rest call, not by session." }
+        log.debug { "User '${ThreadLocalUserContext.user?.username}' logged in by rest call, not by session." }
       }
       return null
     }

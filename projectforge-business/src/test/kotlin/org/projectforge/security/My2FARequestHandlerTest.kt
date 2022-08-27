@@ -86,7 +86,7 @@ class My2FARequestHandlerTest {
     val user = PFUserDO()
     ThreadLocalUserContext.setUser(user)
     Assertions.assertEquals(0L, handler.getRemainingPeriod4WriteAccess("user"))
-    ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+    ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
     checkRemainingPeriod(handler.getRemainingPeriod4WriteAccess("user"), 1)
     checkRemainingPeriod(handler.getRemainingPeriod("/wa/incomingInvoice"), 720)
     Assertions.assertNull(handler.getRemainingPeriod4WriteAccess("timesheet"))

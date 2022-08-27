@@ -249,8 +249,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       title = translate("plugins.merlin.serial.template.download"),
     )
     serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "base"))
-    if (UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.getUserId())
-      || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.getUserId())
+    if (UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
+      || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
     ) {
       serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "employees"))
       serialExceutionMenu.add(createSerialExcelDownloadMenu(id, "users"))
@@ -341,8 +341,8 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   }
 
   private fun addUsers(sheet: ExcelSheet) {
-    val access = UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.getUserId())
-        || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.getUserId())
+    val access = UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
+        || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
     if (!access) {
       return
     }
@@ -363,7 +363,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   }
 
   private fun addEmployees(sheet: ExcelSheet) {
-    val hrAccess = UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.getUserId())
+    val hrAccess = UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
     if (hrAccess) {
       registerColumn(sheet, "staffNumber", "fibu.employee.staffNumber")
     }

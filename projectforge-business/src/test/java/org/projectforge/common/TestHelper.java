@@ -23,7 +23,6 @@
 
 package org.projectforge.common;
 
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 

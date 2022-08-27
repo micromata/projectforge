@@ -49,7 +49,7 @@ open class WebAuthnEntryDao {
     val credentialId = entry.credentialId
     requireNotNull(ownerId) { "Owner must be given for upsert of entry." }
     requireNotNull(credentialId) { "Credential id must be given." }
-    require(entry.owner?.id == ThreadLocalUserContext.getUserId())
+    require(entry.owner?.id == ThreadLocalUserContext.userId)
     val dbObj = findExistingEntry(entry)
     if (dbObj != null) {
       dbObj.copyDataFrom(entry)
@@ -79,7 +79,7 @@ open class WebAuthnEntryDao {
    * (security paranoia).
    */
   open fun getEntryById(id: Int): WebAuthnEntryDO {
-    val loggedInUser = ThreadLocalUserContext.getUser()
+    val loggedInUser = ThreadLocalUserContext.user
     requireNotNull(loggedInUser) { "Logged-in user is required for getting an entry by id." }
     val result = ensureUniqueResult<WebAuthnEntryDO>(
       em.createNamedQuery(WebAuthnEntryDO.FIND_BY_ID, WebAuthnEntryDO::class.java)
@@ -95,7 +95,7 @@ open class WebAuthnEntryDao {
     if (ownerId == null) {
       return emptyList()
     }
-    val loggedInUserId = ThreadLocalUserContext.getUserId()
+    val loggedInUserId = ThreadLocalUserContext.userId
     require(loggedInUserId == null || loggedInUserId == ownerId) { "Can only get WebAuthn entries for logged-in user #$loggedInUserId, not for other user #$ownerId" }
     return em.createNamedQuery(WebAuthnEntryDO.FIND_BY_OWNER, WebAuthnEntryDO::class.java)
       .setParameter("ownerId", ownerId)
@@ -108,7 +108,7 @@ open class WebAuthnEntryDao {
     val ownerId = entry?.owner?.id
     // Don't tell the user if the WebAuthn entry of a foreign user exists (security paranoia)
     requireNotNull(ownerId) { "Can't delete WebAuthn entry, no such entry found or logged-in-user isn't the owner." }
-    require(entry.owner?.id == ThreadLocalUserContext.getUserId()) { "Owner is only allowed to delete own WebAuthn entries." }
+    require(entry.owner?.id == ThreadLocalUserContext.userId) { "Owner is only allowed to delete own WebAuthn entries." }
     em.remove(entry)
     em.flush()
   }

@@ -57,17 +57,17 @@ class MenuRest {
 
   @GetMapping
   fun getMenu(): Menus {
-    val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
+    val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.user!!))
     val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
 
     val myAccountMenu = Menu()
-    val userNameItem = MenuItem("username", ThreadLocalUserContext.getUser()?.getFullname(), key = "MY_MENU")
+    val userNameItem = MenuItem("username", ThreadLocalUserContext.user!!.getFullname(), key = "MY_MENU")
     myAccountMenu.add(userNameItem)
     userNameItem.add(MenuItem(MenuItemDefId.FEEDBACK))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_2FA_SETUP, badgeCounter = { my2FASetupMenuBadge.badgeCounter }))
     if (!accessChecker.isRestrictedUser) {
-      if (ThreadLocalUserContext.getUserContext().employeeId != null) {
+      if (ThreadLocalUserContext.userContext!!.employeeId != null) {
         userNameItem.add(MenuItem(MenuItemDefId.VACATION_ACCOUNT))
       }
       menuCreator.personalMenuPluginEntries.forEach { menuItemDef ->

@@ -82,7 +82,7 @@ open class My2FAService {
    */
   val userConfigured2FA: Boolean
     get() {
-      ThreadLocalUserContext.getUser()?.let { user ->
+      ThreadLocalUserContext.user?.let { user ->
         if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
           return true
         }
@@ -138,7 +138,7 @@ open class My2FAService {
         if (token == code) {
           bruteForceProtection.registerOTPSuccess()
           log.info { "Successful OTP check (via SMS or e-mail)." }
-          ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+          ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
           return OTPCheckResult.SUCCESS
         } else {
           failed = true
@@ -180,7 +180,7 @@ open class My2FAService {
     val authenticatorToken = userAuthenticationsService.getAuthenticatorToken()
     if (authenticatorToken == null) {
       if (!suppressNoTokenWarnings) {
-        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.getUser()?.username}', no authenticator token configured." }
+        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.user?.username}', no authenticator token configured." }
       }
       return OTPCheckResult.NOT_CONFIGURED
     }
@@ -193,7 +193,7 @@ open class My2FAService {
     }
     log.info { "Successful OTP check (via authenticator app)." }
     // Update last
-    ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+    ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
     bruteForceProtection.registerOTPSuccess()
     return OTPCheckResult.SUCCESS
   }
@@ -216,7 +216,7 @@ open class My2FAService {
   fun checklastSuccessful2FA(
     timePeriod: Long,
     unit: Unit,
-    user: UserContext? = ThreadLocalUserContext.getUserContext()
+    user: UserContext? = ThreadLocalUserContext.userContext
   ): Boolean {
     val lastSuccessful2FA = user?.lastSuccessful2FA ?: return false
     val timeAgo = when (unit) {
@@ -235,7 +235,7 @@ open class My2FAService {
     if (disabledGroupIds.isNullOrEmpty()) {
       return false
     }
-    val user = userContext?.user ?: ThreadLocalUserContext.getUser()
+    val user = userContext?.user ?: ThreadLocalUserContext.user
     requireNotNull(user)
     val userGroups =
       UserGroupCache.getInstance().getUserGroups(user) ?: return false // User without groups shouldn't occur.
@@ -245,7 +245,7 @@ open class My2FAService {
 
   companion object {
     fun getLastSuccessful2FAAsTimeAgo(): String? {
-      return ThreadLocalUserContext.getUserContext()?.lastSuccessful2FA?.let {
+      return ThreadLocalUserContext.userContext?.lastSuccessful2FA?.let {
         TimeAgo.getMessage(Date(it), maxUnit = TimeUnit.DAY)
       }
     }

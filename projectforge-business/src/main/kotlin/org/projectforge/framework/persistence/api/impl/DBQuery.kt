@@ -110,7 +110,7 @@ open class DBQuery {
                                                      historSearchParams: DBHistorySearchParams,
                                                      checkAccess: Boolean)
             : List<O> {
-        val loggedInUser = ThreadLocalUserContext.getUser()
+        val loggedInUser = ThreadLocalUserContext.user
 
         val list = mutableListOf<O>()
         var next: O? = dbResultIterator.next() ?: return list

@@ -72,8 +72,8 @@ open class UserServicesRest {
   ): ResponseEntity<*> {
     sessionCsrfService.validateCsrfToken(request, postData, "Renewing Token")?.let { return it }
     val tokenType = UserTokenType.valueOf(tokenString)
-    userAuthenticationsService.renewToken(ThreadLocalUserContext.getUserId(), tokenType)
-    val newToken = userAuthenticationsService.getToken(ThreadLocalUserContext.getUserId(), tokenType)
+    userAuthenticationsService.renewToken(ThreadLocalUserContext.userId!!, tokenType)
+    val newToken = userAuthenticationsService.getToken(ThreadLocalUserContext.userId!!, tokenType)
 
     renewToken(postData.data, tokenType, newToken)
 

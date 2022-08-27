@@ -132,7 +132,7 @@ object DateFormats {
    */
   @JvmStatic
   @JvmOverloads
-  fun getFormatString(format: DateFormatType?, user: PFUserDO? = ThreadLocalUserContext.getUser()): String {
+  fun getFormatString(format: DateFormatType?, user: PFUserDO? = ThreadLocalUserContext.user): String {
     return getFormatString(ensureAndGetDefaultDateFormat(user), ensureAndGetDefaultTimeNotation(user), format)
   }
 
@@ -147,11 +147,11 @@ object DateFormats {
   @JvmOverloads
   fun getDateTimeFormatter(
     format: DateFormatType?,
-    user: PFUserDO? = ThreadLocalUserContext.getUser()
+    user: PFUserDO? = ThreadLocalUserContext.user
   ): DateTimeFormatter {
     val formatString = getFormatString(ensureAndGetDefaultDateFormat(user), ensureAndGetDefaultTimeNotation(user), format)
-    return DateTimeFormatter.ofPattern(formatString, ThreadLocalUserContext.getLocale())
-      .withZone(ThreadLocalUserContext.getZoneId())
+    return DateTimeFormatter.ofPattern(formatString, ThreadLocalUserContext.locale)
+      .withZone(ThreadLocalUserContext.zoneId)
   }
 
   /**
@@ -159,7 +159,7 @@ object DateFormats {
    *
    * @return
    */
-  private fun ensureAndGetDefaultDateFormat(user: PFUserDO? = ThreadLocalUserContext.getUser()): String {
+  private fun ensureAndGetDefaultDateFormat(user: PFUserDO? = ThreadLocalUserContext.user): String {
     var defaultDateFormat = user?.dateFormat
     if (defaultDateFormat == null) {
       defaultDateFormat = instance.defaultDateFormat
@@ -177,13 +177,13 @@ object DateFormats {
    */
   @JvmStatic
   @JvmOverloads
-  fun ensureAndGetDefaultTimeNotation(user: PFUserDO? = ThreadLocalUserContext.getUser()): TimeNotation? {
+  fun ensureAndGetDefaultTimeNotation(user: PFUserDO? = ThreadLocalUserContext.user): TimeNotation? {
     var defaultTimeNotation = user?.timeNotation
     if (defaultTimeNotation == null) {
       defaultTimeNotation = if (ConfigurationServiceAccessor.get().defaultTimeNotation != null) {
         ConfigurationServiceAccessor.get().defaultTimeNotation
       } else {
-        val locale = ThreadLocalUserContext.getLocale()
+        val locale = ThreadLocalUserContext.locale
         if (locale != null && locale.toString().lowercase(Locale.getDefault()).startsWith("de")) {
           TimeNotation.H24
         } else {
@@ -203,7 +203,7 @@ object DateFormats {
    * @return
    */
   private fun ensureAndGetDefaultExcelDateFormat(): String {
-    val user = ThreadLocalUserContext.getUser()
+    val user = ThreadLocalUserContext.user
     var defaultExcelDateFormat = user?.excelDateFormat
     if (defaultExcelDateFormat == null) {
       defaultExcelDateFormat = instance.defaultExcelDateFormat

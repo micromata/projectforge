@@ -53,7 +53,7 @@ object TestSetup {
     user.dateFormat = "dd.MM.yyyy"
     user.locale = Locale("de", "DE")
     user.firstDayOfWeek = DayOfWeek.MONDAY
-    ThreadLocalUserContext.setUserContext(createTestInstance(user))
+    ThreadLocalUserContext.userContext = createTestInstance(user)
     ConfigXmlTest.createTestConfiguration()
     ConfigurationServiceAccessor.internalInitJunitTestMode()
     return user

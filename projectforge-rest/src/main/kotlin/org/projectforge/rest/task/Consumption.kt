@@ -113,7 +113,7 @@ class Consumption(
       if (maxDays == null && usage.compareTo(BigDecimal.ZERO) == 0) {
         return null
       }
-      val locale = ThreadLocalUserContext.getLocale()
+      val locale = ThreadLocalUserContext.locale
       val usageStr = NumberHelper.getNumberFractionFormat(locale, usage.scale()).format(usage)
       val unitStr = translate("projectmanagement.personDays.short")
       val maxValueStr =

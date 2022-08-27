@@ -44,7 +44,7 @@ class MemoPagesRest() : AbstractDOPagesRest<MemoDO, MemoDao>(MemoDao::class.java
      */
     override fun newBaseDO(request: HttpServletRequest?): MemoDO {
         val memo = super.newBaseDO(request)
-        memo.owner = ThreadLocalUserContext.getUser()
+        memo.owner = ThreadLocalUserContext.user
         return memo
     }
 

@@ -47,7 +47,7 @@ class UserLocaleTest {
       // 5. The given default locale.
       Assertions.assertEquals(Locale.FRANCE, UserLocale.determineUserLocale(defaultLocale = Locale.FRANCE))
       // 4. The locale set in ThreadLocal for public services without given user, if given: [ThreadLocalUserContext.getLocale]
-      ThreadLocalUserContext.setLocale(Locale.CHINA)
+      ThreadLocalUserContext.locale = Locale.CHINA
       Assertions.assertEquals(Locale.CHINA, UserLocale.determineUserLocale(defaultLocale = Locale.FRANCE))
       // 3. For a given user the clientLocale, if given: [PFUserDO.clientLocale]
       val user = PFUserDO()
