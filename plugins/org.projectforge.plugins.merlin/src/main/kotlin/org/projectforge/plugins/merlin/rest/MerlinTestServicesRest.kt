@@ -136,7 +136,7 @@ class MerlinTestServicesRest {
   ): ResponseEntity<*> {
     val dto = MerlinTemplate()
     dto.name = translate(titleKey)
-    dto.admins = listOf(User(ThreadLocalUserContext.getUser()))
+    dto.admins = listOf(User(ThreadLocalUserContext.user!!))
     dto.fileNamePattern = fileNamePattern
     dto.stronglyRestrictedFilenames = true
     if (merlinHandler.dataTransferPluginAvailable()) {

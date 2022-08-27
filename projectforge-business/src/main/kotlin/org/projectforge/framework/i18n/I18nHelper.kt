@@ -67,7 +67,7 @@ object I18nHelper {
   @JvmStatic
   fun getLocalizedMessage(i18nKey: String?, vararg params: Any?): String {
     i18nKey ?: return "???"
-    return getLocalizedMessage(ThreadLocalUserContext.getLocale(), i18nKey, *params)
+    return getLocalizedMessage(ThreadLocalUserContext.locale, i18nKey, *params)
   }
 
   @JvmStatic
@@ -89,7 +89,7 @@ object I18nHelper {
   }
 
   private fun getLocalizedString(locale: Locale?, i18nKey: String): String {
-    val lc = locale ?: ThreadLocalUserContext.getLocale()
+    val lc = locale ?: ThreadLocalUserContext.locale!!
     for (bundleName in BUNDLE_NAMES) {
       val translation = getLocalizedString(bundleName, lc, i18nKey)
       if (translation != null) {

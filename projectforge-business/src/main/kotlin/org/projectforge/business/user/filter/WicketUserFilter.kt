@@ -67,14 +67,14 @@ class WicketUserFilter : Filter {
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
     request as HttpServletRequest
-    ThreadLocalUserContext.getUserContext()?.let { userContext ->
+    ThreadLocalUserContext.userContext?.let { userContext ->
       // Paranoia:
       SecurityLogging.logSecurityWarn(
         request,
         this::class.java,
         "UserContext in ThreadLocal is given on request start!!!!!: ${userContext.user}"
       )
-      ThreadLocalUserContext.setUserContext(null)
+      ThreadLocalUserContext.userContext = null
     }
     if (log.isDebugEnabled) {
       log.debug("doFilter ${request.requestURI}: ${request.getSession(false)?.id}")
@@ -84,7 +84,7 @@ class WicketUserFilter : Filter {
       val userContext = loginService.checkLogin(request, response)
       val user = userContext?.user
       if (user != null) {
-        ThreadLocalUserContext.setUserContext(userContext)
+        ThreadLocalUserContext.userContext = userContext
         //if (!userContext.getSecondFARequiredAfterLogin() && my2FARequestHandler.handleRequest(request, response)) {
         if (my2FARequestHandler.handleRequest(request, response) == null) {
           // No 2FA is required:
@@ -110,7 +110,7 @@ class WicketUserFilter : Filter {
         response.sendRedirect("/react/public/login?url=$url")
       }
     } finally {
-      ThreadLocalUserContext.setUserContext(null)
+      ThreadLocalUserContext.userContext = null
       if (log.isDebugEnabled) {
         logDebugRequest(request)
       }

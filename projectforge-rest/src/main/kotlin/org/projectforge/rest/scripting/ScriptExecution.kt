@@ -122,11 +122,11 @@ class ScriptExecution {
     recentScriptCalls.append(scriptCallData)
 
     val initData = prepareScriptInit(script, scriptDao, scriptPagesRest)
-    val saveUserContext = ThreadLocalUserContext.getUserContext()
+    val saveUserContext = ThreadLocalUserContext.userContext
     val scriptExecutionResult = try {
       scriptDao.execute(initData.scriptDO, parameters, initData.additionalVariables, initData.myImports)
     } finally {
-      ThreadLocalUserContext.setUserContext(saveUserContext) // If script was executed as.
+      ThreadLocalUserContext.userContext = saveUserContext // If script was executed as.
     }
     if (scriptExecutionResult.hasException()) {
       scriptExecutionResult.scriptLogger.error(scriptExecutionResult.exception.toString())

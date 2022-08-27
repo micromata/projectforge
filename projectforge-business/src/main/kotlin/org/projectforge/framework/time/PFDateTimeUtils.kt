@@ -102,7 +102,7 @@ class PFDateTimeUtils {
          */
         @JvmStatic
         fun getUTCBeginOfDay(date: Date?): Date? {
-            return getUTCBeginOfDay(date, ThreadLocalUserContext.getTimeZone()).utilDate
+            return getUTCBeginOfDay(date, ThreadLocalUserContext.timeZone).utilDate
         }
 
         /**
@@ -110,7 +110,7 @@ class PFDateTimeUtils {
          */
         @JvmStatic
         fun getUTCBeginOfDayTimestamp(date: Date?): Timestamp? {
-            return getUTCBeginOfDay(date, ThreadLocalUserContext.getTimeZone()).sqlTimestamp
+            return getUTCBeginOfDay(date, ThreadLocalUserContext.timeZone).sqlTimestamp
         }
 
         /**
@@ -240,7 +240,7 @@ class PFDateTimeUtils {
          */
         @JvmStatic
         fun ensureUsersDateTimeFormat(dateFormatType: DateFormatType): DateTimeFormatter {
-            return DateTimeFormatter.ofPattern(DateFormats.getFormatString(dateFormatType), ThreadLocalUserContext.getLocale())
+            return DateTimeFormatter.ofPattern(DateFormats.getFormatString(dateFormatType), ThreadLocalUserContext.locale)
         }
 
         /**

@@ -48,7 +48,6 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class MonthlyEmployeeReportForm
     extends AbstractStandardForm<MonthlyEmployeeReportFilter, MonthlyEmployeeReportPage>

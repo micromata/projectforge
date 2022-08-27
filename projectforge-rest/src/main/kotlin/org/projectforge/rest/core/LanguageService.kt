@@ -34,7 +34,7 @@ import java.util.*
 @Component
 class LanguageService {
     class Language(val value: String, val label: String) {
-        constructor(locale: Locale) : this(locale.toString(), locale.getDisplayName(ThreadLocalUserContext.getLocale()))
+        constructor(locale: Locale) : this(locale.toString(), locale.getDisplayName(ThreadLocalUserContext.locale))
     }
 
     fun getAllLanguages(): List<Language> {
@@ -47,14 +47,14 @@ class LanguageService {
     }
 
     fun getLanguages(locales: Iterable<Locale>): List<Language> {
-        val usersLocale = ThreadLocalUserContext.getLocale()
+        val usersLocale = ThreadLocalUserContext.locale
         val comparator = Collator.getInstance(usersLocale)
         val languages = locales.map { Language(it.toString(), it.getDisplayName(usersLocale)) }
         return languages.sortedWith(compareBy(comparator) { it.label })
     }
 
     fun getLanguage(locale: Locale): Language {
-        val userslocale = ThreadLocalUserContext.getLocale()
+        val userslocale = ThreadLocalUserContext.locale
         return Language(locale.toString(), locale.getDisplayName(userslocale))
     }
 }

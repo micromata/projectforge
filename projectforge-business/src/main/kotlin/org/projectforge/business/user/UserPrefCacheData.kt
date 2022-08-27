@@ -58,7 +58,7 @@ internal class UserPrefCacheData {
                 val userPref = UserPrefDO()
                 userPref.area = area
                 userPref.name = name
-                userPref.user = ThreadLocalUserContext.getUser()
+                userPref.user = ThreadLocalUserContext.user
                 cacheEntry = CacheEntry(userPref, persistent, true)
                 entries.add(cacheEntry)
             }

@@ -56,7 +56,7 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractJob(
   val title: String,
   val area: String? = null,
-  val userId: Int? = ThreadLocalUserContext.getUserId(),
+  val userId: Int? = ThreadLocalUserContext.userId,
   val queueName: String? = null,
   /**
    * If true then jobs of same area, same queueName and same user are queued.
@@ -263,11 +263,11 @@ abstract class AbstractJob(
   /**
    * Default implementation is to call [writeAccess]
    */
-  open fun readAccess(user: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean {
+  open fun readAccess(user: PFUserDO? = ThreadLocalUserContext.user): Boolean {
     return writeAccess(user)
   }
 
-  abstract fun writeAccess(user: PFUserDO? = ThreadLocalUserContext.getUser()): Boolean
+  abstract fun writeAccess(user: PFUserDO? = ThreadLocalUserContext.user): Boolean
 
   override fun compareTo(other: AbstractJob): Int {
     if (id == other.id) {

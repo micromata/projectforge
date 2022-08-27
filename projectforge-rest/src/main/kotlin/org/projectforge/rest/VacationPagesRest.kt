@@ -100,7 +100,7 @@ class VacationPagesRest :
     val vacation = getUserPref()
     val result = Vacation()
     var employeeDO: EmployeeDO? = null
-    if (vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
+    if (vacationDao.hasHrRights(ThreadLocalUserContext.user)) {
       val employeeId = NumberHelper.parseInteger(request?.getParameter("employee"))
       if (employeeId != null) {
         employeeDO = employeeService.getById(employeeId)
@@ -110,7 +110,7 @@ class VacationPagesRest :
     }
     if (employeeDO == null) {
       // For non HR staff members, choose always the logged in employee:
-      employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId())
+      employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.userId)
     }
     result.employee = createEmployee(employeeDO!!)
     vacation.manager?.let { result.manager = createEmployee(it) }
@@ -270,14 +270,14 @@ class VacationPagesRest :
    */
   override fun createEditLayout(dto: Vacation, userAccess: UILayout.UserAccess): UILayout {
     val employeeCol = UICol(6)
-    if (vacationDao.hasHrRights(ThreadLocalUserContext.getUser())) {
+    if (vacationDao.hasHrRights(ThreadLocalUserContext.user)) {
       employeeCol.add(lc, "employee")
     } else {
       employeeCol.add(UIReadOnlyField("employee.displayName", label = "vacation.employee"))
     }
     val obj = VacationDO()
     dto.copyTo(obj)
-    val availableStatusValues = vacationDao.getAllowedStatus(ThreadLocalUserContext.getUser(), obj)
+    val availableStatusValues = vacationDao.getAllowedStatus(ThreadLocalUserContext.user!!, obj)
     val layout = super.createEditLayout(dto, userAccess)
       .add(
         UIRow()

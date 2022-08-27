@@ -82,7 +82,7 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker?,
     subPath: String? = null
   ): List<Attachment>? {
-    val loggedInUser = ThreadLocalUserContext.getUser()
+    val loggedInUser = ThreadLocalUserContext.user
     accessChecker?.checkSelectAccess(loggedInUser, path = path, id = id, subPath = subPath)
     return internalGetAttachments(path, id, subPath)?.filter {
       accessChecker?.hasAccess(
@@ -124,7 +124,7 @@ open class AttachmentsService {
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null
   ): Attachment? {
-    accessChecker.checkSelectAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
+    accessChecker.checkSelectAccess(ThreadLocalUserContext.user, path = path, id = id, subPath = subPath)
     val fileObject = repoService.getFileInfo(
       getPath(path, id),
       subPath ?: DEFAULT_NODE,
@@ -153,7 +153,7 @@ open class AttachmentsService {
     )
       ?: return null
     accessChecker.checkDownloadAccess(
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       path = path,
       id = id,
       file = fileObject,
@@ -195,7 +195,7 @@ open class AttachmentsService {
       fileId = fileId
     ) ?: return null
     accessChecker.checkDownloadAccess(
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       path = path,
       id = id,
       file = fileObject,
@@ -219,14 +219,14 @@ open class AttachmentsService {
         dbObj = baseDao.internalGetById(id)
       }
       if (baseDao is AttachmentsEventListener) {
-        baseDao.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, dbObj, ThreadLocalUserContext.getUser(), userString)
+        baseDao.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, dbObj, ThreadLocalUserContext.user, userString)
       }
     }
     attachmentsEventListener?.onAttachmentEvent(
       AttachmentsEventType.DOWNLOAD,
       fileObject,
       data,
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       userString
     )
     return Pair(fileObject, inputStream)
@@ -315,11 +315,11 @@ open class AttachmentsService {
     data: Any? = null
   ): Attachment {
     developerWarning(path, id, "addAttachment", enableSearchIndex)
-    accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = id, subPath = subPath)
+    accessChecker.checkUploadAccess(ThreadLocalUserContext.user, path = path, id = id, subPath = subPath)
     repoService.ensureNode(null, getPath(path, id))
     val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileInfo = fileInfo)
     fileObject.aesEncrypted = !password.isNullOrBlank()
-    val user = userString ?: ThreadLocalUserContext.getUserId()!!.toString()
+    val user = userString ?: ThreadLocalUserContext.userId!!.toString()
     repoService.storeFile(
       fileObject,
       inputStream,
@@ -361,7 +361,7 @@ open class AttachmentsService {
     allowDuplicateFiles: Boolean = false,
   )
       : Attachment {
-    accessChecker.checkUploadAccess(ThreadLocalUserContext.getUser(), path = path, id = obj.id, subPath = subPath)
+    accessChecker.checkUploadAccess(ThreadLocalUserContext.user, path = path, id = obj.id, subPath = subPath)
     val attachments = getAttachments(path, obj.id, null, subPath)
     if (!allowDuplicateFiles) {
       attachments?.forEach { attachment ->
@@ -402,7 +402,7 @@ open class AttachmentsService {
       : Boolean {
     developerWarning(path, id, "deleteAttachment", enableSearchIndex)
     accessChecker.checkDeleteAccess(
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       path = path,
       id = id,
       fileId = fileId,
@@ -428,7 +428,7 @@ open class AttachmentsService {
   )
       : Boolean {
     accessChecker.checkDeleteAccess(
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       path = path,
       id = obj.id,
       fileId = fileId,
@@ -490,7 +490,7 @@ open class AttachmentsService {
       : FileObject? {
     developerWarning(path, id, "changeProperty", enableSearchIndex)
     accessChecker.checkUpdateAccess(
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       path = path,
       id = id,
       fileId = fileId,
@@ -499,7 +499,7 @@ open class AttachmentsService {
     val fileObject = FileObject(getPath(path, id), subPath ?: DEFAULT_NODE, fileId = fileId)
     return repoService.changeFileInfo(
       fileObject,
-      user = ThreadLocalUserContext.getUserId()!!.toString(),
+      user = ThreadLocalUserContext.userId!!.toString(),
       newFileName = newFileName,
       newDescription = newDescription,
       updateLastUpdateInfo = updateLastUpdateInfo,
@@ -528,7 +528,7 @@ open class AttachmentsService {
     )
       : FileObject? {
     accessChecker.checkUpdateAccess(
-      ThreadLocalUserContext.getUser(),
+      ThreadLocalUserContext.user,
       path = path,
       id = obj.id,
       fileId = fileId,
@@ -537,7 +537,7 @@ open class AttachmentsService {
     val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
     val result = repoService.changeFileInfo(
       fileObject,
-      ThreadLocalUserContext.getUserId()?.toString() ?: userString!!,
+      ThreadLocalUserContext.userId?.toString() ?: userString!!,
       newFileName,
       newDescription,
       updateLastUpdateInfo = updateLastUpdateInfo,
@@ -610,7 +610,7 @@ open class AttachmentsService {
         dbObj.attachmentsLastUserAction = lastUserAction
       }
       if (baseDao is AttachmentsEventListener) {
-        baseDao.onAttachmentEvent(event, fileInfo, dbObj, ThreadLocalUserContext.getUser(), userString)
+        baseDao.onAttachmentEvent(event, fileInfo, dbObj, ThreadLocalUserContext.user, userString)
       }
       // Without access checking, because there is no logged-in user or access checking is already done by caller.
       baseDao.internalUpdateAny(dbObj)

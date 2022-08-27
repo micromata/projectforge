@@ -71,7 +71,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.writeStringField("date", PFDateTime.now().isoString)
         jgen.writeStringField("app", ProjectForgeVersion.APP_ID)
         jgen.writeStringField("version", ProjectForgeVersion.VERSION_STRING)
-        jgen.writeStringField("user", ThreadLocalUserContext.getUser().username)
+        jgen.writeStringField("user", ThreadLocalUserContext.user!!.username)
         jgen.writeArrayFieldStart("database")
         val session = sessionFactory.openSession()
         session.use {

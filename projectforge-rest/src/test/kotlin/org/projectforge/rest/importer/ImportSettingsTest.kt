@@ -41,7 +41,7 @@ class ImportSettingsTest: AbstractTestBase() { // AbstractTestBase needed for ge
   @Test
   fun parseFieldSettingsTest() {
     ThreadLocalUserContext.clear()
-    ThreadLocalUserContext.setLocale(Locale.ENGLISH)
+    ThreadLocalUserContext.locale = Locale.ENGLISH
     checkValues("", emptyArray(), emptyArray())
     checkValues("alias ", arrayOf("alias"), emptyArray())
     checkValues(":dd.MM.yyyy | | ", emptyArray(), arrayOf("dd.MM.yyyy"))

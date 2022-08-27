@@ -53,7 +53,7 @@ class AdminRest() {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val userPref = UserXmlPreferencesDO()
         userPref.serializedSettings = serializedSettings
-        val result = userXmlPreferencesDao.deserialize(ThreadLocalUserContext.getUserId(), userPref, true)
+        val result = userXmlPreferencesDao.deserialize(ThreadLocalUserContext.userId, userPref, true)
         return JsonUtils.toJson(result)
     }
 }

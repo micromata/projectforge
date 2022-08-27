@@ -87,11 +87,11 @@ open class VacationSendMailService {
       }
     }
     val vacationer = vacationInfo.employeeUser!!
-    if (vacationer.id != ThreadLocalUserContext.getUserId()) {
+    if (vacationer.id != ThreadLocalUserContext.userId) {
       sendMail(vacationInfo, operationType, VacationMode.OWN, vacationer)
     }
     val manager = vacationInfo.managerUser!!
-    if (manager.id != ThreadLocalUserContext.getUserId()) {
+    if (manager.id != ThreadLocalUserContext.userId) {
       sendMail(vacationInfo, operationType, VacationMode.MANAGER, manager)
     }
     val replacements = mutableSetOf<PFUserDO>()
@@ -185,7 +185,7 @@ open class VacationSendMailService {
   @Suppress("HasPlatformType", "MemberVisibilityCanBePrivate", "unused")
   internal class VacationInfo(employeeDao: EmployeeDao, val vacation: VacationDO) {
     val link = getLinkToVacationEntry(vacation.id)
-    val modifiedByUser = ThreadLocalUserContext.getUser()
+    val modifiedByUser = ThreadLocalUserContext.user!!
     val modifiedByUserFullname = modifiedByUser.getFullname()
     val modifiedByUserMail = modifiedByUser.email
     val employeeUser = employeeDao.internalGetById(vacation.employee?.id)?.user

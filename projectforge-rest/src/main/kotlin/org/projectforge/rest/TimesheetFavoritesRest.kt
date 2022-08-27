@@ -115,7 +115,7 @@ class TimesheetFavoritesRest {
   @GetMapping("delete")
   fun delete(@RequestParam("id", required = true) id: Int): Map<String, Any> {
     timsheetFavoritesService.deleteFavorite(id)
-    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.getUserId())
+    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.userId!!)
     return mapOf("timesheetFavorites" to getList())
   }
 
@@ -125,7 +125,7 @@ class TimesheetFavoritesRest {
     @RequestParam("newName", required = true) newName: String
   ): Map<String, Any> {
     timsheetFavoritesService.renameFavorite(id, newName)
-    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.getUserId())
+    timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.userId!!)
     return mapOf("timesheetFavorites" to getList())
   }
 

@@ -49,7 +49,7 @@ class LocaleFilter : Filter {
     try {
       // LoginService.getUser is only given for public services on 2FA check on login.
       val locale = UserLocale.determineUserLocale(LoginService.getUser(request as HttpServletRequest), request = request)
-      ThreadLocalUserContext.setLocale(locale)
+      ThreadLocalUserContext.locale = locale
       chain.doFilter(request, response)
     } finally {
       ThreadLocalUserContext.clear()

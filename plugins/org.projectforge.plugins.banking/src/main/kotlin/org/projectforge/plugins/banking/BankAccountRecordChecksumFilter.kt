@@ -21,30 +21,26 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web
+package org.projectforge.plugins.banking
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.time.PFDateCompatibilityUtils
-import org.projectforge.test.TestSetup
-import java.time.DayOfWeek
+import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-class ThreadLocalUserContextTest {
+class BankAccountRecordChecksumFilter(val sync: Sync) : CustomResultFilter<PFUserDO> {
+  enum class Sync(val key: String) : I18nEnum {
+    ALL("filter.all"), LOCAL_GROUP("user.localUser"), NORMAL_GROUP("user.localUser.not");
 
-    @Test
-    fun firstDayOfWeekTest() {
-        Assertions.assertEquals(1, ThreadLocalUserContext.firstDayOfWeekValue)
-        Assertions.assertEquals(DayOfWeek.MONDAY, ThreadLocalUserContext.firstDayOfWeek)
-        Assertions.assertEquals(1, PFDateCompatibilityUtils.getCompatibilityDayOfWeekSunday0Value(ThreadLocalUserContext.firstDayOfWeek))
-    }
+    /**
+     * @return The full i18n key including the i18n prefix "book.type.".
+     */
+    override val i18nKey: String
+      get() = key
+  }
 
-    companion object {
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            TestSetup.init()
-        }
-    }
+  override fun match(list: MutableList<PFUserDO>, element: PFUserDO): Boolean {
+    return sync == Sync.ALL ||
+        sync == Sync.LOCAL_GROUP && element.localUser ||
+        sync == Sync.NORMAL_GROUP && !element.localUser
+  }
 }

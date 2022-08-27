@@ -215,7 +215,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
   override fun getListForSearchDao(filter: BaseSearchFilter): List<TimesheetDO>? {
     val timesheetFilter = TimesheetFilter(filter)
     if (filter.modifiedByUserId == null) {
-      timesheetFilter.userId = ThreadLocalUserContext.getUserId()
+      timesheetFilter.userId = ThreadLocalUserContext.userId
     }
     return getList(timesheetFilter)
   }
@@ -695,7 +695,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     checkLoggedInUserSelectAccess()
     val oneYearAgo = now().minusDays(365)
     return em.createNamedQuery(TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING, String::class.java)
-      .setParameter("userId", ThreadLocalUserContext.getUserId())
+      .setParameter("userId", ThreadLocalUserContext.userId)
       .setParameter("lastUpdate", oneYearAgo.utilDate)
       .setParameter("locationSearch", "%" + StringUtils.lowerCase(searchString) + "%")
       .resultList
@@ -725,7 +725,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     checkLoggedInUserSelectAccess()
     log.info("Get recent locations from the database.")
     return em.createNamedQuery(TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE, String::class.java)
-      .setParameter("userId", ThreadLocalUserContext.getUserId())
+      .setParameter("userId", ThreadLocalUserContext.userId)
       .setParameter("lastUpdate", sinceDate)
       .resultList
   }

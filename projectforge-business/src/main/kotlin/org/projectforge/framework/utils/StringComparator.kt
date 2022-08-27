@@ -78,7 +78,7 @@ object StringComparator {
      */
     @JvmStatic
     @JvmOverloads
-    fun compare(s1: String?, s2: String?, asc: Boolean = true, locale: Locale = ThreadLocalUserContext.getLocale()): Int {
+    fun compare(s1: String?, s2: String?, asc: Boolean = true, locale: Locale = ThreadLocalUserContext.locale!!): Int {
         if (s1 == null) {
             return if (s2 == null)
                 0

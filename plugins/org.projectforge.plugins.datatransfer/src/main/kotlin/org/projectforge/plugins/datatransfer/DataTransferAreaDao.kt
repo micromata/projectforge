@@ -93,7 +93,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
 
   open fun createInitializedFile(): DataTransferAreaDO {
     val file = DataTransferAreaDO()
-    file.adminIds = "${ThreadLocalUserContext.getUserId()}"
+    file.adminIds = "${ThreadLocalUserContext.userId}"
     file.observerIds = file.adminIds
     file.externalAccessToken = generateExternalAccessToken()
     file.externalPassword = generateExternalPassword()
@@ -130,7 +130,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     filter: QueryFilter,
     customResultFilters: MutableList<CustomResultFilter<DataTransferAreaDO>>?
   ): List<DataTransferAreaDO> {
-    val loggedInUserId = ThreadLocalUserContext.getUserId()
+    val loggedInUserId = ThreadLocalUserContext.userId
     // Don't search for personal boxes of other users (they will be added afterwards):
     filter.add(
       DBPredicate.Or(

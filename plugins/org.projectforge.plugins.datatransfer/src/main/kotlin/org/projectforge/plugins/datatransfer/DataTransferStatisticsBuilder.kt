@@ -46,7 +46,7 @@ open class DataTransferStatisticsBuilder(
   private val groupService: GroupService
 ) : SystemsStatisticsBuilderInterface {
   override fun addStatisticsEntries(stats: SystemStatisticsData) {
-    if (!accessChecker.isUserMemberOfAdminGroup(ThreadLocalUserContext.getUser())) {
+    if (!accessChecker.isUserMemberOfAdminGroup(ThreadLocalUserContext.user)) {
       // Do nothing for non-admins.
       return
     }

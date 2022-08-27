@@ -148,7 +148,7 @@ class My2FAServicesRest {
    * Updates the time stamp of the last succesful 2FA as cookie as well as in the user's session.
    */
   fun updateCookieAndSession(request: HttpServletRequest, response: HttpServletResponse) {
-    ThreadLocalUserContext.getUserContext().lastSuccessful2FA?.let { lastSuccessful2FA ->
+    ThreadLocalUserContext.userContext!!.lastSuccessful2FA?.let { lastSuccessful2FA ->
       cookieService.addLast2FACookie(request, response, lastSuccessful2FA)
       // Store it also in the user's session, e. g. used by public password reset service.
       request.getSession(false)?.setAttribute(SESSION_KEY_LAST_SUCCESSFUL_2FA, lastSuccessful2FA)
@@ -160,7 +160,7 @@ class My2FAServicesRest {
    */
   @GetMapping("sendSmsCode")
   fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
-    val user = ThreadLocalUserContext.getUser()
+    val user = ThreadLocalUserContext.user!!
     val mobilePhone = user.mobilePhone
     if (mobilePhone == null) {
       log.error { "User '${user.username}' tried to send 2FA code as text message, but mobile phone isn't available." }
@@ -180,7 +180,7 @@ class My2FAServicesRest {
    */
   @GetMapping("sendMailCode")
   fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
-    val user = ThreadLocalUserContext.getUser()
+    val user = ThreadLocalUserContext.user!!
     if (user.email.isNullOrBlank()) {
       log.error { "User '${user.username}' tried to send 2FA code as mail, but e-mail address isn't available." }
       return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
@@ -343,7 +343,7 @@ class My2FAServicesRest {
     layout: UILayout,
     codeCol: UICol,
     redirectUrl: String? = null,
-    mobilePhone: String? = ThreadLocalUserContext.getUser()?.mobilePhone,
+    mobilePhone: String? = ThreadLocalUserContext.user?.mobilePhone,
     showCancelButton: Boolean = false,
     mailOTPDisabled: Boolean = false,
     restServiceClass: Class<*>,

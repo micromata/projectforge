@@ -188,7 +188,7 @@ open class AddressExport {
         val row = sheet.createRow()
         ExcelUtils.autoFill(row, address, "communicationLanguage")
         val lang =
-          LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.getLocale())
+          LanguageConverter.getLanguageAsString(address.communicationLanguage, ThreadLocalUserContext.locale)
         row.getCell("communicationLanguage")!!.setCellValue(lang)
         row.getCell("mailingAddressText")!!.setCellValue(address.mailingAddressText)
         row.getCell("mailingAddressText2")!!.setCellValue(address.mailingAddressText2)

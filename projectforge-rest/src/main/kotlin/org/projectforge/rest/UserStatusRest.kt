@@ -115,7 +115,7 @@ open class UserStatusRest {
       employeeId = employeeDao.getEmployeeIdByByUserId(user.id) ?: -1
       user.setTransientAttribute("employeeId", employeeId) // Avoid multiple calls of db
     }
-    val firstDayOfWeek = ThreadLocalUserContext.getFirstDayOfWeek()
+    val firstDayOfWeek = ThreadLocalUserContext.firstDayOfWeek
     val userData = UserData(
       username = user.username,
       organization = user.organization,
@@ -124,8 +124,8 @@ open class UserStatusRest {
       lastName = user.lastname,
       userId = user.id,
       employeeId = employeeId,
-      locale = ThreadLocalUserContext.getLocaleAsString(),
-      timeZone = ThreadLocalUserContext.getTimeZone().id,
+      locale = ThreadLocalUserContext.localeAsString,
+      timeZone = ThreadLocalUserContext.timeZone.id,
       timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),
       dateFormat = DateFormats.getFormatString(DateFormatType.DATE),
       dateFormatShort = DateFormats.getFormatString(DateFormatType.DATE_SHORT),

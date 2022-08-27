@@ -84,7 +84,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
   }
 
   private fun hasLoggedInUserAccess(ownerUserId: Int, throwException: Boolean = true): Boolean {
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.getUserId()) {
+    if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.userId) {
       return true
     }
     if (throwException) {
@@ -188,7 +188,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    * @throws AccessException if logged in user isn't either admin user nor owner of this token.
    */
   open fun getTokenData(userId: Int, type: UserTokenType): UserTokenData? {
-    if (ThreadLocalUserContext.getUserId() != userId) { // Only admin users are able to renew authentication token of other users:
+    if (ThreadLocalUserContext.userId != userId) { // Only admin users are able to renew authentication token of other users:
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     }
     return internalGetTokenData(userId, type)
@@ -217,7 +217,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    * @return The authenticator token of the logged-in user
    */
   open fun internalGetAuthenticatorToken(): String? {
-    val userId = ThreadLocalUserContext.getUserId() ?: return null
+    val userId = ThreadLocalUserContext.userId ?: return null
     val authentications = ensureAuthentications(userId, checkAccess = false)
     if (authentications.authenticatorToken == null) {
       return null
@@ -229,7 +229,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    * @return The authenticator token of the logged-in user
    */
   open fun internalGetAuthenticatorTokenCreationDate(): Date? {
-    val userId = ThreadLocalUserContext.getUserId() ?: return null
+    val userId = ThreadLocalUserContext.userId ?: return null
     val authentications = ensureAuthentications(userId, checkAccess = false)
     return authentications.authenticatorTokenCreationDate
   }
@@ -295,12 +295,12 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    */
   open fun createNewAuthenticatorToken() {
     accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
-    val loggedInUser = ThreadLocalUserContext.getUser()!!
+    val loggedInUser = ThreadLocalUserContext.user!!
     val authentications = ensureAuthentications(loggedInUser.id, false)
     authentications.authenticatorToken = encryptToken(TimeBased2FA.standard.generateSecretKey())
     authentications.authenticatorTokenCreationDate = Date()
     update(authentications)
-    ThreadLocalUserContext.getUserContext()
+    ThreadLocalUserContext.userContext!!
       .updateLastSuccessful2FA() // Otherwise user will not see his authentication key.
     log.info("Authenticator token created for user '${loggedInUser.username}'.")
   }
@@ -310,7 +310,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    */
   open fun clearAuthenticatorToken() {
     accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
-    val loggedInUser = ThreadLocalUserContext.getUser()!!
+    val loggedInUser = ThreadLocalUserContext.user!!
     val authentications = ensureAuthentications(loggedInUser.id, false)
     authentications.authenticatorToken = null
     authentications.authenticatorTokenCreationDate = null

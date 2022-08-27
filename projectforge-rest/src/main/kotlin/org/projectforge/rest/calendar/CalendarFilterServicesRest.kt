@@ -233,7 +233,7 @@ class CalendarFilterServicesRest {
 
   private fun getCalendars(): MutableList<TeamCalendar> {
     val list = teamCalCache.allAccessibleCalendars
-    val userId = ThreadLocalUserContext.getUserId()
+    val userId = ThreadLocalUserContext.userId!!
     val calendars = list.map { teamCalDO ->
       TeamCalendar(teamCalDO, userId, teamCalCache)
     }.toMutableList()
@@ -258,7 +258,7 @@ class CalendarFilterServicesRest {
     }.toMutableList()
     activeCalendars.removeIf { it.id == null } // Access to this calendars is not given (anymore).
 
-    activeCalendars.sortWith(compareBy(ThreadLocalUserContext.getLocaleComparator()) { it.title })
+    activeCalendars.sortWith(compareBy(ThreadLocalUserContext.localeComparator) { it.title })
     return activeCalendars
   }
 
@@ -336,7 +336,7 @@ class CalendarFilterServicesRest {
       currentFilter.timesheetUserId = userId
     } else {
       currentFilter.timesheetUserId = if (userId != null && userId >= 0) {
-        ThreadLocalUserContext.getUserId()
+        ThreadLocalUserContext.userId
       } else {
         null
       }

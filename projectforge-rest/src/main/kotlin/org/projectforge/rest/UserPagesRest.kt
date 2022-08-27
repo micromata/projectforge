@@ -856,7 +856,7 @@ class UserPagesRest
 
     @Suppress("UNCHECKED_CAST")
     val list = getObjectList(this, baseDao, filter)
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("plugins.skillmatrix.title.list"))
       val boldFont = workbook.createOrGetFont("bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("hr", font = boldFont)

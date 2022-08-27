@@ -101,7 +101,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         Assertions.assertNotNull(mail)
         Assertions.assertEquals(1, mail.to.size)
         Assertions.assertEquals(receiver.email, mail.to[0].address)
-        if (receiver.id != ThreadLocalUserContext.getUserId()) {
+        if (receiver.id != ThreadLocalUserContext.userId) {
             Assertions.assertEquals(1, mail.cc.size)
             Assertions.assertEquals(vacationer.email, mail.cc[0].address)
         } else {

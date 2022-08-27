@@ -72,7 +72,7 @@ class TeamCal(var title: String? = null,
         val teamCalDao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao::class.java)
         val accessChecker = ApplicationContextProvider.getApplicationContext().getBean(AccessChecker::class.java)
         val right = teamCalDao.userRight as TeamCalRight
-        val loggedInUserId = ThreadLocalUserContext.getUserId()
+        val loggedInUserId = ThreadLocalUserContext.userId
         accessStatus = when {
             right.isOwner(loggedInUserId, src) -> CalendarAccessStatus.OWNER
             right.hasFullAccess(src, loggedInUserId) -> CalendarAccessStatus.FULL_ACCESS

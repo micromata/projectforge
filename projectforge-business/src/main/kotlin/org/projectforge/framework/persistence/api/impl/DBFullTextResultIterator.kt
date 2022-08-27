@@ -86,7 +86,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     }
 
     override fun sort(list: List<O>): List<O> {
-        val collator = Collator.getInstance(ThreadLocalUserContext.getLocale())
+        val collator = Collator.getInstance(ThreadLocalUserContext.locale)
         val errorProperties = mutableListOf<String>()
         return list.sortedWith(object : Comparator<O> {
             override fun compare(o1: O, o2: O): Int {

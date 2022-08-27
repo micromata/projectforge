@@ -75,7 +75,7 @@ class PFDayUtils {
 
         @JvmStatic
         fun getFirstDayOfWeek(): DayOfWeek {
-            return ThreadLocalUserContext.getFirstDayOfWeek()
+            return ThreadLocalUserContext.firstDayOfWeek!!
         }
 
         /**
@@ -283,7 +283,7 @@ class PFDayUtils {
             }
             // Try to parse with time of day, but use local date in user's time zone independant of given time zone.
             // e. g. Fronend sends 2019-10-04T22:00:00.000Z in user's time zone Europe/Berlin. This should result in 1999-10-05.
-            date = PFDateTimeUtils.parse(dateString)?.withZoneSameInstant(ThreadLocalUserContext.getZoneId())?.localDate
+            date = PFDateTimeUtils.parse(dateString)?.withZoneSameInstant(ThreadLocalUserContext.zoneId)?.localDate
             return date
         }
 

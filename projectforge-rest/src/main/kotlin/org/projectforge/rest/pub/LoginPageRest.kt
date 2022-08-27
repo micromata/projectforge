@@ -79,7 +79,7 @@ open class LoginPageRest {
       UILayout("login.title")
         .add(
           UIAlert(
-            translate(ThreadLocalUserContext.getLocale(), "login.successful"),
+            translate(ThreadLocalUserContext.locale, "login.successful"),
             color = UIColor.INFO,
             icon = UIIconType.INFO
           )

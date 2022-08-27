@@ -173,7 +173,7 @@ class WebAuthnServicesRest {
       userHandle = userHandle,
     )
     if (result.success) {
-      ThreadLocalUserContext.getUserContext().updateLastSuccessful2FA()
+      ThreadLocalUserContext.userContext!!.updateLastSuccessful2FA()
       my2FAServicesRest.updateCookieAndSession(request, httpResponse)
     }
     return result
@@ -181,7 +181,7 @@ class WebAuthnServicesRest {
 
   private val loggedInUser: WebAuthnUser
     get() {
-      val user = ThreadLocalUserContext.getUser()
+      val user = ThreadLocalUserContext.user
       requireNotNull(user)
       val userId = user.id
       requireNotNull(userId)

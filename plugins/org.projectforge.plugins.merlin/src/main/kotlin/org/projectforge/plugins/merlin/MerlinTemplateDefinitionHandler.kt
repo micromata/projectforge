@@ -115,7 +115,7 @@ open class MerlinTemplateDefinitionHandler {
     val fileObject = attPair.first
     istream.use {
       val reader = TemplateDefinitionExcelReader()
-      ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.getLocale()).use { workBook ->
+      ExcelWorkbook(istream, fileObject.fileName ?: "undefined", ThreadLocalUserContext.locale!!).use { workBook ->
         val def = reader.readFromWorkbook(workBook, false)
         // log.info("Template definition: ${ToStringUtil.toJsonString(def)}")
         return def

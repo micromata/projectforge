@@ -54,7 +54,7 @@ object UserLocale {
   @JvmStatic
   @JvmOverloads
   fun determineUserLocale(
-    user: PFUserDO? = ThreadLocalUserContext.getUser(),
+    user: PFUserDO? = ThreadLocalUserContext.user,
     defaultLocale: Locale? = null,
     request: HttpServletRequest? = null
   ): Locale {
@@ -103,7 +103,7 @@ object UserLocale {
   @JvmStatic
   @JvmOverloads
   fun determineUserLocaleAsIdentifier(
-    user: PFUserDO? = ThreadLocalUserContext.getUser(),
+    user: PFUserDO? = ThreadLocalUserContext.user,
     defaultLocale: Locale? = null,
     request: HttpServletRequest? = null
   ): String {

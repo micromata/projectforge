@@ -40,7 +40,7 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
     fun accessTest() {
         logon(TEST_FINANCE_USER)
         val otherUser = getUser(TEST_USER)
-        val loggedInUser = ThreadLocalUserContext.getUser()
+        val loggedInUser = ThreadLocalUserContext.user!!
         try {
             userAuthenticationsDao.getByUserId(otherUser.id)
             fail("Access exception exptected.")
@@ -53,15 +53,15 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
         }
-        var authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.getUserId())
+        var authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.userId!!)
         var stayLoggedInKey = authentications!!.getToken(UserTokenType.STAY_LOGGED_IN_KEY)
         val calendarToken = authentications.getToken(UserTokenType.CALENDAR_REST)
         val davToken = authentications.getToken(UserTokenType.DAV_TOKEN)
         val restClientToken = authentications.getToken(UserTokenType.REST_CLIENT)
-        authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.getUserId())
+        authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.userId!!)
         assertTokens(authentications!!, stayLoggedInKey, calendarToken, davToken, restClientToken)
         userAuthenticationsDao.renewToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)
-        authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.getUserId())
+        authentications = userAuthenticationsDao.getByUserId(ThreadLocalUserContext.userId!!)
         Assertions.assertTrue(authentications!!.stayLoggedInKey != stayLoggedInKey)
         stayLoggedInKey = authentications.stayLoggedInKey
         assertTokens(authentications, stayLoggedInKey, calendarToken, davToken, restClientToken)
@@ -81,7 +81,7 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
     @Test
     fun getUserByTokenTest() {
         logon(TEST_USER)
-        val loggedInUser = ThreadLocalUserContext.getUser()
+        val loggedInUser = ThreadLocalUserContext.user!!
         userAuthenticationsDao.getByUserId(loggedInUser.id)
         userAuthenticationsDao.renewToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)
         val stayLoggedInKey = userAuthenticationsDao.getToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)!!
@@ -96,7 +96,7 @@ class UserAuthenticationsDaoTest : AbstractTestBase() {
     @Test
     fun decryptTest() {
         logon(TEST_USER)
-        val loggedInUser = ThreadLocalUserContext.getUser()
+        val loggedInUser = ThreadLocalUserContext.user!!
         val authentications = userAuthenticationsDao.getByUserId(loggedInUser.id)!!
         val stayLoggedInKey = userAuthenticationsDao.getToken(loggedInUser.id, UserTokenType.STAY_LOGGED_IN_KEY)!!
         Assertions.assertNotEquals(stayLoggedInKey, authentications.stayLoggedInKey, "Should be stored as encrypted value.")

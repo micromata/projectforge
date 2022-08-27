@@ -30,10 +30,8 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.ui.ElementsRegistry
-import java.io.Serializable
 
 
 private val log = KotlinLogging.logger {}
@@ -54,7 +52,7 @@ object MultiSelectionExcelExport {
     multiSelectedPage: AbstractMultiSelectedPage<T>
   ): ByteArray {
     log.info("Exporting results of mass update as Excel file.")
-    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.getLocale()).use { workbook ->
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet(translate("massUpdate.result.excel.title"))
       val boldFont = workbook.createOrGetFont("bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("boldStyle")

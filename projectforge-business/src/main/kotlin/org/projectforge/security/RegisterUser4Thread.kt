@@ -41,7 +41,7 @@ object RegisterUser4Thread {
    * @param request
    */
   fun registerUser(userContext: UserContext) {
-    ThreadLocalUserContext.setUserContext(userContext)
+    ThreadLocalUserContext.userContext = userContext
     MDC.put(MDC_USER, userContext.user!!.username)
   }
 

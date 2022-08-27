@@ -239,8 +239,8 @@ open class PFDateTime internal constructor(
    * For filenames (local time of user): yyyy-MM-dd_HH-mm-ss
    */
   fun format4Filenames(): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss", ThreadLocalUserContext.getLocale())
-      .withZone(ThreadLocalUserContext.getZoneId())
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss", ThreadLocalUserContext.locale)
+      .withZone(ThreadLocalUserContext.zoneId)
     return dateTime.format(formatter)
   }
 
@@ -718,15 +718,15 @@ open class PFDateTime internal constructor(
     }
 
     internal fun getUsersZoneId(): ZoneId {
-      return ThreadLocalUserContext.getTimeZone().toZoneId()
+      return ThreadLocalUserContext.timeZone.toZoneId()
     }
 
     internal fun getUsersTimeZone(): TimeZone {
-      return ThreadLocalUserContext.getTimeZone()
+      return ThreadLocalUserContext.timeZone
     }
 
     internal fun getUsersLocale(): Locale {
-      return ThreadLocalUserContext.getLocale()
+      return ThreadLocalUserContext.locale!!
     }
 
     /**

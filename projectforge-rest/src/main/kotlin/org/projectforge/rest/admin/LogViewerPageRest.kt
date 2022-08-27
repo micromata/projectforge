@@ -204,7 +204,7 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
     }
     // Log subscription:
     val logSubscription = LogSubscription.getSubscription(logSubscriptionId) ?: return emptyList()
-    if (logSubscription.user != ThreadLocalUserContext.getUser().username) {
+    if (logSubscription.user != ThreadLocalUserContext.user!!.username) {
       log.warn { "log subscription requested by user is a subscription of another user '${logSubscription.user}'. Access denied." }
       return emptyList()
     }

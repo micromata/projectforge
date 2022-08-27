@@ -270,7 +270,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.getUser().username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
     val displayTitle = translate("fibu.timesheet.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Timesheets",

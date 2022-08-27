@@ -69,7 +69,7 @@ class TimesheetEventsProvider {
     if (timesheetDao.showTimesheetsOfOtherUsers()) {
       tsFilter.userId = userId
     } else {
-      tsFilter.userId = ThreadLocalUserContext.getUserId()
+      tsFilter.userId = ThreadLocalUserContext.userId
     }
     val timesheetUser = UserGroupCache.getInstance().getUser(userId)
     val timesheets = timesheetDao.getList(tsFilter)
@@ -180,7 +180,7 @@ class TimesheetEventsProvider {
         }
         val dayOfYear = day.dayOfYear
         val duration: Long = ctx.getDurationOfDayOfYear(dayOfYear)
-        val firstDayOfWeek = (day.dayOfWeek == ThreadLocalUserContext.getFirstDayOfWeek())
+        val firstDayOfWeek = (day.dayOfWeek == ThreadLocalUserContext.firstDayOfWeek)
         if (!firstDayOfWeek && duration == 0L) {
           day = day.plusDays(1)
           continue
