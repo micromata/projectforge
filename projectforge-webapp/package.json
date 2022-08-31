@@ -32,7 +32,7 @@
     "lodash": "^4.17.21",
     "micromark-extension-gfm-table": "^1.0.5",
     "moment": "^2.29.4",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.35",
     "node-fetch": "^3.2.4",
     "prop-types": "^15.7.2",
     "rc-time-picker": "^3.7.3",
