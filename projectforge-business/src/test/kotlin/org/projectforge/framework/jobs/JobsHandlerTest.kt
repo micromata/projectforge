@@ -27,11 +27,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class JobsHandlerTest {
   @Test
   fun jobExecutionTest() {
+    ThreadLocalUserContext.setUser(PFUserDO())
     val jobHandler = JobHandler()
     var onBeforeCancel = false
     var onAfterCancel = false
@@ -72,6 +74,7 @@ class JobsHandlerTest {
 
   @Test
   fun failureTest() {
+    ThreadLocalUserContext.setUser(PFUserDO())
     val jobHandler = JobHandler()
     var onAfterException = false
     val job = jobHandler.addJob(object : AbstractJob("Sleep job 1.000ms") {

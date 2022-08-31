@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
@@ -49,9 +50,10 @@ class AbstractJobTest {
   }
 
   @Test
-  fun keepTerminatedIntevallTest() {
+  fun keepTerminatedIntervalTest() {
     val jobHandler = JobHandler()
     var onAfterFinishedCalled = false
+    ThreadLocalUserContext.setUser(PFUserDO())
     val job = jobHandler.addJob(object : AbstractJob("job") {
       override suspend fun run() {
         // println("job2")
@@ -88,6 +90,7 @@ class AbstractJobTest {
   @Test
   fun toBeQueuedTest() {
     var job = createJob("job1", "area")
+    job.status = AbstractJob.Status.RUNNING
     var newJob = createJob("job1", "area")
     Assertions.assertFalse(job.isBlocking(newJob))
     newJob = createJob("job1", "area", queueStrategy = AbstractJob.QueueStrategy.PER_QUEUE)
@@ -100,6 +103,7 @@ class AbstractJobTest {
     newJob = createJob("job1", "area", userId = 5, queueStrategy = AbstractJob.QueueStrategy.PER_QUEUE_AND_USER)
     Assertions.assertFalse(job.isBlocking(newJob))
     job = createJob("job1", "area", userId = 5)
+    job.status = AbstractJob.Status.RUNNING
     Assertions.assertTrue(job.isBlocking(newJob))
   }
 
