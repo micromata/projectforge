@@ -38,28 +38,35 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class BankingPlugin : AbstractPlugin(PluginAdminService.PLUGIN_BANKING_ID, "Banking", "You may import and browse your bank accounts here.") {
+class BankingPlugin : AbstractPlugin(
+  PluginAdminService.PLUGIN_BANKING_ID,
+  "Banking",
+  "You may import and browse your bank accounts here."
+) {
+  @Autowired
+  private lateinit var bankAccountDao: BankAccountDao
 
-    @Autowired
-    private lateinit var bankAccountDao: BankAccountDao
+  @Autowired
+  private lateinit var menuCreator: MenuCreator
 
-    @Autowired
-    private lateinit var menuCreator: MenuCreator
+  override fun initialize() {
+    // Register it:
+    register(id, BankAccountDao::class.java, bankAccountDao, "plugins.banking")
 
-    override fun initialize() {
-        // Register it:
-        register(id, BankAccountDao::class.java, bankAccountDao, "plugins.banking")
+    menuCreator.register(
+      MenuItemDefId.FIBU,
+      MenuItemDef(info.id,
+        "plugins.banking.menu",
+        "${Constants.REACT_APP_PATH}bankAccount",
+        checkAccess =
+        { bankAccountDao.hasLoggedInUserSelectAccess(false) }),
+    );
 
-        // Define the access management:
-        registerRight(BankAccountRight(accessChecker))
+    // All the i18n stuff:
+    addResourceBundle(RESOURCE_BUNDLE_NAME)
+  }
 
-        menuCreator.register(MenuItemDefId.FIBU, MenuItemDef(info.id, "plugins.banking.menu", "${Constants.REACT_APP_PATH}bankAccount"));
-
-        // All the i18n stuff:
-        addResourceBundle(RESOURCE_BUNDLE_NAME)
-    }
-
-    companion object {
-        const val RESOURCE_BUNDLE_NAME = "BankingI18nResources"
-    }
+  companion object {
+    const val RESOURCE_BUNDLE_NAME = "BankingI18nResources"
+  }
 }

@@ -127,7 +127,7 @@ class AbstractJobTest {
     userId: Int? = null,
     queueStrategy: AbstractJob.QueueStrategy = AbstractJob.QueueStrategy.NONE,
   ): AbstractJob {
-    return object : AbstractJob(title, area = area, userId = userId, queueStrategy = queueStrategy) {
+    return object : AbstractJob(title, area = area, ownerId = userId, queueStrategy = queueStrategy) {
       override suspend fun run() {
       }
 

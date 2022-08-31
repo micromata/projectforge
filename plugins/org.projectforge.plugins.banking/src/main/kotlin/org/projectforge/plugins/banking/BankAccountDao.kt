@@ -23,7 +23,12 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.business.common.BaseUserGroupRightUtils
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.BaseDaoSupport
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Repository
 
 /**
@@ -35,8 +40,31 @@ import org.springframework.stereotype.Repository
 @Repository
 open class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
 
-  init {
-    userRightId = BankAccountRightId.PLUGIN_BANKING_ACCOUNT
+  override fun hasAccess(
+    user: PFUserDO?,
+    obj: BankAccountDO?,
+    oldObj: BankAccountDO?,
+    operationType: OperationType?,
+    throwException: Boolean
+  ): Boolean {
+    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+      return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
+    }
+    if (accessChecker.isUserMemberOfAdminGroup(user)) {
+      // Admins AND Finance staff have always access.
+      return true
+    }
+    if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
+      // Only access for financial staff.
+      return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
+    }
+    return BaseUserGroupRightUtils.hasAccess(
+      obj = obj,
+      oldObj = oldObj,
+      userId = user?.id,
+      operationType = operationType,
+      throwException = throwException,
+    )
   }
 
   override fun newInstance(): BankAccountDO {

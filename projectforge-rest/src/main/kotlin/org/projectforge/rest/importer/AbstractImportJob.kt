@@ -56,7 +56,7 @@ abstract class AbstractImportJob(
 ) : AbstractJob(
   title = title,
   area = area,
-  userId = userId,
+  ownerId = userId,
   queueName = queueName,
   queueStrategy = queueStrategy,
   timeoutSeconds = timeoutSeconds,
@@ -129,6 +129,7 @@ abstract class AbstractImportJob(
     get() {
       val sb = StringBuilder()
       sb.append(super.info)
+        .appendLine()
         .appendLine()
         .append(result.markdown)
       return sb.toString()

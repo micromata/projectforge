@@ -26,7 +26,6 @@ package org.projectforge.rest.multiselect
 import de.micromata.merlin.excel.ExcelCell
 import de.micromata.merlin.utils.ReplaceUtils
 import mu.KotlinLogging
-import org.apache.poi.ss.formula.functions.T
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.logging.LogSubscription
 import org.projectforge.framework.i18n.translate
@@ -427,7 +426,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
   @PostMapping(URL_PATH_SELECTED)
   fun selected(
     request: HttpServletRequest,
-    @RequestBody selectedIds: AbstractMultiSelectedPage.MultiSelection?
+    @RequestBody selectedIds: MultiSelection?
   ): ResponseEntity<*> {
     MultiSelectionSupport.registerSelectedEntityIds(request, pagesRest::class.java, selectedIds?.selectedIds)
     return ResponseEntity.ok(

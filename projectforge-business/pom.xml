@@ -142,6 +142,11 @@
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-slf4j</artifactId>
+            <version>${kotlin-coroutines-slf4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
             <version>${spring.version}</version>

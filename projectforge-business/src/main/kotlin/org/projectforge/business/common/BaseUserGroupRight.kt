@@ -23,11 +23,9 @@
 
 package org.projectforge.business.common
 
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRightAccessCheck
 import org.projectforge.business.user.UserRightCategory
 import org.projectforge.business.user.UserRightValue
-import org.projectforge.common.StringHelper
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -112,11 +110,19 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
   }
 
   fun isOwner(user: PFUserDO?, obj: T?): Boolean {
-    return user != null && obj != null && isOwner(user.id, obj)
+    return BaseUserGroupRightUtils.isOwner(user, obj)
   }
 
   fun isOwner(userId: Int?, obj: T?): Boolean {
-    return obj != null && userId != null && userId == obj.ownerId
+    return BaseUserGroupRightUtils.isOwner(userId, obj)
+  }
+
+  fun hasReadAccess(obj: T?, userId: Int?, throwException: Boolean = false): Boolean {
+    return BaseUserGroupRightUtils.hasReadAccess(obj, userId, throwException)
+  }
+
+  fun hasWriteAccess(obj: T?, userId: Int?, throwException: Boolean = false): Boolean {
+    return BaseUserGroupRightUtils.hasWriteAccess(obj, userId, throwException)
   }
 
   /**
@@ -124,27 +130,7 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    * [DataobjectAccessType.FULL]. null will never be returned!
    */
   fun getAccessType(obj: T?, userId: Int?): DataobjectAccessType {
-    if (obj == null || userId == null) {
-      return DataobjectAccessType.NONE
-    }
-    if (userId == obj.ownerId) {
-      return DataobjectAccessType.OWNER
-    }
-    var groupIds = StringHelper.splitToIntegers(obj.fullAccessGroupIds, ",")
-    var userIds = StringHelper.splitToIntegers(obj.fullAccessUserIds, ",")
-    if (isMemberOfAny(groupIds, userIds, userId)) {
-      return DataobjectAccessType.FULL
-    }
-    groupIds = StringHelper.splitToIntegers(obj.readonlyAccessGroupIds, ",")
-    userIds = StringHelper.splitToIntegers(obj.readonlyAccessUserIds, ",")
-    if (isMemberOfAny(groupIds, userIds, userId)) {
-      return DataobjectAccessType.READONLY
-    }
-    groupIds = StringHelper.splitToIntegers(obj.minimalAccessGroupIds, ",")
-    userIds = StringHelper.splitToIntegers(obj.minimalAccessUserIds, ",")
-    return if (isMemberOfAny(groupIds, userIds, userId)) {
-      DataobjectAccessType.MINIMAL
-    } else DataobjectAccessType.NONE
+    return BaseUserGroupRightUtils.getAccessType(obj, userId)
   }
 
   fun hasFullAccess(obj: T, userId: Int?): Boolean {
@@ -157,12 +143,5 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
 
   fun hasMinimalAccess(obj: T, userId: Int?): Boolean {
     return getAccessType(obj, userId) == DataobjectAccessType.MINIMAL
-  }
-
-  private fun isMemberOfAny(groupIds: Array<Int>?, userIds: Array<Int?>?, userId: Int): Boolean {
-    if (!groupIds.isNullOrEmpty() && UserGroupCache.getInstance().isUserMemberOfAtLeastOneGroup(userId, *groupIds)) {
-      return true
-    }
-    return userIds?.any { it != null && it == userId } ?: false
   }
 }
