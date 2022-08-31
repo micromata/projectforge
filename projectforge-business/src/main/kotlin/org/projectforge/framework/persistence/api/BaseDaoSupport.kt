@@ -135,7 +135,7 @@ object BaseDaoSupport {
         //   log.info("No modifications detected (no update needed): " + dbObj.toString());
         baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
         em.merge(dbObj)
-          em.flush()
+        em.flush()
         if (baseDao.logDatabaseActions) {
           log.info("${baseDao.clazz.simpleName} updated: $dbObj")
         }
@@ -315,9 +315,14 @@ object BaseDaoSupport {
 
   @JvmStatic
   @JvmOverloads
-  fun returnFalseOrThrowException(throwException: Boolean, msg: String, user: PFUserDO? = null, operationType: OperationType? = null): Boolean {
+  fun returnFalseOrThrowException(
+    throwException: Boolean,
+    user: PFUserDO? = null,
+    operationType: OperationType? = null,
+    msg: String = "access.exception.noAccess",
+  ): Boolean {
     if (throwException) {
-      val ex = AccessException(user, msg)
+      val ex =  AccessException(user, msg, operationType)
       ex.operationType = operationType
       throw ex
     }

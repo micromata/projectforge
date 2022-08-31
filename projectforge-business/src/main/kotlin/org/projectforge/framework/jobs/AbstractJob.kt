@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
  * IMPORTANT: Don't forget to check [isActive] in your import job in every loop to enable cancellation.
  * @param title Human readable title for displaying and logging purposes.
  * @param area Area describing type of job. If [queueStrategy] is true then jobs of same area and same user are queued.
- * @param userId Job is started by this user.
+ * @param ownerId Job is started by this user.
  * @param queueName For queueing strategy you may define multiple queues per area, If not given, only one queue is used
  * per area (and user).
  * @param queueStrategy Should this job be queued if any other job is already running.
@@ -56,7 +56,7 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractJob(
   val title: String,
   val area: String? = null,
-  val userId: Int? = ThreadLocalUserContext.userId,
+  val ownerId: Int? = ThreadLocalUserContext.userId,
   val queueName: String? = null,
   /**
    * If true then jobs of same area, same queueName and same user are queued.
@@ -68,6 +68,8 @@ abstract class AbstractJob(
   timeoutSeconds: Int = 120
 ) : Comparable<AbstractJob> {
   enum class QueueStrategy { NONE, PER_QUEUE, PER_QUEUE_AND_USER }
+
+  enum class ErrorCode { TIMEOUT_WHILE_WAITING }
 
   // Order of status used for ordering job list:
   enum class Status(val key: String) : I18nEnum {
@@ -89,6 +91,11 @@ abstract class AbstractJob(
   var id: Int = ++counter
 
   var exception: Exception? = null
+
+  var errorMessage: String? = null
+
+  val createdTime: Date = Date()
+  val createdTimeMillis = createdTime.time
 
   var startTime: Date? = null
     internal set
@@ -113,13 +120,19 @@ abstract class AbstractJob(
     get() = if (processedNumber < 0 || totalNumber <= 0) 0 else processedNumber * 100 / totalNumber
 
   /**
+   * Checks, if the current logged-in user is the owner (ownerId).
+   */
+  val isOwner: Boolean
+    get() = ThreadLocalUserContext.userId == ownerId
+
+  /**
    * For displaying purposes (e. g. progress, errors etc.). Use pure text or markdown format.
    */
   open val info: String
     get() {
       val md = MarkdownBuilder()
       md.appendPipedValue("status", translate(status.i18nKey)) // user, started, terminated, status, title
-      UserGroupCache.getInstance().getUser(userId)?.let { user ->
+      UserGroupCache.getInstance().getUser(ownerId)?.let { user ->
         md.appendPipedValue("user", user.getFullname())
       }
       startTime?.let { started ->
@@ -178,6 +191,7 @@ abstract class AbstractJob(
         status = Status.FAILED
         log.error("Error while executing job $logInfo: ${ex.message}", ex)
         exception = ex
+        errorMessage = ex.message
         onAfterException(ex)
       }
     }
@@ -189,23 +203,29 @@ abstract class AbstractJob(
    * @param newJob Checks if this job is blocking the given newJob.
    */
   fun isBlocking(newJob: AbstractJob): Boolean {
-    if (newJob.queueStrategy == QueueStrategy.NONE || newJob.status != Status.WAITING && status != Status.RUNNING) {
+    if (newJob.queueStrategy == QueueStrategy.NONE || newJob.status != Status.WAITING || status != Status.RUNNING) {
       // Other job is not marked to be queued or this job isn't running or the other job isn't waiting for RUNNING.
       return false
     }
     if (area != newJob.area) {
       return false
     }
-    return newJob.queueStrategy != QueueStrategy.PER_QUEUE_AND_USER || userId == newJob.userId
+    return newJob.queueStrategy != QueueStrategy.PER_QUEUE_AND_USER || ownerId == newJob.ownerId
   }
 
+  /**
+   * Checks for status running and cancellation.
+   */
   protected val isActive: Boolean
-    get() = this.coroutinesJob.isActive
+    get() = this.status == Status.RUNNING && this.coroutinesJob.isActive
 
-  protected fun markJobAsFailed(ex: Exception? = null) {
+  internal fun markJobAsFailed(ex: Exception? = null, errorMessage: String? = ex?.message) {
     status = Status.FAILED
     if (ex != null) {
       exception = ex
+    }
+    if (errorMessage != null) {
+      this.errorMessage = errorMessage
     }
   }
 
@@ -221,6 +241,11 @@ abstract class AbstractJob(
    */
   open fun onAfterCancel() {}
 
+  /**
+   * Job failed.
+   */
+  open fun onAfterFailure(error: ErrorCode) {}
+
   open fun onAfterFinish() {}
 
   open fun onAfterException(ex: Exception) {}
@@ -235,7 +260,7 @@ abstract class AbstractJob(
       queueName.let {
         sb.append(", queueName=$it")
       }
-      userId.let {
+      ownerId.let {
         sb.append(", user=$it")
       }
       sb.append(", title=$title")
@@ -273,8 +298,11 @@ abstract class AbstractJob(
     if (id == other.id) {
       return 0 // Equals
     }
-    if (status == Status.RUNNING || other.status == Status.RUNNING && status != other.status) {
+    if ((status == Status.RUNNING || other.status == Status.RUNNING) && status != other.status) {
       return if (status == Status.RUNNING) -1 else 1 // Show running jobs first.
+    }
+    if ((status == Status.WAITING || other.status == Status.WAITING) && status != other.status) {
+      return if (status == Status.WAITING) -1 else 1 // Show waiting jobs second.
     }
     compare(startTime, other.startTime).let { if (it != 0) return it }
     compare(terminatedTime, other.terminatedTime).let { if (it != 0) return it }
@@ -294,7 +322,7 @@ abstract class AbstractJob(
       .append("id", id)
       .append("title", title)
       .append("area", area)
-      .append("userId", userId)
+      .append("userId", ownerId)
       .append("status", status)
       .append("startTime", startTime?.toString())
       .append("terminatedTime", terminatedTime?.toString())

@@ -41,7 +41,7 @@ class BankingImportJob(
   translateMsg("plugins.banking.import.job.title", bankAccountDO.name),
   area = "BankingRecordsImport",
   queueName = "bankAccount#${bankAccountDO.id}",
-  queueStrategy = QueueStrategy.PER_QUEUE_AND_USER,
+  queueStrategy = QueueStrategy.PER_QUEUE,
   timeoutSeconds = 600,
 ) {
   init {
@@ -96,11 +96,11 @@ class BankingImportJob(
 
   override fun readAccess(user: PFUserDO?): Boolean {
     user ?: return false
-    return bankAccountDao.hasUserSelectAccess(user, bankAccountDO, false)
+    return isOwner || bankAccountDao.hasUserSelectAccess(user, bankAccountDO, false)
   }
 
   override fun writeAccess(user: PFUserDO?): Boolean {
     user ?: return false
-    return bankAccountDao.hasUpdateAccess(user, bankAccountDO, bankAccountDO, false)
+    return isOwner || bankAccountDao.hasUpdateAccess(user, bankAccountDO, bankAccountDO, false)
   }
 }

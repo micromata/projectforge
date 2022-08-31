@@ -23,10 +23,8 @@
 
 package org.projectforge.framework.jobs
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
+import kotlinx.coroutines.*
+import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -50,11 +48,10 @@ class JobHandler {
       }
     }
     terminatedJobs.forEach { job ->
-      job.terminatedTimeMillis.let {
-        if (it == null || System.currentTimeMillis() - it > KEEP_TERMINATED_JOBS_INTERVALL_MS) {
-          synchronized(jobs) {
-            jobs.remove(job)
-          }
+      val time = job.terminatedTimeMillis ?: job.startTimeMillis ?: job.createdTimeMillis
+      if (System.currentTimeMillis() - time > KEEP_TERMINATED_JOBS_INTERVALL_MS) {
+        synchronized(jobs) {
+          jobs.remove(job)
         }
       }
     }
@@ -69,18 +66,47 @@ class JobHandler {
     }
     val userContext = ThreadLocalUserContext.userContext!!
     val locale = ThreadLocalUserContext.locale!!
+    val mdcContext = MDCContext() // For MDC context of logger.
     thread {
+      var start = false
       runBlocking {
         job.coroutinesJob = launch(
           Dispatchers.Default
               + ThreadLocalUserContext.getUserAsContextElement(userContext)
               + ThreadLocalUserContext.getLocaleAsContextElement(locale)
+              + mdcContext
         ) {
-          yield()
-          job.start()
+          for (i in 0..10000) {// Paranoia counter (wait time max 10.000s)
+            var blocked = false
+            synchronized(jobs) {
+              for (other in jobs) {
+                if (other != job && other.isBlocking(job)) {
+                  blocked = true
+                  break
+                }
+              }
+            }
+            if (blocked) {
+              job.status = AbstractJob.Status.WAITING
+              delay(1000);
+            } else {
+              start = true
+              break
+            }
+          }
+          if (start) {
+            yield()
+            job.start()
+          }
         }
-        job.coroutinesJob.join()
-        job.onFinish()
+        if (start) {
+          job.coroutinesJob.join()
+          job.onFinish()
+        } else {
+          log.error { "Couldn't start job due to long running job(s) blocking this job: ${job.logInfo}" }
+          job.markJobAsFailed(errorMessage = "jobs.error.waitingTimeExceeded")
+          job.onAfterFailure(error = AbstractJob.ErrorCode.TIMEOUT_WHILE_WAITING)
+        }
       }
     }
     return job
@@ -100,8 +126,9 @@ class JobHandler {
   fun cancelJob(job: AbstractJob) {
     if (job.writeAccess()) {
       internalCancelJob(job)
+    } else {
+      log.warn { "Logged-in user ${ThreadLocalUserContext.user?.username} has no write access to requested job. So job will not be cancelled." }
     }
-    log.warn { "Logged-in user ${ThreadLocalUserContext.user?.username} has no write access to requested job. So job will not be cancelled." }
   }
 
   /**

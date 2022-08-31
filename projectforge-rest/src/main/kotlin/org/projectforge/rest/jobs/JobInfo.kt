@@ -57,7 +57,7 @@ class JobInfo(
         progressPercentage = job?.progressPercentage,
         info = job?.info,
       )
-      job?.userId?.let { userId ->
+      job?.ownerId?.let { userId ->
         info.user = User.getUser(userId)
       }
       when (job?.status) {
@@ -65,6 +65,10 @@ class JobInfo(
           info.animated = true
           info.cancelId = job.id
           info.progressBarColor = UIColor.SUCCESS
+        }
+        AbstractJob.Status.WAITING -> {
+          info.cancelId = job.id
+          info.progressBarColor = UIColor.LIGHT
         }
         AbstractJob.Status.FINISHED -> {
           info.progressBarColor = UIColor.INFO

@@ -28,14 +28,12 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseDaoSupport
-import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import javax.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -48,17 +46,7 @@ private val log = KotlinLogging.logger {}
 @Repository
 open class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecordDO::class.java) {
   @Autowired
-  private lateinit var userRights: UserRightService
-
-  @Autowired
   private lateinit var bankAccountDao: BankAccountDao
-
-  private lateinit var bankAccountRight: BankAccountRight
-
-  @PostConstruct
-  private fun postConstruct() {
-    bankAccountRight = userRights.getRight(BankAccountRightId.PLUGIN_BANKING_ACCOUNT) as BankAccountRight
-  }
 
   override fun hasAccess(
     user: PFUserDO,
@@ -71,22 +59,22 @@ open class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecord
     if (obj != null && bankAccount == null) {
       return BaseDaoSupport.returnFalseOrThrowException(
         throwException,
-        msg = "Bank account not given.",
         user,
         operationType,
+        msg = "Bank account not given.",
       )
     }
     if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)) {
       // Double check, user isn't member of financial staff.
       return BaseDaoSupport.returnFalseOrThrowException(
         throwException,
-        msg = "User not member of financial staff.",
         user,
         operationType,
+        msg = "User not member of financial staff.",
       )
     }
     val oldBankAccount = oldObj?.bankAccount
-    return bankAccountRight.hasAccess(user, bankAccount, oldBankAccount, operationType)
+    return bankAccountDao.hasAccess(user, bankAccount, oldBankAccount, operationType, throwException)
   }
 
   override fun newInstance(): BankAccountRecordDO {

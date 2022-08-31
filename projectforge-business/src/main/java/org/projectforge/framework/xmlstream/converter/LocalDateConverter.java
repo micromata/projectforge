@@ -24,7 +24,6 @@
 package org.projectforge.framework.xmlstream.converter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.time.PFDayUtils;
 
