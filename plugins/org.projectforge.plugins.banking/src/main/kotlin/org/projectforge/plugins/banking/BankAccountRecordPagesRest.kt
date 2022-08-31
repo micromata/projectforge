@@ -35,6 +35,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
@@ -128,6 +129,12 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       defaultFilter = true,
       multi = true,
     )
+    elements.add(
+      UIFilterElement(
+        "doublets", UIFilterElement.FilterType.BOOLEAN, translate("plugins.banking.account.record.doublets"),
+        defaultFilter = true,
+      )
+    )
     val values = mutableListOf<UISelectValue<String>>()
     bankAccountDao.getList(BaseSearchFilter())?.forEach { account ->
       values.add(UISelectValue("${account.id}", StringUtils.abbreviate(account.name, 20)))
@@ -139,8 +146,9 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
   override fun preProcessMagicFilter(
     target: QueryFilter,
     source: MagicFilter
-  ): List<CustomResultFilter<BankAccountRecordDO>> {
-    val filters = mutableListOf<CustomResultFilter<BankAccountRecordDO>>()
+  ): List<CustomResultFilter<BankAccountRecordDO>>? {
+    val doubletFilterEntry = source.entries.find { it.field == "doublets" }
+    doubletFilterEntry?.synthetic = true
     source.entries.find { it.field == "period" }?.let { periodFilterEntry ->
       periodFilterEntry.synthetic = true
       val fromDate = PFDayUtils.parseDate(periodFilterEntry.value.fromValue)
@@ -164,7 +172,27 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
         target.add(QueryFilter.eq("bankAccount.id", ids[0]))
       }
     }
-    return filters
+    return null
+  }
+
+  override fun processResultSetBeforeExport(
+    resultSet: ResultSet<BankAccountRecordDO>,
+    request: HttpServletRequest,
+    magicFilter: MagicFilter
+  ): ResultSet<*> {
+    val doubletFilterEntry = magicFilter.entries.find { it.field == "doublets" }
+    if (doubletFilterEntry?.isTrueValue == true) {
+      val origList = resultSet.resultSet
+      resultSet.resultSet = origList.filter { isDoublet(origList, it) }
+    }
+    return super.processResultSetBeforeExport(resultSet, request, magicFilter)
+  }
+
+  private fun isDoublet(list: List<BankAccountRecordDO>, element: BankAccountRecordDO): Boolean {
+    if (element.isDeleted) {
+      return false
+    }
+    return list.any { it.id != element.id && it.ensureChecksum == element.ensureChecksum }
   }
 
   /**

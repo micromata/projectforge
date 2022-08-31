@@ -26,6 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.plugins.banking.BankAccountDO
 
 class BankAccount(
+  id: Int? = null,
   var name: String? = null,
   var description: String? = null,
   var iban: String? = null,
@@ -38,7 +39,7 @@ class BankAccount(
   var minimalAccessGroups: List<Group>? = null,
   var minimalAccessUsers: List<User>? = null,
   var importSettings: String? = null,
-) : BaseDTO<BankAccountDO>() {
+) : BaseDTO<BankAccountDO>(id = id) {
 
   // The user and group ids are stored as csv list of integers in the data base.
   override fun copyFrom(src: BankAccountDO) {

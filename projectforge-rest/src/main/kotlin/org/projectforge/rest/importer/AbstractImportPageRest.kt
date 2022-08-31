@@ -63,16 +63,34 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
    */
   protected abstract fun import(importStorage: ImportStorage<*>, selectedEntries: List<ImportPairEntry<O>>): Int?
 
-  protected fun createLayout(
+  abstract val title: String
+
+  protected fun createFormLayoutData(
     request: HttpServletRequest,
-    title: String,
     importStorage: ImportStorage<*>?
   ): FormLayoutData {
-    val layout = UILayout(title)
-    val hasEntries = importStorage?.pairEntries?.isNotEmpty() == true
+    val layout = createLayout(request, importStorage)
     val data = importStorage?.info
+    val formLayoutData = FormLayoutData(data, layout, createServerData(request))
+    importStorage?.let { storage ->
+      val entries = createListEntries(storage, data?.displayOptions ?: ImportStorage.DisplayOptions())
+      formLayoutData.variables = mapOf("entries" to (entries))
+    }
+    return formLayoutData
+  }
+
+  fun createLayout(
+    request: HttpServletRequest,
+    importStorage: ImportStorage<*>?,
+  ): UILayout {
+    val data = importStorage?.info
+    val layout = UILayout(title)
+    if (importStorage != null) {
+      layout.uid = "layout${importStorage.hashCode()}"
+    }
     val fieldset = UIFieldset(title = importStorage?.title ?: translate("import.title"))
     layout.add(fieldset)
+    val hasEntries = importStorage?.pairEntries?.isNotEmpty() == true
     if (!hasEntries) {
       fieldset.add(UIAlert("import.error.nothingToImport", color = UIColor.DANGER))
       fieldset.add(
@@ -110,6 +128,20 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
         layout.add(it)
       }
 
+      if (importStorage?.pairEntries?.isNotEmpty() == true) {
+        fieldset.add(
+          UIButton.createDefaultButton(
+            "reconcile",
+            ResponseAction(
+              RestResolver.getRestUrl(this::class.java, "reconcile"),
+              targetType = TargetType.POST,
+            ),
+            title = "jobs.import.action.reconcile",
+            tooltip = "jobs.import.action.reconcile.tooltip",
+          )
+        )
+      }
+
       val agGrid = UIAgGrid("entries", listPageTable = true)
       layout.add(agGrid)
       agGridSupport.prepareUIGrid4MultiSelectionListPage(
@@ -141,13 +173,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     addSettingsInfo(layout, importStorage)
 
     LayoutUtils.process(layout)
-    val formLayoutData = FormLayoutData(data, layout, createServerData(request))
-    importStorage?.let { storage ->
-      val entries = createListEntries(storage, data?.displayOptions ?: ImportStorage.DisplayOptions())
-      formLayoutData.variables = mapOf("entries" to (entries))
-    }
-    return formLayoutData
-
+    return layout
   }
 
   /**
@@ -229,6 +255,23 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
     val callerPage = callerPage(request) // must be called before clearImportStorage!
     clearImportStorage(request)
     return ResponseAction(callerPage)
+  }
+
+  /**
+   * Called from UIButton reconcile above.
+   */
+  @PostMapping("reconcile")
+  fun reconcile(
+    request: HttpServletRequest,
+    @Valid @RequestBody postData: PostData<ImportStorageInfo>,
+  ): ResponseAction {
+    val importStorage = getImportStorage(request) ?: return ResponseAction(targetType = TargetType.NOTHING)
+    val data = postData.data
+    importStorage.reconcileImportStorage()
+    val layout = createLayout(request, importStorage)
+    return ResponseAction(targetType = TargetType.UPDATE, merge = true)
+      .addVariable("variables", mapOf("entries" to createListEntries(importStorage, data.displayOptions)))
+      .addVariable("ui", layout)
   }
 
   /**

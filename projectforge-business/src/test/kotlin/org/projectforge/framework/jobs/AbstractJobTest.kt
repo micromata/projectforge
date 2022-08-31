@@ -92,19 +92,19 @@ class AbstractJobTest {
     var job = createJob("job1", "area")
     job.status = AbstractJob.Status.RUNNING
     var newJob = createJob("job1", "area")
-    Assertions.assertFalse(job.isBlocking(newJob))
+    Assertions.assertNull(job.isBlocking(newJob))
     newJob = createJob("job1", "area", queueStrategy = AbstractJob.QueueStrategy.PER_QUEUE)
-    Assertions.assertTrue(job.isBlocking(newJob))
+    Assertions.assertEquals(AbstractJob.Status.WAITING, job.isBlocking(newJob))
     newJob = createJob("job1", "area", userId = 5, queueStrategy = AbstractJob.QueueStrategy.PER_QUEUE)
-    Assertions.assertTrue(job.isBlocking(newJob))
+    Assertions.assertEquals(AbstractJob.Status.WAITING, job.isBlocking(newJob))
 
     newJob = createJob("job1", "area", queueStrategy = AbstractJob.QueueStrategy.PER_QUEUE_AND_USER)
-    Assertions.assertTrue(job.isBlocking(newJob), "Both userId's are null / equal.")
+    Assertions.assertEquals(AbstractJob.Status.WAITING, job.isBlocking(newJob), "Both userId's are null / equal.")
     newJob = createJob("job1", "area", userId = 5, queueStrategy = AbstractJob.QueueStrategy.PER_QUEUE_AND_USER)
-    Assertions.assertFalse(job.isBlocking(newJob))
+    Assertions.assertNull(job.isBlocking(newJob))
     job = createJob("job1", "area", userId = 5)
     job.status = AbstractJob.Status.RUNNING
-    Assertions.assertTrue(job.isBlocking(newJob))
+    Assertions.assertEquals(AbstractJob.Status.WAITING, job.isBlocking(newJob))
   }
 
   @Test

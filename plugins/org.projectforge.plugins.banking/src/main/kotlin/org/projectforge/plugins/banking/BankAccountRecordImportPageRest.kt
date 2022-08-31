@@ -55,6 +55,8 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
   @Autowired
   private lateinit var jobHandler: JobHandler
 
+  override val title: String = "plugins.banking.account.record.import.title"
+
   override fun callerPage(request: HttpServletRequest): String {
     val targetEntity = getImportStorage(request)?.targetEntity as? BankAccount
     val targetEntityId = targetEntity?.id
@@ -92,14 +94,22 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
       importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null
     }
-    return jobHandler.addJob(BankingImportJob(bankAccountDO, bankAccountDao, bankAccountRecordDao, selectedEntries))
+    return jobHandler.addJob(
+      BankingImportJob(
+        bankAccountDO,
+        bankAccountDao,
+        bankAccountRecordDao,
+        selectedEntries,
+        importStorage = importStorage as BankingImportStorage,
+      )
+    )
       .id
   }
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val importStorage = getImportStorage(request)
-    return createLayout(request, "plugins.banking.account.record.import.title", importStorage)
+    return createFormLayoutData(request, importStorage)
   }
 
   override fun createListLayout(
