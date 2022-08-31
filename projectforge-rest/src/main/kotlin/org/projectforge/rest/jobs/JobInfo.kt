@@ -73,7 +73,7 @@ class JobInfo(
         AbstractJob.Status.FINISHED -> {
           info.progressBarColor = UIColor.INFO
         }
-        AbstractJob.Status.FAILED, AbstractJob.Status.CANCELLED -> {
+        AbstractJob.Status.FAILED, AbstractJob.Status.CANCELLED, AbstractJob.Status.REFUSED -> {
           info.infoColor = UIColor.DANGER
           info.progressBarColor = UIColor.DANGER
         }

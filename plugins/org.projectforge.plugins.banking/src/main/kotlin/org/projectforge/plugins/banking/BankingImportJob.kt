@@ -37,16 +37,32 @@ class BankingImportJob(
   val bankAccountDao: BankAccountDao,
   val bankAccountRecordDao: BankAccountRecordDao,
   val selectedEntries: List<ImportPairEntry<BankAccountRecord>>,
+  val importStorage: BankingImportStorage,
 ) : AbstractImportJob(
   translateMsg("plugins.banking.import.job.title", bankAccountDO.name),
   area = "BankingRecordsImport",
   queueName = "bankAccount#${bankAccountDO.id}",
-  queueStrategy = QueueStrategy.PER_QUEUE,
+  queueStrategy = QueueStrategy.REFUSE_PER_QUEUE,
   timeoutSeconds = 600,
+  importStorage = importStorage,
 ) {
+
   init {
     totalNumber = selectedEntries.size
     processedNumber = 0
+  }
+
+  /**
+   * Check, if the state of all selected entries is up-to-date. May-be a previous running job this job was waiting for
+   * already imports transactions. If so, doublets are expected for same time periods.
+   */
+  override fun onBeforeStart() {
+    importStorage.reconcileImportStorage()
+    updateTotals(importStorage)
+  }
+
+  override fun onAfterTermination() {
+    importStorage.reconcileImportStorage()
   }
 
   override suspend fun run() {

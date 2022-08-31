@@ -67,13 +67,39 @@ abstract class AbstractJob(
    */
   timeoutSeconds: Int = 120
 ) : Comparable<AbstractJob> {
-  enum class QueueStrategy { NONE, PER_QUEUE, PER_QUEUE_AND_USER }
+  enum class QueueStrategy {
+    /**
+     * No queuing, every job will be started immediately.
+     */
+    NONE,
 
-  enum class ErrorCode { TIMEOUT_WHILE_WAITING }
+    /**
+     * Existing running jobs with same area and title will block new jobs until termination. New jobs will be queued.
+     */
+    PER_QUEUE,
+
+    /**
+     * Same as PER_QUEUE but parallel jobs per queue for different users are allowed.
+     */
+    PER_QUEUE_AND_USER,
+
+    /**
+     * New jobs are refused if there is already a running job in the same queue.
+     */
+    REFUSE_PER_QUEUE,
+
+    /**
+     * New jobs are refused if there is already a running job in the same queue for the same user.
+     */
+    REFUSE_PER_QUEUE_AND_USER,
+  }
+
+  enum class ErrorCode { TIMEOUT_WHILE_WAITING, REFUSED_BY_ANOTHER_RUNNING_JOB }
 
   // Order of status used for ordering job list:
   enum class Status(val key: String) : I18nEnum {
-    RUNNING("running"), WAITING("waiting"), FINISHED("finished"), FAILED("failed"), CANCELLED("cancelled");
+    RUNNING("running"), WAITING("waiting"), FINISHED("finished"), FAILED("failed"), CANCELLED("cancelled"),
+    REFUSED("refused");
 
     /**
      * @return The full i18n key including the i18n prefix "book.type.".
@@ -106,6 +132,9 @@ abstract class AbstractJob(
     internal set
   val terminatedTimeMillis: Long?
     get() = terminatedTime?.time
+
+  val lastActionTime: Date
+    get() = terminatedTime ?: startTime ?: createdTime
 
   var status: Status = Status.WAITING
     internal set
@@ -183,6 +212,7 @@ abstract class AbstractJob(
     startTime = Date()
     status = Status.RUNNING
     try {
+      log.info { "Job is starting: $logInfo" }
       run()
     } catch (ex: Exception) {
       if (ex is CancellationException) {
@@ -193,6 +223,7 @@ abstract class AbstractJob(
         exception = ex
         errorMessage = ex.message
         onAfterException(ex)
+        onAfterTermination()
       }
     }
   }
@@ -202,15 +233,30 @@ abstract class AbstractJob(
    * of the given new job.
    * @param newJob Checks if this job is blocking the given newJob.
    */
-  fun isBlocking(newJob: AbstractJob): Boolean {
+  fun isBlocking(newJob: AbstractJob): Status? {
     if (newJob.queueStrategy == QueueStrategy.NONE || newJob.status != Status.WAITING || status != Status.RUNNING) {
       // Other job is not marked to be queued or this job isn't running or the other job isn't waiting for RUNNING.
-      return false
+      return null
     }
     if (area != newJob.area) {
-      return false
+      return null
     }
-    return newJob.queueStrategy != QueueStrategy.PER_QUEUE_AND_USER || ownerId == newJob.ownerId
+    var blocked = false
+    when (newJob.queueStrategy) {
+      QueueStrategy.PER_QUEUE_AND_USER, QueueStrategy.REFUSE_PER_QUEUE_AND_USER -> {
+        blocked = ownerId == newJob.ownerId
+      }
+      else -> {
+        blocked = true
+      }
+    }
+    if (!blocked) {
+      return null
+    }
+    if (newJob.queueStrategy == QueueStrategy.REFUSE_PER_QUEUE || newJob.queueStrategy == QueueStrategy.REFUSE_PER_QUEUE_AND_USER) {
+      return Status.REFUSED
+    }
+    return Status.WAITING
   }
 
   /**
@@ -221,6 +267,15 @@ abstract class AbstractJob(
 
   internal fun markJobAsFailed(ex: Exception? = null, errorMessage: String? = ex?.message) {
     status = Status.FAILED
+    setError(ex, errorMessage)
+  }
+
+  internal fun markJobAsRefused(ex: Exception? = null, errorMessage: String? = ex?.message) {
+    status = Status.REFUSED
+    setError(ex, errorMessage)
+  }
+
+  private fun setError(ex: Exception? = null, errorMessage: String? = ex?.message) {
     if (ex != null) {
       exception = ex
     }
@@ -230,6 +285,9 @@ abstract class AbstractJob(
   }
 
   abstract suspend fun run()
+
+
+  open fun onBeforeStart() {}
 
   /**
    * IMPORTANT: Don't forget to check [isActive] in your import job in every loop to enable cancellation.
@@ -249,6 +307,11 @@ abstract class AbstractJob(
   open fun onAfterFinish() {}
 
   open fun onAfterException(ex: Exception) {}
+
+  /**
+   * Will be called after termination (finished, failed, cancelled).
+   */
+  open fun onAfterTermination() {}
 
   val logInfo: String
     get() {
@@ -273,6 +336,7 @@ abstract class AbstractJob(
       terminatedTime = Date()
       status = Status.FINISHED
       onAfterFinish()
+      onAfterTermination()
     }
   }
 
@@ -283,6 +347,7 @@ abstract class AbstractJob(
     terminatedTime = Date()
     status = Status.CANCELLED
     onAfterCancel()
+    onAfterTermination()
   }
 
   /**
@@ -304,8 +369,8 @@ abstract class AbstractJob(
     if ((status == Status.WAITING || other.status == Status.WAITING) && status != other.status) {
       return if (status == Status.WAITING) -1 else 1 // Show waiting jobs second.
     }
-    compare(startTime, other.startTime).let { if (it != 0) return it }
-    compare(terminatedTime, other.terminatedTime).let { if (it != 0) return it }
+
+    compare(other.lastActionTime, lastActionTime).let { if (it != 0) return it }
     title.compareTo(other.title, ignoreCase = true).let { if (it != 0) return it }
     return id.compareTo(other.id) // OK, no more order fields.
   }
@@ -338,6 +403,7 @@ abstract class AbstractJob(
       Status.CANCELLED,
       Status.FINISHED,
       Status.FAILED,
+      Status.REFUSED,
     )
 
     fun displayDuration(start: Date, stop: Date? = Date()): String {

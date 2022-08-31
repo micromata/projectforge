@@ -82,12 +82,16 @@ class MarkdownBuilder {
 
   private var first = true
 
-  fun appendPipedValue(i18nKey: String, value: String, color: Color? = null) {
+  @JvmOverloads
+  fun appendPipedValue(i18nKey: String, value: String, color: Color? = null, totalValue: String? = null) {
     ensureSeparator()
     if (color != null) {
       sb.append("<span style=\"color:${color.color};\">")
     }
     sb.append(translate(i18nKey)).append(": ").append(value)
+    if (!totalValue.isNullOrBlank()) {
+      sb.append("/").append(totalValue)
+    }
     if (color != null) {
       sb.append("</span>")
     }

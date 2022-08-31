@@ -77,21 +77,28 @@ class JobHandler {
               + mdcContext
         ) {
           for (i in 0..10000) {// Paranoia counter (wait time max 10.000s)
-            var blocked = false
+            var blocking: AbstractJob.Status? = null
             synchronized(jobs) {
               for (other in jobs) {
-                if (other != job && other.isBlocking(job)) {
-                  blocked = true
-                  break
+                if (other != job) {
+                  blocking = other.isBlocking(job)
+                  if (blocking != null) {
+                    break
+                  }
                 }
               }
-              if (!blocked) {
-                job.status = AbstractJob.Status.RUNNING // Must be set here, otherwise two waiting jobs may run simultanously
+              if (blocking == null) {
+                // Must be set here, otherwise two waiting jobs may run simultanously
+                job.status = AbstractJob.Status.RUNNING
               }
             }
-            if (blocked) {
-              job.status = AbstractJob.Status.WAITING
+            val status = blocking
+            if (status != null) {
+              job.status = status
               start = false
+              if (status == AbstractJob.Status.REFUSED) {
+                break
+              }
               delay(1000);
             } else {
               start = true
@@ -100,16 +107,25 @@ class JobHandler {
           }
           if (start) {
             yield()
+            job.onBeforeStart()
             job.start()
+            job.onFinish()
+          } else {
+            if (job.status == AbstractJob.Status.REFUSED) {
+              log.error { "Couldn't start job, because another job is already running: ${job.logInfo}" }
+              job.markJobAsRefused(errorMessage = "jobs.error.refusedByAnotherRunningJob")
+              job.onAfterFailure(error = AbstractJob.ErrorCode.REFUSED_BY_ANOTHER_RUNNING_JOB)
+              job.onAfterTermination()
+            } else {
+              log.error { "Couldn't start job due to long running job(s) blocking this job: ${job.logInfo}" }
+              job.markJobAsFailed(errorMessage = "jobs.error.waitingTimeExceeded")
+              job.onAfterFailure(error = AbstractJob.ErrorCode.TIMEOUT_WHILE_WAITING)
+              job.onAfterTermination()
+            }
           }
         }
         if (start) {
           job.coroutinesJob.join()
-          job.onFinish()
-        } else {
-          log.error { "Couldn't start job due to long running job(s) blocking this job: ${job.logInfo}" }
-          job.markJobAsFailed(errorMessage = "jobs.error.waitingTimeExceeded")
-          job.onAfterFailure(error = AbstractJob.ErrorCode.TIMEOUT_WHILE_WAITING)
         }
       }
     }

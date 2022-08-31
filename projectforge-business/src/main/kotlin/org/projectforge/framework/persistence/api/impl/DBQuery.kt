@@ -30,7 +30,6 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
@@ -166,7 +165,7 @@ open class DBQuery {
     }
 
     /**
-     * If predicates are definied (not used for data base query), they're checked with the given result object.
+     * If predicates are defined (not used for data base query), they're checked with the given result object.
      * @return true, if no predicates are given or if all predicate matches, otherwise false.
      */
     private fun <O : ExtendedBaseDO<Int>> match(list: MutableList<O>, customResultFilters: List<CustomResultFilter<O>>?, predicates: List<DBPredicate>, next: O): Boolean {

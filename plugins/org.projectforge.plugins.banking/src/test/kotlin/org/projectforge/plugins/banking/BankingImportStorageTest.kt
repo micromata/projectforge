@@ -25,6 +25,7 @@ package org.projectforge.plugins.banking
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -51,11 +52,11 @@ class BankingImportStorageTest {
     db.add(createDBRecord(tomorrow, "1.23", "Apple", null))
     db.add(createDBRecord(tomorrow, "1.23", "Apple", "DE222"))
 
-    val storage = BankingImportStorage()
+    val storage = BankingImportStorage(targetEntity = BankAccount(id = 42))
     storage.readTransactions = read
     storage.databaseTransactions = db
     storage.analyzeReadTransactions()
-    storage.reconcileImportStorage()
+    storage.reconcileImportStorage(false)
     /*//  PRINT storage for debugging:
     storage.entries.forEach {
       val read = it.readEntry

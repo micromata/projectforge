@@ -56,9 +56,7 @@ class TransactionsImporter {
       return
     }
     // Ordered by date:
-    importStorage.databaseTransactions = bankAccountRecordDao.getByTimePeriod(bankAccountDO.id, fromDate, untilDate)
     importStorage.reconcileImportStorage()
     importStorage.databaseTransactions = null // Save memory, not needed anymore.
-    importStorage.readTransactions.clear() // Save memory, not needed anymore
   }
 }

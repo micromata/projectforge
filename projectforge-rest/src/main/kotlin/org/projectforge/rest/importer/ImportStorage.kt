@@ -83,6 +83,9 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
       }
     }
 
+  open fun reconcileImportStorage(rereadDatabaseEntries: Boolean = true) {
+  }
+
   fun clearErrors() {
     synchronized(errors) {
       errors.clear()
@@ -100,12 +103,14 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
    */
   val ensurePairEntriesIds: MutableList<ImportPairEntry<O>>
     get() {
-      pairEntries.forEach { entry ->
-        if (entry.id < 0) {
-          entry.id = idCounter++
+      synchronized(pairEntries) {
+        pairEntries.forEach { entry ->
+          if (entry.id < 0) {
+            entry.id = idCounter++
+          }
         }
+        return pairEntries
       }
-      return pairEntries
     }
 
   /**
@@ -115,7 +120,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
     val result = mutableListOf<ImportEntry<O>>()
     ensurePairEntriesIds.forEach { pair ->
       if (displayOptions == null || pair.match(displayOptions)) {
-        val entry = ImportEntry(pair.read)
+        val entry = ImportEntry(pair.read ?: pair.stored)
         entry.status = pair.status
         entry.diff = pair.diff
         entry.id = pair.id
@@ -127,7 +132,15 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
 
   fun addEntry(entry: ImportPairEntry<O>) {
     entry.id = idCounter++
-    pairEntries.add(entry)
+    synchronized(pairEntries) {
+      pairEntries.add(entry)
+    }
+  }
+
+  fun clearEntries() {
+    synchronized(pairEntries) {
+      pairEntries.clear()
+    }
   }
 
   var displayOptions = DisplayOptions()

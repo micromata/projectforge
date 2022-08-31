@@ -33,7 +33,7 @@ import org.projectforge.ui.UIColor
 
 /**
  * IMPORTANT: Don't forget to check [isActive] in your import job in every loop to enable cancellation.
- * @param title Human readable title for displaying and logging purposes.
+ * @param title Human-readable title for displaying and logging purposes.
  * @param area Area describing type of job. If [queueStrategy] is true then jobs of same area and same user are queued.
  * @param userId Job is started by this user.
  * @param queueName For queueing strategy you may define multiple queues per area, If not given, only one queue is used
@@ -48,12 +48,13 @@ abstract class AbstractImportJob(
   /**
    * If true then jobs of same area, same queueName and same user are queued.
    */
-  queueStrategy: AbstractJob.QueueStrategy = AbstractJob.QueueStrategy.NONE,
+  queueStrategy: QueueStrategy = QueueStrategy.NONE,
   /**
    * At default, this job will be cancelled after 120s +.
    */
-  timeoutSeconds: Int = 120
-) : AbstractJob(
+  timeoutSeconds: Int = 120,
+  importStorage: ImportStorage<*>? = null,
+  ) : AbstractJob(
   title = title,
   area = area,
   ownerId = userId,
@@ -68,6 +69,10 @@ abstract class AbstractImportJob(
     var unmodified: Int = 0
     var errorMessages: List<String>? = null
 
+    var totalToBeInserted: Int? = null
+    var totalToBeDeleted: Int? = null
+    var totalToBeUpdated: Int? = null
+
     init {
       if (errorMessage != null) {
         errorMessages = listOf(errorMessage)
@@ -81,16 +86,19 @@ abstract class AbstractImportJob(
           "import.result.numberOfCreated",
           NumberFormatter.format(inserted),
           MarkdownBuilder.Color.GREEN,
+          NumberFormatter.format(totalToBeInserted),
         )
         md.appendPipedValue(
           "import.result.numberOfUpdated",
           NumberFormatter.format(updated),
           MarkdownBuilder.Color.BLUE,
+          NumberFormatter.format(totalToBeUpdated),
         )
         md.appendPipedValue(
           "import.result.numberOfDeleted",
           NumberFormatter.format(deleted),
           MarkdownBuilder.Color.RED,
+          NumberFormatter.format(totalToBeDeleted),
         )
         md.appendPipedValue(
           "import.result.numberOfUnmodified",
@@ -121,6 +129,18 @@ abstract class AbstractImportJob(
   }
 
   val result = JobResult()
+
+  init {
+    updateTotals(importStorage)
+  }
+
+  fun updateTotals(importStorage: ImportStorage<*>?) {
+    if (importStorage != null) {
+      result.totalToBeInserted = importStorage.info.numberOfNewEntries
+      result.totalToBeDeleted = importStorage.info.numberOfDeletedEntries
+      result.totalToBeUpdated = importStorage.info.numberOfModifiedEntries
+    }
+  }
 
   /**
    * For displaying purposes (e. g. progress, errors etc.). Use pure text or markdown format.

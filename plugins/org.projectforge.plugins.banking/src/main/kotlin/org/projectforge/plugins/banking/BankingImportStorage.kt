@@ -23,15 +23,21 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.rest.dto.BankAccount
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
 import java.time.LocalDate
 
-class BankingImportStorage(importSettings: String? = null, targetEntity: BankAccount? = null) : ImportStorage<BankAccountRecord>(
-  ImportSettings().parseSettings(importSettings, BankAccountRecordDO::class.java, BankAccountRecordDO::bankAccount.name)
-) {
+class BankingImportStorage(importSettings: String? = null, targetEntity: BankAccount? = null) :
+  ImportStorage<BankAccountRecord>(
+    ImportSettings().parseSettings(
+      importSettings,
+      BankAccountRecordDO::class.java,
+      BankAccountRecordDO::bankAccount.name
+    )
+  ) {
   var fromDate: LocalDate? = null
   var untilDate: LocalDate? = null
 
@@ -45,10 +51,20 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
     this.targetEntity = targetEntity
   }
 
-  internal fun reconcileImportStorage() {
-    if (fromDate == null || untilDate == null || fromDate!! > untilDate!!) {
+
+  override fun reconcileImportStorage(rereadDatabaseEntries: Boolean) {
+    val from = fromDate
+    val until = untilDate
+    if (from == null || until == null || from > until) {
       return // Shouldn't occur
     }
+    if (rereadDatabaseEntries) {
+      (targetEntity as? BankAccount)?.id?.let { id ->
+        databaseTransactions = ApplicationContextProvider.getApplicationContext().getBean(BankAccountRecordDao::class.java)
+          .getByTimePeriod(id, from, until)
+      }
+    }
+    clearEntries()
     var date = fromDate!!
     for (i in 0..999999) { // Paranoia counter, max 1 mio records.
       val readByDay = readTransactions.filter { it.date == date }

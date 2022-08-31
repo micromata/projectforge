@@ -138,7 +138,10 @@ open class BankAccountRecordDO : DefaultBaseDO() {
   /**
    * Checksum is generated after import for detecting any later manipulation.
    */
-  @PropertyInfo(i18nKey = "plugins.banking.account.record.checksum", tooltip = "plugins.banking.account.record.checksum.info")
+  @PropertyInfo(
+    i18nKey = "plugins.banking.account.record.checksum",
+    tooltip = "plugins.banking.account.record.checksum.info"
+  )
   @Field
   @get:Column(length = Constants.LENGTH_TITLE)
   open var checksum: String? = null
@@ -155,6 +158,18 @@ open class BankAccountRecordDO : DefaultBaseDO() {
     sb.append(PFDay.fromOrNull(valueDate)?.isoString).append('|')
     return DigestUtils.sha256Hex(sb.toString())
   }
+
+  @get:Transient
+  val ensureChecksum: String
+    get() {
+      if (checksum == null) {
+        buildCheckSum().let {
+          this.checksum = it
+          return it
+        }
+      }
+      return checksum!!
+    }
 
   companion object {
     const val FIND_BY_TIME_PERIOD = "BankAccountRecordDO_FindByTimePeriod"
