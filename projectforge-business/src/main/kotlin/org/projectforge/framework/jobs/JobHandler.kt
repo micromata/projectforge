@@ -68,7 +68,7 @@ class JobHandler {
     val locale = ThreadLocalUserContext.locale!!
     val mdcContext = MDCContext() // For MDC context of logger.
     thread {
-      var start = false
+      var start = true
       runBlocking {
         job.coroutinesJob = launch(
           Dispatchers.Default
@@ -85,9 +85,13 @@ class JobHandler {
                   break
                 }
               }
+              if (!blocked) {
+                job.status = AbstractJob.Status.RUNNING // Must be set here, otherwise two waiting jobs may run simultanously
+              }
             }
             if (blocked) {
               job.status = AbstractJob.Status.WAITING
+              start = false
               delay(1000);
             } else {
               start = true
