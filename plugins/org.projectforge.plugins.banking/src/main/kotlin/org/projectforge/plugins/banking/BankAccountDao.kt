@@ -58,6 +58,10 @@ open class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
       // Only access for financial staff.
       return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
     }
+    if (obj == null && oldObj == null) {
+      // Financial staff has general read access.
+      return true
+    }
     return BaseUserGroupRightUtils.hasAccess(
       obj = obj,
       oldObj = oldObj,
