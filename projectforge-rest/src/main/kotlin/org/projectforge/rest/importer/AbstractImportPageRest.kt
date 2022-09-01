@@ -154,9 +154,10 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       agGrid.handleCancelUrl = RestResolver.getRestUrl(this::class.java, "cancelAndGetUrl")
       agGrid.urlAfterMultiSelect = RestResolver.getRestUrl(this::class.java, "import")
       // agGrid.height = "window.screen.height - 400"
-      agGrid.add("statusAsString", headerName = "status", width = 120)
+      val col = UIAgGridColumnDef.createCol(field = "statusAsString", width = 120, headerName = "status")
+        .withTooltipField("error")
+      agGrid.add(col)
       createListLayout(request, layout, agGrid)
-      agGrid.add(UIAgGridColumnDef.createCol("error", headerName = "import.entry.error", wrapText = true))
       agGrid.withMultiRowSelection()
       agGrid.multiSelectButtonTitle = translate("import")
       agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
@@ -290,6 +291,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
   protected fun addReadColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>, wrapText: Boolean? = null) {
     val field = property.name
     agGrid.add(lc, "read.$field", lcField = field, wrapText = wrapText)
+    // val col = UIAgGridColumnDef.createCol(lc, "read.$field", lcField = field, wrapText = wrapText)
+    // col.cellRenderer = "diffCell"
+    // agGrid.add(col)
   }
 
   protected fun addStoredColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>, wrapText: Boolean? = null) {
