@@ -26,6 +26,7 @@ package org.projectforge.plugins.banking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.rest.dto.BankAccount
+import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -36,21 +37,23 @@ class BankingImportStorageTest {
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
     val tomorrow = today.plusDays(1)
+    val dayAfterTomorrow = today.plusDays(2)
 
     val read = mutableListOf<BankAccountRecord>()
     read.add(createRecord(yesterday, "1.23", "Ice", "DE1111"))
     read.add(createRecord(yesterday, "1.24", "Ice", "DE1111"))
     read.add(createRecord(yesterday, "1.23", "Cake", "DE8888"))
-    read.add(createRecord(tomorrow, "27.12", "Apple", "DE222"))
-    read.add(createRecord(tomorrow, "1.23", "Apple", "DE222"))
+    read.add(createRecord(dayAfterTomorrow, "27.12", "Apple", "DE222"))
+    read.add(createRecord(dayAfterTomorrow, "1.23", "Apple", "DE222"))
 
     val db = mutableListOf<BankAccountRecordDO>()
     db.add(createDBRecord(today, "1.23", "Ice", "DE1111"))
     db.add(createDBRecord(today, "1.24", "Ice", "DE1111"))
     db.add(createDBRecord(today, "1.23", "Cake", "DE8888"))
-    db.add(createDBRecord(tomorrow, "27.12", "Cake", "DE888"))
-    db.add(createDBRecord(tomorrow, "1.23", "Apple", null))
-    db.add(createDBRecord(tomorrow, "1.23", "Apple", "DE222"))
+    db.add(createDBRecord(tomorrow, "2.00", "To be removed", "DE888"))
+    db.add(createDBRecord(dayAfterTomorrow, "27.12", "Cake", "DE888"))
+    db.add(createDBRecord(dayAfterTomorrow, "1.23", "Apple", null))
+    db.add(createDBRecord(dayAfterTomorrow, "1.23", "Apple", "DE222"))
 
     val storage = BankingImportStorage(targetEntity = BankAccount(id = 42))
     storage.readTransactions = read
@@ -68,7 +71,7 @@ class BankingImportStorageTest {
             + "db=[${stored?.date}, ${stored?.amount}, ${stored?.subject}, ${stored?.iban}]"
       )
     }*/
-    Assertions.assertEquals(9, storage.pairEntries.size)
+    Assertions.assertEquals(10, storage.pairEntries.size)
     storage.pairEntries.filter { it.read?.date == yesterday }.let { list ->
       Assertions.assertEquals(3, list.size)
       Assertions.assertTrue(list.all { it.stored == null })
@@ -80,6 +83,12 @@ class BankingImportStorageTest {
       Assertions.assertTrue(list.none { it.stored == null })
     }
     storage.pairEntries.filter { (it.read?.date ?: it.stored?.date) == tomorrow }.let { list ->
+      Assertions.assertEquals(1, list.size)
+      Assertions.assertTrue(list.all { it.read == null })
+      Assertions.assertTrue(list.none { it.stored == null })
+      Assertions.assertEquals(ImportEntry.Status.DELETED, list[0].status)
+    }
+    storage.pairEntries.filter { (it.read?.date ?: it.stored?.date) == dayAfterTomorrow }.let { list ->
       Assertions.assertEquals(3, list.size)
       Assertions.assertEquals(1, list.filter { it.read == null }.size)
       Assertions.assertTrue(list.none { it.stored == null })

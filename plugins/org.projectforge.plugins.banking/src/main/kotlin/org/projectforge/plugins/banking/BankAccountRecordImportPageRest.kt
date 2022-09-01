@@ -35,6 +35,7 @@ import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportStorage
 import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UIAgGrid
+import org.projectforge.ui.UIAgGridColumnDef
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
@@ -119,19 +120,24 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
   ) {
     val lc = LayoutContext(BankAccountRecordDO::class.java)
     addReadColumn(agGrid, lc, BankAccountRecordDO::date)
+    val col = UIAgGridColumnDef.createCol(lc, "read.bankAccount.iban", lcField = BankAccountRecordDO::bankAccount.name)
+    col.valueGetter = null
+    agGrid.add(col)
     addReadColumn(agGrid, lc, BankAccountRecordDO::valueDate)
     addReadColumn(agGrid, lc, BankAccountRecordDO::amount)
-    addReadColumn(agGrid, lc, BankAccountRecordDO::receiverSender)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::receiverSender, wrapText = true)
     addReadColumn(agGrid, lc, BankAccountRecordDO::iban)
     addReadColumn(agGrid, lc, BankAccountRecordDO::bic)
-    addReadColumn(agGrid, lc, BankAccountRecordDO::subject)
-    addReadColumn(agGrid, lc, BankAccountRecordDO::collectionReference)
-    addReadColumn(agGrid, lc, BankAccountRecordDO::debteeId)
-    addReadColumn(agGrid, lc, BankAccountRecordDO::mandateReference)
-    addReadColumn(agGrid, lc, BankAccountRecordDO::customerReference)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::subject, wrapText = true)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::collectionReference, wrapText = true)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::debteeId, wrapText = true)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::mandateReference, wrapText = true)
+    addReadColumn(agGrid, lc, BankAccountRecordDO::customerReference, wrapText = true)
     addReadColumn(agGrid, lc, BankAccountRecordDO::currency)
     addReadColumn(agGrid, lc, BankAccountRecordDO::type)
     addReadColumn(agGrid, lc, BankAccountRecordDO::info)
+    // agGrid.pagination = true
+    // agGrid.paginationPageSize = 10
     // addStoredColumn(agGrid, lc, BankAccountRecordDO::date)
   }
 }

@@ -79,7 +79,24 @@ object CsvImporter {
                 value
               }
             }
-            BeanHelper.setProperty(record, fieldSettings.property, targetValue)
+            if (targetValue != null) {
+              // Don't write null values (don't overwrite existing values given e. g. by previous column).
+              if (targetValue is String) {
+                if (targetValue.isNotBlank()) {
+                  val existingValue = BeanHelper.getProperty(record, fieldSettings.property)
+                  if (existingValue != null && existingValue is String && existingValue.isNotBlank()) { // Should be a string....
+                    if (existingValue.trim() != targetValue.trim()) {
+                      // Only concat, if new value differs:
+                      BeanHelper.setProperty(record, fieldSettings.property, "$existingValue$targetValue") // concat
+                    }
+                  } else { // Set value because no existing one as String given:
+                    BeanHelper.setProperty(record, fieldSettings.property, targetValue)
+                  }
+                }
+              } else {
+                BeanHelper.setProperty(record, fieldSettings.property, targetValue)
+              }
+            }
           }
         }
       }

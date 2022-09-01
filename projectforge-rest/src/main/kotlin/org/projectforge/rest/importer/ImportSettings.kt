@@ -57,6 +57,11 @@ class ImportSettings {
     return fieldSettings.find { it.matches(header) }
   }
 
+  fun addFieldSettings(fieldSetting: ImportFieldSettings): ImportSettings {
+    fieldSettings.add(fieldSetting)
+    return this
+  }
+
   /**
    * @param name is the name of the property or the column head of the data table matching any alias.
    */

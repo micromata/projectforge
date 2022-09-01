@@ -57,6 +57,7 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
         is BigDecimal -> {
           value.compareTo(dest as BigDecimal) != 0
         }
+
         else -> dest != value
       }
     }
@@ -85,7 +86,9 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
 
   private val checkStatus: Status
     get() {
-      return if (read == null) {
+      return if (!error.isNullOrBlank()) {
+        Status.FAULTY
+      } else if (read == null) {
         if (stored == null) {
           Status.UNKNOWN
         }

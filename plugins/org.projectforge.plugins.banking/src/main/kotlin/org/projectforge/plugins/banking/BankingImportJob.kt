@@ -28,6 +28,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.importer.AbstractImportJob
+import org.projectforge.rest.importer.ImportEntry
 import org.projectforge.rest.importer.ImportPairEntry
 
 private val log = KotlinLogging.logger {}
@@ -67,13 +68,17 @@ class BankingImportJob(
 
   override suspend fun run() {
     log.info { "Starting import job for bank account records..." }
-    selectedEntries.forEach { entry ->
+    for (entry in selectedEntries) {
       if (!isActive) {
         // Job is going to be cancelled.
         return
       }
+      processedNumber += 1
       val storedEntryId = entry.stored?.id
       val readEntry = entry.read
+      if (entry.status == ImportEntry.Status.FAULTY) {
+        continue
+      }
       var dbEntry = if (storedEntryId != null) {
         bankAccountRecordDao.getById(storedEntryId)
       } else {
@@ -106,7 +111,6 @@ class BankingImportJob(
           result.deleted += 1
         }
       }
-      processedNumber += 1
     }
   }
 
