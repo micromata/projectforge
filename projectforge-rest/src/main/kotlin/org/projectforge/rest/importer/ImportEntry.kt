@@ -35,6 +35,8 @@ open class ImportEntry<O : Any>(
 
   open var status: Status = Status.UNKNOWN
 
+  var error: String? = null
+
   @get:JsonProperty
   val statusAsString: String
     get() = translate("import.entry.status.${status.name.lowercase()}")
@@ -52,7 +54,7 @@ open class ImportEntry<O : Any>(
       Status.MODIFIED -> displayOptions.modified == true
       Status.UNMODIFIED -> displayOptions.unmodified == true
       Status.UNKNOWN, Status.UNKNOWN_MODIFICATION -> displayOptions.unknown == true
-      Status.FAULTY -> displayOptions.error == true
+      Status.FAULTY -> displayOptions.faulty == true
       else -> false
     }
   }

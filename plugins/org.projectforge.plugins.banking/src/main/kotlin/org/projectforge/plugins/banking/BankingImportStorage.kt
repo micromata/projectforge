@@ -23,8 +23,12 @@
 
 package org.projectforge.plugins.banking
 
+import org.projectforge.common.StringHelper
 import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.rest.dto.BankAccount
+import org.projectforge.rest.importer.ImportFieldSettings
 import org.projectforge.rest.importer.ImportPairEntry
 import org.projectforge.rest.importer.ImportSettings
 import org.projectforge.rest.importer.ImportStorage
@@ -32,14 +36,18 @@ import java.time.LocalDate
 
 class BankingImportStorage(importSettings: String? = null, targetEntity: BankAccount? = null) :
   ImportStorage<BankAccountRecord>(
-    ImportSettings().parseSettings(
-      importSettings,
-      BankAccountRecordDO::class.java,
-      BankAccountRecordDO::bankAccount.name
-    )
+    ImportSettings()
+      .addFieldSettings(ImportFieldSettings("account").withLabel(translate("plugins.banking.account")))
+      .parseSettings(
+        importSettings,
+        BankAccountRecordDO::class.java,
+        BankAccountRecordDO::bankAccount.name
+      )
   ) {
   var fromDate: LocalDate? = null
   var untilDate: LocalDate? = null
+
+  val bankAccountNormalizedIban = StringHelper.removeNonDigitsAndNonASCIILetters(targetEntity?.iban)
 
   var readTransactions = mutableListOf<BankAccountRecord>()
   var databaseTransactions: List<BankAccountRecordDO>? = null
@@ -60,8 +68,9 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
     }
     if (rereadDatabaseEntries) {
       (targetEntity as? BankAccount)?.id?.let { id ->
-        databaseTransactions = ApplicationContextProvider.getApplicationContext().getBean(BankAccountRecordDao::class.java)
-          .getByTimePeriod(id, from, until)
+        databaseTransactions =
+          ApplicationContextProvider.getApplicationContext().getBean(BankAccountRecordDao::class.java)
+            .getByTimePeriod(id, from, until)
       }
     }
     clearEntries()
@@ -134,6 +143,20 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
       }
       addEntry(ImportPairEntry(null, createRecord(dbRecordsByDay[l])))
     }
+    pairEntries.forEach { entry ->
+      entry.read?.let { read ->
+        if (read.bankAccount?.iban.isNullOrBlank()
+          || !bankAccountNormalizedIban.contains(StringHelper.removeNonDigitsAndNonASCIILetters(read.bankAccount?.iban))
+        ) {
+          entry.error = translateMsg(
+            "plugins.banking.import.error.recordWithWrongBankAccount",
+            read.bankAccount?.iban,
+            (targetEntity as BankAccount).iban
+          )
+        }
+
+      }
+    }
   }
 
   internal fun analyzeReadTransactions() {
@@ -150,6 +173,19 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
     val result = BankAccountRecord()
     result.copyFrom(accountDO)
     return result
+  }
+
+  override fun setProperty(obj: BankAccountRecord, fieldSettings: ImportFieldSettings, value: String): Boolean {
+    if (fieldSettings.property != "account") {
+      return false
+    }
+    var bankAccount = obj.bankAccount
+    if (bankAccount == null) {
+      bankAccount = BankAccount()
+      obj.bankAccount = bankAccount
+    }
+    bankAccount.iban = value
+    return true
   }
 
   override fun prepareEntity(): BankAccountRecord {

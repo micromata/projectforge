@@ -39,7 +39,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
     var modified: Boolean? = true,
     var unmodified: Boolean? = null,
     var deleted: Boolean? = true,
-    var error: Boolean? = true,
+    var faulty: Boolean? = true,
     var unknown: Boolean? = true,
   )
 
@@ -124,6 +124,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
         entry.status = pair.status
         entry.diff = pair.diff
         entry.id = pair.id
+        entry.error = pair.error
         result.add(entry)
       }
     }

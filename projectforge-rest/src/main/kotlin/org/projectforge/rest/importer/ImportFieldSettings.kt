@@ -57,18 +57,23 @@ class ImportFieldSettings(
   val hasDefinitions: Boolean
     get() = aliasList.isNotEmpty() || parseFormatList.isNotEmpty()
 
+  fun withLabel(label: String): ImportFieldSettings {
+    this.label = label
+    return this
+  }
+
   /**
    * @param name is the name of the property or the column head of the data table matching any alias.
    * @return true if the name matches the property or any alias.
    */
   fun matches(name: String): Boolean {
     val str = name.trim()
-    if (str.startsWith(property, ignoreCase = true)
-      || str.startsWith(label, ignoreCase = true)
-    ) {
-      return true
+    return if (aliasList.isEmpty()) {
+      // No auto-match if aliasList is given:
+      str.equals(property, ignoreCase = true) || str.equals(label, ignoreCase = true)
+    } else {
+      aliasList.any { getRegex(it)?.matches(str) == true }
     }
-    return aliasList.any { getRegex(it)?.matches(str) == true }
   }
 
   /**

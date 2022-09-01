@@ -156,6 +156,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       // agGrid.height = "window.screen.height - 400"
       agGrid.add("statusAsString", headerName = "status", width = 120)
       createListLayout(request, layout, agGrid)
+      agGrid.add(UIAgGridColumnDef.createCol("error", headerName = "import.entry.error", wrapText = true))
       agGrid.withMultiRowSelection()
       agGrid.multiSelectButtonTitle = translate("import")
       agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
@@ -286,14 +287,14 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
 
   protected abstract fun createListLayout(request: HttpServletRequest, layout: UILayout, agGrid: UIAgGrid)
 
-  protected fun addReadColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>) {
+  protected fun addReadColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>, wrapText: Boolean? = null) {
     val field = property.name
-    agGrid.add(lc, "read.$field", lcField = field)
+    agGrid.add(lc, "read.$field", lcField = field, wrapText = wrapText)
   }
 
-  protected fun addStoredColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>) {
+  protected fun addStoredColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>, wrapText: Boolean? = null) {
     val field = property.name
-    agGrid.add(lc, "stored.$field", lcField = field)
+    agGrid.add(lc, "stored.$field", lcField = field, wrapText = wrapText)
   }
 
   protected fun addIfNotZero(
