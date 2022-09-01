@@ -515,6 +515,12 @@ open class MenuCreator {
           requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
         )
       )
+      .add(
+        MenuItemDef(
+          MenuItemDefId.JOB_MONITOR,
+          requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP, ProjectForgeGroup.FINANCE_GROUP)
+        )
+      )
 
 
     //////////////////////////////////////

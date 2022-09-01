@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.MagicFilterEntry
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.time.PFDayUtils
@@ -78,12 +79,6 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     magicFilter: MagicFilter,
     userAccess: UILayout.UserAccess
   ) {
-    val bankAccountId = request.getParameter("bankAccount")?.toIntOrNull()
-    val bankAccount = if (bankAccountId != null) {
-      bankAccountDao.getById(bankAccountId)
-    } else {
-      null
-    }
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
@@ -96,8 +91,8 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       .add(
         lc,
         BankAccountRecordDO::date,
-        BankAccountRecordDO::subject,
         BankAccountRecordDO::amount,
+        BankAccountRecordDO::subject,
         BankAccountRecordDO::comment,
       )
       .withGetRowClass(
@@ -173,6 +168,23 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       }
     }
     return null
+  }
+
+  override fun getInitialList(request: HttpServletRequest): InitialListData {
+    val magicFilter = getCurrentFilter()
+    val bankAccountId = request.getParameter("bankAccount")?.toIntOrNull()
+    if (bankAccountId != null) {
+      bankAccountDao.getById(bankAccountId)?.let {
+        // Show only records of given bank account.
+        var filterEntry = magicFilter.entries.find { it.field == "accounts" }
+        if (filterEntry == null) {
+          filterEntry = MagicFilterEntry("accounts")
+          magicFilter.entries.add(filterEntry)
+        }
+        filterEntry.value.values = arrayOf(bankAccountId.toString())
+      }
+    }
+    return getInitialList(request, magicFilter)
   }
 
   override fun processResultSetBeforeExport(

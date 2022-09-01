@@ -23,12 +23,10 @@
 
 package org.projectforge.rest.importer
 
-import org.projectforge.rest.core.AbstractDynamicPageRest
-
 /**
  * Holds the difference between old and new value of a property as String representations.
  */
-class ImportPropertyDiff : AbstractDynamicPageRest() {
+class ImportPropertyDiff {
   var readProperty: String? = null
   var storedProperty: String? = null
 }
