@@ -122,6 +122,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
     addReadColumn(agGrid, lc, BankAccountRecordDO::date)
     val col = UIAgGridColumnDef.createCol(lc, "read.bankAccount.iban", lcField = BankAccountRecordDO::bankAccount.name)
     col.valueGetter = null
+    col.cellRenderer = "diffCell"
     agGrid.add(col)
     addReadColumn(agGrid, lc, BankAccountRecordDO::valueDate)
     addReadColumn(agGrid, lc, BankAccountRecordDO::amount)

@@ -12,6 +12,7 @@ import history from '../../../../../utilities/history';
 import { getServiceURL } from '../../../../../utilities/rest';
 import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
+import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 
 LicenseManager.setLicenseKey('CompanyName=Micromata GmbH,LicensedApplication=ProjectForge,LicenseType=SingleApplication,LicensedConcurrentDeveloperCount=2,LicensedProductionInstancesCount=0,AssetReference=AG-029226,SupportServicesEnd=15_July_2023_[v2]_MTY4OTM3NTYwMDAwMA==d9c94f1e7c14ede1402f6577965ae36f');
 
@@ -244,6 +245,7 @@ function DynamicAgGrid(props) {
 
     const [allComponents] = useState({
         formatter: Formatter,
+        diffCell: DynamicAgGridDiffCell,
         ...components,
     });
 

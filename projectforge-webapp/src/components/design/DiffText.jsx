@@ -3,13 +3,14 @@ import React from 'react';
 import DiffViewer from 'react-diff-viewer';
 import { DiffMethod } from 'react-diff-viewer/lib/compute-lines';
 
-function DiffText({ oldValue, newValue }) {
+function DiffText({ oldValue, newValue, compareMethod }) {
     return (
         <DiffViewer
             oldValue={oldValue}
             newValue={newValue}
+            showDiffOnly
             splitView={false}
-            compareMethod={DiffMethod.WORDS}
+            compareMethod={compareMethod}
             hideLineNumbers
         />
     );
@@ -18,6 +19,11 @@ function DiffText({ oldValue, newValue }) {
 DiffText.propTypes = {
     newValue: PropTypes.string.isRequired,
     oldValue: PropTypes.string.isRequired,
+    compareMethod: PropTypes.string,
+};
+
+DiffText.defaultProps = {
+    compareMethod: DiffMethod.WORDS,
 };
 
 export default DiffText;

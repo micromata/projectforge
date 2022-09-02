@@ -24,6 +24,7 @@
 package org.projectforge.plugins.banking
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.common.FormatterUtils
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.PagesResolver
@@ -55,13 +56,17 @@ class BankingServicesRest {
     @PathVariable("id", required = true) id: Int,
     @RequestParam("file") file: MultipartFile
   ): ResponseEntity<*> {
-    val filename = file.originalFilename
+    val filename = file.originalFilename ?: "unknown"
     log.info {
       "User tries to upload serial execution file: id='$id', filename='$filename', size=${
         FormatterUtils.formatBytes(
           file.size
         )
       }."
+    }
+    if (file.size > 100 * Constants.MB) {
+      log.warn("Upload file size to big: ${file.size} > 100MB")
+      throw IllegalArgumentException("Upload file size to big: ${file.size} > 100MB")
     }
     val bankAccountDO = bankAccountDao.getById(id)
     if (bankAccountDO == null) {
@@ -77,7 +82,7 @@ class BankingServicesRest {
     } else {
       importStorage = BankingImportStorage(bankAccount.importSettings, bankAccount)
       // Try to import CSV
-      CsvImporter.parse(file.inputStream.reader(charset = importStorage.importSettings.charSet), importStorage)
+      CsvImporter.parse(file.inputStream, importStorage, importStorage.importSettings.charSet)
     }
     transactionsImporter.import(request, bankAccountDO, importStorage)
     return ResponseEntity(

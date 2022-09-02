@@ -290,10 +290,9 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
 
   protected fun addReadColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>, wrapText: Boolean? = null) {
     val field = property.name
-    agGrid.add(lc, "read.$field", lcField = field, wrapText = wrapText)
-    // val col = UIAgGridColumnDef.createCol(lc, "read.$field", lcField = field, wrapText = wrapText)
-    // col.cellRenderer = "diffCell"
-    // agGrid.add(col)
+    val col = UIAgGridColumnDef.createCol(lc, "read.$field", lcField = field, wrapText = wrapText)
+    col.cellRenderer = "diffCell"
+    agGrid.add(col)
   }
 
   protected fun addStoredColumn(agGrid: UIAgGrid, lc: LayoutContext, property: KProperty<*>, wrapText: Boolean? = null) {
