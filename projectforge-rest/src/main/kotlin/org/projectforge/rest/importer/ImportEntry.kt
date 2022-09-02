@@ -42,10 +42,10 @@ open class ImportEntry<O : Any>(
     get() = translate("import.entry.status.${status.name.lowercase()}")
 
   /**
-   * If both exists, read- and storedEntry, here is the list of modified / changed
+   * If both exists, read- and storedEntry, here is the map of old values. Key is the name of the property.
    * properties.
    */
-  var diff: List<ImportPropertyDiff>? = null
+  var oldDiffValues: Map<String, Any>? = null
 
   fun match(displayOptions: ImportStorage.DisplayOptions): Boolean {
     return when (status) {
@@ -55,7 +55,6 @@ open class ImportEntry<O : Any>(
       Status.UNMODIFIED -> displayOptions.unmodified == true
       Status.UNKNOWN, Status.UNKNOWN_MODIFICATION -> displayOptions.unknown == true
       Status.FAULTY -> displayOptions.faulty == true
-      else -> false
     }
   }
 }

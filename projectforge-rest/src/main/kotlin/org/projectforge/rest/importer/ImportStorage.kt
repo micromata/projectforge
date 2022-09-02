@@ -122,7 +122,7 @@ abstract class ImportStorage<O : ImportPairEntry.Modified<O>>(
       if (displayOptions == null || pair.match(displayOptions)) {
         val entry = ImportEntry(pair.read ?: pair.stored)
         entry.status = pair.status
-        entry.diff = pair.diff
+        entry.oldDiffValues = pair.oldDiffValues
         entry.id = pair.id
         entry.error = pair.error
         result.add(entry)

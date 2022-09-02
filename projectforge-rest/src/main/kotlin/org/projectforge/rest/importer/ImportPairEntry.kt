@@ -23,7 +23,9 @@
 
 package org.projectforge.rest.importer
 
+import org.projectforge.common.BeanHelper
 import java.math.BigDecimal
+import kotlin.reflect.KProperty
 
 /**
  * An import pair entry contains both, the read entry and the db entry (if exist).
@@ -44,21 +46,31 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
   val stored: O? = null,
 ) : ImportEntry<O>(read) {
   interface Modified<O> {
-    fun isModified(other: O): Boolean
-    fun isModified(value: Any?, dest: Any?): Boolean {
-      value ?: return false
-      if (dest == null) {
-        return true
-      }
-      if (value::class.java != dest::class.java) {
-        return true
-      }
-      return when (value) {
-        is BigDecimal -> {
-          value.compareTo(dest as BigDecimal) != 0
+    fun buildOldDiffValue(map: MutableMap<String, Any>, property: String, value: Any?, old: Any?) {
+      if (isModified(value, old)) {
+        var useOldValue = old ?: ""
+        if (useOldValue is String) {
+          useOldValue = useOldValue.trim()
         }
+        map["read.$property"] = useOldValue
+      }
+    }
 
-        else -> dest != value
+    val properties: Array<KProperty<*>>?
+
+    fun buildOldDiffValues(map: MutableMap<String, Any>, old: O) {}
+  }
+
+  private fun buildOldDiffValue(map: MutableMap<String, Any>) {
+    read?.properties?.forEach { property ->
+      val readValue = BeanHelper.getProperty(read, property.name)
+      val oldValue = BeanHelper.getProperty(stored, property.name)
+      if (isModified(readValue, oldValue)) {
+        var useOldValue = oldValue ?: ""
+        if (useOldValue is String) {
+          useOldValue = useOldValue.trim()
+        }
+        map["read.${property.name}"] = useOldValue
       }
     }
   }
@@ -69,7 +81,13 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
     if (read == null || stored == null) {
       return null
     }
-    return read.isModified(stored)
+    if (oldDiffValues == null) {
+      val map = mutableMapOf<String, Any>()
+      read.buildOldDiffValues(map, stored)
+      buildOldDiffValue(map)
+      oldDiffValues = map
+    }
+    return !oldDiffValues.isNullOrEmpty()
   }
 
   override var status: Status
@@ -96,12 +114,45 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
       } else if (stored == null) {
         Status.NEW
       } else {
-        val modified = isModified()
-        when (modified) {
+        when (isModified()) {
           null -> Status.UNKNOWN_MODIFICATION
           true -> Status.MODIFIED
           else -> Status.UNMODIFIED
         }
       }
     }
+
+
+  companion object {
+    private fun isModified(value: Any?, dest: Any?): Boolean {
+      if (value == null) {
+        return isNotNullOrBlank(dest)
+      }
+      if (dest == null) {
+        return isNotNullOrBlank(value)
+      }
+      if (value::class.java != dest::class.java) {
+        return true
+      }
+      return when (value) {
+        is BigDecimal -> {
+          value.compareTo(dest as BigDecimal) != 0
+        }
+
+        is String -> {
+          (dest as String).trim() != value.trim()
+        }
+
+        else -> dest != value
+      }
+    }
+
+    private fun isNotNullOrBlank(value: Any?): Boolean {
+      return when (value) {
+        null -> false
+        is String -> value.isNotBlank()
+        else -> true
+      }
+    }
+  }
 }

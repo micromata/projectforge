@@ -40,6 +40,12 @@ object Constants {
   @JvmField
   val TEN_BILLION_NEGATIVE = BigDecimal("-10000000000")
 
+  val KB = 1024
+
+  val MB = KB * 1024
+
+  val GB = MB * 1024
+
   /**
    * Default length of text fields in the data-base (4,000).
    */

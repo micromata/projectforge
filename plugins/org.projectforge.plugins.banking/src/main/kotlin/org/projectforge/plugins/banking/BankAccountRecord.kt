@@ -29,6 +29,7 @@ import org.projectforge.rest.importer.ImportPairEntry
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
+import kotlin.reflect.KProperty
 
 class BankAccountRecord(
   var bankAccount: BankAccount? = null,
@@ -60,28 +61,27 @@ class BankAccountRecord(
     }
   }
 
-  /**
-   * Checks if the given dest account needs an update (differs from this).
-   */
-  override fun isModified(other: BankAccountRecord): Boolean {
-    return isModified(amount, other.amount)
-        // ||updateNeeded(date, dest.date) // Can't occur (the records will never match)
-        || isModified(valueDate, other.valueDate)
-        || isModified(type, other.type)
-        || isModified(subject, other.subject)
-        || isModified(currency, other.currency)
-        || isModified(debteeId, other.debteeId)
-        || isModified(mandateReference, other.mandateReference)
-        || isModified(customerReference, other.customerReference)
-        || isModified(collectionReference, other.collectionReference)
-        || isModified(info, other.info)
-        || isModified(receiverSender, other.receiverSender) // Shouldn't occur
-        || isModified(iban, other.iban)
-        || isModified(bic, other.bic)
-  }
+  override val properties: Array<KProperty<*>>
+    get() = arrayOf(
+      BankAccountRecordDO::amount,
+      // ||updateNeeded(date, dest.date) // Can't occur (the records will never match)
+      BankAccountRecordDO::valueDate,
+      BankAccountRecordDO::type,
+      BankAccountRecordDO::subject,
+      // || isModified(comment, other.comment) // Comment isn't part of import.
+      BankAccountRecordDO::currency,
+      BankAccountRecordDO::debteeId,
+      BankAccountRecordDO::mandateReference,
+      BankAccountRecordDO::customerReference,
+      BankAccountRecordDO::collectionReference,
+      BankAccountRecordDO::info,
+      BankAccountRecordDO::receiverSender,
+      BankAccountRecordDO::iban,
+      BankAccountRecordDO::bic,
+    )
 
   /**
-   * Try to find pairs of imported and data base records of one date by finding the best fits using scores.
+   * Try to find pairs of imported and database records of one date by finding the best fits using scores.
    */
   fun matchScore(dest: BankAccountRecordDO): Int {
     if (date != dest.date) {
