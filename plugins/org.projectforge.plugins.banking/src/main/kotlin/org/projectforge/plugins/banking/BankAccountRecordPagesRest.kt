@@ -65,6 +65,12 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
 
   override fun transformForDB(dto: BankAccountRecord): BankAccountRecordDO {
     val bankAccountRecordDO = BankAccountRecordDO()
+    dto.id?.let { id ->
+      val dbObj = baseDao.getById(id)
+      if (dbObj != null) {
+        bankAccountRecordDO.checksum = dbObj.checksum
+      }
+    }
     dto.copyTo(bankAccountRecordDO)
     return bankAccountRecordDO
   }
@@ -130,6 +136,12 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
         defaultFilter = true,
       )
     )
+    elements.add(
+      UIFilterElement(
+        "checksumErrors", UIFilterElement.FilterType.BOOLEAN, translate("plugins.banking.account.record.checksumErrors"),
+        defaultFilter = true,
+      )
+    )
     val values = mutableListOf<UISelectValue<String>>()
     bankAccountDao.getList(BaseSearchFilter())?.forEach { account ->
       values.add(UISelectValue("${account.id}", StringUtils.abbreviate(account.name, 20)))
@@ -144,6 +156,8 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
   ): List<CustomResultFilter<BankAccountRecordDO>>? {
     val doubletFilterEntry = source.entries.find { it.field == "doublets" }
     doubletFilterEntry?.synthetic = true
+    val checksumErrorsFilterEntry = source.entries.find { it.field == "checksumErrors" }
+    checksumErrorsFilterEntry?.synthetic = true
     source.entries.find { it.field == "period" }?.let { periodFilterEntry ->
       periodFilterEntry.synthetic = true
       val fromDate = PFDayUtils.parseDate(periodFilterEntry.value.fromValue)
@@ -197,6 +211,11 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       val origList = resultSet.resultSet
       resultSet.resultSet = origList.filter { isDoublet(origList, it) }
     }
+    val checksumErrorsFilterEntry = magicFilter.entries.find { it.field == "checksumErrors" }
+    if (checksumErrorsFilterEntry?.isTrueValue == true) {
+      val origList = resultSet.resultSet
+      resultSet.resultSet = origList.filter { isChecksumError(it) }
+    }
     return super.processResultSetBeforeExport(resultSet, request, magicFilter)
   }
 
@@ -204,7 +223,11 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     if (element.isDeleted) {
       return false
     }
-    return list.any { it.id != element.id && it.ensureChecksum == element.ensureChecksum }
+    return list.any { it.id != element.id && it.buildCheckSum() == element.buildCheckSum() }
+  }
+
+  private fun isChecksumError(element: BankAccountRecordDO): Boolean {
+    return element.checksum != element.buildCheckSum()
   }
 
   /**

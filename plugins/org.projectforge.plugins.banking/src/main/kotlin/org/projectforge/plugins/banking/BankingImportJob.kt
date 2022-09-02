@@ -98,6 +98,7 @@ class BankingImportJob(
           val id = dbEntry.id
           readEntry.copyTo(dbEntry)
           dbEntry.id = id
+          dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
           dbEntry.isDeleted = false
           val modStatus = bankAccountRecordDao.update(dbEntry)
