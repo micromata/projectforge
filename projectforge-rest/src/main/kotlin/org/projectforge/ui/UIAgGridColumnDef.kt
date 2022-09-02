@@ -391,7 +391,7 @@ open class UIAgGridColumnDef(
         Formatter.TIMESTAMP_SECONDS -> result["timestampFormatSeconds"] =
           DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS)
         Formatter.CURRENCY -> {
-          result["locale"] = ThreadLocalUserContext.locale!!
+          result["locale"] = ThreadLocalUserContext.localeAsString!!
           result["currency"] = ConfigurationServiceAccessor.get().currency ?: "EUR"
         }
         else -> {}
