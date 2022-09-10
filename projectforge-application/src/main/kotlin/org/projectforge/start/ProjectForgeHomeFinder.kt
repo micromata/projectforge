@@ -34,13 +34,11 @@ import org.projectforge.setup.SetupContext
 import org.projectforge.setup.SetupData
 import org.projectforge.setup.wizard.lanterna.LantSetupWizard.Companion.run
 import org.projectforge.setup.wizard.swing.SwingSetupWizard.Companion.run
-import org.slf4j.LoggerFactory
 import java.awt.GraphicsEnvironment
 import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.net.URISyntaxException
-import java.util.*
 import java.util.prefs.Preferences
 
 private val log = KotlinLogging.logger {}
@@ -50,7 +48,7 @@ private val log = KotlinLogging.logger {}
  *
  *  1. Create ProjectForge as a top level directory of your home directory: '$HOME/ProjectForge', or
  *  1. create a directory and put the jar file somewhere inside this directory. ProjectForge detects the folder relative to the executed jar, or
- *  1. create a directory and define it as command line parameter: java -D" + COMMAND_LINE_VAR_HOME_DIR + "=yourdirectory -jar ..., or
+ *  1. create a directory and define it as command line parameter: java -Dhome.dir=yourdirectory -jar ..., or
  *  1. create a directory and define it as system environment variable $PROJECTFORGE_HOME.
  *
  */
