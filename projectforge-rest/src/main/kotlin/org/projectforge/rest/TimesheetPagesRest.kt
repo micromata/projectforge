@@ -242,11 +242,17 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
     if (property == "location") {
       val toLowerSearch = searchString?.lowercase()?.trim()
       val recentLocations = timesheetRecentService.getRecentLocations()
-      if (toLowerSearch.isNullOrBlank() || recentLocations.any { it.trim().equals(toLowerSearch, ignoreCase = true) }) {
+      if (toLowerSearch.isNullOrBlank()) {
         // No search string given, so show all recent entries, or:
-        // exact match (so show also other recent locations as well for showing recent if location is prefilled, work-around
-        // for convenience):
         return recentLocations
+      }
+      val exactMatch = recentLocations.find { it.trim().equals(toLowerSearch, ignoreCase = true) }
+      if (!exactMatch.isNullOrEmpty()) {
+        // Exact match (so show also other recent locations as well for showing recent if location is prefilled, work-around
+        // for convenience):
+        val result =  recentLocations.toMutableList()
+        result.add(0, exactMatch) // Prepend exact match
+        return result
       }
       return recentLocations.filter { it.lowercase().contains(toLowerSearch) }
     }
