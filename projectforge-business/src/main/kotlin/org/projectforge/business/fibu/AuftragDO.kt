@@ -458,6 +458,16 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     get() = positionen?.filter { !it.isDeleted } ?: emptyList()
 
   /**
+   * Get list of PaymentScheduleDO excluding elements that are marked as deleted.
+   *
+   * @return Returns a filtered list of PaymentScheduleDO excluding marked as deleted elements.
+   */
+  val paymentSchedulesExcludingDeleted: List<PaymentScheduleDO>
+    @Transient
+    get() = paymentSchedules?.filter { !it.isDeleted } ?: emptyList()
+
+
+  /**
    * @return The sum of person days of all positions.
    */
   val personDays: BigDecimal
