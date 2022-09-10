@@ -240,11 +240,15 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   )
       : List<String> {
     if (property == "location") {
-      val toLowerSearch = searchString?.lowercase()
-      if (toLowerSearch.isNullOrBlank()) {
-        return timesheetRecentService.getRecentLocations()
+      val toLowerSearch = searchString?.lowercase()?.trim()
+      val recentLocations = timesheetRecentService.getRecentLocations()
+      if (toLowerSearch.isNullOrBlank() || recentLocations.any { it.trim().equals(toLowerSearch, ignoreCase = true) }) {
+        // No search string given, so show all recent entries, or:
+        // exact match (so show also other recent locations as well for showing recent if location is prefilled, work-around
+        // for convenience):
+        return recentLocations
       }
-      return timesheetRecentService.getRecentLocations().filter { it.lowercase().contains(toLowerSearch) }
+      return recentLocations.filter { it.lowercase().contains(toLowerSearch) }
     }
     return super.getAutoCompletionForProperty(property, searchString)
   }
