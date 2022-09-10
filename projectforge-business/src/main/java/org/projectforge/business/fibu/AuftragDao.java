@@ -527,7 +527,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag) {
-    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedulesExcludingDeleted();
     if (paymentSchedules == null) {
       // if there are no payment schedules, there are no amounts which can be greater -> validation OK
       return;
