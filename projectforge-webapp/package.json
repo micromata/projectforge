@@ -33,7 +33,7 @@
     "micromark-extension-gfm-table": "^1.0.5",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
-    "node-fetch": "^3.2.4",
+    "node-fetch": "^3.2.10",
     "prop-types": "^15.7.2",
     "rc-time-picker": "^3.7.3",
     "react": "^17.0.2",
