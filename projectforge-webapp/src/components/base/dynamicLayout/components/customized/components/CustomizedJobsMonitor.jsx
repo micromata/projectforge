@@ -58,6 +58,10 @@ function CustomizedJobsMonitor(props) {
     useEffect(() => {
         fetchUpdateIntervalRef.current = fetchUpdateInterval;
     }, [fetchUpdateInterval]);
+    let noJobsText;
+    if (!jobs || jobs.length === 0) {
+        noJobsText = ui.translations['jobs.monitor.noJobsAvailable'] || 'No current jobs.';
+    }
     return useMemo(
         () => (
             <div>
@@ -74,7 +78,7 @@ function CustomizedJobsMonitor(props) {
                         infoColor={job.infoColor}
                     />
                 ))}
-                {!jobs && (ui.translations['jobs.monitor.noJobsAvailable'] || 'No current jobs.') }
+                {noJobsText}
             </div>
         ),
         [variables],
