@@ -80,7 +80,7 @@ const Input = React.forwardRef((
                 className={classNames(
                     styles.inputContainer,
                     {
-                        [styles.isActive]: value || isActive,
+                        [styles.isActive]: value !== undefined || isActive,
                         [styles.withMargin]: !noStyle,
                         [styles.noStyle]: noStyle,
                     },

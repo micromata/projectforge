@@ -7,7 +7,12 @@ import DynamicValidationManager from './DynamicValidationManager';
 function DynamicInput({ id, focus, ...props }) {
     const { data, setData, ui } = React.useContext(DynamicLayoutContext);
 
-    const value = Object.getByString(data, id) || '';
+    let value = Object.getByString(data, id);
+    // Can't use Object.getByString(...) || '',
+    // because this fails, if Object.getByString(...) returns 0 (== false).
+    if (value === undefined) {
+        value = '';
+    }
 
     // Only rerender input when data has changed
     return React.useMemo(() => {
