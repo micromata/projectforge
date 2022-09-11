@@ -251,7 +251,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         // Exact match (so show also other recent locations as well for showing recent if location is prefilled, work-around
         // for convenience):
         val result =  recentLocations.toMutableList()
-        result.add(0, exactMatch) // Prepend exact match
+        if (!exactMatch.trim().equals(searchString.trim(), ignoreCase = false)) { // ignoreCase = false: Strings differs.
+          result.add(0, exactMatch) // Prepend exact match
+        }
         return result
       }
       return recentLocations.filter { it.lowercase().contains(toLowerSearch) }
