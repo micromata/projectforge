@@ -99,6 +99,9 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
         BankAccountRecordDO::date,
         BankAccountRecordDO::amount,
         BankAccountRecordDO::subject,
+        BankAccountRecordDO::receiverSender,
+        BankAccountRecordDO::iban,
+        BankAccountRecordDO::bic,
         BankAccountRecordDO::comment,
       )
       .withGetRowClass(
