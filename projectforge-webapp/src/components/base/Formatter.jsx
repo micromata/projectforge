@@ -23,7 +23,12 @@ function Formatter(
         currency,
     },
 ) {
-    const useValue = value || Object.getByString(data, id);
+    let useValue = value;
+    if (value === undefined) {
+        // Can't use value || Object...,
+        // because this fails, if value is 0 (== false).
+        useValue = Object.getByString(data, id);
+    }
     if (useValue === undefined) {
         return null;
     }
