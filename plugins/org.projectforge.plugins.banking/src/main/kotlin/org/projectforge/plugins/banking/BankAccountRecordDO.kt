@@ -65,6 +65,7 @@ open class BankAccountRecordDO : DefaultBaseDO() {
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.date")
   @Field(analyze = Analyze.NO)
+  @get:Column(name = "date_col")
   open var date: LocalDate? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.valueDate")
