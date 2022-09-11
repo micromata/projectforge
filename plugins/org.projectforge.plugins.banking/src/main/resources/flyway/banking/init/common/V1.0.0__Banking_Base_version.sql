@@ -1,11 +1,6 @@
 -- This is the initial script for setting up the data base for this plugin.
 -- For specific data base dialects, place sql scripts in the sub directory init/{vendor}
 
--- Drop old tables of former plugin (never in use):
-DROP TABLE t_plugin_bank_account_record;
-DROP TABLE t_plugin_bank_account_balance;
-DROP TABLE t_plugin_bank_account;
-
 CREATE TABLE t_plugin_banking_account
 (
     pk                        INTEGER                      NOT NULL,
