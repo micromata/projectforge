@@ -176,7 +176,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     }
     source.entries.find { it.field == "accounts" }?.let { entry ->
       entry.synthetic = true
-      val ids = entry.value.values?.mapNotNull { it.toLongOrNull() }
+      val ids = entry.value.values?.mapNotNull { it.toIntOrNull() }
       if (!ids.isNullOrEmpty()) {
         target.add(QueryFilter.eq("bankAccount.id", ids[0]))
       }

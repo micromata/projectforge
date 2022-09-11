@@ -74,7 +74,7 @@ function CustomizedJobsMonitor(props) {
                         infoColor={job.infoColor}
                     />
                 ))}
-                {!jobs || ui.translations['jobs.monitor.noJobsAvailable'] || 'No current jobs.'}
+                {!jobs && (ui.translations['jobs.monitor.noJobsAvailable'] || 'No current jobs.') }
             </div>
         ),
         [variables],

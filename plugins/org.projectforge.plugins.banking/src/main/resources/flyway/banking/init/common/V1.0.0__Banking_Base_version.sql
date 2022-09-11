@@ -36,7 +36,7 @@ CREATE TABLE t_plugin_banking_account_record
     created                   TIMESTAMP WITHOUT TIME ZONE,
     deleted                   BOOLEAN                      NOT NULL,
     last_update               TIMESTAMP WITHOUT TIME ZONE,
-    date                      DATE                         NOT NULL,
+    date_col                  DATE                         NOT NULL,
     value_date                DATE                         NOT NULL,
     amount                    NUMERIC(18, 5) NOT NULL,
     subject                   CHARACTER VARYING(4000),
@@ -64,3 +64,24 @@ CREATE INDEX idx_fk_t_plugin_banking_account_record_fk_account
 
 ALTER TABLE t_plugin_banking_account_record
     ADD CONSTRAINT t_plugin_banking_account_record_fk_account FOREIGN KEY (banking_account_fk) REFERENCES t_plugin_banking_account (pk);
+
+CREATE TABLE t_plugin_banking_account_balance
+(
+    pk                        INTEGER                      NOT NULL,
+    created                   TIMESTAMP WITHOUT TIME ZONE,
+    deleted                   BOOLEAN                      NOT NULL,
+    last_update               TIMESTAMP WITHOUT TIME ZONE,
+    date_col                  DATE                         NOT NULL,
+    amount                    NUMERIC(18, 5) NOT NULL,
+    comment                   CHARACTER VARYING(4000),
+    banking_account_fk        INTEGER                     NOT NULL
+);
+
+ALTER TABLE t_plugin_banking_account_balance
+    ADD CONSTRAINT t_plugin_banking_account_balance_pkey PRIMARY KEY (pk);
+
+CREATE INDEX idx_fk_t_plugin_banking_account_balance_fk_account
+    ON t_plugin_banking_account_balance (banking_account_fk);
+
+ALTER TABLE t_plugin_banking_account_balance
+    ADD CONSTRAINT t_plugin_banking_account_balance_fk_account FOREIGN KEY (banking_account_fk) REFERENCES t_plugin_banking_account (pk);
