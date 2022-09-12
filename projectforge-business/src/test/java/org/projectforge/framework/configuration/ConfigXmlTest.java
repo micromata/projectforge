@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
-import org.projectforge.common.JiraUtilsTest;
+import org.projectforge.jira.JiraUtilsTest;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
