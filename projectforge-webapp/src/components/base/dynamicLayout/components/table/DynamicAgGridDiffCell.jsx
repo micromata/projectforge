@@ -28,7 +28,8 @@ function DynamicAgGridDiffCell(props) {
 }
 
 DynamicAgGridDiffCell.propTypes = {
-    value: PropTypes.string,
+    // eslint-disable-next-line react/forbid-prop-types
+    value: PropTypes.any, // string, number, boolean, array, ...
     colDef: PropTypes.shape(),
     data: PropTypes.shape(),
 };
