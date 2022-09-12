@@ -100,22 +100,30 @@ object ValueParser {
     }
   }
 
-  internal fun isGermanStyle(str: String): Boolean {
-    val dotPos = str.indexOf('.')
-    val comaPos = str.indexOf(',')
-    if (dotPos >= 0 && comaPos >= 0) {
-      return comaPos > dotPos
+  fun isGermanStyle(str: String): Boolean {
+    return matchStyle(str, '.', ',')
+  }
+
+  fun isEnglishStyle(str: String): Boolean {
+    return matchStyle(str, ',', '.')
+  }
+
+  private fun matchStyle(str: String, thousandsSeparator: Char, decimalChar: Char): Boolean {
+    val thousandsPos = str.indexOf(thousandsSeparator)
+    val decimalPos = str.indexOf(decimalChar)
+    if (thousandsPos >= 0 && decimalPos >= 0) {
+      return decimalPos > thousandsPos
     }
-    if (dotPos >= 0) {
-      if (str.count { it == '.'} > 1) { // 1.234.000
+    if (thousandsPos >= 0) {
+      if (str.count { it == thousandsSeparator } > 1) { // 1.234.000
         return true
       }
-      return dotPos == str.length - 4 // 1.000?
+      return thousandsPos == str.length - 4 // 1.000?
     } else {
-      if (str.count { it == ','} > 1) { // 1,234,000
+      if (str.count { it == decimalChar } > 1) { // 1,234,000
         return false
       }
-      return comaPos != str.length - 4 // 1,000?
+      return decimalPos != str.length - 4 // 1,000?
     }
   }
 
