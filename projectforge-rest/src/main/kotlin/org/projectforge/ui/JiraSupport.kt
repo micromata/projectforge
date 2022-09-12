@@ -38,7 +38,7 @@ object JiraSupport {
     @JvmStatic
     @JvmOverloads
     fun createJiraElement(text: String?, element: UILabelledElement? = null): UICustomized? {
-        if (!JiraUtils.isJiraConfigured()) {
+        if (!JiraUtils.isJiraConfigured) {
             return null
         }
         element?.let {
