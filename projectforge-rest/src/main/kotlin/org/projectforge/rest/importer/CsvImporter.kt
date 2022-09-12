@@ -26,6 +26,7 @@ package org.projectforge.rest.importer
 import mu.KotlinLogging
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.CSVParser
+import org.projectforge.framework.utils.ValueParser
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.Reader
@@ -65,12 +66,11 @@ object CsvImporter {
         importStorage.unknownColumns.add(head)
       }
     }
+    // Key is the property name, value is a map (key is bean and value is the number string to parse)
+    val autodetectNumberFormatMap = AutodetectNumberMap<O>()
+    val records = mutableListOf<O>()
     for (i in 0..100000) { // Paranoi loop, read 100000 lines at max.
-      val line = parser.parseLine()
-      if (line == null) {
-        // Finished
-        break
-      }
+      val line = parser.parseLine() ?: break  // Finished
       val record = importStorage.prepareEntity()
       line.forEachIndexed { index, value ->
         importStorage.columnMapping[index]?.let { fieldSettings ->
@@ -85,7 +85,14 @@ object CsvImporter {
               }
 
               BigDecimal::class.java -> {
-                fieldSettings.parseBigDecimal(value)
+                if (fieldSettings.parseFormatList.isEmpty()) {
+                  // Don't parse value, store value for later format auto-detection:
+                  autodetectNumberFormatMap.add(record, fieldSettings, value)
+                  null
+                } else {
+                  // Use given format list:
+                  fieldSettings.parseBigDecimal(value)
+                }
               }
 
               Int::class.java -> {
@@ -115,7 +122,7 @@ object CsvImporter {
                       BeanHelper.setProperty(record, fieldSettings.property, targetValue)
                     }
                   } catch (ex: Exception) {
-                    log.error("Can't parse property: '${fieldSettings.property}': ${ex.message}"  )
+                    log.error("Can't parse property: '${fieldSettings.property}': ${ex.message}")
                   }
                 }
               } else {
@@ -125,6 +132,43 @@ object CsvImporter {
           }
         }
       }
+      records.add(record)
+    }
+    autodetectNumberFormatMap.storedFieldSettings.forEach { fieldSettings ->
+      // Check format:
+      var englishStyle = true
+      var germanStyle = true
+      autodetectNumberFormatMap.entries.forEach { _, autodetectNumberEntry ->
+        val str = autodetectNumberEntry.valueStrings[fieldSettings]
+        if (str != null) {
+          if (germanStyle && !ValueParser.isGermanStyle(str)) {
+            germanStyle = false
+          }
+          if (englishStyle && !ValueParser.isEnglishStyle(str)) {
+            englishStyle = false
+          }
+        }
+      }
+      if (germanStyle) {
+        fieldSettings.parseFormatList.add(0, "#0,0#")
+        fieldSettings.parseFormatList.add(0, "#.##0,0#")
+      } else {
+        if (!englishStyle) {
+          log.warn { "Property ${fieldSettings.property} is neither in German nor in English number format." }
+        }
+        fieldSettings.parseFormatList.add(0, "#0.0#")
+        fieldSettings.parseFormatList.add(0, "#,##0.0#")
+      }
+      autodetectNumberFormatMap.entries.forEach { record, autodetectNumberEntry ->
+        val str = autodetectNumberEntry.valueStrings[fieldSettings]
+        if (str != null) {
+          val targetValue = fieldSettings.parseBigDecimal(str)
+          BeanHelper.setProperty(record, fieldSettings.property, targetValue)
+        }
+      }
+    }
+
+    records.forEach { record ->
       importStorage.commitEntity(record)
     }
   }
@@ -161,4 +205,31 @@ object CsvImporter {
 
   private const val UTF8_ESCAPE_BYTE = 195.toByte() // C3
   private const val UTF16_NULL_BYTE = 0.toByte() // 00
+
+  private class AutodetectNumberMap<O> {
+    val entries = mutableMapOf<O, AutodetectNumberEntry>()
+    val storedFieldSettings = mutableListOf<ImportFieldSettings>()
+
+    fun add(bean: O, fieldSettings: ImportFieldSettings, str: String?) {
+      str ?: return
+      if (storedFieldSettings.none { it.property == fieldSettings.property }) {
+        storedFieldSettings.add(fieldSettings)
+      }
+      var value = entries[bean]
+      if (value == null) {
+        value = AutodetectNumberEntry()
+        entries[bean] = value
+      }
+      value.add(fieldSettings, str)
+    }
+  }
+
+  private class AutodetectNumberEntry() {
+    // Key is the property, value is the string to parse.
+    val valueStrings = mutableMapOf<ImportFieldSettings, String>()
+
+    fun add(fieldSettings: ImportFieldSettings, str: String) {
+      valueStrings[fieldSettings] = str
+    }
+  }
 }

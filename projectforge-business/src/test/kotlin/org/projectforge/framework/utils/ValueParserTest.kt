@@ -59,4 +59,18 @@ class ValueParserTest {
     Assertions.assertFalse(ValueParser.isGermanStyle("100,122"))
     Assertions.assertTrue(ValueParser.isGermanStyle("100.122"))
   }
+
+  @Test
+  fun autoDetectEnglishStyle() {
+    Assertions.assertTrue(ValueParser.isEnglishStyle("1,000.12"))
+    Assertions.assertFalse(ValueParser.isEnglishStyle("1.000,12"))
+    Assertions.assertTrue(ValueParser.isEnglishStyle("1,000,122"))
+    Assertions.assertFalse(ValueParser.isEnglishStyle("1,00"))
+    Assertions.assertTrue(ValueParser.isEnglishStyle("0.12"))
+    Assertions.assertFalse(ValueParser.isEnglishStyle("0,12"))
+    Assertions.assertFalse(ValueParser.isEnglishStyle("1.000.122"))
+    Assertions.assertTrue(ValueParser.isEnglishStyle("100.12"))
+    Assertions.assertFalse(ValueParser.isEnglishStyle("100.122"))
+    Assertions.assertTrue(ValueParser.isEnglishStyle("100,122"))
+  }
 }
