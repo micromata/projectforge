@@ -161,6 +161,7 @@ abstract class AbstractImportPageRest<O : ImportPairEntry.Modified<O>> : Abstrac
       agGrid.withMultiRowSelection()
       agGrid.multiSelectButtonTitle = translate("import")
       agGrid.multiSelectButtonConfirmMessage = translate("import.confirmMessage")
+      agGrid.paginationPageSize = 500
       agGrid.withGetRowClass(
         """if (params.node.data.status === 'NEW') {
              return 'ag-row-green';
