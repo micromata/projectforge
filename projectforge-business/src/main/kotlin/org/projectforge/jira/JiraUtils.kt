@@ -87,11 +87,12 @@ object JiraUtils {
    * @see .checkForJiraIssues
    */
   @JvmStatic
-  fun linkJiraIssues(text: String): String {
+  fun linkJiraIssues(text: String?): String? {
+    text ?: return null
     val jiraIssues = checkForJiraIssues(text) ?: return text
     var result = text
     for (jiraIssue in jiraIssues) {
-      result = result.replace(jiraIssue, buildJiraIssueBrowseLink(jiraIssue))
+      result = result?.replace(jiraIssue, buildJiraIssueBrowseLink(jiraIssue))
     }
     return result
   }
