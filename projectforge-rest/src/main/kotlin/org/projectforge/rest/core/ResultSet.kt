@@ -45,7 +45,7 @@ class ResultSet<O : Any>(
    * result set was runcated due to maxRows limitation.
    */
   var resultInfo: String? = null
-    private set
+    internal set
 
   val size = resultSet.size
 

@@ -57,13 +57,19 @@ abstract class AbstractDTOPagesRest<
     val newList = resultSet.resultSet.map {
       transformFromDB(it, false)
     }
-    return ResultSet(
+    val result = ResultSet(
       newList,
       resultSet,
       newList.size,
       selectedEntityIds = resultSet.selectedEntityIds,
       magicFilter = magicFilter,
     )
+    resultSet.resultInfo?.let { info ->
+      if (info.isNotBlank()) {
+        result.resultInfo = info
+      }
+    }
+    return result
   }
 
   /**
