@@ -152,15 +152,21 @@ class ScriptingTaskTree {
     return __baseDao.getPersonDays(taskId)
   }
 
-  fun getPersonDays(node: ScriptingTaskNode): BigDecimal {
-    return __baseDao.getPersonDays(node.__baseObject)
+  fun getPersonDays(node: ScriptingTaskNode?): BigDecimal {
+    if (node?.__baseObject == null) {
+      return BigDecimal.ZERO
+    }
+    return __baseDao.getPersonDays(node.__baseObject) ?: BigDecimal.ZERO
   }
 
-  fun getOrderedPersonDaysSum(node: ScriptingTaskNode): BigDecimal {
-    return __baseDao.getOrderedPersonDaysSum(node.__baseObject)
+  fun getOrderedPersonDaysSum(node: ScriptingTaskNode?): BigDecimal {
+    if (node?.__baseObject == null) {
+      return BigDecimal.ZERO
+    }
+    return __baseDao.getOrderedPersonDaysSum(node.__baseObject) ?: BigDecimal.ZERO
   }
 
-  fun getPersonDaysNode(node: ScriptingTaskNode): TaskNode {
+  fun getPersonDaysNode(node: ScriptingTaskNode): TaskNode? {
     return __baseDao.getPersonDaysNode(node.__baseObject)
   }
 

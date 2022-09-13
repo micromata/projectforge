@@ -217,7 +217,7 @@ function CalendarPage({ match, location }) {
             (json) => {
                 // const { reload } = json;
                 // if (reload) {
-                // Force reload page independent from refreshing subscribed calendars:
+                // Force reload page independent of refreshing subscribed calendars:
                 window.location.reload(false);
                 // }
                 setLoading(false);

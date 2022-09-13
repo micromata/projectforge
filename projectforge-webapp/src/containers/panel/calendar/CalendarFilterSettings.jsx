@@ -275,6 +275,20 @@ function CalendarFilterSettings({
                                     {translations['plugins.teamcal.calendar.listAndIcsExport.tooltip']}
                                 </UncontrolledTooltip>
                             </DropdownItem>
+                            <DropdownItem
+                                key="entry-item-old-calendar"
+                            >
+                                <NavLink
+                                    id="oldCalendar"
+                                    href="/wa/teamCalendar"
+                                    rel="noopener noreferrer"
+                                >
+                                    {translations['calendar.view.oldVersion'] || '[old version]'}
+                                </NavLink>
+                                <UncontrolledTooltip placement="left" target="oldCalendar">
+                                    {translations['calendar.view.oldVersion.tooltip']}
+                                </UncontrolledTooltip>
+                            </DropdownItem>
                         </DropdownMenu>
                     </UncontrolledDropdown>
                 </Nav>
@@ -428,6 +442,8 @@ CalendarFilterSettings.propTypes = {
         'calendar.filter.vacation.groups.tooltip': PropTypes.string,
         'calendar.filter.vacation.users': PropTypes.string,
         'calendar.filter.vacation.users.tooltip': PropTypes.string,
+        'calendar.view.oldVersion': PropTypes.string,
+        'calendar.view.oldVersion.tooltip': PropTypes.string,
         'calendar.option.firstHour': PropTypes.string,
         'calendar.option.firstHour.tooltip': PropTypes.string,
         'calendar.option.gridSize': PropTypes.string,

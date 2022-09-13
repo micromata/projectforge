@@ -34,16 +34,14 @@ import java.util.List;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class ScriptingTaskNode
-{
+public class ScriptingTaskNode {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingTaskNode.class);
 
   TaskNode __baseObject;
 
   private TaskDO task;
 
-  ScriptingTaskNode(final TaskNode node)
-  {
+  ScriptingTaskNode(final TaskNode node) {
     __baseObject = node;
 
     try {
@@ -54,110 +52,96 @@ public class ScriptingTaskNode
     }
   }
 
-  public Integer getId()
-  {
+  public Integer getId() {
     return task.getId();
   }
 
-  public boolean isRootNode()
-  {
+  public boolean isRootNode() {
     return __baseObject.isRootNode();
   }
 
-  public TaskDO getTask()
-  {
+  public TaskDO getTask() {
     return this.task;
   }
 
-  public Integer getTaskId()
-  {
+  public Integer getTaskId() {
     return task.getId();
   }
 
-  public Integer getParentId()
-  {
+  public Integer getParentId() {
     return __baseObject.getParentId();
   }
 
-  public ScriptingTaskNode getParent()
-  {
+  public ScriptingTaskNode getParent() {
     return new ScriptingTaskNode(__baseObject.getParent());
   }
 
-  public String getReference()
-  {
+  public String getReference() {
     return __baseObject.getReference();
   }
 
-  public boolean isDeleted()
-  {
+  public boolean isDeleted() {
     return __baseObject.isDeleted();
   }
 
-  public boolean isFinished()
-  {
+  public boolean isFinished() {
     return __baseObject.isFinished();
   }
 
-  public List<Integer> getDescendantIds()
-  {
+  public List<Integer> getDescendantIds() {
     return __baseObject.getDescendantIds();
   }
 
   /**
    * @deprecated
    */
-  public List<ScriptingTaskNode> getChilds()
-  {
+  public List<ScriptingTaskNode> getChilds() {
     return getChildren();
   }
 
-  public List<ScriptingTaskNode> getChildren()
-  {
+  public List<ScriptingTaskNode> getChildren() {
     return ScriptingTaskTree.convert(__baseObject.getChildren());
   }
 
   /**
    * @deprecated
    */
-  public boolean hasChilds()
-  {
+  public boolean hasChilds() {
     return hasChildren();
   }
 
-  public boolean hasChildren()
-  {
+  public boolean hasChildren() {
     return __baseObject.hasChildren();
   }
 
-  public boolean isParentOf(final ScriptingTaskNode node)
-  {
+  public boolean isParentOf(final ScriptingTaskNode node) {
     return __baseObject.isParentOf(node.__baseObject);
   }
 
-  public List<ScriptingTaskNode> getPathToRoot()
-  {
+  public List<ScriptingTaskNode> getPathToRoot() {
     return getPathToAncestor(null);
   }
 
-  public List<ScriptingTaskNode> getPathToAncestor(Integer ancestorTaskId)
-  {
+  public List<ScriptingTaskNode> getPathToAncestor(Integer ancestorTaskId) {
     return ScriptingTaskTree.convert(__baseObject.getPathToAncestor(ancestorTaskId));
   }
 
-  public boolean hasPermission(Integer groupId, AccessType accessType, OperationType opType)
-  {
+  public boolean hasPermission(Integer groupId, AccessType accessType, OperationType opType) {
     return __baseObject.hasPermission(groupId, accessType, opType);
   }
 
-  public long getDuration(final ScriptingTaskTree taskTree, final boolean recursive)
-  {
+  /**
+   * @param taskTree
+   * @param recursive
+   * @return duration in seconds
+   * @see TaskNode#getDuration(TaskTree, boolean)
+   */
+  public long getDuration(final ScriptingTaskTree taskTree, final boolean recursive) {
     return __baseObject.getDuration(TaskTree.getInstance(), recursive);
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return __baseObject.toString();
   }
 }

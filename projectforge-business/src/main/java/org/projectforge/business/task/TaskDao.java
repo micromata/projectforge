@@ -171,6 +171,7 @@ public class TaskDao extends BaseDao<TaskDO> {
 
   /**
    * Gets the total duration of all time sheets of the given task (excluding the child tasks).
+   * @return Duration in seconds.
    */
   public long readTotalDuration(final Integer taskId) {
     log.debug("Calculating duration for all tasks");

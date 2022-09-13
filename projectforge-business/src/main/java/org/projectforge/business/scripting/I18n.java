@@ -23,12 +23,13 @@
 
 package org.projectforge.business.scripting;
 
+import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
  * Helper for i18n.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class I18n
 {
@@ -45,5 +46,12 @@ public class I18n
   public String get(final String messageKey, final Object... params)
   {
     return ThreadLocalUserContext.getLocalizedMessage(messageKey, params);
+  }
+
+  public String get(final I18nEnum i18nEnum) {
+    if (i18nEnum == null) {
+      return "";
+    }
+    return get(i18nEnum.getI18nKey());
   }
 }

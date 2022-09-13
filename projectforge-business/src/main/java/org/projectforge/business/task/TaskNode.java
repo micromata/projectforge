@@ -465,7 +465,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * Gets the total duration of all time sheets in seconds.
    *
    * @param recursive If true, then the durations of all time sheets of the sub tasks will be added.
-   * @return
+   * @return duration in seconds
    */
   public long getDuration(final TaskTree taskTree, final boolean recursive) {
     if (totalDuration < 0) {
