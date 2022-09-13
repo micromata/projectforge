@@ -154,7 +154,6 @@ class BankingImportStorage(importSettings: String? = null, targetEntity: BankAcc
             (targetEntity as BankAccount).iban
           )
         }
-
       }
     }
   }
