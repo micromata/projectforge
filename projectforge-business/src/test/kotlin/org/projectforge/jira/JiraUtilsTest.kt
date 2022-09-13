@@ -33,6 +33,7 @@ import org.projectforge.jira.JiraUtils.buildJiraIssueBrowseLinkUrl
 import org.projectforge.jira.JiraUtils.hasJiraIssues
 import org.projectforge.jira.JiraUtils.linkJiraIssues
 import org.projectforge.jira.JiraUtils.parseJiraIssues
+import org.projectforge.jira.JiraUtils.parseJiraIssuesForProject
 import org.projectforge.test.TestSetup.init
 
 class JiraUtilsTest {
@@ -71,6 +72,10 @@ class JiraUtilsTest {
     check(arrayOf("PF-2", "PF-7", "PF-9", "PF-10", "PF-42", "PF-100"), parseJiraIssues(timesheet))
     timesheet.description = "Worked on PF-7"
     check(arrayOf("PF-2", "PF-7", "PF-9", "PF-10", "PF-100"), parseJiraIssues(timesheet))
+
+
+    check(arrayOf("PF-222"), parseJiraIssuesForProject("PF","PF-222", "PROJECTFORGE-12"))
+    check(arrayOf("PROJECTFORGE-12"), parseJiraIssuesForProject("projectforge","PF-222", "PROJECTFORGE-12"))
   }
 
   @Test

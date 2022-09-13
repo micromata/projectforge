@@ -105,9 +105,21 @@ object JiraUtils {
    */
   @JvmStatic
   fun parseJiraIssues(vararg text: String?): Array<String>? {
+    return parseJiraIssuesForProject(null, *text)
+  }
+
+  /**
+   * Returns found matches for JIRA issues: UPPERCASE_LETTERS-###: [A-Z][A-Z_0-9]*-[0-9]+
+   *
+   * @param project ID of Jira project (PROJECTFORGE, ...). (case-insensitive)
+   * @param text
+   * @return
+   */
+  @JvmStatic
+  fun parseJiraIssuesForProject(project: String?, vararg text: String?): Array<String>? {
     val result = mutableSetOf<JiraIssue>()
     text.forEach { str ->
-      parseJiraIssues(result, str)
+      parseJiraIssues(project, result, str)
     }
     return if (result.isEmpty()) {
       null
@@ -120,20 +132,30 @@ object JiraUtils {
    * Parses title, shortDescription and description of task.
    */
   @JvmStatic
-  fun parseJiraIssues(task: TaskDO): Array<String>? {
-    return parseJiraIssues(task.title, task.shortDescription, task.description)
+  @JvmOverloads
+  fun parseJiraIssues(task: TaskDO?, project: String? = null): Array<String>? {
+    task ?: return null
+    return parseJiraIssuesForProject(project, task.title, task.shortDescription, task.description)
   }
 
   /**
    * Parses description and reference of given timesheet and task.title, task.shortDescription and task.description.
    */
   @JvmStatic
-  fun parseJiraIssues(timesheet: TimesheetDO): Array<String>? {
+  @JvmOverloads
+  fun parseJiraIssues(timesheet: TimesheetDO, project: String? = null): Array<String>? {
     val task = timesheet.task
-    return parseJiraIssues(timesheet.description, timesheet.reference, task?.title, task?.shortDescription, task?.description)
+    return parseJiraIssuesForProject(
+      project,
+      timesheet.description,
+      timesheet.reference,
+      task?.title,
+      task?.shortDescription,
+      task?.description
+    )
   }
 
-  private fun parseJiraIssues(result: MutableSet<JiraIssue>, text: String?) {
+  private fun parseJiraIssues(project: String?, result: MutableSet<JiraIssue>, text: String?) {
     if (text.isNullOrBlank()) {
       return
     }
@@ -141,23 +163,26 @@ object JiraUtils {
     val m = p.matcher(text)
     while (m.find()) {
       if (m.group(1) != null) {
-        result.add(JiraIssue(m.group(1)))
+        val issue = JiraIssue(m.group(1))
+        if (project == null || issue.project.equals(project, ignoreCase = true)) {
+          result.add(issue)
+        }
       }
     }
   }
 
   private class JiraIssue(val str: String) : Comparable<JiraIssue> {
-    val space: String
+    val project: String
     val number: Int
 
     init {
       val parts = str.split('-')
-      space = parts[0]
+      project = parts[0]
       number = parts[1].toInt()
     }
 
     override fun compareTo(other: JiraIssue): Int {
-      val cmp = space.compareTo(other.space)
+      val cmp = project.compareTo(other.project)
       if (cmp != 0) {
         return cmp
       }

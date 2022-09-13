@@ -212,8 +212,6 @@ class CalendarFilterServicesRest {
       "calendar.templates.tooltip",
       "calendar.view.agenda",
       "calendar.view.settings.tooltip",
-      "calendar.view.oldVersion",
-      "calendar.view.oldVersion.tooltip",
       "calendar.view.overview",
       "calendar.view.workDays",
       "calendar.week",

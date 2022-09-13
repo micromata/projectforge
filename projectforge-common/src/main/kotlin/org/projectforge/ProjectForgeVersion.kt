@@ -76,7 +76,7 @@ object ProjectForgeVersion {
         try {
             return ResourceBundle.getBundle("git").getString(key) ?: defaultString
         } catch (ex: Exception) {
-            // Should only be OK in develop mode (maven didn't generated the git.properties file yet).
+            // Should only be OK in develop mode (maven didn't generate the git.properties file yet).
             return defaultString
         }
     }

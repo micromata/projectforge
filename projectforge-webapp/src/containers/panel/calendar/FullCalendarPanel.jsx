@@ -389,7 +389,7 @@ function FullCalendarPanel(options) {
 
     const headerToolbar = {
         center: 'new dayGridMonth,listMonth,dayGridWorkingMonth timeGridWeek,dayGridWeek,timeGridWorkingWeek timeGridDay',
-        right: 'oldVersion today prev,next',
+        right: 'today prev,next',
     };
     const customButtons = {
         new: {
@@ -422,11 +422,6 @@ function FullCalendarPanel(options) {
             text: '5/7',
             hint: `${translations['calendar.view.workDays']}`,
             click: (event) => setView('timeGridWorkingWeek', event),
-        },
-        oldVersion: {
-            text: `${translations['calendar.view.oldVersion']}`,
-            hint: `${translations['calendar.view.oldVersion.tooltip']}`,
-            click: () => history.push('/wa'),
         },
     };
     const locales = [deLocale];

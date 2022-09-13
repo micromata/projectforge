@@ -40,11 +40,21 @@ object Constants {
   @JvmField
   val TEN_BILLION_NEGATIVE = BigDecimal("-10000000000")
 
-  val KB = 1024
+  const val KB = 1024
 
-  val MB = KB * 1024
+  val KB_BD = BigDecimal(KB)
 
-  val GB = MB * 1024
+  const val MB = KB * 1024
+
+  val MB_BD = BigDecimal(MB)
+
+  const val GB = MB * 1024
+
+  val GB_BD = BigDecimal(GB)
+
+  const val TB = GB * 1024L
+
+  val TB_BD = BigDecimal(TB)
 
   /**
    * Default length of text fields in the data-base (4,000).
@@ -96,21 +106,39 @@ object Constants {
 
   const val SECONDS_PER_MINUTE = 60
 
+  val SECONDS_PER_MINUTE_BD = BigDecimal(SECONDS_PER_MINUTE)
+
   const val SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60
+
+  val SECONDS_PER_HOUR_BD = BigDecimal(SECONDS_PER_HOUR)
 
   const val SECONDS_PER_DAY = SECONDS_PER_HOUR * 24
 
+  val SECONDS_PER_DAY_BD = BigDecimal(SECONDS_PER_DAY)
+
   const val SECONDS_PER_WEEK = SECONDS_PER_DAY * 7
+
+  val SECONDS_PER_WEEK_BD = BigDecimal(SECONDS_PER_WEEK)
 
   const val MILLIS_PER_SECOND = 1_000L
 
+  val MILLIS_PER_SECOND_BD = BigDecimal(MILLIS_PER_SECOND)
+
   const val MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND
+
+  val MILLIS_PER_MINUTE_BD = BigDecimal(MILLIS_PER_MINUTE)
 
   const val MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60
 
+  val MILLIS_PER_HOUR_BD = BigDecimal(MILLIS_PER_HOUR)
+
   const val MILLIS_PER_DAY = MILLIS_PER_HOUR * 24
 
+  val MILLIS_PER_DAY_BD = BigDecimal(MILLIS_PER_DAY)
+
   const val MILLIS_PER_WEEK = MILLIS_PER_DAY * 7
+
+  val MILLIS_PER_WEEK_BD = BigDecimal(MILLIS_PER_WEEK)
 
   val CURRENCY_SYMBOL = ConfigurationServiceAccessor.get()?.currencySymbol ?: "€"
 

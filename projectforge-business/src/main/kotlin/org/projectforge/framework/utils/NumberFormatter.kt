@@ -30,6 +30,8 @@ import java.math.BigInteger
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import java.time.Month
+import java.time.format.TextStyle
 import java.util.*
 
 object NumberFormatter {
@@ -92,6 +94,13 @@ object NumberFormatter {
   @JvmOverloads
   fun format(value: Number?, scale: Int? = null): String {
     return internalFormat(value, scale) ?: ""
+  }
+
+  @JvmStatic
+  @JvmOverloads
+  fun format(month: Month, locale: Locale? = ThreadLocalUserContext.locale): String {
+    val useLocale = locale ?: Locale.ENGLISH
+    return month.getDisplayName(TextStyle.FULL_STANDALONE, useLocale)
   }
 
   /**
