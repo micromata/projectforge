@@ -164,7 +164,7 @@ object JiraUtils {
     while (m.find()) {
       if (m.group(1) != null) {
         val issue = JiraIssue(m.group(1))
-        if (project == null || issue.project.equals(project, ignoreCase = true)) {
+        if (project == null || project.trim() == "*" || issue.project.equals(project, ignoreCase = true)) {
           result.add(issue)
         }
       }
