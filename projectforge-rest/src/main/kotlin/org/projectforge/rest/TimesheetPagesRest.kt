@@ -214,7 +214,6 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         deleted = timesheet.deleted,
       )
     }
-    val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
     var duration = 0L
     resultSet.resultSet.forEach { timesheet ->
       duration += timesheet.getDuration()
@@ -225,9 +224,8 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       dateTimeFormatter.getPrettyFormattedDuration(duration),
       MarkdownBuilder.Color.BLUE
     )
-    myResultSet.addResultInfo(md.toString())
-
-    return myResultSet
+    resultSet.addResultInfo(md.toString())
+    return super.processResultSetBeforeExport(resultSet, request, magicFilter)
   }
 
   override fun isAutocompletionPropertyEnabled(property: String): Boolean {

@@ -37,6 +37,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.BankAccountRecordStatistics
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
@@ -141,7 +142,9 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     )
     elements.add(
       UIFilterElement(
-        "checksumErrors", UIFilterElement.FilterType.BOOLEAN, translate("plugins.banking.account.record.checksumErrors"),
+        "checksumErrors",
+        UIFilterElement.FilterType.BOOLEAN,
+        translate("plugins.banking.account.record.checksumErrors"),
         defaultFilter = true,
       )
     )
@@ -219,8 +222,14 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       val origList = resultSet.resultSet
       resultSet.resultSet = origList.filter { isChecksumError(it) }
     }
+    val stats = BankAccountRecordStatistics()
+    resultSet.resultSet.forEach { record ->
+      stats.add(record.amount)
+    }
+    resultSet.addResultInfo(stats.asMarkdown)
     return super.processResultSetBeforeExport(resultSet, request, magicFilter)
   }
+
 
   private fun isDoublet(list: List<BankAccountRecordDO>, element: BankAccountRecordDO): Boolean {
     if (element.isDeleted) {
