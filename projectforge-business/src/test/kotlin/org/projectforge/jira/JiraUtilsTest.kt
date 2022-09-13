@@ -76,6 +76,7 @@ class JiraUtilsTest {
 
     check(arrayOf("PF-222"), parseJiraIssuesForProject("PF","PF-222", "PROJECTFORGE-12"))
     check(arrayOf("PROJECTFORGE-12"), parseJiraIssuesForProject("projectforge","PF-222", "PROJECTFORGE-12"))
+    check(arrayOf("PF-222", "PROJECTFORGE-12"), parseJiraIssuesForProject("*","PF-222", "PROJECTFORGE-12"))
   }
 
   @Test
