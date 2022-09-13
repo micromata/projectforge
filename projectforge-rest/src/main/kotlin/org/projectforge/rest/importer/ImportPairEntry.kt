@@ -24,6 +24,8 @@
 package org.projectforge.rest.importer
 
 import org.projectforge.common.BeanHelper
+import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.rest.dto.BaseDTO
 import java.math.BigDecimal
 import kotlin.reflect.KProperty
 
@@ -109,8 +111,15 @@ class ImportPairEntry<O : ImportPairEntry.Modified<O>>(
       } else if (read == null) {
         if (stored == null) {
           Status.UNKNOWN
+        } else {
+          if ((stored is AbstractBaseDO<*> && stored.isDeleted)
+            || (stored is BaseDTO<*> && stored.deleted)
+          ) {
+            Status.UNMODIFIED // Object is already deleted.
+          } else {
+            Status.DELETED
+          }
         }
-        Status.DELETED
       } else if (stored == null) {
         Status.NEW
       } else {

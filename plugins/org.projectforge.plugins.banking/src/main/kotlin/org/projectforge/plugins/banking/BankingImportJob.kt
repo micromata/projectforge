@@ -108,7 +108,9 @@ class BankingImportJob(
             result.unmodified += 1
           }
         } else {
-          bankAccountRecordDao.markAsDeleted(dbEntry)
+          if (!dbEntry.isDeleted) {
+            bankAccountRecordDao.markAsDeleted(dbEntry)
+          }
           result.deleted += 1
         }
       }
