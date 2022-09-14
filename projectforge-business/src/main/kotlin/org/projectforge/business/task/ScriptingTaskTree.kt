@@ -149,7 +149,8 @@ class ScriptingTaskTree {
   }
 
   fun getPersonDays(taskId: Int?): BigDecimal {
-    return __baseDao.getPersonDays(taskId)
+    taskId ?: return BigDecimal.ZERO
+    return __baseDao.getPersonDays(taskId) ?: BigDecimal.ZERO
   }
 
   fun getPersonDays(node: ScriptingTaskNode?): BigDecimal {

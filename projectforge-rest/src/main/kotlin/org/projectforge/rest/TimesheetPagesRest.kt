@@ -224,8 +224,9 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       dateTimeFormatter.getPrettyFormattedDuration(duration),
       MarkdownBuilder.Color.BLUE
     )
-    resultSet.addResultInfo(md.toString())
-    return super.processResultSetBeforeExport(resultSet, request, magicFilter)
+    val myResultSet = ResultSet(list, resultSet, list.size, magicFilter = magicFilter)
+    myResultSet.addResultInfo(md.toString())
+    return myResultSet
   }
 
   override fun isAutocompletionPropertyEnabled(property: String): Boolean {
