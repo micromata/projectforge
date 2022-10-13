@@ -92,6 +92,7 @@ internal class GlobalDefaultExceptionHandler {
         )
       }"
     )
+    log.error(ex.message, ex)
     return ResponseEntity("Internal error.", HttpStatus.BAD_REQUEST)
   }
 }
