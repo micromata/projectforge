@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.marketing;
 
+import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
 import org.projectforge.business.user.UserRightValue;
@@ -33,12 +34,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
  */
-public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO>
-{
+public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO> {
   private static final long serialVersionUID = 4021610615575404717L;
 
-  public AddressCampaignRight(AccessChecker accessChecker)
-  {
+  public AddressCampaignRight(AccessChecker accessChecker) {
     super(accessChecker, MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN,
         UserRightCategory.PLUGINS,
         UserRightValue.TRUE);
@@ -49,13 +48,8 @@ public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final AddressCampaignDO obj, final AddressCampaignDO oldObj,
-      final OperationType operationType)
-  {
-    if (operationType == OperationType.SELECT == true) {
-      return true;
-    } else if (accessChecker.isUserMemberOfAdminGroup(user)) {
-      return true;
-    }
-    return false;
+                           final OperationType operationType) {
+    return operationType == OperationType.SELECT == true || accessChecker.isUserMemberOfAdminGroup(user) ||
+        accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.MARKETING_GROUP);
   }
 }
