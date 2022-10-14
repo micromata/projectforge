@@ -29,11 +29,9 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Type
 import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
-import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import javax.persistence.*
@@ -206,6 +204,35 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
       this.scriptBackup = convert(scriptBackup)
     }
 
+  /**
+   * Must be set manually.
+   */
+  @get:Transient
+  @PropertyInfo(i18nKey = "scripting.script.includes")
+  open var includes: MutableSet<ScriptDO>? = null
+
+  /**
+   * Requires, that includes was set before (also of the included script objects itself).
+   */
+  @get:Transient
+  open val includesRecursive: MutableSet<ScriptDO>?
+    get() {
+      val set = mutableSetOf<ScriptDO>()
+      buildIncludesRecursive(set)
+      return if (set.isEmpty()) null else set
+    }
+
+  private fun buildIncludesRecursive(set: MutableSet<ScriptDO>) {
+    includes?.forEach { include ->
+      if (set.any { it.id == include.id }) {
+        // Avoid circular references (endless loops)
+        return // current script already processed...
+      }
+      set.add(include)
+      include.buildIncludesRecursive(set)
+    }
+  }
+
   @JsonIgnore
   @Field
   @field:NoHistory
@@ -294,22 +321,27 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
           parameter1Name = scriptParameter?.parameterName
           parameter1Type = scriptParameter?.type
         }
+
         1 -> {
           parameter2Name = scriptParameter?.parameterName
           parameter2Type = scriptParameter?.type
         }
+
         2 -> {
           parameter3Name = scriptParameter?.parameterName
           parameter3Type = scriptParameter?.type
         }
+
         3 -> {
           parameter4Name = scriptParameter?.parameterName
           parameter4Type = scriptParameter?.type
         }
+
         4 -> {
           parameter5Name = scriptParameter?.parameterName
           parameter5Type = scriptParameter?.type
         }
+
         5 -> {
           parameter6Name = scriptParameter?.parameterName
           parameter6Type = scriptParameter?.type

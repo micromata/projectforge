@@ -30,7 +30,7 @@ import org.testng.Assert
 class ScriptExecutorTest {
 
   @Test
-  fun createValidIdentifier() {
+  fun createValidIdentifierTest() {
     Assert.assertEquals(ScriptExecutor.createValidIdentifier(null), "_null_")
     Assert.assertEquals(ScriptExecutor.createValidIdentifier(""), "_empty_")
     Assert.assertEquals(ScriptExecutor.createValidIdentifier("i"), "i")
@@ -41,7 +41,7 @@ class ScriptExecutorTest {
   }
 
   @Test
-  fun createScriptExecutor() {
+  fun createScriptExecutorTest() {
     val script = ScriptDO()
     script.scriptAsString = SCRIPT1
     Assertions.assertTrue(ScriptExecutor.createScriptExecutor(script) is KotlinScriptExecutor)
@@ -51,6 +51,72 @@ class ScriptExecutorTest {
     Assertions.assertTrue(ScriptExecutor.createScriptExecutor(script) is KotlinScriptExecutor)
     script.scriptAsString = SCRIPT4
     Assertions.assertTrue(ScriptExecutor.createScriptExecutor(script) is GroovyScriptExecutor)
+  }
+
+  class DummyScriptDao : AbstractScriptDao() {
+    override fun loadByNameOrId(name: String): ScriptDO? {
+      if (name == "33143255") {
+        val script = ScriptDO()
+        script.name = "33143255"
+        script.scriptAsString = "// Do what to do"
+        script.id = 33143255
+        return script
+      } else if (name == "script1") {
+        val script = ScriptDO()
+        script.name = "script1"
+        script.scriptAsString = """#INCLUDE "33143255" // Basisfunctions
+// Includes script1 and indirect script 33143255
+"""
+        script.id = 1
+        return script
+      } else if (name == "circular") {
+        val script = ScriptDO()
+        script.name = "circular"
+        script.scriptAsString = """#INCLUDE "circular2" // Basisfunctions
+// circular1
+"""
+        script.id = 2
+        return script
+      } else if (name == "circular2") {
+        val script = ScriptDO()
+        script.name = "circular2"
+        script.scriptAsString = """#INCLUDE "circular" // Basisfunctions
+// circular2
+"""
+        script.id = 3
+        return script
+      }
+      return null
+    }
+  }
+
+  @Test
+  fun includingScriptsTest() {
+    val script = ScriptDO()
+    script.scriptAsString = SCRIPT1
+    ScriptExecutor.setIncludingScripts(script, DummyScriptDao())
+    Assertions.assertEquals(1, script.includes!!.size)
+    Assertions.assertTrue(script.includes!!.first().scriptAsString!!.contains("// Do what to do"))
+    Assertions.assertEquals(1, script.includesRecursive!!.size)
+    Assertions.assertTrue(script.includesRecursive!!.first().scriptAsString!!.contains("// Do what to do"))
+
+
+    script.scriptAsString = """#INCLUDE "script1"
+// Includes script1 and indirect script 33143255
+"""
+    ScriptExecutor.setIncludingScripts(script, DummyScriptDao())
+    Assertions.assertEquals(1, script.includes!!.size)
+    Assertions.assertTrue(script.includes!!.filter { it.scriptAsString!!.contains("// Includes script1 and indirect script 33143255") }.size == 1)
+
+    Assertions.assertEquals(2, script.includesRecursive!!.size)
+    Assertions.assertTrue(script.includesRecursive!!.filter { it.scriptAsString!!.contains("// Do what to do") }.size == 1)
+    Assertions.assertTrue(script.includesRecursive!!.filter { it.scriptAsString!!.contains("// Includes script1 and indirect script 33143255") }.size == 1)
+
+    script.scriptAsString = """#INCLUDE "circular"
+// Includes circular scripts
+"""
+    ScriptExecutor.setIncludingScripts(script, DummyScriptDao())
+    Assertions.assertEquals(2, script.includesRecursive!!.size)
   }
 
   val SCRIPT1 = """#INCLUDE "33143255" // Basisfunctions

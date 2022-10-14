@@ -72,6 +72,9 @@ class Script(
    */
   var parameterNames: String? = null
 
+  /** Name of embedded scripts / recursive */
+  var includes: String? = null
+
   override fun copyFrom(src: ScriptDO) {
     super.copyFrom(src)
     val list = src.getParameterList(true)

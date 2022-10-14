@@ -313,5 +313,47 @@ abstract class ScriptExecutor(
       // "import static org.projectforge.framework.utils.NumberFormatter.format", // ambigous for Groovy!?
       // "import static org.projectforge.framework.utils.NumberFormatter.formatCurrency", // ambigous for Groovy!?
     )
+
+    fun setIncludingScripts(script: ScriptDO, scriptDao: AbstractScriptDao) {
+      setIncludingScripts(script, scriptDao, mutableListOf())
+    }
+
+    private fun setIncludingScripts(
+      script: ScriptDO,
+      scriptDao: AbstractScriptDao,
+      processedScripts: MutableList<ScriptDO>,
+    ) {
+      script.includes = null
+      val scriptContent = script.scriptAsString ?: return
+      INCLUDE_REGEX.findAll(scriptContent).forEach { m ->
+        val snippetNameOrId = m.groupValues[1]
+        val id = snippetNameOrId.toIntOrNull()
+        var snippet: ScriptDO? = null
+        snippet =
+          processedScripts.find {
+            (id != null && it.id == id) ||
+                it.name?.contains(
+                  snippetNameOrId.trim(),
+                  ignoreCase = true,
+                ) == true
+          }
+        if (snippet == null) {
+          snippet = scriptDao.loadByNameOrId(snippetNameOrId)
+        }
+        if (snippet == null) {
+          return
+        }
+        var includes = script.includes
+        if (includes == null) {
+          includes = mutableSetOf()
+          script.includes = includes
+        }
+        includes.add(snippet)
+        if (!processedScripts.contains(snippet)) {
+          processedScripts.add(snippet)
+          setIncludingScripts(snippet, scriptDao, processedScripts)
+        }
+      }
+    }
   }
 }
