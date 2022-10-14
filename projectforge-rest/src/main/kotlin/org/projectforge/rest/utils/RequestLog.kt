@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.utils
 
+import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationUtils
@@ -92,7 +93,12 @@ class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
 
     init {
         for (attribute in request.attributeNames) {
-            attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute)?.toString())
+            if (attribute?.startsWith("org.springframework") == true) {
+                // Abbreviate standard stuff
+                attributes[attribute] = StringUtils.abbreviate(request.getAttribute(attribute)?.toString(), 300)
+            } else {
+                attributes[attribute] = handleSecret(request, attribute, request.getAttribute(attribute)?.toString())
+            }
         }
         for (header in request.headerNames) {
             headers[header] = handleSecret(request, header, request.getHeader(header)) as String
