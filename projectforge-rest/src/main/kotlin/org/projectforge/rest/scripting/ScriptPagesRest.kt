@@ -112,35 +112,51 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     User.restoreDisplayNames(script.executableByUsers, userService)
     script.executableByUsersAsString = script.executableByUsers?.joinToString { it.displayName ?: "???" } ?: ""
     script.executableByGroupsAsString = script.executableByGroups?.joinToString { it.displayName ?: "???" } ?: ""
+
+    ScriptExecutor.setIncludingScripts(obj, baseDao)
+    obj.includesRecursive?.let { includes ->
+      val scriptNames = mutableListOf<String>()
+      includes.forEach { include ->
+        scriptNames.add(include.name ?: include.id?.toString() ?: "???")
+      }
+      script.includes = scriptNames.joinToString(separator = "; ")
+    }
     return script
   }
 
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-    layout.add(UITable.createUIResultSetTable()
-          .add(lc, "name", "description")
-          .add(UITableColumn("parameterNames", title = "scripting.script.parameter", sortable = false))
-          .add(UITableColumn("type", title = "scripting.script.type"))
-          .add(UITableColumn("executeAsUser", title = "scripting.script.executeAsUser"))
-          .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
-          .add(
-            UITableColumn(
-              "executableByGroupsAsString",
-              sortable = false,
-              title = "scripting.script.executableByGroups"
-            )
+  override fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    magicFilter: MagicFilter,
+    userAccess: UILayout.UserAccess
+  ) {
+    layout.add(
+      UITable.createUIResultSetTable()
+        .add(lc, "name", "description")
+        .add(UITableColumn("parameterNames", title = "scripting.script.parameter", sortable = false))
+        .add(UITableColumn("type", title = "scripting.script.type"))
+        .add(UITableColumn("executeAsUser", title = "scripting.script.executeAsUser"))
+        .add(UITableColumn("attachmentsSizeFormatted", titleIcon = UIIconType.PAPER_CLIP, sortable = false))
+        .add(
+          UITableColumn(
+            "executableByGroupsAsString",
+            sortable = false,
+            title = "scripting.script.executableByGroups"
           )
-          .add(
-            UITableColumn(
-              "executableByUsersAsString",
-              sortable = false,
-              title = "scripting.script.executableByUsers"
-            )
+        )
+        .add(
+          UITableColumn(
+            "executableByUsersAsString",
+            sortable = false,
+            title = "scripting.script.executableByUsers"
           )
-          .add(lc, "lastUpdate")
-      )
+        )
+        .add(lc, "lastUpdate")
+        .add(lc, "includes")
+    )
     layout.getTableColumnById("executeAsUser").formatter = UITableColumn.Formatter.USER
     layout.add(
       MenuItem(

@@ -28,9 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.stereotype.Repository
 import java.io.File
@@ -54,7 +52,8 @@ open class ScriptDao : AbstractScriptDao() {
     if (!Arrays.equals(dbObj.script, obj.script)) {
       obj.scriptBackup = dbObj.script
       val suffix = getScriptSuffix(obj)
-      val filename = encodeFilename("${getBackupBasefilename(dbObj)}_${obj.name}_${now().isoStringSeconds}.$suffix", true)
+      val filename =
+        encodeFilename("${getBackupBasefilename(dbObj)}_${obj.name}_${now().isoStringSeconds}.$suffix", true)
       val backupDir = getBackupDir()
       ConfigXml.ensureDir(backupDir)
       val file = File(backupDir, filename)
@@ -74,7 +73,11 @@ open class ScriptDao : AbstractScriptDao() {
     if (!backupDir.exists()) {
       return null
     }
-    return backupDir.listFiles(FilenameFilter { _: File, name: String -> name.startsWith(baseFilename) || name.startsWith(oldBaseFilename) })
+    return backupDir.listFiles(FilenameFilter { _: File, name: String ->
+      name.startsWith(baseFilename) || name.startsWith(
+        oldBaseFilename
+      )
+    })
   }
 
   private fun getBackupDir(): File {
