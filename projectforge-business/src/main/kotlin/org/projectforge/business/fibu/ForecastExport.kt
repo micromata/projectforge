@@ -249,11 +249,11 @@ open class ForecastExport { // open needed by Wicket.
         val orderPos = pos.auftragsPosition
         val orderPosId = orderPos?.id
         val orderPositionFound = orderPosId != null && ctx.orderPositionMap.containsKey(orderPosId)
-        val invoiceProjektId = invoice.projektId
-        val orderProjectId = orderPos?.auftrag?.projektId // may differ from invoiceProjektId
-        val projectFound = invoiceProjektId != null && ctx.projectIds.contains(invoiceProjektId) ||
-            orderProjectId != null && ctx.projectIds.contains(orderProjectId)
-        if (!ctx.showAll && !projectFound && !orderPositionFound) {
+        // val invoiceProjektId = invoice.projektId
+        // val orderProjectId = orderPos?.auftrag?.projektId // may differ from invoiceProjektId
+        // val projectFound = invoiceProjektId != null && ctx.projectIds.contains(invoiceProjektId) ||
+        //     orderProjectId != null && ctx.projectIds.contains(orderProjectId)
+        if (!ctx.showAll && !orderPositionFound) { // !projectFound && !orderPositionFound) {
           continue // Ignore invoices referring an order position or project which isn't part of the order list filtered by the user.
         }
         var order = if (orderPos != null) {
