@@ -26,6 +26,8 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
+import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -60,7 +62,12 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+  override fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    magicFilter: MagicFilter,
+    userAccess: UILayout.UserAccess
+  ) {
     agGridSupport.prepareUIGrid4ListPage(
       request,
       layout,
@@ -75,6 +82,8 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
       .add(lc, "grossSumWithDiscount", lcField = "grossSum")
       .add(lc, "paymentTypeAsString", lcField = "paymentType", width = 100)
       .add(lc, "bemerkung")
+      .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
+      .add(field = "kost2List", headerName = translate("fibu.kost2"), tooltipField = "kost2Info")
       .withPinnedLeft(2)
       .withMultiRowSelection(request, magicFilter)
       .withGetRowClass(
@@ -162,6 +171,12 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     if (editMode) {
       eingangsrechnung.copyPositionenFrom(obj)
     }
+    val kost1Sorted = obj.sortedKost1
+    eingangsrechnung.kost1List = kost1Sorted.joinToString { it.formattedNumber }
+    eingangsrechnung.kost1Info = kost1Sorted.joinToString(separator = " | ") { it.description ?: it.formattedNumber }
+    val kost2Sorted = obj.sortedKost2
+    eingangsrechnung.kost2List = kost2Sorted.joinToString { it.formattedNumber }
+    eingangsrechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { KostFormatter.format(it, 60) }
     return eingangsrechnung
   }
 }

@@ -169,6 +169,7 @@ open class UIAgGridColumnDef(
       wrapText: Boolean? = null,
       autoHeight: Boolean? = wrapText,
       valueIconMap: Map<Any, UIIconType?>? = null,
+      tooltipField: String? = null,
     ): UIAgGridColumnDef {
       return createCol(
         null,
@@ -182,6 +183,7 @@ open class UIAgGridColumnDef(
         wrapText = wrapText,
         autoHeight = autoHeight,
         valueIconMap = valueIconMap,
+        tooltipField = tooltipField,
       )
     }
 
@@ -199,6 +201,7 @@ open class UIAgGridColumnDef(
       wrapText: Boolean? = null,
       autoHeight: Boolean? = wrapText,
       valueIconMap: Map<Any, UIIconType?>? = null,
+      tooltipField: String? = null,
     ): UIAgGridColumnDef {
       return createCol(
         null,
@@ -212,6 +215,7 @@ open class UIAgGridColumnDef(
         wrapText = wrapText,
         autoHeight = autoHeight,
         valueIconMap = valueIconMap,
+        tooltipField = tooltipField,
       )
     }
 
@@ -232,6 +236,7 @@ open class UIAgGridColumnDef(
       wrapText: Boolean? = null,
       autoHeight: Boolean? = wrapText,
       valueIconMap: Map<Any, UIIconType?>? = null,
+      tooltipField: String? = null,
     ): UIAgGridColumnDef {
       return createCol(
         lc,
@@ -246,6 +251,7 @@ open class UIAgGridColumnDef(
         wrapText = wrapText,
         autoHeight = autoHeight,
         valueIconMap = valueIconMap,
+        tooltipField = tooltipField,
       )
     }
 
@@ -266,6 +272,7 @@ open class UIAgGridColumnDef(
       wrapText: Boolean? = null,
       autoHeight: Boolean? = wrapText,
       valueIconMap: Map<Any, UIIconType?>? = null,
+      tooltipField: String? = null,
     ): UIAgGridColumnDef {
       val col = UIAgGridColumnDef(field, sortable = sortable, wrapText = wrapText, autoHeight = autoHeight)
       lc?.idPrefix?.let {
@@ -276,6 +283,9 @@ open class UIAgGridColumnDef(
       }
       if (headerTooltip != null) {
         col.headerTooltip = headerTooltip
+      }
+      if (tooltipField != null) {
+        col.tooltipField = tooltipField
       }
       val elementInfo = ElementsRegistry.getElementInfo(lc, lcField)
       var useFormatter = formatter

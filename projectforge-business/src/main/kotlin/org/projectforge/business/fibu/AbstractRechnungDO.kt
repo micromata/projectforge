@@ -29,7 +29,9 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -219,6 +221,36 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
   val kostZuweisungFehlbetrag: BigDecimal
     @Transient
     get() = kostZuweisungenNetSum.subtract(netSum)
+
+  /**
+   * Gets sorted list of Kost1DO of all positions.
+   */
+  val sortedKost1: List<Kost1DO>
+    @Transient
+    get() {
+      val set = mutableSetOf<Kost1DO>()
+      abstractPositionen?.forEach { pos ->
+        pos.kostZuweisungen?.forEach { kost ->
+          kost.kost1?.let { set.add(it) }
+        }
+      }
+      return set.sortedBy { it.formattedNumber }
+    }
+
+  /**
+   * Gets sorted list of Kost2DO of all positions.
+   */
+  val sortedKost2: List<Kost2DO>
+    @Transient
+    get() {
+      val set = mutableSetOf<Kost2DO>()
+      abstractPositionen?.forEach { pos ->
+        pos.kostZuweisungen?.forEach { kost ->
+          kost.kost2?.let { set.add(it) }
+        }
+      }
+      return set.sortedBy { it.formattedNumber }
+    }
 
   override fun recalculate() {
     val date = PFDateTime.fromOrNull(this.datum)
