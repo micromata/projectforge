@@ -66,6 +66,14 @@ class Rechnung(
 
   var statusAsString: String? = null
 
+  var kost1List: String? = null
+
+  var kost1Info: String? = null
+
+  var kost2List: String? = null
+
+  var kost2Info: String? = null
+
   val isBezahlt: Boolean
     get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
       true

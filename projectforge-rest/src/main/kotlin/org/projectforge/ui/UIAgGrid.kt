@@ -144,6 +144,7 @@ open class UIAgGrid(
     valueGetter: String? = null,
     wrapText: Boolean? = null,
     autoHeight: Boolean? = wrapText,
+    tooltipField: String? = null,
   ): UIAgGrid {
     add(
       UIAgGridColumnDef.createCol(
@@ -156,6 +157,7 @@ open class UIAgGrid(
         formatter = formatter,
         wrapText = wrapText,
         autoHeight = autoHeight,
+        tooltipField = tooltipField,
       )
     )
     return this

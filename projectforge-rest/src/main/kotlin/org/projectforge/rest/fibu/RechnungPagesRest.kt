@@ -23,9 +23,11 @@
 
 package org.projectforge.rest.fibu
 
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -75,6 +77,8 @@ class RechnungPagesRest :
       .add(lc, "netSum")
       .add(lc,  "grossSumWithDiscount", lcField = "grossSum")
       .add(lc,  "konto", "periodOfPerformanceBegin", "periodOfPerformanceEnd", "bemerkung")
+      .add(field = "kost1List", headerName = translate("fibu.kost1"), tooltipField = "kost1Info")
+      .add(field = "kost2List", headerName = translate("fibu.kost2"), tooltipField = "kost2Info")
       .withMultiRowSelection(request, magicFilter)
       .withPinnedLeft(pinnedLeft)
       .withGetRowClass(
@@ -159,6 +163,12 @@ class RechnungPagesRest :
     } else {
       rechnung.project?.displayName = obj.projekt?.name
     }
+    val kost1Sorted = obj.sortedKost1
+    rechnung.kost1List = kost1Sorted.joinToString { it.formattedNumber }
+    rechnung.kost1Info = kost1Sorted.joinToString(separator = " | ") { it.description ?: it.formattedNumber }
+    val kost2Sorted = obj.sortedKost2
+    rechnung.kost2List = kost2Sorted.joinToString { it.formattedNumber }
+    rechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { KostFormatter.format(it, 60) }
     return rechnung
   }
 }
