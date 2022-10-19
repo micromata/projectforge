@@ -87,7 +87,7 @@ public class EmployeeSalaryExportDao {
           break;
         }
       }
-      if (!found) {
+      if (!found && employee.getActive()) {
         missedEmployees.add(employee);
       }
     }
