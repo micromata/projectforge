@@ -145,13 +145,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
     val queryFilter = QueryFilter(myFilter)
     var list = getList(queryFilter)
-    val now = LocalDate.now()
     if (myFilter.isShowOnlyActiveEntries) {
-      list = list.filter { employee ->
-        if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
-          false
-        } else employee.austrittsDatum == null || !now.isAfter(employee.austrittsDatum)
-      }
+      list = list.filter { it.active }
     }
     for (employeeDO in list) {
       for (employeeTimedDO in employeeDO!!.timeableAttributes) {

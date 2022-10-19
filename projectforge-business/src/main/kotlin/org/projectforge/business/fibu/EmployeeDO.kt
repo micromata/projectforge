@@ -67,251 +67,292 @@ import javax.persistence.*
 @Entity
 @Indexed
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
-@Table(name = "t_fibu_employee", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])], indexes = [javax.persistence.Index(name = "idx_fk_t_fibu_employee_kost1_id", columnList = "kost1_id"), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")])
+@Table(
+  name = "t_fibu_employee",
+  uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
+  indexes = [javax.persistence.Index(
+    name = "idx_fk_t_fibu_employee_kost1_id",
+    columnList = "kost1_id"
+  ), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")]
+)
 @AUserRightId("HR_EMPLOYEE")
 @NamedQueries(
-        NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId"),
-        NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId"),
-        NamedQuery(name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"))
+  NamedQuery(name = EmployeeDO.FIND_BY_USER_ID, query = "from EmployeeDO where user.id=:userId"),
+  NamedQuery(name = EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, query = "select id from EmployeeDO where user.id=:userId"),
+  NamedQuery(
+    name = EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME,
+    query = "from EmployeeDO where user.lastname=:lastname and user.firstname=:firstname"
+  )
+)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
-        DisplayNameCapable {
-    // The class must be declared as open for mocking in VacationServiceTest.
+open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>,
+  ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
+  DisplayNameCapable {
+  // The class must be declared as open for mocking in VacationServiceTest.
 
-    override val displayName: String
-        @Transient
-        get() = "${user?.getFullname()}"
-
-    /**
-     * The ProjectForge user assigned to this employee.
-     */
-    @PropertyInfo(i18nKey = "fibu.employee.user")
-    @IndexedEmbedded(depth = 1, includePaths = ["username", "firstname", "lastname", "description", "organization"])
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "user_id", nullable = false)
-    open var user: PFUserDO? = null
-
-    /**
-     * Dem Benutzer zugeordneter Kostenträger Kost1 für den Monatsreport.
-     */
-    @PropertyInfo(i18nKey = "fibu.kost1")
-    @IndexedEmbedded(depth = 1)
-    @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "kost1_id", nullable = true)
-    open var kost1: Kost1DO? = null
-
-    @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
-    @PropertyInfo(i18nKey = "status")
-    @Field
-    @get:Enumerated(EnumType.STRING)
-    @get:Column(name = "employee_status", length = 30)
-    open var status: EmployeeStatus? = null
-
-    @PropertyInfo(i18nKey = "address.positionText")
-    @Field
-    @get:Column(name = "position_text", length = 244)
-    open var position: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.eintrittsdatum")
-    @Field(analyze = Analyze.NO)
-    @get:Column(name = "eintritt")
-    open var eintrittsDatum: LocalDate? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
-    @Field
-    @get:Column(name = "austritt")
-    open var austrittsDatum: LocalDate? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.division")
-    @Field
-    @get:Column(length = 255)
-    open var abteilung: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.staffNumber")
-    @Field
-    @StringAlphanumericSort
-    @get:Column(length = 255)
-    open var staffNumber: String? = null
-
-    @Field(store = Store.YES)
-    @FieldBridge(impl = TimeableListFieldBridge::class)
-    @IndexedEmbedded(depth = 2)
-    private var timeableAttributes = mutableListOf<EmployeeTimedDO>()
-
-    @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
-    @Field(analyze = Analyze.NO)
-    @FieldBridge(impl = ToStringFieldBridge::class)
-    @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
-    open var weeklyWorkingHours: BigDecimal? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.birthday")
-    @Field(analyze = Analyze.NO)
-    @get:Column
-    open var birthday: LocalDate? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
-    @Field
-    @get:Column(length = 255, name = "account_holder")
-    open var accountHolder: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.iban")
-    @Field
-    @get:Column(length = 50)
-    open var iban: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.bic")
-    @Field
-    @get:Column(length = 11)
-    open var bic: String? = null
-
-    @PropertyInfo(i18nKey = "gender")
-    @Field
-    @Convert(converter = GenderConverter::class)
-    @get:Column
-    // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
-    open var gender: IsoGender? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.street")
-    @Field
-    @get:Column(length = 255)
-    open var street: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.zipCode")
-    @Field
-    @get:Column(length = 255)
-    open var zipCode: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.city")
-    @Field
-    @get:Column(length = 255)
-    open var city: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.country")
-    @Field
-    @get:Column(length = 255)
-    open var country: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.state")
-    @Field
-    @get:Column(length = 255)
-    open var state: String? = null
-
-    @PropertyInfo(i18nKey = "comment")
-    @Field
-    @get:Column(length = Constants.COMMENT_LENGTH)
-    open var comment: String? = null
-
-    val kost1Id: Int?
-        @Transient
-        get() = kost1?.id
-
-    val userId: Int?
-        @Transient
-        get() = user?.id
-
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
-        var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
-        val src = source as EmployeeDO
-        modificationStatus = modificationStatus
-                .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
-        return modificationStatus
-    }
-
-    override fun visit(visitor: ComplexEntityVisitor) {
-        super.visit(visitor)
-        for (et in timeableAttributes) {
-            et.visit(visitor)
-        }
-    }
-
+  override val displayName: String
     @Transient
-    override fun getAttrSchemaName(): String {
-        return "employee"
-    }
+    get() = "${user?.getFullname()}"
 
-    override fun addTimeableAttribute(row: EmployeeTimedDO) {
-        row.employee = this
-        timeableAttributes.add(row)
-    }
+  /**
+   * The ProjectForge user assigned to this employee.
+   */
+  @PropertyInfo(i18nKey = "fibu.employee.user")
+  @IndexedEmbedded(depth = 1, includePaths = ["username", "firstname", "lastname", "description", "organization"])
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "user_id", nullable = false)
+  open var user: PFUserDO? = null
 
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "employee")
-    // fetch mode, only returns one
-    @Fetch(FetchMode.SELECT)
-    // unfortunatelly this does work. Date is not valid for order (only integral types)
-    //  @OrderColumn(name = "startTime")
-    @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-    override fun getTimeableAttributes(): MutableList<EmployeeTimedDO> {
-        return timeableAttributes
-    }
+  /**
+   * Dem Benutzer zugeordneter Kostenträger Kost1 für den Monatsreport.
+   */
+  @PropertyInfo(i18nKey = "fibu.kost1")
+  @IndexedEmbedded(depth = 1)
+  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:JoinColumn(name = "kost1_id", nullable = true)
+  open var kost1: Kost1DO? = null
 
-    open fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
-        this.timeableAttributes = timeableAttributes
-    }
+  @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
+  @PropertyInfo(i18nKey = "status")
+  @Field
+  @get:Enumerated(EnumType.STRING)
+  @get:Column(name = "employee_status", length = 30)
+  open var status: EmployeeStatus? = null
 
+  @PropertyInfo(i18nKey = "address.positionText")
+  @Field
+  @get:Column(name = "position_text", length = 244)
+  open var position: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.eintrittsdatum")
+  @Field(analyze = Analyze.NO)
+  @get:Column(name = "eintritt")
+  open var eintrittsDatum: LocalDate? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
+  @Field
+  @get:Column(name = "austritt")
+  open var austrittsDatum: LocalDate? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.division")
+  @Field
+  @get:Column(length = 255)
+  open var abteilung: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.staffNumber")
+  @Field
+  @StringAlphanumericSort
+  @get:Column(length = 255)
+  open var staffNumber: String? = null
+
+  @Field(store = Store.YES)
+  @FieldBridge(impl = TimeableListFieldBridge::class)
+  @IndexedEmbedded(depth = 2)
+  private var timeableAttributes = mutableListOf<EmployeeTimedDO>()
+
+  @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
+  @Field(analyze = Analyze.NO)
+  @FieldBridge(impl = ToStringFieldBridge::class)
+  @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
+  open var weeklyWorkingHours: BigDecimal? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.birthday")
+  @Field(analyze = Analyze.NO)
+  @get:Column
+  open var birthday: LocalDate? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
+  @Field
+  @get:Column(length = 255, name = "account_holder")
+  open var accountHolder: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.iban")
+  @Field
+  @get:Column(length = 50)
+  open var iban: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.bic")
+  @Field
+  @get:Column(length = 11)
+  open var bic: String? = null
+
+  @PropertyInfo(i18nKey = "gender")
+  @Field
+  @Convert(converter = GenderConverter::class)
+  @get:Column
+  // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
+  open var gender: IsoGender? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.street")
+  @Field
+  @get:Column(length = 255)
+  open var street: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.zipCode")
+  @Field
+  @get:Column(length = 255)
+  open var zipCode: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.city")
+  @Field
+  @get:Column(length = 255)
+  open var city: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.country")
+  @Field
+  @get:Column(length = 255)
+  open var country: String? = null
+
+  @PropertyInfo(i18nKey = "fibu.employee.state")
+  @Field
+  @get:Column(length = 255)
+  open var state: String? = null
+
+  @PropertyInfo(i18nKey = "comment")
+  @Field
+  @get:Column(length = Constants.COMMENT_LENGTH)
+  open var comment: String? = null
+
+  val kost1Id: Int?
     @Transient
-    override fun getAttrEntityClass(): Class<out JpaTabAttrBaseDO<EmployeeDO, Int>> {
-        return EmployeeAttrDO::class.java
-    }
+    get() = kost1?.id
 
+  val userId: Int?
     @Transient
-    override fun getAttrEntityWithDataClass(): Class<out JpaTabAttrBaseDO<EmployeeDO, Int>> {
-        return EmployeeAttrWithDataDO::class.java
-    }
+    get() = user?.id
 
+  /**
+   * @return True, if employee isn't deleted and eintritt/austritt date isn't given or not before/after now.
+   */
+  val active: Boolean
     @Transient
-    override fun getAttrDataEntityClass(): Class<out JpaTabAttrDataBaseDO<out JpaTabAttrBaseDO<EmployeeDO, Int>, Int>> {
-        return EmployeeAttrDataDO::class.java
-    }
-
-    override fun createAttrEntity(key: String, type: Char, value: String): JpaTabAttrBaseDO<EmployeeDO, Int> {
-        return EmployeeAttrDO(this, key, type, value)
-    }
-
-    override fun createAttrEntityWithData(key: String, type: Char, value: String): JpaTabAttrBaseDO<EmployeeDO, Int> {
-        return EmployeeAttrWithDataDO(this, key, type, value)
-    }
-
-    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = EmployeeAttrDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
-    @MapKey(name = "propertyName")
-    @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
-    override fun getAttrs(): Map<String, JpaTabAttrBaseDO<EmployeeDO, Int>> {
-        return super.getAttrs()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (other !is EmployeeDO)
-            return false
-        if (other.pk == null) {
-            return false
+    get() {
+      if (isDeleted) {
+        return false
+      }
+      val now = LocalDate.now()
+      eintrittsDatum?.let { eintritt ->
+        if (eintritt.isAfter(now)) {
+          return false
         }
-        return if (this.pk == other.pk) {
-            true
-        } else super.equals(other)
-    }
-
-    override fun hashCode(): Int {
-        return if (pk != null) 31 * pk.hashCode() else super.hashCode()
-    }
-
-    override operator fun compareTo(other: Any): Int {
-        if (other !is EmployeeDO) {
-            return 0
+      }
+      austrittsDatum?.let { austritt ->
+        if (austritt.isBefore(now)) {
+          return false
         }
-        if (this.user == other.user) return 0
-        val u1 = this.user
-        val u2 = other.user
-        if (u1 == null) return -1
-        if (u2 == null) return 1
-        var result = StringUtils.compare(u1.lastname, u2.lastname)
-        if (result == 0) {
-            result = StringUtils.compare(u1.firstname, u2.firstname)
-        }
-        return result
+      }
+      return true
     }
 
-    companion object {
-        internal const val FIND_BY_USER_ID = "EmployeeDO_FindByUserId"
-        internal const val GET_EMPLOYEE_ID_BY_USER_ID = "EmployeeDO_GetEmployeeIdByUserId"
-        internal const val FIND_BY_LASTNAME_AND_FIRST_NAME = "EmployeeDO_FindByLastnameAndFirstname"
+  override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
+    val src = source as EmployeeDO
+    modificationStatus = modificationStatus
+      .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
+    return modificationStatus
+  }
+
+  override fun visit(visitor: ComplexEntityVisitor) {
+    super.visit(visitor)
+    for (et in timeableAttributes) {
+      et.visit(visitor)
     }
+  }
+
+  @Transient
+  override fun getAttrSchemaName(): String {
+    return "employee"
+  }
+
+  override fun addTimeableAttribute(row: EmployeeTimedDO) {
+    row.employee = this
+    timeableAttributes.add(row)
+  }
+
+  @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "employee")
+  // fetch mode, only returns one
+  @Fetch(FetchMode.SELECT)
+  // unfortunatelly this does work. Date is not valid for order (only integral types)
+  //  @OrderColumn(name = "startTime")
+  @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
+  override fun getTimeableAttributes(): MutableList<EmployeeTimedDO> {
+    return timeableAttributes
+  }
+
+  open fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
+    this.timeableAttributes = timeableAttributes
+  }
+
+  @Transient
+  override fun getAttrEntityClass(): Class<out JpaTabAttrBaseDO<EmployeeDO, Int>> {
+    return EmployeeAttrDO::class.java
+  }
+
+  @Transient
+  override fun getAttrEntityWithDataClass(): Class<out JpaTabAttrBaseDO<EmployeeDO, Int>> {
+    return EmployeeAttrWithDataDO::class.java
+  }
+
+  @Transient
+  override fun getAttrDataEntityClass(): Class<out JpaTabAttrDataBaseDO<out JpaTabAttrBaseDO<EmployeeDO, Int>, Int>> {
+    return EmployeeAttrDataDO::class.java
+  }
+
+  override fun createAttrEntity(key: String, type: Char, value: String): JpaTabAttrBaseDO<EmployeeDO, Int> {
+    return EmployeeAttrDO(this, key, type, value)
+  }
+
+  override fun createAttrEntityWithData(key: String, type: Char, value: String): JpaTabAttrBaseDO<EmployeeDO, Int> {
+    return EmployeeAttrWithDataDO(this, key, type, value)
+  }
+
+  @OneToMany(
+    cascade = [CascadeType.ALL],
+    mappedBy = "parent",
+    targetEntity = EmployeeAttrDO::class,
+    orphanRemoval = true,
+    fetch = FetchType.EAGER
+  )
+  @MapKey(name = "propertyName")
+  @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
+  override fun getAttrs(): Map<String, JpaTabAttrBaseDO<EmployeeDO, Int>> {
+    return super.getAttrs()
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (other !is EmployeeDO)
+      return false
+    if (other.pk == null) {
+      return false
+    }
+    return if (this.pk == other.pk) {
+      true
+    } else super.equals(other)
+  }
+
+  override fun hashCode(): Int {
+    return if (pk != null) 31 * pk.hashCode() else super.hashCode()
+  }
+
+  override operator fun compareTo(other: Any): Int {
+    if (other !is EmployeeDO) {
+      return 0
+    }
+    if (this.user == other.user) return 0
+    val u1 = this.user
+    val u2 = other.user
+    if (u1 == null) return -1
+    if (u2 == null) return 1
+    var result = StringUtils.compare(u1.lastname, u2.lastname)
+    if (result == 0) {
+      result = StringUtils.compare(u1.firstname, u2.firstname)
+    }
+    return result
+  }
+
+  companion object {
+    internal const val FIND_BY_USER_ID = "EmployeeDO_FindByUserId"
+    internal const val GET_EMPLOYEE_ID_BY_USER_ID = "EmployeeDO_GetEmployeeIdByUserId"
+    internal const val FIND_BY_LASTNAME_AND_FIRST_NAME = "EmployeeDO_FindByLastnameAndFirstname"
+  }
 }
