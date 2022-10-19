@@ -163,7 +163,7 @@ abstract class ScriptExecutor(
     if (callers.any { it.id == script.id }) {
       val error = "Endless recursion detected: ${callers.joinToString(" -> ") { it.name ?: "untitled" }}"
       scriptLogger.error(error)
-      throw IllegalArgumentException(error)
+      return "// Endless recursion detected."
     }
     val scriptContent = script.scriptAsString ?: return ""
     return INCLUDE_REGEX.replace(scriptContent) { m ->
