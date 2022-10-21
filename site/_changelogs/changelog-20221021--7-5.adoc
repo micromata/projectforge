@@ -1,0 +1,43 @@
+---
+title: ProjectForge 7.5 released
+date: 2022-10-21
+---
+:page-liquid:
+
+
+++++
+{% include tag.html tag="improved" %}
+++++
+- The main calendar refactored (colors, functionalities, more customizable etc.)
+- Datatransfer-Plugin: Notification improved
+- Vacations
+  * support now multiple substitutions.
+  * Shows now conflicts
+- History of changes improved.
+- 2FA-requests preserve now input fields.
+- lots of minor improvements.
+++++
+{% include tag.html tag="fixed" %}
+++++
+- Menu customization in classical version.
+- Yubikey now also supported in other browsers: Chrome, Edge etc.
+- several bugs fixed.
+++++
+{% include tag.html tag="admin" %}
+- User/group administration in new version.
+++++
+
+++++
+{% include tag.html tag="security" %}
+- Some issues from last security pen test implemented.
+++++
+
+++++
+{% include tag.html tag="technology" %}
+- New versions: Java 15, Spring, React/Router, Wicket
+- Separation of db table user and passwords.
+++++
+
+++++
+{% include download-link.html %}
+++++
