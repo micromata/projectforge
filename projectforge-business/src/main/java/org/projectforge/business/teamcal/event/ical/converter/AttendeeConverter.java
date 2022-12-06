@@ -28,11 +28,11 @@ import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.*;
 import net.fortuna.ical4j.model.property.Attendee;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.common.StringHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
@@ -95,7 +95,7 @@ public class AttendeeConverter extends PropertyConverter
       URI attendeeUri = attendee.getCalAddress();
       final String email = (attendeeUri != null) ? attendeeUri.getSchemeSpecificPart() : null;
 
-      if (email != null && !EmailValidator.getInstance().isValid(email)) {
+      if (email != null && !StringHelper.isEmailValid(email)) {
         continue; // TODO maybe validation is not necessary, could also be en url? check rfc
       }
 

@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.8</version><!-- Don't forget to modify also below in properties. -->
+        <version>2.7.6</version><!-- Don't forget to modify also below in properties. -->
     </parent>
 
     <name>ProjectForge</name>
@@ -220,17 +220,18 @@
         <apacheds.version>1.5.7</apacheds.version>
         <com.google.zxing.version>3.5.0</com.google.zxing.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
-        <commons-collections.version>4.4</commons-collections.version>
-        <commons-httpclient.version>4.5.13</commons-httpclient.version>
+        <commons-collections3.version>3.2.2</commons-collections3.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
+        <apache-httpcomponents-client5>5.2</apache-httpcomponents-client5>
         <commons-io.version>2.11.0</commons-io.version>
         <commons-lang.version>3.12.0</commons-lang.version>
-        <commons-validator.version>1.7</commons-validator.version>
+        <commons-text.version>1.10.0</commons-text.version>
         <bouncy-castle.version>1.70</bouncy-castle.version>
         <aspectjtools.version>1.9.9.1</aspectjtools.version>
         <dom4j.version>2.1.3</dom4j.version>
         <flyway.version>6.3.2</flyway.version> <!-- 7.7.3 doesn't support PostgreSQL 9.4 -->
-        <fop.version>2.7</fop.version>
-        <groovy.version>3.0.10</groovy.version>
+        <fop.version>2.8</fop.version>
+        <groovy.version>3.0.13</groovy.version>
         <ical4j.version>3.2.2</ical4j.version> <!-- 2.2* needs source code modifications. -->
         <ical4j-vcard.version>1.0.6</ical4j-vcard.version>
         <itext.version>5.5.13.3</itext.version>
@@ -241,12 +242,13 @@
         <jersey.version>2.35</jersey.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
         <jfreechart.version>1.5.3</jfreechart.version>
         <jlf4j.version>1.7.36</jlf4j.version> <!-- should be the same as used in spring boot started. -->
-        <jackson.version>2.13.3</jackson.version>
+        <jackson.version>2.13.4</jackson.version>
+        <jackson-core.version>2.13.4.2</jackson-core.version>
         <joda-time.version>2.10.14</joda-time.version>
         <!-- Version 5.4.2 doesn't work with Intellij. Tested 03/28/2019. -->
-        <junit.jupiter.version>5.3.2</junit.jupiter.version>
+        <junit.jupiter.version>5.9.1</junit.jupiter.version>
         <junit-platform.version>1.3.2</junit-platform.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.2</junit.version>
         <kotlin.version>1.7.10</kotlin.version>
         <kotlin-logging.version>2.1.23</kotlin-logging.version>
         <kotlin-coroutines-slf4j.version>1.4.3</kotlin-coroutines-slf4j.version>
@@ -258,21 +260,21 @@
         <poi.version>5.2.2</poi.version>
         <rhino.version>1.7.14</rhino.version>
         <springfox-swagger.version>3.0.0</springfox-swagger.version>
-        <spring.version>5.3.20</spring.version> <!-- Should match spring boot's parent pom -->
-        <spring.boot.version>2.6.8</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
-        <webauthn4j.version>0.19.2.RELEASE</webauthn4j.version>
+        <spring.version>5.3.24</spring.version> <!-- Should match spring boot's parent pom -->
+        <spring.boot.version>2.7.6</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+        <webauthn4j.version>0.20.5.RELEASE</webauthn4j.version>
         <wicket.version>8.14.0</wicket.version>
         <wicket-stuff.version>8.14.0</wicket-stuff.version>
         <xmlgraphics-commons.version>2.7</xmlgraphics-commons.version>
-        <xmlgraphics-batik-codec.version>1.14</xmlgraphics-batik-codec.version>
+        <xmlgraphics-batik-codec.version>1.16</xmlgraphics-batik-codec.version>
         <xstream.version>1.4.19</xstream.version> <!-- com.thoughtworks.xstream -->
 
         <!-- HIBERNATE 5 -->
-        <postgresql.version>42.5.0</postgresql.version>
-        <hsqldb.version>2.6.1</hsqldb.version>
+        <postgresql.version>42.5.1</postgresql.version>
+        <hsqldb.version>2.7.1</hsqldb.version>
 
         <!-- TEST -->
-        <org.mockserver.version>5.13.2</org.mockserver.version>
+        <org.mockserver.version>5.14.0</org.mockserver.version>
     </properties>
 
     <dependencies>
