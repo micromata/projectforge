@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.task.TaskDO;
@@ -483,7 +483,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
   }
 
   void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag) {
-    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedulesExcludingDeleted();
     if (paymentSchedules == null) {
       // if there are no payment schedules, there are no dates which are not within the period of performance
       return;
@@ -500,7 +500,7 @@ public class AuftragDao extends BaseDao<AuftragDO> {
       final LocalDate lastInvoiceDate = periodOfPerformanceEnd;
 
       final boolean hasDateNotInRange = paymentSchedules.stream()
-          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+          .filter(payment -> payment.getPositionNumber() != null && payment.getPositionNumber() == pos.getNumber())
           .map(PaymentScheduleDO::getScheduleDate)
           .filter(Objects::nonNull)
           .anyMatch(date -> (periodOfPerformanceBegin != null && date.isBefore(periodOfPerformanceBegin))
