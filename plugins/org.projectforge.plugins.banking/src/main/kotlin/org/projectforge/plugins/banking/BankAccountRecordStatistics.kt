@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.plugins.banking
 
 import org.projectforge.business.utils.CurrencyFormatter
 import org.projectforge.framework.utils.MarkdownBuilder
