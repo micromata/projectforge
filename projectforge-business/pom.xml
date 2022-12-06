@@ -169,9 +169,14 @@
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
         <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>${commons-collections3.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>${commons-collections.version}</version>
+            <version>${commons-collections4.version}</version>
         </dependency>
         <dependency>
             <!-- Needed by Merlin: -->
@@ -190,19 +195,9 @@
             <version>${dom4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${commons-httpclient.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-codec</artifactId>
-                    <groupId>commons-codec</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${apache-httpcomponents-client5}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -279,17 +274,6 @@
 
 
         <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-            <version>${commons-validator.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
             <version>${commons-beanutils.version}</version>
@@ -297,6 +281,10 @@
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -437,7 +425,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <version>${jackson-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -470,6 +458,17 @@
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-netty</artifactId>
             <version>${org.mockserver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-text</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mock-server</groupId>

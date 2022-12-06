@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Some helper methods ...
@@ -35,6 +36,11 @@ import java.util.*;
  */
 public class StringHelper {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StringHelper.class);
+
+    private static String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+    private static Pattern emailRegexPattern = Pattern.compile(emailRegex);
+
 
     /**
      * Usage: final StringBuffer buf = new StringBuffer();<br/>
@@ -690,5 +696,9 @@ public class StringHelper {
             str = str.toLowerCase();
         }
         return StringUtils.normalizeSpace(StringUtils.stripAccents(str));
+    }
+
+    public static boolean isEmailValid(String emailAddress) {
+        return emailRegexPattern.matcher(emailAddress).matches();
     }
 }
