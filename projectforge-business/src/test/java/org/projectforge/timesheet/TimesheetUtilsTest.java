@@ -91,7 +91,7 @@ public class TimesheetUtilsTest extends AbstractTestBase {
   }
 
   @BeforeEach
-  private void initContextUser() {
+  void initContextUser() {
     timeZone = DateHelper.EUROPE_BERLIN;
     locale = new Locale("DE_de");
     PFUserDO user = new PFUserDO();

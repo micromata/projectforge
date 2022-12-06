@@ -37,7 +37,6 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.ResultSet
-import org.projectforge.rest.dto.BankAccountRecordStatistics
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterElement
 import org.projectforge.ui.filter.UIFilterListElement
