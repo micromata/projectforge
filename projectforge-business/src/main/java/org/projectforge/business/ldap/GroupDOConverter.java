@@ -23,7 +23,7 @@
 
 package org.projectforge.business.ldap;
 
-import org.apache.commons.collections.SetUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.BeanHelper;

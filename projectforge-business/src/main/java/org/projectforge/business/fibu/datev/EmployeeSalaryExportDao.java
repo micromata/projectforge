@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.datev;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.projectforge.business.excel.*;

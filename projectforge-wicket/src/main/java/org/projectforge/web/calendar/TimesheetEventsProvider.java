@@ -24,7 +24,7 @@
 package org.projectforge.web.calendar;
 
 import net.ftlines.wicket.fullcalendar.Event;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.projectforge.Constants;

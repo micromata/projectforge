@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;

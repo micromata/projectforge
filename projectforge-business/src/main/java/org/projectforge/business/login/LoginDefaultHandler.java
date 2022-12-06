@@ -23,8 +23,8 @@
 
 package org.projectforge.business.login;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.PredicateUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.PredicateUtils;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
