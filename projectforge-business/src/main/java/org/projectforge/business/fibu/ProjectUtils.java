@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;

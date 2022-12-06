@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user;
 
-import org.apache.commons.collections.list.UnmodifiableList;
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.projectforge.business.address.AddressbookRight;
 import org.projectforge.business.fibu.AuftragRight;
 import org.projectforge.business.fibu.ProjektRight;
@@ -98,7 +98,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   @SuppressWarnings("unchecked")
   public List<UserRight> getOrderedRights()
   {
-    return UnmodifiableList.decorate(orderedRights);
+    return new UnmodifiableList(orderedRights);
   }
 
   @PostConstruct

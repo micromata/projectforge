@@ -23,7 +23,7 @@
 
 package org.projectforge.web.wicket.flowlayout;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.repeater.RepeatingView;
 
@@ -87,7 +87,7 @@ public class MyComponentsRepeater<T extends Component> implements Serializable
   }
 
   /**
-   * 
+   *
    * @param pos
    * @param component
    * @return

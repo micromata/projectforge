@@ -25,8 +25,8 @@ package org.projectforge.framework.persistence.utils;
 
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import de.micromata.hibernate.history.delta.SimplePropertyDelta;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.utils.NumberHelper;
@@ -39,9 +39,9 @@ import java.util.*;
 /**
  * Stores one imported object (e. g. MS Excel row as bean object). It also contains information about the status: New object or modified
  * object.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ImportedElement<T> implements Serializable
 {

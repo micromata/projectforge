@@ -23,7 +23,7 @@
 
 package org.projectforge.business.ldap;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -54,7 +54,7 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
 
   /**
    * Since member of groups can't be null, "cn=none" if the group has no real members.
-   * 
+   *
    * @param group
    * @return
    */
@@ -121,7 +121,7 @@ public class LdapGroupDao extends LdapDao<String, LdapGroup>
 
   /**
    * Used for bind and update.
-   * 
+   *
    * @param person
    * @return
    * @see org.projectforge.business.ldap.LdapDao#getModificationItems(org.projectforge.business.ldap.LdapObject)
