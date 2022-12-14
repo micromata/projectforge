@@ -90,7 +90,8 @@ open class VacationProvider {
           style = useStyle,
           dbId = vacation.id,
           classNames = "vacation-event",
-          formattedDuration = "$duration ${translate(unit)}"
+          formattedDuration = "$duration ${translate(unit)}",
+          calendarSettings = settings,
         )
         val startDate = PFDay.fromOrNull(vacation.startDate)?.format() ?: ""
         val endDate = PFDay.fromOrNull(vacation.endDate)?.format() ?: ""

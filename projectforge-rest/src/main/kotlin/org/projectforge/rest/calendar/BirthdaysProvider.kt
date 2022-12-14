@@ -45,6 +45,7 @@ object BirthdaysProvider {
     end: PFDateTime,
     events: MutableList<FullCalendarEvent>,
     styleMap: CalendarStyleMap,
+    calendarSettings: CalendarSettings,
     showFavoritesBirthdays: Boolean = false,
     showAllBirthdays: Boolean = false,
     dataProtection: Boolean = true
@@ -95,6 +96,7 @@ object BirthdaysProvider {
           id = birthdayAddress.address?.id,
           category = FullCalendarEvent.Category.BIRTHDAY,
           title = title,
+          calendarSettings = calendarSettings,
           start = date.beginOfDay.localDate,
           style = style,
           dbId = birthdayAddress.address?.id,

@@ -291,8 +291,10 @@ class CalendarServicesRest {
     }
     val visibleTeamCalendarIds =
       visibleCalendarIds?.filter { it != null && it >= 0 } // calendars with id < 0 are pseudo calendars (such as birthdays etc.)
+    val calendarSettings = calendarSettingsService.getSettings()
     if (useNewCalendarEvents) {
       calendarEventsProvider.addEvents(
+        calendarSettings,
         range.start,
         range.end!!,
         events,
@@ -315,6 +317,7 @@ class CalendarServicesRest {
     if (showAllBirthdays || showFavoritesBirthdays) {
       BirthdaysProvider.addEvents(
         addressDao, range.start, range.end!!, events, calendarFilterServicesRest.getStyleMap(),
+        calendarSettings,
         showFavoritesBirthdays,
         showAllBirthdays,
         !accessChecker.isLoggedInUserMemberOfGroup(
@@ -340,6 +343,7 @@ class CalendarServicesRest {
         events.add(
           FullCalendarEvent.createAllDayEvent(
             title = specialDay.holidayTitle,
+            calendarSettings = calendarSettings,
             start = specialDay.date,
             classNames = "fc-holiday-weekend",
           ).withTextColor("red")

@@ -106,6 +106,7 @@ open class TeamCalEventsProvider() {
           id = dbId ?: uid,
           category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
           title = it.subject,
+          calendarSettings = settings,
           start = start,
           end = end,
         )
@@ -114,6 +115,7 @@ open class TeamCalEventsProvider() {
           id = dbId ?: uid,
           category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
           title = it.subject,
+          calendarSettings = settings,
           start = it.startDate!!,
           end = it.endDate!!,
         )
@@ -124,7 +126,7 @@ open class TeamCalEventsProvider() {
         props.dbId = dbId
         props.uid = uid
       }
-      event.withColor(style = style)
+      event.withColor(settings, style = style)
 
       val tooltipBuilder = TooltipBuilder()
       val title = eventDO.calendar?.title ?: ""

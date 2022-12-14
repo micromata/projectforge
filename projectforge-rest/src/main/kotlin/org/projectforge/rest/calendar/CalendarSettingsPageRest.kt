@@ -24,6 +24,7 @@
 package org.projectforge.rest.calendar
 
 import org.projectforge.Constants
+import org.projectforge.business.calendar.CalendarEventColorScheme
 import org.projectforge.business.calendar.CalendarStyle
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.utils.NumberHelper
@@ -95,6 +96,15 @@ class CalendarSettingsPageRest : AbstractDynamicPageRest() {
             .add("defaultColor", CalendarSettings.VACATIONS_DEFAULT_COLOR)
         )
         .add(UIAlert("calendar.settings.colors.vacations.info", color = UIColor.LIGHT, markdown = true))
+        .add(
+          UISelect<CalendarEventColorScheme>(
+            CalendarSettings::colorScheme.name,
+            label = "calendar.settings.colors.scheme",
+            required = false,
+          ).buildValues(
+            CalendarEventColorScheme::class.java
+          )
+        )
         .add(
           UICheckbox(
             CalendarSettings::alternateHoursBackground.name,
