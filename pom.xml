@@ -213,8 +213,8 @@
 
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
-        <hibernate.version>5.6.8.Final</hibernate.version>
-        <hibernate-search.version>5.11.10.Final</hibernate-search.version>
+        <hibernate.version>5.6.14.Final</hibernate.version>
+        <hibernate-search.version>5.11.11.Final</hibernate-search.version>
         <mgc.version>3.1.3</mgc.version>
 
         <apacheds.version>1.5.7</apacheds.version>
