@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import org.projectforge.business.calendar.CalendarEventColorScheme
 import org.projectforge.business.calendar.CalendarStyle
 
 /**
@@ -38,6 +39,7 @@ class CalendarSettings {
   var timesheetsBreaksColor: String? = TIMESHEETS_BREAKS_DEFAULT_COLOR
   var timesheetsStatsColor: String? = TIMESHEETS_STATS_DEFAULT_COLOR
   var vacationsColor: String? = VACATIONS_DEFAULT_COLOR
+  var colorScheme: CalendarEventColorScheme? = CalendarEventColorScheme.STANDARD
 
   val timesheetsColorOrDefault: String
     get() = timesheetsColor ?: TIMESHEETS_DEFAULT_COLOR
@@ -60,6 +62,7 @@ class CalendarSettings {
     this.timesheetsStatsColor = getValueOrNull(src.timesheetsStatsColor, TIMESHEETS_STATS_DEFAULT_COLOR)
     this.vacationsColor = getValueOrNull(src.vacationsColor, VACATIONS_DEFAULT_COLOR)
     this.alternateHoursBackground = src.alternateHoursBackground
+    this.colorScheme = src.colorScheme
   }
 
   /**
@@ -73,6 +76,7 @@ class CalendarSettings {
     clone.timesheetsStatsColor = timesheetsStatsColorOrDefault
     clone.vacationsColor = vacationsColorOrDefault
     clone.alternateHoursBackground = alternateHoursBackground
+    clone.colorScheme = colorScheme
     return clone
   }
 

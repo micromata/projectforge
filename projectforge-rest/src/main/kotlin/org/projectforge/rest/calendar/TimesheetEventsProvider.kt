@@ -113,6 +113,7 @@ class TimesheetEventsProvider {
                 title = translate("timesheet.break"),
                 classNames = "timesheet-break",
                 style = breakStyle,
+                calendarSettings = settings,
               )
             )
             // val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
@@ -143,6 +144,7 @@ class TimesheetEventsProvider {
           classNames = "timesheet",
           dbId = timesheet.id,
           style = timesheetStyle,
+          calendarSettings = settings,
         ).let { event ->
           events.add(event)
           val tooltipBuilder = TooltipBuilder()
@@ -214,6 +216,7 @@ class TimesheetEventsProvider {
           start = day.localDate,
           classNames = "timesheet-stats",
           style = timesheetStatsStyle,
+          calendarSettings = settings,
         )
         events.add(event)
         day = day.plusDays(1)

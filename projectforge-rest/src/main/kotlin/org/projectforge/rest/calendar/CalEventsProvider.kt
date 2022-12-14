@@ -46,6 +46,7 @@ class CalEventsProvider() {
    * @param calendarIds Null items should only occur on (de)serialization issues.
    */
   fun addEvents(
+    calendarSettings: CalendarSettings,
     start: PFDateTime,
     end: PFDateTime,
     events: MutableList<FullCalendarEvent>,
@@ -87,6 +88,7 @@ class CalEventsProvider() {
         id = dbId,
         category = FullCalendarEvent.Category.CAL_EVENT,
         title = it.subject,
+        calendarSettings = calendarSettings,
         start = it.startDate!!,
         end = it.endDate!!,
         allDay = allDay,

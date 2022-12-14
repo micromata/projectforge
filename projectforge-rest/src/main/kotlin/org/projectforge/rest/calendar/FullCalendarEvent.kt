@@ -121,11 +121,11 @@ class FullCalendarEvent(
    * @param style You may set the color by this style as an alternative.
    * @return this for chaining.
    */
-  fun withColor(bgColor: String? = null, style: CalendarStyle? = null): FullCalendarEvent {
+  fun withColor(calendarSettings: CalendarSettings, bgColor: String? = null, style: CalendarStyle? = null): FullCalendarEvent {
     val useStyle = style ?: CalendarStyle(bgColor)
-    textColor = useStyle.textColor
+    textColor = useStyle.getTextColor(calendarSettings.colorScheme)
     borderColor = useStyle.bgColor
-    backgroundColor = useStyle.backgroundColor
+    backgroundColor = useStyle.getBackgroundColor(calendarSettings.colorScheme)
     return this
   }
 
@@ -184,6 +184,7 @@ class FullCalendarEvent(
       id: Any?,
       category: Category,
       title: String?,
+      calendarSettings: CalendarSettings,
       start: Date,
       end: Date,
       description: String? = null,
@@ -209,7 +210,7 @@ class FullCalendarEvent(
         startEditable = startEditable,
         durationEditable = durationEditable,
       )
-      event.withColor(baseBackgroundColor, style)
+      event.withColor(calendarSettings, baseBackgroundColor, style)
       if (allDay == true) {
         event.allDay = true
         event.start = EventDate(day = PFDateTime.from(start).localDate)
@@ -240,6 +241,7 @@ class FullCalendarEvent(
      */
     fun createAllDayEvent(
       title: String?,
+      calendarSettings: CalendarSettings,
       start: LocalDate,
       end: LocalDate = start,
       id: Any? = null,
@@ -263,7 +265,7 @@ class FullCalendarEvent(
         classNames = classNames,
         editable = editable,
       )
-      event.withColor(baseBackgroundColor, style)
+      event.withColor(calendarSettings, baseBackgroundColor, style)
       event.start = EventDate(day = start)
       event.end = EventDate(day = end.plusDays(1))
       event.ensureExtendedProps().let { props ->
