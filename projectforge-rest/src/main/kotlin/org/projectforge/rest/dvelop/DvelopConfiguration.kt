@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.dvelop
+package org.projectforge.rest.dvelop
 
 import org.projectforge.framework.configuration.*
 import org.springframework.beans.factory.annotation.Value
