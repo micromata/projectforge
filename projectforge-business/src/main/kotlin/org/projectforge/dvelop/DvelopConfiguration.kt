@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dvelop
+package org.projectforge.dvelop
 
 import org.projectforge.framework.configuration.*
 import org.springframework.beans.factory.annotation.Value
@@ -30,6 +30,9 @@ import java.io.*
 import java.util.*
 import javax.net.ssl.*
 
+/**
+ * ProjectForge supports the synchronization from and to a D-velop installation.
+ */
 @Configuration
 open class DvelopConfiguration {
   @Value("\${projectforge.dvelop.baseUri}")
@@ -39,7 +42,7 @@ open class DvelopConfiguration {
    * The api key for authentication.
    */
   @Value("\${projectforge.dvelop.apiKey}")
-  internal lateinit var apiKey: String
+  open lateinit var apiKey: String
 
   fun isConfigured(): Boolean {
     return baseUri.isNotBlank() && apiKey.isNotBlank()

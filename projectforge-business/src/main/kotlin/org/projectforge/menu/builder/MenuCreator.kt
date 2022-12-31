@@ -40,6 +40,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.dvelop.DvelopConfiguration
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.IUserRightId
@@ -83,6 +84,9 @@ open class MenuCreator {
 
   @Autowired
   private lateinit var configurationService: ConfigurationService
+
+  @Autowired
+  private lateinit var dvelopConfiguration: DvelopConfiguration
 
   @Autowired
   private lateinit var vacationService: VacationService
@@ -324,6 +328,13 @@ open class MenuCreator {
             })
         )
     }
+    if (dvelopConfiguration.isConfigured()) {
+      fibuMenu.add(
+        MenuItemDef(MenuItemDefId.DVELOP,
+          checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+      )
+    }
+
     // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
     fibuMenu.add(
       MenuItemDef(MenuItemDefId.ORDER_LIST,

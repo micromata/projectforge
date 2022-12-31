@@ -27,6 +27,7 @@ import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
+import org.projectforge.dvelop.DvelopConfiguration
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
