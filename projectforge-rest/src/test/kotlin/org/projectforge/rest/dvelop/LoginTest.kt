@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.dvelop
+package org.projectforge.rest.dvelop
 
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -55,7 +55,7 @@ fun main(args: Array<String>) {
   client.dvelopConfiguration = config
   client.debugConsoleOutForTesting = true
   client.postConstruct()
-  //val session = DvelopClient.Session("fWxmbS2palvpQ9uiKNj7ohvQygd6EPcZSfRl8wgVFCpVaxezqVFRe9CqFlkvQ+suHdAFmq5p6gXJ887+xErCfkmpvhZq7c4ZL+7sFVWRXvw=&xLNjWvkd2QHs2gQKX0sNalv-z_aV9sP8XuCOyW3hcaVptQHeNhPfbBpRJ_CU64pm57NziNCYHKVu6HAVu0U7VYUpeQ7OTBnM", null)
+  //val session = DvelopClient.Session("sessionid", null)
   //val session = client.login()
   //println("authSessionId: ${session?.authSessionId}")
   val partner = TradingPartner()
