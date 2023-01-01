@@ -40,7 +40,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
-import org.projectforge.dvelop.DvelopConfiguration
+import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.IUserRightId

@@ -24,8 +24,8 @@
 package org.projectforge.rest.dvelop
 
 import org.junit.jupiter.api.Test
-import org.projectforge.dvelop.DvelopConfiguration
-import org.projectforge.dvelop.TradingPartner
+import org.projectforge.business.dvelop.DvelopConfiguration
+import org.projectforge.business.dvelop.TradingPartner
 import java.util.*
 import kotlin.io.path.Path
 

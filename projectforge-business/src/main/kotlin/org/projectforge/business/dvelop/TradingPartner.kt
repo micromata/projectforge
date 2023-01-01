@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.dvelop
+package org.projectforge.business.dvelop
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
