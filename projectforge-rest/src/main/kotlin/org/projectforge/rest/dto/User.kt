@@ -76,12 +76,11 @@ class User(
   var hrPlanning: Boolean? = false,
 ) : BaseDTODisplayObject<PFUserDO>(id = id, displayName = displayName) {
 
-  var employee: Employee? = null
-
   /**
    * For admin's user page for setting initial password while creating new users.
    */
   var password: String? = null
+
   /**
    * For admin's user page for setting initial wlan password while creating new users.
    */
