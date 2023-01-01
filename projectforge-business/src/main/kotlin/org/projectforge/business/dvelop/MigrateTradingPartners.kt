@@ -23,7 +23,10 @@
 
 package org.projectforge.business.dvelop
 
+import de.micromata.merlin.excel.ExcelWorkbook
 import org.projectforge.business.fibu.*
+import org.projectforge.excel.ExcelUtils
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDay
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -39,7 +42,16 @@ class MigrateTradingPartners {
     val vendors = mutableListOf<TradingPartner>()
     val partners = mutableListOf<TradingPartner>()
     val customers = mutableListOf<TradingPartner>()
-    private var sequence = 100000
+    private var sequence = 7000000
+
+    val allPartners: List<TradingPartner>
+      get() {
+        val all = mutableListOf<TradingPartner>()
+        all.addAll(vendors)
+        all.addAll(partners)
+        all.addAll(customers)
+        return all.sortedBy { it.number?.toIntOrNull() }
+      }
 
     val nextVal: Int
       get() = sequence++
@@ -52,7 +64,7 @@ class MigrateTradingPartners {
     }
 
     /** Remove used importCode field during migration (not needed anymore, if not equal to number). */
-    fun cleanUp() {
+    internal fun cleanUp() {
       vendors.filter { it.importCode != it.number }.forEach { it.importCode = null }
       partners.filter { it.importCode != it.number }.forEach { it.importCode = null }
       customers.filter { it.importCode != it.number }.forEach { it.importCode = null }
@@ -62,10 +74,51 @@ class MigrateTradingPartners {
   @Autowired
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
-  fun extractTradingVendors() {
-    val filter = EingangsrechnungListFilter()
-    filter.fromDate = PFDay.now().beginOfYear.minusYears(5).date
-    extractTradingVendors(eingangsrechnungDao.getList(filter))
+  @Autowired
+  private lateinit var rechnungDao: RechnungDao
+
+  fun extractTradingPartnersAsExcel(): ByteArray {
+    val fromDate = PFDay.now().beginOfYear.minusYears(5).date
+    var filter: RechnungFilter = EingangsrechnungListFilter()
+    filter.fromDate = fromDate
+    val context = extractTradingVendors(eingangsrechnungDao.getList(filter))
+
+    filter = RechnungListFilter()
+    filter.fromDate = fromDate
+    extractTradingCustomers(rechnungDao.getList(filter), context)
+
+    ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+      val sheet = workbook.createOrGetSheet("D-velop TradingPartners")
+      val boldFont = workbook.createOrGetFont("bold", bold = true)
+      val boldStyle = workbook.createOrGetCellStyle("boldStyle")
+      boldStyle.setFont(boldFont)
+      val wrapStyle = workbook.createOrGetCellStyle("wrapText")
+      wrapStyle.wrapText = true
+      ExcelUtils.registerColumn(sheet, TradingPartner::number)
+      ExcelUtils.registerColumn(sheet, TradingPartner::type)
+      ExcelUtils.registerColumn(sheet, TradingPartner::company)
+      ExcelUtils.registerColumn(sheet, TradingPartner::shortName)
+      ExcelUtils.registerColumn(sheet, TradingPartner::active)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToStreet)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToZip)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToCity)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToCountry)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional)
+      ExcelUtils.registerColumn(sheet, TradingPartner::remarks)
+      ExcelUtils.registerColumn(sheet, TradingPartner::contactType)
+      ExcelUtils.registerColumn(sheet, TradingPartner::importCode)
+      ExcelUtils.addHeadRow(sheet, boldStyle)
+      context.allPartners.forEach { partner ->
+        val row = sheet.createRow()
+        row.autoFillFromObject(partner)
+        ExcelUtils.getCell(row, TradingPartner::contactType)?.setCellValue(partner.contactType?.value?.toString())
+        ExcelUtils.getCell(row, TradingPartner::type)?.setCellValue(partner.type?.value?.toString())
+        ExcelUtils.getCell(row, TradingPartner::active)?.setCellValue(partner.active?.value?.toString())
+        ExcelUtils.getCell(row, TradingPartner::remarks)?.setCellStyle(wrapStyle)
+      }
+      sheet.setAutoFilter()
+      return workbook.asByteArrayOutputStream.toByteArray()
+    }
   }
 
   companion object {
@@ -86,11 +139,11 @@ class MigrateTradingPartners {
           }
           context.vendors.add(createVendor(context.nextVal.toString(), kreditor, konto))
         } else {
-          if (context.vendors.any { it.importCode == kontoNumber.toString() }) {
+          if (context.getVendorByDatevKonto(konto) != null) {
             return@forEach // Continue
           }
           val vendor = createVendor(kontoNumber.toString(), kreditor, konto)
-          if (kontoNumber >= 70000) {
+          if (kontoNumber < 70000) {
             // Kreditor is customer as well! So mark as partner:
             vendor.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
             context.partners.add(vendor)
@@ -159,6 +212,7 @@ class MigrateTradingPartners {
           context.customers.add(customer)
         }
       }
+      context.cleanUp()
     }
 
     private fun appendRemarks(partner: TradingPartner, remarks: String?) {
@@ -191,7 +245,7 @@ class MigrateTradingPartners {
         // Can't parse address.
         return
       }
-      if (lineEquals(lines[0], "herr", "frau", "firma", "an")) {
+      if (lineEquals(lines[0], "herr", "frau", "firma", "an", "portal", "klinikdienst")) {
         lines = lines.drop(1)
       }
       // Assuming first line is Customer's name
@@ -210,16 +264,19 @@ class MigrateTradingPartners {
       }
       val street = lines[pos].trim()
       pos -= 1
-      var addressAdditional: String? = null
-      if (pos > 0) {
+      val additionalAddressLines = mutableListOf<String>()
+      while (pos > 0) {
         // An additional line is found before street.
-        addressAdditional = lines[pos].trim()
+        additionalAddressLines.add(0, lines[pos].trim())
+        pos -= 1
+      }
+      if (additionalAddressLines.isNotEmpty()) {
+        partner.billToAddressAdditional = additionalAddressLines.joinToString(" ")
       }
       partner.billToZip = zipCodeAndCity.first
       partner.billToCity = zipCodeAndCity.second
       partner.billToStreet = street
       partner.billToCountry = country
-      partner.billToAddressAdditional = addressAdditional
     }
 
     private fun lineEquals(line: String, vararg strs: String): Boolean {
@@ -233,10 +290,13 @@ class MigrateTradingPartners {
     }
 
     internal fun extractZipCodeCity(line: String): Pair<String, String>? {
-      val str = line.trim()
-      val zipCodeMatch = "^\\d{5}".toRegex()
+      var str = line.trim()
+      if (str.startsWith("D-") || str.startsWith("D ")) {
+        str = str.substring(2)
+      }
+      val zipCodeMatch = "^[0-9 ]{5,10}".toRegex()
       val match = zipCodeMatch.find(str) ?: return null
-      val zipCode = match.value
+      val zipCode = match.value.trim()
       val city = str.removePrefix(zipCode).trim()
       if (city.isBlank()) {
         return null

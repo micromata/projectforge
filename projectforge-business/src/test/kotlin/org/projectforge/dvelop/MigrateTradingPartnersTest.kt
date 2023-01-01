@@ -36,14 +36,14 @@ class MigrateTradingPartnersTest {
 
   @Test
   fun migrateTest() {
-    val kontoDiverseA = createKonto(10000, "A diverse")
-    val kontoDiverseDE = createKonto(10077, "Diverse D,E")
-    val kontoAcme = createKonto(11780, "ACME ltd.")
-    val kontoPartner = createKonto(70001, "ACME ltd.")
-    val kontoCustomerBravo = createKonto(70002, "Bravo ltd.")
-    val kontoCustomerCharlie = createKonto(70003, "Charlie Inc.")
-    val kontoCustomerDelta = createKonto(70004, "Delta ltd.")
-    val kontoCustomerEcho = createKonto(70005, "Echo ltd.")
+    val kontoDiverseA = createKonto(70000, "A diverse")
+    val kontoDiverseDE = createKonto(70077, "Diverse D,E")
+    val kontoAcme = createKonto(71780, "ACME ltd.")
+    val kontoPartner = createKonto(10001, "ACME ltd.")
+    val kontoCustomerBravo = createKonto(10002, "Bravo ltd.")
+    val kontoCustomerCharlie = createKonto(10003, "Charlie Inc.")
+    val kontoCustomerDelta = createKonto(10004, "Delta ltd.")
+    val kontoCustomerEcho = createKonto(10005, "Echo ltd.")
 
     createIncomingInvoice("Alpha ltd.", kontoDiverseA)
     createIncomingInvoice("Alpha industries ltd.", kontoDiverseA)
@@ -52,19 +52,12 @@ class MigrateTradingPartnersTest {
 
     createIncomingInvoice("Dolphin Inc.", kontoDiverseDE)
 
-    createIncomingInvoice("ACME Germany ltd.", kontoAcme)
+    createIncomingInvoice("ACME Germany ltd.", kontoAcme) // Later defined as customer No. 45.
     createIncomingInvoice("ACME Germ, ltd.", kontoAcme) // Should be ignored (same konto)
 
     createIncomingInvoice("Partner Systems ltd.", kontoPartner) // Should be added as partner.
 
     val context = MigrateTradingPartners.extractTradingVendors(incomingInvoices)
-    val vendors = context.vendors
-    // vendors.forEach { println("${it.number} ${it.company}: ${it.remarks}")}
-    Assertions.assertEquals(5, vendors.size)
-    val partners = context.partners
-    // partners.forEach { println("${it.number} ${it.company}: ${it.remarks}")}
-    Assertions.assertEquals(1, partners.size)
-
     createInvoice(kunde = createKunde(42, "Bravo limited", "Bravo", kontoCustomerBravo))
     createInvoice(projekt = createProjekt(createKunde(43, "Charlie Incorp.", "Charlie", kontoCustomerCharlie)))
     createInvoice(kunde = createKunde(44, "Delta limited", "Delta")).konto = kontoCustomerDelta
@@ -76,9 +69,14 @@ class MigrateTradingPartnersTest {
     createInvoice(kunde = customerAcme)
 
     MigrateTradingPartners.extractTradingCustomers(invoices, context)
+    val vendors = context.vendors
+    // vendors.forEach { println("${it.number} ${it.company}: ${it.remarks}")}
+    Assertions.assertEquals(5, vendors.size)
+    val partners = context.partners
+    // partners.forEach { println("${it.number} ${it.company}: ${it.remarks}")}
+    Assertions.assertEquals(1, partners.size)
     val customers = context.customers
     // Assertions.assertEquals(4, customers.size)
-    context.cleanUp()
     vendors.forEach { consoleOut(it) }
     partners.forEach { consoleOut(it) }
     customers.forEach { consoleOut(it) }
@@ -91,18 +89,69 @@ class MigrateTradingPartnersTest {
     Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity("  Kassel 12345 "))
     assertZipCodeAndCity("12345", "Kassel", MigrateTradingPartners.extractZipCodeCity("12345  Kassel"))
     assertZipCodeAndCity("12345", "Kassel", MigrateTradingPartners.extractZipCodeCity("  12345  Kassel"))
+    assertZipCodeAndCity("021 15", "Zolona", MigrateTradingPartners.extractZipCodeCity("021 15 Zolona"))
   }
 
   @Test
   fun extractBillAddressTest() {
     checkAddress("Herr\nKai Reinhard\nABC-Str. 5\n12345 Kassel", "ABC-Str. 5", "12345", "Kassel")
     checkAddress("\nFrau\nBerta Reinhard\n\nABC-Str. 5\n12345 Kassel\n", "ABC-Str. 5", "12345", "Kassel")
-    checkAddress("ACME mbH\nRechnungswesen\nReichenbaum Str. 29\n\n09987 Chemnitz\n", "Reichenbaum Str. 29", "09987", "Chemnitz", "Rechnungswesen")
-    checkAddress("Acme Holing h. c.\nAnlagenbuchhaltung\nBrunsplatz 1\nD-71888 Stuttgart", "Brunsplatz 1", "71888", "Stuttgart", "Anlagenbuchhaltung")
-    checkAddress("Acme Holing h. c.\nAnlagenbuchhaltung\nBrunsplatz 1\nD 71888 Stuttgart", "Brunsplatz 1", "71888", "Stuttgart", "Anlagenbuchhaltung")
-    // "ACME (Sweden) AB\nBox 3742\n21999 Malmö\nSWEDEN"
-    // "ACME Technologies AG & Co. KG, Industriestr. 1-3, 99999 Berlin c/o ACME Financial and Accounting Center\nP.O.BOX c. C32\n021 15 Zolona\nSlovakia"
-    // "T-Systems International GmbH (PG 8108)\nHahnstraße 43d\n60528 Frankfurt am Main\nc/o Postfach 4101\n49031 Osnabrück"
+    checkAddress(
+      "ACME mbH\nRechnungswesen\nReichenbaum Str. 29\n\n09987 Chemnitz\n",
+      "Reichenbaum Str. 29",
+      "09987",
+      "Chemnitz",
+      "Rechnungswesen",
+    )
+    checkAddress(
+      "Acme Holing h. c.\nAnlagenbuchhaltung\nBrunsplatz 1\nD-71888 Stuttgart",
+      "Brunsplatz 1",
+      "71888",
+      "Stuttgart",
+      "Anlagenbuchhaltung",
+    )
+    checkAddress(
+      "Acme Holing h. c.\nAnlagenbuchhaltung\nBrunsplatz 1\nD 71888 Stuttgart",
+      "Brunsplatz 1",
+      "71888",
+      "Stuttgart",
+      "Anlagenbuchhaltung",
+    )
+    checkAddress(
+      "ACME (Sweden) AB\nBox 3742\n21999 Malmö\nSWEDEN",
+      "Box 3742",
+      "21999",
+      "Malmö",
+      expectedCountry = "SWEDEN",
+    )
+    checkAddress(
+      "ACME Technologies AG & Co. KG, Industriestr. 1-3, 99999 Berlin c/o ACME Financial and Accounting Center\nP.O.BOX c. C32\n021 15 Zolona\nSlovakia",
+      "P.O.BOX c. C32",
+      "021 15",
+      "Zolona",
+      expectedCountry = "Slovakia",
+    )
+    checkAddress(
+      "ACME Systems International GmbH (PG 8862)\nOttostraße 87d\n12348 Berlin\nc/o Postfach 4242\n99999 Köln",
+      "c/o Postfach 4242",
+      "99999",
+      "Köln",
+      "Ottostraße 87d 12348 Berlin",
+    )
+    checkAddress(
+      "Klinikdienst\nACME KG\nHerr Horst Bravo\nFlussallee 92\n12345 Bad Wimpfen",
+      "Flussallee 92",
+      "12345",
+      "Bad Wimpfen",
+      "Herr Horst Bravo",
+    )
+    checkAddress(
+      "Portal\nACME KG\nHerr Horst Bravo\nFlussallee 92\n12345 Bad Wimpfen",
+      "Flussallee 92",
+      "12345",
+      "Bad Wimpfen",
+      "Herr Horst Bravo",
+    )
   }
 
   private fun checkAddress(
@@ -111,6 +160,7 @@ class MigrateTradingPartnersTest {
     expectedZip: String,
     expectedCity: String,
     expectedAdditionalAddress: String? = null,
+    expectedCountry: String? = null,
   ) {
     val partner = TradingPartner()
     val invoice = RechnungDO()
@@ -120,6 +170,13 @@ class MigrateTradingPartnersTest {
     Assertions.assertEquals(expectedZip, partner.billToZip)
     Assertions.assertEquals(expectedCity, partner.billToCity)
     Assertions.assertEquals(expectedAdditionalAddress, partner.billToAddressAdditional)
+    invoice.customerAddress = "ACME\nABC street 5\n12345 Berlin"
+    MigrateTradingPartners.checkBillAddress(partner, invoice)
+    Assertions.assertEquals(expectedStreet, partner.billToStreet)
+    Assertions.assertEquals(expectedZip, partner.billToZip)
+    Assertions.assertEquals(expectedCity, partner.billToCity)
+    Assertions.assertEquals(expectedAdditionalAddress, partner.billToAddressAdditional)
+    Assertions.assertEquals(expectedCountry, partner.billToCountry)
   }
 
   private fun assertZipCodeAndCity(expectedZip: String, expectedCity: String, pair: Pair<String, String>?) {
