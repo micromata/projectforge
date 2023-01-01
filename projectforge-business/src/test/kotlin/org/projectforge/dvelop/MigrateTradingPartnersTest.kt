@@ -84,6 +84,49 @@ class MigrateTradingPartnersTest {
     customers.forEach { consoleOut(it) }
   }
 
+  @Test
+  fun extractZipCodeAndCityTest() {
+    Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity(""))
+    Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity("   "))
+    Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity("  Kassel 12345 "))
+    assertZipCodeAndCity("12345", "Kassel", MigrateTradingPartners.extractZipCodeCity("12345  Kassel"))
+    assertZipCodeAndCity("12345", "Kassel", MigrateTradingPartners.extractZipCodeCity("  12345  Kassel"))
+  }
+
+  @Test
+  fun extractBillAddressTest() {
+    checkAddress("Herr\nKai Reinhard\nABC-Str. 5\n12345 Kassel", "ABC-Str. 5", "12345", "Kassel")
+    checkAddress("\nFrau\nBerta Reinhard\n\nABC-Str. 5\n12345 Kassel\n", "ABC-Str. 5", "12345", "Kassel")
+    checkAddress("ACME mbH\nRechnungswesen\nReichenbaum Str. 29\n\n09987 Chemnitz\n", "Reichenbaum Str. 29", "09987", "Chemnitz", "Rechnungswesen")
+    checkAddress("Acme Holing h. c.\nAnlagenbuchhaltung\nBrunsplatz 1\nD-71888 Stuttgart", "Brunsplatz 1", "71888", "Stuttgart", "Anlagenbuchhaltung")
+    checkAddress("Acme Holing h. c.\nAnlagenbuchhaltung\nBrunsplatz 1\nD 71888 Stuttgart", "Brunsplatz 1", "71888", "Stuttgart", "Anlagenbuchhaltung")
+    // "ACME (Sweden) AB\nBox 3742\n21999 Malmö\nSWEDEN"
+    // "ACME Technologies AG & Co. KG, Industriestr. 1-3, 99999 Berlin c/o ACME Financial and Accounting Center\nP.O.BOX c. C32\n021 15 Zolona\nSlovakia"
+    // "T-Systems International GmbH (PG 8108)\nHahnstraße 43d\n60528 Frankfurt am Main\nc/o Postfach 4101\n49031 Osnabrück"
+  }
+
+  private fun checkAddress(
+    address: String,
+    expectedStreet: String,
+    expectedZip: String,
+    expectedCity: String,
+    expectedAdditionalAddress: String? = null,
+  ) {
+    val partner = TradingPartner()
+    val invoice = RechnungDO()
+    invoice.customerAddress = address
+    MigrateTradingPartners.checkBillAddress(partner, invoice)
+    Assertions.assertEquals(expectedStreet, partner.billToStreet)
+    Assertions.assertEquals(expectedZip, partner.billToZip)
+    Assertions.assertEquals(expectedCity, partner.billToCity)
+    Assertions.assertEquals(expectedAdditionalAddress, partner.billToAddressAdditional)
+  }
+
+  private fun assertZipCodeAndCity(expectedZip: String, expectedCity: String, pair: Pair<String, String>?) {
+    Assertions.assertEquals(expectedZip, pair!!.first)
+    Assertions.assertEquals(expectedCity, pair.second)
+  }
+
   private fun consoleOut(partner: TradingPartner) {
     val importCode = if (partner.importCode != null) {
       ", importCode=${partner.importCode}"
