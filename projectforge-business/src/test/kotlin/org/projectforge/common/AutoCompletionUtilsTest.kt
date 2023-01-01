@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web
+package org.projectforge.common
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
