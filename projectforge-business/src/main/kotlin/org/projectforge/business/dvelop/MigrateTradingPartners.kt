@@ -95,19 +95,19 @@ class MigrateTradingPartners {
       boldStyle.setFont(boldFont)
       val wrapStyle = workbook.createOrGetCellStyle("wrapText")
       wrapStyle.wrapText = true
-      ExcelUtils.registerColumn(sheet, TradingPartner::number)
-      ExcelUtils.registerColumn(sheet, TradingPartner::importCode)
-      ExcelUtils.registerColumn(sheet, TradingPartner::type)
+      ExcelUtils.registerColumn(sheet, TradingPartner::number, 10)
+      ExcelUtils.registerColumn(sheet, TradingPartner::importCode, 10)
+      ExcelUtils.registerColumn(sheet, TradingPartner::type, 10)
       ExcelUtils.registerColumn(sheet, TradingPartner::company)
       ExcelUtils.registerColumn(sheet, TradingPartner::shortName)
-      ExcelUtils.registerColumn(sheet, TradingPartner::remarks)
-      ExcelUtils.registerColumn(sheet, TradingPartner::active)
+      ExcelUtils.registerColumn(sheet, TradingPartner::remarks, 60)
+      ExcelUtils.registerColumn(sheet, TradingPartner::active, 8)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToStreet)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToZip)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToZip, 10)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToCity)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToCountry)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional)
-      ExcelUtils.registerColumn(sheet, TradingPartner::contactType)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToCountry, 30)
+      ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional, 60)
+      ExcelUtils.registerColumn(sheet, TradingPartner::contactType, 10)
       ExcelUtils.addHeadRow(sheet, boldStyle)
       context.allPartners.forEach { partner ->
         val row = sheet.createRow()
@@ -116,6 +116,7 @@ class MigrateTradingPartners {
         ExcelUtils.getCell(row, TradingPartner::type)?.setCellValue(partner.type?.value?.toString())
         ExcelUtils.getCell(row, TradingPartner::active)?.setCellValue(partner.active?.value?.toString())
         ExcelUtils.getCell(row, TradingPartner::remarks)?.setCellStyle(wrapStyle)
+        ExcelUtils.getCell(row, TradingPartner::billToAddressAdditional)?.setCellStyle(wrapStyle)
       }
       sheet.setAutoFilter()
       return workbook.asByteArrayOutputStream.toByteArray()
@@ -155,7 +156,7 @@ class MigrateTradingPartners {
       invoices.forEach { invoice ->
         val kunde = invoice.kunde ?: invoice.projekt?.kunde
         if (kunde != null) {
-          handleKunde(kunde, context)
+          handleKunde(kunde, context, invoice)
         } else {
           // appendRemarks(customer, kunde.description)
           val konto = invoice.konto ?: return@forEach
@@ -325,6 +326,7 @@ class MigrateTradingPartners {
       vendor.company = kreditor
       vendor.organization = TradingPartner.Organization("")
       vendor.type = TradingPartner.Type(TradingPartner.TypeValue.VENDOR)
+      vendor.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
       prependRemarks(vendor, konto)
       return vendor
     }
@@ -345,6 +347,7 @@ class MigrateTradingPartners {
       customer.importCode = number
       customer.organization = TradingPartner.Organization("")
       customer.type = TradingPartner.Type(TradingPartner.TypeValue.CUSTOMER)
+      customer.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
       customer.active = if (active) {
         TradingPartner.Active(TradingPartner.ActiveValue.TRUE)
       } else {
