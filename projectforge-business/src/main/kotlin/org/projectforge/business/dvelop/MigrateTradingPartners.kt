@@ -71,6 +71,9 @@ class MigrateTradingPartners {
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
   @Autowired
+  private lateinit var kundeDao: KundeDao
+
+  @Autowired
   private lateinit var rechnungDao: RechnungDao
 
   fun extractTradingPartnersAsExcel(): ByteArray {
@@ -81,7 +84,9 @@ class MigrateTradingPartners {
 
     filter = RechnungListFilter()
     filter.fromDate = fromDate
-    extractTradingCustomers(rechnungDao.getList(filter), context)
+    extractTradingCustomersInvoices(rechnungDao.getList(filter), context)
+
+    extractTradingCustomers(kundeDao.internalLoadAll(), context)
 
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val sheet = workbook.createOrGetSheet("D-velop TradingPartners")
@@ -91,18 +96,18 @@ class MigrateTradingPartners {
       val wrapStyle = workbook.createOrGetCellStyle("wrapText")
       wrapStyle.wrapText = true
       ExcelUtils.registerColumn(sheet, TradingPartner::number)
+      ExcelUtils.registerColumn(sheet, TradingPartner::importCode)
       ExcelUtils.registerColumn(sheet, TradingPartner::type)
       ExcelUtils.registerColumn(sheet, TradingPartner::company)
       ExcelUtils.registerColumn(sheet, TradingPartner::shortName)
+      ExcelUtils.registerColumn(sheet, TradingPartner::remarks)
       ExcelUtils.registerColumn(sheet, TradingPartner::active)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToStreet)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToZip)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToCity)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToCountry)
       ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional)
-      ExcelUtils.registerColumn(sheet, TradingPartner::remarks)
       ExcelUtils.registerColumn(sheet, TradingPartner::contactType)
-      ExcelUtils.registerColumn(sheet, TradingPartner::importCode)
       ExcelUtils.addHeadRow(sheet, boldStyle)
       context.allPartners.forEach { partner ->
         val row = sheet.createRow()
@@ -139,10 +144,6 @@ class MigrateTradingPartners {
             return@forEach // Continue
           }
           val vendor = createVendor(kontoNumber.toString(), kreditor, konto)
-          if (kontoNumber < 70000) {
-            // Kreditor is customer as well! So mark as partner:
-            vendor.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
-          }
           vendor.importCode = kontoNumber.toString()
           context.vendors.add(vendor)
         }
@@ -150,43 +151,11 @@ class MigrateTradingPartners {
       return context
     }
 
-    internal fun extractTradingCustomers(invoices: List<RechnungDO>, context: Context) {
+    internal fun extractTradingCustomersInvoices(invoices: List<RechnungDO>, context: Context) {
       invoices.forEach { invoice ->
         val kunde = invoice.kunde ?: invoice.projekt?.kunde
         if (kunde != null) {
-          val number = kunde.nummer
-          val numberString = number?.toString() ?: return@forEach // shouldn't occur.
-          val existingCustomer = context.customers.find { it.number == numberString }
-          if (existingCustomer != null) {
-            checkBillAddress(existingCustomer, invoice)
-            return@forEach
-          }
-          val konto = kunde.konto
-          if (konto != null) {
-            val existingPartner = context.getVendorByDatevKonto(konto)
-            if (existingPartner != null) {
-              existingPartner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER) // Must be partner
-              existingPartner.number =
-                kunde.nummer.toString() // Kundennummer ist nun die PF-Kundennummer (nicht mehr DATEV-Konto)
-              existingPartner.shortName = kunde.identifier
-              appendRemarks(existingPartner, kunde.description)
-              checkBillAddress(existingPartner, invoice)
-              return@forEach
-            }
-          }
-          val status = kunde.status
-          val active = status == null || status.isIn(KundeStatus.ACQUISISTION, KundeStatus.ACTIVE)
-          val customer = createCustomer(
-            invoice,
-            kunde.nummer?.toString(),
-            kunde.name,
-            kunde.identifier,
-            active,
-            kunde.description,
-            kunde.konto
-          )
-          checkBillAddress(customer, invoice)
-          context.customers.add(customer)
+          handleKunde(kunde, context)
         } else {
           // appendRemarks(customer, kunde.description)
           val konto = invoice.konto ?: return@forEach
@@ -197,7 +166,12 @@ class MigrateTradingPartners {
             // Keinen TradingPartner für diverse anlegen.
             return@forEach // Continue
           }
-          val existingCustomer = context.customers.find { it.number == kundeNumber }
+          var existingCustomer = context.customers.find { it.number == kundeNumber }
+          if (existingCustomer == null) {
+            existingCustomer = context.getVendorByDatevKonto(konto)
+            // Vendor is also customer -> partner:
+            existingCustomer?.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
+          }
           if (existingCustomer != null) {
             checkBillAddress(existingCustomer, invoice)
             return@forEach
@@ -206,7 +180,49 @@ class MigrateTradingPartners {
           context.customers.add(customer)
         }
       }
+    }
+
+    internal fun extractTradingCustomers(customers: List<KundeDO>, context: Context) {
+      customers.forEach { kunde ->
+        handleKunde(kunde, context)
+      }
       context.cleanUp()
+    }
+
+    private fun handleKunde(kunde: KundeDO, context: Context, invoice: RechnungDO? = null) {
+      val number = kunde.nummer
+      val numberString = number?.toString() ?: return // shouldn't occur.
+      val existingCustomer = context.customers.find { it.number == numberString }
+      if (existingCustomer != null) {
+        return
+      }
+      val konto = kunde.konto
+      if (konto != null) {
+        val existingPartner = context.getVendorByDatevKonto(konto)
+        if (existingPartner != null) {
+          // Vendor is also customer -> partner
+          existingPartner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER) // Must be partner
+          existingPartner.number =
+            kunde.nummer.toString() // Kundennummer ist nun die PF-Kundennummer (nicht mehr DATEV-Konto)
+          existingPartner.shortName = kunde.identifier
+          appendRemarks(existingPartner, kunde.description)
+          checkBillAddress(existingPartner, invoice)
+          return
+        }
+      }
+      val status = kunde.status
+      val active = status == null || status.isIn(KundeStatus.ACQUISISTION, KundeStatus.ACTIVE)
+      val customer = createCustomer(
+        invoice,
+        kunde.nummer?.toString(),
+        kunde.name,
+        kunde.identifier,
+        active,
+        kunde.description,
+        kunde.konto,
+      )
+      checkBillAddress(customer, invoice)
+      context.customers.add(customer)
     }
 
     private fun appendRemarks(partner: TradingPartner, remarks: String?) {
@@ -228,7 +244,8 @@ class MigrateTradingPartners {
       }
     }
 
-    internal fun checkBillAddress(partner: TradingPartner, invoice: RechnungDO) {
+    internal fun checkBillAddress(partner: TradingPartner, invoice: RechnungDO?) {
+      invoice ?: return
       val customerAddress = invoice.customerAddress
       if (customerAddress.isNullOrBlank() || checkIfGiven(partner.billToCity, partner.billToZip)) {
         // Nothing to do.
@@ -313,7 +330,7 @@ class MigrateTradingPartners {
     }
 
     private fun createCustomer(
-      invoice: RechnungDO,
+      invoice: RechnungDO?,
       number: String? = null,
       kundeName: String? = null,
       kundeShortName: String? = null,
@@ -325,6 +342,7 @@ class MigrateTradingPartners {
       customer.company = kundeName
       customer.shortName = kundeShortName
       customer.number = number
+      customer.importCode = number
       customer.organization = TradingPartner.Organization("")
       customer.type = TradingPartner.Type(TradingPartner.TypeValue.CUSTOMER)
       customer.active = if (active) {

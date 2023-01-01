@@ -43,7 +43,9 @@ class MigrateTradingPartnersTest {
     val kontoCustomerBravo = createKonto(10002, "Bravo ltd.")
     val kontoCustomerCharlie = createKonto(10003, "Charlie Inc.")
     val kontoCustomerDelta = createKonto(10004, "Delta ltd.")
-    val kontoCustomerEcho = createKonto(10005, "Echo ltd.")
+    val kontoCustomerFoxtrott = createKonto(10005, "Foxtrott ltd.")
+    val kundeBravoLimited = createKunde(42, "Bravo limited", "Bravo", kontoCustomerBravo)
+    val kundeCharlie = createKunde(43, "Charlie Incorp.", "Charlie", kontoCustomerCharlie)
 
     createIncomingInvoice("Alpha ltd.", kontoDiverseA)
     createIncomingInvoice("Alpha industries ltd.", kontoDiverseA)
@@ -58,24 +60,32 @@ class MigrateTradingPartnersTest {
     createIncomingInvoice("Partner Systems ltd.", kontoPartner) // Should be added as partner.
 
     val context = MigrateTradingPartners.extractTradingVendors(incomingInvoices)
-    createInvoice(kunde = createKunde(42, "Bravo limited", "Bravo", kontoCustomerBravo))
-    createInvoice(projekt = createProjekt(createKunde(43, "Charlie Incorp.", "Charlie", kontoCustomerCharlie)))
+    createInvoice(kunde = kundeBravoLimited)
+    createInvoice(projekt = createProjekt(kundeCharlie))
     createInvoice(kunde = createKunde(44, "Delta limited", "Delta")).konto = kontoCustomerDelta
-    createInvoice(kundeText = "Echo limited").konto = kontoCustomerDelta
+    createInvoice(kundeText = "Echo limited").konto = kontoCustomerDelta // Wrong kundeText: is handled as 10004!
     createInvoice(kundeText = "Foxtrott Inc.") // Ignored as customer, not much info.
+    createInvoice(kundeText = "Partner Systems", konto = kontoPartner)
 
     val customerAcme = createKunde(45, "ACME Germany ltd.", "ACME")
     customerAcme.konto = kontoAcme
     createInvoice(kunde = customerAcme)
 
-    MigrateTradingPartners.extractTradingCustomers(invoices, context)
-    val vendors = context.vendors
-    Assertions.assertEquals(6, vendors.size)
-    Assertions.assertEquals(2, vendors.filter { it.type?.value == TradingPartner.TypeValue.PARTNER }.size)
-    val customers = context.customers
-    Assertions.assertEquals(4, customers.size)
-    // vendors.forEach { consoleOut(it) }
-    // customers.forEach { consoleOut(it) }
+    MigrateTradingPartners.extractTradingCustomersInvoices(invoices, context)
+
+    val customers = mutableListOf<KundeDO>()
+    customers.add(kundeBravoLimited) // Already processed.
+    customers.add(kundeCharlie)      // Already processed.
+    customers.add(createKunde(46, "Foxtrott ltd.", "Foxtrott", kontoCustomerFoxtrott)) // New
+    MigrateTradingPartners.extractTradingCustomers(customers, context)
+
+    val tradingVendors = context.vendors
+    Assertions.assertEquals(6, tradingVendors.size)
+    Assertions.assertEquals(2, tradingVendors.filter { it.type?.value == TradingPartner.TypeValue.PARTNER }.size)
+    val tradingCustomers = context.customers
+    Assertions.assertEquals(5, tradingCustomers.size)
+    tradingVendors.forEach { consoleOut(it) }
+    tradingCustomers.forEach { consoleOut(it) }
   }
 
   @Test
