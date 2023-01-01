@@ -40,7 +40,6 @@ import org.springframework.stereotype.Service
 class MigrateTradingPartners {
   class Context {
     val vendors = mutableListOf<TradingPartner>()
-    val partners = mutableListOf<TradingPartner>()
     val customers = mutableListOf<TradingPartner>()
     private var sequence = 7000000
 
@@ -48,7 +47,6 @@ class MigrateTradingPartners {
       get() {
         val all = mutableListOf<TradingPartner>()
         all.addAll(vendors)
-        all.addAll(partners)
         all.addAll(customers)
         return all.sortedBy { it.number?.toIntOrNull() }
       }
@@ -59,14 +57,12 @@ class MigrateTradingPartners {
     fun getVendorByDatevKonto(konto: KontoDO): TradingPartner? {
       val kontoNumberString = konto.nummer?.toString() ?: return null
       vendors.find { it.importCode == kontoNumberString }?.let { return it }
-      partners.find { it.importCode == kontoNumberString }?.let { return it }
       return null
     }
 
     /** Remove used importCode field during migration (not needed anymore, if not equal to number). */
     internal fun cleanUp() {
       vendors.filter { it.importCode != it.number }.forEach { it.importCode = null }
-      partners.filter { it.importCode != it.number }.forEach { it.importCode = null }
       customers.filter { it.importCode != it.number }.forEach { it.importCode = null }
     }
   }
@@ -146,11 +142,9 @@ class MigrateTradingPartners {
           if (kontoNumber < 70000) {
             // Kreditor is customer as well! So mark as partner:
             vendor.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
-            context.partners.add(vendor)
-          } else {
-            context.vendors.add(vendor)
           }
           vendor.importCode = kontoNumber.toString()
+          context.vendors.add(vendor)
         }
       }
       return context
