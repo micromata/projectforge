@@ -70,16 +70,12 @@ class MigrateTradingPartnersTest {
 
     MigrateTradingPartners.extractTradingCustomers(invoices, context)
     val vendors = context.vendors
-    // vendors.forEach { println("${it.number} ${it.company}: ${it.remarks}")}
-    Assertions.assertEquals(5, vendors.size)
-    val partners = context.partners
-    // partners.forEach { println("${it.number} ${it.company}: ${it.remarks}")}
-    Assertions.assertEquals(1, partners.size)
+    Assertions.assertEquals(6, vendors.size)
+    Assertions.assertEquals(2, vendors.filter { it.type?.value == TradingPartner.TypeValue.PARTNER }.size)
     val customers = context.customers
-    // Assertions.assertEquals(4, customers.size)
-    vendors.forEach { consoleOut(it) }
-    partners.forEach { consoleOut(it) }
-    customers.forEach { consoleOut(it) }
+    Assertions.assertEquals(4, customers.size)
+    // vendors.forEach { consoleOut(it) }
+    // customers.forEach { consoleOut(it) }
   }
 
   @Test
