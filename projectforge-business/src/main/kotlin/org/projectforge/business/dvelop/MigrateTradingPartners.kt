@@ -119,7 +119,8 @@ class MigrateTradingPartners {
             val existingPartner = context.getVendorByDatevKonto(konto)
             if (existingPartner != null) {
               existingPartner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER) // Must be partner
-              existingPartner.number = kunde.nummer.toString() // Kundennummer ist nun die PF-Kundennummer (nicht mehr DATEV-Konto)
+              existingPartner.number =
+                kunde.nummer.toString() // Kundennummer ist nun die PF-Kundennummer (nicht mehr DATEV-Konto)
               existingPartner.shortName = kunde.identifier
               appendRemarks(existingPartner, kunde.description)
               checkBillAddress(existingPartner, invoice)
@@ -179,8 +180,72 @@ class MigrateTradingPartners {
       }
     }
 
-    private fun checkBillAddress(partner: TradingPartner, invoice: RechnungDO) {
-      println("*** TODO: checkBillAddress")
+    internal fun checkBillAddress(partner: TradingPartner, invoice: RechnungDO) {
+      val customerAddress = invoice.customerAddress
+      if (customerAddress.isNullOrBlank() || checkIfGiven(partner.billToCity, partner.billToZip)) {
+        // Nothing to do.
+        return
+      }
+      var lines = customerAddress.lines().filter { it.isNotBlank() } // lines of address without blank lines.
+      if (lines.size < 2) {
+        // Can't parse address.
+        return
+      }
+      if (lineEquals(lines[0], "herr", "frau", "firma", "an")) {
+        lines = lines.drop(1)
+      }
+      // Assuming first line is Customer's name
+      var pos = lines.size - 1 // Start with last line
+      // Last line is country or zip code with city:
+      var zipCodeAndCity = extractZipCodeCity(lines[pos])
+      var country: String? = null
+      if (zipCodeAndCity == null) {
+        country = lines[pos].trim()
+        pos -= 1
+        zipCodeAndCity = extractZipCodeCity(lines[pos]) ?: return // No zip code and city found.
+      }
+      pos -= 1
+      if (pos < 0) {
+        return // No street found.
+      }
+      val street = lines[pos].trim()
+      pos -= 1
+      var addressAdditional: String? = null
+      if (pos > 0) {
+        // An additional line is found before street.
+        addressAdditional = lines[pos].trim()
+      }
+      partner.billToZip = zipCodeAndCity.first
+      partner.billToCity = zipCodeAndCity.second
+      partner.billToStreet = street
+      partner.billToCountry = country
+      partner.billToAddressAdditional = addressAdditional
+    }
+
+    private fun lineEquals(line: String, vararg strs: String): Boolean {
+      val trim = line.trim()
+      strs.forEach {
+        if (trim.equals(it, ignoreCase = true)) {
+          return true
+        }
+      }
+      return false
+    }
+
+    internal fun extractZipCodeCity(line: String): Pair<String, String>? {
+      val str = line.trim()
+      val zipCodeMatch = "^\\d{5}".toRegex()
+      val match = zipCodeMatch.find(str) ?: return null
+      val zipCode = match.value
+      val city = str.removePrefix(zipCode).trim()
+      if (city.isBlank()) {
+        return null
+      }
+      return Pair(zipCode, city)
+    }
+
+    private fun checkIfGiven(vararg str: String?): Boolean {
+      return str.any { !it.isNullOrBlank() }
     }
 
     private fun createVendor(number: String, kreditor: String, konto: KontoDO): TradingPartner {
