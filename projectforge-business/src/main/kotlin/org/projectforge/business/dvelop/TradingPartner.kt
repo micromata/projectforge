@@ -28,7 +28,7 @@ package org.projectforge.business.dvelop
  * * Unterschiedliche Rechnungsadressen für einen TradingPartner?
  * * Feld für DATEV-Konto?
  * * Über Api-Key jeden Aufruf (Bearer) oder lieber Login?
- * * Forbidden bei Put.
+ * * Forbidden bei Post.
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class TradingPartner {
