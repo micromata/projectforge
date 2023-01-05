@@ -42,7 +42,18 @@ class TradingPartner {
     var id: String = "",
     var number: String? = null,
     var name: String? = null,
-  )
+  ) {
+    override fun equals(other: Any?): Boolean {
+      if (other == null || other !is Organization) {
+        return false
+      }
+      return id.equals(other.id)
+    }
+
+    override fun hashCode(): Int {
+      return id.hashCode()
+    }
+  }
 
   companion object {
     var datevKontoFieldId: String? = null
@@ -145,6 +156,12 @@ class TradingPartner {
   var billToRegion: String? = null
   var billToCountry: String? = null
   var billToAddressAdditional: String? = null
+
+  val isBillToAddressEmpty: Boolean
+    @JsonIgnore
+    get() {
+      return billToStreet.isNullOrBlank() && billToZip.isNullOrBlank() && billToCity.isNullOrBlank() && billToCountry.isNullOrBlank() && billToRegion.isNullOrBlank() && billToAddressAdditional.isNullOrBlank()
+    }
 
   var shipToStreet: String? = null
   var shipToZip: String? = null

@@ -91,30 +91,35 @@ class DvelopPageRest : AbstractDynamicPageRest() {
   @GetMapping("synchronizeTradingPartners")
   fun synchronizeTradingPartners(): ResponseAction {
     log.info("Synchronizing Trading partners for D-velop import.")
-    val tradingPartners = extractPFTradingPartners.extractTradingPartners()
-    val dvelopTradingPartners = tradingPartnerService.getList()
-    var successCounter = 0
+    val localPartners = extractPFTradingPartners.extractTradingPartners()
+    val remotePartners = tradingPartnerService.getList()
+    var insertedCounter = 0
     var failedCounter = 0
     var ignoredCounter = 0
     var totalCounter = 0
+    var modifiedCounter = 0
     var unmodifiedCounter = 0
-    tradingPartners.forEach { partner ->
+    localPartners.forEach { localPartner ->
       ++totalCounter
-      if (partner.importCode == null) {
+      if (localPartner.importCode == null) {
         ++ignoredCounter
       } else {
-        if (dvelopTradingPartners.any { it.number == partner.number }) {
-          // tradingPartnerService.update(partner)
-          ++unmodifiedCounter
-        } else if (tradingPartnerService.create(partner)) {
-          ++successCounter
+        val remotePartner = remotePartners.find { it.number == localPartner.number }
+        if (remotePartner != null) {
+          if (tradingPartnerService.update(localPartner, remotePartner)) {
+            ++modifiedCounter
+          } else {
+            ++unmodifiedCounter
+          }
+        } else if (tradingPartnerService.create(localPartner)) {
+          ++insertedCounter
         } else {
           ++failedCounter
         }
       }
     }
     val msg =
-      "Total=$totalCounter: ${successCounter} TradingPartners sent to D.velop (${failedCounter} entries failed, $ignoredCounter ignored/no importCode, $unmodifiedCounter unmodified)."
+      "Total=$totalCounter: ${insertedCounter + modifiedCounter} TradingPartners sent to D.velop ($insertedCounter inserted, $modifiedCounter modified, $failedCounter entries failed, $ignoredCounter ignored/no importCode, $unmodifiedCounter unmodified)."
 
     log.info(msg)
     return UIToast.createToast(
