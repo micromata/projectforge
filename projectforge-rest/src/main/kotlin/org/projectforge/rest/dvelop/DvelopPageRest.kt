@@ -89,6 +89,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
   fun synchronizeTradingPartners(): ResponseAction {
     log.info("Synchronizing Trading partners for D-velop import.")
     val tradingPartners = extractPFTradingPartners.extractTradingPartners()
+    val dvelopTradingPartners = dvelopClient.getTradingPartnerList()
     var successCounter = 0
     var failedCounter = 0
     var ignoredCounter = 0
@@ -97,12 +98,22 @@ class DvelopPageRest : AbstractDynamicPageRest() {
       ++totalCounter
       if (partner.importCode == null) {
         ++ignoredCounter
-      } else if (dvelopClient.createTradingPartner(partner)) {
-        ++successCounter
       } else {
-        ++failedCounter
+        var result = if (dvelopTradingPartners.any { it.number == partner.number }) {
+          dvelopClient.updateTradingPartner(partner)
+        } else {
+          dvelopClient.createTradingPartner(partner)
+        }
+        if (result) {
+          ++successCounter
+        } else {
+          ++failedCounter
+        }
       }
     }
-    return UIToast.createToast("Total=$totalCounter: ${successCounter} TradingPartners sent to D.velop (${failedCounter} entries failed, $ignoredCounter ignored/no importCode).", color = UIColor.SUCCESS)
+    return UIToast.createToast(
+      "Total=$totalCounter: ${successCounter} TradingPartners sent to D.velop (${failedCounter} entries failed, $ignoredCounter ignored/no importCode).",
+      color = UIColor.SUCCESS
+    )
   }
 }

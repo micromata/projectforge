@@ -71,6 +71,9 @@ class ExtractPFTradingPartners {
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
   @Autowired
+  private lateinit var dvelopConfiguration: DvelopConfiguration
+
+  @Autowired
   private lateinit var kundeDao: KundeDao
 
   @Autowired
@@ -129,6 +132,8 @@ class ExtractPFTradingPartners {
   }
 
   companion object {
+    internal var organizationId: String = ""
+
     internal fun extractTradingVendors(invoices: List<EingangsrechnungDO>): Context {
       val context = Context()
       invoices.forEach { invoice ->
@@ -331,7 +336,7 @@ class ExtractPFTradingPartners {
       vendor.number = number
       vendor.datevKonto = konto.nummer
       vendor.company = kreditor
-      vendor.organization = TradingPartner.Organization("")
+      vendor.organization = TradingPartner.Organization(organizationId)
       vendor.type = TradingPartner.Type(TradingPartner.TypeValue.VENDOR)
       vendor.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
       vendor.active = TradingPartner.Active(TradingPartner.ActiveValue.TRUE) // Nothing known about activity.
@@ -354,7 +359,7 @@ class ExtractPFTradingPartners {
       customer.datevKonto = konto?.nummer
       customer.number = number
       customer.importCode = number
-      customer.organization = TradingPartner.Organization("")
+      customer.organization = TradingPartner.Organization(organizationId)
       customer.type = TradingPartner.Type(TradingPartner.TypeValue.CUSTOMER)
       customer.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
       customer.active = if (active) {
