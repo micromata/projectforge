@@ -46,8 +46,7 @@ fun main(args: Array<String>) {
   props.load(path.toFile().bufferedReader())
   val baseUri = props.getProperty("projectforge.dvelop.baseUri")
   val apiKey = props.getProperty("projectforge.dvelop.apiKey")
-  val organizationId = props.getProperty("projectforge.dvelop.organizationId")
-  val datevKontoFieldId = props.getProperty("projectforge.dvelop.datevKontoFieldId")
+  val organization = props.getProperty("projectforge.dvelop.organization")
   if (baseUri.isNullOrBlank() || apiKey.isNullOrBlank()) {
     println("projectforge.dvelop.baseUri and/or projectforge.dvelop.apiKey is not given in file: ${path.toFile().absolutePath}")
     System.exit(0)
@@ -56,9 +55,12 @@ fun main(args: Array<String>) {
   val config = DvelopConfiguration()
   config.baseUri = baseUri
   config.apiKey = apiKey
-  config.datevKontoFieldId = datevKontoFieldId
+  config.organizationName = organization ?: ""
   dvelopClient.dvelopConfiguration = config
   dvelopClient.postConstruct()
+
+  dvelopClient.getCustomFields("TradingPartner")
+  dvelopClient.getOrganizationOptions()
 
   val tradingPartnerService = TradingPartnerService()
   tradingPartnerService.dvelopClient = dvelopClient
@@ -74,7 +76,7 @@ fun main(args: Array<String>) {
   partner.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
   partner.company = "Hurzel2 GmbH"
   partner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
-  partner.organization = TradingPartner.Organization(organizationId)
+  partner.organization = TradingPartner.Organization(dvelopClient.organizationId)
   // client.createTradingPartner(partner)
   val list = tradingPartnerService.getList()
   println(list.size)
