@@ -67,7 +67,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
     )
     layout.add(
       MenuItem(
-        "downloadBackups",
+        "downloadTradingPartners",
         title = "Download TradingPartners (Excel)",
         url = "${getRestPath()}/downloadTradingPartners",
         type = MenuItemTargetType.DOWNLOAD
@@ -82,7 +82,10 @@ class DvelopPageRest : AbstractDynamicPageRest() {
   fun downloadTradingPartners(): ResponseEntity<*> {
     log.info("Downloading Trading partners for D-velop import.")
     val filename = ("D-velop-TradingPartners-Import-${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
-    return RestUtils.downloadFile(filename, extractPFTradingPartners.extractTradingPartnersAsExcel())
+    return RestUtils.downloadFile(
+      filename,
+      extractPFTradingPartners.extractTradingPartnersAsExcel(dvelopClient.getTradingPartnerList())
+    )
   }
 
   @GetMapping("synchronizeTradingPartners")
@@ -94,26 +97,28 @@ class DvelopPageRest : AbstractDynamicPageRest() {
     var failedCounter = 0
     var ignoredCounter = 0
     var totalCounter = 0
+    var unmodifiedCounter = 0
     tradingPartners.forEach { partner ->
       ++totalCounter
       if (partner.importCode == null) {
         ++ignoredCounter
       } else {
-        var result = if (dvelopTradingPartners.any { it.number == partner.number }) {
-          dvelopClient.updateTradingPartner(partner)
-        } else {
-          dvelopClient.createTradingPartner(partner)
-        }
-        if (result) {
+        if (dvelopTradingPartners.any { it.number == partner.number }) {
+          // dvelopClient.updateTradingPartner(partner)
+          ++unmodifiedCounter
+        } else if (dvelopClient.createTradingPartner(partner)) {
           ++successCounter
         } else {
           ++failedCounter
         }
       }
     }
+    val msg =
+      "Total=$totalCounter: ${successCounter} TradingPartners sent to D.velop (${failedCounter} entries failed, $ignoredCounter ignored/no importCode, $unmodifiedCounter unmodified)."
+
+    log.info(msg)
     return UIToast.createToast(
-      "Total=$totalCounter: ${successCounter} TradingPartners sent to D.velop (${failedCounter} entries failed, $ignoredCounter ignored/no importCode).",
-      color = UIColor.SUCCESS
+      msg, color = UIColor.SUCCESS
     )
   }
 }
