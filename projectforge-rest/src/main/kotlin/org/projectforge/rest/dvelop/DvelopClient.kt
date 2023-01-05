@@ -30,8 +30,6 @@ import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
 import org.projectforge.business.dvelop.CustomField
 import org.projectforge.business.dvelop.DvelopConfiguration
-import org.projectforge.business.dvelop.TradingPartner
-import org.projectforge.business.dvelop.TradingPartnerListData
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -39,7 +37,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
@@ -82,7 +79,7 @@ class DvelopClient {
         .addHandlerLast(WriteTimeoutHandler(timeoutMillisLong, TimeUnit.MILLISECONDS))
     }
 
-  private lateinit var webClient: WebClient
+  internal lateinit var webClient: WebClient
 
   class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
 
@@ -107,7 +104,7 @@ class DvelopClient {
   /**
    * @throws HttpException
    */
-  private fun <T> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
+  internal fun <T> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .accept(MediaType.APPLICATION_JSON)
@@ -155,110 +152,6 @@ class DvelopClient {
       null
     } else {
       Session(authSessionId, expires)
-    }
-  }
-
-  // By ID: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{{tradingPartnerID}}
-  // By any field: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/detail?filter[number]=0003
-  fun getTradingPartnerList(start: Int = 0, count: Int = 50, maxNumberOfPages: Int = 100): List<TradingPartner> {
-    // Parameters: count=<pagesize>, continue=true, start=<page>
-    val result = mutableListOf<TradingPartner>()
-    var pageCounter = 0
-    var itemCounter = start
-    while (pageCounter++ < maxNumberOfPages) {
-      val uriSpec = webClient.get()
-      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-        uriBuilder
-          .path("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
-          .queryParam("start", itemCounter)
-          .queryParam("count", count)
-          .queryParam("continue", true)
-          .build()
-      }
-      val response = execute(headersSpec, String::class.java)
-      if (debugConsoleOutForTesting) {
-        println("response: $response")
-      }
-      val data = JsonUtils.fromJson(response, TradingPartnerListData::class.java, false)
-      val partners = data?.data ?: break
-      val totalCount = data.totalCount ?: 0
-      result.addAll(partners)
-      itemCounter += count
-      if (itemCounter > totalCount) {
-        break
-      }
-    }
-    log.info { "Got ${result.size} trading partners from D.velop." }
-    return result
-  }
-
-  // DELETE: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{{tradingPartnerID}}
-  fun deleteTradingPartner(tradingPartner: TradingPartner): Boolean {
-    val id = tradingPartner.id
-    val json = JsonUtils.toJson(tradingPartner, true)
-    if (debugConsoleOutForTesting) {
-      println("Trying to delete partner #$id: $json")
-    }
-    if (id.isNullOrBlank()) {
-      log.error { "Can't delete trading partner #$id: $json" }
-      return false
-    }
-    log.info("Trying to delete trading partner #$id: $json")
-    val uriSpec = webClient.delete()
-    val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-      uriBuilder
-        .path("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{id}")
-        .build(id)
-    }
-
-    val response = execute(headersSpec, String::class.java)
-    log.info { response }
-    return true
-  }
-
-  fun createTradingPartner(tradingPartner: TradingPartner): Boolean {
-    try {
-      val json = JsonUtils.toJson(tradingPartner, true)
-      val uriSpec = webClient.post()
-      if (debugConsoleOutForTesting) {
-        println("createTradingPartner body: $json")
-      }
-      log.info { "Trying to create TradingPartner in D.velop: $json" }
-      val bodySpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
-        .body(
-          BodyInserters.fromValue(json)
-        )
-      val response = execute(bodySpec, String::class.java)
-      if (debugConsoleOutForTesting) {
-        println("response: $response")
-      }
-      return true
-    } catch (ex: Exception) {
-      log.error("Error while creating TradingPartner ${tradingPartner.number}: '${tradingPartner.name}' in D.velop: ${ex.message}")
-      return false
-    }
-  }
-
-  fun updateTradingPartner(tradingPartner: TradingPartner): Boolean {
-    try {
-      val json = JsonUtils.toJson(tradingPartner, true)
-      val uriSpec = webClient.patch()
-      if (debugConsoleOutForTesting) {
-        println("updateTradingPartner body: $json")
-      }
-      log.info { "Trying to update TradingPartner in D.velop: $json" }
-      val bodySpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
-        .body(
-          BodyInserters.fromValue(json)
-        )
-      val response = execute(bodySpec, String::class.java)
-      if (debugConsoleOutForTesting) {
-        println("response: $response")
-      }
-      return true
-    } catch (ex: Exception) {
-      log.error("Error while updating TradingPartner ${tradingPartner.number}: '${tradingPartner.name}' in D.velop: ${ex.message}")
-      return false
     }
   }
 

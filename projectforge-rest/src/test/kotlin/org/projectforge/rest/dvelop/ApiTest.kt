@@ -52,14 +52,18 @@ fun main(args: Array<String>) {
     println("projectforge.dvelop.baseUri and/or projectforge.dvelop.apiKey is not given in file: ${path.toFile().absolutePath}")
     System.exit(0)
   }
-  val client = DvelopClient()
+  val dvelopClient = DvelopClient()
   val config = DvelopConfiguration()
   config.baseUri = baseUri
   config.apiKey = apiKey
   config.datevKontoFieldId = datevKontoFieldId
-  client.dvelopConfiguration = config
-  client.debugConsoleOutForTesting = true
-  client.postConstruct()
+  dvelopClient.dvelopConfiguration = config
+  dvelopClient.postConstruct()
+
+  val tradingPartnerService = TradingPartnerService()
+  tradingPartnerService.dvelopClient = dvelopClient
+  tradingPartnerService.debugConsoleOutForTesting = true
+  tradingPartnerService.postConstruct()
   //val session = DvelopClient.Session("sessionid", null)
   //val session = client.login()
   //println("authSessionId: ${session?.authSessionId}")
@@ -72,9 +76,9 @@ fun main(args: Array<String>) {
   partner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
   partner.organization = TradingPartner.Organization(organizationId)
   // client.createTradingPartner(partner)
-  val list = client.getTradingPartnerList()
+  val list = tradingPartnerService.getList()
   println(list.size)
-  //list.forEach { partner ->
-  //  client.deleteTradingPartner(partner)
-  //}
+  list.forEach { partner ->
+    tradingPartnerService.delete(partner.id, partner)
+  }
 }

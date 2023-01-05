@@ -50,7 +50,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
   private lateinit var extractPFTradingPartners: ExtractPFTradingPartners
 
   @Autowired
-  private lateinit var dvelopClient: DvelopClient
+  private lateinit var tradingPartnerService: TradingPartnerService
 
   class DvelopData()
 
@@ -84,7 +84,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
     val filename = ("D-velop-TradingPartners-Import-${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
     return RestUtils.downloadFile(
       filename,
-      extractPFTradingPartners.extractTradingPartnersAsExcel(dvelopClient.getTradingPartnerList())
+      extractPFTradingPartners.extractTradingPartnersAsExcel(tradingPartnerService.getList())
     )
   }
 
@@ -92,7 +92,7 @@ class DvelopPageRest : AbstractDynamicPageRest() {
   fun synchronizeTradingPartners(): ResponseAction {
     log.info("Synchronizing Trading partners for D-velop import.")
     val tradingPartners = extractPFTradingPartners.extractTradingPartners()
-    val dvelopTradingPartners = dvelopClient.getTradingPartnerList()
+    val dvelopTradingPartners = tradingPartnerService.getList()
     var successCounter = 0
     var failedCounter = 0
     var ignoredCounter = 0
@@ -104,9 +104,9 @@ class DvelopPageRest : AbstractDynamicPageRest() {
         ++ignoredCounter
       } else {
         if (dvelopTradingPartners.any { it.number == partner.number }) {
-          // dvelopClient.updateTradingPartner(partner)
+          // tradingPartnerService.update(partner)
           ++unmodifiedCounter
-        } else if (dvelopClient.createTradingPartner(partner)) {
+        } else if (tradingPartnerService.create(partner)) {
           ++successCounter
         } else {
           ++failedCounter
