@@ -20,6 +20,8 @@ private val log = KotlinLogging.logger {}
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractService<T>(val path: String, val entityName: String) {
+  class UpdateContext(var modified: Boolean = false)
+
   @Autowired
   internal lateinit var dvelopClient: DvelopClient
 
@@ -112,8 +114,11 @@ abstract class AbstractService<T>(val path: String, val entityName: String) {
     }
   }
 
-  fun update(entity: T): Boolean {
-    val json = JsonUtils.toJson(entity, true)
+  abstract fun buildUpdateEntity(localState: T, remoteState: T): T?
+
+  fun update(localState: T, remoteState: T): Boolean {
+    val updateEntity = buildUpdateEntity(localState, remoteState) ?: return false
+    val json = JsonUtils.toJson(updateEntity, true)
     try {
       val uriSpec = webClient.patch()
       if (debugConsoleOutForTesting) {
@@ -133,5 +138,28 @@ abstract class AbstractService<T>(val path: String, val entityName: String) {
       log.error("Error while updating $entityName in D.velop: ${ex.message}: $json")
       return false
     }
+  }
+
+  protected fun getPrioritizedString(priority1: String?, priority2: String?, updateContext: UpdateContext): String? {
+    if (priority1 == priority2) {
+      return null
+    }
+    return if (priority1.isNullOrBlank()) {
+      if (!priority2.isNullOrBlank()) {
+        updateContext.modified = true
+      }
+      priority2
+    } else {
+      updateContext.modified = true
+      priority1
+    }
+  }
+
+  protected fun <T> getPrioritizedValue(priority1: T?, priority2: T?, updateContext: UpdateContext): T? {
+    if (priority1 == priority2) {
+      return null
+    }
+    updateContext.modified = true
+    return priority1 ?: priority2
   }
 }
