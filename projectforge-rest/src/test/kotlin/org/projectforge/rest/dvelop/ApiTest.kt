@@ -46,6 +46,7 @@ fun main(args: Array<String>) {
   props.load(path.toFile().bufferedReader())
   val baseUri = props.getProperty("projectforge.dvelop.baseUri")
   val apiKey = props.getProperty("projectforge.dvelop.apiKey")
+  val datevKontoFieldId = props.getProperty("projectforge.dvelop.datevKontoFieldId")
   if (baseUri.isNullOrBlank() || apiKey.isNullOrBlank()) {
     println("projectforge.dvelop.baseUri and/or projectforge.dvelop.apiKey is not given in file: ${path.toFile().absolutePath}")
     System.exit(0)
@@ -54,6 +55,7 @@ fun main(args: Array<String>) {
   val config = DvelopConfiguration()
   config.baseUri = baseUri
   config.apiKey = apiKey
+  config.datevKontoFieldId = datevKontoFieldId
   client.dvelopConfiguration = config
   client.debugConsoleOutForTesting = true
   client.postConstruct()
@@ -62,11 +64,12 @@ fun main(args: Array<String>) {
   //println("authSessionId: ${session?.authSessionId}")
   val partner = TradingPartner()
   partner.active = TradingPartner.Active(TradingPartner.ActiveValue.TRUE)
-  partner.number = "0001"
+  partner.number = "0002"
+  partner.datevKonto = 1234
   partner.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
-  partner.company = "Hurzel GmbH"
+  partner.company = "Hurzel2 GmbH"
   partner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
   partner.organization = TradingPartner.Organization("")
-  //client.createTradingPartner(partner)
+  client.createTradingPartner(partner)
   client.getTradingPartnerList()
 }

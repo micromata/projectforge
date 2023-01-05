@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 @Service
-class MigrateTradingPartners {
+class ExtractPFTradingPartners {
   class Context {
     val vendors = mutableListOf<TradingPartner>()
     val customers = mutableListOf<TradingPartner>()
@@ -76,7 +76,7 @@ class MigrateTradingPartners {
   @Autowired
   private lateinit var rechnungDao: RechnungDao
 
-  fun extractTradingPartnersAsExcel(): ByteArray {
+  fun extractTradingPartners(): List<TradingPartner> {
     val fromDate = PFDay.now().beginOfYear.minusYears(5).date
     var filter: RechnungFilter = EingangsrechnungListFilter()
     filter.fromDate = fromDate
@@ -87,8 +87,12 @@ class MigrateTradingPartners {
     extractTradingCustomersInvoices(rechnungDao.getList(filter), context)
 
     extractTradingCustomers(kundeDao.internalLoadAll(), context)
+    return context.allPartners
+  }
 
+  fun extractTradingPartnersAsExcel(): ByteArray {
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
+      val tradingPartners = extractTradingPartners()
       val sheet = workbook.createOrGetSheet("D-velop TradingPartners")
       val boldFont = workbook.createOrGetFont("bold", bold = true)
       val boldStyle = workbook.createOrGetCellStyle("boldStyle")
@@ -96,6 +100,7 @@ class MigrateTradingPartners {
       val wrapStyle = workbook.createOrGetCellStyle("wrapText")
       wrapStyle.wrapText = true
       ExcelUtils.registerColumn(sheet, TradingPartner::number, 10)
+      ExcelUtils.registerColumn(sheet, TradingPartner::datevKonto, 10)
       ExcelUtils.registerColumn(sheet, TradingPartner::importCode, 10)
       ExcelUtils.registerColumn(sheet, TradingPartner::type, 10)
       ExcelUtils.registerColumn(sheet, TradingPartner::company)
@@ -109,7 +114,7 @@ class MigrateTradingPartners {
       ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional, 60)
       ExcelUtils.registerColumn(sheet, TradingPartner::contactType, 10)
       ExcelUtils.addHeadRow(sheet, boldStyle)
-      context.allPartners.forEach { partner ->
+      tradingPartners.forEach { partner ->
         val row = sheet.createRow()
         row.autoFillFromObject(partner)
         ExcelUtils.getCell(row, TradingPartner::contactType)?.setCellValue(partner.contactType?.value?.toString())
@@ -206,6 +211,7 @@ class MigrateTradingPartners {
           existingPartner.number =
             kunde.nummer.toString() // Kundennummer ist nun die PF-Kundennummer (nicht mehr DATEV-Konto)
           existingPartner.shortName = kunde.identifier
+          existingPartner.datevKonto = konto.nummer
           appendRemarks(existingPartner, kunde.description)
           checkBillAddress(existingPartner, invoice)
           return
@@ -323,10 +329,12 @@ class MigrateTradingPartners {
     private fun createVendor(number: String, kreditor: String, konto: KontoDO): TradingPartner {
       val vendor = TradingPartner()
       vendor.number = number
+      vendor.datevKonto = konto.nummer
       vendor.company = kreditor
       vendor.organization = TradingPartner.Organization("")
       vendor.type = TradingPartner.Type(TradingPartner.TypeValue.VENDOR)
       vendor.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
+      vendor.active = TradingPartner.Active(TradingPartner.ActiveValue.TRUE) // Nothing known about activity.
       prependRemarks(vendor, konto)
       return vendor
     }
@@ -343,6 +351,7 @@ class MigrateTradingPartners {
       val customer = TradingPartner()
       customer.company = kundeName
       customer.shortName = kundeShortName
+      customer.datevKonto = konto?.nummer
       customer.number = number
       customer.importCode = number
       customer.organization = TradingPartner.Organization("")

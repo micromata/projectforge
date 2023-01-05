@@ -23,12 +23,11 @@
 
 package org.projectforge.business.dvelop
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 /**
  * Fragen:
  * * Unterschiedliche Rechnungsadressen für einen TradingPartner?
- * * Feld für DATEV-Konto?
- * * Über Api-Key jeden Aufruf (Bearer) oder lieber Login?
- * * Forbidden bei Post.
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class TradingPartner {
@@ -36,15 +35,60 @@ class TradingPartner {
   enum class ContactTypeValue { COMPANY, PRIVATE }
   enum class ActiveValue { TRUE, FALSE }
 
-  class Type(var value: TypeValue)
-  class ContactType(var value: ContactTypeValue)
-  class Active(var value: ActiveValue)
+  class Type(var value: TypeValue? = null)
+  class ContactType(var value: ContactTypeValue? = null)
+  class Active(var value: ActiveValue? = null)
   class Organization(var id: String)
+
+  companion object {
+    internal var datevKontoFieldId: String? = null
+      set(value) {
+        field = if (value.isNullOrBlank()) {
+          null
+        } else {
+          value
+        }
+      }
+  }
+
+  /**
+   * Id in D.velop
+   */
+  var id: String? = null
 
   /**
    * Required
    */
   var number: String? = null
+
+  /**
+   * DATEV-Konto-Nr
+   */
+  @JsonIgnore
+  var datevKonto: Int? = null
+
+  var customFields: Map<String, CustomField>?
+    set(value) {
+      value?.values?.find { it.name == "datevKonto" }?.value?.let { value ->
+        datevKonto = value as Int?
+      }
+      if (value == null) {
+        datevKonto = null
+        return
+      }
+
+    }
+    get() {
+      if (datevKonto == null || datevKontoFieldId == null) {
+        return null
+      }
+      val result = mutableMapOf<String, CustomField>()
+      datevKontoFieldId?.let { id ->
+        result[id] =
+          CustomField(configID = id, name = "datevKonto", value = datevKonto)
+      }
+      return result
+    }
 
   /**
    * Read Only Parameter, wird durch companyName oder Vorname/Nachname gesetzt
