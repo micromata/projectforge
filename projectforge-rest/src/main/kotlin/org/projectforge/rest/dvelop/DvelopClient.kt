@@ -28,8 +28,10 @@ import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
+import org.projectforge.business.dvelop.CustomField
 import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.dvelop.TradingPartner
+import org.projectforge.business.dvelop.TradingPartnerListData
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -158,30 +160,36 @@ class DvelopClient {
 
   // By ID: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{{tradingPartnerID}}
   // By any field: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/detail?filter[number]=0003
-  fun getTradingPartnerList(): List<TradingPartner> {
+  fun getTradingPartnerList(start: Int = 0, count: Int = 50, maxNumberOfPages: Int = 100): List<TradingPartner> {
     // Parameters: count=<pagesize>, continue=true, start=<page>
-    val uriSpec = webClient.get()
-    val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-      uriBuilder
-        .path("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
-        .queryParam("count", 50)
-        // .queryParam("continue", true)
-        //.queryParam("start", 1)
-        .build()
-    }
-    webClient.get()
-      .uri { uriBuilder: UriBuilder ->
+    val result = mutableListOf<TradingPartner>()
+    var pageCounter = 0
+    var itemCounter = start
+    while (pageCounter++ < maxNumberOfPages) {
+      val uriSpec = webClient.get()
+      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
         uriBuilder
-          .path("/products/{id}")
-          .build(2)
+          .path("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
+          .queryParam("start", itemCounter)
+          .queryParam("count", count)
+          .queryParam("continue", true)
+          .build()
       }
-    val response = execute(headersSpec, String::class.java)
-    if (debugConsoleOutForTesting) {
-      println("response: $response")
+      val response = execute(headersSpec, String::class.java)
+      if (debugConsoleOutForTesting) {
+        println("response: $response")
+      }
+      val data = JsonUtils.fromJson(response, TradingPartnerListData::class.java, false)
+      val partners = data?.data ?: break
+      val totalCount = data.totalCount ?: 0
+      result.addAll(partners)
+      itemCounter += count
+      if (itemCounter > totalCount) {
+        break
+      }
     }
-    val list = JsonUtils.fromJson(response, object : TypeReference<List<TradingPartner?>?>() {}, false)
-    log.info { "Got ${list?.size} trading partners from D.velop." }
-    return list?.filterNotNull() ?: mutableListOf()
+    log.info { "Got ${result.size} trading partners from D.velop." }
+    return result
   }
 
   // DELETE: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{{tradingPartnerID}}
@@ -252,6 +260,27 @@ class DvelopClient {
       log.error("Error while updating TradingPartner ${tradingPartner.number}: '${tradingPartner.name}' in D.velop: ${ex.message}")
       return false
     }
+  }
+
+  /**
+   * customfields?i18n=true&filter[entity]=TradingPartner
+   */
+  fun getCustomFields(entity: String): List<CustomField>? {
+    val uriSpec = webClient.get()
+    val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/alphaflow-tradingpartner/customfields")
+        .queryParam("i18n", true)
+        .queryParam("filter[entity]", entity)
+        .build()
+    }
+    val response = execute(headersSpec, String::class.java)
+    if (debugConsoleOutForTesting) {
+      println("response: $response")
+    }
+    val list = JsonUtils.fromJson(response, object : TypeReference<List<CustomField?>?>() {}, false)
+    log.info{ "Got ${list?.size} customField's from D.velop's entity '$entity'." }
+    return list?.filterNotNull()
   }
 
   private fun logRequest(): ExchangeFilterFunction {

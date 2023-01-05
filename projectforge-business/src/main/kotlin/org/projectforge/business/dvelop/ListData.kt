@@ -24,16 +24,17 @@
 package org.projectforge.business.dvelop
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.apache.poi.ss.formula.functions.T
 
 /**
  * For getting paginated lists.
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class ListData<T> {
-  var list: List<T>? = null
+abstract class ListData<T> {
+  var data: List<T>? = null
   var pos: Long? = null
 
   @JsonProperty("total_count")
   var totalCount: Long? = null
 }
+
+class TradingPartnerListData: ListData<TradingPartner>()

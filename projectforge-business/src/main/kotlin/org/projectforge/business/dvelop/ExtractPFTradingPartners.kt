@@ -71,9 +71,6 @@ class ExtractPFTradingPartners {
   private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
   @Autowired
-  private lateinit var dvelopConfiguration: DvelopConfiguration
-
-  @Autowired
   private lateinit var kundeDao: KundeDao
 
   @Autowired
@@ -93,42 +90,46 @@ class ExtractPFTradingPartners {
     return context.allPartners
   }
 
-  fun extractTradingPartnersAsExcel(): ByteArray {
+  fun extractTradingPartnersAsExcel(dvelopTradingPartners: List<TradingPartner>): ByteArray {
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
-      val tradingPartners = extractTradingPartners()
-      val sheet = workbook.createOrGetSheet("D-velop TradingPartners")
-      val boldFont = workbook.createOrGetFont("bold", bold = true)
-      val boldStyle = workbook.createOrGetCellStyle("boldStyle")
-      boldStyle.setFont(boldFont)
-      val wrapStyle = workbook.createOrGetCellStyle("wrapText")
-      wrapStyle.wrapText = true
-      ExcelUtils.registerColumn(sheet, TradingPartner::number, 10)
-      ExcelUtils.registerColumn(sheet, TradingPartner::datevKonto, 10)
-      ExcelUtils.registerColumn(sheet, TradingPartner::importCode, 10)
-      ExcelUtils.registerColumn(sheet, TradingPartner::type, 10)
-      ExcelUtils.registerColumn(sheet, TradingPartner::company)
-      ExcelUtils.registerColumn(sheet, TradingPartner::shortName)
-      ExcelUtils.registerColumn(sheet, TradingPartner::remarks, 60)
-      ExcelUtils.registerColumn(sheet, TradingPartner::active, 8)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToStreet)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToZip, 10)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToCity)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToCountry, 30)
-      ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional, 60)
-      ExcelUtils.registerColumn(sheet, TradingPartner::contactType, 10)
-      ExcelUtils.addHeadRow(sheet, boldStyle)
-      tradingPartners.forEach { partner ->
-        val row = sheet.createRow()
-        row.autoFillFromObject(partner)
-        ExcelUtils.getCell(row, TradingPartner::contactType)?.setCellValue(partner.contactType?.value?.toString())
-        ExcelUtils.getCell(row, TradingPartner::type)?.setCellValue(partner.type?.value?.toString())
-        ExcelUtils.getCell(row, TradingPartner::active)?.setCellValue(partner.active?.value?.toString())
-        ExcelUtils.getCell(row, TradingPartner::remarks)?.setCellStyle(wrapStyle)
-        ExcelUtils.getCell(row, TradingPartner::billToAddressAdditional)?.setCellStyle(wrapStyle)
-      }
-      sheet.setAutoFilter()
+      createTradingPartnersSheet(workbook, "D.velop TradingPartners", dvelopTradingPartners)
+      createTradingPartnersSheet(workbook, "ProjectForge TradingPartners", extractTradingPartners())
       return workbook.asByteArrayOutputStream.toByteArray()
     }
+  }
+
+  private fun createTradingPartnersSheet(workbook: ExcelWorkbook, name: String, tradingPartners: List<TradingPartner>) {
+    val sheet = workbook.createOrGetSheet(name)
+    val boldFont = workbook.createOrGetFont("bold", bold = true)
+    val boldStyle = workbook.createOrGetCellStyle("boldStyle")
+    boldStyle.setFont(boldFont)
+    val wrapStyle = workbook.createOrGetCellStyle("wrapText")
+    wrapStyle.wrapText = true
+    ExcelUtils.registerColumn(sheet, TradingPartner::number, 10)
+    ExcelUtils.registerColumn(sheet, TradingPartner::datevKonto, 10)
+    ExcelUtils.registerColumn(sheet, TradingPartner::importCode, 10)
+    ExcelUtils.registerColumn(sheet, TradingPartner::type, 10)
+    ExcelUtils.registerColumn(sheet, TradingPartner::company)
+    ExcelUtils.registerColumn(sheet, TradingPartner::shortName)
+    ExcelUtils.registerColumn(sheet, TradingPartner::remarks, 60)
+    ExcelUtils.registerColumn(sheet, TradingPartner::active, 8)
+    ExcelUtils.registerColumn(sheet, TradingPartner::billToStreet)
+    ExcelUtils.registerColumn(sheet, TradingPartner::billToZip, 10)
+    ExcelUtils.registerColumn(sheet, TradingPartner::billToCity)
+    ExcelUtils.registerColumn(sheet, TradingPartner::billToCountry, 30)
+    ExcelUtils.registerColumn(sheet, TradingPartner::billToAddressAdditional, 60)
+    ExcelUtils.registerColumn(sheet, TradingPartner::contactType, 10)
+    ExcelUtils.addHeadRow(sheet, boldStyle)
+    tradingPartners.forEach { partner ->
+      val row = sheet.createRow()
+      row.autoFillFromObject(partner)
+      ExcelUtils.getCell(row, TradingPartner::contactType)?.setCellValue(partner.contactType?.value?.toString())
+      ExcelUtils.getCell(row, TradingPartner::type)?.setCellValue(partner.type?.value?.toString())
+      ExcelUtils.getCell(row, TradingPartner::active)?.setCellValue(partner.active?.value?.toString())
+      ExcelUtils.getCell(row, TradingPartner::remarks)?.setCellStyle(wrapStyle)
+      ExcelUtils.getCell(row, TradingPartner::billToAddressAdditional)?.setCellStyle(wrapStyle)
+    }
+    sheet.setAutoFilter()
   }
 
   companion object {
