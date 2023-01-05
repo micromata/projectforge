@@ -141,8 +141,8 @@ abstract class AbstractService<T>(val path: String, val entityName: String) {
   }
 
   protected fun getPrioritizedString(priority1: String?, priority2: String?, updateContext: UpdateContext): String? {
-    if (priority1 == priority2) {
-      return null
+    if (priority1 == priority2 || priority1.isNullOrEmpty() && priority2.isNullOrEmpty()) {
+      return priority1
     }
     return if (priority1.isNullOrBlank()) {
       if (!priority2.isNullOrBlank()) {
@@ -156,8 +156,11 @@ abstract class AbstractService<T>(val path: String, val entityName: String) {
   }
 
   protected fun <T> getPrioritizedValue(priority1: T?, priority2: T?, updateContext: UpdateContext): T? {
+    if (priority1 != null && priority1 is String || priority2 != null && priority2 is String) {
+      return getPrioritizedString(priority1 as String?, priority2 as String?, updateContext) as T?
+    }
     if (priority1 == priority2) {
-      return null
+      return priority1
     }
     updateContext.modified = true
     return priority1 ?: priority2

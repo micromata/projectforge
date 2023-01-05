@@ -22,29 +22,27 @@ class TradingPartnerService :
     if (localState.number != remoteState.number) {
       throw IllegalArgumentException("Number of existing TradingPartner (oldState) doesn't match new state!")
     }
-    val updateEntity = TradingPartner()
     val updateContext = UpdateContext()
-    updateEntity.id = remoteState.id
-    updateEntity.company = getPrioritizedValue(localState.company, remoteState.company, updateContext)
-    updateEntity.shortName = getPrioritizedValue(localState.shortName, remoteState.shortName, updateContext)
-    updateEntity.importCode = getPrioritizedValue(localState.importCode, remoteState.importCode, updateContext)
-    updateEntity.datevKonto = getPrioritizedValue(localState.datevKonto, remoteState.datevKonto, updateContext)
+    remoteState.company = getPrioritizedValue(localState.company, remoteState.company, updateContext)
+    remoteState.shortName = getPrioritizedString(localState.shortName, remoteState.shortName, updateContext)
+    remoteState.importCode = getPrioritizedString(localState.importCode, remoteState.importCode, updateContext)
+    remoteState.datevKonto = getPrioritizedValue(localState.datevKonto, remoteState.datevKonto, updateContext)
     if (remoteState.organization == null || remoteState.organization?.id.isNullOrBlank()) {
       remoteState.organization = localState.organization
       updateContext.modified = true
     }
     if (remoteState.isBillToAddressEmpty && !localState.isBillToAddressEmpty) {
       // Update remote address only, if remote address is empty.
-      updateEntity.billToStreet = localState.billToStreet
-      updateEntity.billToZip = localState.billToZip
-      updateEntity.billToCity = localState.billToCity
-      updateEntity.billToCountry = localState.billToCountry
-      updateEntity.billToRegion = localState.billToRegion
-      updateEntity.billToAddressAdditional = localState.billToAddressAdditional
+      remoteState.billToStreet = localState.billToStreet
+      remoteState.billToZip = localState.billToZip
+      remoteState.billToCity = localState.billToCity
+      remoteState.billToCountry = localState.billToCountry
+      remoteState.billToRegion = localState.billToRegion
+      remoteState.billToAddressAdditional = localState.billToAddressAdditional
       updateContext.modified = true
     }
     return if (updateContext.modified) {
-      updateEntity
+      remoteState
     } else {
       null
     }
