@@ -38,7 +38,11 @@ class TradingPartner {
   class Type(var value: TypeValue? = null)
   class ContactType(var value: ContactTypeValue? = null)
   class Active(var value: ActiveValue? = null)
-  class Organization(var id: String)
+  class Organization(
+    var id: String = "",
+    var number: String? = null,
+    var name: String? = null,
+  )
 
   companion object {
     internal var datevKontoFieldId: String? = null
@@ -69,8 +73,8 @@ class TradingPartner {
 
   var customFields: Map<String, CustomField>?
     set(value) {
-      value?.values?.find { it.name == "datevKonto" }?.value?.let { value ->
-        datevKonto = value as Int?
+      value?.values?.find { it.name == "datevKonto" }?.value?.let {
+        datevKonto = it as Int?
       }
       if (value == null) {
         datevKonto = null

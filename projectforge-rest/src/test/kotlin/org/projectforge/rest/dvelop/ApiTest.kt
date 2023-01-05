@@ -46,6 +46,7 @@ fun main(args: Array<String>) {
   props.load(path.toFile().bufferedReader())
   val baseUri = props.getProperty("projectforge.dvelop.baseUri")
   val apiKey = props.getProperty("projectforge.dvelop.apiKey")
+  val organizationId = props.getProperty("projectforge.dvelop.organizationId")
   val datevKontoFieldId = props.getProperty("projectforge.dvelop.datevKontoFieldId")
   if (baseUri.isNullOrBlank() || apiKey.isNullOrBlank()) {
     println("projectforge.dvelop.baseUri and/or projectforge.dvelop.apiKey is not given in file: ${path.toFile().absolutePath}")
@@ -69,7 +70,11 @@ fun main(args: Array<String>) {
   partner.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
   partner.company = "Hurzel2 GmbH"
   partner.type = TradingPartner.Type(TradingPartner.TypeValue.PARTNER)
-  partner.organization = TradingPartner.Organization("")
-  client.createTradingPartner(partner)
-  client.getTradingPartnerList()
+  partner.organization = TradingPartner.Organization(organizationId)
+  // client.createTradingPartner(partner)
+  val list = client.getTradingPartnerList()
+  println(list.size)
+  //list.forEach { partner ->
+  //  client.deleteTradingPartner(partner)
+  //}
 }

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dvelop
 
+import com.fasterxml.jackson.core.type.TypeReference
 import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
@@ -40,6 +41,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
+import org.springframework.web.util.UriBuilder
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
 import java.nio.charset.StandardCharsets
@@ -54,6 +56,9 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Handles the login to the dvelop server (if configured and in use).
+ *
+ * Fragen
+ * * Datev-Konto als Entität
  *
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
@@ -151,13 +156,56 @@ class DvelopClient {
     }
   }
 
-  fun getTradingPartnerList() {
+  // By ID: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{{tradingPartnerID}}
+  // By any field: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/detail?filter[number]=0003
+  fun getTradingPartnerList(): List<TradingPartner> {
+    // Parameters: count=<pagesize>, continue=true, start=<page>
     val uriSpec = webClient.get()
-    val headersSpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
+    val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
+        .queryParam("count", 50)
+        // .queryParam("continue", true)
+        //.queryParam("start", 1)
+        .build()
+    }
+    webClient.get()
+      .uri { uriBuilder: UriBuilder ->
+        uriBuilder
+          .path("/products/{id}")
+          .build(2)
+      }
     val response = execute(headersSpec, String::class.java)
     if (debugConsoleOutForTesting) {
       println("response: $response")
     }
+    val list = JsonUtils.fromJson(response, object : TypeReference<List<TradingPartner?>?>() {}, false)
+    log.info { "Got ${list?.size} trading partners from D.velop." }
+    return list?.filterNotNull() ?: mutableListOf()
+  }
+
+  // DELETE: {{baseUri}}/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{{tradingPartnerID}}
+  fun deleteTradingPartner(tradingPartner: TradingPartner): Boolean {
+    val id = tradingPartner.id
+    val json = JsonUtils.toJson(tradingPartner, true)
+    if (debugConsoleOutForTesting) {
+      println("Trying to delete partner #$id: $json")
+    }
+    if (id.isNullOrBlank()) {
+      log.error { "Can't delete trading partner #$id: $json" }
+      return false
+    }
+    log.info("Trying to delete trading partner #$id: $json")
+    val uriSpec = webClient.delete()
+    val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
+      uriBuilder
+        .path("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners/{id}")
+        .build(id)
+    }
+
+    val response = execute(headersSpec, String::class.java)
+    log.info { response }
+    return true
   }
 
   fun createTradingPartner(tradingPartner: TradingPartner): Boolean {
@@ -179,6 +227,29 @@ class DvelopClient {
       return true
     } catch (ex: Exception) {
       log.error("Error while creating TradingPartner ${tradingPartner.number}: '${tradingPartner.name}' in D.velop: ${ex.message}")
+      return false
+    }
+  }
+
+  fun updateTradingPartner(tradingPartner: TradingPartner): Boolean {
+    try {
+      val json = JsonUtils.toJson(tradingPartner, true)
+      val uriSpec = webClient.patch()
+      if (debugConsoleOutForTesting) {
+        println("updateTradingPartner body: $json")
+      }
+      log.info { "Trying to update TradingPartner in D.velop: $json" }
+      val bodySpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
+        .body(
+          BodyInserters.fromValue(json)
+        )
+      val response = execute(bodySpec, String::class.java)
+      if (debugConsoleOutForTesting) {
+        println("response: $response")
+      }
+      return true
+    } catch (ex: Exception) {
+      log.error("Error while updating TradingPartner ${tradingPartner.number}: '${tradingPartner.name}' in D.velop: ${ex.message}")
       return false
     }
   }

@@ -46,6 +46,12 @@ open class DvelopConfiguration {
   open lateinit var apiKey: String
 
   /**
+   * If given, all entities (TradingPartner) will be assigned to this organistion referred by ID.
+   */
+  @Value("\${projectforge.dvelop.organizationId}")
+  open lateinit var organizationId: String
+
+  /**
    * The id of the TradingPartners' customized field datevKonto.
    */
   @Value("\${projectforge.dvelop.datevKontoFieldId}")
@@ -54,6 +60,7 @@ open class DvelopConfiguration {
   @PostConstruct
   private fun postConstruct() {
     TradingPartner.datevKontoFieldId = datevKontoFieldId
+    ExtractPFTradingPartners.organizationId = organizationId
   }
 
   fun isConfigured(): Boolean {
