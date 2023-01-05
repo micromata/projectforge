@@ -28,8 +28,7 @@ import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
-import org.projectforge.business.dvelop.CustomField
-import org.projectforge.business.dvelop.DvelopConfiguration
+import org.projectforge.business.dvelop.*
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -71,6 +70,8 @@ class DvelopClient {
   private val timeoutMillis = 30000
   private val timeoutMillisLong = 30000L
 
+  private var initalized = false
+
   private var httpClient: HttpClient = HttpClient.create()
     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutMillis)
     .responseTimeout(Duration.ofMillis(timeoutMillisLong))
@@ -84,6 +85,14 @@ class DvelopClient {
   class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
 
   class Session(val authSessionId: String, val expires: Date?)
+
+  private var organizationIdVal: String = ""
+
+  val organizationId: String
+    get() {
+      init()
+      return organizationIdVal
+    }
 
   @PostConstruct
   internal fun postConstruct() {
@@ -101,10 +110,28 @@ class DvelopClient {
       .build()
   }
 
+  private fun init() {
+    synchronized(this) {
+      if (initalized) {
+        return
+      }
+      initalized = true
+      getOrganizationOptions()?.find { it.value?.startsWith(dvelopConfiguration.organizationName, true) == true }
+        ?.let { organization ->
+          organizationIdVal = organization.id ?: ""
+          ExtractPFTradingPartners.organizationId = organizationIdVal
+        }
+      getCustomFields("TradingPartner")?.find { it.name == "datevKonto" }?.let { datevKonto ->
+        TradingPartner.datevKontoFieldId = datevKonto.id
+      }
+    }
+  }
+
   /**
    * @throws HttpException
    */
   internal fun <T> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
+    init()
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .accept(MediaType.APPLICATION_JSON)
@@ -158,12 +185,11 @@ class DvelopClient {
   /**
    * customfields?i18n=true&filter[entity]=TradingPartner
    */
-  fun getCustomFields(entity: String): List<CustomField>? {
+  fun getCustomFields(entity: String): List<CustomFieldDef>? {
     val uriSpec = webClient.get()
     val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
       uriBuilder
-        .path("/alphaflow-tradingpartner/customfields")
-        .queryParam("i18n", true)
+        .path("/alphaflow-tradingpartner/customfieldservice/customfields")
         .queryParam("filter[entity]", entity)
         .build()
     }
@@ -171,8 +197,26 @@ class DvelopClient {
     if (debugConsoleOutForTesting) {
       println("response: $response")
     }
-    val list = JsonUtils.fromJson(response, object : TypeReference<List<CustomField?>?>() {}, false)
-    log.info{ "Got ${list?.size} customField's from D.velop's entity '$entity'." }
+    val list = JsonUtils.fromJson(response, object : TypeReference<List<CustomFieldDef?>?>() {}, false)
+    log.info { "Got ${list?.size} customField's from D.velop's entity '$entity'." }
+    return list?.filterNotNull()
+  }
+
+  // alphaflow-organization/organizationservice/organizations/options
+  // [{
+  //    "id": "62cc0644bf95240e80ed24ed",
+  //    "value": "Micromata GmbH",
+  //    "color": null
+  //}]
+  fun getOrganizationOptions(): List<Option>? {
+    val uriSpec = webClient.get()
+    val headersSpec = uriSpec.uri("/alphaflow-organization/organizationservice/organizations/options")
+    val response = execute(headersSpec, String::class.java)
+    if (debugConsoleOutForTesting) {
+      println("response: $response")
+    }
+    val list = JsonUtils.fromJson(response, object : TypeReference<List<Option?>?>() {}, false)
+    log.info { "Got ${list?.size} Options from D.velop's entity 'options'." }
     return list?.filterNotNull()
   }
 

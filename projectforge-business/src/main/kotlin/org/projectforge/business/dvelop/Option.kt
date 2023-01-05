@@ -23,34 +23,11 @@
 
 package org.projectforge.business.dvelop
 
-import org.projectforge.framework.configuration.*
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Configuration
-import java.io.*
-import java.util.*
-import javax.net.ssl.*
-
 /**
- * ProjectForge supports the synchronization from and to a D-velop installation.
+ * @author K. Reinhard (k.reinhard@micromata.de)
  */
-@Configuration
-open class DvelopConfiguration {
-  @Value("\${projectforge.dvelop.baseUri}")
-  open lateinit var baseUri: String
-
-  /**
-   * The api key for authentication.
-   */
-  @Value("\${projectforge.dvelop.apiKey}")
-  open lateinit var apiKey: String
-
-  /**
-   * If given, all entities (TradingPartner) will be assigned to this organistion referred by ID.
-   */
-  @Value("\${projectforge.dvelop.organization}")
-  open lateinit var organizationName: String
-
-  fun isConfigured(): Boolean {
-    return baseUri.isNotBlank() && apiKey.isNotBlank()
-  }
-}
+class Option(
+  var id: String? = null,
+  var value: String? = null,
+  var color: String? = null,
+)

@@ -21,5 +21,4 @@ class TradingPartnerService :
   override fun fromJson(response: String): ListData<TradingPartner>? {
     return JsonUtils.fromJson(response, TradingPartnerListData::class.java, false)
   }
-
 }

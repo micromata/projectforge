@@ -133,7 +133,7 @@ class ExtractPFTradingPartners {
   }
 
   companion object {
-    internal var organizationId: String = ""
+    var organizationId: String = ""
 
     internal fun extractTradingVendors(invoices: List<EingangsrechnungDO>): Context {
       val context = Context()

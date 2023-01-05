@@ -45,7 +45,7 @@ class TradingPartner {
   )
 
   companion object {
-    internal var datevKontoFieldId: String? = null
+    var datevKontoFieldId: String? = null
       set(value) {
         field = if (value.isNullOrBlank()) {
           null
