@@ -23,40 +23,18 @@
 
 package org.projectforge.business.dvelop
 
-import org.projectforge.framework.configuration.*
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Configuration
-import java.io.*
-import java.util.*
-import javax.annotation.PostConstruct
-import javax.net.ssl.*
-
 /**
- * ProjectForge supports the synchronization from and to a D-velop installation.
+ * @author K. Reinhard (k.reinhard@micromata.de)
  */
-@Configuration
-open class DvelopConfiguration {
-  @Value("\${projectforge.dvelop.baseUri}")
-  open lateinit var baseUri: String
+class CustomField(
+  var configID: String? = null,
+  var name: String? = null,
+  var value: Any? = null,
+) {
+  enum class Type { NUMBER }
 
-  /**
-   * The api key for authentication.
-   */
-  @Value("\${projectforge.dvelop.apiKey}")
-  open lateinit var apiKey: String
-
-  /**
-   * The id of the TradingPartners' customized field datevKonto.
-   */
-  @Value("\${projectforge.dvelop.datevKontoFieldId}")
-  open lateinit var datevKontoFieldId: String
-
-  @PostConstruct
-  private fun postConstruct() {
-    TradingPartner.datevKontoFieldId = datevKontoFieldId
-  }
-
-  fun isConfigured(): Boolean {
-    return baseUri.isNotBlank() && apiKey.isNotBlank()
-  }
+  var valueName: String? = null
+  var selectOptionDtos: Array<String>? = null
+  var label: String? = null
+  var type: Type? = null
 }

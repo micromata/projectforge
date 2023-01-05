@@ -24,7 +24,7 @@
 package org.projectforge.rest.dvelop
 
 import mu.KotlinLogging
-import org.projectforge.business.dvelop.MigrateTradingPartners
+import org.projectforge.business.dvelop.ExtractPFTradingPartners
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -47,13 +47,24 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/dvelop")
 class DvelopPageRest : AbstractDynamicPageRest() {
   @Autowired
-  private lateinit var migrateTradingPartners: MigrateTradingPartners
+  private lateinit var extractPFTradingPartners: ExtractPFTradingPartners
+
+  @Autowired
+  private lateinit var dvelopClient: DvelopClient
 
   class DvelopData()
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val layout = UILayout("dvelop.title")
+    layout.add(
+      MenuItem(
+        "syncTradingPartners",
+        title = "Synchronize TradingPartners",
+        url = "${getRestPath()}/synchronizeTradingPartners",
+        type = MenuItemTargetType.DOWNLOAD
+      )
+    )
     layout.add(
       MenuItem(
         "downloadBackups",
@@ -68,9 +79,30 @@ class DvelopPageRest : AbstractDynamicPageRest() {
   }
 
   @GetMapping("downloadTradingPartners")
-  fun downloadBackupScripts(): ResponseEntity<*> {
+  fun downloadTradingPartners(): ResponseEntity<*> {
     log.info("Downloading Trading partners for D-velop import.")
     val filename = ("D-velop-TradingPartners-Import-${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
-    return RestUtils.downloadFile(filename, migrateTradingPartners.extractTradingPartnersAsExcel())
+    return RestUtils.downloadFile(filename, extractPFTradingPartners.extractTradingPartnersAsExcel())
+  }
+
+  @GetMapping("synchronizeTradingPartners")
+  fun synchronizeTradingPartners(): ResponseAction {
+    log.info("Synchronizing Trading partners for D-velop import.")
+    val tradingPartners = extractPFTradingPartners.extractTradingPartners()
+    var successCounter = 0
+    var failedCounter = 0
+    var ignoredCounter = 0
+    var totalCounter = 0
+    tradingPartners.forEach { partner ->
+      ++totalCounter
+      if (partner.importCode == null) {
+        ++ignoredCounter
+      } else if (dvelopClient.createTradingPartner(partner)) {
+        ++successCounter
+      } else {
+        ++failedCounter
+      }
+    }
+    return UIToast.createToast("Total=$totalCounter: ${successCounter} TradingPartners sent to D.velop (${failedCounter} entries failed, $ignoredCounter ignored/no importCode).", color = UIColor.SUCCESS)
   }
 }

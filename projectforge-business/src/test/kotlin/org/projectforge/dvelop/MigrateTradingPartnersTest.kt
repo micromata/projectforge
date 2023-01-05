@@ -25,7 +25,7 @@ package org.projectforge.dvelop
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.dvelop.MigrateTradingPartners
+import org.projectforge.business.dvelop.ExtractPFTradingPartners
 import org.projectforge.business.dvelop.TradingPartner
 import org.projectforge.business.fibu.*
 
@@ -59,7 +59,7 @@ class MigrateTradingPartnersTest {
 
     createIncomingInvoice("Partner Systems ltd.", kontoPartner) // Should be added as partner.
 
-    val context = MigrateTradingPartners.extractTradingVendors(incomingInvoices)
+    val context = ExtractPFTradingPartners.extractTradingVendors(incomingInvoices)
     createInvoice(kunde = kundeBravoLimited)
     createInvoice(projekt = createProjekt(kundeCharlie))
     createInvoice(kunde = createKunde(44, "Delta limited", "Delta")).konto = kontoCustomerDelta
@@ -71,13 +71,13 @@ class MigrateTradingPartnersTest {
     customerAcme.konto = kontoAcme
     createInvoice(kunde = customerAcme)
 
-    MigrateTradingPartners.extractTradingCustomersInvoices(invoices, context)
+    ExtractPFTradingPartners.extractTradingCustomersInvoices(invoices, context)
 
     val customers = mutableListOf<KundeDO>()
     customers.add(kundeBravoLimited) // Already processed.
     customers.add(kundeCharlie)      // Already processed.
     customers.add(createKunde(46, "Foxtrott ltd.", "Foxtrott", kontoCustomerFoxtrott)) // New
-    MigrateTradingPartners.extractTradingCustomers(customers, context)
+    ExtractPFTradingPartners.extractTradingCustomers(customers, context)
 
     val tradingVendors = context.vendors
     Assertions.assertEquals(6, tradingVendors.size)
@@ -90,12 +90,12 @@ class MigrateTradingPartnersTest {
 
   @Test
   fun extractZipCodeAndCityTest() {
-    Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity(""))
-    Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity("   "))
-    Assertions.assertNull(MigrateTradingPartners.extractZipCodeCity("  Kassel 12345 "))
-    assertZipCodeAndCity("12345", "Kassel", MigrateTradingPartners.extractZipCodeCity("12345  Kassel"))
-    assertZipCodeAndCity("12345", "Kassel", MigrateTradingPartners.extractZipCodeCity("  12345  Kassel"))
-    assertZipCodeAndCity("021 15", "Zolona", MigrateTradingPartners.extractZipCodeCity("021 15 Zolona"))
+    Assertions.assertNull(ExtractPFTradingPartners.extractZipCodeCity(""))
+    Assertions.assertNull(ExtractPFTradingPartners.extractZipCodeCity("   "))
+    Assertions.assertNull(ExtractPFTradingPartners.extractZipCodeCity("  Kassel 12345 "))
+    assertZipCodeAndCity("12345", "Kassel", ExtractPFTradingPartners.extractZipCodeCity("12345  Kassel"))
+    assertZipCodeAndCity("12345", "Kassel", ExtractPFTradingPartners.extractZipCodeCity("  12345  Kassel"))
+    assertZipCodeAndCity("021 15", "Zolona", ExtractPFTradingPartners.extractZipCodeCity("021 15 Zolona"))
   }
 
   @Test
@@ -171,13 +171,13 @@ class MigrateTradingPartnersTest {
     val partner = TradingPartner()
     val invoice = RechnungDO()
     invoice.customerAddress = address
-    MigrateTradingPartners.checkBillAddress(partner, invoice)
+    ExtractPFTradingPartners.checkBillAddress(partner, invoice)
     Assertions.assertEquals(expectedStreet, partner.billToStreet)
     Assertions.assertEquals(expectedZip, partner.billToZip)
     Assertions.assertEquals(expectedCity, partner.billToCity)
     Assertions.assertEquals(expectedAdditionalAddress, partner.billToAddressAdditional)
     invoice.customerAddress = "ACME\nABC street 5\n12345 Berlin"
-    MigrateTradingPartners.checkBillAddress(partner, invoice)
+    ExtractPFTradingPartners.checkBillAddress(partner, invoice)
     Assertions.assertEquals(expectedStreet, partner.billToStreet)
     Assertions.assertEquals(expectedZip, partner.billToZip)
     Assertions.assertEquals(expectedCity, partner.billToCity)

@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
@@ -99,7 +100,7 @@ class DvelopClient {
   /**
    * @throws HttpException
    */
-  private fun <T> prepareHeadersSpec(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
+  private fun <T> execute(headersSpec: RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .accept(MediaType.APPLICATION_JSON)
@@ -111,7 +112,9 @@ class DvelopClient {
       //.block()
       .exchangeToMono { response ->
         if (response.statusCode().equals(HttpStatus.OK)) {
-          println("Success")
+          if (debugConsoleOutForTesting) {
+            println("Success")
+          }
           return@exchangeToMono response.bodyToMono(expectedReturnClass) as Mono<T>
         } else {
           log.error { "Error while calling $headersSpec." }
@@ -128,7 +131,7 @@ class DvelopClient {
   fun login(): Session? {
     val uriSpec = webClient.get()
     val headersSpec = uriSpec.uri("/identityprovider/login")
-    val map = prepareHeadersSpec(headersSpec, Map::class.java)
+    val map = execute(headersSpec, Map::class.java)
     if (debugConsoleOutForTesting) {
       println("login: ${map.entries.joinToString { "key=[${it.key} value=[${it.value}]" }}")
     }
@@ -151,22 +154,32 @@ class DvelopClient {
   fun getTradingPartnerList() {
     val uriSpec = webClient.get()
     val headersSpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
-    val response = prepareHeadersSpec(headersSpec, String::class.java)
+    val response = execute(headersSpec, String::class.java)
     if (debugConsoleOutForTesting) {
       println("response: $response")
     }
   }
 
-  fun createTradingPartner(tradingPartner: TradingPartner) {
-    val uriSpec = webClient.post()
-    if(debugConsoleOutForTesting){
-      println("createTradingPartner body: ${JsonUtils.toJson(tradingPartner)}")
-    }
-    val bodySpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
-      .bodyValue(tradingPartner)
-    val response = prepareHeadersSpec(bodySpec, String::class.java)
-    if (debugConsoleOutForTesting) {
-      println("response: $response")
+  fun createTradingPartner(tradingPartner: TradingPartner): Boolean {
+    try {
+      val json = JsonUtils.toJson(tradingPartner, true)
+      val uriSpec = webClient.post()
+      if (debugConsoleOutForTesting) {
+        println("createTradingPartner body: $json")
+      }
+      log.info { "Trying to create TradingPartner in D.velop: $json" }
+      val bodySpec = uriSpec.uri("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners")
+        .body(
+          BodyInserters.fromValue(json)
+        )
+      val response = execute(bodySpec, String::class.java)
+      if (debugConsoleOutForTesting) {
+        println("response: $response")
+      }
+      return true
+    } catch (ex: Exception) {
+      log.error("Error while creating TradingPartner ${tradingPartner.number}: '${tradingPartner.name}' in D.velop: ${ex.message}")
+      return false
     }
   }
 
