@@ -205,10 +205,13 @@ class ExtractPFTradingPartners {
       val number = kunde.nummer
       val numberString = number?.toString() ?: return // shouldn't occur.
       val existingCustomer = context.customers.find { it.number == numberString }
+      val konto = kunde.konto ?: invoice?.konto
       if (existingCustomer != null) {
+        if (existingCustomer.datevKonto == null && konto != null) {
+          existingCustomer.datevKonto = konto.nummer
+        }
         return
       }
-      val konto = kunde.konto
       if (konto != null) {
         val existingPartner = context.getVendorByDatevKonto(konto)
         if (existingPartner != null) {
@@ -232,7 +235,7 @@ class ExtractPFTradingPartners {
         kunde.identifier,
         active,
         kunde.description,
-        kunde.konto,
+        konto,
       )
       checkBillAddress(customer, invoice)
       context.customers.add(customer)
@@ -335,8 +338,8 @@ class ExtractPFTradingPartners {
     private fun createVendor(number: String, kreditor: String, konto: KontoDO): TradingPartner {
       val vendor = TradingPartner()
       vendor.number = number
-      vendor.datevKonto = konto.nummer
       vendor.company = kreditor
+      vendor.datevKonto = konto.nummer
       vendor.organization = TradingPartner.Organization(organizationId)
       vendor.type = TradingPartner.Type(TradingPartner.TypeValue.VENDOR)
       vendor.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
