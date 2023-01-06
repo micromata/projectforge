@@ -27,6 +27,7 @@ class TradingPartnerService :
     remoteState.shortName = getPrioritizedString(localState.shortName, remoteState.shortName, updateContext)
     remoteState.importCode = getPrioritizedString(localState.importCode, remoteState.importCode, updateContext)
     remoteState.datevKonto = getPrioritizedValue(localState.datevKonto, remoteState.datevKonto, updateContext)
+    remoteState.remarks = getPrioritizedValue(remoteState.remarks, localState.remarks, updateContext)
     if (remoteState.organization == null || remoteState.organization?.id.isNullOrBlank()) {
       remoteState.organization = localState.organization
       updateContext.modified = true
