@@ -23,20 +23,11 @@
 
 package org.projectforge.rest.dvelop
 
-import org.junit.jupiter.api.Test
 import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.dvelop.TradingPartner
 import java.util.*
 import kotlin.io.path.Path
 
-
-class LoginTest {
-  @Test
-  fun login() {
-    DvelopClient().login()
-    println("Hello world")
-  }
-}
 
 fun main(args: Array<String>) {
   // From documentation:
@@ -80,7 +71,7 @@ fun main(args: Array<String>) {
   // client.createTradingPartner(partner)
   val list = tradingPartnerService.getList()
   println(list.size)
-  list.forEach { partner ->
-    tradingPartnerService.delete(partner.id, partner)
-  }
+  /*list.forEach { partner ->
+    // tradingPartnerService.delete(partner.id, partner)
+  }*/
 }

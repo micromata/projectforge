@@ -12,11 +12,6 @@ import javax.annotation.PostConstruct
 private val log = KotlinLogging.logger {}
 
 /**
- * Handles the login to the dvelop server (if configured and in use).
- *
- * Fragen
- * * Datev-Konto als Entität
- *
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractService<T>(val path: String, val entityName: String) {
@@ -114,8 +109,17 @@ abstract class AbstractService<T>(val path: String, val entityName: String) {
     }
   }
 
+  /**
+   * This method should determine which fields of which object should be prioritized: remote or local value of the field.
+   * @return The remoteState object with updated fields or null, if nothing is to update (all fields of remoteState are up-to-date).
+   */
   abstract fun buildUpdateEntity(localState: T, remoteState: T): T?
 
+  /**
+   * Updates the remoteState only, if there is any field to update. Otherwise, nothing will be modified.
+   * @return true if the remoteState was updated or false if the remoteState of each field is up-to-date.
+   * @see buildUpdateEntity
+   */
   fun update(localState: T, remoteState: T): Boolean {
     val updateEntity = buildUpdateEntity(localState, remoteState) ?: return false
     val json = JsonUtils.toJson(updateEntity, true)
@@ -140,29 +144,35 @@ abstract class AbstractService<T>(val path: String, val entityName: String) {
     }
   }
 
-  protected fun getPrioritizedString(priority1: String?, priority2: String?, updateContext: UpdateContext): String? {
-    if (priority1 == priority2 || priority1.isNullOrEmpty() && priority2.isNullOrEmpty()) {
-      return priority1
-    }
-    return if (priority1.isNullOrBlank()) {
-      if (!priority2.isNullOrBlank()) {
-        updateContext.modified = true
+  companion object {
+    internal fun getPrioritizedString(priority1: String?, priority2: String?, updateContext: UpdateContext): String? {
+      val p1 = if (priority1.isNullOrBlank()) null else priority1
+      val p2 = if (priority2.isNullOrBlank()) null else priority2
+      if (p1 == p2) {
+        return priority1
       }
-      priority2
-    } else {
       updateContext.modified = true
-      priority1
+      return if (p1 == null) {
+        priority2
+      } else {
+        priority1
+      }
     }
-  }
 
-  protected fun <T> getPrioritizedValue(priority1: T?, priority2: T?, updateContext: UpdateContext): T? {
-    if (priority1 != null && priority1 is String || priority2 != null && priority2 is String) {
-      return getPrioritizedString(priority1 as String?, priority2 as String?, updateContext) as T?
+    /**
+     * For strings, you should (but mustn't) use getPrioritizedString instead.
+     */
+    internal fun <T> getPrioritizedValue(priority1: T?, priority2: T?, updateContext: UpdateContext): T? {
+      if (priority1 is String? && priority2 is String?) {
+        // Calling this function with Strings should use getPrioritizedString instead.
+        @Suppress("UNCHECKED_CAST")
+        return getPrioritizedString(priority1 as String?, priority2 as String?, updateContext) as T?
+      }
+      if (priority1 == priority2) {
+        return priority1
+      }
+      updateContext.modified = true
+      return priority1 ?: priority2
     }
-    if (priority1 == priority2) {
-      return priority1
-    }
-    updateContext.modified = true
-    return priority1 ?: priority2
   }
 }

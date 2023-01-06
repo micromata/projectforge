@@ -53,7 +53,8 @@ import javax.annotation.PostConstruct
 private val log = KotlinLogging.logger {}
 
 /**
- * Handles the login to the dvelop server (if configured and in use).
+ * Handles the login to the dvelop server (if configured and in use) as well as some general client calls.
+ * The login isn't in use (the api works without login).
  *
  * Fragen
  * * Datev-Konto als Entität

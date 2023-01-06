@@ -7,11 +7,6 @@ import org.projectforge.framework.json.JsonUtils
 import org.springframework.stereotype.Service
 
 /**
- * Handles the login to the dvelop server (if configured and in use).
- *
- * Fragen
- * * Datev-Konto als Entität
- *
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 @Service
@@ -23,11 +18,11 @@ class TradingPartnerService :
       throw IllegalArgumentException("Number of existing TradingPartner (oldState) doesn't match new state!")
     }
     val updateContext = UpdateContext()
-    remoteState.company = getPrioritizedValue(localState.company, remoteState.company, updateContext)
+    remoteState.company = getPrioritizedString(localState.company, remoteState.company, updateContext)
     remoteState.shortName = getPrioritizedString(localState.shortName, remoteState.shortName, updateContext)
     remoteState.importCode = getPrioritizedString(localState.importCode, remoteState.importCode, updateContext)
     remoteState.datevKonto = getPrioritizedValue(localState.datevKonto, remoteState.datevKonto, updateContext)
-    remoteState.remarks = getPrioritizedValue(remoteState.remarks, localState.remarks, updateContext)
+    remoteState.remarks = getPrioritizedString(remoteState.remarks, localState.remarks, updateContext)
     if (remoteState.organization == null || remoteState.organization?.id.isNullOrBlank()) {
       remoteState.organization = localState.organization
       updateContext.modified = true
