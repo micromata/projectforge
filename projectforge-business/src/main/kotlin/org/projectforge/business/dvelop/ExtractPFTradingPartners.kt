@@ -209,6 +209,7 @@ class ExtractPFTradingPartners {
       if (existingCustomer != null) {
         if (existingCustomer.datevKonto == null && konto != null) {
           existingCustomer.datevKonto = konto.nummer
+          prependRemarks(existingCustomer, konto)
         }
         return
       }
@@ -221,6 +222,7 @@ class ExtractPFTradingPartners {
             kunde.nummer.toString() // Kundennummer ist nun die PF-Kundennummer (nicht mehr DATEV-Konto)
           existingPartner.shortName = kunde.identifier
           existingPartner.datevKonto = konto.nummer
+          prependRemarks(existingPartner, konto)
           appendRemarks(existingPartner, kunde.description)
           checkBillAddress(existingPartner, invoice)
           return
@@ -253,6 +255,9 @@ class ExtractPFTradingPartners {
     private fun prependRemarks(partner: TradingPartner, konto: KontoDO?) {
       konto ?: return
       val str = "${konto.nummer} ${konto.bezeichnung} (DATEV-Konto)"
+      if (partner.remarks?.contains(str) == true) {
+        return
+      }
       if (partner.remarks.isNullOrBlank()) {
         partner.remarks = str
       } else {
@@ -340,11 +345,11 @@ class ExtractPFTradingPartners {
       vendor.number = number
       vendor.company = kreditor
       vendor.datevKonto = konto.nummer
+      prependRemarks(vendor, konto)
       vendor.organization = TradingPartner.Organization(organizationId)
       vendor.type = TradingPartner.Type(TradingPartner.TypeValue.VENDOR)
       vendor.contactType = TradingPartner.ContactType(TradingPartner.ContactTypeValue.COMPANY)
       vendor.active = TradingPartner.Active(TradingPartner.ActiveValue.TRUE) // Nothing known about activity.
-      prependRemarks(vendor, konto)
       return vendor
     }
 
@@ -361,6 +366,7 @@ class ExtractPFTradingPartners {
       customer.company = kundeName
       customer.shortName = kundeShortName
       customer.datevKonto = konto?.nummer
+      prependRemarks(customer, konto)
       customer.number = number
       customer.importCode = number
       customer.organization = TradingPartner.Organization(organizationId)
@@ -371,7 +377,6 @@ class ExtractPFTradingPartners {
       } else {
         TradingPartner.Active(TradingPartner.ActiveValue.FALSE)
       }
-      prependRemarks(customer, konto)
       appendRemarks(customer, kundeDescription)
       checkBillAddress(customer, invoice)
       return customer
