@@ -47,7 +47,7 @@ class TradingPartner {
       if (other == null || other !is Organization) {
         return false
       }
-      return id.equals(other.id)
+      return id == other.id
     }
 
     override fun hashCode(): Int {
