@@ -115,8 +115,9 @@ object SQLHelper {
 
 
     internal fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
+        val queryString = query.unwrap(org.hibernate.Query::class.java).getQueryString()
         val sb = StringBuilder()
-        sb.append("query='$query', params=[") //query.getQueryString())
+        sb.append("query='$queryString', params=[") //query.getQueryString())
         var first = true
         try {
             for (param in query.parameters) { // getParameterMetadata().getNamedParameterNames()
@@ -124,7 +125,7 @@ object SQLHelper {
                     sb.append(",")
                 else
                     first = false
-                sb.append("$param=[${query.getParameterValue(param)}]")
+                sb.append("${param.name}=[${query.getParameterValue(param)}]")
             }
         } catch (ex: Exception) {
             // Do nothing: Session/EntityManager closed.
