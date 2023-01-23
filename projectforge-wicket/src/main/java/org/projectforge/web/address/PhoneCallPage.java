@@ -25,11 +25,11 @@ package org.projectforge.web.address;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
@@ -248,7 +248,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
       form.lastSuccessfulPhoneCall = new Date();
       String resultStatus = null;
       try (final CloseableHttpResponse httpResponse = client.execute(method)) {
-        final int statusCode = httpResponse.getStatusLine().getStatusCode();
+        final int statusCode = httpResponse.getCode();
         if (statusCode == HttpStatus.SC_OK) {
           final InputStream stream = httpResponse.getEntity().getContent();
           resultStatus = IOUtils.toString(stream, StandardCharsets.UTF_8);

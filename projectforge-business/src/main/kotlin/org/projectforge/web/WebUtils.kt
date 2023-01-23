@@ -23,7 +23,7 @@
 
 package org.projectforge.web
 
-import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.hc.core5.net.URLEncodedUtils
 import java.net.InetAddress
 import java.net.URI
 import java.net.URLEncoder
