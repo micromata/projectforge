@@ -369,7 +369,7 @@ public class UserService {
   }
 
   private List<I18nKeyAndParams> doWlanPasswordChange(final PFUserDO user, final char[] newWlanPassword) {
-    onWlanPasswordChange(user, true); // set last change time and creaty history entry
+    onWlanPasswordChange(user, true); // set last change time and create history entry
     Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
     return Collections.emptyList();

@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 private val log = KotlinLogging.logger {}
 
 /**
- * This job is running hourly and will sent notifications to observers if any action was audited in their observed
+ * This job is running hourly and will send notifications to observers if any action was audited in their observed
  * data transfer areas.
  * Outdated audit entries (older than 30 days will be deleted).
  */
