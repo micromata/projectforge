@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.jobs.JobHandler
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -58,6 +59,9 @@ open class UserGroupCache() : AbstractCache() {
 
   @Autowired
   private lateinit var employeeDao: EmployeeDao
+
+  @Autowired
+  private lateinit var jobHandler: JobHandler
 
   @PostConstruct
   private fun postConstruct() {
@@ -508,6 +512,9 @@ open class UserGroupCache() : AbstractCache() {
     Login.getInstance().afterUserGroupCacheRefresh(users, groups)
     val end = System.currentTimeMillis()
     log.info("UserGroupCache.refresh took: " + (end - begin) + " ms.")
+    Thread {
+      jobHandler.checkStatus()
+    }.start()
   }
 
   @Synchronized
