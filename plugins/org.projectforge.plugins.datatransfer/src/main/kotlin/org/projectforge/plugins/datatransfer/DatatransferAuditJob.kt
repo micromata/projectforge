@@ -69,6 +69,7 @@ class DatatransferAuditJob {
       val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)
       if (!auditEntries.isNullOrEmpty()) {
         dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
+        ++sentMailCounter
         dataTransferAuditDao.removeFromQueue(auditEntries)
       }
     }
