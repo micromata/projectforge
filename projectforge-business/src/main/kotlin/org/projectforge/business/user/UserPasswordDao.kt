@@ -177,13 +177,16 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     val passwordObj = internalGetByUserId(user.id) ?: return
     passwordObj.checkAndFixPassword()
     if (passwordObj.passwordHash != null) {
+      user.lastPasswordChange = Date()
       if (createHistoryEntry) {
-        HistoryBaseDaoAdapter.wrapHistoryUpdate(user) {
-          user.lastPasswordChange = Date()
-          ModificationStatus.MAJOR
+        emgrFactory.runInTrans{ emgr ->
+          val dbUser = userDao.internalGetById(user.id)
+          HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser) {
+            user.lastPasswordChange = Date()
+            emgr.update(dbUser)
+            ModificationStatus.MAJOR
+          }
         }
-      } else {
-        user.lastPasswordChange = Date()
       }
       if (user.id != null) {
         // Renew token only for existing users.
@@ -198,13 +201,16 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
   }
 
   open fun onWlanPasswordChange(user: PFUserDO, createHistoryEntry: Boolean) {
+    user.lastWlanPasswordChange = Date()
     if (createHistoryEntry) {
-      HistoryBaseDaoAdapter.wrapHistoryUpdate(user) {
-        user.lastWlanPasswordChange = Date()
-        ModificationStatus.MAJOR
+      emgrFactory.runInTrans{ emgr ->
+        val dbUser = userDao.internalGetById(user.id)
+        HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser) {
+          dbUser.lastWlanPasswordChange = Date()
+          emgr.update(dbUser)
+          ModificationStatus.MAJOR
+        }
       }
-    } else {
-      user.lastWlanPasswordChange = Date()
     }
   }
 
