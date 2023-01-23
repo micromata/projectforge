@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.lang.management.ManagementFactory
 import javax.annotation.PreDestroy
@@ -52,8 +51,9 @@ class JobHandler {
 
   private val jobs = mutableListOf<AbstractJob>()
 
-  // Runs every minute
-  @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
+  /**
+   * Will be called by JobHandlerScheduler.
+   */
   fun tidyUp() {
     lastRun = System.currentTimeMillis()
     runningJobs.forEach { job ->
@@ -231,7 +231,7 @@ class JobHandler {
         if (processUptime > 5 * Constants.MILLIS_PER_MINUTE) {
           reportErrorMail("ProjectForge is running since $processUptimeFormatted but no scheduled job of JobHandler was running.")
         } else {
-          log.info { "Checking status of Spring's job scheduler: ProjectForge was $processUptimeFormatted ago, no job was scheduled yet (OK)." }
+          log.info { "Checking status of Spring's job scheduler: ProjectForge was started $processUptimeFormatted ago, no job was scheduled yet (OK)." }
         }
       } else {
         val durationSinceLastRun = System.currentTimeMillis() - it
