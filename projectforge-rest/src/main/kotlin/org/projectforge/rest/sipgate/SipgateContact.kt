@@ -27,22 +27,26 @@ package org.projectforge.rest.sipgate
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class SipgateContact {
-  var addressId: String? = null
-  var poBox: String? = null
-  var extendedAddress: String? = null
-  var streetAddress: String? = null
-  var region: String? = null
-  var locality: String? = null
-  var postalCode: String? = null
-  var country: String? = null
-  var countrycode: String? = null
-  var city: String? = null
-  var street: String? = null
-  var postcode: String? = null
-  var emergencyState: String? = null
-  var number: String? = null
-  var state: String? = null
-  var numbersUrl: String? = null
-  var address1: String? = null
-  var address2: String? = null
+  enum class Scope { PRIVATE, SHARED, INTERNAL }
+
+  var id: String? = null
+  var name: String? = null
+  var family: String? = null
+  var given: String? = null
+  var picture: String? = null
+  var emails: Array<SipgateEmail>? = null
+  var numbers: Array<SipgateNumber>? = null
+  var addresses: Array<SipgateAddress>? = null
+  var organization: Array<Array<String>>? = null
+  var scope: Scope? = null
 }
+
+class SipgateEmail(
+  var email: String? = null,
+  var type: Array<String>? = null,
+)
+
+class SipgateNumber(
+  var number: String? = null,
+  var type: Array<String>? = null,
+)

@@ -61,6 +61,16 @@ fun main(args: Array<String>) {
   val list = addressService.getList()
   println("#${list.size} addresses.")
 
-  val contacts = contactService.getList()
+  var contacts = contactService.getList()
   println("#${contacts.size} contacts.")
+
+  val contact = SipgateContact()
+  // contact.id = "1234567890"
+  contact.name = "Hurzel Meier"
+  contact.scope = SipgateContact.Scope.SHARED
+  // contact.emails = arrayOf(SipgateEmail("kai@acme.com", arrayOf("business")))
+  contactService.create(contact)
+  contacts = contactService.getList()
+  println("#${contacts.size} contacts.")
+
 }

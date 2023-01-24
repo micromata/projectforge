@@ -24,7 +24,9 @@
 package org.projectforge.rest.sipgate
 
 import mu.KotlinLogging
+import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.util.UriBuilder
 import javax.annotation.PostConstruct
@@ -64,5 +66,28 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
     fromJson(response)?.items?.let { result.addAll(it) }
     log.info { "Got ${result.size} entries of $entityName from Sipgate." }
     return result
+  }
+
+  fun create(entity: T): Boolean {
+    val json = JsonUtils.toJson(entity, true)
+    try {
+      val uriSpec = webClient.post()
+      if (debugConsoleOutForTesting) {
+        println("create body: $json")
+      }
+      log.info { "Trying to create $entityName in Sipgate: $json" }
+      val bodySpec = uriSpec.uri(path)
+        .body(
+          BodyInserters.fromValue(json)
+        )
+      val response = sipgateClient.execute(bodySpec, String::class.java)
+      if (debugConsoleOutForTesting) {
+        println("response: $response")
+      }
+      return true
+    } catch (ex: Exception) {
+      log.error("Error while creating $entityName in Sipgate: ${ex.message}: $json")
+      return false
+    }
   }
 }
