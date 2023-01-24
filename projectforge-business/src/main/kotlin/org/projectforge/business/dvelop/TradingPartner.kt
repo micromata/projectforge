@@ -56,6 +56,9 @@ class TradingPartner {
   }
 
   companion object {
+    /**
+     * The field id of D-velop for identiing the DatevKonto field.
+     */
     var datevKontoFieldId: String? = null
       set(value) {
         field = if (value.isNullOrBlank()) {
