@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class SipgateAddressService :
-  AbstractService<SipgateAddress>("/addresses", "Address") {
+  AbstractSipgateService<SipgateAddress>("/addresses", "Address") {
 
   override fun fromJson(response: String): AddressListData? {
     return JsonUtils.fromJson(response, AddressListData::class.java, false)

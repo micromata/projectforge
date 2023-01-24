@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class TradingPartnerService :
-  AbstractService<TradingPartner>("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners", "TradingPartner") {
+  AbstractDvelopService<TradingPartner>("/alphaflow-tradingpartner/tradingpartnerservice/tradingpartners", "TradingPartner") {
 
   override fun buildUpdateEntity(localState: TradingPartner, remoteState: TradingPartner): TradingPartner? {
     if (localState.number != remoteState.number) {
