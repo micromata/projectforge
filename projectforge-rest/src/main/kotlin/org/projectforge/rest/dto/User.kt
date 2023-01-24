@@ -80,6 +80,7 @@ class User(
    * For admin's user page for setting initial password while creating new users.
    */
   var password: String? = null
+
   /**
    * For admin's user page for setting initial wlan password while creating new users.
    */

@@ -261,7 +261,7 @@
         <rhino.version>1.7.14</rhino.version>
         <springfox-swagger.version>3.0.0</springfox-swagger.version>
         <spring.version>5.3.24</spring.version> <!-- Should match spring boot's parent pom -->
-        <spring.boot.version>2.7.6</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+        <spring.boot.version>2.7.7</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
         <webauthn4j.version>0.20.5.RELEASE</webauthn4j.version>
         <wicket.version>8.14.0</wicket.version>
         <wicket-stuff.version>8.14.0</wicket-stuff.version>
