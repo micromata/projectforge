@@ -37,7 +37,7 @@ private val log = KotlinLogging.logger {}
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractService<T>(val path: String, val entityName: String) {
+abstract class AbstractDvelopService<T>(val path: String, val entityName: String) {
   class UpdateContext(var modified: Boolean = false)
 
   @Autowired

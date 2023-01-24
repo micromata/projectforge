@@ -49,16 +49,16 @@ class AbstractServiceTest {
   }
 
   private fun checkPrioritizedString(p1: String?, p2: String?, exptectedResult: String?, expectedModified: Boolean) {
-    val updateContext = AbstractService.UpdateContext()
-    Assertions.assertEquals(exptectedResult,  AbstractService.getPrioritizedString(p1, p2, updateContext))
+    val updateContext = AbstractDvelopService.UpdateContext()
+    Assertions.assertEquals(exptectedResult,  AbstractDvelopService.getPrioritizedString(p1, p2, updateContext))
     Assertions.assertEquals(expectedModified, updateContext.modified)
 
     checkPrioritizedValue(p1, p2, exptectedResult, expectedModified)
   }
 
   private fun <T>checkPrioritizedValue(p1: T?, p2: T?, exptectedResult: T?, expectedModified: Boolean) {
-    val updateContext = AbstractService.UpdateContext()
-    Assertions.assertEquals(exptectedResult,  AbstractService.getPrioritizedValue(p1, p2, updateContext))
+    val updateContext = AbstractDvelopService.UpdateContext()
+    Assertions.assertEquals(exptectedResult,  AbstractDvelopService.getPrioritizedValue(p1, p2, updateContext))
     Assertions.assertEquals(expectedModified, updateContext.modified)
   }
 }
