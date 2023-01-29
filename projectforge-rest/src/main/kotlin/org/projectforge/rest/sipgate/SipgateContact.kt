@@ -69,6 +69,16 @@ class SipgateContact {
   var scope: Scope? = null
 }
 
+class SipgateAddress {
+  var poBox: String? = null
+  var extendedAddress: String? = null
+  var streetAddress: String? = null
+  var region: String? = null
+  var locality: String? = null
+  var postalCode: String? = null
+  var country: String? = null
+}
+
 class SipgateEmail(
   var email: String? = null,
   @JsonIgnore
@@ -92,5 +102,41 @@ class SipgateEmail(
 
 class SipgateNumber(
   var number: String? = null,
-  var type: Array<String>? = null,
-)
+) {
+  var type: Array<String>? = null
+
+  fun setHome(): SipgateNumber {
+    type = arrayOf("home")
+    return this
+  }
+
+  fun setWork(): SipgateNumber {
+    type = arrayOf("work")
+    return this
+  }
+
+  fun setCell(): SipgateNumber {
+    type = arrayOf("cell")
+    return this
+  }
+
+  fun setFaxHome(): SipgateNumber {
+    type = arrayOf("fax", "home")
+    return this
+  }
+
+  fun setFaxWork(): SipgateNumber {
+    type = arrayOf("fax", "work")
+    return this
+  }
+
+  fun setPager(): SipgateNumber {
+    type = arrayOf("pager")
+    return this
+  }
+
+  fun setOther(): SipgateNumber {
+    type = arrayOf("other")
+    return this
+  }
+}

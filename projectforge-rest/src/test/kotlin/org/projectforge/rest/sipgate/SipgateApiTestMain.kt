@@ -24,6 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import org.junit.jupiter.api.Assertions
+import org.projectforge.business.address.AddressDO
 import java.util.*
 import kotlin.io.path.Path
 
@@ -49,36 +50,45 @@ fun main(args: Array<String>) {
   sipgateClient.sipgateConfiguration = config
   sipgateClient.postConstruct()
 
-  val addressService = SipgateAddressService()
-  addressService.sipgateClient = sipgateClient
-  addressService.debugConsoleOutForTesting = true
-  addressService.postConstruct()
-
   val contactService = SipgateContactService()
   contactService.sipgateClient = sipgateClient
   contactService.debugConsoleOutForTesting = true
   contactService.postConstruct()
 
-  val list = addressService.getList()
-  println("#${list.size} addresses.")
-
   var contacts = contactService.getList()
   println("#${contacts.size} contacts.")
 
-  var contact = SipgateContact()
-  // IDs given by Sipgate! contact.id = "077EE02A-9AEF-11ED-BFEA-BEA196FC4242"
-  contact.name = "Hurzel Meier"
-  contact.scope = SipgateContact.Scope.SHARED
-  contact.organization = "Micromata GmbH"
-  contact.division = "DevOps"
-  contact.emails = arrayOf(SipgateEmail("kai@acme.com", type = SipgateContact.EmailType.HOME))
-  contactService.create(contact)
+  val addressDO = AddressDO()
+  addressDO.name = "Meier"
+  addressDO.firstName = "Hurzel"
+  addressDO.organization = "Micromata GmbH"
+  addressDO.division = "DevOps"
+  addressDO.privateEmail = "kai@acme.com"
+  addressDO.email = "business@acme.com"
+  addressDO.addressText = "Marie-Calm-Str. 1-5"
+  addressDO.zipCode = "34131"
+  addressDO.city = "Kassel"
+  addressDO.businessPhone = "0123"
+  addressDO.privatePhone = "1234"
+  addressDO.mobilePhone = "2345"
+  addressDO.fax = "3456"
+
+  contactService.create(SipgateContactSync.from(addressDO))
   contacts = contactService.getList()
-  contact = contacts.find { it.name == "Hurzel Meier" }!!
+  var contact = contacts.find { it.name == "Hurzel Meier" }!!
   Assertions.assertEquals(SipgateContact.Scope.SHARED, contact.scope)
   Assertions.assertEquals("Micromata GmbH", contact.organization)
   Assertions.assertEquals("DevOps", contact.division)
-  Assertions.assertEquals("kai@acme.com", contact.emails?.firstOrNull()?.email)
+  val emails = contact.emails
+  Assertions.assertEquals(2, emails!!.size)
+  Assertions.assertEquals("kai@acme.com", emails.find { it.type == SipgateContact.EmailType.HOME }!!.email)
+  Assertions.assertEquals("business@acme.com", emails.find { it.type == SipgateContact.EmailType.WORK }!!.email)
+  Assertions.assertEquals(1, contact.addresses!!.size)
+  val address = contact.addresses!!.first()
+  Assertions.assertEquals("Marie-Calm-Str. 1-5", address.streetAddress)
+  Assertions.assertEquals("34131", address.postalCode)
+  Assertions.assertEquals("Kassel", address.locality)
+
 
   println("#${contacts.size} contacts.")
   val size = contacts.size
