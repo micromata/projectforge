@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
+import org.junit.jupiter.api.Assertions
 import java.util.*
 import kotlin.io.path.Path
 
@@ -64,13 +65,37 @@ fun main(args: Array<String>) {
   var contacts = contactService.getList()
   println("#${contacts.size} contacts.")
 
-  val contact = SipgateContact()
-  // contact.id = "1234567890"
+  var contact = SipgateContact()
+  // IDs given by Sipgate! contact.id = "077EE02A-9AEF-11ED-BFEA-BEA196FC4242"
   contact.name = "Hurzel Meier"
   contact.scope = SipgateContact.Scope.SHARED
-  // contact.emails = arrayOf(SipgateEmail("kai@acme.com", arrayOf("business")))
+  contact.organization = "Micromata GmbH"
+  contact.division = "DevOps"
+  contact.emails = arrayOf(SipgateEmail("kai@acme.com", type = SipgateContact.EmailType.HOME))
   contactService.create(contact)
   contacts = contactService.getList()
-  println("#${contacts.size} contacts.")
+  contact = contacts.find { it.name == "Hurzel Meier" }!!
+  Assertions.assertEquals(SipgateContact.Scope.SHARED, contact.scope)
+  Assertions.assertEquals("Micromata GmbH", contact.organization)
+  Assertions.assertEquals("DevOps", contact.division)
+  Assertions.assertEquals("kai@acme.com", contact.emails?.firstOrNull()?.email)
 
+  println("#${contacts.size} contacts.")
+  val size = contacts.size
+
+  contact.division = "Sysop"
+  contact.emails?.firstOrNull()?.email = "reinhard@acme.com"
+  Assertions.assertTrue(contactService.update(contact.id!!, contact))
+  contact.division = null
+  contact.emails = null
+  contacts = contactService.getList()
+  contact = contacts.find { it.name == "Hurzel Meier" }!!
+
+  Assertions.assertEquals("Sysop", contact.division)
+  Assertions.assertEquals("reinhard@acme.com", contact.emails?.firstOrNull()?.email)
+
+  contactService.delete(contact.id, contact)
+  contacts = contactService.getList()
+  Assertions.assertEquals(size -1, contacts.size)
+  println("#${contacts.size} contacts.")
 }

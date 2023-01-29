@@ -23,11 +23,18 @@
 
 package org.projectforge.rest.sipgate
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class SipgateContact {
   enum class Scope { PRIVATE, SHARED, INTERNAL }
+
+  enum class EmailType { HOME, WORK, OTHER }
+
+  enum class NumberType { HOME, WORK, CELL, FAX_HOME, FAX_WORK, PAGER, OTHER }
 
   var id: String? = null
   var name: String? = null
@@ -37,14 +44,51 @@ class SipgateContact {
   var emails: Array<SipgateEmail>? = null
   var numbers: Array<SipgateNumber>? = null
   var addresses: Array<SipgateAddress>? = null
-  var organization: Array<Array<String>>? = null
+
+  var organizationArray: Array<Array<String>>?
+    @JsonProperty("organization")
+    get() {
+      if (organization == null && division == null) {
+        return null
+      }
+      val list = mutableListOf(organization ?: "")
+      division?.let { list.add(it) }
+      return arrayOf(list.toTypedArray())
+    }
+    set(value) {
+      organization = value?.firstOrNull()?.firstOrNull()
+      division = value?.firstOrNull()?.getOrNull(1)
+    }
+
+  @JsonIgnore
+  var organization: String? = null
+
+  @JsonIgnore
+  var division: String? = null
+
   var scope: Scope? = null
 }
 
 class SipgateEmail(
   var email: String? = null,
-  var type: Array<String>? = null,
-)
+  @JsonIgnore
+  var type: SipgateContact.EmailType? = null,
+) {
+  @get:JsonProperty("type")
+  var typeArray: Array<String>?
+    set(value) {
+      type = when (value?.firstOrNull()) {
+        "home" -> SipgateContact.EmailType.HOME
+        "work" -> SipgateContact.EmailType.WORK
+        "other" -> SipgateContact.EmailType.OTHER
+        else -> null
+      }
+    }
+    get() {
+      val value = type?.name?.lowercase() ?: return null
+      return arrayOf(value)
+    }
+}
 
 class SipgateNumber(
   var number: String? = null,
