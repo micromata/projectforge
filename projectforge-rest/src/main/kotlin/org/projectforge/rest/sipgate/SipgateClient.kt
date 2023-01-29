@@ -96,7 +96,7 @@ class SipgateClient {
   /**
    * @throws HttpException
    */
-  internal fun <T> execute(headersSpec: WebClient.RequestHeadersSpec<*>, expectedReturnClass: Class<T>): T {
+  internal fun <T> execute(headersSpec: WebClient.RequestHeadersSpec<*>, expectedReturnClass: Class<T>, successStatus: HttpStatus = HttpStatus.OK): T {
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .accept(MediaType.APPLICATION_JSON)
@@ -107,7 +107,7 @@ class SipgateClient {
       //.bodyToMono(String::class.java)
       //.block()
       .exchangeToMono { response ->
-        if (response.statusCode().equals(HttpStatus.OK)) {
+        if (response.statusCode() == successStatus) {
           if (debugConsoleOutForTesting) {
             println("Success")
           }
