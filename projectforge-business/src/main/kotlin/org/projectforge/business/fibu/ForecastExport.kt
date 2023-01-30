@@ -439,8 +439,10 @@ open class ForecastExport { // open needed by Wicket.
       val sb = StringBuilder()
       var first = true
       for (schedule in paymentSchedules) {
-        if (schedule.vollstaendigFakturiert) // Ignore payments already invoiced.
+        if (schedule.vollstaendigFakturiert) { // Ignore payments already invoiced.
+          schedule.amount?.let { sum += it }
           continue
+        }
         val amount = schedule.amount!!.multiply(probability)
         sum += amount
         schedule.scheduleDate?.let { scheduleDate ->
@@ -575,7 +577,7 @@ open class ForecastExport { // open needed by Wicket.
             // Distribute payments only in future
             ctx.forecastSheet.setBigDecimalValue(row, columnDef, value).cellStyle = ctx.currencyCellStyle
           }
-          futureInvoicesAmountRest += value // Don't forecast more than to be invoiced.
+          futureInvoicesAmountRest -= value // Don't forecast more than to be invoiced.
         }
       }
     }
