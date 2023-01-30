@@ -180,9 +180,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
       user.lastPasswordChange = Date()
       if (createHistoryEntry) {
         emgrFactory.runInTrans{ emgr ->
-          val dbUser = userDao.internalGetById(user.id)
+          val dbUser = em.getReference(PFUserDO::class.java, user.id)
           HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser) {
-            user.lastPasswordChange = Date()
+            dbUser.lastPasswordChange = Date()
             emgr.update(dbUser)
             ModificationStatus.MAJOR
           }
@@ -204,7 +204,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     user.lastWlanPasswordChange = Date()
     if (createHistoryEntry) {
       emgrFactory.runInTrans{ emgr ->
-        val dbUser = userDao.internalGetById(user.id)
+        val dbUser = em.getReference(PFUserDO::class.java, user.id)
         HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser) {
           dbUser.lastWlanPasswordChange = Date()
           emgr.update(dbUser)
