@@ -459,8 +459,8 @@ open class ForecastExport { // open needed by Wicket.
       beginDistribute = ForecastUtils.getStartLeistungszeitraum(order, pos)
     }
     // compute diff, return if diff is empty
-    val diff = probabilityNetSum - sumPaymentSchedule
-    if (diff.compareTo(BigDecimal.ZERO) == 0) {
+    val probabilityNetSumWithoutPaymentSchedule = probabilityNetSum - sumPaymentSchedule
+    if (probabilityNetSumWithoutPaymentSchedule.compareTo(BigDecimal.ZERO) == 0) {
       return
     }
     // handle diff
@@ -472,11 +472,16 @@ open class ForecastExport { // open needed by Wicket.
         ) + 1 // Will be invoiced 1 month later (+1)
         if (indexEnd in 0..11) {
           val firstMonthCol = ctx.forecastSheet.getColumnDef(MonthCol.MONTH1.header)!!.columnNumber
-          ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, diff).cellStyle = ctx.currencyCellStyle
+          val value = if (probabilityNetSumWithoutPaymentSchedule > toBeInvoicedSum) {
+            toBeInvoicedSum
+          } else {
+            probabilityNetSumWithoutPaymentSchedule
+          }
+          ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, value).cellStyle = ctx.currencyCellStyle
         }
       }
       else -> {
-        fillMonthColumnsDistributed(diff, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
+        fillMonthColumnsDistributed(probabilityNetSumWithoutPaymentSchedule, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
       }
     }
   }
@@ -544,7 +549,7 @@ open class ForecastExport { // open needed by Wicket.
   }
 
   private fun fillMonthColumnsDistributed(
-    value: BigDecimal, ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO,
+    probabilityNetSumWithoutPaymentSchedule: BigDecimal, ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO,
     beginDistribute: PFDay, toBeInvoicedSum: BigDecimal
   ) {
     val currentMonth = getMonthIndex(ctx, ctx.thisMonth)
@@ -556,29 +561,30 @@ open class ForecastExport { // open needed by Wicket.
     if (indexEnd < indexBegin) { // should not happen
       return
     }
-    val partlyNettoSum = value.divide(BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()), RoundingMode.HALF_UP)
+    val partlyNettoSum = probabilityNetSumWithoutPaymentSchedule.divide(BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()), RoundingMode.HALF_UP)
+    var futureInvoicesAmountRest = toBeInvoicedSum
     MonthCol.values().forEach {
       val month = it.ordinal
       if (month in indexBegin..indexEnd) {
         val columnDef = ctx.forecastSheet.getColumnDef(it.header)
         if (month >= currentMonth) {
-          // Distribute payments only in future
-          ctx.forecastSheet.setBigDecimalValue(row, columnDef, partlyNettoSum).cellStyle = ctx.currencyCellStyle
+          val value = if (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO) { futureInvoicesAmountRest } else {
+            partlyNettoSum
+          }
+          if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)
+            // Distribute payments only in future
+            ctx.forecastSheet.setBigDecimalValue(row, columnDef, value).cellStyle = ctx.currencyCellStyle
+          }
+          futureInvoicesAmountRest += value // Don't forecast more than to be invoiced.
         }
       }
     }
     // Calculate the difference between to be invoiced sum and forecasted sums:
-    var futureInvoicesAmount = toBeInvoicedSum.negate()
-    for (m in indexBegin..indexEnd) {
-      if (m >= currentMonth) {
-        futureInvoicesAmount += partlyNettoSum
-      }
-    }
-    if (futureInvoicesAmount.abs() > BigDecimal.ONE) { // Only differences greater than 1 Euro
+    if (futureInvoicesAmountRest.abs() > BigDecimal.ONE) { // Only differences greater than 1 Euro
       ctx.forecastSheet.setBigDecimalValue(
         row,
         ctx.forecastSheet.getColumnDef(ForecastCol.DIFFERENCE.header),
-        futureInvoicesAmount
+        futureInvoicesAmountRest
       ).cellStyle = ctx.currencyCellStyle
     }
   }
