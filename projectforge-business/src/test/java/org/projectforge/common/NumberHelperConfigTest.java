@@ -24,12 +24,10 @@
 package org.projectforge.common;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -38,9 +36,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class NumberHelperConfigTest extends AbstractTestBase
 {
-  @Autowired
-  private UserGroupCache userGroupCache;
-
   @Test
   public void greaterZero()
   {

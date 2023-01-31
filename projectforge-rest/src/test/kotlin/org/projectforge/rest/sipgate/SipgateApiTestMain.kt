@@ -73,7 +73,7 @@ fun main(args: Array<String>) {
   addressDO.mobilePhone = "2345"
   addressDO.fax = "3456"
 
-  contactService.create(SipgateContactSync.from(addressDO))
+  contactService.create(SipgateContactSyncService.from(addressDO))
   contacts = contactService.getList()
   var contact = contacts.find { it.name == "Hurzel Meier" }!!
   Assertions.assertEquals(SipgateContact.Scope.SHARED, contact.scope)

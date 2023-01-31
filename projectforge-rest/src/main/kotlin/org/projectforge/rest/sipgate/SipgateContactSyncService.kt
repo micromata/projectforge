@@ -24,15 +24,18 @@
 package org.projectforge.rest.sipgate
 
 import org.projectforge.business.address.AddressDO
+import org.projectforge.framework.utils.NumberHelper
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-object SipgateContactSync {
+object SipgateContactSyncService {
+  internal var countryPrefixForTestcases: String? = null
+
   fun from(address: AddressDO): SipgateContact {
     val contact = SipgateContact()
     // contact.id
-    contact.name = address.fullNameWithTitleAndForm
+    contact.name = getName(address)
     contact.family = address.name
     contact.given = address.firstName
     // var picture: String? = null
@@ -77,6 +80,80 @@ object SipgateContactSync {
     contact.division = address.division
     contact.scope = SipgateContact.Scope.SHARED
     return contact
+  }
+
+  fun getName(address: AddressDO): String {
+    val sb = StringBuilder()
+    /*address.title?.let {
+      sb.append(it.trim()).append(" ")
+    }*/
+    address.firstName?.let {
+      sb.append(it.trim()).append(" ")
+    }
+    address.name?.let {
+      sb.append(it.trim()).append(" ")
+    }
+    return sb.toString().trim()
+  }
+
+  /**
+   * Tries to find the contact with the best match (
+   */
+  fun findBestMatch(contacts: List<SipgateContact>, address: AddressDO): SipgateContact? {
+    val matches =
+      contacts.filter { it.name?.trim()?.lowercase() == getName(address).lowercase() }
+    if (matches.isEmpty()) {
+      return null
+    }
+    if (matches.size == 1) {
+      return matches.first()
+    }
+    return matches.maxBy { matchScore(it, address) }
+  }
+
+  internal fun matchScore(contact: SipgateContact, address: AddressDO): Int {
+    if (contact.name?.trim()?.lowercase() != getName(address).lowercase()) {
+      return -1
+    }
+    var counter = 1
+    val numbers = arrayOf(
+      extractNumber(address.businessPhone),
+      extractNumber(address.mobilePhone),
+      extractNumber(address.privateMobilePhone),
+      extractNumber(address.privatePhone),
+      extractNumber(address.fax),
+    )
+    contact.numbers?.forEach { number ->
+      val extractedNumber = extractNumber(number.number)
+      numbers.forEach { if (it != null && extractedNumber == it) ++counter }
+    }
+    contact.emails?.forEach { email ->
+      val str = email.email?.trim()?.lowercase()
+      if (str != null && str == address.email?.trim()?.lowercase() || str == address.privateEmail?.trim()?.lowercase()) {
+        ++counter
+      }
+    }
+    contact.addresses?.forEach { adr ->
+      val str = adr.postalCode?.trim()?.lowercase()
+      if (str != null && str == address.zipCode?.trim() || str == address.privateZipCode) {
+        ++counter
+      }
+    }
+    if (address.division != null && contact.division?.trim()?.lowercase() == address.division?.trim()?.lowercase()) {
+      ++counter
+    }
+    if (address.organization != null && contact.organization?.trim()?.lowercase() == address.organization?.trim()?.lowercase()) {
+      ++counter
+    }
+    return counter
+  }
+
+  private fun extractNumber(number: String?): String? {
+    number ?: return null
+    if (countryPrefixForTestcases != null) {
+      return NumberHelper.extractPhonenumber(number, countryPrefixForTestcases)
+    }
+    return NumberHelper.extractPhonenumber(number)
   }
 
   private fun createAddress(
