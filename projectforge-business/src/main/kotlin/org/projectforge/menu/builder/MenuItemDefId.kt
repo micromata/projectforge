@@ -121,6 +121,6 @@ private fun getReactListUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name"
 }
 
-private fun getReactDynamicPageUrl(name: String): String {
+fun getReactDynamicPageUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name/dynamic"
 }

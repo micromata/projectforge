@@ -28,6 +28,12 @@ import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.menu.builder.MenuCreator
+import org.projectforge.menu.builder.MenuItemDef
+import org.projectforge.menu.builder.MenuItemDefId
+import org.projectforge.menu.builder.getReactDynamicPageUrl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -56,12 +62,16 @@ class SipgateClient {
   @Autowired
   internal lateinit var sipgateConfiguration: SipgateConfiguration
 
+  @Autowired
+  private lateinit var accessChecker: AccessChecker
+
+  @Autowired
+  private lateinit var menuCreator: MenuCreator
+
   internal var debugConsoleOutForTesting = false
 
   private val timeoutMillis = 30000
   private val timeoutMillisLong = 30000L
-
-  private var initalized = false
 
   private var httpClient: HttpClient = HttpClient.create()
     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutMillis)
@@ -91,12 +101,25 @@ class SipgateClient {
       .defaultHeader("Authorization", "Basic $base64")
       .defaultUriVariables(Collections.singletonMap("url", "baseUri"))
       .build()
+
+    if (sipgateConfiguration.isConfigured()) {
+      menuCreator
+        .register(
+          MenuItemDefId.ADMINISTRATION,
+          MenuItemDef(id = "Sipgate", i18nKey = "sipgate.title", url = getReactDynamicPageUrl("sipgate"),
+            checkAccess = { accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.ADMIN_GROUP) })
+        )
+    }
   }
 
   /**
    * @throws HttpException
    */
-  internal fun <T> execute(headersSpec: WebClient.RequestHeadersSpec<*>, expectedReturnClass: Class<T>, successStatus: HttpStatus = HttpStatus.OK): T {
+  internal fun <T> execute(
+    headersSpec: WebClient.RequestHeadersSpec<*>,
+    expectedReturnClass: Class<T>,
+    successStatus: HttpStatus = HttpStatus.OK
+  ): T {
     val mono = headersSpec
       .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
       .accept(MediaType.APPLICATION_JSON)
