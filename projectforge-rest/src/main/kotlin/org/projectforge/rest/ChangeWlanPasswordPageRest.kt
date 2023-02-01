@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -42,9 +41,6 @@ private val log = KotlinLogging.logger {}
 @RequestMapping("${Rest.URL}/changeWlanPassword")
 class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
   @Autowired
-  private lateinit var userDao: UserDao
-
-  @Autowired
   private lateinit var userService: UserService
 
   @Autowired
@@ -56,10 +52,10 @@ class ChangeWlanPasswordPageRest : AbstractDynamicPageRest() {
     return changePasswordPageRest.internalSave(request, postData) { data, changeOwn ->
       if (changeOwn) {
         log.info { "The user wants to change his WLAN/Samba password." }
-        userService.changeWlanPassword(userDao.getById(data.userId), data.loginPassword, data.newPassword)
+        userService.changeWlanPassword(data.userId, data.loginPassword, data.newPassword)
       } else {
         log.info { "Admin user wants to change WLAN/Samba password of user '${data.userDisplayName}' with id ${data.userId}." }
-        userService.changeWlanPasswordByAdmin(userDao.getById(data.userId), data.newPassword)
+        userService.changeWlanPasswordByAdmin(data.userId, data.newPassword)
       }
     }
   }
