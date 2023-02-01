@@ -285,7 +285,7 @@ public class UserService {
       return errorMsgKeys;
     }
     encryptAndSavePassword(user, newPassword);
-    onPasswordChange(user, true);
+    onPasswordChange(user);
     userDao.internalUpdate(user);
     Login.getInstance().passwordChanged(user, newPassword);
     log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
@@ -314,7 +314,7 @@ public class UserService {
       final PFUserDO user = userDao.internalGetById(userId);
       ThreadLocalUserContext.setUser(user);
       encryptAndSavePassword(user, newPassword);
-      onPasswordChange(user, true);
+      onPasswordChange(user);
       userDao.internalUpdate(user);
       Login.getInstance().passwordChanged(user, newPassword);
       log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
@@ -372,20 +372,17 @@ public class UserService {
   }
 
   private List<I18nKeyAndParams> doWlanPasswordChange(final PFUserDO user, final char[] newWlanPassword) {
-    onWlanPasswordChange(user, true); // set last change time and create history entry
     Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
+    user.setLastWlanPasswordChange(new Date());
+    userDao.internalUpdate(user);
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
     return Collections.emptyList();
   }
 
 
 
-  public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
-    userPasswordDao.onPasswordChange(user, createHistoryEntry);
-  }
-
-  public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
-    userPasswordDao.onWlanPasswordChange(user, createHistoryEntry);
+  public void onPasswordChange(final PFUserDO user) {
+    userPasswordDao.onPasswordChange(user);
   }
 
   /**

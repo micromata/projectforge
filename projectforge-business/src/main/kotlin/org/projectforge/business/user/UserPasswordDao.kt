@@ -32,7 +32,6 @@ import org.projectforge.business.login.PasswordCheckResult
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -173,16 +172,11 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     )
   }
 
-  open fun onPasswordChange(user: PFUserDO, createHistoryEntry: Boolean) {
+  open fun onPasswordChange(user: PFUserDO) {
     val passwordObj = internalGetByUserId(user.id) ?: return
     passwordObj.checkAndFixPassword()
     if (passwordObj.passwordHash != null) {
       user.lastPasswordChange = Date()
-      if (createHistoryEntry) {
-        val dbUser = em.getReference(PFUserDO::class.java, user.id)
-        dbUser.lastPasswordChange = Date()
-        ModificationStatus.MAJOR
-      }
       if (user.id != null) {
         // Renew token only for existing users.
         userAuthenticationsService.renewToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
@@ -192,15 +186,6 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
       throw IllegalArgumentException(
         "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database)."
       )
-    }
-  }
-
-  open fun onWlanPasswordChange(user: PFUserDO, createHistoryEntry: Boolean) {
-    user.lastWlanPasswordChange = Date()
-    if (createHistoryEntry) {
-      val dbUser = em.getReference(PFUserDO::class.java, user.id)
-      dbUser.lastWlanPasswordChange = Date()
-      ModificationStatus.MAJOR
     }
   }
 
