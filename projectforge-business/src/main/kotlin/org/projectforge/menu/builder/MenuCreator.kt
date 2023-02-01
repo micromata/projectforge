@@ -25,6 +25,7 @@ package org.projectforge.menu.builder
 
 import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -40,7 +41,6 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.business.vacation.service.VacationMenuCounterCache
 import org.projectforge.business.vacation.service.VacationService
-import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.IUserRightId
@@ -73,8 +73,6 @@ open class MenuCreator {
   }
 
   private var menuItemDefHolder = MenuItemDefHolder()
-
-  private var menuItemsRegistry = mutableMapOf<String, MutableList<MenuItemDef>>()
 
   @Autowired
   private lateinit var accessChecker: AccessChecker
@@ -132,13 +130,12 @@ open class MenuCreator {
    * @return this for chaining.
    */
   fun register(parentId: String, menuItemDef: MenuItemDef) {
-    synchronized(menuItemsRegistry) {
-      var items = menuItemsRegistry[parentId]
-      if (items == null) {
-        items = mutableListOf()
-        menuItemsRegistry[parentId] = items
+    synchronized(menuItemDefHolder) {
+      findById(parentId)?.let {
+        it.add(menuItemDef)
+      } ?: {
+        log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
       }
-      items.add(menuItemDef)
     }
   }
 
@@ -539,17 +536,6 @@ open class MenuCreator {
     // MISC
     //
     menuItemDefHolder.add(MenuItemDef(MenuItemDefId.MISC))
-
-    menuItemsRegistry.forEach { parentId, list ->
-      val parent = findById(parentId)
-      if (parent == null) {
-        log.error("Can't append menu items to parent menu '$parentId'. Parent not found.")
-      } else {
-        list.forEach { menuItemDef ->
-          add(parent, menuItemDef)
-        }
-      }
-    }
   }
 
   /**
