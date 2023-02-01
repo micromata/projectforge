@@ -33,8 +33,8 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPasswordDO
 import org.projectforge.framework.persistence.utils.SQLHelper
@@ -179,14 +179,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     if (passwordObj.passwordHash != null) {
       user.lastPasswordChange = Date()
       if (createHistoryEntry) {
-        emgrFactory.runInTrans{ emgr ->
-          val dbUser = em.getReference(PFUserDO::class.java, user.id)
-          HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser) {
-            dbUser.lastPasswordChange = Date()
-            emgr.update(dbUser)
-            ModificationStatus.MAJOR
-          }
-        }
+        val dbUser = em.getReference(PFUserDO::class.java, user.id)
+        dbUser.lastPasswordChange = Date()
+        ModificationStatus.MAJOR
       }
       if (user.id != null) {
         // Renew token only for existing users.
@@ -203,14 +198,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
   open fun onWlanPasswordChange(user: PFUserDO, createHistoryEntry: Boolean) {
     user.lastWlanPasswordChange = Date()
     if (createHistoryEntry) {
-      emgrFactory.runInTrans{ emgr ->
-        val dbUser = em.getReference(PFUserDO::class.java, user.id)
-        HistoryBaseDaoAdapter.wrapHistoryUpdate(dbUser) {
-          dbUser.lastWlanPasswordChange = Date()
-          emgr.update(dbUser)
-          ModificationStatus.MAJOR
-        }
-      }
+      val dbUser = em.getReference(PFUserDO::class.java, user.id)
+      dbUser.lastWlanPasswordChange = Date()
+      ModificationStatus.MAJOR
     }
   }
 
