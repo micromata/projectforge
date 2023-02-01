@@ -603,7 +603,7 @@ class UserPagesRest
     }
     if (!wlanPassword.isNullOrBlank() && Login.getInstance().isWlanPasswordChangeSupported(obj)) {
       log.info { "Admin user wants to create WLAN/Samba password of new user '${obj.userDisplayName}' with id ${obj.id}." }
-      userService.changeWlanPasswordByAdmin(obj, wlanPassword.toCharArray())
+      userService.changeWlanPasswordByAdmin(obj.id, wlanPassword.toCharArray())
     }
     return super.onAfterSave(obj, postData)
   }
