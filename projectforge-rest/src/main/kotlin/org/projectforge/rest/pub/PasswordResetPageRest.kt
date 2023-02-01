@@ -191,7 +191,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
     }
     log.info { "The user wants to change his password." }
-    val errorMsgKeys = userService.internalChangePasswordAfter2FA(user.id, newPassword)
+    val errorMsgKeys = userService.internalChangePasswordAfterPasswordReset(user.id, newPassword)
     processErrorKeys(errorMsgKeys)?.let {
       return it // Error messages occured:
     }

@@ -301,7 +301,7 @@ public class UserService {
    * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> internalChangePasswordAfter2FA(final Integer userId, final char[] newPassword) {
+  public List<I18nKeyAndParams> internalChangePasswordAfterPasswordReset(final Integer userId, final char[] newPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(newPassword.length > 0);
@@ -328,18 +328,20 @@ public class UserService {
   /**
    * Changes the user's WLAN password. Checks the password quality and the correct authentication for the login password before.
    *
-   * @param user
+   * @param userId
    * @param loginPassword   Will be cleared at the end of this method due to security reasons
    * @param newWlanPassword Will be cleared at the end of this method due to security reasons
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final char[] loginPassword, final char[] newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPassword(final Integer userId, final char[] loginPassword, final char[] newWlanPassword) {
     try {
-      Validate.notNull(user);
+      Validate.notNull(userId);
       Validate.isTrue(loginPassword.length > 0);
-      Validate.isTrue(Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()), "User is only allowed to change his own Wlan/Samba password-");
-      user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
-      if (user == null) {
+      Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getUserId()), "User is only allowed to change his own Wlan/Samba password-");
+      final PFUserDO user = userDao.internalGetById(userId);
+      Validate.notNull(user);
+      final PFUserDO userCheck = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
+      if (userCheck == null) {
         return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
       }
       return doWlanPasswordChange(user, newWlanPassword);
@@ -354,14 +356,15 @@ public class UserService {
    * Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
    *
    * @param userId
-   * @param newPassword Will be cleared at the end of this method due to security reasons.
+   * @param newWlanPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final PFUserDO user, final char[] newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final Integer userId, final char[] newWlanPassword) {
     try {
-      Validate.notNull(user);
-      Validate.isTrue(!Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
+      Validate.notNull(userId);
+      Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
+      final PFUserDO user = userDao.internalGetById(userId);
       return doWlanPasswordChange(user, newWlanPassword);
     } finally {
       LoginHandler.clearPassword(newWlanPassword);
