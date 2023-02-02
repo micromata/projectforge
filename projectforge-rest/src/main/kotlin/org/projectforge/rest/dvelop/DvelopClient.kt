@@ -35,8 +35,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
+import org.springframework.http.codec.ClientCodecConfigurer
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
+import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec
 import org.springframework.web.util.UriBuilder
@@ -99,7 +101,14 @@ class DvelopClient {
   internal fun postConstruct() {
     val baseUri = dvelopConfiguration.baseUri
     val apiKey = dvelopConfiguration.apiKey
+    val size = 16 * 1024 * 1024 // 16MB
+    val strategies = ExchangeStrategies.builder()
+      .codecs { codecs: ClientCodecConfigurer ->
+        codecs.defaultCodecs().maxInMemorySize(size)
+      }
+      .build()
     webClient = WebClient.builder()
+      .exchangeStrategies(strategies)
       .filters { exchangeFilterFunctions ->
         exchangeFilterFunctions.add(logRequest())
         exchangeFilterFunctions.add(logResponse())

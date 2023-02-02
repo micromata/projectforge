@@ -39,8 +39,10 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
+import org.springframework.http.codec.ClientCodecConfigurer
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
+import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
@@ -50,6 +52,7 @@ import java.time.ZonedDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
+
 
 private val log = KotlinLogging.logger {}
 
@@ -91,7 +94,16 @@ class SipgateClient {
     val token = sipgateConfiguration.token
     val tokenId = sipgateConfiguration.tokenId
     val base64 = base64Credentials(tokenId = tokenId, token = token)
+
+    val size = 16 * 1024 * 1024 // 16MB
+    val strategies = ExchangeStrategies.builder()
+      .codecs { codecs: ClientCodecConfigurer ->
+        codecs.defaultCodecs().maxInMemorySize(size)
+      }
+      .build()
+
     webClient = WebClient.builder()
+      .exchangeStrategies(strategies)
       .filters { exchangeFilterFunctions ->
         exchangeFilterFunctions.add(logRequest())
         exchangeFilterFunctions.add(logResponse())
