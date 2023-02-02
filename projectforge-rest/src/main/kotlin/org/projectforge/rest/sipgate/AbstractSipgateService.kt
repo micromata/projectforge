@@ -53,6 +53,8 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
 
   abstract fun fromJson(json: String): ListData<T>? // JsonUtils.fromJson(response, TradingPartnerListData::class.java, false)
 
+  abstract fun setId(obj: T, id: String)
+
   fun getList(offset: Int = 0, limit: Int = 5000, maxNumberOfPages: Int = 100): List<T> {
     // Parameters: limit=<pagesize>, offset=<page>
     val result = mutableListOf<T>()
@@ -135,6 +137,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
    * @see buildUpdateEntity
    */
   fun update(id: String, entity: T): Boolean {
+    setId(entity, id)
     val json = JsonUtils.toJson(entity, true)
     try {
       val uriSpec = webClient.put()
@@ -146,7 +149,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       if (debugConsoleOutForTesting) {
         println("update body: $json")
       }
-      log.info { "Trying to update $entityName in Sipgate: $json" }
+      log.info { "Trying to update $entityName #$id in Sipgate: $json" }
       val bodySpec = headersSpec.body(
           BodyInserters.fromValue(json)
         )

@@ -36,4 +36,8 @@ class SipgateContactService :
   override fun fromJson(response: String): ContactListData? {
     return JsonUtils.fromJson(response, ContactListData::class.java, false)
   }
+
+  override fun setId(obj: SipgateContact, id: String) {
+    obj.id = id
+  }
 }
