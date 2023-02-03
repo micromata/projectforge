@@ -30,6 +30,25 @@ import org.projectforge.business.address.AddressDO
 
 class SipgateSyncServiceTest {
   @Test
+  fun getNameTest() {
+    Assertions.assertEquals("", SipgateContactSyncService.getName(AddressDO()))
+    Assertions.assertEquals("Reinhard", SipgateContactSyncService.getName(createAddress(name = "Reinhard")))
+    Assertions.assertEquals("Kai", SipgateContactSyncService.getName(createAddress(firstName = "Kai")))
+    Assertions.assertEquals(
+      "Kai Reinhard",
+      SipgateContactSyncService.getName(createAddress(firstName = "Kai Reinhard"))
+    )
+
+    assertName(null, null, null)
+    assertName(null, null, "")
+    assertName("", "Reinhard", "Reinhard")
+    assertName("Kai", "Reinhard", "Kai Reinhard")
+    assertName("Anna-Isabell", "Meier", "Anna-Isabell Meier")
+    assertName("Anna Isabell", "Meier", "Anna Isabell Meier")
+    assertName("Anna Isabell", "Meier-Müller", "Anna Isabell Meier-Müller")
+  }
+
+  @Test
   fun matchTest() {
     SipgateContactSyncService.countryPrefixForTestcases = "+49"
     val address1 = createAddress(name = "Reinhard", firstName = "Kai")
@@ -61,9 +80,15 @@ class SipgateSyncServiceTest {
     Assertions.assertEquals("+49 1234 56789", match!!.numbers!!.first().number)
   }
 
+  private fun assertName(expectedFirstName: String?, expectedName: String?, fullname: String?) {
+    val address = SipgateContactSyncService.extractName(fullname)
+    Assertions.assertEquals(expectedFirstName, address.firstName)
+    Assertions.assertEquals(expectedName, address.name)
+  }
+
   private fun createAddress(
-    name: String,
-    firstName: String,
+    name: String? = null,
+    firstName: String? = null,
     mobilePhone: String? = null,
     fax: String? = null,
   ): AddressDO {
