@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
+import org.projectforge.business.address.AddressDO
 import java.util.*
 
 /**
@@ -36,6 +37,37 @@ import java.util.*
   indexes = [javax.persistence.Index(name = "idx_fk_t_sipgate_contact_id", columnList = "contact_id")]
 )*/
 class SipgateContactSyncDO {
+  class SyncInfo {
+    var lastSync: Date? = null
+    var fieldsInfo = mutableMapOf<String, Int?>()
+    fun create(address: AddressDO) {
+      fieldsInfo["name"] = SipgateContactSyncService.getName(address).hashCode()
+      // family, given
+      // fieldsInfo["picture"] = address
+      fieldsInfo["organization"] = address.organization?.hashCode()
+      fieldsInfo["division"] = address.division?.hashCode()
+      fieldsInfo["email"] = address.email?.hashCode()
+      fieldsInfo["businessPhone"] = address.businessPhone?.hashCode()
+      fieldsInfo["mobilePhone"] = address.mobilePhone?.hashCode()
+      fieldsInfo["privatePhone"] = address.privatePhone?.hashCode()
+      fieldsInfo["privateMobilePhone"] = address.privateMobilePhone?.hashCode()
+      fieldsInfo["addressText"] = address.addressText?.hashCode()
+      fieldsInfo["addressText2"] = address.addressText2?.hashCode()
+      fieldsInfo["zipCode"] = address.zipCode?.hashCode()
+      fieldsInfo["city"] = address.city?.hashCode()
+      fieldsInfo["state"] = address.state?.hashCode()
+      fieldsInfo["country"] = address.country?.hashCode()
+      fieldsInfo["privateAddressText"] = address.privateAddressText?.hashCode()
+      fieldsInfo["privateAddressText2"] = address.privateAddressText2?.hashCode()
+      fieldsInfo["privateZipCode"] = address.privateZipCode?.hashCode()
+      fieldsInfo["privateCity"] = address.privateCity?.hashCode()
+      fieldsInfo["privateState"] = address.privateState?.hashCode()
+      fieldsInfo["privateCountry"] = address.privateCountry?.hashCode()
+      fieldsInfo["organization"] = address.organization?.hashCode()
+      fieldsInfo["division"] = address.division?.hashCode()
+    }
+  }
+
   //@Id
   //@Column(name = "contact_id")
   var contactId: String? = null

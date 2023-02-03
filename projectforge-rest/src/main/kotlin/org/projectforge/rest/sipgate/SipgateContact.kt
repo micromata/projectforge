@@ -106,37 +106,90 @@ class SipgateNumber(
   var type: Array<String>? = null
 
   fun setHome(): SipgateNumber {
-    type = arrayOf("home")
+    type = HOME_ARRAY
     return this
+  }
+  fun isHome(): Boolean {
+    return compare(type, HOME_ARRAY)
   }
 
   fun setWork(): SipgateNumber {
-    type = arrayOf("work")
+    type = WORK_ARRAY
     return this
+  }
+
+  fun isWork(): Boolean {
+    return compare(type, WORK_ARRAY)
   }
 
   fun setCell(): SipgateNumber {
-    type = arrayOf("cell")
+    type = CELL_ARRAY
     return this
+  }
+
+  fun isCell(): Boolean {
+    return compare(type, CELL_ARRAY)
   }
 
   fun setFaxHome(): SipgateNumber {
-    type = arrayOf("fax", "home")
+    type = FAX_HOME_ARRAY
     return this
+  }
+
+  fun isFaxHome(): Boolean {
+    return compare(type, FAX_HOME_ARRAY)
   }
 
   fun setFaxWork(): SipgateNumber {
-    type = arrayOf("fax", "work")
+    type = FAX_WORK_ARRAY
     return this
+  }
+
+  fun isFaxWork(): Boolean {
+    return compare(type, FAX_WORK_ARRAY)
   }
 
   fun setPager(): SipgateNumber {
-    type = arrayOf("pager")
+    type = PAGER_ARRAY
     return this
   }
 
+  fun isPager(): Boolean {
+    return compare(type, PAGER_ARRAY)
+  }
+
   fun setOther(): SipgateNumber {
-    type = arrayOf("other")
+    type = OTHER_ARRAY
     return this
+  }
+
+  fun isOther(): Boolean {
+    return compare(type, OTHER_ARRAY)
+  }
+
+  companion object {
+    internal fun compare(array1: Array<String>?, array2: Array<String>?): Boolean {
+      if (array1 == null) {
+        return array2 == null
+      }
+      array2 ?: return false
+      if (array1.size != array2.size) {
+        return false
+      }
+      array1.forEach {
+        if (!array2.contains(it)) {
+          return false
+        }
+      }
+      return true
+    }
+
+    private val HOME_ARRAY = arrayOf("home")
+    private val WORK_ARRAY = arrayOf("work")
+    private val CELL_ARRAY = arrayOf("cell")
+    private val FAX_HOME_ARRAY = arrayOf("fax", "home")
+    private val FAX_WORK_ARRAY = arrayOf("fax", "work")
+    private val PAGER_ARRAY = arrayOf("pager")
+    private val OTHER_ARRAY = arrayOf("other")
   }
 }

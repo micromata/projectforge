@@ -82,6 +82,49 @@ object SipgateContactSyncService {
     return contact
   }
 
+  fun from(contact: SipgateContact): AddressDO {
+    val address = extractName(contact.name)
+    // contact.id
+    // var picture: String? = null
+    address.email = contact.emails?.firstOrNull { it.type == SipgateContact.EmailType.WORK }?.email
+    address.privateEmail = contact.emails?.firstOrNull { it.type == SipgateContact.EmailType.HOME }?.email
+    val numbers = mutableListOf<SipgateNumber>()
+    address.businessPhone?.let { numbers.add(SipgateNumber(it).setWork()) }
+    address.mobilePhone?.let { numbers.add(SipgateNumber(it).setCell()) }
+    address.privatePhone?.let { numbers.add(SipgateNumber(it).setHome()) }
+    address.privateMobilePhone?.let { numbers.add(SipgateNumber(it).setOther()) }
+    address.fax?.let { numbers.add(SipgateNumber(it).setFaxWork()) }
+    if (numbers.isNotEmpty()) {
+      contact.numbers = numbers.toTypedArray()
+    }
+
+    val addresses = mutableListOf<SipgateAddress>()
+    createAddress(
+      addressText = address.addressText,
+      addressText2 = address.addressText2,
+      zipCode = address.zipCode,
+      city = address.city,
+      state = address.state,
+      country = address.country,
+    )?.let { addresses.add(it) }
+    createAddress(
+      addressText = address.privateAddressText,
+      addressText2 = address.privateAddressText2,
+      zipCode = address.privateZipCode,
+      city = address.privateCity,
+      state = address.privateState,
+      country = address.privateCountry,
+    )?.let { addresses.add(it) }
+    if (addresses.isNotEmpty()) {
+      contact.addresses = addresses.toTypedArray()
+    }
+
+    contact.organization = address.organization
+    contact.division = address.division
+    contact.scope = SipgateContact.Scope.SHARED
+    return address
+  }
+
   fun getName(address: AddressDO): String {
     val sb = StringBuilder()
     /*address.title?.let {
@@ -94,6 +137,17 @@ object SipgateContactSyncService {
       sb.append(it.trim()).append(" ")
     }
     return sb.toString().trim()
+  }
+
+  fun extractName(name: String?): AddressDO {
+    val address = AddressDO()
+    if (name.isNullOrBlank()) {
+      return address
+    }
+    val names = name.split(" ")
+    address.name = names.last().trim()
+    address.firstName = names.take(names.size - 1).joinToString(" ")
+    return address
   }
 
   /**
@@ -129,7 +183,9 @@ object SipgateContactSyncService {
     }
     contact.emails?.forEach { email ->
       val str = email.email?.trim()?.lowercase()
-      if (str != null && str == address.email?.trim()?.lowercase() || str == address.privateEmail?.trim()?.lowercase()) {
+      if (str != null && str == address.email?.trim()?.lowercase() || str == address.privateEmail?.trim()
+          ?.lowercase()
+      ) {
         ++counter
       }
     }
@@ -142,7 +198,9 @@ object SipgateContactSyncService {
     if (address.division != null && contact.division?.trim()?.lowercase() == address.division?.trim()?.lowercase()) {
       ++counter
     }
-    if (address.organization != null && contact.organization?.trim()?.lowercase() == address.organization?.trim()?.lowercase()) {
+    if (address.organization != null && contact.organization?.trim()?.lowercase() == address.organization?.trim()
+        ?.lowercase()
+    ) {
       ++counter
     }
     return counter

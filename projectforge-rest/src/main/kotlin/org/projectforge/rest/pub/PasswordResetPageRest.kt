@@ -193,7 +193,7 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
     log.info { "The user wants to change his password." }
     val errorMsgKeys = userService.internalChangePasswordAfterPasswordReset(user.id, newPassword)
     processErrorKeys(errorMsgKeys)?.let {
-      return it // Error messages occured:
+      return it // Error messages occurred:
     }
     cancel(request) // Clear session
     val layout =
