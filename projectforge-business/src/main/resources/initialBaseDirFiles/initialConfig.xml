@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
+    <!-- This is the standard jira server used for all jira issues found if not definined in jira-config.-->
     <!--jiraBrowseBaseUrl>https://jira.acme.com/jira/browse/</jiraBrowseBaseUrl-->
-    <!--jiraConfig>
-        <createIssueUrl>https://jira.acme.com/jira/secure/CreateIssueDetails!init.jspa
-        </createIssueUrl>
-        <issueTypes>
-            <issueType label="Bug" value="1"/>
-            <issueType label="Neue Funktion" value="2"/>
-            <issueType label="Aufgabe" value="3"/>
-            <issueType label="Verbesserung" value="4"/>
-            <issueType label="Claim" value="5"/>
-            <issueType label="Open Requirement" value="6"/>
-        </issueTypes>
-    </jiraConfig-->
+    <!-- jiraServers>
+        <!- - These projects should be use this base-url - ->
+        <jiraServer browse-base-url="https://customer.acme.com/browse/" projects="ACME;ADMIN;PORTAL" />
+        <jiraServer browse-base-url="https://customer2.acme.com/browse/" projects="SUPPORT" />
+    </jiraServers-->
     <holidays>
         <!--holiday label="Erster Mai" month="4" dayOfMonth="1" workingDay="false"/-->
         <!--holiday label="Dritter Oktober" month="9" dayOfMonth="3" workingDay="false"/-->
         <holiday id="XMAS_EVE" workingDay="true" workFraction="0.5"/>
-        <holiday id="SYLVESTER" workingDay="true" workFraction="0.5"/>
+        <holiday id="NEW_YEARS_EVE" workingDay="true" workFraction="0.5"/>
     </holidays>
     <!--contractTypes>
         <contractType value="AV" label="Arbeitsvertrag"/>
