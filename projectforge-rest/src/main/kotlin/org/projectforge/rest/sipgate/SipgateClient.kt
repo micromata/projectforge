@@ -28,6 +28,7 @@ import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.menu.builder.MenuCreator

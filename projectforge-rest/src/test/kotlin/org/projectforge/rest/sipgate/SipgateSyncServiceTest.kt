@@ -26,17 +26,20 @@ package org.projectforge.rest.sipgate
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.sipgate.SipgateContact
+import org.projectforge.business.sipgate.SipgateContactSyncDO
+import org.projectforge.business.sipgate.SipgateNumber
 
 
 class SipgateSyncServiceTest {
   @Test
   fun getNameTest() {
-    Assertions.assertEquals("", SipgateContactSyncService.getName(AddressDO()))
-    Assertions.assertEquals("Reinhard", SipgateContactSyncService.getName(createAddress(name = "Reinhard")))
-    Assertions.assertEquals("Kai", SipgateContactSyncService.getName(createAddress(firstName = "Kai")))
+    Assertions.assertEquals("", SipgateContactSyncDO.getName(AddressDO()))
+    Assertions.assertEquals("Reinhard", SipgateContactSyncDO.getName(createAddress(name = "Reinhard")))
+    Assertions.assertEquals("Kai", SipgateContactSyncDO.getName(createAddress(firstName = "Kai")))
     Assertions.assertEquals(
       "Kai Reinhard",
-      SipgateContactSyncService.getName(createAddress(firstName = "Kai Reinhard"))
+      SipgateContactSyncDO.getName(createAddress(firstName = "Kai Reinhard"))
     )
 
     assertName(null, null, null)
@@ -53,7 +56,7 @@ class SipgateSyncServiceTest {
     SipgateContactSyncService.countryPrefixForTestcases = "+49"
     val address1 = createAddress(name = "Reinhard", firstName = "Kai")
     val contact = SipgateContact()
-    contact.name = SipgateContactSyncService.getName(address1)
+    contact.name = SipgateContactSyncDO.getName(address1)
     Assertions.assertEquals(1, SipgateContactSyncService.matchScore(contact, address1))
     val address2 = createAddress(
       name = "Reinhard",
@@ -68,16 +71,16 @@ class SipgateSyncServiceTest {
     address1.firstName = "Karl"
     Assertions.assertEquals(-1, SipgateContactSyncService.matchScore(contact, address1))
 
-    val contactList = mutableListOf(
-      createContact(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 23456789"),
-      createContact(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 1234 56789"),
-      createContact(name = "Reinhard", firstName = "Karl", fax = "+49 23456789"),
+    val addressList = mutableListOf(
+      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 23456789"),
+      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 1234 56789"),
+      createAddress(name = "Reinhard", firstName = "Karl", fax = "+49 23456789"),
     )
     val match = SipgateContactSyncService.findBestMatch(
-      contactList,
-      createAddress("Reinhard", "Kai", "Dipl.-Phys.", "0123456789")
+      addressList,
+      createContact("Reinhard", "Kai", "Dipl.-Phys.", "0123456789")
     )
-    Assertions.assertEquals("+49 1234 56789", match!!.numbers!!.first().number)
+    Assertions.assertEquals("+49 1234 56789", match!!.mobilePhone)
   }
 
   @Test
@@ -136,7 +139,7 @@ class SipgateSyncServiceTest {
   ): SipgateContact {
     val address = createAddress(name = name, firstName = firstName)
     val contact = SipgateContact()
-    contact.name = SipgateContactSyncService.getName(address)
+    contact.name = SipgateContactSyncDO.getName(address)
     val numbers = mutableListOf<SipgateNumber>()
     mobilePhone?.let {
       numbers.add(SipgateNumber(it).setCell())

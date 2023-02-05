@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.sipgate
+package org.projectforge.business.sipgate
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

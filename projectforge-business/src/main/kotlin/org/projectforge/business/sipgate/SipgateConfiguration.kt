@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.sipgate
+package org.projectforge.business.sipgate
 
 import org.projectforge.framework.configuration.*
 import org.springframework.beans.factory.annotation.Value

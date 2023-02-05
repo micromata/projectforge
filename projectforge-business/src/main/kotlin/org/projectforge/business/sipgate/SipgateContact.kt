@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.sipgate
+package org.projectforge.business.sipgate
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -108,6 +108,9 @@ class SipgateContact {
       setNumber(value, SipgateNumber.PAGER_ARRAY)
     }
 
+  /**
+   * Linked to private cell number
+   */
   var other: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isOther() }?.number

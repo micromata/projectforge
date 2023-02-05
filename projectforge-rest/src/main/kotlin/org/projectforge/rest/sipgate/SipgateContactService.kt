@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.sipgate
 
+import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.stereotype.Service
 
