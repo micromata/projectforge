@@ -23,7 +23,9 @@
 
 package org.projectforge.rest.sipgate
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.address.AddressDO
+import org.projectforge.framework.json.JsonUtils
 import java.util.*
 
 /**
@@ -38,25 +40,25 @@ import java.util.*
 )*/
 class SipgateContactSyncDO {
   class SyncInfo {
-    var lastSync: Date? = null
     var fieldsInfo = mutableMapOf<String, Int?>()
     fun create(address: AddressDO) {
-      fieldsInfo["name"] = SipgateContactSyncService.getName(address).hashCode()
+      setFieldsInfo("name", SipgateContactSyncService.getName(address))
       // family, given
       // fieldsInfo["picture"] = address
-      fieldsInfo["organization"] = address.organization?.hashCode()
-      fieldsInfo["division"] = address.division?.hashCode()
-      fieldsInfo["email"] = address.email?.hashCode()
-      fieldsInfo["businessPhone"] = address.businessPhone?.hashCode()
-      fieldsInfo["mobilePhone"] = address.mobilePhone?.hashCode()
-      fieldsInfo["privatePhone"] = address.privatePhone?.hashCode()
-      fieldsInfo["privateMobilePhone"] = address.privateMobilePhone?.hashCode()
-      fieldsInfo["addressText"] = address.addressText?.hashCode()
-      fieldsInfo["addressText2"] = address.addressText2?.hashCode()
-      fieldsInfo["zipCode"] = address.zipCode?.hashCode()
-      fieldsInfo["city"] = address.city?.hashCode()
-      fieldsInfo["state"] = address.state?.hashCode()
-      fieldsInfo["country"] = address.country?.hashCode()
+      setFieldsInfo(AddressDO::organization.name, address.organization)
+      setFieldsInfo(AddressDO::division.name, address.division)
+      setFieldsInfo(AddressDO::email.name, address.email)
+      setFieldsInfo(AddressDO::businessPhone.name, address.businessPhone)
+      setFieldsInfo(AddressDO::mobilePhone.name, address.mobilePhone)
+      setFieldsInfo(AddressDO::privatePhone.name, address.privatePhone)
+      setFieldsInfo(AddressDO::privateMobilePhone.name, address.privateMobilePhone)
+      /* Ignore addresses (synchronize will be pain, because not type of addresses will be given by Sipgate.
+      fieldsInfo[AddressDO::addressText.name] = hash(address.addressText)
+      fieldsInfo[AddressDO::addressText2.name] = hash(address.addressText2)
+      fieldsInfo[AddressDO::zipCode.name] = hash(address.zipCode)
+      fieldsInfo[AddressDO::city.name] = hash(address.city)
+      fieldsInfo[AddressDO::state.name] = hash(address.state)
+      fieldsInfo[AddressDO::country.name] = hash(address.country)
       fieldsInfo["privateAddressText"] = address.privateAddressText?.hashCode()
       fieldsInfo["privateAddressText2"] = address.privateAddressText2?.hashCode()
       fieldsInfo["privateZipCode"] = address.privateZipCode?.hashCode()
@@ -64,7 +66,17 @@ class SipgateContactSyncDO {
       fieldsInfo["privateState"] = address.privateState?.hashCode()
       fieldsInfo["privateCountry"] = address.privateCountry?.hashCode()
       fieldsInfo["organization"] = address.organization?.hashCode()
-      fieldsInfo["division"] = address.division?.hashCode()
+      fieldsInfo["division"] = address.division?.hashCode()*/
+    }
+
+    internal fun setFieldsInfo(field: String, value: String?) {
+      fieldsInfo[field] = hash(value)
+    }
+
+    companion object {
+      fun hash(value: String?): Int? {
+        return value?.trim()?.hashCode()
+      }
     }
   }
 
@@ -72,5 +84,33 @@ class SipgateContactSyncDO {
   //@Column(name = "contact_id")
   var contactId: String? = null
 
+  //@Column(name = "last_sync")
   var lastSync: Date? = null
+
+  @get:JsonIgnore
+  var syncInfo: SyncInfo? = null
+
+  //@Column(name = "sync_info")
+  var syncInfoAsJson: String? = null
+
+  fun readJson() {
+    if (syncInfoAsJson == null) {
+      syncInfo = null
+    } else {
+      try {
+        syncInfo = JsonUtils.fromJson(syncInfoAsJson, SyncInfo::class.java)
+      } catch (ex: Exception) {
+        // Do nothing (version incompability).
+        syncInfo = null
+      }
+    }
+  }
+
+  fun updateJson() {
+    if (syncInfo == null) {
+      syncInfoAsJson = null
+    } else {
+      syncInfoAsJson = JsonUtils.toJson(syncInfoAsJson)
+    }
+  }
 }

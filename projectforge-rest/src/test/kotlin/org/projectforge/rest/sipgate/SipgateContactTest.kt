@@ -50,4 +50,48 @@ class SipgateContactTest {
     Assertions.assertTrue(SipgateNumber().setOther().isOther())
     Assertions.assertTrue(SipgateNumber().setPager().isPager())
   }
+
+  @Test
+  fun emailTest() {
+    val contact = SipgateContact()
+    Assertions.assertNull(contact.email)
+    contact.email = "test@ace.com"
+    Assertions.assertEquals(1, contact.emails?.size)
+    Assertions.assertEquals("test@ace.com", contact.email)
+    contact.email = "business@ace.com"
+    Assertions.assertEquals(1, contact.emails?.size)
+    Assertions.assertEquals("business@ace.com", contact.email)
+    contact.privateEmail = "private@ace.com"
+    Assertions.assertEquals(2, contact.emails?.size)
+    Assertions.assertEquals("business@ace.com", contact.email)
+    Assertions.assertEquals("private@ace.com", contact.privateEmail)
+  }
+
+  @Test
+  fun numberTest() {
+    val contact = SipgateContact()
+    Assertions.assertNull(contact.work)
+    contact.work = "#work"
+    Assertions.assertEquals(1, contact.numbers?.size)
+    Assertions.assertEquals("#work", contact.work)
+    contact.home = "#home"
+    Assertions.assertEquals(2, contact.numbers?.size)
+    Assertions.assertEquals("#home", contact.home)
+    contact.cell = "#cell"
+    Assertions.assertEquals(3, contact.numbers?.size)
+    Assertions.assertEquals("#cell", contact.cell)
+    contact.other = "#other"
+    Assertions.assertEquals(4, contact.numbers?.size)
+    Assertions.assertEquals("#other", contact.other)
+    contact.faxWork = "#faxWork"
+    Assertions.assertEquals(5, contact.numbers?.size)
+    Assertions.assertEquals("#faxWork", contact.faxWork)
+    contact.faxHome = "#faxHome"
+    Assertions.assertEquals(6, contact.numbers?.size)
+    Assertions.assertEquals("#faxHome", contact.faxHome)
+    contact.pager = "#pager"
+    Assertions.assertEquals(7, contact.numbers?.size)
+    Assertions.assertEquals("#pager", contact.pager)
+    Assertions.assertEquals("#work", contact.work)
+  }
 }

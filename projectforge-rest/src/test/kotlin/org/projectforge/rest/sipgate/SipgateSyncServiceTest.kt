@@ -61,9 +61,9 @@ class SipgateSyncServiceTest {
       mobilePhone = "+49 1234 567890",
       fax = "+49 222 33333",
     )
-    contact.numbers = arrayOf(SipgateNumber("+49 1234 567890"))
+    contact.numbers = mutableListOf(SipgateNumber("+49 1234 567890"))
     Assertions.assertEquals(2, SipgateContactSyncService.matchScore(contact, address2))
-    contact.numbers = arrayOf(SipgateNumber("+49 1234 567890"), SipgateNumber("022233333"))
+    contact.numbers = mutableListOf(SipgateNumber("+49 1234 567890"), SipgateNumber("022233333"))
     Assertions.assertEquals(3, SipgateContactSyncService.matchScore(contact, address2))
     address1.firstName = "Karl"
     Assertions.assertEquals(-1, SipgateContactSyncService.matchScore(contact, address1))
@@ -78,6 +78,34 @@ class SipgateSyncServiceTest {
       createAddress("Reinhard", "Kai", "Dipl.-Phys.", "0123456789")
     )
     Assertions.assertEquals("+49 1234 56789", match!!.numbers!!.first().number)
+  }
+
+  @Test
+  fun syncTest() {
+    syncTest("mail", "mail", "mail", false, false)
+    syncTest("mail", "mail2", "mail", true, false)
+    syncTest("mail", "mail", "mail2", false, true)
+    syncTest("mail", "mail", "mail2", false, true)
+  }
+
+  private fun syncTest(
+    lastSyncEmail: String?,
+    contactEmail: String?,
+    addressEmail: String?,
+    expectedAddressOutdated: Boolean,
+    expectedContactOutdated: Boolean,
+  ) {
+    val syncInfo = SipgateContactSyncDO.SyncInfo()
+    val contact = SipgateContact()
+    val address = AddressDO()
+    address.email = addressEmail
+    val result = SipgateContactSyncService.SyncResult()
+    syncInfo.setFieldsInfo(AddressDO::email.name, lastSyncEmail)
+    contact.email = contactEmail
+    SipgateContactSyncService.sync(contact, SipgateContact::email, address, AddressDO::email, syncInfo, result)
+    Assertions.assertEquals(expectedContactOutdated, result.contactOutdated)
+    Assertions.assertEquals(expectedAddressOutdated, result.addressDOOutdated)
+    Assertions.assertEquals(contact.email, address.email)
   }
 
   private fun assertName(expectedFirstName: String?, expectedName: String?, fullname: String?) {
@@ -116,9 +144,7 @@ class SipgateSyncServiceTest {
     fax?.let {
       numbers.add(SipgateNumber(it).setFaxWork())
     }
-    if (numbers.isNotEmpty()) {
-      contact.numbers = numbers.toTypedArray()
-    }
+    contact.numbers = numbers
     return contact
   }
 }

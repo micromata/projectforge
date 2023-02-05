@@ -34,16 +34,14 @@ class SipgateContact {
 
   enum class EmailType { HOME, WORK, OTHER }
 
-  enum class NumberType { HOME, WORK, CELL, FAX_HOME, FAX_WORK, PAGER, OTHER }
-
   var id: String? = null
   var name: String? = null
   var family: String? = null
   var given: String? = null
   var picture: String? = null
-  var emails: Array<SipgateEmail>? = null
-  var numbers: Array<SipgateNumber>? = null
-  var addresses: Array<SipgateAddress>? = null
+  var emails: MutableList<SipgateEmail>? = null
+  var numbers: MutableList<SipgateNumber>? = null
+  var addresses: MutableList<SipgateAddress>? = null
 
   var organizationArray: Array<Array<String>>?
     @JsonProperty("organization")
@@ -67,6 +65,94 @@ class SipgateContact {
   var division: String? = null
 
   var scope: Scope? = null
+
+  var work: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isWork() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.WORK_ARRAY)
+    }
+
+  var home: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isHome() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.HOME_ARRAY)
+    }
+
+  var faxWork: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isFaxWork() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.FAX_WORK_ARRAY)
+    }
+
+  var faxHome: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isFaxHome() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.FAX_HOME_ARRAY)
+    }
+
+  var cell: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isCell() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.CELL_ARRAY)
+    }
+
+  var pager: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isPager() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.PAGER_ARRAY)
+    }
+
+  var other: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isOther() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.OTHER_ARRAY)
+    }
+
+  var email: String?
+    @JsonIgnore
+    get() = emails?.firstOrNull { it.type == EmailType.WORK }?.email
+    set(value) {
+      setEmail(value, EmailType.WORK)
+    }
+
+  var privateEmail: String?
+    @JsonIgnore
+    get() = emails?.firstOrNull { it.type == EmailType.HOME }?.email
+    set(value) {
+      setEmail(value, EmailType.HOME)
+    }
+
+  private fun setEmail(emailAddress: String?, type: EmailType) {
+    if (emails == null) {
+      emails = mutableListOf()
+    }
+    var mail = emails?.firstOrNull { it.type == type }
+    if (mail == null) {
+      mail = SipgateEmail(type = type)
+      emails?.add(mail)
+    }
+    mail.email = emailAddress
+  }
+
+  private fun setNumber(number: String?, type: Array<String>) {
+    if (numbers == null) {
+      numbers = mutableListOf()
+    }
+    var num = numbers?.firstOrNull { SipgateNumber.compare(it.type, type) }
+    if (num == null) {
+      num = SipgateNumber()
+      num.type = type
+      numbers?.add(num)
+    }
+    num.number = number
+  }
 }
 
 class SipgateAddress {
@@ -109,6 +195,7 @@ class SipgateNumber(
     type = HOME_ARRAY
     return this
   }
+
   fun isHome(): Boolean {
     return compare(type, HOME_ARRAY)
   }
@@ -184,12 +271,12 @@ class SipgateNumber(
       return true
     }
 
-    private val HOME_ARRAY = arrayOf("home")
-    private val WORK_ARRAY = arrayOf("work")
-    private val CELL_ARRAY = arrayOf("cell")
-    private val FAX_HOME_ARRAY = arrayOf("fax", "home")
-    private val FAX_WORK_ARRAY = arrayOf("fax", "work")
-    private val PAGER_ARRAY = arrayOf("pager")
-    private val OTHER_ARRAY = arrayOf("other")
+    internal val HOME_ARRAY = arrayOf("home")
+    internal val WORK_ARRAY = arrayOf("work")
+    internal val CELL_ARRAY = arrayOf("cell")
+    internal val FAX_HOME_ARRAY = arrayOf("fax", "home")
+    internal val FAX_WORK_ARRAY = arrayOf("fax", "work")
+    internal val PAGER_ARRAY = arrayOf("pager")
+    internal val OTHER_ARRAY = arrayOf("other")
   }
 }
