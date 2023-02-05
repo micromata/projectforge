@@ -67,12 +67,12 @@ public class ConfigXmlTest {
       + "  <jiraBrowseBaseUrl>"
       + JiraUtilsTest.JIRA_BASE_URL
       + "</jiraBrowseBaseUrl>\n"
-      + "<jiraServers>\n"
-      + "  <jiraServer browse-base-url=\""
+      + "  <jiraServers>\n"
+      + "    <jiraServer browse-base-url=\""
       + JiraUtilsTest.JIRA_ACME_BASE_URL
-      + "\" projects=\"ACME;ADMIN;PORTAL\" />\n"
-      + "  <jiraServer browse-base-url=\"https://customer2.acme.com/browse/\" projects=\"SUPPORT\" />\n"
-      + "</jiraServers>\n"
+      + "\" projects=\"ACME; ADMIN, portal\"/>\n"
+      + "    <jiraServer browse-base-url=\"https://customer2.acme.com/browse/\" projects=\"SUPPORT\"/>\n"
+      + "  </jiraServers>\n"
       + "  <holidays>\n"
       + "    <holiday label='Erster Mai' month='5' dayOfMonth='1'/>\n"
       + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>\n"
@@ -104,8 +104,8 @@ public class ConfigXmlTest {
     createTestConfiguration();
     final ConfigXml config = ConfigXml.getInstance();
     assertEquals(2, config.getJiraServers().size());
-    assertEquals("https://customer.acme.com/jira", config.getJiraServers().get(0).getBaseUrl());
-    assertEquals("https://customer2.acme.com/jira", config.getJiraServers().get(1).getBaseUrl());
+    assertEquals("https://customer.acme.com/jira/browse/", config.getJiraServers().get(0).getBaseUrl());
+    assertEquals("https://customer2.acme.com/browse/", config.getJiraServers().get(1).getBaseUrl());
     assertEquals("ACME; ADMIN, portal", config.getJiraServers().get(0)
         .getProjectsAsString());
     assertEquals("SUPPORT", config.getJiraServers().get(1).getProjectsAsString());
