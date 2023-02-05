@@ -23,6 +23,9 @@
 
 package org.projectforge.rest.sipgate
 
+import org.projectforge.business.sipgate.SipgateAddress
+import org.projectforge.business.sipgate.SipgateContact
+
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */

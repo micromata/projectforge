@@ -24,8 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import mu.KotlinLogging
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.AddressFilter
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
@@ -47,10 +46,10 @@ class SipgatePageRest : AbstractDynamicPageRest() {
   class SipgateData
 
   @Autowired
-  private lateinit var addressDao: AddressDao
+  private lateinit var accessChecker: AccessChecker
 
   @Autowired
-  private lateinit var sipgateContactService: SipgateContactService
+  private lateinit var sipgateContactSyncService: SipgateContactSyncService
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
@@ -70,38 +69,11 @@ class SipgatePageRest : AbstractDynamicPageRest() {
 
   @GetMapping("synchronizeAddresses")
   fun synchronizeAddresses(): ResponseAction {
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     log.info("Synchronizing addresses for Sipgate.")
-    var insertedCounter = 0
-    var failedCounter = 0
-    var ignoredCounter = 0
-    var totalCounter = 0
-    var modifiedCounter = 0
-    var unmodifiedCounter = 0
-    val remoteContacts = sipgateContactService.getList().filter { it.scope == SipgateContact.Scope.SHARED }
-    val filter = AddressFilter()
-    filter.isActive = true
-    val addressList = addressDao.getList(filter)
-    addressList.forEach { address ->
-      ++totalCounter
-      val remoteContact = SipgateContactSyncService.findBestMatch(remoteContacts, address)
-      val contact = SipgateContactSyncService.from(address)
-      if (remoteContact != null) {
-        remoteContact.id?.let { id ->
-          if (sipgateContactService.update(id, contact)) {
-            ++modifiedCounter
-          } else {
-            ++unmodifiedCounter
-          }
-        } ?: ++ignoredCounter // Shouldn't occur.
-      } else if (sipgateContactService.create(contact)) {
-        ++insertedCounter
-      } else {
-        ++failedCounter
-      }
-    }
+    val ctx = sipgateContactSyncService.sync()
     val msg =
-      "Total=$totalCounter: ${insertedCounter + modifiedCounter} addresses sent to Sipgate ($insertedCounter inserted, $modifiedCounter modified, $failedCounter entries failed, $ignoredCounter ignored/no importCode, $unmodifiedCounter unmodified)."
-
+      "Synchronizing result: local addresses: [${ctx.localCounter}], remote contacts: [${ctx.remoteCounter}]."
     log.info(msg)
     return UIToast.createToast(
       msg, color = UIColor.SUCCESS

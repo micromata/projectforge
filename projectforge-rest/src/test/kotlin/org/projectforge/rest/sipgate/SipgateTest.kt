@@ -25,6 +25,7 @@ package org.projectforge.rest.sipgate
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.framework.json.JsonUtils
 
 

@@ -25,6 +25,8 @@ package org.projectforge.rest.sipgate
 
 import org.junit.jupiter.api.Assertions
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.sipgate.SipgateConfiguration
+import org.projectforge.business.sipgate.SipgateContact
 import java.util.*
 import kotlin.io.path.Path
 
