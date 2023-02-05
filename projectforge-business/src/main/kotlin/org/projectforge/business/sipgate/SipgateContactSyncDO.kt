@@ -136,7 +136,7 @@ open class SipgateContactSyncDO {
    */
   @get:Id
   @get:Column(name = "sipgate_contact_id")
-  var sipgateContactId: String? = null
+  open var sipgateContactId: String? = null
 
   /**
    * Id of the local address connected to this remote contact of Sipgate.
@@ -154,10 +154,10 @@ open class SipgateContactSyncDO {
 
   @get:Transient
   @get:JsonIgnore
-  var syncInfo: SyncInfo? = null
+  open var syncInfo: SyncInfo? = null
 
   @get:Column(name = "sync_info", length = 10000)
-  var syncInfoAsJson: String? = null
+  open var syncInfoAsJson: String? = null
 
   fun readJson() {
     if (syncInfoAsJson == null) {

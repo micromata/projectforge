@@ -32,7 +32,7 @@ import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
  *   - Hilfreich wäre ansonsten als Antwort nach einem Insert die Contact-id.
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-@Service
+@Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class SipgateContactSyncService {
   class SyncResult {
@@ -317,6 +317,7 @@ open class SipgateContactSyncService {
     }
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   open fun sync(): SyncContext {
     val syncContext = SyncContext()
     syncContext.addressList =
