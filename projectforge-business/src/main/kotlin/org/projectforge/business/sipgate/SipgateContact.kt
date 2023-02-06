@@ -25,6 +25,7 @@ package org.projectforge.business.sipgate
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -155,6 +156,13 @@ class SipgateContact {
       numbers?.add(num)
     }
     num.number = number
+  }
+
+  /**
+   * as json.
+   */
+  override fun toString(): String {
+    return toJsonString(this)
   }
 }
 
