@@ -225,6 +225,14 @@ open class SipgateContactSyncService {
           result.contactOutdated = true
         }
       }
+      if (contact.organization != null && contact.division == null &&
+        address.organization.isNullOrBlank() && !address.division.isNullOrBlank() &&
+        contact.organization?.trim() == address.division?.trim()
+      ) {
+        // organization: 'PEV'->'null', division: 'null'->'PEV'
+        contact.division = address.division
+        contact.organization = null
+      }
       sync(contact, SipgateContact::organization, address, AddressDO::organization, syncInfo, result)
       sync(contact, SipgateContact::division, address, AddressDO::division, syncInfo, result)
 
@@ -250,11 +258,11 @@ open class SipgateContactSyncService {
     ) {
       val contactValue = contactField.getter.call(contact) as String?
       val addressValue = addressField.getter.call(address) as String?
-      var contactValue2Compare = contactValue
-      var addressValue2Compare = addressValue
+      var contactValue2Compare = contactValue ?: ""
+      var addressValue2Compare = addressValue ?: ""
       if (isPhoneNumber) {
-        contactValue2Compare = NumberHelper.extractPhonenumber(contactValue)
-        addressValue2Compare = NumberHelper.extractPhonenumber(addressValue)
+        contactValue2Compare = NumberHelper.extractPhonenumber(contactValue) ?: ""
+        addressValue2Compare = NumberHelper.extractPhonenumber(addressValue) ?: ""
       }
       if (contactValue2Compare != addressValue2Compare) {
         if (syncInfo != null
