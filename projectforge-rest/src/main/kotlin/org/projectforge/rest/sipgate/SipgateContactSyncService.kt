@@ -26,7 +26,6 @@ package org.projectforge.rest.sipgate
 import mu.KotlinLogging
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
@@ -77,6 +76,10 @@ open class SipgateContactSyncService {
     var syncDOList = mutableListOf<SipgateContactSyncDO>()
     var localCounter = Counter()
     var remoteCounter = Counter()
+  }
+
+  class MatchScore(val contactId: String, val addressId: Int, val score: Int) {
+    var synced = false
   }
 
   @Autowired
@@ -249,22 +252,35 @@ open class SipgateContactSyncService {
     }
 
     /**
-     * Tries to find the address with the best match (if address isn't synced and connected to remote contact yet).
-     * The returned address (if any) does have a matchScore greater or equal than 1.
-     * @param addresses List of all addresses
-     * @param contact Contact to match.
+     * @param syncContext wist list of all addresses, all remote contacts and all already synced contacts (syncDOList)
+     * @return List of all match scores greater or equal 1.
      */
-    fun findBestMatch(addresses: List<AddressDO>, contact: SipgateContact): AddressDO? {
-      val matches = addresses.filter { SipgateContactSyncDO.getName(it).lowercase() == contact.name?.trim()?.lowercase() }
-      if (matches.isEmpty()) {
-        return null
+    internal fun findMatches(syncContext: SyncContext)
+        : List<MatchScore> {
+      val addresses = syncContext.addressList
+      val contacts = syncContext.remoteContacts
+      val syncDOList = syncContext.syncDOList
+      // Map key is contact-id.
+      val matchScores = mutableListOf<MatchScore>()
+      contacts.forEach { contact ->
+        if (syncDOList.any { it.sipgateContactId == contact.id }) {
+          // Contact is already matched.
+          return@forEach
+        }
+        addresses.filter { SipgateContactSyncDO.getName(it).lowercase() == contact.name?.trim()?.lowercase() }
+          .forEach { matchAddress ->
+            if (syncDOList.none { it.address?.id == matchAddress.id }) {
+              // Address isn't yet matched to any contact.
+              contact.id?.let { contactId ->
+                val matchScore = matchScore(contact, matchAddress)
+                if (matchScore >= 1) {
+                  matchScores.add(MatchScore(contactId, matchAddress.id, matchScore))
+                }
+              }
+            }
+          }
       }
-      val result = matches.maxByOrNull { matchScore(contact, it) }
-      return if (result == null || matchScore(contact, result) < 1) {
-        null
-      } else {
-        result
-      }
+      return matchScores
     }
 
     internal fun matchScore(contact: SipgateContact, address: AddressDO): Int {
@@ -297,7 +313,9 @@ open class SipgateContactSyncService {
           ++counter
         }
       }
-      if (address.division != null && contact.division?.trim()?.lowercase() == address.division?.trim()?.lowercase()) {
+      if (address.division != null && contact.division?.trim()?.lowercase() == address.division?.trim()
+          ?.lowercase()
+      ) {
         ++counter
       }
       if (address.organization != null && contact.organization?.trim()?.lowercase() == address.organization?.trim()
@@ -325,7 +343,7 @@ open class SipgateContactSyncService {
     updateSyncObjects(syncContext)
 
     syncContext.localCounter.total = syncContext.addressList.size
-    syncContext.addressList.forEach { address ->
+/*    syncContext.addressList.forEach { address ->
       val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
       val contactId = syncDO?.sipgateContactId
       if (contactId != null) {
@@ -380,7 +398,7 @@ open class SipgateContactSyncService {
       }
     }
     updateSyncObjects(syncContext)
-    syncContext.remoteCounter.total = syncContext.remoteContacts.size
+    syncContext.remoteCounter.total = syncContext.remoteContacts.size*/
     // Delete remote contacts (without numbers)?
     return syncContext
   }
@@ -465,16 +483,32 @@ open class SipgateContactSyncService {
     syncContext.syncDOList = loadAll().toMutableList()
     // syncContext. addressList =
     //  addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
-    syncContext.remoteContacts.forEach { contact ->
-      if (syncContext.syncDOList.none { it.sipgateContactId == contact.id }) {
-        val match = findBestMatch(syncContext.addressList, contact)
-        if (match != null) {
-          val syncDO = SipgateContactSyncDO.create(contact, match, SipgateContactSyncDO.RemoteStatus.OK)
-          syncDO.updateJson(contact)
-          syncContext.syncDOList.add(syncDO)
-          upsert(syncDO)
-        }
+    val matchScores = findMatches(syncContext).sortedByDescending { it.score }
+    matchScores.forEach { matchScore ->
+      if (matchScore.synced) {
+        return@forEach
       }
+      if (syncContext.syncDOList.any { it.sipgateContactId == matchScore.contactId || it.address?.id == matchScore.addressId }) {
+        // contact or address is already synced: don't try it anymore:
+        matchScore.synced = true
+        return@forEach
+      }
+      val contact = syncContext.remoteContacts.find { it.id == matchScore.contactId }
+      if (contact == null) {
+        log.error { "oups, shouldn't occur. Can't find contact '${matchScore.contactId}' in contacts." }
+      }
+      val address = syncContext.addressList.find { it.id == matchScore.addressId }
+      if (address == null) {
+        log.error { "oups, shouldn't occur. Can't find address #${matchScore.addressId} in addresses." }
+      }
+      if (address != null && contact != null) {
+        val syncDO = SipgateContactSyncDO.create(contact, address, SipgateContactSyncDO.RemoteStatus.OK)
+        syncDO.updateJson(contact)
+        syncContext.syncDOList.add(syncDO)
+        upsert(syncDO)
+      }
+      matchScores.filter { it.contactId == matchScore.contactId || it.addressId == matchScore.addressId }
+        .forEach { it.synced = true }
     }
   }
 

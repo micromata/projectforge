@@ -106,8 +106,9 @@ open class SipgateContactSyncDO {
         return info
       }
 
-      fun hash(value: String?): Int? {
-        return value?.trim()?.hashCode()
+      fun hash(value: String?): Int {
+        // Use 0 instead of null for null strings, for same hash code for null and "" values.
+        return value?.trim()?.hashCode() ?: 0
       }
     }
   }
