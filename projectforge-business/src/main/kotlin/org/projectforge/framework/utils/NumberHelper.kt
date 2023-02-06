@@ -335,13 +335,15 @@ object NumberHelper {
     if (!countryPrefix.isNullOrEmpty() && s.startsWith(countryPrefix)) {
       buf.append('0')
       s = s.substring(countryPrefix.length)
-    } else if (s.length > 3 && s[0] == '+' && Character.isDigit(s[1])
-      && Character.isDigit(s[2])
-    ) {
+    } else if (s.length > 3 && s[0] == '+' && Character.isDigit(s[1])) {
       buf.append("00")
       buf.append(s[1])
-      buf.append(s[2])
-      s = s.substring(3)
+      if (Character.isDigit(s[2])) {
+        buf.append(s[2])
+        s = s.substring(3)
+      } else {
+        s = s.substring(2)
+      }
     }
     for (i in s.indices) {
       val ch = s[i]
