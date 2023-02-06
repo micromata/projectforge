@@ -26,6 +26,7 @@ package org.projectforge.common
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 
 class NumberHelperTest {
   @Test
@@ -148,5 +149,28 @@ class NumberHelperTest {
     Assertions.assertEquals(0, NumberHelper.ensureRange(0, 4, -1))
     Assertions.assertEquals(4, NumberHelper.ensureRange(0, 4, 5))
     Assertions.assertEquals(4, NumberHelper.ensureRange(0, 4, 4))
+  }
+
+  @Test
+  fun extractPhonenumber() {
+    Assertions.assertNull(extractPhonenumber(null, null))
+    Assertions.assertEquals("", extractPhonenumber("", "+49"))
+    Assertions.assertEquals("", extractPhonenumber("+", "+49"))
+    Assertions.assertEquals("4", extractPhonenumber("+4", "+49"))
+    Assertions.assertEquals("0", extractPhonenumber("+49", "+49"))
+    Assertions.assertEquals("01", extractPhonenumber("+491", "+49"))
+    Assertions.assertEquals("05613167930", extractPhonenumber("0561 / 316793-0", null))
+    Assertions.assertEquals("00495613167930", extractPhonenumber("+49 561 / 316793-0", null))
+    Assertions.assertEquals("05613167930", extractPhonenumber("+49 561 / 316793-0", "+49"))
+    Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 316793-0", "+49"))
+    Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 31:6793-0", "+49"))
+    Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 31 h6793-0", "+49"))
+    Assertions.assertEquals(
+      "1234567890",
+      extractPhonenumber("\u202D1234567890\u202C", "+49")
+    ) // Apple white spaces from contacts.
+
+    Assertions.assertEquals("007123456", extractPhonenumber("+7123456", "+49"))
+    Assertions.assertEquals("007123456", extractPhonenumber("+7 123456", "+49"))
   }
 }
