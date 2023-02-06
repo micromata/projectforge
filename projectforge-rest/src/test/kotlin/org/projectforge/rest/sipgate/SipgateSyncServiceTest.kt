@@ -71,16 +71,56 @@ class SipgateSyncServiceTest {
     address1.firstName = "Karl"
     Assertions.assertEquals(-1, SipgateContactSyncService.matchScore(contact, address1))
 
-    val addressList = mutableListOf(
-      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 23456789"),
-      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 1234 56789"),
-      createAddress(name = "Reinhard", firstName = "Karl", fax = "+49 23456789"),
+    val addressList = listOf(
+      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 23456789", id = 10),
+      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 1234 56789", id = 11),
+      createAddress(name = "Reinhard", firstName = "Kai", mobilePhone = "+49 987654321", id = 12), // synced
+      createAddress(name = "Reinhard", firstName = "Karl", fax = "+49 23456789", id = 20),
+      createAddress(name = "Reinhard", firstName = "Karl", fax = "+49 238328", id = 21),
     )
-    val match = SipgateContactSyncService.findBestMatch(
-      addressList,
-      createContact("Reinhard", "Kai", "Dipl.-Phys.", "0123456789")
+    val contactList = listOf(
+      createContact("Reinhard", "Kai", "0123456789", id = "contact-10"),
+      createContact("Reinhard", "Kai", id = "contact-11"),
+      createContact("Reinhard", "Karl", id = "contact-20"), // synced
+      createContact("Reinhard", "Karl", id = "contact-21"),
     )
-    Assertions.assertEquals("+49 1234 56789", match!!.mobilePhone)
+    val syncList = mutableListOf(
+      createSyncDO("other-contact-id", 12),
+      createSyncDO("contact-20", 42),
+    )
+    val syncContext = SipgateContactSyncService.SyncContext()
+    syncContext.syncDOList = syncList
+    syncContext.addressList = addressList
+    syncContext.remoteContacts = contactList
+    val list = SipgateContactSyncService.findMatches(syncContext)
+    Assertions.assertTrue(
+      list.none { it.contactId == "contact-20" },
+      "contact-20 without any match (is already synced)"
+    )
+    assertScore(list, "contact-10", 10, 1, "only name is matching")
+    assertScore(list, "contact-10", 11, 2, "cell phone is matching")
+    assertScore(list, "contact-11", 10, 1, "only name is matching")
+    assertScore(list, "contact-11", 11, 1, "only name is matching")
+    Assertions.assertTrue(
+      list.none { it.contactId == "contact-20" },
+      "contact-20 without any match (is already synced)"
+    )
+    assertScore(list, "contact-21", 20, 1, "only name is matching")
+    assertScore(list, "contact-21", 21, 1, "only name is matching")
+    Assertions.assertEquals(6, list.size)
+  }
+
+  private fun assertScore(
+    matchScores: List<SipgateContactSyncService.MatchScore>,
+    contactId: String,
+    addressId: Int,
+    expectedScore: Int,
+    msg: String,
+  ) {
+    val score = matchScores.find { it.contactId == contactId && it.addressId == addressId }
+    Assertions.assertNotNull(score, msg)
+    Assertions.assertNotNull(score!!.score, msg)
+    Assertions.assertEquals(expectedScore, score.score, msg)
   }
 
   @Test
@@ -122,12 +162,14 @@ class SipgateSyncServiceTest {
     firstName: String? = null,
     mobilePhone: String? = null,
     fax: String? = null,
+    id: Int? = null,
   ): AddressDO {
     val address = AddressDO()
     address.name = name
     address.firstName = firstName
     address.mobilePhone = mobilePhone
     address.fax = fax
+    address.id = id
     return address
   }
 
@@ -136,6 +178,7 @@ class SipgateSyncServiceTest {
     firstName: String,
     mobilePhone: String? = null,
     fax: String? = null,
+    id: String? = null,
   ): SipgateContact {
     val address = createAddress(name = name, firstName = firstName)
     val contact = SipgateContact()
@@ -148,6 +191,19 @@ class SipgateSyncServiceTest {
       numbers.add(SipgateNumber(it).setFaxWork())
     }
     contact.numbers = numbers
+    contact.id = id
     return contact
+  }
+
+  private fun createSyncDO(
+    contactId: String,
+    addressId: Int,
+  ): SipgateContactSyncDO {
+    val syncDO = SipgateContactSyncDO()
+    syncDO.sipgateContactId = contactId
+    val address = AddressDO()
+    address.id = addressId
+    syncDO.address = address
+    return syncDO
   }
 }
