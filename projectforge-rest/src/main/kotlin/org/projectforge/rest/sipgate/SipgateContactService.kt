@@ -30,8 +30,9 @@ import org.springframework.stereotype.Service
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
+// Must be open for mocking in tests.
 @Service
-class SipgateContactService :
+open class SipgateContactService :
   AbstractSipgateService<SipgateContact>("/contacts", "Contacts") {
 
   override fun fromJson(response: String): ContactListData? {

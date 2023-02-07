@@ -157,53 +157,56 @@ class SipgateSyncServiceTest {
     Assertions.assertEquals(expectedName, address.name)
   }
 
-  private fun createAddress(
-    name: String? = null,
-    firstName: String? = null,
-    mobilePhone: String? = null,
-    fax: String? = null,
-    id: Int? = null,
-  ): AddressDO {
-    val address = AddressDO()
-    address.name = name
-    address.firstName = firstName
-    address.mobilePhone = mobilePhone
-    address.fax = fax
-    address.id = id
-    return address
-  }
-
-  private fun createContact(
-    name: String,
-    firstName: String,
-    mobilePhone: String? = null,
-    fax: String? = null,
-    id: String? = null,
-  ): SipgateContact {
-    val address = createAddress(name = name, firstName = firstName)
-    val contact = SipgateContact()
-    contact.name = SipgateContactSyncDO.getName(address)
-    val numbers = mutableListOf<SipgateNumber>()
-    mobilePhone?.let {
-      numbers.add(SipgateNumber(it).setCellType())
+  companion object {
+    internal fun createAddress(
+      name: String? = null,
+      firstName: String? = null,
+      mobilePhone: String? = null,
+      fax: String? = null,
+      id: Int? = null,
+    ): AddressDO {
+      val address = AddressDO()
+      address.name = name
+      address.firstName = firstName
+      address.mobilePhone = mobilePhone
+      address.fax = fax
+      address.id = id
+      return address
     }
-    fax?.let {
-      numbers.add(SipgateNumber(it).setFaxWorkType())
-    }
-    contact.numbers = numbers
-    contact.id = id
-    return contact
-  }
 
-  private fun createSyncDO(
-    contactId: String,
-    addressId: Int,
-  ): SipgateContactSyncDO {
-    val syncDO = SipgateContactSyncDO()
-    syncDO.sipgateContactId = contactId
-    val address = AddressDO()
-    address.id = addressId
-    syncDO.address = address
-    return syncDO
+    internal fun createContact(
+      name: String,
+      firstName: String,
+      mobilePhone: String? = null,
+      fax: String? = null,
+      id: String? = null,
+    ): SipgateContact {
+      val address = createAddress(name = name, firstName = firstName)
+      val contact = SipgateContact()
+      contact.name = SipgateContactSyncDO.getName(address)
+      val numbers = mutableListOf<SipgateNumber>()
+      mobilePhone?.let {
+        numbers.add(SipgateNumber(it).setCellType())
+      }
+      fax?.let {
+        numbers.add(SipgateNumber(it).setFaxWorkType())
+      }
+      contact.numbers = numbers
+      contact.id = id
+      contact.scope = SipgateContact.Scope.SHARED
+      return contact
+    }
+
+    internal fun createSyncDO(
+      contactId: String,
+      addressId: Int,
+    ): SipgateContactSyncDO {
+      val syncDO = SipgateContactSyncDO()
+      syncDO.sipgateContactId = contactId
+      val address = AddressDO()
+      address.id = addressId
+      syncDO.address = address
+      return syncDO
+    }
   }
 }

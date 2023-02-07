@@ -55,7 +55,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
 
   abstract fun setId(obj: T, id: String)
 
-  fun getList(offset: Int = 0, limit: Int = 5000, maxNumberOfPages: Int = 100): List<T> {
+  open fun getList(offset: Int = 0, limit: Int = 5000, maxNumberOfPages: Int = 100): List<T> {
     // Parameters: limit=<pagesize>, offset=<page>
     val result = mutableListOf<T>()
     var pageCounter = 0
@@ -86,7 +86,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
     return result
   }
 
-  fun create(entity: T): Boolean {
+  open fun create(entity: T): Boolean {
     val json = JsonUtils.toJson(entity, true)
     try {
       val uriSpec = webClient.post()
@@ -109,7 +109,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
     }
   }
 
-  fun delete(id: String?, entity: T): Boolean {
+  open fun delete(id: String?, entity: T): Boolean {
     val json = JsonUtils.toJson(entity, true)
     if (debugConsoleOutForTesting) {
       println("Trying to delete $entityName #$id: $json")
@@ -136,7 +136,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
    * @return true if the remoteState was updated or false if the remoteState of each field is up-to-date.
    * @see buildUpdateEntity
    */
-  fun update(id: String, entity: T): Boolean {
+  open fun update(id: String, entity: T): Boolean {
     setId(entity, id)
     val json = JsonUtils.toJson(entity, true)
     try {
