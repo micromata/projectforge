@@ -345,6 +345,8 @@ object NumberHelper {
         s = s.substring(2)
       }
     }
+    s = s.replace("\\s+".toRegex(), "") // Remove whitespaces.
+    s = s.replace("(0)", "") // Remove '(0)' in +49 (0) 123456789
     for (i in s.indices) {
       val ch = s[i]
       if (Character.isDigit(s[i])) {
