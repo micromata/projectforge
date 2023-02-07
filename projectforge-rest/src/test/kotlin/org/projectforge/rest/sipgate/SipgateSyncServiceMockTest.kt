@@ -30,23 +30,22 @@ import org.mockito.Mockito
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
-import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.test.AbstractTestBase
 import javax.persistence.EntityManager
 
 private val log = KotlinLogging.logger {}
 
-class SipgateSyncServiceMockTest {
+class SipgateSyncServiceMockTest : AbstractTestBase() {
   private var addressCounter = 0
   var contactIdCounter = 0
 
   @Test
   fun syncTest() {
-    val configurationService = Mockito.mock(ConfigurationService::class.java)
-    Configuration(configurationService)
+    // val configurationService = Mockito.mock(ConfigurationService::class.java)
+    // Configuration(configurationService)
     val em = Mockito.mock(EntityManager::class.java)
     val addressDao = object : AddressDao() {
       val addressList = createAddressList()
