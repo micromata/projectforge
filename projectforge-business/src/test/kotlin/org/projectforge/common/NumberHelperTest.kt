@@ -172,5 +172,7 @@ class NumberHelperTest {
 
     Assertions.assertEquals("007123456", extractPhonenumber("+7123456", "+49"))
     Assertions.assertEquals("007123456", extractPhonenumber("+7 123456", "+49"))
+    Assertions.assertEquals("012345678", extractPhonenumber("+49 (0) 12345 - 678", "+49"))
+    Assertions.assertEquals("004112345678", extractPhonenumber("+41 (0) 12345 - 678", "+49"))
   }
 }
