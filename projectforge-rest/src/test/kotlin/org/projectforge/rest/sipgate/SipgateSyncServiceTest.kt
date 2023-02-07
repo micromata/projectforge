@@ -185,10 +185,10 @@ class SipgateSyncServiceTest {
     contact.name = SipgateContactSyncDO.getName(address)
     val numbers = mutableListOf<SipgateNumber>()
     mobilePhone?.let {
-      numbers.add(SipgateNumber(it).setCell())
+      numbers.add(SipgateNumber(it).setCellType())
     }
     fax?.let {
-      numbers.add(SipgateNumber(it).setFaxWork())
+      numbers.add(SipgateNumber(it).setFaxWorkType())
     }
     contact.numbers = numbers
     contact.id = id

@@ -128,11 +128,11 @@ open class SipgateContactSyncService {
       address.email?.let { contact.email = it }
       address.privateEmail?.let { contact.privateEmail = it }
       val numbers = mutableListOf<SipgateNumber>()
-      address.businessPhone?.let { numbers.add(SipgateNumber(it).setWork()) }
-      address.mobilePhone?.let { numbers.add(SipgateNumber(it).setCell()) }
-      address.privatePhone?.let { numbers.add(SipgateNumber(it).setHome()) }
-      address.privateMobilePhone?.let { numbers.add(SipgateNumber(it).setOther()) }
-      address.fax?.let { numbers.add(SipgateNumber(it).setFaxWork()) }
+      address.businessPhone?.let { numbers.add(SipgateNumber(it).setWorkType()) }
+      address.mobilePhone?.let { numbers.add(SipgateNumber(it).setCellType()) }
+      address.privatePhone?.let { numbers.add(SipgateNumber(it).setHomeType()) }
+      address.privateMobilePhone?.let { numbers.add(SipgateNumber(it).setOtherType()) }
+      address.fax?.let { numbers.add(SipgateNumber(it).setFaxWorkType()) }
       contact.numbers = numbers
       /* Ignore addresses (synchronize will be pain, because not type of addresses will be given by Sipgate.
         val addresses = mutableListOf<SipgateAddress>()
@@ -383,6 +383,9 @@ open class SipgateContactSyncService {
       addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
     updateSyncObjects(syncContext)
 
+    // Handle douplets from Sipgate
+    // Gelöschte Adressen in Sipgate?
+
     syncContext.localCounter.total = syncContext.addressList.size
     syncContext.addressList.forEach { address ->
       val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
@@ -393,6 +396,9 @@ open class SipgateContactSyncService {
           if (contact != null) {
             // Update if active
             val syncResult = sync(contact, address, syncDO.syncInfo)
+            if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
+              log.info { "Updating address and/or contact: $syncResult" }
+            }
             if (syncResult.addressDOOutdated) {
               try {
                 log.info { "***** Updating address: $address" }
@@ -407,20 +413,17 @@ open class SipgateContactSyncService {
               log.info { "***** Updating remote contact: $contact" }
               // updateRemoteContact(contact, syncDO, syncContext)
             }
-            if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
-              log.info { "***** Updating address and/or contact: $syncResult" }
-            }
           } else {
             // Create
-            log.info { "***** Create remote contact: $contact" }
+            log.info { "****** Create remote contact: $address" }
             // createRemoteContact(address, syncContext)
           }
         } else if (contact != null) {
           // Delete if not active
-          log.info { "***** Create remote contact: $contact" }
-          deleteRemoteContact(contact, syncDO, syncContext)
+          log.info { "****** Delete remote contact (is deleted or not active): $contact" }
+          // deleteRemoteContact(contact, syncDO, syncContext)
         }
-      } else if (address.contactStatus.isIn(ContactStatus.ACTIVE)) {
+      } else if (!address.isDeleted && address.contactStatus.isIn(ContactStatus.ACTIVE)) {
         // Create if active
         log.info { "***** Create remote contact: ${from(address)}" }
         // createRemoteContact(address, syncContext)
@@ -457,9 +460,6 @@ open class SipgateContactSyncService {
     try {
       val contact = from(address)
       sipgateContactService.create(contact)
-      val newSyncDO = SipgateContactSyncDO.create(null, address, SipgateContactSyncDO.RemoteStatus.CREATED_BY_LOCAL)
-      // Can't set syncDO.sipgateContactId. Will be updated after next updateSyncObjects call.
-      upsert(newSyncDO)
       syncContext.remoteCounter.inserted++
     } catch (ex: Exception) {
       log.error(ex.message, ex)
