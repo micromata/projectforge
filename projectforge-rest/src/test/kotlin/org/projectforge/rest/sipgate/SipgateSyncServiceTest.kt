@@ -163,6 +163,7 @@ class SipgateSyncServiceTest {
       firstName: String? = null,
       mobilePhone: String? = null,
       fax: String? = null,
+      organization: String? = null,
       id: Int? = null,
     ): AddressDO {
       val address = AddressDO()
@@ -171,6 +172,7 @@ class SipgateSyncServiceTest {
       address.mobilePhone = mobilePhone
       address.fax = fax
       address.id = id
+      address.organization = organization
       return address
     }
 
@@ -179,6 +181,7 @@ class SipgateSyncServiceTest {
       firstName: String,
       mobilePhone: String? = null,
       fax: String? = null,
+      organization: String? = null,
       id: String? = null,
     ): SipgateContact {
       val address = createAddress(name = name, firstName = firstName)
@@ -192,6 +195,7 @@ class SipgateSyncServiceTest {
         numbers.add(SipgateNumber(it).setFaxWorkType())
       }
       contact.numbers = numbers
+      contact.organization = organization
       contact.id = id
       contact.scope = SipgateContact.Scope.SHARED
       return contact
