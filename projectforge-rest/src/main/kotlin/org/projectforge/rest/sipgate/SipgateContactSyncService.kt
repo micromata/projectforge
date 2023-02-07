@@ -93,11 +93,11 @@ open class SipgateContactSyncService {
     var updated: Int = 0,
     var deleted: Int = 0,
     var failed: Int = 0,
-    var unmodified: Int = 0,
+    var ignored: Int = 0,
     var total: Int = 0,
   ) {
     override fun toString(): String {
-      return "total=$total, inserted=$inserted, updated=$updated, deleted=$deleted, failed=$failed, unmodified=$unmodified"
+      return "total=$total, inserted=$inserted, updated=$updated, deleted=$deleted, failed=$failed, ignored=$ignored"
     }
   }
 
@@ -413,10 +413,22 @@ open class SipgateContactSyncService {
       return counter
     }
 
+    /**
+     * Only active addresses will be pushed to Sipgate. In-active addresses will be deleted remote.
+     */
     fun isAddressActive(address: AddressDO): Boolean {
       return !address.isDeleted &&
           address.contactStatus.isIn(ContactStatus.ACTIVE) &&
           address.addressStatus.isIn(AddressStatus.UPTODATE)
+    }
+
+    /**
+     * Only valid remote contacts will be created locally. At least any number
+     * and the organization and/or division must exist.
+     */
+    fun isContactValid(contact: SipgateContact): Boolean {
+      return (!contact.organization.isNullOrBlank() || !contact.division.isNullOrBlank()) &&
+          !contact.numbers.isNullOrEmpty()
     }
 
     /**
@@ -495,16 +507,20 @@ open class SipgateContactSyncService {
     syncContext.remoteContacts.forEach { contact ->
       syncContext.syncDOList.find { it.sipgateContactId == contact.id }?.sipgateContactId.let { contactId ->
         if (contactId == null) {
-          try {
-            // Remote contact seems to be a new contact.
-            val address = from(contact)
-            log.info { "Creating address: ${address}" }
-            addressDao.internalSave(address)
-            syncContext.localCounter.inserted++
-            syncContext.localCounter.total++
-          } catch (ex: Exception) {
-            log.error(ex.message, ex)
-            syncContext.localCounter.failed++
+          if (isContactValid(contact)) {
+            try {
+              // Remote contact seems to be a new contact.
+              val address = from(contact)
+              log.info { "Creating address: ${address}" }
+              addressDao.internalSave(address)
+              syncContext.localCounter.inserted++
+            } catch (ex: Exception) {
+              log.error(ex.message, ex)
+              syncContext.localCounter.failed++
+            }
+          } else {
+            log.info { "Ignoring contact (not enough information such as numbers, organization and/or division: $contact" }
+            syncContext.remoteCounter.ignored++
           }
         }
       }

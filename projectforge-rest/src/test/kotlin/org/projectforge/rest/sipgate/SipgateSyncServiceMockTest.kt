@@ -119,7 +119,7 @@ class SipgateSyncServiceMockTest {
     assertSynContext(
       syncContext,
       SipgateContactSyncService.Counter(total = 3, inserted = 2),
-      SipgateContactSyncService.Counter(total = 3, inserted = 1),
+      SipgateContactSyncService.Counter(total = 2, inserted = 1),
       3,
     )
 
@@ -149,7 +149,7 @@ class SipgateSyncServiceMockTest {
     assertSynContext(
       syncContext,
       SipgateContactSyncService.Counter(total = 2, deleted = 1),
-      SipgateContactSyncService.Counter(total = 3, inserted = 1, updated = 1),
+      SipgateContactSyncService.Counter(total = 2, inserted = 1, updated = 1),
       2,
     )
   }
@@ -174,14 +174,24 @@ class SipgateSyncServiceMockTest {
     Assertions.assertEquals(expectedCounter.total, actual.total)
     Assertions.assertEquals(expectedCounter.inserted, actual.inserted)
     Assertions.assertEquals(expectedCounter.updated, actual.updated)
-    Assertions.assertEquals(expectedCounter.unmodified, actual.unmodified)
+    Assertions.assertEquals(expectedCounter.ignored, actual.ignored)
 
   }
 
   private fun createAddressList(): MutableList<AddressDO> {
     val list = mutableListOf<AddressDO>()
-    list.add(SipgateSyncServiceTest.createAddress("Reinhard", "Kai", "+49123456789", id = ++addressCounter))
-    list.add(SipgateSyncServiceTest.createAddress("Müller", "Berta", "+492222222222", id = ++addressCounter))
+    list.add(
+      SipgateSyncServiceTest.createAddress(
+        "Reinhard", "Kai", "+49123456789", organization = "ACME ltd.",
+        id = ++addressCounter
+      )
+    )
+    list.add(
+      SipgateSyncServiceTest.createAddress(
+        "Müller", "Berta", "+492222222222", organization = "ACME ltd.",
+        id = ++addressCounter
+      )
+    )
     return list
   }
 
@@ -191,6 +201,8 @@ class SipgateSyncServiceMockTest {
       SipgateSyncServiceTest.createContact(
         "Hurzel",
         "Paul",
+        mobilePhone = "+1 3456789",
+        organization = "ACME ltd.",
         id = "16CC5120-9AEF-11ED-976C-B9402C0419${++contactIdCounter}"
       )
     )
