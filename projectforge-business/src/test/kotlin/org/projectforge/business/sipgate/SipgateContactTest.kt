@@ -42,13 +42,13 @@ class SipgateContactTest {
     Assertions.assertFalse(SipgateNumber.compare(arrayOf("work"), arrayOf("home")))
     Assertions.assertFalse(SipgateNumber.compare(arrayOf("work", "cell"), arrayOf("home", "cell")))
 
-    Assertions.assertTrue(SipgateNumber().setHome().isHome())
-    Assertions.assertTrue(SipgateNumber().setWork().isWork())
-    Assertions.assertTrue(SipgateNumber().setCell().isCell())
-    Assertions.assertTrue(SipgateNumber().setFaxWork().isFaxWork())
-    Assertions.assertTrue(SipgateNumber().setFaxHome().isFaxHome())
-    Assertions.assertTrue(SipgateNumber().setOther().isOther())
-    Assertions.assertTrue(SipgateNumber().setPager().isPager())
+    Assertions.assertTrue(SipgateNumber().setHomeType().isHomeType())
+    Assertions.assertTrue(SipgateNumber().setWorkType().isWorkType())
+    Assertions.assertTrue(SipgateNumber().setCellType().isCellType())
+    Assertions.assertTrue(SipgateNumber().setFaxWorkType().isFaxWorkType())
+    Assertions.assertTrue(SipgateNumber().setFaxHomeType().isFaxHomeType())
+    Assertions.assertTrue(SipgateNumber().setOtherType().isOtherType())
+    Assertions.assertTrue(SipgateNumber().setPagerType().isPagerType())
   }
 
   @Test

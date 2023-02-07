@@ -69,42 +69,42 @@ class SipgateContact {
 
   var work: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isWork() }?.number
+    get() = numbers?.firstOrNull { it.isWorkType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.WORK_ARRAY)
     }
 
   var home: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isHome() }?.number
+    get() = numbers?.firstOrNull { it.isHomeType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.HOME_ARRAY)
     }
 
   var faxWork: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isFaxWork() }?.number
+    get() = numbers?.firstOrNull { it.isFaxWorkType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.FAX_WORK_ARRAY)
     }
 
   var faxHome: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isFaxHome() }?.number
+    get() = numbers?.firstOrNull { it.isFaxHomeType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.FAX_HOME_ARRAY)
     }
 
   var cell: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isCell() }?.number
+    get() = numbers?.firstOrNull { it.isCellType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.CELL_ARRAY)
     }
 
   var pager: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isPager() }?.number
+    get() = numbers?.firstOrNull { it.isPagerType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.PAGER_ARRAY)
     }
@@ -114,7 +114,7 @@ class SipgateContact {
    */
   var other: String?
     @JsonIgnore
-    get() = numbers?.firstOrNull { it.isOther() }?.number
+    get() = numbers?.firstOrNull { it.isOtherType() }?.number
     set(value) {
       setNumber(value, SipgateNumber.OTHER_ARRAY)
     }
@@ -202,66 +202,74 @@ class SipgateNumber(
 ) {
   var type: Array<String>? = null
 
-  fun setHome(): SipgateNumber {
+  fun setHomeType(): SipgateNumber {
     type = HOME_ARRAY
     return this
   }
 
-  fun isHome(): Boolean {
+  @JsonIgnore
+  fun isHomeType(): Boolean {
     return compare(type, HOME_ARRAY)
   }
 
-  fun setWork(): SipgateNumber {
+  fun setWorkType(): SipgateNumber {
     type = WORK_ARRAY
     return this
   }
 
-  fun isWork(): Boolean {
+  @JsonIgnore
+  fun isWorkType(): Boolean {
     return compare(type, WORK_ARRAY)
   }
 
-  fun setCell(): SipgateNumber {
+  fun setCellType(): SipgateNumber {
     type = CELL_ARRAY
     return this
   }
 
-  fun isCell(): Boolean {
+  @JsonIgnore
+  fun isCellType(): Boolean {
     return compare(type, CELL_ARRAY)
   }
 
-  fun setFaxHome(): SipgateNumber {
+  fun setFaxHomeType(): SipgateNumber {
     type = FAX_HOME_ARRAY
     return this
   }
 
-  fun isFaxHome(): Boolean {
+
+  @JsonIgnore
+  fun isFaxHomeType(): Boolean {
     return compare(type, FAX_HOME_ARRAY)
   }
 
-  fun setFaxWork(): SipgateNumber {
+  fun setFaxWorkType(): SipgateNumber {
     type = FAX_WORK_ARRAY
     return this
   }
 
-  fun isFaxWork(): Boolean {
+  @JsonIgnore
+  fun isFaxWorkType(): Boolean {
     return compare(type, FAX_WORK_ARRAY)
   }
 
-  fun setPager(): SipgateNumber {
+  fun setPagerType(): SipgateNumber {
     type = PAGER_ARRAY
     return this
   }
 
-  fun isPager(): Boolean {
+  @JsonIgnore
+  fun isPagerType(): Boolean {
     return compare(type, PAGER_ARRAY)
   }
 
-  fun setOther(): SipgateNumber {
+  fun setOtherType(): SipgateNumber {
     type = OTHER_ARRAY
     return this
   }
 
-  fun isOther(): Boolean {
+  @JsonIgnore
+  fun isOtherType(): Boolean {
     return compare(type, OTHER_ARRAY)
   }
 
