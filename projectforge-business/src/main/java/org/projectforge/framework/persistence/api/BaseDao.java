@@ -612,7 +612,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   protected void callObjectChangedListeners(final O obj, final OperationType operationType) {
     for (final BaseDOChangedListener<O> objectChangedListener : objectChangedListeners) {
-      objectChangedListener.afterSaveOrModifify(obj, operationType);
+      objectChangedListener.afterSaveOrModify(obj, operationType);
     }
   }
 

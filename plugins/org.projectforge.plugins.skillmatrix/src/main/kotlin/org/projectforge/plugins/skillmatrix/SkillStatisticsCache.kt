@@ -110,7 +110,7 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
         skillEntryDao.register(this)
     }
 
-    override fun afterSaveOrModifify(changedObject: SkillEntryDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: SkillEntryDO, operationType: OperationType) {
         setExpired()
     }
 
