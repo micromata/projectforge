@@ -602,6 +602,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       try {
         sipgateContactService.delete(contactId, contact)
         delete(syncDO)
+        syncContext.syncDOList.remove(syncDO)
         syncContext.remoteCounter.deleted++
       } catch (ex: Exception) {
         log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)

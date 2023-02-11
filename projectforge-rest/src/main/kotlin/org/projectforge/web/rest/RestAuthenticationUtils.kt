@@ -142,7 +142,8 @@ open class RestAuthenticationUtils {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
         authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
         logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
-        log.info{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
+        // Attribute:    "javax.servlet.request.ssl_session_id": "78d59cb1ecae9bf12e9fbe5330395751ac78ab56f1f9f1c8b7c2a05361917b22"
+        // log.info{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
       } else if (log.isDebugEnabled) {
         logDebug(authInfo, "Basic authentication failed, no authentication given in header (OK).")
       }
