@@ -95,7 +95,7 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
      * After modification of any address (insert, update, delete, undelete) this address should be removed from
      * this cache.
      */
-    override fun afterSaveOrModifify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
         synchronized(contactMap) {
             contactMap.remove(changedObject.id)
         }

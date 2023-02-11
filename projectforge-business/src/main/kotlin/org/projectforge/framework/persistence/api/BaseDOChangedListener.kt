@@ -30,5 +30,5 @@ import org.projectforge.framework.access.OperationType
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 interface BaseDOChangedListener<O : ExtendedBaseDO<Int>> {
-    fun afterSaveOrModifify(changedObject: O, operationType: OperationType)
+    fun afterSaveOrModify(changedObject: O, operationType: OperationType)
 }
