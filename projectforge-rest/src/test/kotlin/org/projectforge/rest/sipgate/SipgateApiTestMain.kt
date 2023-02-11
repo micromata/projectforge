@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
   config.tokenId = tokenId
   config.token = token
   sipgateClient.sipgateConfiguration = config
-  sipgateClient.postConstruct()
+  sipgateClient.postConstruct(useMenuCreator = false)
 
   val contactService = SipgateContactService()
   contactService.sipgateClient = sipgateClient

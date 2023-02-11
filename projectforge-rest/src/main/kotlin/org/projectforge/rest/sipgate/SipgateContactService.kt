@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service
 // Must be open for mocking in tests.
 @Service
 open class SipgateContactService :
-  AbstractSipgateService<SipgateContact>("/contacts", "Contacts") {
+  AbstractSipgateService<SipgateContact>("/contacts", "Contact") {
 
   override fun fromJson(response: String): ContactListData? {
     return JsonUtils.fromJson(response, ContactListData::class.java, false)
@@ -42,4 +42,9 @@ open class SipgateContactService :
   override fun setId(obj: SipgateContact, id: String) {
     obj.id = id
   }
+
+  override fun getLogInfo(entity: SipgateContact): String {
+    return "contact '${entity.name}' (id=${entity.id})"
+  }
+
 }

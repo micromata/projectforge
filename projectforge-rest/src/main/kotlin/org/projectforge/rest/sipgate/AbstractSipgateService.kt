@@ -93,7 +93,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       if (debugConsoleOutForTesting) {
         println("create body: $json")
       }
-      log.info { "Trying to create $entityName in Sipgate: $json" }
+      log.info { "${getLogInfo(entity)}: Trying to create $entityName in Sipgate: $json" }
       val bodySpec = uriSpec.uri(path)
         .body(
           BodyInserters.fromValue(json)
@@ -104,7 +104,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       }
       return true
     } catch (ex: Exception) {
-      log.error("Error while creating $entityName in Sipgate: ${ex.message}: $json")
+      log.error("${getLogInfo(entity)}: Error while creating $entityName in Sipgate: ${ex.message}: $json")
       return false
     }
   }
@@ -115,10 +115,10 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       println("Trying to delete $entityName #$id: $json")
     }
     if (id.isNullOrBlank()) {
-      log.error { "Can't delete $entityName #$id: $json" }
+      log.error { "${getLogInfo(entity)}: Can't delete $entityName #$id: $json" }
       return false
     }
-    log.info("Trying to delete $entityName #$id: $json")
+    log.info("${getLogInfo(entity)}: Trying to delete $entityName #$id: $json")
     val uriSpec = webClient.delete()
     val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
       uriBuilder
@@ -127,7 +127,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
     }
 
     val response = sipgateClient.execute(headersSpec, String::class.java)
-    log.info { response }
+    log.info { "${getLogInfo(entity)}: response=[$response]" }
     return true
   }
 
@@ -149,7 +149,7 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       if (debugConsoleOutForTesting) {
         println("update body: $json")
       }
-      log.info { "Trying to update $entityName #$id in Sipgate: $json" }
+      log.info { "${getLogInfo(entity)}: Trying to update $entityName #$id in Sipgate: $json" }
       val bodySpec = headersSpec.body(
           BodyInserters.fromValue(json)
         )
@@ -159,8 +159,10 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       }
       return true
     } catch (ex: Exception) {
-      log.error("Error while updating $entityName in Sipgate: ${ex.message}: $json")
+      log.error("${getLogInfo(entity)}: Error while updating $entityName in Sipgate: ${ex.message}: $json")
       return false
     }
   }
+
+  abstract fun getLogInfo(entity: T): String
 }

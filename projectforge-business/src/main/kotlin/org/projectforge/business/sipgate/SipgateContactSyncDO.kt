@@ -46,6 +46,10 @@ import javax.persistence.*
 )
 @NamedQueries(
   NamedQuery(
+    name = SipgateContactSyncDO.FIND_BY_ADDRESS_ID,
+    query = "from SipgateContactSyncDO where address_id = :addressId"
+  ),
+  NamedQuery(
     name = SipgateContactSyncDO.FIND_BY_CONTACT_AND_ADDRESS_ID,
     query = "from SipgateContactSyncDO where sipgate_contact_id = :sipgateContactId or address_id = :addressId"
   ),
@@ -219,6 +223,7 @@ open class SipgateContactSyncDO {
     }
 
     const val FIND_BY_CONTACT_AND_ADDRESS_ID = "SipgateContactSyncDO_findByContactAndAddressId"
+    const val FIND_BY_ADDRESS_ID = "SipgateContactSyncDO_findByAddressId"
     const val LOAD_ALL = "SipgateContactSyncDO_loadAll"
   }
 }

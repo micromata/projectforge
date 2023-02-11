@@ -72,7 +72,7 @@ class SipgateClient {
   @Autowired
   private lateinit var menuCreator: MenuCreator
 
-  internal var debugConsoleOutForTesting = false
+  private var debugConsoleOutForTesting = false
 
   private val timeoutMillis = 30000
   private val timeoutMillisLong = 30000L
@@ -90,7 +90,7 @@ class SipgateClient {
   class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
 
   @PostConstruct
-  internal fun postConstruct() {
+  internal fun postConstruct(useMenuCreator: Boolean = true) {
     val baseUri = sipgateConfiguration.baseUri
     val token = sipgateConfiguration.token
     val tokenId = sipgateConfiguration.tokenId
@@ -115,7 +115,7 @@ class SipgateClient {
       .defaultUriVariables(Collections.singletonMap("url", "baseUri"))
       .build()
 
-    if (sipgateConfiguration.isConfigured()) {
+    if (useMenuCreator && sipgateConfiguration.isConfigured()) {
       menuCreator
         .register(
           MenuItemDefId.ADMINISTRATION,
