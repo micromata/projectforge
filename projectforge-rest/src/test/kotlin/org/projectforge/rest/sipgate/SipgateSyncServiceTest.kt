@@ -57,7 +57,7 @@ class SipgateSyncServiceTest {
     val address1 = createAddress(name = "Reinhard", firstName = "Kai")
     val contact = SipgateContact()
     contact.name = SipgateContactSyncDO.getName(address1)
-    Assertions.assertEquals(1, SipgateContactSyncService.matchScore(contact, address1))
+    Assertions.assertEquals(3, SipgateContactSyncService.matchScore(contact, address1))
     val address2 = createAddress(
       name = "Reinhard",
       firstName = "Kai",
@@ -65,9 +65,9 @@ class SipgateSyncServiceTest {
       fax = "+49 222 33333",
     )
     contact.numbers = mutableListOf(SipgateNumber("+49 1234 567890"))
-    Assertions.assertEquals(2, SipgateContactSyncService.matchScore(contact, address2))
+    Assertions.assertEquals(4, SipgateContactSyncService.matchScore(contact, address2))
     contact.numbers = mutableListOf(SipgateNumber("+49 1234 567890"), SipgateNumber("022233333"))
-    Assertions.assertEquals(3, SipgateContactSyncService.matchScore(contact, address2))
+    Assertions.assertEquals(5, SipgateContactSyncService.matchScore(contact, address2))
     address1.firstName = "Karl"
     Assertions.assertEquals(-1, SipgateContactSyncService.matchScore(contact, address1))
 
@@ -97,16 +97,16 @@ class SipgateSyncServiceTest {
       list.none { it.contactId == "contact-20" },
       "contact-20 without any match (is already synced)"
     )
-    assertScore(list, "contact-10", 10, 1, "only name is matching")
-    assertScore(list, "contact-10", 11, 2, "cell phone is matching")
-    assertScore(list, "contact-11", 10, 1, "only name is matching")
-    assertScore(list, "contact-11", 11, 1, "only name is matching")
+    assertScore(list, "contact-10", 10, 3, "only name is matching")
+    assertScore(list, "contact-10", 11, 4, "cell phone is matching")
+    assertScore(list, "contact-11", 10, 3, "only name is matching")
+    assertScore(list, "contact-11", 11, 3, "only name is matching")
     Assertions.assertTrue(
       list.none { it.contactId == "contact-20" },
       "contact-20 without any match (is already synced)"
     )
-    assertScore(list, "contact-21", 20, 1, "only name is matching")
-    assertScore(list, "contact-21", 21, 1, "only name is matching")
+    assertScore(list, "contact-21", 20, 3, "only name is matching")
+    assertScore(list, "contact-21", 21, 3, "only name is matching")
     Assertions.assertEquals(6, list.size)
   }
 
