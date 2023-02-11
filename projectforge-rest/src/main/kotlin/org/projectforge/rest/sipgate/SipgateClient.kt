@@ -90,7 +90,11 @@ class SipgateClient {
   class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
 
   @PostConstruct
-  internal fun postConstruct(useMenuCreator: Boolean = true) {
+  private fun postConstruct() {
+    postConstruct(true)
+  }
+
+  internal fun postConstruct(useMenuCreator: Boolean) {
     val baseUri = sipgateConfiguration.baseUri
     val token = sipgateConfiguration.token
     val tokenId = sipgateConfiguration.tokenId
