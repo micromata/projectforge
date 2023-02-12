@@ -148,6 +148,7 @@ open class SipgateContactSyncDO {
    */
   @get:ManyToOne(cascade = [CascadeType.MERGE])
   @get:JoinColumn(name = "address_id")
+  @get:JsonIgnore
   open var address: AddressDO? = null
 
   @get:Column(name = "last_sync")
@@ -163,6 +164,11 @@ open class SipgateContactSyncDO {
 
   @get:Column(name = "sync_info", length = 10000)
   open var syncInfoAsJson: String? = null
+
+  @get:Transient
+  val addressId: Int?
+    get() = address?.id
+
 
   fun readJson() {
     if (syncInfoAsJson == null) {
