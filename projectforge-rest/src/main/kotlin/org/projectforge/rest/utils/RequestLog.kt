@@ -44,8 +44,9 @@ object RequestLog {
     }
 
     @JvmStatic
-    fun asString(request: HttpServletRequest): String {
-        return request.requestURI
+    fun asString(request: HttpServletRequest, user: String? = null): String {
+        val userString = if (user.isNullOrBlank()) "" else ", user='$user'"
+        return "uri=${request.requestURI}, session-id=${request.getSession(false)?.id}$userString"
     }
 }
 
