@@ -194,6 +194,10 @@ open class SipgateContactSyncDO {
     updateJson()
   }
 
+  override fun toString(): String {
+    return JsonUtils.toJson(this, true)
+  }
+
   companion object {
     fun create(
       contact: SipgateContact?,
