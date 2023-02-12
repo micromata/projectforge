@@ -32,7 +32,6 @@ import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -115,7 +114,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     var remoteCounter = Counter()
 
     override fun toString(): String {
-      return JsonUtils.toJson(this, true)
+      return "${remoteContacts.size} remote contacts, ${addressList.size} local addresses, ${syncDOList.size} sync objects, localCounter=$localCounter, remoteCounter=$remoteCounter"
     }
   }
 
@@ -377,6 +376,14 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
             }
           }
       }
+      if (log.isDebugEnabled) {
+        val sb = StringBuilder()
+        val map = matchScores.groupBy { it.contactId }
+        map.keys.sorted().forEach { contactId ->
+          sb.appendLine("$contactId=[${map[contactId]?.sortedByDescending { it.score }?.joinToString { "${it.addressId}:${it.score}" }}]")
+        }
+        log.debug { sb.toString() }
+      }
       return matchScores
     }
 
@@ -484,11 +491,11 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       syncContext.addressList.forEach { address ->
         val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
         val contactId = syncDO?.sipgateContactId
-        log.debug { "sync: Processing address #${address.id}: syncObj=$syncDO" }
+        // log.debug { "sync: Processing address #${address.id}: syncObj=$syncDO" }
         if (contactId != null) {
           val contact = syncContext.remoteContacts.find { it.id == contactId }
           if (isAddressActive(address)) {
-            log.debug { "sync: address #${address.id} is active. Remote contact=$contact" }
+            // log.debug { "sync: address #${address.id} is active. Remote contact=$contact" }
             if (contact != null) {
               // Update if active
               val oldContact = contact.toString()
@@ -496,7 +503,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
               if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
                 log.info { "${getLogInfo(address, contact)}: Updating address and/or contact: $syncResult" }
               } else {
-                log.debug { "sync: ${getLogInfo(address, contact)} is up-to-date." }
+                // log.debug { "sync: ${getLogInfo(address, contact)} is up-to-date." }
               }
               if (syncResult.addressDOOutdated) {
                 try {
@@ -541,9 +548,9 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       }
       log.debug { "sync: Processing all remote ${syncContext.remoteContacts.size} contacts..." }
       syncContext.remoteContacts.forEach { contact ->
-        log.debug { "sync: Processing remote contact: $contact" }
+        // log.debug { "sync: Processing remote contact: $contact" }
         syncContext.syncDOList.find { it.sipgateContactId == contact.id }.let { syncDO ->
-          log.debug { "sync: syncDO found: $syncDO" }
+          // log.debug { "sync: syncDO found: $syncDO" }
           val contactId = syncDO?.sipgateContactId
           if (contactId == null) {
             if (isContactValid(contact)) {
