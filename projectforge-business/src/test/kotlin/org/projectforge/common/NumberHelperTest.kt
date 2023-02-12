@@ -175,4 +175,15 @@ class NumberHelperTest {
     Assertions.assertEquals("012345678", extractPhonenumber("+49 (0) 12345 - 678", "+49"))
     Assertions.assertEquals("004112345678", extractPhonenumber("+41 (0) 12345 - 678", "+49"))
   }
+
+  @Test
+  fun formatPhonenumber() {
+    NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
+    Assertions.assertEquals("12345678", NumberHelper.formatPhonenumber("12345678"))
+    Assertions.assertEquals("0", NumberHelper.formatPhonenumber("0"))
+    Assertions.assertEquals("00", NumberHelper.formatPhonenumber("00"))
+    Assertions.assertEquals("+1", NumberHelper.formatPhonenumber("001"))
+    Assertions.assertEquals("+1 12345", NumberHelper.formatPhonenumber("001 12345"))
+    Assertions.assertEquals("+49 12345 6789", NumberHelper.formatPhonenumber("012345 6789"))
+  }
 }
