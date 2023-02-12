@@ -543,7 +543,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
           log.info { "${getLogInfo(address, null)}: Creating remote contact: ${from(address)}" }
           createRemoteContact(address, syncContext)
         } else {
-          log.debug { "sync: address #${address.id} isn't active and no remote contact exists: Nothing to do." }
+          // log.debug { "sync: address #${address.id} isn't active and no remote contact exists: Nothing to do." }
           // Ignore if not active
         }
       }
@@ -674,11 +674,11 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     log.info { "Trying to match ${syncContext.remoteContacts.size} remote contacts." }
     // Load already matched contacts
     syncContext.syncDOList = loadAll().toMutableList()
-    log.debug { "updateSyncObjects: synContext=$syncContext" }
+    // log.debug { "updateSyncObjects: synContext=$syncContext" }
     // Find deleted remote contacts and deleted addresses for removing them from the syncDOList (for rematching):
     var deleted = false
     syncContext.syncDOList.forEach { syncDO ->
-      log.debug { "updateSyncObjects: syncDO=$syncDO" }
+      // log.debug { "updateSyncObjects: syncDO=$syncDO" }
       var deleteIt = false
       if (syncContext.remoteContacts.none { it.id == syncDO.sipgateContactId }) {
         log.info { "Deleting syncDO (because contact id '${syncDO.sipgateContactId}' doesn't exist anymore." }
