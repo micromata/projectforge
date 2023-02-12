@@ -101,8 +101,9 @@ class PFMiltonFilter : MiltonFilter() {
             msg
           )
         } else {
-          log.info { "Registering authenticated user: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
+          log.debug { "Registering authenticated user: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
           sslSessionCache.registerSessionData(authInfo.request, authenticatedUser)
+          log.info { "Authenticated user registered: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
         }
         authenticatedUser
       }
