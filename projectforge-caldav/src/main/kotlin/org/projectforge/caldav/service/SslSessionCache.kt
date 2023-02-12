@@ -36,27 +36,21 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class SslSessionCache
-    : AbstractSessionCache<PFUserDO>(
-        expireTimeInMillis = 5 * TICKS_PER_MINUTE,
-        clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
-        sessionType = "SSL session id") {
+  : AbstractSessionCache<PFUserDO>(
+  expireTimeInMillis = 5 * TICKS_PER_MINUTE,
+  clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
+  sessionType = "SSL session id",
+) {
 
-    override fun entryAsString(entry: PFUserDO): String {
-        return "'${entry.username}' with id ${entry.id}"
-    }
+  override fun entryAsString(entry: PFUserDO): String {
+    return "'${entry.username}' with id ${entry.id}"
+  }
 
-    override fun equals(entry: PFUserDO, other: PFUserDO): Boolean {
-        return entry.id == other.id
-    }
+  override fun equals(entry: PFUserDO, other: PFUserDO): Boolean {
+    return entry.id == other.id
+  }
 
-    override fun getSessionId(request: HttpServletRequest): String? {
-        val sslSessionId = request.getAttribute(REQUEST_ATTRIBUTE_SSL_SESSION_ID) ?: return null
-        if (sslSessionId is String) {
-            return sslSessionId
-        }
-        log.warn { "Oups, Attribute '$REQUEST_ATTRIBUTE_SSL_SESSION_ID' isn't of type String. Ignoring." }
-        return null
-    }
+  override fun getSessionId(request: HttpServletRequest): String? {
+    return getSslSessionId(request)
+  }
 }
-
-private const val REQUEST_ATTRIBUTE_SSL_SESSION_ID = "javax.servlet.request.ssl_session_id"
