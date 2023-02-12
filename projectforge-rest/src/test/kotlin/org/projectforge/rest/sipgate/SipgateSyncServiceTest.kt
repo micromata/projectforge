@@ -31,6 +31,7 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
+import org.projectforge.framework.utils.NumberHelper
 
 
 class SipgateSyncServiceTest {
@@ -132,12 +133,46 @@ class SipgateSyncServiceTest {
     Assertions.assertEquals(expectedScore, score.score, msg)
   }
 
+
   @Test
   fun syncTest() {
     syncTest("mail", "mail", "mail", false, false)
     syncTest("mail", "mail2", "mail", true, false)
     syncTest("mail", "mail", "mail2", false, true)
     syncTest("mail", "mail", "mail2", false, true)
+
+    val address = createAddress("Lastname", "Firstname", "+49 11111 1111", "+49 222222222", "Micromata GmbH", 2)
+    address.email = "f.lastname@devnull.com"
+    address.privateEmail = "f.lastname@google.com"
+
+    val contact = SipgateContactSyncService.from(address)
+    contact.id = "abcdef-ghijkl-1234"
+
+    val syncDO = SipgateContactSyncDO()
+    syncDO.sipgateContactId = contact.id
+    syncDO.address = address
+    syncDO.updateJson(contact) // Store remote fields as last sync state for modification detection.
+
+    contact.privateEmail = "f.lastname@yahoo.com" // Modification on remote.
+    contact.faxWork = "04444444"
+    address.businessPhone = "+49 3333 33333"
+    address.privateMobilePhone = "+49 5555555"
+    address.email = "business@devnull.com"
+    NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
+    val result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
+    Assertions.assertTrue(result.contactOutdated)
+    Assertions.assertTrue(result.addressDOOutdated)
+    assertEquals("business@devnull.com", contact.email, address.email)
+    assertEquals("f.lastname@yahoo.com", contact.privateEmail, address.privateEmail)
+    assertEquals("+49 11111 1111", contact.cell, address.mobilePhone)
+    assertEquals("+49 4444444", contact.faxWork, address.fax)
+    assertEquals("+49 3333 33333", contact.work, address.businessPhone)
+    assertEquals("+49 5555555", contact.other, address.privateMobilePhone)
+  }
+
+  private fun assertEquals(expected: String, str1: String?, str2: String?) {
+    Assertions.assertEquals(expected, str1)
+    Assertions.assertEquals(expected, str2)
   }
 
   private fun syncTest(

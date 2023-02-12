@@ -305,13 +305,14 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       result: SyncResult,
       isPhoneNumber: Boolean = false,
     ) {
-      val contactValue = contactField.getter.call(contact) as String?
+      var contactValue = contactField.getter.call(contact) as String?
       val addressValue = addressField.getter.call(address) as String?
       var contactValue2Compare = contactValue ?: ""
       var addressValue2Compare = addressValue ?: ""
       if (isPhoneNumber) {
         contactValue2Compare = NumberHelper.extractPhonenumber(contactValue) ?: ""
         addressValue2Compare = NumberHelper.extractPhonenumber(addressValue) ?: ""
+        contactValue = NumberHelper.formatPhonenumber(contactValue)
       }
       if (contactValue2Compare != addressValue2Compare) {
         if (syncInfo != null
@@ -320,6 +321,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
           result.addOutdatedAddressField(addressField.name, addressValue, contactValue)
           // remote contact was modified, so local address is outdated.
           addressField.setter.call(address, contactValue)
+          contactField.setter.call(contact, contactValue)
           result.addressDOOutdated = true
         } else {
           result.addOutdatedContactField(contactField.name, contactValue, addressValue)
@@ -501,6 +503,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
             if (contact != null) {
               // Update if active
               val oldContact = contact.toString()
+              val oldAddress = address.toString()
               val syncResult = sync(contact, address, syncDO.syncInfo)
               if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
                 log.info { "${getLogInfo(address, contact)}: Updating address and/or contact: $syncResult" }
@@ -509,8 +512,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
               }
               if (syncResult.addressDOOutdated) {
                 try {
-                  log.info { "${getLogInfo(address, contact)}: Updating local address: $address" }
-                  copyFrom(address, contact)
+                  log.info { "${getLogInfo(address, contact)}: Updating local address: $address, was: $oldAddress" }
                   addressDao.internalUpdate(address)
                   syncContext.localCounter.updated++
                 } catch (ex: Exception) {
