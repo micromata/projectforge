@@ -378,9 +378,10 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       }
       if (log.isDebugEnabled) {
         val sb = StringBuilder()
-        val map = matchScores.groupBy { it.contactId }
-        map.keys.sorted().forEach { contactId ->
-          sb.appendLine("$contactId=[${map[contactId]?.sortedByDescending { it.score }?.joinToString { "${it.addressId}:${it.score}" }}]")
+        sb.appendLine("matchscores:")
+        val map = matchScores.sortedBy { it.score }.groupBy { it.contactId }
+        map.entries.forEach { entry ->
+          sb.appendLine("${entry.key}=[${entry.value.sortedByDescending { it.score }.joinToString { "${it.addressId}:${it.score}" }}]")
         }
         log.debug { sb.toString() }
       }
@@ -698,7 +699,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       syncContext.syncDOList = loadAll().toMutableList()
       log.debug { "updateSyncObjects: sync objects reloaded (some were deleted): $listSize sync objects before and now ${syncContext.syncDOList.size}" }
     } else {
-      log.debug { "updateSyncObjects: no sync objects were. Reload of the sync objects not needed." }
+      log.debug { "updateSyncObjects: no sync objects were deleted. Reload of the sync objects not needed." }
     }
     // syncContext. addressList =
     //  addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
