@@ -78,7 +78,7 @@ class SipgateSyncServiceTest {
       createAddress(name = "Reinhard", firstName = "Karl", fax = "+49 23456789", id = 20),
       createAddress(name = "Reinhard", firstName = "Karl", fax = "+49 238328", id = 21),
     )
-    val contactList = listOf(
+    val contactList = mutableListOf(
       createContact("Reinhard", "Kai", "0123456789", id = "contact-10"),
       createContact("Reinhard", "Kai", id = "contact-11"),
       createContact("Reinhard", "Karl", id = "contact-20"), // synced
