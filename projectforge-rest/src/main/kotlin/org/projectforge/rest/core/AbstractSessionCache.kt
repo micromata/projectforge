@@ -44,7 +44,7 @@ abstract class AbstractSessionCache<T : Any>(
   /**
    * For logging purposes.
    */
-  val sessionType: String = "Http session id",
+  val sessionType: String = "Http session id"
 ) : AbstractCache(clearEntriesIntervalInMillis) {
 
   class Entry<T : Any>(val sessionId: String, data: T) {
@@ -161,6 +161,10 @@ abstract class AbstractSessionCache<T : Any>(
     return entry == other
   }
 
+  protected open fun getSessionId(request: HttpServletRequest): String? {
+    return request.getSession(false)?.id
+  }
+
   private val storageId: String
     get() = this::class.java.simpleName
 
@@ -186,9 +190,14 @@ abstract class AbstractSessionCache<T : Any>(
   }
 
   companion object {
-    fun getSessionId(request: HttpServletRequest): String? {
-      return request.getSession(false)?.id ?: request.getAttribute("javax.servlet.request.ssl_session_id") as? String
+    private const val REQUEST_ATTRIBUTE_SSL_SESSION_ID = "javax.servlet.request.ssl_session_id"
+    fun getSslSessionId(request: HttpServletRequest): String? {
+      val sslSessionId = request.getAttribute(REQUEST_ATTRIBUTE_SSL_SESSION_ID) ?: return null
+      if (sslSessionId is String) {
+        return sslSessionId
+      }
+      log.warn { "Oups, Attribute '$REQUEST_ATTRIBUTE_SSL_SESSION_ID' isn't of type String. Ignoring." }
+      return null
     }
-
   }
 }
