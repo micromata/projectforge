@@ -32,6 +32,7 @@ import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -112,6 +113,10 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     var syncDOList = mutableListOf<SipgateContactSyncDO>()
     var localCounter = Counter()
     var remoteCounter = Counter()
+
+    override fun toString(): String {
+      return JsonUtils.toJson(this, true)
+    }
   }
 
   /**
@@ -479,15 +484,19 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       syncContext.addressList.forEach { address ->
         val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
         val contactId = syncDO?.sipgateContactId
+        log.debug { "sync: Processing address #${address.id}: syncObj=$syncDO" }
         if (contactId != null) {
           val contact = syncContext.remoteContacts.find { it.id == contactId }
           if (isAddressActive(address)) {
+            log.debug { "sync: address #${address.id} is active. Remote contact=$contact" }
             if (contact != null) {
               // Update if active
               val oldContact = contact.toString()
               val syncResult = sync(contact, address, syncDO.syncInfo)
               if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
                 log.info { "${getLogInfo(address, contact)}: Updating address and/or contact: $syncResult" }
+              } else {
+                log.debug { "sync: ${getLogInfo(address, contact)} is up-to-date." }
               }
               if (syncResult.addressDOOutdated) {
                 try {
@@ -506,7 +515,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
               }
             } else {
               // Create
-              log.info { "${getLogInfo(address, contact)}: Creating remote contact: $address" }
+              log.info { "${getLogInfo(address, contact)}: Creating remote contact (doesn't yet exist): $address" }
               createRemoteContact(address, syncContext)
             }
           } else if (contact != null) {
@@ -526,11 +535,16 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
           log.info { "${getLogInfo(address, null)}: Creating remote contact: ${from(address)}" }
           createRemoteContact(address, syncContext)
         } else {
+          log.debug { "sync: address #${address.id} isn't active and no remote contact exists: Nothing to do." }
           // Ignore if not active
         }
       }
+      log.debug { "sync: Processing all remote ${syncContext.remoteContacts.size} contacts..." }
       syncContext.remoteContacts.forEach { contact ->
-        syncContext.syncDOList.find { it.sipgateContactId == contact.id }?.sipgateContactId.let { contactId ->
+        log.debug { "sync: Processing remote contact: $contact" }
+        syncContext.syncDOList.find { it.sipgateContactId == contact.id }.let { syncDO ->
+          log.debug { "sync: syncDO found: $syncDO" }
+          val contactId = syncDO?.sipgateContactId
           if (contactId == null) {
             if (isContactValid(contact)) {
               try {
@@ -561,7 +575,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       syncContext.remoteCounter.total = syncContext.remoteContacts.size
       // Delete remote contacts (without numbers)?
       lastSyncInEpochMillis = System.currentTimeMillis()
-      log.info { "Syncing of local addresses and remote Sipgate contacts finished." }
+      log.info { "Syncing of local addresses and remote Sipgate contacts finished: $syncContext" }
       return syncContext
     }
   }
@@ -637,6 +651,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   open fun delete(entry: SipgateContactSyncDO) {
+    log.info { "Deleting syncObj: $entry" }
     em.remove(entry)
     em.flush()
   }
@@ -646,13 +661,16 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
    */
   private fun updateSyncObjects(syncContext: SyncContext) {
     // Get remote contacts and local addresses
-    syncContext.remoteContacts = sipgateContactService.getList().filter { it.scope == SipgateContact.Scope.SHARED }.toMutableList()
+    syncContext.remoteContacts =
+      sipgateContactService.getList().filter { it.scope == SipgateContact.Scope.SHARED }.toMutableList()
     log.info { "Trying to match ${syncContext.remoteContacts.size} remote contacts." }
     // Load already matched contacts
     syncContext.syncDOList = loadAll().toMutableList()
+    log.debug { "updateSyncObjects: synContext=$syncContext" }
     // Find deleted remote contacts and deleted addresses for removing them from the syncDOList (for rematching):
     var deleted = false
     syncContext.syncDOList.forEach { syncDO ->
+      log.debug { "updateSyncObjects: syncDO=$syncDO" }
       var deleteIt = false
       if (syncContext.remoteContacts.none { it.id == syncDO.sipgateContactId }) {
         log.info { "Deleting syncDO (because contact id '${syncDO.sipgateContactId}' doesn't exist anymore." }
@@ -669,7 +687,11 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     }
     if (deleted) {
       // Reload list:
+      val listSize = syncContext.syncDOList.size
       syncContext.syncDOList = loadAll().toMutableList()
+      log.debug { "updateSyncObjects: sync objects reloaded (some were deleted): $listSize sync objects before and now ${syncContext.syncDOList.size}" }
+    } else {
+      log.debug { "updateSyncObjects: no sync objects were. Reload of the sync objects not needed." }
     }
     // syncContext. addressList =
     //  addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
@@ -702,7 +724,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     }
     val nomatch =
       syncContext.remoteContacts.count { contact -> syncContext.syncDOList.none { it.sipgateContactId == contact.id } }
-    log.info { "${syncContext.remoteContacts.size} remote contacts processed. $nomatch remote contacts without local matched address." }
+    log.info { "updateSyncObjects: ${syncContext.remoteContacts.size} remote contacts processed. $nomatch remote contacts without local matched address." }
   }
 
   private fun findByContactOrAddressId(sipgateContactId: String?, addressId: Int): SipgateContactSyncDO? {
