@@ -26,6 +26,8 @@ package org.projectforge.rest.sipgate
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
@@ -55,9 +57,16 @@ class SipgateSyncServiceTest {
   fun matchTest() {
     SipgateContactSyncService.countryPrefixForTestcases = "+49"
     val address1 = createAddress(name = "Reinhard", firstName = "Kai")
+    address1.addressStatus = AddressStatus.UPTODATE
+    address1.contactStatus = ContactStatus.ACTIVE
     val contact = SipgateContact()
     contact.name = SipgateContactSyncDO.getName(address1)
     Assertions.assertEquals(3, SipgateContactSyncService.matchScore(contact, address1))
+    address1.contactStatus = ContactStatus.DEPARTED
+    address1.addressStatus = AddressStatus.LEAVED
+    Assertions.assertEquals(2, SipgateContactSyncService.matchScore(contact, address1))
+    address1.isDeleted = true
+    Assertions.assertEquals(1, SipgateContactSyncService.matchScore(contact, address1))
     val address2 = createAddress(
       name = "Reinhard",
       firstName = "Kai",

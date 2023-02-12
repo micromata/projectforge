@@ -412,28 +412,29 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       )
       contact.numbers?.forEach { number ->
         val extractedNumber = extractNumber(number.number)
-        numbers.forEach { if (it != null && extractedNumber == it) ++counter }
+        numbers.forEach { if (!it.isNullOrBlank() && extractedNumber == it) ++counter }
       }
       contact.emails?.forEach { email ->
         val str = email.email?.trim()?.lowercase()
-        if (str != null && str == address.email?.trim()?.lowercase() || str == address.privateEmail?.trim()
+        if (!str.isNullOrEmpty() && str == address.email?.trim()?.lowercase() || str == address.privateEmail?.trim()
             ?.lowercase()
         ) {
           ++counter
         }
       }
+      /*
       contact.addresses?.forEach { adr ->
         val str = adr.postalCode?.trim()?.lowercase()
-        if (str != null && str == address.zipCode?.trim() || str == address.privateZipCode) {
+        if (!str.isNullOrBlank() && str == address.zipCode?.trim() || str == address.privateZipCode) {
           ++counter
         }
-      }
-      if (address.division != null && contact.division?.trim()?.lowercase() == address.division?.trim()
+      }*/
+      if (!address.division.isNullOrBlank() && contact.division?.trim()?.lowercase() == address.division?.trim()
           ?.lowercase()
       ) {
         ++counter
       }
-      if (address.organization != null && contact.organization?.trim()?.lowercase() == address.organization?.trim()
+      if (!address.organization.isNullOrBlank() && contact.organization?.trim()?.lowercase() == address.organization?.trim()
           ?.lowercase()
       ) {
         ++counter
