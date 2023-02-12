@@ -107,7 +107,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
    * This context is used by sync and holds all used data.
    */
   class SyncContext {
-    var remoteContacts = listOf<SipgateContact>()
+    var remoteContacts = mutableListOf<SipgateContact>()
     var addressList = listOf<AddressDO>()
     var syncDOList = mutableListOf<SipgateContactSyncDO>()
     var localCounter = Counter()
@@ -472,7 +472,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
       updateSyncObjects(syncContext)
 
-      // Handle douplets from Sipgate
+      // Handle doublets from Sipgate
       // Gelöschte Adressen in Sipgate?
 
       syncContext.localCounter.total = syncContext.addressList.size
@@ -603,6 +603,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         sipgateContactService.delete(contactId, contact)
         delete(syncDO)
         syncContext.syncDOList.remove(syncDO)
+        syncContext.remoteContacts.remove(contact)
         syncContext.remoteCounter.deleted++
       } catch (ex: Exception) {
         log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
@@ -645,7 +646,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
    */
   private fun updateSyncObjects(syncContext: SyncContext) {
     // Get remote contacts and local addresses
-    syncContext.remoteContacts = sipgateContactService.getList().filter { it.scope == SipgateContact.Scope.SHARED }
+    syncContext.remoteContacts = sipgateContactService.getList().filter { it.scope == SipgateContact.Scope.SHARED }.toMutableList()
     log.info { "Trying to match ${syncContext.remoteContacts.size} remote contacts." }
     // Load already matched contacts
     syncContext.syncDOList = loadAll().toMutableList()
