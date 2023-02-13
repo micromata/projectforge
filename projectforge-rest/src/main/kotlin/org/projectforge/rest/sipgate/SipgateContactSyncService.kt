@@ -28,6 +28,7 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.ContactStatus
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
@@ -127,6 +128,9 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
 
   @Autowired
   internal lateinit var sipgateContactService: SipgateContactService
+
+  @Autowired
+  private lateinit var configuration: SipgateConfiguration
 
   @Autowired
   internal lateinit var addressDao: AddressDao
@@ -262,7 +266,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         if (syncInfo != null && syncInfo.fieldsInfo["name"] != SipgateContactSyncDO.SyncInfo.hash(contact.name)) {
           // address to be updated
           val adr = extractName(contact.name)
-          result.addOutdatedAddressField("name", SipgateContactSyncDO.getName(address), contact.name)
+          result.addOutdatedAddressField("name", contact.name, SipgateContactSyncDO.getName(address))
           address.name = adr.name
           address.firstName = adr.firstName
           result.addressDOOutdated = true
@@ -383,7 +387,11 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         sb.appendLine("matchscores:")
         val map = matchScores.sortedBy { it.score }.groupBy { it.contactId }
         map.entries.forEach { entry ->
-          sb.appendLine("${entry.key}=[${entry.value.sortedByDescending { it.score }.joinToString { "${it.addressId}:${it.score}" }}]")
+          sb.appendLine(
+            "${entry.key}=[${
+              entry.value.sortedByDescending { it.score }.joinToString { "${it.addressId}:${it.score}" }
+            }]"
+          )
         }
         log.debug { sb.toString() }
       }
@@ -436,7 +444,8 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       ) {
         ++counter
       }
-      if (!address.organization.isNullOrBlank() && contact.organization?.trim()?.lowercase() == address.organization?.trim()
+      if (!address.organization.isNullOrBlank() && contact.organization?.trim()
+          ?.lowercase() == address.organization?.trim()
           ?.lowercase()
       ) {
         ++counter
@@ -498,6 +507,9 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         // log.debug { "sync: Processing address #${address.id}: syncObj=$syncDO" }
         if (contactId != null) {
           val contact = syncContext.remoteContacts.find { it.id == contactId }
+          contact?.let {
+            SipgateContactService.fixNumbers(contact, address, syncDO.syncInfo)
+          }
           if (isAddressActive(address)) {
             // log.debug { "sync: address #${address.id} is active. Remote contact=$contact" }
             if (contact != null) {
@@ -512,8 +524,12 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
               }
               if (syncResult.addressDOOutdated) {
                 try {
-                  log.info { "${getLogInfo(address, contact)}: Updating local address: $address, was: $oldAddress" }
-                  addressDao.internalUpdate(address)
+                  if (configuration.updateLocalAddresses) {
+                    log.info { "${getLogInfo(address, contact)}: Updating local address: $address, was: $oldAddress" }
+                    addressDao.internalUpdate(address)
+                  } else {
+                    log.info { "${getLogInfo(address, contact)}: NOT updating local address (see projectforge.properties): $address, was: $oldAddress" }
+                  }
                   syncContext.localCounter.updated++
                 } catch (ex: Exception) {
                   log.error("${getLogInfo(address, contact)}: ${ex.message}", ex)
@@ -561,8 +577,12 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
               try {
                 // Remote contact seems to be a new contact.
                 val address = from(contact)
-                log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
-                addressDao.internalSave(address)
+                if (configuration.updateLocalAddresses) {
+                  log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
+                  addressDao.internalSave(address)
+                } else {
+                  log.info { "${getLogInfo(address, contact)}: NOT creating address (see projectforge.properties): $address" }
+                }
                 syncContext.localCounter.inserted++
               } catch (ex: Exception) {
                 log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)

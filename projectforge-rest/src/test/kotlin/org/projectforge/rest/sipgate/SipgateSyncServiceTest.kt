@@ -31,6 +31,7 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.business.sipgate.SipgateNumber
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.utils.NumberHelper
 
 
@@ -141,14 +142,14 @@ class SipgateSyncServiceTest {
     syncTest("mail", "mail", "mail2", false, true)
     syncTest("mail", "mail", "mail2", false, true)
 
-    val address = createAddress("Lastname", "Firstname", "+49 11111 1111", "+49 222222222", "Micromata GmbH", 2)
+    var address = createAddress("Lastname", "Firstname", "+49 11111 1111", "+49 222222222", "Micromata GmbH", 2)
     address.email = "f.lastname@devnull.com"
     address.privateEmail = "f.lastname@google.com"
 
-    val contact = SipgateContactSyncService.from(address)
+    var contact = SipgateContactSyncService.from(address)
     contact.id = "abcdef-ghijkl-1234"
 
-    val syncDO = SipgateContactSyncDO()
+    var syncDO = SipgateContactSyncDO()
     syncDO.sipgateContactId = contact.id
     syncDO.address = address
     syncDO.updateJson(contact) // Store remote fields as last sync state for modification detection.
@@ -159,7 +160,7 @@ class SipgateSyncServiceTest {
     address.privateMobilePhone = "+49 5555555"
     address.email = "business@devnull.com"
     NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
-    val result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
+    var result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
     Assertions.assertTrue(result.contactOutdated)
     Assertions.assertTrue(result.addressDOOutdated)
     assertEquals("business@devnull.com", contact.email, address.email)
@@ -168,6 +169,27 @@ class SipgateSyncServiceTest {
     assertEquals("+49 4444444", contact.faxWork, address.fax)
     assertEquals("+49 3333 33333", contact.work, address.businessPhone)
     assertEquals("+49 5555555", contact.other, address.privateMobilePhone)
+
+    address = createAddress("Lastname", "Firstname", "+49 11111 1111", "+49 222222222", organization ="Micromata GmbH", 2)
+    address.businessPhone = "02222222222222"
+    contact = SipgateContactSyncService.from(address)
+    contact.id = "12345678"
+    syncDO = SipgateContactSyncDO()
+    syncDO.sipgateContactId = contact.id
+    syncDO.address = address
+    syncDO.updateJson(contact) // Store remote fields as last sync state for modification detection.
+
+    val json = """{"id":"59519076","name":"Firstname Lastname","emails":[{"email":"f.lastname@yahoo.de","type":["work"]},{"email":"f.lastname@google.com","type":["home"]}],"numbers":[{"number":"+49888888","type":["other"]},{"number":"+49111111111","type":["cell"]},{"number":"+49222222222","type":["work"]},{"number":"+555555","type":["home"]}],"addresses":[],"scope":"SHARED","organization":[["Micromata GmbH"]]}"""
+    contact = JsonUtils.fromJson(json, SipgateContact::class.java)!!
+    println(contact)
+    result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
+    println(result)
+    Assertions.assertFalse(result.contactOutdated)
+    Assertions.assertTrue(result.addressDOOutdated)
+    assertEquals("+49 11111 1111", contact.cell, address.mobilePhone)
+    assertEquals("+49 222222222", contact.faxWork, address.fax)
+    assertEquals("02222222222222", contact.work, address.businessPhone)
+    assertEquals("+49 8888888888888", contact.home, address.privatePhone)
   }
 
   private fun assertEquals(expected: String, str1: String?, str2: String?) {
