@@ -156,7 +156,7 @@ class SipgateContact {
       numbers?.add(num)
     }
     num.number = number
-    numbers?.removeIf { number.isNullOrBlank() }
+    numbers?.removeIf { it.number.isNullOrBlank() }
   }
 
   /**
