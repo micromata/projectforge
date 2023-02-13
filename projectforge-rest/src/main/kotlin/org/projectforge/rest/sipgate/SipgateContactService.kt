@@ -23,9 +23,13 @@
 
 package org.projectforge.rest.sipgate
 
+import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateContact
+import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Service
+import kotlin.reflect.KMutableProperty
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -47,4 +51,45 @@ open class SipgateContactService :
     return "contact '${entity.name}' (id=${entity.id})"
   }
 
+  companion object {
+    /**
+     * Sipgate sends numbers such as fax-home etc. as type other (annoying).
+     * This method tries to re-assign numbers from type other by comparing the numbers with
+     * the optional given address and/or given syncDO.
+     */
+    fun fixNumbers(contact: SipgateContact, address: AddressDO? = null, syncInfo: SipgateContactSyncDO.SyncInfo? = null) {
+      contact.numbers?.filter { it.isOtherType() }?.forEach { otherNumber ->
+        val number = NumberHelper.extractPhonenumber(otherNumber.number)
+        if (number.isNullOrBlank()) {
+          return@forEach
+        }
+        if (checkNumber(syncInfo, AddressDO::privatePhone, number, address?.privatePhone)) {
+          otherNumber.setHomeType()
+          return@forEach
+        } else if (checkNumber(syncInfo, AddressDO::mobilePhone, number, address?.mobilePhone)) {
+          otherNumber.setCellType()
+          return@forEach
+        } else if (checkNumber(syncInfo, AddressDO::businessPhone, number, address?.businessPhone)) {
+          otherNumber.setWorkType()
+          return@forEach
+        } else if (checkNumber(syncInfo, AddressDO::fax, number, address?.fax)) {
+          otherNumber.setFaxWorkType()
+          return@forEach
+        } else if (checkNumber(syncInfo, AddressDO::privateMobilePhone, number, address?.privateMobilePhone)) {
+          // Do nothing: Keep it as others.
+          return@forEach
+        }
+      }
+    }
+
+    private fun checkNumber(
+      syncInfo: SipgateContactSyncDO.SyncInfo?,
+      field: KMutableProperty<*>,
+      number: String?,
+      addressNumber: String?
+    ): Boolean {
+      return number == NumberHelper.extractPhonenumber(addressNumber) ||
+          syncInfo != null && syncInfo.fieldsInfo[field.name] == SipgateContactSyncDO.SyncInfo.hash(number)
+    }
+  }
 }

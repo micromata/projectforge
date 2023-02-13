@@ -50,6 +50,12 @@ open class SipgateConfiguration {
   @Value("\${projectforge.sipgate.token}")
   open lateinit var token: String
 
+  /**
+   * If true, any changes in Sipgate will update local addresses (false only for testing).
+   */
+  @Value("\${projectforge.sipgate.updateLocalAddresses}")
+  open var updateLocalAddresses: Boolean = true
+
   fun isConfigured(): Boolean {
     return baseUri.isNotBlank() && token.isNotBlank() && tokenId.isNotBlank()
   }
