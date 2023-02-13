@@ -30,6 +30,7 @@ import org.mockito.Mockito
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.persistence.api.ModificationStatus
@@ -85,6 +86,8 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         syncDOList.remove(entry)
       }
     }
+    syncService.configuration = SipgateConfiguration()
+    syncService.configuration.updateLocalAddresses = true
     val contactService = object : SipgateContactService() {
       val contactList = createContactList()
 
