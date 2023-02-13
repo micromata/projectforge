@@ -130,7 +130,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
   internal lateinit var sipgateContactService: SipgateContactService
 
   @Autowired
-  private lateinit var configuration: SipgateConfiguration
+  internal lateinit var configuration: SipgateConfiguration
 
   @Autowired
   internal lateinit var addressDao: AddressDao
