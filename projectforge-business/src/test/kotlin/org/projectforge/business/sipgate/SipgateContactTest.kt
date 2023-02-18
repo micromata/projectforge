@@ -24,7 +24,9 @@
 package org.projectforge.business.sipgate
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.utils.NumberHelper
 
 
 class SipgateContactTest {
@@ -72,30 +74,38 @@ class SipgateContactTest {
   fun numberTest() {
     val contact = SipgateContact()
     Assertions.assertNull(contact.work)
-    contact.work = "#work"
+    contact.work = "1111"
     Assertions.assertEquals(1, contact.numbers?.size)
-    Assertions.assertEquals("#work", contact.work)
-    contact.home = "#home"
+    Assertions.assertEquals("1111", contact.work)
+    contact.home = "2222"
     Assertions.assertEquals(2, contact.numbers?.size)
-    Assertions.assertEquals("#home", contact.home)
-    contact.cell = "#cell"
+    Assertions.assertEquals("2222", contact.home)
+    contact.cell = "3333"
     Assertions.assertEquals(3, contact.numbers?.size)
-    Assertions.assertEquals("#cell", contact.cell)
-    contact.other = "#other"
+    Assertions.assertEquals("3333", contact.cell)
+    contact.other = "5555"
     Assertions.assertEquals(4, contact.numbers?.size)
-    Assertions.assertEquals("#other", contact.other)
-    contact.faxWork = "#faxWork"
+    Assertions.assertEquals("5555", contact.other)
+    contact.faxWork = "6666"
     Assertions.assertEquals(5, contact.numbers?.size)
-    Assertions.assertEquals("#faxWork", contact.faxWork)
-    contact.faxHome = "#faxHome"
+    Assertions.assertEquals("6666", contact.faxWork)
+    contact.faxHome = "7777"
     Assertions.assertEquals(6, contact.numbers?.size)
-    Assertions.assertEquals("#faxHome", contact.faxHome)
-    contact.pager = "#pager"
+    Assertions.assertEquals("7777", contact.faxHome)
+    contact.pager = "8888"
     Assertions.assertEquals(7, contact.numbers?.size)
-    Assertions.assertEquals("#pager", contact.pager)
-    Assertions.assertEquals("#work", contact.work)
-    contact.cellHome = "#cellHome"
+    Assertions.assertEquals("8888", contact.pager)
+    Assertions.assertEquals("1111", contact.work)
+    contact.cellHome = "9999"
     Assertions.assertEquals(8, contact.numbers?.size)
-    Assertions.assertEquals("#cellHome", contact.cellHome)
+    Assertions.assertEquals("9999", contact.cellHome)
+  }
+
+  companion object {
+    @BeforeAll
+    @JvmStatic
+    fun setup() {
+      NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
+    }
   }
 }
