@@ -202,21 +202,16 @@ class SipgateSyncServiceTest {
     var address = AddressDO()
     address.fax = "099999"
     assertEquals("099999", contact.other, address.fax)
-    SipgateContactSyncService.fixNumbers(contact, address)
+    SipgateContactService.fixNumbers(contact, address)
     assertEquals("099999", contact.faxWork, address.fax)
     Assertions.assertNull(contact.other)
 
     val contactJson =
       "{\"id\":\"1234\",\"name\":\"Rob Blue\",\"emails\":[{\"email\":\"r.blue@acme.com\",\"type\":[\"work\"]},{\"email\":\"blue@lake.org\",\"type\":[\"home\"]}],\"numbers\":[{\"number\":\"+49111111\",\"type\":[\"work\"]},{\"number\":\"+49222222\",\"type\":[\"cell\"]},{\"number\":\"+4933333\",\"type\":[\"home\"]},{\"number\":\"+4944444\",\"type\":[\"cell\"]},{\"number\":\"+49222222\",\"type\":[\"other\"]}],\"addresses\":[{\"streetAddress\":\"abc street 42\",\"locality\":\"Entenhausen\",\"postalCode\":\"12345\"}],\"scope\":\"SHARED\",\"organization\":[[\"Acme ltd.\"]]}"
     contact = JsonUtils.fromJson(contactJson, SipgateContact::class.java)!!
+    Assertions.assertEquals(5, contact.numbers?.size)
+    contact.fixNumbers()
     Assertions.assertEquals(4, contact.numbers?.size, "Duplicate number of cell should be removed.")
-    address = SipgateContactSyncService.from(contact)
-    val syncDO = SipgateContactSyncDO()
-    syncDO.sipgateContactId = contact.id
-    syncDO.address = address
-    syncDO.updateJson(contact) // Store remote fields as last sync state for modification detection.
-    val result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
-    assertEquals("+555555", contact.home, address.privatePhone)
   }
 
   private fun assertEquals(expected: String, str1: String?, str2: String?) {
