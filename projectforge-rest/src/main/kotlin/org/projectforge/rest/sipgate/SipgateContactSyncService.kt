@@ -249,6 +249,37 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     }
 
     /**
+     * Remove duplicates and tries to get origin type of number by comparing with given address, if given.
+     * Sipgate does switch the type of number on returned contacts by the API (wtf).
+     */
+    internal fun fixNumbers(contact: SipgateContact, address: AddressDO) {
+      contact.fixNumbers()
+      reassignNumber(contact, address.privateMobilePhone, SipgateNumber.CELL_ARRAY, SipgateNumber.CELL_ARRAY)
+      contact.numbers?.forEach { sipgateNumber ->
+        address.privateMobilePhone?.let { number ->
+          contact.numbers?.forEach { if (it.isOtherType() && number == it.number) }
+        }
+      }
+    }
+
+    private fun reassignNumber(
+      contact: SipgateContact,
+      addressNumber: String?,
+      type: Array<String>,
+      destType: Array<String>,
+    ) {
+      addressNumber ?: return
+      contact.numbers ?: return
+      val canonicalNumber = NumberHelper.extractPhonenumber(addressNumber)
+      contact.numbers?.filter { SipgateNumber.compare(it.type, type) || it.isOtherType() }?.forEach { sipgateNumber ->
+        if (canonicalNumber == NumberHelper.extractPhonenumber(sipgateNumber.number)) {
+          sipgateNumber.type = destType
+        }
+      }
+    }
+
+
+    /**
      * Detects modifications (if any) by comparing given contact and address. Any modification of the contact itself is
      * detected by comparing the hash codes of every field with the hash codes built at the last synchronisation: If
      * any modification was done remote, the hash code of the modified fields would differ?
@@ -493,10 +524,10 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
    * inserts, updates and deletes the remote contacts and local addresses.
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun sync(): SyncContext {
+  open fun sync(): SipgateContactSyncService.SyncContext {
     log.info { "Syncing local addresses and remote Sipgate contacts..." }
     synchronized(this) {
-      val syncContext = SyncContext()
+      val syncContext = SipgateContactSyncService.SyncContext()
       syncContext.addressList =
         addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
       updateSyncObjects(syncContext)
