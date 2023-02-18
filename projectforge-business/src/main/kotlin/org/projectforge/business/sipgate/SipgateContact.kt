@@ -145,9 +145,19 @@ class SipgateContact {
    * Remove duplicates and empty numbers.
    */
   fun fixNumbers() {
+    // Remove empty numbers.
     numbers?.removeIf { it.number.isNullOrBlank() }
+    // Remove equal numbers of same type.
     numbers = numbers?.distinctBy { "${NumberHelper.extractPhonenumber(it.number)}:${it.type?.joinToString()}" }
       ?.toMutableList()
+    // Remove numbers of type other, if any number with specified type has same number:
+    numbers?.removeIf { current ->
+      current.isOtherType() && numbers?.any {
+        it != current && NumberHelper.extractPhonenumber(
+          it.number
+        ) == NumberHelper.extractPhonenumber(current.number)
+      } == true
+    }
   }
 
   private fun setEmail(emailAddress: String?, type: EmailType) {
@@ -323,7 +333,8 @@ class SipgateNumber(
     val CELL_ARRAY = arrayOf("cell")
     var CELL_HOME_ARRAY = arrayOf("cell", "home")
     internal val FAX_HOME_ARRAY = arrayOf("fax", "home")
-    internal val FAX_WORK_ARRAY = arrayOf("fax", "work")
+    val FAX_WORK_ARRAY = arrayOf("fax", "work")
+    var INTERNAL_FAX_ARRAY = arrayOf("fax")
     internal val PAGER_ARRAY = arrayOf("pager")
     internal val OTHER_ARRAY = arrayOf("other")
   }
