@@ -70,7 +70,8 @@ class PFMiltonFilter : MiltonFilter() {
     if (log.isDebugEnabled) {
       log.debug("Trying to authenticate user (${RequestLog.asString(authInfo.request)})...")
     }
-    val sslSessionUser = sslSessionCache.getSessionData(authInfo.request)
+    val sslSessionData = sslSessionCache.getSessionData(authInfo.request)
+    val sslSessionUser = sslSessionData?.user
     if (sslSessionUser != null) {
       if (log.isDebugEnabled) {
         log.debug("User found by session id (${RequestLog.asString(authInfo.request)})...")
