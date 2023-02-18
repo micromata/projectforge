@@ -39,8 +39,8 @@ class SipgateContactServiceTest {
     check(AddressDO::privatePhone, SipgateContact::home)
     check(AddressDO::businessPhone, SipgateContact::work)
     check(AddressDO::mobilePhone, SipgateContact::cell)
+    check(AddressDO::privateMobilePhone, SipgateContact::cellHome)
     check(AddressDO::fax, SipgateContact::faxWork)
-    check(AddressDO::privateMobilePhone, SipgateContact::other)
   }
 
   private fun check(addressField: KMutableProperty<*>, contactField: KMutableProperty<*>) {

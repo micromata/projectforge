@@ -21,24 +21,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.sipgate
-
-import org.projectforge.business.sipgate.*
+package org.projectforge.business.sipgate
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-abstract class ListData<T> {
-  var items: List<T>? = null
-  var totalCount: Long? = null
+class SipgateDevice(
+  var id: String? = null,
+  var alias: String? = null,
+  var type: String? = null,
+  var online: Boolean? = null,
+  var dnd: Boolean? = null,
+) {
+  class ActiveRouting(var id: String? = null, var alias: String? = null)
+
+  var activePhonelines: List<ActiveRouting>? = null
+  var activeGroups: List<ActiveRouting>? = null
 }
-
-class AddressListData: ListData<SipgateAddress>()
-
-class ContactListData: ListData<SipgateContact>()
-
-class UserListData: ListData<SipgateUser>()
-
-class DeviceListData: ListData<SipgateDevice>()
-
-class LogsListData: ListData<SipgateIoLogsResponse>()

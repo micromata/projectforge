@@ -163,7 +163,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       address.businessPhone?.let { numbers.add(SipgateNumber(it).setWorkType()) }
       address.mobilePhone?.let { numbers.add(SipgateNumber(it).setCellType()) }
       address.privatePhone?.let { numbers.add(SipgateNumber(it).setHomeType()) }
-      address.privateMobilePhone?.let { numbers.add(SipgateNumber(it).setOtherType()) }
+      address.privateMobilePhone?.let { numbers.add(SipgateNumber(it).setCellHomeType()) }
       address.fax?.let { numbers.add(SipgateNumber(it).setFaxWorkType()) }
       contact.numbers = numbers
       /* Ignore addresses (synchronize will be pain, because not type of addresses will be given by Sipgate.
@@ -221,7 +221,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       destAddress.businessPhone = srcContact.work
       destAddress.mobilePhone = srcContact.cell
       destAddress.privatePhone = srcContact.home
-      destAddress.privateMobilePhone = srcContact.other
+      destAddress.privateMobilePhone = srcContact.cellHome
       destAddress.fax = srcContact.faxWork
 
       /* Ignore addresses (synchronize will be pain, because not type of addresses will be given by Sipgate.
@@ -254,12 +254,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
      */
     internal fun fixNumbers(contact: SipgateContact, address: AddressDO) {
       contact.fixNumbers()
-      reassignNumber(contact, address.privateMobilePhone, SipgateNumber.CELL_ARRAY, SipgateNumber.CELL_ARRAY)
-      contact.numbers?.forEach { sipgateNumber ->
-        address.privateMobilePhone?.let { number ->
-          contact.numbers?.forEach { if (it.isOtherType() && number == it.number) }
-        }
-      }
+      reassignNumber(contact, address.privateMobilePhone, SipgateNumber.CELL_ARRAY, SipgateNumber.CELL_HOME_ARRAY)
     }
 
     private fun reassignNumber(
@@ -324,7 +319,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       sync(contact, SipgateContact::work, address, AddressDO::businessPhone, syncInfo, result, true)
       sync(contact, SipgateContact::home, address, AddressDO::privatePhone, syncInfo, result, true)
       sync(contact, SipgateContact::cell, address, AddressDO::mobilePhone, syncInfo, result, true)
-      sync(contact, SipgateContact::other, address, AddressDO::privateMobilePhone, syncInfo, result, true)
+      sync(contact, SipgateContact::cellHome, address, AddressDO::privateMobilePhone, syncInfo, result, true)
       sync(contact, SipgateContact::faxWork, address, AddressDO::fax, syncInfo, result, true)
       return result
     }
