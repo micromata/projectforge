@@ -25,12 +25,14 @@ package org.projectforge.rest.core
 
 import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.rest.utils.RequestLog
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
 /**
  * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
+ * The session id is the http session id, or for SslSessionCache the ssl session id.
  */
 abstract class AbstractSessionCache<T : Any>(
   /**
@@ -49,7 +51,7 @@ abstract class AbstractSessionCache<T : Any>(
 
   class Entry<T : Any>(val sessionId: String, data: T) {
     var lastAccess: Long = System.currentTimeMillis()
-    val _data = data
+    internal var _data = data
     val data: T
       get() {
         this.lastAccess = System.currentTimeMillis()
@@ -57,7 +59,7 @@ abstract class AbstractSessionCache<T : Any>(
       }
   }
 
-  private val cache = mutableListOf<Entry<T>>()
+  protected val cache = mutableListOf<Entry<T>>()
 
   val size: Int
     get() {
@@ -81,35 +83,25 @@ abstract class AbstractSessionCache<T : Any>(
 
   fun registerSessionData(sessionId: String?, data: T) {
     if (sessionId == null || sessionId.length < 20) {
-      log.info { "$storageId: $sessionType id to short. Usage denied: ${getSessionIdForLogging(sessionId)}" }
+      log.info { "$storageId: $sessionType id to short. Usage denied: ${RequestLog.getTruncatedSessionId(sessionId)}" }
       return
     }
     synchronized(cache) {
       val entry = cache.find { it.sessionId == sessionId }
       if (entry != null) {
-        val cachedData = entry.data // Updates last access, too.
-        if (equals(cachedData, data)) {
-          log.warn {
-            "$storageId: $sessionType '${getSessionIdForLogging(sessionId)}' of entry ${
-              entryAsString(
-                cachedData
-              )
-            } re-used by different entry ${entryAsString(data)}!!!! Re-usage denied."
-          }
-        } else {
-          log.info {
-            "$storageId: $sessionType '${getSessionIdForLogging(sessionId)}' is re-used for entry ${
-              entryAsString(
-                data
-              )
-            }."
-          }
+        entry._data = data
+        log.info {
+          "$storageId: $sessionType '${RequestLog.getTruncatedSessionId(sessionId)}' is re-used for entry ${
+            entryAsString(
+              data
+            )
+          }."
         }
         // last access is updated by call entry.user.
       } else {
         log.info {
           "$storageId: Registering entry ${entryAsString(data)} by new $sessionType '${
-            getSessionIdForLogging(
+            RequestLog.getTruncatedSessionId(
               sessionId
             )
           }'."
@@ -119,27 +111,33 @@ abstract class AbstractSessionCache<T : Any>(
     }
   }
 
-  fun getSessionData(request: HttpServletRequest): T? {
+  open fun getSessionData(request: HttpServletRequest): T? {
     val sessionId = getSessionId(request) ?: return null
     return getSessionData(sessionId)
   }
 
   fun getSessionData(sessionId: String?): T? {
     if (sessionId == null || sessionId.length < 20) {
-      log.info { "$storageId: $sessionType to short. Usage denied: ${getSessionIdForLogging(sessionId)}" }
+      log.info { "$storageId: $sessionType to short. Usage denied: ${RequestLog.getTruncatedSessionId(sessionId)}" }
       return null
     }
     synchronized(cache) {
       val entry = cache.find { it.sessionId == sessionId } ?: return null
       if (isExpired(entry)) {
         if (log.isDebugEnabled) {
-          log.debug { "$storageId: Found expired session entry for $sessionType '${getSessionIdForLogging(sessionId)}'." }
+          log.debug {
+            "$storageId: Found expired session entry for $sessionType '${
+              RequestLog.getTruncatedSessionId(
+                sessionId
+              )
+            }'."
+          }
         }
         return null
       }
       log.info {
-        "$storageId: Restore entry ${entryAsString(entry._data)} by $sessionType '${
-          getSessionIdForLogging(
+        "$storageId: Restore entry ${entryAsString(entry.data)} by $sessionType '${
+          RequestLog.getTruncatedSessionId(
             sessionId
           )
         }'."
@@ -157,24 +155,12 @@ abstract class AbstractSessionCache<T : Any>(
    */
   protected abstract fun entryAsString(entry: T): String
 
-  protected open fun equals(entry: T, other: T): Boolean {
-    return entry == other
-  }
-
   protected open fun getSessionId(request: HttpServletRequest): String? {
     return request.getSession(false)?.id
   }
 
   private val storageId: String
     get() = this::class.java.simpleName
-
-  /**
-   * Show only first 10 chars of ssl session id for security reasons.
-   */
-  private fun getSessionIdForLogging(sessionId: String?): String {
-    sessionId ?: return "null"
-    return if (sessionId.length <= 6) "***" else "${sessionId.substring(0..5)}..."
-  }
 
   override fun refresh() {
     synchronized(cache) {
