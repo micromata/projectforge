@@ -24,6 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressStatus
@@ -159,7 +160,6 @@ class SipgateSyncServiceTest {
     address.businessPhone = "+49 3333 33333"
     address.privateMobilePhone = "+49 5555555"
     address.email = "business@devnull.com"
-    NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
     var result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
     Assertions.assertTrue(result.contactOutdated)
     Assertions.assertTrue(result.addressDOOutdated)
@@ -170,7 +170,7 @@ class SipgateSyncServiceTest {
     assertEquals("+49 3333 33333", contact.work, address.businessPhone)
     assertEquals("+49 5555555", contact.other, address.privateMobilePhone)
 
-    address = createAddress("Lastname", "Firstname", "+49 11111 1111", organization ="Micromata GmbH", id= 2)
+    address = createAddress("Lastname", "Firstname", "+49 11111 1111", organization = "Micromata GmbH", id = 2)
     address.businessPhone = "02222222222222"
     contact = SipgateContactSyncService.from(address)
     contact.id = "12345678"
@@ -179,13 +179,42 @@ class SipgateSyncServiceTest {
     syncDO.address = address
     syncDO.updateJson(contact) // Store remote fields as last sync state for modification detection.
 
-    val json = """{"id":"59519076","name":"Firstname Lastname","emails":[{"email":"f.lastname@yahoo.de","type":["work"]},{"email":"f.lastname@google.com","type":["home"]}],"numbers":[{"number":"+49888888","type":["other"]},{"number":"+49111111111","type":["cell"]},{"number":"+49222222222","type":["work"]},{"number":"+555555","type":["home"]}],"addresses":[],"scope":"SHARED","organization":[["Micromata GmbH"]]}"""
+    val json =
+      """{"id":"59519076","name":"Firstname Lastname","emails":[{"email":"f.lastname@yahoo.de","type":["work"]},{"email":"f.lastname@google.com","type":["home"]}],"numbers":[{"number":"+49888888","type":["other"]},{"number":"+49111111111","type":["cell"]},{"number":"+49222222222","type":["work"]},{"number":"+555555","type":["home"]}],"addresses":[],"scope":"SHARED","organization":[["Micromata GmbH"]]}"""
     contact = JsonUtils.fromJson(json, SipgateContact::class.java)!!
     result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
     Assertions.assertFalse(result.contactOutdated)
     Assertions.assertTrue(result.addressDOOutdated)
     assertEquals("+49 11111 1111", contact.cell, address.mobilePhone)
     assertEquals("+49222222222", contact.work, address.businessPhone)
+    assertEquals("+555555", contact.home, address.privatePhone)
+  }
+
+  @Test
+  fun numberTest() {
+    var contact = SipgateContact()
+    contact.numbers = mutableListOf(SipgateNumber("+4911111").setCellType(), SipgateNumber("011111").setCellType(), SipgateNumber("0222222").setWorkType())
+    Assertions.assertEquals(3, contact.numbers?.size)
+    contact.fixNumbers()
+    Assertions.assertEquals(2, contact.numbers?.size, "Duplicate number of cell should be removed.")
+    contact.other = "099999"
+    var address = AddressDO()
+    address.fax = "099999"
+    assertEquals("099999", contact.other, address.fax)
+    SipgateContactSyncService.fixNumbers(contact, address)
+    assertEquals("099999", contact.faxWork, address.fax)
+    Assertions.assertNull(contact.other)
+
+    val contactJson =
+      "{\"id\":\"1234\",\"name\":\"Rob Blue\",\"emails\":[{\"email\":\"r.blue@acme.com\",\"type\":[\"work\"]},{\"email\":\"blue@lake.org\",\"type\":[\"home\"]}],\"numbers\":[{\"number\":\"+49111111\",\"type\":[\"work\"]},{\"number\":\"+49222222\",\"type\":[\"cell\"]},{\"number\":\"+4933333\",\"type\":[\"home\"]},{\"number\":\"+4944444\",\"type\":[\"cell\"]},{\"number\":\"+49222222\",\"type\":[\"other\"]}],\"addresses\":[{\"streetAddress\":\"abc street 42\",\"locality\":\"Entenhausen\",\"postalCode\":\"12345\"}],\"scope\":\"SHARED\",\"organization\":[[\"Acme ltd.\"]]}"
+    contact = JsonUtils.fromJson(contactJson, SipgateContact::class.java)!!
+    Assertions.assertEquals(4, contact.numbers?.size, "Duplicate number of cell should be removed.")
+    address = SipgateContactSyncService.from(contact)
+    val syncDO = SipgateContactSyncDO()
+    syncDO.sipgateContactId = contact.id
+    syncDO.address = address
+    syncDO.updateJson(contact) // Store remote fields as last sync state for modification detection.
+    val result = SipgateContactSyncService.sync(contact, address, syncDO.syncInfo)
     assertEquals("+555555", contact.home, address.privatePhone)
   }
 
@@ -221,6 +250,12 @@ class SipgateSyncServiceTest {
   }
 
   companion object {
+    @BeforeAll
+    @JvmStatic
+    fun setup() {
+      NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
+    }
+
     internal fun createAddress(
       name: String? = null,
       firstName: String? = null,

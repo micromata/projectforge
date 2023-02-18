@@ -26,6 +26,7 @@ package org.projectforge.business.sipgate
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
+import org.projectforge.framework.utils.NumberHelper
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -133,6 +134,15 @@ class SipgateContact {
       setEmail(value, EmailType.HOME)
     }
 
+  /**
+   * Remove duplicates and empty numbers.
+   */
+  fun fixNumbers() {
+    numbers?.removeIf { it.number.isNullOrBlank() }
+    numbers = numbers?.distinctBy { "${NumberHelper.extractPhonenumber(it.number)}:${it.type?.joinToString()}" }
+      ?.toMutableList()
+  }
+
   private fun setEmail(emailAddress: String?, type: EmailType) {
     if (emails == null) {
       emails = mutableListOf()
@@ -156,7 +166,7 @@ class SipgateContact {
       numbers?.add(num)
     }
     num.number = number
-    numbers?.removeIf { it.number.isNullOrBlank() }
+    fixNumbers()
   }
 
   /**
@@ -275,7 +285,7 @@ class SipgateNumber(
   }
 
   companion object {
-    internal fun compare(array1: Array<String>?, array2: Array<String>?): Boolean {
+    fun compare(array1: Array<String>?, array2: Array<String>?): Boolean {
       if (array1 == null) {
         return array2 == null
       }
@@ -291,12 +301,12 @@ class SipgateNumber(
       return true
     }
 
-    internal val HOME_ARRAY = arrayOf("home")
-    internal val WORK_ARRAY = arrayOf("work")
-    internal val CELL_ARRAY = arrayOf("cell")
-    internal val FAX_HOME_ARRAY = arrayOf("fax", "home")
-    internal val FAX_WORK_ARRAY = arrayOf("fax", "work")
-    internal val PAGER_ARRAY = arrayOf("pager")
-    internal val OTHER_ARRAY = arrayOf("other")
+    val HOME_ARRAY = arrayOf("home")
+    val WORK_ARRAY = arrayOf("work")
+    val CELL_ARRAY = arrayOf("cell")
+    val FAX_HOME_ARRAY = arrayOf("fax", "home")
+    val FAX_WORK_ARRAY = arrayOf("fax", "work")
+    val PAGER_ARRAY = arrayOf("pager")
+    val OTHER_ARRAY = arrayOf("other")
   }
 }
