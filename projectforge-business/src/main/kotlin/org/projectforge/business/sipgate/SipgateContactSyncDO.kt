@@ -75,8 +75,8 @@ open class SipgateContactSyncDO {
         info.setFieldsInfo(AddressDO::email.name, contact.email)
         info.setFieldsInfo(AddressDO::businessPhone.name, contact.work)
         info.setFieldsInfo(AddressDO::mobilePhone.name, contact.cell)
+        info.setFieldsInfo(AddressDO::privateMobilePhone.name, contact.cellHome)
         info.setFieldsInfo(AddressDO::privatePhone.name, contact.home)
-        info.setFieldsInfo(AddressDO::privateMobilePhone.name, contact.other)
         return info
       }
 

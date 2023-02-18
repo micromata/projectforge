@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
+import org.projectforge.business.sipgate.SipgateNumber
 import java.util.*
 import kotlin.io.path.Path
 
@@ -52,6 +53,41 @@ fun main(args: Array<String>) {
   sipgateClient.sipgateConfiguration = config
   sipgateClient.postConstruct(useMenuCreator = false)
 
+  // contactService(sipgateClient)
+  // getLists(sipgateClient)
+  contactTest(sipgateClient)
+}
+
+private fun getLists(sipgateClient: SipgateClient) {
+  val sipgateService = SipgateService()
+  sipgateService.sipgateClient = sipgateClient
+  sipgateService.postConstruct()
+  val logs = sipgateService.getLogs()
+  println("Logs: ${logs?.joinToString { it.toString() }}")
+  val users = sipgateService.getUsers()
+  println("Users: ${users?.joinToString { it.toString() }}")
+  users?.firstOrNull()?.let { user ->
+    val devices = sipgateService.getDevices(user)
+    println("Devices: ${devices?.joinToString { it.toString() }}")
+  }
+}
+
+private fun contactTest(sipgateClient: SipgateClient) {
+  val contactService = SipgateContactService()
+  contactService.sipgateClient = sipgateClient
+  contactService.debugConsoleOutForTesting = true
+  contactService.postConstruct()
+
+  val contact = SipgateContact()
+  contact.family = "Hurzelfamily"
+  contact.given = "Hurzelfirst"
+  contact.scope = SipgateContact.Scope.SHARED
+ contact.numbers = mutableListOf(SipgateNumber("0111111").setCellHomeType())
+
+  contactService.create(contact)
+}
+
+private fun contactService(sipgateClient: SipgateClient) {
   val contactService = SipgateContactService()
   contactService.sipgateClient = sipgateClient
   contactService.debugConsoleOutForTesting = true

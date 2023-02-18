@@ -45,6 +45,7 @@ class SipgateContactTest {
     Assertions.assertTrue(SipgateNumber().setHomeType().isHomeType())
     Assertions.assertTrue(SipgateNumber().setWorkType().isWorkType())
     Assertions.assertTrue(SipgateNumber().setCellType().isCellType())
+    Assertions.assertTrue(SipgateNumber().setCellHomeType().isCellHomeType())
     Assertions.assertTrue(SipgateNumber().setFaxWorkType().isFaxWorkType())
     Assertions.assertTrue(SipgateNumber().setFaxHomeType().isFaxHomeType())
     Assertions.assertTrue(SipgateNumber().setOtherType().isOtherType())
@@ -93,5 +94,8 @@ class SipgateContactTest {
     Assertions.assertEquals(7, contact.numbers?.size)
     Assertions.assertEquals("#pager", contact.pager)
     Assertions.assertEquals("#work", contact.work)
+    contact.cellHome = "#cellHome"
+    Assertions.assertEquals(8, contact.numbers?.size)
+    Assertions.assertEquals("#cellHome", contact.cellHome)
   }
 }

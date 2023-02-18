@@ -76,7 +76,7 @@ open class SipgateContactService :
           otherNumber.setFaxWorkType()
           return@forEach
         } else if (checkNumber(syncInfo, AddressDO::privateMobilePhone, number, address?.privateMobilePhone)) {
-          // Do nothing: Keep it as others.
+          otherNumber.setCellHomeType()
           return@forEach
         }
       }

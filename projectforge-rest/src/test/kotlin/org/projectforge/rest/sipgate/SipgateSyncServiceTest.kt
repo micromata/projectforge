@@ -168,7 +168,8 @@ class SipgateSyncServiceTest {
     assertEquals("+49 11111 1111", contact.cell, address.mobilePhone)
     assertEquals("+49 4444444", contact.faxWork, address.fax)
     assertEquals("+49 3333 33333", contact.work, address.businessPhone)
-    assertEquals("+49 5555555", contact.other, address.privateMobilePhone)
+    assertEquals("+49 5555555", contact.cellHome, address.privateMobilePhone)
+    Assertions.assertNull(contact.other)
 
     address = createAddress("Lastname", "Firstname", "+49 11111 1111", organization = "Micromata GmbH", id = 2)
     address.businessPhone = "02222222222222"

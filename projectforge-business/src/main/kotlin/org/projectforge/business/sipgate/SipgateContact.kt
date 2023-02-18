@@ -103,6 +103,13 @@ class SipgateContact {
       setNumber(value, SipgateNumber.CELL_ARRAY)
     }
 
+  var cellHome: String?
+    @JsonIgnore
+    get() = numbers?.firstOrNull { it.isCellHomeType() }?.number
+    set(value) {
+      setNumber(value, SipgateNumber.CELL_HOME_ARRAY)
+    }
+
   var pager: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isPagerType() }?.number
@@ -243,6 +250,16 @@ class SipgateNumber(
     return compare(type, CELL_ARRAY)
   }
 
+  fun setCellHomeType(): SipgateNumber {
+    type = CELL_HOME_ARRAY
+    return this
+  }
+
+  @JsonIgnore
+  fun isCellHomeType(): Boolean {
+    return compare(type, CELL_HOME_ARRAY)
+  }
+
   fun setFaxHomeType(): SipgateNumber {
     type = FAX_HOME_ARRAY
     return this
@@ -301,12 +318,13 @@ class SipgateNumber(
       return true
     }
 
-    val HOME_ARRAY = arrayOf("home")
-    val WORK_ARRAY = arrayOf("work")
+    internal val HOME_ARRAY = arrayOf("home")
+    internal val WORK_ARRAY = arrayOf("work")
     val CELL_ARRAY = arrayOf("cell")
-    val FAX_HOME_ARRAY = arrayOf("fax", "home")
-    val FAX_WORK_ARRAY = arrayOf("fax", "work")
-    val PAGER_ARRAY = arrayOf("pager")
-    val OTHER_ARRAY = arrayOf("other")
+    var CELL_HOME_ARRAY = arrayOf("cell", "home")
+    internal val FAX_HOME_ARRAY = arrayOf("fax", "home")
+    internal val FAX_WORK_ARRAY = arrayOf("fax", "work")
+    internal val PAGER_ARRAY = arrayOf("pager")
+    internal val OTHER_ARRAY = arrayOf("other")
   }
 }

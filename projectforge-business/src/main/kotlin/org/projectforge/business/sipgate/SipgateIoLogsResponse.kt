@@ -21,24 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.sipgate
+package org.projectforge.business.sipgate
 
-import org.projectforge.business.sipgate.*
+import org.projectforge.framework.json.JsonUtils
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-abstract class ListData<T> {
-  var items: List<T>? = null
-  var totalCount: Long? = null
+class SipgateIoLogsResponse(
+  var created: String? = null,
+  var url: String? = null,
+  var request: String? = null,
+  var response: String? = null,
+  var xmlError: String? = null,
+  var status: String? = null,
+) {
+  override fun toString(): String {
+    return JsonUtils.toJson(this, true)
+  }
 }
-
-class AddressListData: ListData<SipgateAddress>()
-
-class ContactListData: ListData<SipgateContact>()
-
-class UserListData: ListData<SipgateUser>()
-
-class DeviceListData: ListData<SipgateDevice>()
-
-class LogsListData: ListData<SipgateIoLogsResponse>()
