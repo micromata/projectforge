@@ -172,8 +172,8 @@ class SipgateService {
         .body(
           BodyInserters.fromValue(json)
         )
-      val response = sipgateClient.execute(bodySpec, String::class.java, HttpStatus.OK)
-      println("response: $response")
+      sipgateClient.execute(bodySpec, String::class.java, HttpStatus.OK)
+      // response: {"sessionId":"52576B150..."}
       return true
     } catch (ex: Exception) {
       log.error { "Error while initiating call for $newCallRequest: ${ex.message}" }
@@ -194,7 +194,7 @@ class SipgateService {
         .body(
           BodyInserters.fromValue(json)
         )
-      val response = sipgateClient.execute(bodySpec, String::class.java, HttpStatus.CREATED)
+      sipgateClient.execute(bodySpec, String::class.java, HttpStatus.NO_CONTENT)
       return true
     } catch (ex: Exception) {
       log.error { "Error while sending sms $smsRequest: ${ex.message}" }

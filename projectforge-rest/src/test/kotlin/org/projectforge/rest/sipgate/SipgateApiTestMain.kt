@@ -61,14 +61,19 @@ private fun getLists(sipgateClient: SipgateClient) {
   val sipgateService = SipgateService()
   sipgateService.sipgateClient = sipgateClient
   sipgateService.postConstruct()
-  val logs = sipgateService.getLogs()
-  println("Logs: ${logs?.joinToString { it.toString() }}")
+  /*val logs = sipgateService.getLogs()
+  println("Logs: [${logs?.joinToString { it.toString() }}]")
   val users = sipgateService.getUsers()
-  println("Users: ${users?.joinToString { it.toString() }}")
+  println("Users: [${users?.joinToString { it.toString() }}]")
   users?.find { it.firstname == "Kai" && it.lastname == "Reinhard" }?.let { user ->
     val devices = sipgateService.getDevices(user)
-    println("Devices: ${devices?.joinToString { it.toString() }}")
+    println("Devices: [${devices?.joinToString { it.toString() }}]")
   }
+  val numbers = sipgateService.getNumbers()
+  println("Numbers: [${numbers?.joinToString { it.toString() }}]")
+   */
+  // sipgateService.initCall(deviceId = "x1", callerId = "p1", callee = "01234567", caller = "p1")
+  // sipgateService.sendSms(smsId = "s0", message = "Test sipgate", recipient = "012345")
 }
 
 private fun contactTest(sipgateClient: SipgateClient) {
