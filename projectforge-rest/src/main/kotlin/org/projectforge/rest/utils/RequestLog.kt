@@ -57,7 +57,7 @@ object RequestLog {
    */
   fun getTruncatedSessionId(sessionId: String?): String? {
     sessionId ?: return null
-    return "${sessionId.take(6)}..."
+    return "${sessionId.take(6)}*"
   }
 }
 
