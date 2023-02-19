@@ -33,12 +33,14 @@ abstract class ListData<T> {
   var totalCount: Long? = null
 }
 
-class AddressListData: ListData<SipgateAddress>()
+class AddressListData : ListData<SipgateAddress>()
 
-class ContactListData: ListData<SipgateContact>()
+class ContactListData : ListData<SipgateContact>()
 
-class UserListData: ListData<SipgateUser>()
+class DeviceListData : ListData<SipgateDevice>()
 
-class DeviceListData: ListData<SipgateDevice>()
+class LogsListData : ListData<SipgateIoLogsResponse>()
 
-class LogsListData: ListData<SipgateIoLogsResponse>()
+class NumberListData : ListData<SipgateNumber>()
+
+class UserListData : ListData<SipgateUser>()

@@ -28,23 +28,22 @@ import org.projectforge.framework.json.JsonUtils
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class SipgateUser(
-  var id: String? = null,
-  var firstname: String? = null,
-  var lastname: String? = null,
-  var email: String? = null,
-  var defaultDevice: String? = null,
-  var busyOnBusy: Boolean? = null,
-  var addressId: String? = null,
-  var timezone: String? = null,
-  var admin: Boolean? = null,
-) {
+class SipgateNumber(
   /**
-   * The dial id's are the SipgateNumber id's of the user.
+   * Referenced by SipgateUser->directDialIds
    */
-  var directDialIds: List<String>? = null
+  var id: String? = null,
+  var number: String? = null,
+  var localized: String? = null,
+  var type: Type? = null,
+  var endpointId: String? = null,
+  var endpointUrl: String? = null,
+  var prolongationId: Long? = null,
+  var blockId: Long? = null,
+) {
+  enum class Type { MOBILE, LANDLINE, QUICKDIAL, INTERNATIONAL }
 
   override fun toString(): String {
-    return JsonUtils.toJson(this, true)
+    return JsonUtils.toJson(this)
   }
 }

@@ -26,6 +26,7 @@ package org.projectforge.rest.sipgate
 import mu.KotlinLogging
 import org.projectforge.business.sipgate.SipgateDevice
 import org.projectforge.business.sipgate.SipgateIoLogsResponse
+import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.business.sipgate.SipgateUser
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.json.JsonUtils
@@ -44,7 +45,11 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class SipgateService {
-  class NewCallRequest(var deviceId: String, var caller: String, var callee: String, var callerId: String) {
+  /**
+       * DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
+   * Use callerId to set a custom number that will be displayed to the callee.
+   */
+  class NewCallRequest(var deviceId: String? = null, var caller: String, var callee: String, var callerId: String) {
     override fun toString(): String {
       val anonymized = StringHelper.hideStringEnding(callee, 'x', 5)
       return "deviceId='$deviceId', caller='$caller', callerId='$callerId', callee='$anonymized'"
@@ -72,7 +77,7 @@ class SipgateService {
 
 
   /**
-   * Initiates a new call: /sessions/calls
+   * Initiates a new call: /log/webhooks
    */
   fun getLogs(): List<SipgateIoLogsResponse?>? {
     val path = "/log/webhooks"
@@ -132,12 +137,34 @@ class SipgateService {
   }
 
   /**
-   * Initiates a new call: /sessions/calls
+   * Initiates a new call: /numbers
    */
-  fun initCall(deviceId: String, caller: String, callee: String, callerId: String): Boolean {
+  fun getNumbers(): List<SipgateNumber>? {
+    val path = "/numbers"
+    try {
+      val uriSpec = webClient.get()
+      log.info { "Trying to initiate call '$path'..." }
+      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
+        uriBuilder.path(path).build()
+      }
+      val response = sipgateClient.execute(headersSpec, String::class.java)
+      val list = JsonUtils.fromJson(response, NumberListData::class.java, failOnUnknownProps = false)
+      return list?.items
+    } catch (ex: Exception) {
+      log.error { "Error while initiating call for '$path': ${ex.message}" }
+      return null
+    }
+  }
+
+
+  /**
+   * Initiates a new call: /sessions/calls
+   * DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
+   * Use callerId to set a custom number that will be displayed to the callee.
+   */
+  fun initCall(deviceId: String?, caller: String, callee: String, callerId: String): Boolean {
     val newCallRequest = NewCallRequest(deviceId = deviceId, caller = caller, callee = callee, callerId = callerId)
-    val json = JsonUtils.toJson(newCallRequest)
-    val anonymized = StringHelper.hideStringEnding(callee, 'x', 5)
+    val json = JsonUtils.toJson(newCallRequest, ignoreNullableProps = true)
     try {
       val uriSpec = webClient.post()
       log.info { "Trying to initiate call for $newCallRequest." }
@@ -145,7 +172,8 @@ class SipgateService {
         .body(
           BodyInserters.fromValue(json)
         )
-      val response = sipgateClient.execute(bodySpec, String::class.java, HttpStatus.CREATED)
+      val response = sipgateClient.execute(bodySpec, String::class.java, HttpStatus.OK)
+      println("response: $response")
       return true
     } catch (ex: Exception) {
       log.error { "Error while initiating call for $newCallRequest: ${ex.message}" }
