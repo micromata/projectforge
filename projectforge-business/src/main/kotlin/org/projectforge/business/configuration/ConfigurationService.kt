@@ -66,6 +66,13 @@ open class ConfigurationService {
   open var resourceDirName: String? = null
     protected set
 
+  /**
+   * If true, the http session id and the ssl session id (both truncated due to security reasons) are displayed in the log files.
+   */
+  @Value("\${projectforge.logSessionIds}")
+  open var logSessionIds: Boolean? = null
+    protected set
+
   open var usersSSLSocketFactory: SSLSocketFactory? = null
     protected set
 
