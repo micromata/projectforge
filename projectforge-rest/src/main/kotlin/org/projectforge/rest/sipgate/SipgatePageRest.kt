@@ -62,6 +62,15 @@ class SipgatePageRest : AbstractDynamicPageRest() {
         type = MenuItemTargetType.DOWNLOAD
       )
     )
+    layout.add(
+      MenuItem(
+        "resetContacts",
+        title = "Reset Sipgate contacts",
+        tooltip = "Sync and resets Sipgate contacts. May be used for re-organizing contacts in Sipgate having dublicated number entries....",
+        url = "${getRestPath()}/resetContacts",
+        type = MenuItemTargetType.DOWNLOAD
+      )
+    )
     val data = SipgateData()
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request))
@@ -72,6 +81,19 @@ class SipgatePageRest : AbstractDynamicPageRest() {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     log.info("Synchronizing addresses for Sipgate.")
     val ctx = sipgateContactSyncService.sync()
+    val msg =
+      "Synchronizing result: local addresses: [${ctx.localCounter}], remote contacts: [${ctx.remoteCounter}]."
+    log.info(msg)
+    return UIToast.createToast(
+      msg, color = UIColor.SUCCESS
+    )
+  }
+
+  @GetMapping("resetContacts")
+  fun resetContacts(): ResponseAction {
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    log.info("Synchronizing addresses for Sipgate.")
+    val ctx = sipgateContactSyncService.sync(resetContacts = true)
     val msg =
       "Synchronizing result: local addresses: [${ctx.localCounter}], remote contacts: [${ctx.remoteCounter}]."
     log.info(msg)

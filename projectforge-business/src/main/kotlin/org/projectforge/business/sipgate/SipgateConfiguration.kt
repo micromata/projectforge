@@ -56,6 +56,13 @@ open class SipgateConfiguration {
   @Value("\${projectforge.sipgate.updateLocalAddresses}")
   open var updateLocalAddresses: Boolean = true
 
+  /**
+   * If true, remote contacts in Sipgate will be updated/created/deleted (false only for testing).
+   */
+  @Value("\${projectforge.sipgate.updateSipgateContacts}")
+  open var updateSipgateContacts: Boolean = true
+
+
   fun isConfigured(): Boolean {
     return baseUri.isNotBlank() && token.isNotBlank() && tokenId.isNotBlank()
   }

@@ -491,9 +491,11 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
   /**
    * The main sync method: gets all remote contacts and local addresses, find the matching pairs (if not yet paired) and
    * inserts, updates and deletes the remote contacts and local addresses.
+   * @param resetContacts If true, the Sipgate contacts will be resetted after synchronizing. This may be useful for removing
+   * duplicating numbers. Default is false.
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun sync(): SipgateContactSyncService.SyncContext {
+  open fun sync(resetContacts: Boolean = false): SyncContext {
     log.info { "Syncing local addresses and remote Sipgate contacts..." }
     synchronized(this) {
       val syncContext = SipgateContactSyncService.SyncContext()
@@ -544,9 +546,9 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                   syncContext.localCounter.failed++
                 }
               }
-              if (syncResult.contactOutdated) {
+              if (resetContacts || syncResult.contactOutdated) {
                 log.info { "${getLogInfo(address, contact)}: Updating remote contact: $contact, was: $oldContact" }
-                updateRemoteContact(contact, syncDO, syncContext)
+                updateRemoteContact(contact, syncDO, syncContext, oldContact)
               }
             } else {
               // Create
@@ -628,8 +630,14 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
 
   private fun createRemoteContact(address: AddressDO, syncContext: SyncContext? = null) {
     try {
-      val contact = from(address)
-      sipgateContactService.create(contact)
+      if (configuration.updateSipgateContacts) {
+        val contact = from(address)
+        sipgateContactService.create(contact)
+      } else {
+        log.info {
+          "${getLogInfo(address, null)}: NOT creating remote contact (see projectforge.properties)."
+        }
+      }
       syncContext?.let {
         it.remoteCounter.inserted++
       }
@@ -641,14 +649,20 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     }
   }
 
-  private fun updateRemoteContact(contact: SipgateContact, syncDO: SipgateContactSyncDO, syncContext: SyncContext) {
+  private fun updateRemoteContact(contact: SipgateContact, syncDO: SipgateContactSyncDO, syncContext: SyncContext, oldContact: String) {
     contact.id?.let { contactId ->
       try {
-        sipgateContactService.update(contactId, contact)
-        syncDO.lastSync = Date()
-        syncDO.remoteStatus = SipgateContactSyncDO.RemoteStatus.OK
-        syncDO.updateJson(contact)
-        upsert(syncDO)
+        if (configuration.updateSipgateContacts) {
+          sipgateContactService.update(contactId, contact)
+          syncDO.lastSync = Date()
+          syncDO.remoteStatus = SipgateContactSyncDO.RemoteStatus.OK
+          syncDO.updateJson(contact)
+          upsert(syncDO)
+        } else {
+          log.info {
+            "${getLogInfo(null, contact)}: NOT updating remote contact (see projectforge.properties): $contact, was: $oldContact"
+          }
+        }
         syncContext.remoteCounter.updated++
       } catch (ex: Exception) {
         log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
@@ -660,10 +674,16 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
   private fun deleteRemoteContact(contact: SipgateContact, syncDO: SipgateContactSyncDO, syncContext: SyncContext) {
     contact.id?.let { contactId ->
       try {
-        sipgateContactService.delete(contactId, contact)
-        delete(syncDO)
-        syncContext.syncDOList.remove(syncDO)
-        syncContext.remoteContacts.remove(contact)
+        if (configuration.updateSipgateContacts) {
+          sipgateContactService.delete(contactId, contact)
+          delete(syncDO)
+          syncContext.syncDOList.remove(syncDO)
+          syncContext.remoteContacts.remove(contact)
+        } else {
+          log.info {
+            "${getLogInfo(null, contact)}: NOT deleting remote contact (see projectforge.properties): $contact"
+          }
+        }
         syncContext.remoteCounter.deleted++
       } catch (ex: Exception) {
         log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
