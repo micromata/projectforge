@@ -32,26 +32,26 @@ import org.projectforge.framework.utils.NumberHelper
 class SipgateContactTest {
   @Test
   fun getCompareTest() {
-    Assertions.assertTrue(SipgateNumber.compare(null, null))
-    Assertions.assertTrue(SipgateNumber.compare(arrayOf(), arrayOf()))
-    Assertions.assertTrue(SipgateNumber.compare(arrayOf("work"), arrayOf("work")))
-    Assertions.assertTrue(SipgateNumber.compare(arrayOf("work", "cell"), arrayOf("work", "cell")))
-    Assertions.assertTrue(SipgateNumber.compare(arrayOf("cell", "work"), arrayOf("work", "cell")))
+    Assertions.assertTrue(SipgateContact.Number.compare(null, null))
+    Assertions.assertTrue(SipgateContact.Number.compare(arrayOf(), arrayOf()))
+    Assertions.assertTrue(SipgateContact.Number.compare(arrayOf("work"), arrayOf("work")))
+    Assertions.assertTrue(SipgateContact.Number.compare(arrayOf("work", "cell"), arrayOf("work", "cell")))
+    Assertions.assertTrue(SipgateContact.Number.compare(arrayOf("cell", "work"), arrayOf("work", "cell")))
 
-    Assertions.assertFalse(SipgateNumber.compare(null, arrayOf()))
-    Assertions.assertFalse(SipgateNumber.compare(arrayOf(), null))
-    Assertions.assertFalse(SipgateNumber.compare(arrayOf(), arrayOf("")))
-    Assertions.assertFalse(SipgateNumber.compare(arrayOf("work"), arrayOf("home")))
-    Assertions.assertFalse(SipgateNumber.compare(arrayOf("work", "cell"), arrayOf("home", "cell")))
+    Assertions.assertFalse(SipgateContact.Number.compare(null, arrayOf()))
+    Assertions.assertFalse(SipgateContact.Number.compare(arrayOf(), null))
+    Assertions.assertFalse(SipgateContact.Number.compare(arrayOf(), arrayOf("")))
+    Assertions.assertFalse(SipgateContact.Number.compare(arrayOf("work"), arrayOf("home")))
+    Assertions.assertFalse(SipgateContact.Number.compare(arrayOf("work", "cell"), arrayOf("home", "cell")))
 
-    Assertions.assertTrue(SipgateNumber().setHomeType().isHomeType())
-    Assertions.assertTrue(SipgateNumber().setWorkType().isWorkType())
-    Assertions.assertTrue(SipgateNumber().setCellType().isCellType())
-    Assertions.assertTrue(SipgateNumber().setCellHomeType().isCellHomeType())
-    Assertions.assertTrue(SipgateNumber().setFaxWorkType().isFaxWorkType())
-    Assertions.assertTrue(SipgateNumber().setFaxHomeType().isFaxHomeType())
-    Assertions.assertTrue(SipgateNumber().setOtherType().isOtherType())
-    Assertions.assertTrue(SipgateNumber().setPagerType().isPagerType())
+    Assertions.assertTrue(SipgateContact.Number().setHomeType().isHomeType())
+    Assertions.assertTrue(SipgateContact.Number().setWorkType().isWorkType())
+    Assertions.assertTrue(SipgateContact.Number().setCellType().isCellType())
+    Assertions.assertTrue(SipgateContact.Number().setCellHomeType().isCellHomeType())
+    Assertions.assertTrue(SipgateContact.Number().setFaxWorkType().isFaxWorkType())
+    Assertions.assertTrue(SipgateContact.Number().setFaxHomeType().isFaxHomeType())
+    Assertions.assertTrue(SipgateContact.Number().setOtherType().isOtherType())
+    Assertions.assertTrue(SipgateContact.Number().setPagerType().isPagerType())
   }
 
   @Test
