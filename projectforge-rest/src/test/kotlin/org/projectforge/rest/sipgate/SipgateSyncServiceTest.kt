@@ -31,7 +31,6 @@ import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
-import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.utils.NumberHelper
 
@@ -76,9 +75,11 @@ class SipgateSyncServiceTest {
       mobilePhone = "+49 1234 567890",
       fax = "+49 222 33333",
     )
-    contact.numbers = mutableListOf(SipgateNumber("+49 1234 567890"))
+    contact.numbers = mutableListOf(SipgateContact.Number("+49 1234 567890"))
     Assertions.assertEquals(4, SipgateContactSyncService.matchScore(contact, address2))
-    contact.numbers = mutableListOf(SipgateNumber("+49 1234 567890"), SipgateNumber("022233333"))
+    contact.numbers = mutableListOf(SipgateContact.Number("+49 1234 567890"),
+      SipgateContact.Number("022233333")
+    )
     Assertions.assertEquals(5, SipgateContactSyncService.matchScore(contact, address2))
     address1.firstName = "Karl"
     Assertions.assertEquals(-1, SipgateContactSyncService.matchScore(contact, address1))
@@ -194,7 +195,9 @@ class SipgateSyncServiceTest {
   @Test
   fun numberTest() {
     var contact = SipgateContact()
-    contact.numbers = mutableListOf(SipgateNumber("+4911111").setCellType(), SipgateNumber("011111").setCellType(), SipgateNumber("0222222").setWorkType())
+    contact.numbers = mutableListOf(SipgateContact.Number("+4911111").setCellType(), SipgateContact.Number(
+      "011111"
+    ).setCellType(), SipgateContact.Number("0222222").setWorkType())
     Assertions.assertEquals(3, contact.numbers?.size)
     contact.fixNumbers()
     Assertions.assertEquals(2, contact.numbers?.size, "Duplicate number of cell should be removed.")
@@ -281,12 +284,12 @@ class SipgateSyncServiceTest {
       val address = createAddress(name = name, firstName = firstName)
       val contact = SipgateContact()
       contact.name = SipgateContactSyncDO.getName(address)
-      val numbers = mutableListOf<SipgateNumber>()
+      val numbers = mutableListOf<SipgateContact.Number>()
       mobilePhone?.let {
-        numbers.add(SipgateNumber(it).setCellType())
+        numbers.add(SipgateContact.Number(it).setCellType())
       }
       fax?.let {
-        numbers.add(SipgateNumber(it).setFaxWorkType())
+        numbers.add(SipgateContact.Number(it).setFaxWorkType())
       }
       contact.numbers = numbers
       contact.organization = organization

@@ -83,7 +83,7 @@ class SipgateService {
         uriBuilder.path(path).build()
       }
       val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, LogsListData::class.java)
+      val list = JsonUtils.fromJson(response, LogsListData::class.java, failOnUnknownProps = false)
       return list?.items
     } catch (ex: Exception) {
       log.error { "Error while initiating call for '$path': ${ex.message}" }
@@ -103,7 +103,7 @@ class SipgateService {
         uriBuilder.path(path).build()
       }
       val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, UserListData::class.java)
+      val list = JsonUtils.fromJson(response, UserListData::class.java, failOnUnknownProps = false)
       return list?.items
     } catch (ex: Exception) {
       log.error { "Error while initiating call for '$path': ${ex.message}" }
@@ -123,7 +123,7 @@ class SipgateService {
         uriBuilder.path(path).build()
       }
       val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, DeviceListData::class.java)
+      val list = JsonUtils.fromJson(response, DeviceListData::class.java, failOnUnknownProps = false)
       return list?.items
     } catch (ex: Exception) {
       log.error { "Error while initiating call for '$path': ${ex.message}" }

@@ -23,28 +23,15 @@
 
 package org.projectforge.business.sipgate
 
-import org.projectforge.framework.json.JsonUtils
-
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class SipgateDevice(
-  var id: String? = null,
-  var alias: String? = null,
-  var type: String? = null,
-  var online: Boolean? = null,
-  var dnd: Boolean? = null,
-) {
-  class ActiveRouting(var id: String? = null, var alias: String? = null)
-  class Credentials(var simId: String? = null, var puk1: String? = null, var puk2: String? = null)
-
-  var activePhonelines: List<ActiveRouting>? = null
-  var activeGroups: List<ActiveRouting>? = null
-  var credentials: Credentials? = null
-  var simState: String? = null
-  var esim: Boolean? = null
-
-  override fun toString(): String {
-    return JsonUtils.toJson(this)
-  }
+class SipgateAddress {
+  var poBox: String? = null
+  var extendedAddress: String? = null
+  var streetAddress: String? = null
+  var region: String? = null
+  var locality: String? = null
+  var postalCode: String? = null
+  var country: String? = null
 }

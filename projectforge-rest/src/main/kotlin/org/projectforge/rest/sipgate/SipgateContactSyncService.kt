@@ -31,7 +31,6 @@ import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
-import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.projectforge.framework.utils.NumberHelper
@@ -159,12 +158,12 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
       // var picture: String? = null
       address.email?.let { contact.email = it }
       address.privateEmail?.let { contact.privateEmail = it }
-      val numbers = mutableListOf<SipgateNumber>()
-      address.businessPhone?.let { numbers.add(SipgateNumber(it).setWorkType()) }
-      address.mobilePhone?.let { numbers.add(SipgateNumber(it).setCellType()) }
-      address.privatePhone?.let { numbers.add(SipgateNumber(it).setHomeType()) }
-      address.privateMobilePhone?.let { numbers.add(SipgateNumber(it).setCellHomeType()) }
-      address.fax?.let { numbers.add(SipgateNumber(it).setFaxWorkType()) }
+      val numbers = mutableListOf<SipgateContact.Number>()
+      address.businessPhone?.let { numbers.add(SipgateContact.Number(it).setWorkType()) }
+      address.mobilePhone?.let { numbers.add(SipgateContact.Number(it).setCellType()) }
+      address.privatePhone?.let { numbers.add(SipgateContact.Number(it).setHomeType()) }
+      address.privateMobilePhone?.let { numbers.add(SipgateContact.Number(it).setCellHomeType()) }
+      address.fax?.let { numbers.add(SipgateContact.Number(it).setFaxWorkType()) }
       contact.numbers = numbers
       /* Ignore addresses (synchronize will be pain, because not type of addresses will be given by Sipgate.
         val addresses = mutableListOf<SipgateAddress>()

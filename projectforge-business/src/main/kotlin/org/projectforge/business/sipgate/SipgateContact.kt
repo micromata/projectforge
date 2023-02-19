@@ -41,8 +41,8 @@ class SipgateContact {
   var family: String? = null
   var given: String? = null
   var picture: String? = null
-  var emails: MutableList<SipgateEmail>? = null
-  var numbers: MutableList<SipgateNumber>? = null
+  var emails: MutableList<Email>? = null
+  var numbers: MutableList<Number>? = null
   var addresses: MutableList<SipgateAddress>? = null
 
   var organizationArray: Array<Array<String>>?
@@ -72,49 +72,49 @@ class SipgateContact {
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isWorkType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.WORK_ARRAY)
+      setNumber(value, Number.WORK_ARRAY)
     }
 
   var home: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isHomeType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.HOME_ARRAY)
+      setNumber(value, Number.HOME_ARRAY)
     }
 
   var faxWork: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isFaxWorkType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.FAX_WORK_ARRAY)
+      setNumber(value, Number.FAX_WORK_ARRAY)
     }
 
   var faxHome: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isFaxHomeType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.FAX_HOME_ARRAY)
+      setNumber(value, Number.FAX_HOME_ARRAY)
     }
 
   var cell: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isCellType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.CELL_ARRAY)
+      setNumber(value, Number.CELL_ARRAY)
     }
 
   var cellHome: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isCellHomeType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.CELL_HOME_ARRAY)
+      setNumber(value, Number.CELL_HOME_ARRAY)
     }
 
   var pager: String?
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isPagerType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.PAGER_ARRAY)
+      setNumber(value, Number.PAGER_ARRAY)
     }
 
   /**
@@ -124,7 +124,7 @@ class SipgateContact {
     @JsonIgnore
     get() = numbers?.firstOrNull { it.isOtherType() }?.number
     set(value) {
-      setNumber(value, SipgateNumber.OTHER_ARRAY)
+      setNumber(value, Number.OTHER_ARRAY)
     }
 
   var email: String?
@@ -166,7 +166,7 @@ class SipgateContact {
     }
     var mail = emails?.firstOrNull { it.type == type }
     if (mail == null) {
-      mail = SipgateEmail(type = type)
+      mail = Email(type = type)
       emails?.add(mail)
     }
     mail.email = emailAddress
@@ -176,9 +176,9 @@ class SipgateContact {
     if (numbers == null) {
       numbers = mutableListOf()
     }
-    var num = numbers?.firstOrNull { SipgateNumber.compare(it.type, type) }
+    var num = numbers?.firstOrNull { Number.compare(it.type, type) }
     if (num == null) {
-      num = SipgateNumber()
+      num = Number()
       num.type = type
       numbers?.add(num)
     }
@@ -192,150 +192,139 @@ class SipgateContact {
   override fun toString(): String {
     return toJsonString(this)
   }
-}
 
-class SipgateAddress {
-  var poBox: String? = null
-  var extendedAddress: String? = null
-  var streetAddress: String? = null
-  var region: String? = null
-  var locality: String? = null
-  var postalCode: String? = null
-  var country: String? = null
-}
-
-class SipgateEmail(
-  var email: String? = null,
-  @JsonIgnore
-  var type: SipgateContact.EmailType? = null,
-) {
-  @get:JsonProperty("type")
-  var typeArray: Array<String>?
-    set(value) {
-      type = when (value?.firstOrNull()) {
-        "home" -> SipgateContact.EmailType.HOME
-        "work" -> SipgateContact.EmailType.WORK
-        "other" -> SipgateContact.EmailType.OTHER
-        else -> null
-      }
-    }
-    get() {
-      val value = type?.name?.lowercase() ?: return null
-      return arrayOf(value)
-    }
-}
-
-class SipgateNumber(
-  var number: String? = null,
-) {
-  var type: Array<String>? = null
-
-  fun setHomeType(): SipgateNumber {
-    type = HOME_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isHomeType(): Boolean {
-    return compare(type, HOME_ARRAY)
-  }
-
-  fun setWorkType(): SipgateNumber {
-    type = WORK_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isWorkType(): Boolean {
-    return compare(type, WORK_ARRAY)
-  }
-
-  fun setCellType(): SipgateNumber {
-    type = CELL_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isCellType(): Boolean {
-    return compare(type, CELL_ARRAY)
-  }
-
-  fun setCellHomeType(): SipgateNumber {
-    type = CELL_HOME_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isCellHomeType(): Boolean {
-    return compare(type, CELL_HOME_ARRAY)
-  }
-
-  fun setFaxHomeType(): SipgateNumber {
-    type = FAX_HOME_ARRAY
-    return this
-  }
-
-
-  @JsonIgnore
-  fun isFaxHomeType(): Boolean {
-    return compare(type, FAX_HOME_ARRAY)
-  }
-
-  fun setFaxWorkType(): SipgateNumber {
-    type = FAX_WORK_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isFaxWorkType(): Boolean {
-    return compare(type, FAX_WORK_ARRAY)
-  }
-
-  fun setPagerType(): SipgateNumber {
-    type = PAGER_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isPagerType(): Boolean {
-    return compare(type, PAGER_ARRAY)
-  }
-
-  fun setOtherType(): SipgateNumber {
-    type = OTHER_ARRAY
-    return this
-  }
-
-  @JsonIgnore
-  fun isOtherType(): Boolean {
-    return compare(type, OTHER_ARRAY)
-  }
-
-  companion object {
-    fun compare(array1: Array<String>?, array2: Array<String>?): Boolean {
-      if (array1 == null) {
-        return array2 == null
-      }
-      array2 ?: return false
-      if (array1.size != array2.size) {
-        return false
-      }
-      array1.forEach {
-        if (!array2.contains(it)) {
-          return false
+  class Email(
+    var email: String? = null,
+    @JsonIgnore
+    var type: SipgateContact.EmailType? = null,
+  ) {
+    @get:JsonProperty("type")
+    var typeArray: Array<String>?
+      set(value) {
+        type = when (value?.firstOrNull()) {
+          "home" -> SipgateContact.EmailType.HOME
+          "work" -> SipgateContact.EmailType.WORK
+          "other" -> SipgateContact.EmailType.OTHER
+          else -> null
         }
       }
-      return true
+      get() {
+        val value = type?.name?.lowercase() ?: return null
+        return arrayOf(value)
+      }
+  }
+
+  class Number(
+    var number: String? = null,
+  ) {
+    var type: Array<String>? = null
+
+    fun setHomeType(): Number {
+      type = HOME_ARRAY
+      return this
     }
 
-    internal val HOME_ARRAY = arrayOf("home")
-    internal val WORK_ARRAY = arrayOf("work")
-    val CELL_ARRAY = arrayOf("cell")
-    var CELL_HOME_ARRAY = arrayOf("cell", "home")
-    internal val FAX_HOME_ARRAY = arrayOf("fax", "home")
-    val FAX_WORK_ARRAY = arrayOf("fax", "work")
-    var INTERNAL_FAX_ARRAY = arrayOf("fax")
-    internal val PAGER_ARRAY = arrayOf("pager")
-    internal val OTHER_ARRAY = arrayOf("other")
+    @JsonIgnore
+    fun isHomeType(): Boolean {
+      return compare(type, HOME_ARRAY)
+    }
+
+    fun setWorkType(): Number {
+      type = WORK_ARRAY
+      return this
+    }
+
+    @JsonIgnore
+    fun isWorkType(): Boolean {
+      return compare(type, WORK_ARRAY)
+    }
+
+    fun setCellType(): Number {
+      type = CELL_ARRAY
+      return this
+    }
+
+    @JsonIgnore
+    fun isCellType(): Boolean {
+      return compare(type, CELL_ARRAY)
+    }
+
+    fun setCellHomeType(): Number {
+      type = CELL_HOME_ARRAY
+      return this
+    }
+
+    @JsonIgnore
+    fun isCellHomeType(): Boolean {
+      return compare(type, CELL_HOME_ARRAY)
+    }
+
+    fun setFaxHomeType(): Number {
+      type = FAX_HOME_ARRAY
+      return this
+    }
+
+
+    @JsonIgnore
+    fun isFaxHomeType(): Boolean {
+      return compare(type, FAX_HOME_ARRAY)
+    }
+
+    fun setFaxWorkType(): Number {
+      type = FAX_WORK_ARRAY
+      return this
+    }
+
+    @JsonIgnore
+    fun isFaxWorkType(): Boolean {
+      return compare(type, FAX_WORK_ARRAY)
+    }
+
+    fun setPagerType(): Number {
+      type = PAGER_ARRAY
+      return this
+    }
+
+    @JsonIgnore
+    fun isPagerType(): Boolean {
+      return compare(type, PAGER_ARRAY)
+    }
+
+    fun setOtherType(): Number {
+      type = OTHER_ARRAY
+      return this
+    }
+
+    @JsonIgnore
+    fun isOtherType(): Boolean {
+      return compare(type, OTHER_ARRAY)
+    }
+
+    companion object {
+      fun compare(array1: Array<String>?, array2: Array<String>?): Boolean {
+        if (array1 == null) {
+          return array2 == null
+        }
+        array2 ?: return false
+        if (array1.size != array2.size) {
+          return false
+        }
+        array1.forEach {
+          if (!array2.contains(it)) {
+            return false
+          }
+        }
+        return true
+      }
+
+      internal val HOME_ARRAY = arrayOf("home")
+      internal val WORK_ARRAY = arrayOf("work")
+      internal val CELL_ARRAY = arrayOf("cell")
+      internal var CELL_HOME_ARRAY = arrayOf("cell", "home")
+      internal val FAX_HOME_ARRAY = arrayOf("fax", "home")
+      internal val FAX_WORK_ARRAY = arrayOf("fax", "work")
+      internal val PAGER_ARRAY = arrayOf("pager")
+      internal val OTHER_ARRAY = arrayOf("other")
+    }
   }
 }
