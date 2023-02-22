@@ -7,6 +7,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
+import org.projectforge.business.user.UserDao
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -16,10 +17,13 @@ import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.core.io.Resource
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.*
+import java.io.File
 import java.io.IOException
+import java.io.PrintWriter
 import java.time.LocalDateTime
 import java.time.Month
 import javax.servlet.http.HttpServletRequest
@@ -38,6 +42,9 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var birthdayListMailService: BirthdayListMailService
+
+    @Autowired
+    private lateinit var userDao: UserDao
 
     private var months = arrayOf(
         "Januar",
@@ -82,44 +89,71 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
     }
 
     @PostMapping("downloadBirthdayList")
-    fun downloadBirthdayList(request: HttpServletRequest, @RequestBody postData: PostData<BirthdayListData>) : ResponseEntity<Resource>? {
+    fun downloadBirthdayList(request: HttpServletRequest, @RequestBody postData: PostData<BirthdayListData>) : ResponseEntity<*>? {
         //validateCsrfToken(request, postData)?.let { return it }
 
-        var addressList = addressDao.getList(AddressFilter())
-        addressList = addressList.filter { it.birthday?.month == Month.values()[postData.data.month - 1] }
-        addressList = addressList.filter { it.organization == "Micromata GmbH" }
+        if (postData.data.month in 1..12) {
+            var addressList = addressDao.getList(AddressFilter())
+            var pFUserList = userDao.internalLoadAll()
+            var filteredList = ArrayList<AddressDO>()
 
-        //birthdayListMailService.sendMail()
 
-        return if (addressList.isNotEmpty())
-            RestUtils.downloadFile("Geburtstagsliste_" + Month.values()[postData.data.month - 1] + "_" + LocalDateTime.now().year + ".docx" , createWordDocument(addressList)!!.toByteArray())
-        else
-        //TODO return a message to say the list is empty
-            null
+
+            pFUserList.forEach { user ->
+                addressList.forEach { addressEntry ->
+                    if (addressEntry.firstName.equals(user.firstname) && addressEntry.name.equals(user.lastname) && addressEntry.organization.equals(
+                            user.organization
+                        ) && addressEntry.birthday != null && addressEntry.birthday?.month == Month.values()[postData.data.month - 1]
+                    )
+                        filteredList.add(addressEntry)
+                }
+            }
+
+            return if (filteredList.isNotEmpty())
+                RestUtils.downloadFile(
+                    "Geburtstagsliste_" + Month.values()[postData.data.month - 1] + "_" + LocalDateTime.now().year + ".docx",
+                    createWordDocument(filteredList)!!.toByteArray()
+                )
+            else
+                ResponseEntity(
+                    ResponseAction(
+                        validationErrors = createValidationErrors(
+                            ValidationError("Es gibt keine Geburtstagseinträge für diesen Monat",
+                                fieldId = "month"
+                            )
+                        )
+                    ), HttpStatus.NOT_ACCEPTABLE
+                )
+        }
+        return ResponseEntity(
+            ResponseAction(
+                validationErrors = createValidationErrors(
+                    ValidationError("Der Monat muss ausgewählt sein",
+                        fieldId = "month"
+                    )
+                )
+            ), HttpStatus.NOT_ACCEPTABLE
+        )
     }
 
     private fun createWordDocument(addressList: List<AddressDO>): ByteArrayOutputStream? {
         return try {
             var listDates: String = ""
             var listNames: String = ""
-            var compareSameBirthday: Int = 0
             val sortedList = addressList.sortedBy { it.birthday!!.dayOfMonth }
 
             if (sortedList.isNotEmpty()) {
                 for (i in sortedList.indices) {
-                    if (sortedList[i].birthday!!.dayOfMonth == compareSameBirthday) {
-                        listDates += "\n\t"
-                        listNames += "\n" + sortedList[i].firstName + " " + sortedList[i].name
-                        compareSameBirthday = sortedList[i].birthday!!.dayOfMonth
-                    } else if (sortedList[i].birthday!!.dayOfMonth < 10) {
-                        listDates += "\n" + "0" + sortedList[i].birthday!!.dayOfMonth.toString() + "." + sortedList[i].birthday!!.month.value.toString() + ".:"
-                        listNames += "\n" + sortedList[i].firstName + " " + sortedList[i].name
-                        compareSameBirthday = sortedList[i].birthday!!.dayOfMonth
-                    } else {
-                        listDates += "\n" + sortedList[i].birthday!!.dayOfMonth.toString() + "." + sortedList[i].birthday!!.month.value.toString() + ".:"
-                        listNames += "\n" + sortedList[i].firstName + " " + sortedList[i].name
-                        compareSameBirthday = sortedList[i].birthday!!.dayOfMonth
+                    listDates += "\n"
+                    listNames += "\n" + sortedList[i].firstName + " " + sortedList[i].name
+                    if (i != 0 && sortedList[i].birthday!!.dayOfMonth == sortedList[i - 1].birthday!!.dayOfMonth) {
+                        listDates += "\t"
+                        continue
                     }
+                    if (sortedList[i].birthday!!.dayOfMonth < 10)
+                        listDates += "0"
+
+                    listDates += sortedList[i].birthday!!.dayOfMonth.toString() + "." + sortedList[i].birthday!!.month.value.toString() + ".:"
                 }
             }
 
@@ -140,5 +174,19 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
         }
     }
 
+    private fun sendMail() {
+        var file = File.createTempFile("stuff", ".tmp")
+        file.deleteOnExit()
+        var pw = PrintWriter(file)
+        pw.println("this is line 1")
+        pw.println("this is line 2")
+        pw.close()
+    }
+
+    //@Scheduled(cron = "0 0 8 L-2 * ?") -> Jeden vorletzten Tag des Monats
+    @Scheduled(cron = "0/1 * * ? * *")
+    fun sendBirthdayListJob() {
+        //birthdayListMailService.sendMail()
+    }
 
 }
