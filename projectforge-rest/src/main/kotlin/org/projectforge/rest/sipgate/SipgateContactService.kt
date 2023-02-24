@@ -26,7 +26,6 @@ package org.projectforge.rest.sipgate
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
-import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.stereotype.Service
 import kotlin.reflect.KMutableProperty
@@ -37,11 +36,7 @@ import kotlin.reflect.KMutableProperty
 // Must be open for mocking in tests.
 @Service
 open class SipgateContactService :
-  AbstractSipgateService<SipgateContact>("/contacts", "Contact") {
-
-  override fun fromJson(response: String): ContactListData? {
-    return JsonUtils.fromJson(response, ContactListData::class.java, false)
-  }
+  AbstractSipgateEntityService<SipgateContact>("/contacts", "Contact", ContactListData::class.java) {
 
   override fun setId(obj: SipgateContact, id: String) {
     obj.id = id
@@ -57,7 +52,11 @@ open class SipgateContactService :
      * This method tries to re-assign numbers from type other by comparing the numbers with
      * the optional given address and/or given syncDO.
      */
-    fun fixNumbers(contact: SipgateContact, address: AddressDO? = null, syncInfo: SipgateContactSyncDO.SyncInfo? = null) {
+    fun fixNumbers(
+      contact: SipgateContact,
+      address: AddressDO? = null,
+      syncInfo: SipgateContactSyncDO.SyncInfo? = null
+    ) {
       contact.numbers?.filter { it.isOtherType() }?.forEach { otherNumber ->
         val number = NumberHelper.extractPhonenumber(otherNumber.number)
         if (number.isNullOrBlank()) {

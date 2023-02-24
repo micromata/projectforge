@@ -37,7 +37,11 @@ private val log = KotlinLogging.logger {}
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractSipgateService<T>(val path: String, val entityName: String) {
+abstract class AbstractSipgateEntityService<T>(
+  val path: String,
+  val entityName: String,
+  val listDataClass: Class<out ListData<T>>,
+) {
 
   @Autowired
   internal lateinit var sipgateClient: SipgateClient
@@ -51,39 +55,20 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
     webClient = sipgateClient.webClient
   }
 
-  abstract fun fromJson(json: String): ListData<T>? // JsonUtils.fromJson(response, TradingPartnerListData::class.java, false)
-
   abstract fun setId(obj: T, id: String)
 
   open fun getList(offset: Int = 0, limit: Int = 5000, maxNumberOfPages: Int = 100): List<T> {
-    // Parameters: limit=<pagesize>, offset=<page>
-    val result = mutableListOf<T>()
-    var pageCounter = 0
-    var currentOffset = offset
-    while (pageCounter++ < maxNumberOfPages) {
-      val uriSpec = webClient.get()
-      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-        uriBuilder
-          .path(path)
-          .queryParam("offset", currentOffset)
-          .queryParam("limit", limit)
-          .build()
-      }
-      val response = sipgateClient.execute(headersSpec, String::class.java)
-      if (debugConsoleOutForTesting) {
-        println("response: $response")
-      }
-      val data = fromJson(response)
-      val entities = data?.items ?: break
-      val totalCount = data.totalCount ?: 0
-      result.addAll(entities)
-      currentOffset += limit
-      if (currentOffset > totalCount) {
-        break
-      }
-    }
-    log.info { "Got ${result.size} entries of $entityName from Sipgate." }
-    return result
+    return SipgateService.getList(
+      webClient,
+      sipgateClient,
+      path = path,
+      entityName = entityName,
+      offset = offset,
+      limit = limit,
+      maxNumberOfPages = maxNumberOfPages,
+      debugConsoleOutForTesting = debugConsoleOutForTesting,
+      listDataClass = listDataClass,
+    )
   }
 
   open fun create(entity: T): Boolean {
@@ -151,8 +136,8 @@ abstract class AbstractSipgateService<T>(val path: String, val entityName: Strin
       }
       log.info { "${getLogInfo(entity)}: Trying to update $entityName #$id in Sipgate: $json" }
       val bodySpec = headersSpec.body(
-          BodyInserters.fromValue(json)
-        )
+        BodyInserters.fromValue(json)
+      )
       val response = sipgateClient.execute(bodySpec, String::class.java, HttpStatus.NO_CONTENT)
       if (debugConsoleOutForTesting) {
         println("response: $response")
