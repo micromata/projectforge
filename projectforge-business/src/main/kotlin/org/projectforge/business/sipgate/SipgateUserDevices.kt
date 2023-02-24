@@ -28,35 +28,9 @@ import org.projectforge.framework.json.JsonUtils
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class SipgateDevice(
-  var id: String? = null,
-  var alias: String? = null,
-  var type: String? = null,
-  var online: Boolean? = null,
-  /** If true, then not available. */
-  var dnd: Boolean? = null,
-) {
-  class ActiveRouting(var id: String? = null, var alias: String? = null)
-  class Credentials(var simId: String? = null, var puk1: String? = null, var puk2: String? = null)
-
-  var activePhonelines: List<ActiveRouting>? = null
-  var activeGroups: List<ActiveRouting>? = null
-  var credentials: Credentials? = null
-  var simState: String? = null
-  var esim: Boolean? = null
-
-  fun deleteSecrets() {
-    credentials?.let { cred ->
-      if (cred.puk1 != null) {
-        cred.puk1 = "***"
-      }
-      if (cred.puk2 != null) {
-        cred.puk2 = "***"
-      }
-    }
-  }
+class SipgateUserDevices(var userId: String? = null, var devices: List<SipgateDevice>? = null) {
 
   override fun toString(): String {
-    return JsonUtils.toJson(this)
+    return JsonUtils.toJson(this, true)
   }
 }

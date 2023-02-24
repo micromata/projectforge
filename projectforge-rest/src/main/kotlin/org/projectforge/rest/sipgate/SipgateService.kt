@@ -24,10 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import mu.KotlinLogging
-import org.projectforge.business.sipgate.SipgateDevice
-import org.projectforge.business.sipgate.SipgateIoLogsResponse
-import org.projectforge.business.sipgate.SipgateNumber
-import org.projectforge.business.sipgate.SipgateUser
+import org.projectforge.business.sipgate.*
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -101,6 +98,13 @@ class SipgateService {
    */
   fun getNumbers(): List<SipgateNumber> {
     return getEntities("/numbers", "Number", NumberListData::class.java)
+  }
+
+  /**
+   * Initiates a new call: /addresses
+   */
+  fun getAddresses(): List<SipgateAddress> {
+    return getEntities("/addresses", "Address", AddressListData::class.java)
   }
 
   private fun <T> getEntities(
@@ -182,34 +186,39 @@ class SipgateService {
       maxNumberOfPages: Int = 100,
       debugConsoleOutForTesting: Boolean = false,
     ): List<T> {
-      // Parameters: limit=<pagesize>, offset=<page>
-      val result = mutableListOf<T>()
-      var pageCounter = 0
-      var currentOffset = offset
-      while (pageCounter++ < maxNumberOfPages) {
-        val uriSpec = webClient.get()
-        val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-          uriBuilder
-            .path(path)
-            .queryParam("offset", currentOffset)
-            .queryParam("limit", limit)
-            .build()
+      try {
+        // Parameters: limit=<pagesize>, offset=<page>
+        val result = mutableListOf<T>()
+        var pageCounter = 0
+        var currentOffset = offset
+        while (pageCounter++ < maxNumberOfPages) {
+          val uriSpec = webClient.get()
+          val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
+            uriBuilder
+              .path(path)
+              .queryParam("offset", currentOffset)
+              .queryParam("limit", limit)
+              .build()
+          }
+          val response = sipgateClient.execute(headersSpec, String::class.java)
+          if (debugConsoleOutForTesting) {
+            println("response: $response")
+          }
+          val data = JsonUtils.fromJson(response, listDataClass, failOnUnknownProps = false)
+          val entities = data?.items ?: break
+          val totalCount = data.totalCount ?: 0
+          result.addAll(entities)
+          currentOffset += limit
+          if (currentOffset > totalCount) {
+            break
+          }
         }
-        val response = sipgateClient.execute(headersSpec, String::class.java)
-        if (debugConsoleOutForTesting) {
-          println("response: $response")
-        }
-        val data = JsonUtils.fromJson(response, listDataClass, failOnUnknownProps = false)
-        val entities = data?.items ?: break
-        val totalCount = data.totalCount ?: 0
-        result.addAll(entities)
-        currentOffset += limit
-        if (currentOffset > totalCount) {
-          break
-        }
+        log.info { "Got ${result.size} entries of $entityName from Sipgate." }
+        return result
+      } catch (ex: Exception) {
+        log.error("Can't read entries of type $entityName (may-be no access): ${ex.message}", ex)
+        return mutableListOf()
       }
-      log.info { "Got ${result.size} entries of $entityName from Sipgate." }
-      return result
     }
   }
 }

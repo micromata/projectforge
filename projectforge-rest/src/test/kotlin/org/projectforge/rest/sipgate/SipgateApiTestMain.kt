@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
+import org.projectforge.framework.configuration.ConfigXmlTest
 import java.util.*
 import kotlin.io.path.Path
 
@@ -51,10 +52,20 @@ fun main(args: Array<String>) {
   config.token = token
   sipgateClient.sipgateConfiguration = config
   sipgateClient.postConstruct(useMenuCreator = false)
-
+  readLists(sipgateClient)
   // contactService(sipgateClient)
-  getLists(sipgateClient)
+  // getLists(sipgateClient)
   // contactTest(sipgateClient)
+}
+
+private fun readLists(sipgateClient: SipgateClient) {
+  val sipgateService = SipgateService()
+  sipgateService.sipgateClient = sipgateClient
+  sipgateService.postConstruct()
+  val sipgateSyncService = SipgateSyncService()
+  sipgateSyncService.sipgateService = sipgateService
+  ConfigXmlTest.createTestConfiguration().workingDirectory = "/tmp"
+  println(sipgateSyncService.storage)
 }
 
 private fun getLists(sipgateClient: SipgateClient) {
