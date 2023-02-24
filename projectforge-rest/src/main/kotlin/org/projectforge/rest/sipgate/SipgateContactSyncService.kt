@@ -51,6 +51,7 @@ private val log = KotlinLogging.logger {}
  *   - Warum fehlt der Typ bei Adresse?
  *   - Hilfreich wäre eine Reference-ID (String oder Zahl) zum Verknüpfen von Sipgate und Fremdsystemadressen.
  *   - Hilfreich wäre ansonsten als Antwort nach einem Insert die Contact-id.
+ *   - Typ von Nummern in Kontakten werden nicht immer korrekt zurückgegeben (Beispiele heraussuchen, wie cell-home, fax, ...)
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 @Repository

@@ -75,7 +75,6 @@ class SipgateService {
     webClient = sipgateClient.webClient
   }
 
-
   /**
    * Initiates a new call: /log/webhooks
    */

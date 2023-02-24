@@ -33,6 +33,7 @@ class SipgateDevice(
   var alias: String? = null,
   var type: String? = null,
   var online: Boolean? = null,
+  /** If true, then not available. */
   var dnd: Boolean? = null,
 ) {
   class ActiveRouting(var id: String? = null, var alias: String? = null)
