@@ -177,7 +177,7 @@ open class SipgateContactSyncDO {
       try {
         syncInfo = JsonUtils.fromJson(syncInfoAsJson, SyncInfo::class.java, failOnUnknownProps = false)
       } catch (ex: Exception) {
-        // Do nothing (version incompability).
+        // Do nothing (version incompatibility).
         syncInfo = null
       }
     }
