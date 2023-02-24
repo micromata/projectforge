@@ -21,39 +21,37 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.sipgate
+package org.projectforge.rest.sipgate
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.projectforge.Constants
+import org.projectforge.business.sipgate.SipgateAddress
+import org.projectforge.business.sipgate.SipgateNumber
+import org.projectforge.business.sipgate.SipgateUser
+import org.projectforge.business.sipgate.SipgateUserDevices
 import org.projectforge.framework.json.JsonUtils
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-class SipgateDevice(
-  var id: String? = null,
-  var alias: String? = null,
-  var type: String? = null,
-  var online: Boolean? = null,
-  /** If true, then not available. */
-  var dnd: Boolean? = null,
-) {
-  class ActiveRouting(var id: String? = null, var alias: String? = null)
-  class Credentials(var simId: String? = null, var puk1: String? = null, var puk2: String? = null)
+class SipgateDataStorage {
+  val lastSyncInEpochMillis = System.currentTimeMillis()
 
-  var activePhonelines: List<ActiveRouting>? = null
-  var activeGroups: List<ActiveRouting>? = null
-  var credentials: Credentials? = null
-  var simState: String? = null
-  var esim: Boolean? = null
+  var userDevices: List<SipgateUserDevices>? = null
+    internal set
+  var users: List<SipgateUser>? = null
+    internal set
+  var numbers: List<SipgateNumber>? = null
+    internal set
+  var addresses: List<SipgateAddress>? = null
+    internal set
 
-  fun deleteSecrets() {
-    credentials?.let { cred ->
-      if (cred.puk1 != null) {
-        cred.puk1 = "***"
-      }
-      if (cred.puk2 != null) {
-        cred.puk2 = "***"
-      }
-    }
+  val uptodate: Boolean
+    @JsonIgnore
+    get() = System.currentTimeMillis() - lastSyncInEpochMillis < Constants.MILLIS_PER_DAY
+
+  init {
+    lastSyncInEpochMillis
   }
 
   override fun toString(): String {

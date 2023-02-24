@@ -649,7 +649,12 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     }
   }
 
-  private fun updateRemoteContact(contact: SipgateContact, syncDO: SipgateContactSyncDO, syncContext: SyncContext, oldContact: String) {
+  private fun updateRemoteContact(
+    contact: SipgateContact,
+    syncDO: SipgateContactSyncDO,
+    syncContext: SyncContext,
+    oldContact: String,
+  ) {
     contact.id?.let { contactId ->
       try {
         if (configuration.updateSipgateContacts) {
@@ -660,7 +665,12 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
           upsert(syncDO)
         } else {
           log.info {
-            "${getLogInfo(null, contact)}: NOT updating remote contact (see projectforge.properties): $contact, was: $oldContact"
+            "${
+              getLogInfo(
+                null,
+                contact,
+              )
+            }: NOT updating remote contact (see projectforge.properties): $contact, was: $oldContact"
           }
         }
         syncContext.remoteCounter.updated++
