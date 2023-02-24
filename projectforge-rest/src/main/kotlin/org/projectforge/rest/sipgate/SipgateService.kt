@@ -78,45 +78,51 @@ class SipgateService {
   /**
    * Initiates a new call: /log/webhooks
    */
-  fun getLogs(): List<SipgateIoLogsResponse?>? {
-    return getEntities("/log/webhooks", LogsListData::class.java)
+  fun getLogs(): List<SipgateIoLogsResponse?> {
+    return getEntities("/log/webhooks", "LogsResponse", LogsListData::class.java)
   }
 
   /**
    * Initiates a new call: /users
    */
-  fun getUsers(): List<SipgateUser>? {
-    return getEntities("/users", UserListData::class.java)
+  fun getUsers(): List<SipgateUser> {
+    return getEntities("/users", "User", UserListData::class.java)
   }
 
   /**
    * Initiates a new call: /devices
    */
-  fun getDevices(user: SipgateUser): List<SipgateDevice>? {
-    return getEntities("/${user.id}/devices", DeviceListData::class.java)
+  fun getDevices(user: SipgateUser): List<SipgateDevice> {
+    return getEntities("/${user.id}/devices", "Device", DeviceListData::class.java)
   }
 
   /**
    * Initiates a new call: /numbers
    */
-  fun getNumbers(): List<SipgateNumber>? {
-    return getEntities("/numbers", NumberListData::class.java)
+  fun getNumbers(): List<SipgateNumber> {
+    return getEntities("/numbers", "Number", NumberListData::class.java)
   }
 
-  private fun <T> getEntities(path: String, listDataClass: Class<out ListData<T>>): List<T>? {
-    try {
-      val uriSpec = webClient.get()
-      log.info { "Trying to initiate call '$path'..." }
-      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-        uriBuilder.path(path).build()
-      }
-      val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, listDataClass, failOnUnknownProps = false)
-      return list?.items
-    } catch (ex: Exception) {
-      log.error { "Error while initiating call for '$path': ${ex.message}" }
-      return null
-    }
+  private fun <T> getEntities(
+    path: String,
+    entityName: String,
+    listDataClass: Class<out ListData<T>>,
+    offset: Int = 0,
+    limit: Int = 5000,
+    maxNumberOfPages: Int = 100,
+    debugConsoleOutForTesting: Boolean = false,
+  ): List<T> {
+    return getList(
+      webClient,
+      sipgateClient,
+      path = path,
+      entityName = entityName,
+      offset = offset,
+      limit = limit,
+      maxNumberOfPages = maxNumberOfPages,
+      debugConsoleOutForTesting = debugConsoleOutForTesting,
+      listDataClass = listDataClass,
+    )
   }
 
   /**
@@ -165,7 +171,7 @@ class SipgateService {
   }
 
   companion object {
-    internal open fun <T>getList(
+    internal fun <T> getList(
       webClient: WebClient,
       sipgateClient: SipgateClient,
       path: String,
