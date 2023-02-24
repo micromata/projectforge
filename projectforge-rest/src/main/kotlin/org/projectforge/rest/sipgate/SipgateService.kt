@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class SipgateService {
   /**
-       * DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
+   * DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
    * Use callerId to set a custom number that will be displayed to the callee.
    */
   class NewCallRequest(var deviceId: String? = null, var caller: String, var callee: String, var callerId: String) {
@@ -79,67 +79,31 @@ class SipgateService {
    * Initiates a new call: /log/webhooks
    */
   fun getLogs(): List<SipgateIoLogsResponse?>? {
-    val path = "/log/webhooks"
-    try {
-      val uriSpec = webClient.get()
-      log.info { "Trying to initiate call '$path'..." }
-      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-        uriBuilder.path(path).build()
-      }
-      val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, LogsListData::class.java, failOnUnknownProps = false)
-      return list?.items
-    } catch (ex: Exception) {
-      log.error { "Error while initiating call for '$path': ${ex.message}" }
-      return null
-    }
+    return getEntities("/log/webhooks", LogsListData::class.java)
   }
 
   /**
    * Initiates a new call: /users
    */
   fun getUsers(): List<SipgateUser>? {
-    val path = "/users"
-    try {
-      val uriSpec = webClient.get()
-      log.info { "Trying to initiate call '$path'..." }
-      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-        uriBuilder.path(path).build()
-      }
-      val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, UserListData::class.java, failOnUnknownProps = false)
-      return list?.items
-    } catch (ex: Exception) {
-      log.error { "Error while initiating call for '$path': ${ex.message}" }
-      return null
-    }
+    return getEntities("/users", UserListData::class.java)
   }
 
   /**
    * Initiates a new call: /devices
    */
   fun getDevices(user: SipgateUser): List<SipgateDevice>? {
-    val path = "/${user.id}/devices"
-    try {
-      val uriSpec = webClient.get()
-      log.info { "Trying to initiate call '$path'..." }
-      val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
-        uriBuilder.path(path).build()
-      }
-      val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, DeviceListData::class.java, failOnUnknownProps = false)
-      return list?.items
-    } catch (ex: Exception) {
-      log.error { "Error while initiating call for '$path': ${ex.message}" }
-      return null
-    }
+    return getEntities("/${user.id}/devices", DeviceListData::class.java)
   }
 
   /**
    * Initiates a new call: /numbers
    */
   fun getNumbers(): List<SipgateNumber>? {
-    val path = "/numbers"
+    return getEntities("/numbers", NumberListData::class.java)
+  }
+
+  private fun <T> getEntities(path: String, listDataClass: Class<out ListData<T>>): List<T>? {
     try {
       val uriSpec = webClient.get()
       log.info { "Trying to initiate call '$path'..." }
@@ -147,14 +111,13 @@ class SipgateService {
         uriBuilder.path(path).build()
       }
       val response = sipgateClient.execute(headersSpec, String::class.java)
-      val list = JsonUtils.fromJson(response, NumberListData::class.java, failOnUnknownProps = false)
+      val list = JsonUtils.fromJson(response, listDataClass, failOnUnknownProps = false)
       return list?.items
     } catch (ex: Exception) {
       log.error { "Error while initiating call for '$path': ${ex.message}" }
       return null
     }
   }
-
 
   /**
    * Initiates a new call: /sessions/calls
@@ -198,6 +161,49 @@ class SipgateService {
     } catch (ex: Exception) {
       log.error { "Error while sending sms $smsRequest: ${ex.message}" }
       return false
+    }
+  }
+
+  companion object {
+    internal open fun <T>getList(
+      webClient: WebClient,
+      sipgateClient: SipgateClient,
+      path: String,
+      entityName: String,
+      listDataClass: Class<out ListData<T>>,
+      offset: Int = 0,
+      limit: Int = 5000,
+      maxNumberOfPages: Int = 100,
+      debugConsoleOutForTesting: Boolean = false,
+    ): List<T> {
+      // Parameters: limit=<pagesize>, offset=<page>
+      val result = mutableListOf<T>()
+      var pageCounter = 0
+      var currentOffset = offset
+      while (pageCounter++ < maxNumberOfPages) {
+        val uriSpec = webClient.get()
+        val headersSpec = uriSpec.uri { uriBuilder: UriBuilder ->
+          uriBuilder
+            .path(path)
+            .queryParam("offset", currentOffset)
+            .queryParam("limit", limit)
+            .build()
+        }
+        val response = sipgateClient.execute(headersSpec, String::class.java)
+        if (debugConsoleOutForTesting) {
+          println("response: $response")
+        }
+        val data = JsonUtils.fromJson(response, listDataClass, failOnUnknownProps = false)
+        val entities = data?.items ?: break
+        val totalCount = data.totalCount ?: 0
+        result.addAll(entities)
+        currentOffset += limit
+        if (currentOffset > totalCount) {
+          break
+        }
+      }
+      log.info { "Got ${result.size} entries of $entityName from Sipgate." }
+      return result
     }
   }
 }
