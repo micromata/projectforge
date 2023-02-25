@@ -25,10 +25,7 @@ package org.projectforge.rest.sipgate
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.Constants
-import org.projectforge.business.sipgate.SipgateAddress
-import org.projectforge.business.sipgate.SipgateNumber
-import org.projectforge.business.sipgate.SipgateUser
-import org.projectforge.business.sipgate.SipgateUserDevices
+import org.projectforge.business.sipgate.*
 import org.projectforge.framework.json.JsonUtils
 
 /**
@@ -52,6 +49,23 @@ class SipgateDataStorage {
 
   init {
     lastSyncInEpochMillis
+  }
+
+  fun getActivePhoneLines(number: SipgateNumber): Set<SipgateDevice.ActiveRouting> {
+    val set = mutableSetOf<SipgateDevice.ActiveRouting>()
+    userDevices?.forEach { entry ->
+      entry.devices?.forEach { device ->
+        device.activePhonelines?.forEach { activeRouting ->
+          if (activeRouting.id == number.endpointId) {
+            val alias = activeRouting.alias
+            if (!alias.isNullOrBlank()) {
+              set.add(activeRouting)
+            }
+          }
+        }
+      }
+    }
+    return set
   }
 
   override fun toString(): String {

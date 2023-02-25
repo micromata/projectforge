@@ -103,27 +103,14 @@ object SipgateExcelExporter {
     ExcelUtils.registerColumn(sheet, SipgateNumber::blockId, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::endpointUrl, 50, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.addHeadRow(sheet, context.boldStyle)
-    val userDevices = context.storage.userDevices
     numbers.forEach { number ->
       val row = sheet.createRow()
       row.autoFillFromObject(number, "routings")
-      val list = mutableSetOf<String>()
-      userDevices?.forEach { entry ->
-        entry.devices?.forEach { device ->
-          device.activePhonelines?.forEach { activeRouting ->
-            if (activeRouting.id == number.endpointId) {
-              val alias = activeRouting.alias
-              if (!alias.isNullOrBlank()) {
-                list.add(alias)
-              }
-            }
-          }
-        }
-      }
+      val list = context.storage.getActivePhoneLines(number)
       if (list.isNotEmpty()) {
         row.getCell("user")
           ?.let { cell ->
-            cell.setCellValue(list.joinToString())
+            cell.setCellValue(list.joinToString { it.alias ?: "???" })
             cell.setCellStyle(context.wrapTextStyle)
           }
       }
