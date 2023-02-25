@@ -51,6 +51,11 @@ class SipgateDataStorage {
     lastSyncInEpochMillis
   }
 
+  fun getUsersByDialId(dialId: String?): List<SipgateUser> {
+    dialId ?: return emptyList()
+    return users?.filter { it.directDialIds?.contains(dialId) == true } ?: emptyList()
+  }
+
   fun getActivePhoneLines(number: SipgateNumber): Set<SipgateDevice.ActiveRouting> {
     val set = mutableSetOf<SipgateDevice.ActiveRouting>()
     userDevices?.forEach { entry ->
