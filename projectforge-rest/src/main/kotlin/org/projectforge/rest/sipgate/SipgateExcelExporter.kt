@@ -79,12 +79,12 @@ object SipgateExcelExporter {
     ExcelUtils.registerColumn(sheet, SipgateUser::firstname, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateUser::lastname, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateUser::email, logErrorIfPropertyInfoNotFound = false)
-    ExcelUtils.registerColumn(sheet, SipgateUser::addressId, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateUser::admin, 10, logErrorIfPropertyInfoNotFound = false)
-    ExcelUtils.registerColumn(sheet, SipgateUser::busyOnBusy, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateUser::defaultDevice, 10, logErrorIfPropertyInfoNotFound = false)
+    ExcelUtils.registerColumn(sheet, SipgateUser::busyOnBusy, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateUser::timezone, 20, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateUser::directDialIds, logErrorIfPropertyInfoNotFound = false)
+    ExcelUtils.registerColumn(sheet, SipgateUser::addressId, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.addHeadRow(sheet, context.boldStyle)
     users.sortedBy { it.fullname }.forEach { sheet.createRow().autoFillFromObject(it) }
     sheet.setAutoFilter()
@@ -96,13 +96,38 @@ object SipgateExcelExporter {
     ExcelUtils.registerColumn(sheet, SipgateNumber::id, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::number, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::type, 10, logErrorIfPropertyInfoNotFound = false)
-    ExcelUtils.registerColumn(sheet, SipgateNumber::blockId, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::endpointId, 10, logErrorIfPropertyInfoNotFound = false)
-    ExcelUtils.registerColumn(sheet, SipgateNumber::endpointUrl, 50, logErrorIfPropertyInfoNotFound = false)
+    sheet.registerColumn("User (Routing)", "user").withSize(40)
     ExcelUtils.registerColumn(sheet, SipgateNumber::localized, 20, logErrorIfPropertyInfoNotFound = false)
-    ExcelUtils.registerColumn(sheet, SipgateNumber::prolongationId, 10, logErrorIfPropertyInfoNotFound = false)
+    ExcelUtils.registerColumn(sheet, SipgateNumber::prolongationId, 15, logErrorIfPropertyInfoNotFound = false)
+    ExcelUtils.registerColumn(sheet, SipgateNumber::blockId, 10, logErrorIfPropertyInfoNotFound = false)
+    ExcelUtils.registerColumn(sheet, SipgateNumber::endpointUrl, 50, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.addHeadRow(sheet, context.boldStyle)
-    numbers.forEach { sheet.createRow().autoFillFromObject(it) }
+    val userDevices = context.storage.userDevices
+    numbers.forEach { number ->
+      val row = sheet.createRow()
+      row.autoFillFromObject(number, "routings")
+      val list = mutableSetOf<String>()
+      userDevices?.forEach { entry ->
+        entry.devices?.forEach { device ->
+          device.activePhonelines?.forEach { activeRouting ->
+            if (activeRouting.id == number.endpointId) {
+              val alias = activeRouting.alias
+              if (!alias.isNullOrBlank()) {
+                list.add(alias)
+              }
+            }
+          }
+        }
+      }
+      if (list.isNotEmpty()) {
+        row.getCell("user")
+          ?.let { cell ->
+            cell.setCellValue(list.joinToString())
+            cell.setCellStyle(context.wrapTextStyle)
+          }
+      }
+    }
     sheet.setAutoFilter()
   }
 
