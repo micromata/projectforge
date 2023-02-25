@@ -23,6 +23,7 @@
 
 package org.projectforge.business.sipgate
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.framework.json.JsonUtils
 
 /**
@@ -43,6 +44,10 @@ class SipgateUser(
    * The dial id's are the SipgateNumber id's of the user.
    */
   var directDialIds: List<String>? = null
+
+  val fullname: String
+    @JsonIgnore
+    get() = "${firstname ?: ""} ${lastname ?: ""}"
 
   override fun toString(): String {
     return JsonUtils.toJson(this, true)

@@ -27,7 +27,9 @@ import org.junit.jupiter.api.Assertions
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
+import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.configuration.ConfigXmlTest
+import java.io.File
 import java.util.*
 import kotlin.io.path.Path
 
@@ -52,20 +54,23 @@ fun main(args: Array<String>) {
   config.token = token
   sipgateClient.sipgateConfiguration = config
   sipgateClient.postConstruct(useMenuCreator = false)
-  readLists(sipgateClient)
+  readSipgateConfiguration(sipgateClient)
   // contactService(sipgateClient)
   // getLists(sipgateClient)
   // contactTest(sipgateClient)
 }
 
-private fun readLists(sipgateClient: SipgateClient) {
+private fun readSipgateConfiguration(sipgateClient: SipgateClient) {
   val sipgateService = SipgateService()
   sipgateService.sipgateClient = sipgateClient
   sipgateService.postConstruct()
   val sipgateSyncService = SipgateSyncService()
   sipgateSyncService.sipgateService = sipgateService
   ConfigXmlTest.createTestConfiguration().workingDirectory = "/tmp"
-  println(sipgateSyncService.storage)
+  val workbook = SipgateExcelExporter.export(sipgateSyncService.readStorage())
+  val file = File(ConfigXml.getInstance().workingDirectory, "sipgateConfiguarion.xlsx")
+  println("Writing excel file `${file.absolutePath}'...")
+  file.writeBytes(workbook)
 }
 
 private fun getLists(sipgateClient: SipgateClient) {
