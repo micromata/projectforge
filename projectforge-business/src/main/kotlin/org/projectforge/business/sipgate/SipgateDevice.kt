@@ -36,7 +36,7 @@ class SipgateDevice(
   /** If true, then not available. */
   var dnd: Boolean? = null,
 ) {
-  class ActiveRouting(var id: String? = null, var alias: String? = null) {
+  data class ActiveRouting(var id: String? = null, var alias: String? = null) {
     override fun toString(): String {
       return "id='$id', alias='$alias'"
     }
