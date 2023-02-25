@@ -86,8 +86,14 @@ object ExcelUtils {
    */
   @JvmStatic
   @JvmOverloads
-  fun registerColumn(sheet: ExcelSheet, clazz: Class<*>, property: String, size: Int? = null): ExcelColumnDef {
-    val i18nKey = PropUtils.getI18nKey(clazz, property) ?: property
+  fun registerColumn(
+    sheet: ExcelSheet,
+    clazz: Class<*>,
+    property: String,
+    size: Int? = null,
+    logErrorIfPropertyInfoNotFound: Boolean = true,
+  ): ExcelColumnDef {
+    val i18nKey = PropUtils.getI18nKey(clazz, property, logErrorIfPropertyInfoNotFound) ?: property
     val colDef = sheet.registerColumn(translate(i18nKey), property)
     if (size != null) {
       colDef.withSize(size)
@@ -99,12 +105,15 @@ object ExcelUtils {
           null -> {
             colDef.withSize(Size.STANDARD)
           }
+
           LocalDate::class.java -> {
             colDef.withSize(Size.DATE)
           }
+
           Date::class.java, LocalDateTime::class.java -> {
             colDef.withSize(Size.DATE_TIME)
           }
+
           else -> {
             colDef.withSize(Size.STANDARD)
           }
@@ -115,14 +124,21 @@ object ExcelUtils {
   }
 
   @JvmOverloads
-  fun registerColumn(sheet: ExcelSheet, property: KProperty<*>, size: Int? = null): ExcelColumnDef {
+  fun registerColumn(
+    sheet: ExcelSheet,
+    property: KProperty<*>,
+    size: Int? = null,
+    logErrorIfPropertyInfoNotFound: Boolean = true,
+  ): ExcelColumnDef {
     if (property is MutablePropertyReference) {
       val kClass = property.owner as? KClass<*>
       if (kClass != null) {
-        return registerColumn(sheet, kClass.java, property.name, size)
+        return registerColumn(sheet, kClass.java, property.name, size, logErrorIfPropertyInfoNotFound)
       }
     }
-    log.error { "Can't get declaringClass of property '${property.name}'. Can't register column." }
+    if (logErrorIfPropertyInfoNotFound) {
+      log.error { "Can't get declaringClass of property '${property.name}'. Can't register column." }
+    }
     return ExcelColumnDef(sheet, property.name)
   }
 
