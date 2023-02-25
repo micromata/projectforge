@@ -36,8 +36,30 @@ class SipgateDevice(
   /** If true, then not available. */
   var dnd: Boolean? = null,
 ) {
-  class ActiveRouting(var id: String? = null, var alias: String? = null)
-  class Credentials(var simId: String? = null, var puk1: String? = null, var puk2: String? = null)
+  class ActiveRouting(var id: String? = null, var alias: String? = null) {
+    override fun toString(): String {
+      return "id='$id', alias='$alias'"
+    }
+  }
+
+  class Credentials(var simId: String? = null, var puk1: String? = null, var puk2: String? = null) {
+    override fun toString(): String {
+      if (simId.isNullOrBlank() && puk1.isNullOrBlank() && puk2.isNullOrBlank()) {
+        return ""
+      }
+      val sb = StringBuilder()
+      if (simId != null) {
+        sb.append("simId=[$simId]")
+      }
+      if (!puk1.isNullOrBlank()) {
+        sb.append(", puk1=[***]")
+      }
+      if (!puk2.isNullOrBlank()) {
+        sb.append(", puk2=[***]")
+      }
+      return sb.toString()
+    }
+  }
 
   var activePhonelines: List<ActiveRouting>? = null
   var activeGroups: List<ActiveRouting>? = null

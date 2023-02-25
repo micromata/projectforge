@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 @Service
-class SipgateService {
+open class SipgateService {
   /**
    * DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
    * Use callerId to set a custom number that will be displayed to the callee.

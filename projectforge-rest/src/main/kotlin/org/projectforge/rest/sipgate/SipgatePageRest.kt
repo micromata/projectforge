@@ -32,6 +32,8 @@ import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -51,9 +53,20 @@ class SipgatePageRest : AbstractDynamicPageRest() {
   @Autowired
   private lateinit var sipgateContactSyncService: SipgateContactSyncService
 
+  @Autowired
+  private lateinit var sipateSyncService: SipgateSyncService
+
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val layout = UILayout("sipgate.title")
+    layout.add(
+      MenuItem(
+        "downloadConfiguration",
+        title = "Download Sipgate-configuration",
+        url = "${getRestPath()}/downloadConfiguration",
+        type = MenuItemTargetType.DOWNLOAD
+      )
+    )
     layout.add(
       MenuItem(
         "syncAddresses",
@@ -74,6 +87,13 @@ class SipgatePageRest : AbstractDynamicPageRest() {
     val data = SipgateData()
     LayoutUtils.process(layout)
     return FormLayoutData(data, layout, createServerData(request))
+  }
+
+  @GetMapping("downloadConfiguration")
+  fun downloadConfiguration(): ResponseEntity<ByteArrayResource> {
+    accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    log.info("Downloading configuration (users, devices etc.) of Sipgate.")
+    return SipgateExcelExporter.download(sipateSyncService.readStorage())
   }
 
   @GetMapping("synchronizeAddresses")

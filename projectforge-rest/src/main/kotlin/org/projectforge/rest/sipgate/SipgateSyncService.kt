@@ -34,6 +34,7 @@ import java.io.File
 private val log = KotlinLogging.logger {}
 
 /**
+ * Reads numbers, devices, users etc. from the remote Sipgate server.
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 @Repository
@@ -41,22 +42,22 @@ open class SipgateSyncService {
   @Autowired
   internal lateinit var sipgateService: SipgateService
 
-  private val storageFile by lazy {
-    File(ConfigXml.getInstance().workingDirectory, "sipgateStorage.json")
-  }
-
   private var privateStorage: SipgateDataStorage? = null
 
-  val storage: SipgateDataStorage
-    get() {
-      val ps = privateStorage
-      if (ps == null || !ps.uptodate) {
-        readFromFileOrGetFromRemote()
-      }
-      return privateStorage!!
-    }
 
-  internal fun readFromFileOrGetFromRemote() {
+  /**
+   * Get the data of the remote Sipgate server. Will be cached as file (work/sipgateStorage.json). The data will
+   * be re-read after one day automatically.
+   */
+  open fun readStorage(): SipgateDataStorage {
+    val ps = privateStorage
+    if (ps == null || !ps.uptodate) {
+      readFromFileOrGetFromRemote()
+    }
+    return privateStorage!!
+  }
+
+  private fun readFromFileOrGetFromRemote() {
     try {
       if (storageFile.canRead()) {
         val json = storageFile.readText()
@@ -74,7 +75,7 @@ open class SipgateSyncService {
     remoteRead()
   }
 
-  internal fun remoteRead() {
+  private fun remoteRead() {
     val newStorage = SipgateDataStorage()
     newStorage.users = sipgateService.getUsers()
     try {
@@ -95,5 +96,11 @@ open class SipgateSyncService {
     privateStorage = newStorage
     log.info { "Writing Sipgate data to '${storageFile.absolutePath}'..." }
     storageFile.writeText(privateStorage.toString())
+  }
+
+  companion object {
+    private val storageFile by lazy {
+      File(ConfigXml.getInstance().workingDirectory, "sipgateStorage.json")
+    }
   }
 }
