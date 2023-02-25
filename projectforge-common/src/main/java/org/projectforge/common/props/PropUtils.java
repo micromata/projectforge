@@ -134,9 +134,15 @@ public class PropUtils {
   }
 
   public static String getI18nKey(final Class<?> clazz, final String property) {
+    return getI18nKey(clazz, property, true);
+  }
+
+  public static String getI18nKey(final Class<?> clazz, final String property, boolean logErrorIfPropertyInfoNotFound) {
     final PropertyInfo info = get(clazz, property);
     if (info == null) {
-      log.error("PropertyInfo not found for field '" + clazz.getName() + "." + property + "' not found.");
+      if (logErrorIfPropertyInfoNotFound) {
+        log.error("PropertyInfo not found for field '" + clazz.getName() + "." + property + "' not found.");
+      }
       return null;
     }
     return info.i18nKey();
