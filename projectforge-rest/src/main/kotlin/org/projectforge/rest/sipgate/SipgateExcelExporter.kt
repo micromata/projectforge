@@ -96,8 +96,9 @@ object SipgateExcelExporter {
     ExcelUtils.registerColumn(sheet, SipgateNumber::id, 10, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::number, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::type, 10, logErrorIfPropertyInfoNotFound = false)
+    sheet.registerColumn("Users by dial id", "usersByDialId").withSize(40)
     ExcelUtils.registerColumn(sheet, SipgateNumber::endpointId, 10, logErrorIfPropertyInfoNotFound = false)
-    sheet.registerColumn("User (Routing)", "user").withSize(40)
+    sheet.registerColumn("Users by endpointId (routings)", "usersByRouting").withSize(40)
     ExcelUtils.registerColumn(sheet, SipgateNumber::localized, 20, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::prolongationId, 15, logErrorIfPropertyInfoNotFound = false)
     ExcelUtils.registerColumn(sheet, SipgateNumber::blockId, 10, logErrorIfPropertyInfoNotFound = false)
@@ -105,12 +106,20 @@ object SipgateExcelExporter {
     ExcelUtils.addHeadRow(sheet, context.boldStyle)
     numbers.forEach { number ->
       val row = sheet.createRow()
-      row.autoFillFromObject(number, "routings")
-      val list = context.storage.getActivePhoneLines(number)
-      if (list.isNotEmpty()) {
-        row.getCell("user")
+      row.autoFillFromObject(number, "usersByDialId", "usersByRouting")
+      val users = context.storage.getUsersByDialId(number.id)
+      if (users.isNotEmpty()) {
+        row.getCell("usersByDialId")
           ?.let { cell ->
-            cell.setCellValue(list.joinToString { it.alias ?: "???" })
+            cell.setCellValue(users.joinToString { it.fullname })
+            cell.setCellStyle(context.wrapTextStyle)
+          }
+      }
+      val routings = context.storage.getActivePhoneLines(number)
+      if (routings.isNotEmpty()) {
+        row.getCell("usersByRouting")
+          ?.let { cell ->
+            cell.setCellValue(routings.joinToString { it.alias ?: "???" })
             cell.setCellStyle(context.wrapTextStyle)
           }
       }
