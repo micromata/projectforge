@@ -48,18 +48,19 @@ open class SipgateSyncService {
   /**
    * Get the data of the remote Sipgate server. Will be cached as file (work/sipgateStorage.json). The data will
    * be re-read after one day automatically.
+   * @param If forceSync is set to true, the configuration will be get from remote Sipgate server. Default is false.
    */
-  open fun readStorage(): SipgateDataStorage {
+  open fun readStorage(forceSync: Boolean = false): SipgateDataStorage {
     val ps = privateStorage
-    if (ps == null || !ps.uptodate) {
-      readFromFileOrGetFromRemote()
+    if (forceSync || ps == null || !ps.uptodate) {
+      readFromFileOrGetFromRemote(forceSync)
     }
     return privateStorage!!
   }
 
-  private fun readFromFileOrGetFromRemote() {
+  private fun readFromFileOrGetFromRemote(forceSync: Boolean = false) {
     try {
-      if (storageFile.canRead()) {
+      if (!forceSync && storageFile.canRead()) {
         val json = storageFile.readText()
         log.info { "Reading Sipgate data from '${storageFile.absolutePath}'..." }
         val newStorage = JsonUtils.fromJson(json, SipgateDataStorage::class.java)
@@ -76,6 +77,7 @@ open class SipgateSyncService {
   }
 
   private fun remoteRead() {
+    log.info { "Reading Sipgate data (users, devices etc.)..." }
     val newStorage = SipgateDataStorage()
     newStorage.users = sipgateService.getUsers()
     try {

@@ -24,10 +24,7 @@
 package org.projectforge.rest.sipgate
 
 import mu.KotlinLogging
-import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.address.ContactStatus
+import org.projectforge.business.address.*
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
@@ -200,6 +197,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
      */
     internal fun from(contact: SipgateContact): AddressDO {
       val address = extractName(contact.name)
+      address.form = FormOfAddress.UNKNOWN
       copyFrom(address, contact)
       return address
     }

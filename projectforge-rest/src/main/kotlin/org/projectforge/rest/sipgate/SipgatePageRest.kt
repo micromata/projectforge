@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 import javax.servlet.http.HttpServletRequest
+import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger {}
 
@@ -69,9 +70,10 @@ class SipgatePageRest : AbstractDynamicPageRest() {
     )
     layout.add(
       MenuItem(
-        "syncAddresses",
-        title = "Synchronize Addresses",
-        url = "${getRestPath()}/synchronizeAddresses",
+        "sync",
+        title = "Synchronize (config and addresses)",
+        tooltip = "Synchronizes contacts of Sipgate with local addresses and gets remote config (user, devices and numbers etc.).",
+        url = "${getRestPath()}/synchronize",
         type = MenuItemTargetType.DOWNLOAD
       )
     )
@@ -96,9 +98,12 @@ class SipgatePageRest : AbstractDynamicPageRest() {
     return SipgateExcelExporter.download(sipateSyncService.readStorage())
   }
 
-  @GetMapping("synchronizeAddresses")
-  fun synchronizeAddresses(): ResponseAction {
+  @GetMapping("synchronize")
+  fun synchronize(): ResponseAction {
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+    thread(start = true) {
+      sipateSyncService.readStorage(true)
+    }
     log.info("Synchronizing addresses for Sipgate.")
     val ctx = sipgateContactSyncService.sync()
     val msg =
