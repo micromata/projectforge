@@ -54,11 +54,9 @@ import java.util.*
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 object VacationExcelExporter {
-  private enum class Mode { NORMAL, QUARTER, YEAR }
   private class Context(val workbook: ExcelWorkbook) {
     lateinit var currentSheet: ExcelSheet
       private set
-    var mode = Mode.NORMAL
     val monthSeparatorCols = mutableListOf<Int>()
     val monthSeparationStyle = ExcelUtils.createCellStyle(
       workbook,
@@ -95,39 +93,23 @@ object VacationExcelExporter {
       borderStyle = BorderStyle.THIN,
     )
 
-    fun withSheet(sheet: ExcelSheet, mode: Mode) {
+    fun withSheet(sheet: ExcelSheet) {
       currentSheet = sheet
-      this.mode = mode
       monthSeparatorCols.clear()
     }
   }
 
+  internal class SheetData(var sheetName: String, var startDate: PFDay, var endDate: PFDay)
+
   fun export(
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
-    numberOfMonths: Int = 3,
   ): ByteArray {
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
-      createSheet(context, startDate, vacationsByEmployee, numberOfMonths)
-      // 4 quarters:
-      val startMonth = startDate.monthValue // (1-12)
-      var quarterStart = when (startMonth) {
-        1, 2, 3 -> startDate.withMonth(1)
-        4, 5, 6 -> startDate.withMonth(4)
-        7, 8, 9 -> startDate.withMonth(7)
-        else -> startDate.withMonth(10)
-      }
-      for (count in 1..4) {
-        createSheet(context, quarterStart, vacationsByEmployee, 3, Mode.QUARTER)
-        quarterStart = quarterStart.plusMonths(3)
-      }
-      // 2 years:
-      var yearBegin = startDate.beginOfYear
-      for (count in 1..2) {
-        createSheet(context, yearBegin, vacationsByEmployee, 12, Mode.YEAR)
-        yearBegin = yearBegin.plusYears(1)
+      getSheetsData(startDate).forEach { sheetData ->
+        createSheet(context, sheetData, vacationsByEmployee)
       }
       // Legend
       val sheet = workbook.createOrGetSheet(translate("legend"))
@@ -142,36 +124,16 @@ object VacationExcelExporter {
     }
   }
 
-  /**
-   * @param startDate must be the beginning of a month.
-   */
   private fun createSheet(
     context: Context,
-    startDate: PFDay,
+    sheetData: SheetData,
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
-    numberOfMonths: Int = 3,
-    mode: Mode = Mode.NORMAL
   ) {
-    val endDate = startDate.plusMonths(numberOfMonths.toLong() - 1).endOfMonth
-    val sheetName = if (mode == Mode.YEAR) {
-      startDate.year.toString()
-    } else if (mode == Mode.QUARTER) {
-      val q = when(startDate.monthValue) {
-        1, 2, 3 -> 1
-        4, 5, 6 -> 2
-        7, 8, 9 -> 3
-        else -> 4
-      }
-      "Q$q ${startDate.year}"
-    } else {
-      val fromMonth = startDate.month.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)
-      val untilMonth =
-        "${endDate.month.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)} ${endDate.year - 2000}"
-      "$fromMonth-$untilMonth"
-    }
+    val startDate = sheetData.startDate
+    val endDate = sheetData.endDate
     val workbook = context.workbook
-    val sheet = workbook.createOrGetSheet(sheetName)
-    context.withSheet(sheet, mode)
+    val sheet = workbook.createOrGetSheet(sheetData.sheetName)
+    context.withSheet(sheet)
     sheet.poiSheet.printSetup.landscape = true
     sheet.poiSheet.printSetup.fitWidth = 1.toShort()  // Doesn't work
     sheet.poiSheet.printSetup.fitHeight = 0.toShort() // Doesn't work
@@ -286,6 +248,61 @@ object VacationExcelExporter {
       .body(resource)
   }
 
+  /**
+   * Gets list of sheets to create.
+   */
+  internal fun getSheetsData(startDate: PFDay): List<SheetData> {
+    val list = mutableListOf<SheetData>()
+    list.add(getSheetData(startDate, startDate.plusMonths(2)))
+    // Create 3 month sheet:
+    list.add(getSheetData(startDate, startDate.plusMonths(2)))
+    // Create sheet for rest of year:
+    list.add(getSheetData(startDate, startDate.endOfYear))
+    // 4 quarters:
+    val startMonth = startDate.monthValue // (1-12)
+    var quarterStart = when (startMonth) {
+      1, 2, 3 -> startDate.withMonth(1)
+      4, 5, 6 -> startDate.withMonth(4)
+      7, 8, 9 -> startDate.withMonth(7)
+      else -> startDate.withMonth(10)
+    }
+    for (count in 1..4) {
+      list.add(getSheetData(quarterStart, quarterStart.plusMonths(2)))
+      quarterStart = quarterStart.plusMonths(3)
+    }
+    // 2 years:
+    var yearBegin = startDate.beginOfYear
+    for (count in 1..2) {
+      list.add(getSheetData(yearBegin, yearBegin.endOfYear))
+      yearBegin = yearBegin.plusYears(1)
+    }
+    return list.distinctBy { it.sheetName }
+  }
+
+  private fun getSheetData(startDate: PFDay, endDate: PFDay): SheetData {
+    val numberOfMonths = startDate.monthsBetween(endDate).toInt() + 1
+    val quarter = when (startDate.monthValue) {
+      1 -> 1
+      4 -> 2
+      7 -> 3
+      10 -> 4
+      else -> -1
+    }
+    val sheetName = if (startDate.month == Month.JANUARY && numberOfMonths == 12) {
+      // Show all months of one year.
+      startDate.year.toString()
+    } else if (numberOfMonths == 3 && quarter > 0) {
+      // Show quarter
+      "Q$quarter ${startDate.year}"
+    } else {
+      val fromMonth = startDate.month.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)
+      val untilMonth =
+        "${endDate.month.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)} ${endDate.year - 2000}"
+      "$fromMonth-$untilMonth"
+    }
+    return SheetData(sheetName, startDate.beginOfMonth, endDate.endOfMonth)
+  }
+
   @JvmStatic
   fun main(vararg args: String) {
     val xml = XmlHelper.replaceQuotes(
@@ -318,7 +335,10 @@ object VacationExcelExporter {
     )
     vacations.add(createVacation(berta, LocalDate.of(2023, Month.APRIL, 2), 1))
     vacationsByEmployee.add(VacationService.VacationsByEmployee(berta, vacations))
-    val workbook = export(date = LocalDate.of(2023, Month.FEBRUARY, 27), vacationsByEmployee = vacationsByEmployee, numberOfMonths = 3)
+    val workbook = export(
+      date = LocalDate.of(2023, Month.FEBRUARY, 27),
+      vacationsByEmployee = vacationsByEmployee,
+    )
     val file = File("/tmp", "vacation.xlsx")
     println("Writing excel file `${file.absolutePath}'...")
     file.writeBytes(workbook)
