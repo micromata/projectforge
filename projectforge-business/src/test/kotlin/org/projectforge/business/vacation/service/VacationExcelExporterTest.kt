@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.service
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay
 import java.time.Month
 import java.util.*
@@ -33,7 +34,9 @@ import java.util.*
 class VacationExcelExporterTest {
   @Test
   fun sheetListTest() {
-    ThreadLocalUserContext.locale = Locale.ENGLISH
+    val user = PFUserDO()
+    user.locale = Locale.ENGLISH
+    ThreadLocalUserContext.setUser(user)
     assert(VacationExcelExporter.getSheetsData(PFDay.withDate(2023, Month.JANUARY, 5)),
       "Q1 2023", "2023", "Q2 2023", "Q3 2023", "Q4 2023", "2024")
     assert(VacationExcelExporter.getSheetsData(PFDay.withDate(2023, Month.FEBRUARY, 5)),
