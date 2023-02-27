@@ -25,7 +25,7 @@ package org.projectforge.excel
 
 import de.micromata.merlin.excel.*
 import mu.KotlinLogging
-import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.*
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.i18n.I18nEnum
@@ -164,6 +164,40 @@ object ExcelUtils {
     } else {
       false
     }
+  }
+
+  @JvmStatic
+  fun createCellStyle(
+    workbook: ExcelWorkbook, name: String,
+    font: Font? = null,
+    alignment: HorizontalAlignment? = null,
+    fillForegroundColor: IndexedColors? = null,
+    fillPattern: FillPatternType? = null,
+    borderStyle: BorderStyle? = null,
+  ): CellStyle {
+    val style = workbook.createOrGetCellStyle(name)
+    if (font != null) {
+      style.setFont(font)
+    }
+    if (alignment != null) {
+      style.alignment = alignment
+    }
+    if (fillForegroundColor != null) {
+      style.fillForegroundColor = fillForegroundColor.index
+      if (fillPattern == null) {
+        style.fillPattern = FillPatternType.SOLID_FOREGROUND
+      }
+    }
+    if (fillPattern != null) {
+      style.fillPattern = fillPattern
+    }
+    if (borderStyle != null) {
+      style.borderTop = borderStyle
+      style.borderBottom = borderStyle
+      style.borderLeft = borderStyle
+      style.borderRight = borderStyle
+    }
+    return style
   }
 
   object Size {

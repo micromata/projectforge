@@ -280,7 +280,7 @@ public class ConfigXml {
    *
    * @param config
    */
-  static void internalSetInstance(final String config) {
+  public static void internalSetInstance(final String config) {
     final XmlObjectReader reader = getReader();
     final ConfigXml cfg = (ConfigXml) reader.read(config);
     instance = new ConfigXml();
