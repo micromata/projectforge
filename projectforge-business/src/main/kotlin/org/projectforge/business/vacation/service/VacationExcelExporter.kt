@@ -23,6 +23,8 @@
 
 package org.projectforge.business.vacation.service
 
+import de.micromata.merlin.excel.ExcelRow
+import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
@@ -51,6 +53,15 @@ import java.util.*
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 object VacationExcelExporter {
+  private class Context(val workbook: ExcelWorkbook, val sheet: ExcelSheet) {
+    val monthSeparatorCols = mutableListOf<Int>()
+    val monthSeparationStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "monthSeparation",
+      fillForegroundColor = IndexedColors.BLACK,
+    )
+  }
+
   fun export(
     date: LocalDate = LocalDate.now(),
     vacations: List<VacationDO>,
@@ -60,6 +71,7 @@ object VacationExcelExporter {
       val boldFont = workbook.createOrGetFont("bold", bold = true, heightInPoints = 18)
       val monthStyle =
         ExcelUtils.createCellStyle(workbook, "month", font = boldFont, alignment = HorizontalAlignment.CENTER)
+      val standardStyle = ExcelUtils.createCellStyle(workbook, "standard", borderStyle = BorderStyle.THIN)
       val standardDayStyle = ExcelUtils.createCellStyle(
         workbook,
         "standardDay",
@@ -70,22 +82,23 @@ object VacationExcelExporter {
         workbook,
         "holidayWeekendDay",
         alignment = HorizontalAlignment.CENTER,
-        fillForegroundColor = IndexedColors.YELLOW,
+        fillForegroundColor = IndexedColors.TAN,
         borderStyle = BorderStyle.THIN,
       )
       val vacationStyle = ExcelUtils.createCellStyle(
         workbook,
         "vacationDay",
-        fillForegroundColor = IndexedColors.BLUE,
+        fillForegroundColor = IndexedColors.GREEN,
         borderStyle = BorderStyle.THIN,
       )
       val unapprovedVacationStyle = ExcelUtils.createCellStyle(
         workbook,
         "unapprovedVacationDay",
-        fillForegroundColor = IndexedColors.GREY_25_PERCENT,
+        fillForegroundColor = IndexedColors.GREY_40_PERCENT,
         borderStyle = BorderStyle.THIN,
       )
       val sheet = workbook.createOrGetSheet("Vacation")
+      val context = Context(workbook, sheet)
       sheet.poiSheet.printSetup.landscape = true
       sheet.poiSheet.printSetup.fitWidth = 1.toShort()  // Doesn't work
       sheet.poiSheet.printSetup.fitHeight = 0.toShort() // Doesn't work
@@ -95,10 +108,11 @@ object VacationExcelExporter {
       val startDate = PFDay.from(date).beginOfMonth
       var currentDate = startDate
       var columnIndex = 0
-      sheet.setColumnWidth(columnIndex, 40 * 256) // Column of vacationers.
+      sheet.setColumnWidth(columnIndex, 20 * 256) // Column of vacationers.
+      createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
       val endDate = currentDate.plusMonths(numberOfMonths.toLong() - 1).endOfMonth
       var paranoiaCounter = 0
-      var firstDayOfMonthCol = 1
+      var firstDayOfMonthCol = columnIndex + 1
       val columnIndexMap = mutableMapOf<LocalDate, Int>()
       while (currentDate <= endDate && paranoiaCounter++ < 500) {
         // Add day columns.
@@ -123,6 +137,7 @@ object VacationExcelExporter {
               getMonthString(currentDate.minusMonths(1)),
             )
           monthCell.setCellStyle(monthStyle)
+          createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
           firstDayOfMonthCol = columnIndex + 1 // Store column for setMergedRegion of month name.
         }
       }
@@ -130,7 +145,8 @@ object VacationExcelExporter {
       val employees = map.keys.filterNotNull().sortedBy { it.user?.getFullname() }
       employees.forEach { employee ->
         val employeeRow = sheet.createRow()
-        employeeRow.getCell(0).setCellValue(employee.user?.getFullname() ?: "???")
+        employeeRow.getCell(0).setCellValue(employee.user?.getFullname() ?: "???").setCellStyle(standardStyle)
+        createMonthSeparationCells(context, employeeRow)
         paranoiaCounter = 0
         currentDate = startDate
         while (currentDate <= endDate && paranoiaCounter++ < 500) {
@@ -161,6 +177,7 @@ object VacationExcelExporter {
             }
           }
         }
+        sheet.createFreezePane(1, 3)
       }
       return workbook.asByteArrayOutputStream.toByteArray()
     }
@@ -172,6 +189,22 @@ object VacationExcelExporter {
 
   private fun getMonthString(day: PFDay): String {
     return "${day.month.getDisplayName(TextStyle.FULL, ThreadLocalUserContext.locale)} ${day.year}"
+  }
+
+  private fun createMonthSeparationCells(context: Context, col: Int, vararg rows: ExcelRow) {
+    rows.forEach { row ->
+      row.getCell(col).setCellStyle(context.monthSeparationStyle)
+    }
+    if (!context.monthSeparatorCols.contains(col)) {
+      context.monthSeparatorCols.add(col)
+      context.sheet.setColumnWidth(col, 100)
+    }
+  }
+
+  private fun createMonthSeparationCells(context: Context, row: ExcelRow) {
+    context.monthSeparatorCols.forEach { col ->
+      row.getCell(col).setCellStyle(context.monthSeparationStyle)
+    }
   }
 
   fun download(vacations: List<VacationDO>): ResponseEntity<ByteArrayResource> {
