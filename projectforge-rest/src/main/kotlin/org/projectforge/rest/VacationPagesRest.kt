@@ -39,6 +39,8 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
@@ -161,6 +163,14 @@ class VacationPagesRest :
             return 'ag-row-red';
         }"""
       )
+    layout.add(
+      MenuItem(
+        "export",
+        i18nKey = "vacation.export.title",
+        url = PagesResolver.getDynamicPageUrl(VacationExportPageRest::class.java),
+        type = MenuItemTargetType.REDIRECT,
+      )
+    )
   }
 
   override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
