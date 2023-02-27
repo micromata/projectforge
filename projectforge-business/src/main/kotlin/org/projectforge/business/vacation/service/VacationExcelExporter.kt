@@ -34,6 +34,7 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
@@ -53,135 +54,202 @@ import java.util.*
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 object VacationExcelExporter {
-  private class Context(val workbook: ExcelWorkbook, val sheet: ExcelSheet) {
+  private enum class Mode { NORMAL, QUARTER, YEAR }
+  private class Context(val workbook: ExcelWorkbook) {
+    lateinit var currentSheet: ExcelSheet
+      private set
+    var mode = Mode.NORMAL
     val monthSeparatorCols = mutableListOf<Int>()
     val monthSeparationStyle = ExcelUtils.createCellStyle(
       workbook,
       "monthSeparation",
       fillForegroundColor = IndexedColors.BLACK,
     )
+    val boldFont = workbook.createOrGetFont("bold", bold = true, heightInPoints = 18)
+    val monthStyle =
+      ExcelUtils.createCellStyle(workbook, "month", font = boldFont, alignment = HorizontalAlignment.CENTER)
+    val standardStyle = ExcelUtils.createCellStyle(workbook, "standard", borderStyle = BorderStyle.THIN)
+    val standardDayStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "standardDay",
+      alignment = HorizontalAlignment.CENTER,
+      borderStyle = BorderStyle.THIN,
+    )
+    val holidayAndWeekendStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "holidayWeekendDay",
+      alignment = HorizontalAlignment.CENTER,
+      fillForegroundColor = IndexedColors.TAN,
+      borderStyle = BorderStyle.THIN,
+    )
+    val vacationStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "vacationDay",
+      fillForegroundColor = IndexedColors.GREEN,
+      borderStyle = BorderStyle.THIN,
+    )
+    val unapprovedVacationStyle = ExcelUtils.createCellStyle(
+      workbook,
+      "unapprovedVacationDay",
+      fillForegroundColor = IndexedColors.GREY_40_PERCENT,
+      borderStyle = BorderStyle.THIN,
+    )
+
+    fun withSheet(sheet: ExcelSheet, mode: Mode) {
+      currentSheet = sheet
+      this.mode = mode
+      monthSeparatorCols.clear()
+    }
   }
 
   fun export(
     date: LocalDate = LocalDate.now(),
-    vacations: List<VacationDO>,
+    vacationsByEmployee: List<VacationService.VacationsByEmployee>,
     numberOfMonths: Int = 3,
   ): ByteArray {
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
-      val boldFont = workbook.createOrGetFont("bold", bold = true, heightInPoints = 18)
-      val monthStyle =
-        ExcelUtils.createCellStyle(workbook, "month", font = boldFont, alignment = HorizontalAlignment.CENTER)
-      val standardStyle = ExcelUtils.createCellStyle(workbook, "standard", borderStyle = BorderStyle.THIN)
-      val standardDayStyle = ExcelUtils.createCellStyle(
-        workbook,
-        "standardDay",
-        alignment = HorizontalAlignment.CENTER,
-        borderStyle = BorderStyle.THIN,
-      )
-      val holidayAndWeekendStyle = ExcelUtils.createCellStyle(
-        workbook,
-        "holidayWeekendDay",
-        alignment = HorizontalAlignment.CENTER,
-        fillForegroundColor = IndexedColors.TAN,
-        borderStyle = BorderStyle.THIN,
-      )
-      val vacationStyle = ExcelUtils.createCellStyle(
-        workbook,
-        "vacationDay",
-        fillForegroundColor = IndexedColors.GREEN,
-        borderStyle = BorderStyle.THIN,
-      )
-      val unapprovedVacationStyle = ExcelUtils.createCellStyle(
-        workbook,
-        "unapprovedVacationDay",
-        fillForegroundColor = IndexedColors.GREY_40_PERCENT,
-        borderStyle = BorderStyle.THIN,
-      )
-      val sheet = workbook.createOrGetSheet("Vacation")
-      val context = Context(workbook, sheet)
-      sheet.poiSheet.printSetup.landscape = true
-      sheet.poiSheet.printSetup.fitWidth = 1.toShort()  // Doesn't work
-      sheet.poiSheet.printSetup.fitHeight = 0.toShort() // Doesn't work
-      val monthRow = sheet.createRow()
-      val dateRow = sheet.createRow()
-      val weekDayRow = sheet.createRow()
+      val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
-      var currentDate = startDate
-      var columnIndex = 0
-      sheet.setColumnWidth(columnIndex, 20 * 256) // Column of vacationers.
-      createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
-      val endDate = currentDate.plusMonths(numberOfMonths.toLong() - 1).endOfMonth
-      var paranoiaCounter = 0
-      var firstDayOfMonthCol = columnIndex + 1
-      val columnIndexMap = mutableMapOf<LocalDate, Int>()
-      while (currentDate <= endDate && paranoiaCounter++ < 500) {
-        // Add day columns.
-        val style = if (currentDate.isHolidayOrWeekend()) {
-          holidayAndWeekendStyle
-        } else {
-          standardDayStyle
-        }
-        columnIndexMap[currentDate.date] = ++columnIndex // Store for finding column indexes by vacation dates.
-        sheet.setColumnWidth(columnIndex, 600)
-        dateRow.getCell(columnIndex).setCellValue("${currentDate.dayOfMonth}").setCellStyle(style)
-        weekDayRow.getCell(columnIndex).setCellValue(getWeekDayString(currentDate)).setCellStyle(style)
-        currentDate = currentDate.plusDays(1)
-        if (currentDate.dayOfMonth == 1) {
-          // New month started.
-          val monthCell =
-            sheet.setMergedRegion(
-              monthRow.rowNum,
-              monthRow.rowNum,
-              firstDayOfMonthCol,
-              columnIndex,
-              getMonthString(currentDate.minusMonths(1)),
-            )
-          monthCell.setCellStyle(monthStyle)
-          createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
-          firstDayOfMonthCol = columnIndex + 1 // Store column for setMergedRegion of month name.
-        }
+      createSheet(context, startDate, vacationsByEmployee, numberOfMonths)
+      // 4 quarters:
+      val startMonth = startDate.monthValue // (1-12)
+      var quarterStart = when (startMonth) {
+        1, 2, 3 -> startDate.withMonth(1)
+        4, 5, 6 -> startDate.withMonth(4)
+        7, 8, 9 -> startDate.withMonth(7)
+        else -> startDate.withMonth(10)
       }
-      val map = vacations.groupBy { it.employee }
-      val employees = map.keys.filterNotNull().sortedBy { it.user?.getFullname() }
-      employees.forEach { employee ->
-        val employeeRow = sheet.createRow()
-        employeeRow.getCell(0).setCellValue(employee.user?.getFullname() ?: "???").setCellStyle(standardStyle)
-        createMonthSeparationCells(context, employeeRow)
-        paranoiaCounter = 0
-        currentDate = startDate
-        while (currentDate <= endDate && paranoiaCounter++ < 500) {
-          columnIndexMap[currentDate.date]?.let { col ->
-            if (currentDate.isHolidayOrWeekend()) {
-              employeeRow.getCell(col).setCellStyle(holidayAndWeekendStyle)
-            } else {
-              employeeRow.getCell(col).setCellStyle(standardDayStyle)
-            }
-          }
-          currentDate = currentDate.plusDays(1)
-        }
-        map[employee]?.forEach { vacation ->
-          val vacationStart = PFDay.fromOrNull(vacation.startDate)
-          val vacationEnd = PFDay.fromOrNull(vacation.endDate)
-          if (vacationStart != null && vacationEnd != null) {
-            val style = if (vacation.status == VacationStatus.APPROVED) {
-              vacationStyle
-            } else {
-              unapprovedVacationStyle
-            }
-            paranoiaCounter = 0
-            var current: PFDay = vacationStart
-            while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
-              val col = columnIndexMap[current.date] ?: continue
-              employeeRow.getCell(col).setCellStyle(style)
-              current = current.plusDays(1)
-            }
-          }
-        }
+      for (count in 1..4) {
+        createSheet(context, quarterStart, vacationsByEmployee, 3, Mode.QUARTER)
+        quarterStart = quarterStart.plusMonths(3)
       }
-      sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")
-      sheet.createFreezePane(1, 3)
+      // 2 years:
+      var yearBegin = startDate.beginOfYear
+      for (count in 1..2) {
+        createSheet(context, yearBegin, vacationsByEmployee, 12, Mode.YEAR)
+        yearBegin = yearBegin.plusYears(1)
+      }
+      // Legend
+      val sheet = workbook.createOrGetSheet(translate("legend"))
+      var row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.unapprovedVacationStyle)
+      row.getCell(1).setCellValue(translate("vacation.status.inProgress"))
+      row = sheet.createRow()
+      row.getCell(0).setCellStyle(context.vacationStyle)
+      row.getCell(1).setCellValue(translate("vacation.status.approved"))
+      sheet.setColumnWidth(0, COL_WIDTH_DAY)
       return workbook.asByteArrayOutputStream.toByteArray()
     }
+  }
+
+  /**
+   * @param startDate must be the beginning of a month.
+   */
+  private fun createSheet(
+    context: Context,
+    startDate: PFDay,
+    vacationsByEmployee: List<VacationService.VacationsByEmployee>,
+    numberOfMonths: Int = 3,
+    mode: Mode = Mode.NORMAL
+  ) {
+    val endDate = startDate.plusMonths(numberOfMonths.toLong() - 1).endOfMonth
+    val sheetName = if (mode == Mode.YEAR) {
+      startDate.year.toString()
+    } else if (mode == Mode.QUARTER) {
+      val q = when(startDate.monthValue) {
+        1, 2, 3 -> 1
+        4, 5, 6 -> 2
+        7, 8, 9 -> 3
+        else -> 4
+      }
+      "Q$q ${startDate.year}"
+    } else {
+      val fromMonth = startDate.month.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)
+      val untilMonth =
+        "${endDate.month.getDisplayName(TextStyle.SHORT, ThreadLocalUserContext.locale)} ${endDate.year - 2000}"
+      "$fromMonth-$untilMonth"
+    }
+    val workbook = context.workbook
+    val sheet = workbook.createOrGetSheet(sheetName)
+    context.withSheet(sheet, mode)
+    sheet.poiSheet.printSetup.landscape = true
+    sheet.poiSheet.printSetup.fitWidth = 1.toShort()  // Doesn't work
+    sheet.poiSheet.printSetup.fitHeight = 0.toShort() // Doesn't work
+    val monthRow = sheet.createRow()
+    val dateRow = sheet.createRow()
+    val weekDayRow = sheet.createRow()
+    var currentDate = startDate
+    var columnIndex = 0
+    sheet.setColumnWidth(columnIndex, COL_WIDTH_USER) // Column of vacationers.
+    createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
+    var paranoiaCounter = 0
+    var firstDayOfMonthCol = columnIndex + 1
+    val columnIndexMap = mutableMapOf<LocalDate, Int>()
+    while (currentDate <= endDate && paranoiaCounter++ < 500) {
+      // Add day columns.
+      val style = if (currentDate.isHolidayOrWeekend()) {
+        context.holidayAndWeekendStyle
+      } else {
+        context.standardDayStyle
+      }
+      columnIndexMap[currentDate.date] = ++columnIndex // Store for finding column indexes by vacation dates.
+      sheet.setColumnWidth(columnIndex, COL_WIDTH_DAY)
+      dateRow.getCell(columnIndex).setCellValue("${currentDate.dayOfMonth}").setCellStyle(style)
+      weekDayRow.getCell(columnIndex).setCellValue(getWeekDayString(currentDate)).setCellStyle(style)
+      currentDate = currentDate.plusDays(1)
+      if (currentDate.dayOfMonth == 1) {
+        // New month started.
+        val monthCell =
+          sheet.setMergedRegion(
+            monthRow.rowNum,
+            monthRow.rowNum,
+            firstDayOfMonthCol,
+            columnIndex,
+            getMonthString(currentDate.minusMonths(1)),
+          )
+        monthCell.setCellStyle(context.monthStyle)
+        createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
+        firstDayOfMonthCol = columnIndex + 1 // Store column for setMergedRegion of month name.
+      }
+    }
+    vacationsByEmployee.sortedBy { it.employee.user?.getFullname() }.forEach { entry ->
+      val employee = entry.employee
+      val employeeRow = sheet.createRow()
+      employeeRow.getCell(0).setCellValue(employee.user?.getFullname() ?: "???").setCellStyle(context.standardStyle)
+      createMonthSeparationCells(context, employeeRow)
+      paranoiaCounter = 0
+      currentDate = startDate
+      while (currentDate <= endDate && paranoiaCounter++ < 500) {
+        columnIndexMap[currentDate.date]?.let { col ->
+          if (currentDate.isHolidayOrWeekend()) {
+            employeeRow.getCell(col).setCellStyle(context.holidayAndWeekendStyle)
+          } else {
+            employeeRow.getCell(col).setCellStyle(context.standardDayStyle)
+          }
+        }
+        currentDate = currentDate.plusDays(1)
+      }
+      entry.vacations.forEach { vacation ->
+        val vacationStart = PFDay.fromOrNull(vacation.startDate)
+        val vacationEnd = PFDay.fromOrNull(vacation.endDate)
+        if (vacationStart != null && vacationEnd != null) {
+          val style = if (vacation.status == VacationStatus.APPROVED) {
+            context.vacationStyle
+          } else {
+            context.unapprovedVacationStyle
+          }
+          paranoiaCounter = 0
+          var current: PFDay = vacationStart
+          while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
+            val col = columnIndexMap[current.date] ?: continue
+            employeeRow.getCell(col).setCellStyle(style)
+            current = current.plusDays(1)
+          }
+        }
+      }
+    }
+    sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")
+    sheet.createFreezePane(1, 3)
   }
 
   private fun getWeekDayString(day: PFDay): String {
@@ -198,7 +266,7 @@ object VacationExcelExporter {
     }
     if (!context.monthSeparatorCols.contains(col)) {
       context.monthSeparatorCols.add(col)
-      context.sheet.setColumnWidth(col, 100)
+      context.currentSheet.setColumnWidth(col, 100)
     }
   }
 
@@ -208,8 +276,8 @@ object VacationExcelExporter {
     }
   }
 
-  fun download(vacations: List<VacationDO>): ResponseEntity<ByteArrayResource> {
-    val workbook = export(vacations = vacations)
+  fun download(vacationsByEmployee: List<VacationService.VacationsByEmployee>): ResponseEntity<ByteArrayResource> {
+    val workbook = export(vacationsByEmployee = vacationsByEmployee)
     val filename = ("Vacation-${DateHelper.getDateAsFilenameSuffix(Date())}.xlsx")
     val resource = ByteArrayResource(workbook)
     return ResponseEntity.ok()
@@ -232,11 +300,14 @@ object VacationExcelExporter {
 </config>"""
     )
     ConfigXml.internalSetInstance(xml)
-    val vacations = mutableListOf<VacationDO>()
+    val vacationsByEmployee = mutableListOf<VacationService.VacationsByEmployee>()
     val kai = createEmployee("Kai", "Reinhard")
+    var vacations = mutableListOf<VacationDO>()
     vacations.add(createVacation(kai, LocalDate.of(2023, Month.FEBRUARY, 25), 20))
     vacations.add(createVacation(kai, LocalDate.of(2023, Month.APRIL, 2), 1, status = VacationStatus.IN_PROGRESS))
+    vacationsByEmployee.add(VacationService.VacationsByEmployee(kai, vacations))
     val berta = createEmployee("Berta", "Müller")
+    vacations = mutableListOf()
     vacations.add(
       createVacation(
         berta,
@@ -246,7 +317,8 @@ object VacationExcelExporter {
       )
     )
     vacations.add(createVacation(berta, LocalDate.of(2023, Month.APRIL, 2), 1))
-    val workbook = export(date = LocalDate.of(2023, Month.FEBRUARY, 27), vacations = vacations, numberOfMonths = 12)
+    vacationsByEmployee.add(VacationService.VacationsByEmployee(berta, vacations))
+    val workbook = export(date = LocalDate.of(2023, Month.FEBRUARY, 27), vacationsByEmployee = vacationsByEmployee, numberOfMonths = 3)
     val file = File("/tmp", "vacation.xlsx")
     println("Writing excel file `${file.absolutePath}'...")
     file.writeBytes(workbook)
@@ -274,4 +346,7 @@ object VacationExcelExporter {
     vacation.status = status
     return vacation
   }
+
+  private const val COL_WIDTH_DAY = 600
+  private const val COL_WIDTH_USER = 20 * 256
 }
