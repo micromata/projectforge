@@ -177,8 +177,9 @@ object VacationExcelExporter {
             }
           }
         }
-        sheet.createFreezePane(1, 3)
       }
+      sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")
+      sheet.createFreezePane(1, 3)
       return workbook.asByteArrayOutputStream.toByteArray()
     }
   }
