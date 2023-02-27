@@ -220,6 +220,14 @@ class VacationAccountPageRest {
     )
     layout.add(
       MenuItem(
+        "export",
+        i18nKey = "vacation.export.title",
+        url = PagesResolver.getDynamicPageUrl(VacationExportPageRest::class.java),
+        type = MenuItemTargetType.REDIRECT,
+      )
+    )
+    layout.add(
+      MenuItem(
         "leaveForApplication",
         i18nKey = "menu.vacation",
         url = PagesResolver.getListPageUrl(VacationPagesRest::class.java),

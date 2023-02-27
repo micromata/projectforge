@@ -26,10 +26,14 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.service.VacationExcelExporter
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
@@ -53,16 +57,27 @@ private val log = KotlinLogging.logger {}
 class VacationExportPageRest : AbstractDynamicPageRest() {
   class Data {
     var startDate: LocalDate? = null
-    var numberOfMonths: Int? = null
     var groups: List<Group>? = null
     var employees: List<Employee>? = null
+
+    fun copyFrom(other: Data) {
+      startDate = other.startDate
+      groups = other.groups
+      employees = other.employees
+    }
   }
 
   @Autowired
   private lateinit var employeeService: EmployeeService
 
   @Autowired
+  private lateinit var groupService: GroupService
+
+  @Autowired
   private lateinit var userGroupCache: UserGroupCache
+
+  @Autowired
+  private lateinit var userPrefService: UserPrefService
 
   @Autowired
   private lateinit var vacationService: VacationService
@@ -70,19 +85,28 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(): FormLayoutData {
     val layout = UILayout("vacation.export.title")
-    layout.add(UIInput(Data::startDate.name, dataType = UIDataType.DATE))
-      .add(UIInput(Data::numberOfMonths.name, dataType = UIDataType.INT))
+    layout.add(
+      UICol(sm = 6, md = 3, lg = 2).add(
+        UIInput(
+          Data::startDate.name,
+          label = translate("vacation.startdate"),
+          dataType = UIDataType.DATE
+        )
+      )
+    )
       .add(
+
         UISelect<Int>(
-          Data::employees.name, multi = true,
-          label = "fibu.employees",
+          Data::employees.name,
+          multi = true,
+          label = translate("fibu.employees"),
           autoCompletion = AutoCompletion.getAutoCompletion4Employees(true),
         )
       )
       .add(
         UISelect<Int>(
           Data::groups.name, multi = true,
-          label = "groups",
+          label = translate("group.groups"),
           autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
         )
       )
@@ -107,7 +131,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         Data::employees.name
       )
     )
-    val data = Data()
+    val data = ensureUserPref()
     return FormLayoutData(data, layout, null)
   }
 
@@ -118,11 +142,15 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
   @Override
   fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Data>) {
     request.session.setAttribute(SESSION_ATTRIBUTE_DATA, postData.data)
+    val data = ensureUserPref()
+    data.copyFrom(postData.data)
+    checkData(data)
   }
 
   @GetMapping("exportExcel")
   fun exportExcel(request: HttpServletRequest): ResponseEntity<*> {
     val data = request.session.getAttribute(SESSION_ATTRIBUTE_DATA) as? Data
+    log.info { "Exporting Excel sheet with vacations of groups=[${data?.groups?.joinToString { it.displayName ?: "???" }}] and users=[${data?.employees?.joinToString { it.displayName ?: "???" }}]" }
     val employees = mutableSetOf<EmployeeDO>()
     data?.employees?.forEach { employee ->
       if (employees.none { it.id == employee.id }) {
@@ -137,6 +165,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         }
       }
     }
+    employees.removeIf { !it.active || it.user?.deactivated == true || it.user?.isDeleted == true }
     var vacations = emptyList<VacationService.VacationsByEmployee>()
     val startDate = data?.startDate ?: LocalDate.now()
     val periodBegin = PFDay.from(startDate).beginOfYear
@@ -152,8 +181,22 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         VacationStatus.IN_PROGRESS,
       )
     }
-    val excel = VacationExcelExporter.export(startDate, vacations, data?.numberOfMonths ?: 3)
-    return RestUtils.downloadFile("hurzel.xlsx", excel)
+    val excel = VacationExcelExporter.export(startDate, vacations)
+    return RestUtils.downloadFile("${translate("vacation")}-${PFDateTime.now().format4Filenames()}.xlsx", excel)
+  }
+
+  private fun ensureUserPref(): Data {
+    val data = userPrefService.ensureEntry("vacation", "export", Data())
+    checkData(data)
+    return data
+  }
+
+  private fun checkData(data: Data) {
+    if (data.startDate == null) {
+      data.startDate = LocalDate.now()
+    }
+    Employee.restoreDisplayNames(data.employees)
+    Group.restoreDisplayNames(data.groups, groupService)
   }
 
   companion object {

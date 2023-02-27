@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.service
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
+import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -48,6 +49,8 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.format.TextStyle
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Exports vacation entries of users.
@@ -105,6 +108,7 @@ object VacationExcelExporter {
     date: LocalDate = LocalDate.now(),
     vacationsByEmployee: List<VacationService.VacationsByEmployee>,
   ): ByteArray {
+    log.info { "Exporting Excel sheet with vacations of users: ${vacationsByEmployee.joinToString { it.employee.user?.getFullname() ?: "???" }}" }
     ExcelWorkbook.createEmptyWorkbook(ThreadLocalUserContext.locale!!).use { workbook ->
       val context = Context(workbook)
       val startDate = PFDay.from(date).beginOfMonth
