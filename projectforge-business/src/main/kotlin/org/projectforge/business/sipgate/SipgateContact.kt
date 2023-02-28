@@ -36,6 +36,16 @@ class SipgateContact {
 
   enum class EmailType { HOME, WORK, OTHER }
 
+  class Address {
+    var poBox: String? = null
+    var extendedAddress: String? = null
+    var streetAddress: String? = null
+    var region: String? = null
+    var locality: String? = null
+    var postalCode: String? = null
+    var country: String? = null
+  }
+
   var id: String? = null
   var name: String? = null
   var family: String? = null
@@ -43,7 +53,7 @@ class SipgateContact {
   var picture: String? = null
   var emails: MutableList<Email>? = null
   var numbers: MutableList<Number>? = null
-  var addresses: MutableList<SipgateAddress>? = null
+  var addresses: MutableList<Address>? = null
 
   var organizationArray: Array<Array<String>>?
     @JsonProperty("organization")

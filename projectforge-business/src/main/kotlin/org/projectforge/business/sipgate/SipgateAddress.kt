@@ -27,11 +27,16 @@ package org.projectforge.business.sipgate
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 class SipgateAddress {
-  var poBox: String? = null
-  var extendedAddress: String? = null
-  var streetAddress: String? = null
-  var region: String? = null
-  var locality: String? = null
-  var postalCode: String? = null
-  var country: String? = null
+  var addressId: String? = null
+  var street: String? = null
+  var number: String? = null
+  var address1: String? = null
+  var address2: String? = null
+  var city: String? = null
+  var postcode: String? = null
+  var state: String? = null
+  var countrycode: String? = null
+  var numbersUrl: String? = null
+  var type: String? = null
+  var emergencyState: String? = null
 }
