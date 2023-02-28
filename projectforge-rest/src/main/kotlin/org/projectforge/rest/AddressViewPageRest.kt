@@ -28,7 +28,7 @@ import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.PersonalAddressDO
 import org.projectforge.business.address.PersonalAddressDao
-import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
@@ -57,10 +57,10 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   private lateinit var addressDao: AddressDao
 
   @Autowired
-  private lateinit var configurationService: ConfigurationService
+  private lateinit var personalAddressDao: PersonalAddressDao
 
   @Autowired
-  private lateinit var personalAddressDao: PersonalAddressDao
+  private lateinit var sipgateConfiguration: SipgateConfiguration
 
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
@@ -112,7 +112,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     val col = UIFieldset(12, "address.phoneNumbers")
     row.add(col)
 
-    val phoneCallEnabled = configurationService.isTelephoneSystemUrlConfigured
+    val phoneCallEnabled = sipgateConfiguration.isConfigured()
     val smsEnabled = smsSenderConfig.isSmsConfigured()
 
     addPhoneNumber(

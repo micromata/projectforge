@@ -29,6 +29,7 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -110,6 +111,9 @@ class AddressPagesRest
 
   @Autowired
   private lateinit var personalAddressDao: PersonalAddressDao
+
+  @Autowired
+  private lateinit var sipgateConfiguration: SipgateConfiguration
 
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
@@ -257,7 +261,7 @@ class AddressPagesRest
     )
       .valueIconMap = mapOf(true to UIIconType.STAR_REGULAR)
     var menuIndex = 0
-    if (configurationService.isTelephoneSystemUrlConfigured) {
+    if (sipgateConfiguration.isConfigured()) {
       layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
     }
     if (smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()) {
@@ -315,7 +319,7 @@ class AddressPagesRest
 
   override fun addVariablesForListPage(): Map<String, Any>? {
     return mutableMapOf(
-      "phoneCallEnabled" to configurationService.isTelephoneSystemUrlConfigured,
+      "phoneCallEnabled" to sipgateConfiguration.isConfigured(),
       "smsEnabled" to smsSenderConfig.isSmsConfigured()
     )
   }
