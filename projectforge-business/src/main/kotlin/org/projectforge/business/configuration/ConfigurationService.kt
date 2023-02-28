@@ -349,8 +349,6 @@ open class ConfigurationService {
     } else null
   }
 
-  open val isTelephoneSystemUrlConfigured: Boolean
-    get() = StringUtils.isNotEmpty(telephoneSystemUrl)
   open val contractTypes: List<ContractType>
     get() = configXml.contractTypes
   open val isSecurityConfigured: Boolean
