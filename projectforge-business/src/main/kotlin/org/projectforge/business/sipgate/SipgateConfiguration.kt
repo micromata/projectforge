@@ -32,6 +32,9 @@ import javax.net.ssl.*
 
 /**
  * ProjectForge supports the synchronization from and to a Sipgate.
+ *
+ * Required scopes: contacts:read/write, devices:read, devices:callerid:read, log:webhooks:read, sessions:calls:write,
+ * sessions:sms:write, sessions:write, users:read, addresses:read, numbers:read,
  */
 @Configuration
 open class SipgateConfiguration {
