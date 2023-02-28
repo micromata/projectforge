@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserRightVO;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.rest.sipgate.SipgateDirectCallService;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -41,8 +42,7 @@ import org.slf4j.Logger;
 import java.util.List;
 
 @EditPage(defaultReturnPage = UserListPage.class)
-public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserDao>
-{
+public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserDao> {
   private static final long serialVersionUID = 4636922408954211544L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserEditPage.class);
@@ -56,24 +56,21 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
   @SpringBean
   private UserRightDao userRightDao;
 
-  public UserEditPage(final PageParameters parameters)
-  {
+  public UserEditPage(final PageParameters parameters) {
     super(parameters, "user");
     super.init();
     myInit();
   }
 
-  private void myInit()
-  {
+  private void myInit() {
     if (isNew() == true) {
       getData().setTimeZone(Configuration.getInstance().getDefaultTimeZone());
     }
   }
 
   @Override
-  public AbstractSecuredBasePage onSaveOrUpdate()
-  {
-    getData().setPersonalPhoneIdentifiers(userService.getNormalizedPersonalPhoneIdentifiers(getData()));
+  public AbstractSecuredBasePage onSaveOrUpdate() {
+    getData().setPersonalPhoneIdentifiers(SipgateDirectCallService.getNormalizedPersonalPhoneIdentifiers(getData()));
     if (form.ldapUserValues.isValuesEmpty() == false) {
       final String xml = PFUserDOConverter.getLdapValuesAsXml(form.ldapUserValues);
       getData().setLdapValues(xml);
@@ -83,8 +80,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
   }
 
   @Override
-  public AbstractSecuredBasePage afterSaveOrUpdate()
-  {
+  public AbstractSecuredBasePage afterSaveOrUpdate() {
     long startAll = System.currentTimeMillis();
     log.info("Start afterSaveOrUpdate() in UserEditPage");
     log.info("Start assign groups");
@@ -115,20 +111,17 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
   }
 
   @Override
-  protected UserDao getBaseDao()
-  {
+  protected UserDao getBaseDao() {
     return userService.getUserDao();
   }
 
   @Override
-  protected UserEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final PFUserDO data)
-  {
+  protected UserEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final PFUserDO data) {
     return new UserEditForm(this, data);
   }
 
   @Override
-  protected Logger getLogger()
-  {
+  protected Logger getLogger() {
     return log;
   }
 }

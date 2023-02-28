@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.Constants
 import org.projectforge.business.sipgate.*
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -54,6 +55,22 @@ class SipgateDataStorage {
   fun getUsersByDialId(dialId: String?): List<SipgateUser> {
     dialId ?: return emptyList()
     return users?.filter { it.directDialIds?.contains(dialId) == true } ?: emptyList()
+  }
+
+  fun getUserDevices(user: PFUserDO): SipgateUserDevices? {
+    val sipgateUserId = getUser(user)?.id ?: return null
+    return userDevices?.firstOrNull { it.userId == sipgateUserId }
+  }
+
+  fun getUser(user: PFUserDO): SipgateUser? {
+    val email = user.email?.trim { it <= ' ' }
+    val firstname = user.firstname?.trim { it <= ' ' }
+    val lastname = user.lastname?.trim { it <= ' ' }
+    // Get matching user by firstname and lastname or by e-mail:
+    return users?.firstOrNull {
+      (it.firstname?.trim()?.equals(firstname) == true && it.lastname?.trim()?.equals(lastname) == true) ||
+          it.email?.trim()?.equals(email, ignoreCase = true) == true
+    }
   }
 
   fun getActivePhoneLines(number: SipgateNumber): Set<SipgateDevice.ActiveRouting> {

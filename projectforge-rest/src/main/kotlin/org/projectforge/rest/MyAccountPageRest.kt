@@ -48,6 +48,7 @@ import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.sipgate.SipgateDirectCallService
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -122,7 +123,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     user.excelDateFormat = data.excelDateFormat
     user.timeNotation = data.timeNotation ?: user.timeNotation
     user.timeZone = data.timeZone ?: user.timeZone
-    user.personalPhoneIdentifiers = userService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
+    user.personalPhoneIdentifiers = SipgateDirectCallService.getNormalizedPersonalPhoneIdentifiers(data.personalPhoneIdentifiers)
     user.gpgPublicKey = data.gpgPublicKey
     user.sshPublicKey = data.sshPublicKey
     userService.updateMyAccount(user)
