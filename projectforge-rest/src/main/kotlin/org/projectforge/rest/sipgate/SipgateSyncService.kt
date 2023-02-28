@@ -30,6 +30,7 @@ import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.io.File
+import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger {}
 
@@ -44,6 +45,20 @@ open class SipgateSyncService {
 
   private var privateStorage: SipgateDataStorage? = null
 
+  /**
+   * Gets the storage, if exists. If not, the storage will be read from remote Sipgate server.
+   * If the existing storage is existing but is outdated, the outdated storage is returned, but
+   * an asyn job is started for getting new storage data.
+   */
+  open fun getStorage(): SipgateDataStorage {
+    privateStorage?.let {
+      thread(start = true) {
+        readStorage(true)
+      }
+      return it
+    }
+    return readStorage()
+  }
 
   /**
    * Get the data of the remote Sipgate server. Will be cached as file (work/sipgateStorage.json). The data will
@@ -59,21 +74,23 @@ open class SipgateSyncService {
   }
 
   private fun readFromFileOrGetFromRemote(forceSync: Boolean = false) {
-    try {
-      if (!forceSync && storageFile.canRead()) {
-        val json = storageFile.readText()
-        log.info { "Reading Sipgate data from '${storageFile.absolutePath}'..." }
-        val newStorage = JsonUtils.fromJson(json, SipgateDataStorage::class.java)
-        if (newStorage?.uptodate == true) {
-          privateStorage = newStorage
-          return
+    synchronized(this) {
+      try {
+        if (!forceSync && storageFile.canRead()) {
+          val json = storageFile.readText()
+          log.info { "Reading Sipgate data from '${storageFile.absolutePath}'..." }
+          val newStorage = JsonUtils.fromJson(json, SipgateDataStorage::class.java)
+          if (newStorage?.uptodate == true) {
+            privateStorage = newStorage
+            return
+          }
+          log.info { "Sipgate storage is outdated (older than one day), re-reading..." }
         }
-        log.info { "Sipgate storage is outdated (older than one day), re-reading..." }
+      } catch (ex: Exception) {
+        log.error("Error while parsing sipgate storage from '${storageFile.absolutePath}': ${ex.message}", ex)
       }
-    } catch (ex: Exception) {
-      log.error("Error while parsing sipgate storage from '${storageFile.absolutePath}': ${ex.message}", ex)
+      remoteRead()
     }
-    remoteRead()
   }
 
   private fun remoteRead() {
