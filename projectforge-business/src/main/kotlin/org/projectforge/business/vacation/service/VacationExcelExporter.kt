@@ -30,6 +30,7 @@ import mu.KotlinLogging
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
@@ -141,13 +142,16 @@ object VacationExcelExporter {
     sheet.poiSheet.printSetup.landscape = true
     sheet.poiSheet.printSetup.fitWidth = 1.toShort()  // Doesn't work
     sheet.poiSheet.printSetup.fitHeight = 0.toShort() // Doesn't work
-    val monthRow = sheet.createRow()
+    val firstRow = sheet.createRow()
     val dateRow = sheet.createRow()
     val weekDayRow = sheet.createRow()
     var currentDate = startDate
     var columnIndex = 0
+    firstRow.getCell(columnIndex).setCellValue(translate("fibu.employees"))
     sheet.setColumnWidth(columnIndex, COL_WIDTH_USER) // Column of vacationers.
-    createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
+    firstRow.getCell(++columnIndex).setCellValue(translate("vacation"))
+    sheet.setColumnWidth(columnIndex, 500) // Column if employee has any vacation or not.
+    createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, firstRow)
     var paranoiaCounter = 0
     var firstDayOfMonthCol = columnIndex + 1
     val columnIndexMap = mutableMapOf<LocalDate, Int>()
@@ -167,14 +171,14 @@ object VacationExcelExporter {
         // New month started.
         val monthCell =
           sheet.setMergedRegion(
-            monthRow.rowNum,
-            monthRow.rowNum,
+            firstRow.rowNum,
+            firstRow.rowNum,
             firstDayOfMonthCol,
             columnIndex,
             getMonthString(currentDate.minusMonths(1)),
           )
         monthCell.setCellStyle(context.monthStyle)
-        createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, monthRow)
+        createMonthSeparationCells(context, ++columnIndex, dateRow, weekDayRow, firstRow)
         firstDayOfMonthCol = columnIndex + 1 // Store column for setMergedRegion of month name.
       }
     }
@@ -195,6 +199,7 @@ object VacationExcelExporter {
         }
         currentDate = currentDate.plusDays(1)
       }
+      var firstRowWritten = false
       entry.vacations.forEach { vacation ->
         val vacationStart = PFDay.fromOrNull(vacation.startDate)
         val vacationEnd = PFDay.fromOrNull(vacation.endDate)
@@ -208,6 +213,11 @@ object VacationExcelExporter {
           var current: PFDay = vacationStart
           while (current <= vacationEnd && current <= endDate && paranoiaCounter++ < 500) {
             val col = columnIndexMap[current.date] ?: continue
+            if (!firstRowWritten) {
+              // Mark row as user with vacation entries:
+              firstRowWritten = true
+              employeeRow.getCell(1).setCellValue("X")
+            }
             employeeRow.getCell(col).setCellStyle(style)
             current = current.plusDays(1)
           }
@@ -216,6 +226,8 @@ object VacationExcelExporter {
     }
     sheet.createRow().getCell(0).setCellValue("(${PFDay.now().isoString})")
     sheet.createFreezePane(1, 3)
+    sheet.setAutoFilter()
+    sheet.poiSheet.setAutoFilter(CellRangeAddress(0, 0, 0, 1))
   }
 
   private fun getWeekDayString(day: PFDay): String {
@@ -339,6 +351,7 @@ object VacationExcelExporter {
     )
     vacations.add(createVacation(berta, LocalDate.of(2023, Month.APRIL, 2), 1))
     vacationsByEmployee.add(VacationService.VacationsByEmployee(berta, vacations))
+    vacationsByEmployee.add(VacationService.VacationsByEmployee(createEmployee("Hard", "Worker"), emptyList()))
     val workbook = export(
       date = LocalDate.of(2023, Month.FEBRUARY, 27),
       vacationsByEmployee = vacationsByEmployee,
