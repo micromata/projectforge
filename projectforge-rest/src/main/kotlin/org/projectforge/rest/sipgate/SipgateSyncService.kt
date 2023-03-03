@@ -53,7 +53,7 @@ open class SipgateSyncService {
   open fun getStorage(): SipgateDataStorage {
     privateStorage?.let {
       thread(start = true) {
-        readStorage(true)
+        readStorage() // Re-read if outdated.
       }
       return it
     }
