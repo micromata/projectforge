@@ -46,7 +46,15 @@ open class SipgateDirectCallService {
         list.add("${it}0")
       }
     }
-    list.addAll(getCallerNumbers(user))
+    val storage = sipgateSyncService.getStorage()
+    storage.getUserDevices(user)?.devices?.forEach { device ->
+      // Add the caller number
+      getCallerId(storage, device)?.let { callerId ->
+        if (!list.contains(callerId)) {
+          list.add(callerId)
+        }
+      }
+    }
     return list
   }
 
@@ -85,6 +93,24 @@ open class SipgateDirectCallService {
       callerId = data.callerId,
     )
     return false
+  }
+
+  private fun getCallerId(storage: SipgateDataStorage, device: SipgateDevice): String? {
+    val phoneLineId =
+      device.activePhonelines?.firstOrNull { it.alias?.contains("routing", ignoreCase = true) != true }?.id
+    val number = if (phoneLineId != null) {
+      storage.numbers?.firstOrNull { it.endpointId == phoneLineId }
+    } else {
+      null
+    }
+    number?.localized?.trim { it <= ' ' }?.let { localized ->
+      return if (localized.length < 4) {
+        "${sipgateConfiguration.basePhoneNumber}$localized"
+      } else {
+        localized
+      }
+    }
+    return null
   }
 
   companion object {
