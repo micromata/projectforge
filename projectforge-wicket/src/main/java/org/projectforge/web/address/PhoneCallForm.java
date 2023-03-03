@@ -23,6 +23,7 @@
 
 package org.projectforge.web.address;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Button;
@@ -39,7 +40,6 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
 import org.projectforge.business.address.PhoneType;
-import org.projectforge.business.user.service.UserService;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
@@ -72,7 +72,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
   private AddressDao addressDao;
 
   @SpringBean
-  private UserService userService;
+  private SipgateDirectCallService sipgateDirectCallService;
 
   protected AddressDO address;
 
@@ -83,6 +83,8 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
   protected String phoneNumber;
 
   private String myCurrentPhoneId;
+
+  private String myCurrentCallerId;
 
   Date lastSuccessfulPhoneCall;
 
@@ -113,6 +115,21 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       parentPage.setRecentMyPhoneId(this.myCurrentPhoneId);
     }
   }
+
+  public String getMyCurrentCallerId() {
+    if (myCurrentCallerId == null) {
+      myCurrentCallerId = parentPage.getRecentMyCallerId();
+    }
+    return myCurrentCallerId;
+  }
+
+  public void setMyCurrentCallerId(final String myCurrentCallerId) {
+    this.myCurrentCallerId = myCurrentCallerId;
+    if (this.myCurrentCallerId != null) {
+      parentPage.setRecentMyCallerId(this.myCurrentCallerId);
+    }
+  }
+
 
   public AddressDO getAddress() {
     return address;
@@ -245,8 +262,8 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       // DropDownChoice myCurrentPhoneId
       fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));
       final LabelValueChoiceRenderer<String> myCurrentPhoneIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      final String[] ids = SipgateDirectCallService.getPersonalPhoneIdentifiers(ThreadLocalUserContext.getUser());
-      if (ids == null) {
+      final List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getUser());
+      if (CollectionUtils.isEmpty(ids)) {
         myCurrentPhoneIdChoiceRenderer.addValue("--", getString("user.personalPhoneIdentifiers.pleaseDefine"));
       } else {
         for (final String id : ids) {
@@ -260,6 +277,22 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       fs.add(myCurrentPhoneIdChoice);
       fs.addHelpIcon(new ResourceModel("address.myCurrentPhoneId.tooltip.title"),
           new ResourceModel("address.myCurrentPhoneId.tooltip.content"));
+    }
+    {
+      // DropDownChoice myCurrentCallerId
+      fs = gridBuilder.newFieldset(getString("address.myCurrentCallerId"));
+      final LabelValueChoiceRenderer<String> myCurrentCalerIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
+      final List<String> ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getUser());
+      for (final String id : ids) {
+        myCurrentCalerIdChoiceRenderer.addValue(id, id);
+      }
+      final DropDownChoice myCurrentCallerIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
+          new PropertyModel(this, "myCurrentCallerId"), myCurrentCalerIdChoiceRenderer.getValues(),
+          myCurrentCalerIdChoiceRenderer);
+      myCurrentCallerIdChoice.setNullValid(false).setRequired(true);
+      fs.add(myCurrentCallerIdChoice);
+      fs.addHelpIcon(new ResourceModel("address.myCurrentCallerId.tooltip.title"),
+          new ResourceModel("address.myCurrentCallerId.tooltip.content"));
     }
     addressPanel = gridBuilder.newSplitPanel(GridSize.COL50).getPanel();
     {

@@ -100,15 +100,6 @@ open class ConfigurationService {
     protected set
 
   /**
-   * Format http://asterisk.acme.com/originatecall.php?source=#source&amp;target=#target<br></br>
-   * #source will be replaced by the current user's phone and #target by the chosen phone number to call.
-   */
-  @Value("\${projectforge.telephoneSystemUrl}")
-  open var telephoneSystemUrl: String? = null
-    protected set
-
-
-  /**
    * For direct calls all numbers beginning with the this number will be stripped, e. g. for 0561316793: 056131679323 ->
    * 23. So internal calls are supported.
    */

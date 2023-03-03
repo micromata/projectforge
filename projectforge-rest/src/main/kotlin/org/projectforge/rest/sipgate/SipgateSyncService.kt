@@ -68,6 +68,13 @@ open class SipgateSyncService {
   open fun readStorage(forceSync: Boolean = false): SipgateDataStorage {
     val ps = privateStorage
     if (forceSync || ps == null || !ps.uptodate) {
+      if (forceSync) {
+        log.info { "Reading Sipgate configuration is forced." }
+      } else if (ps == null) {
+        log.info { "Sipgate configuration doesn't yet exists.." }
+      } else {
+        log.info { "Sipgate configuration outdated." }
+      }
       readFromFileOrGetFromRemote(forceSync)
     }
     return privateStorage!!
