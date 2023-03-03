@@ -54,10 +54,11 @@ fun main(args: Array<String>) {
   config.token = token
   sipgateClient.sipgateConfiguration = config
   sipgateClient.postConstruct(useMenuCreator = false)
-  readSipgateConfiguration(sipgateClient)
+  // readSipgateConfiguration(sipgateClient)
   // contactService(sipgateClient)
   // getLists(sipgateClient)
   // contactTest(sipgateClient)
+  callTest(sipgateClient)
 }
 
 private fun readSipgateConfiguration(sipgateClient: SipgateClient) {
@@ -88,6 +89,13 @@ private fun getLists(sipgateClient: SipgateClient) {
   val numbers = sipgateService.getNumbers()
   println("Numbers: [${numbers?.joinToString { it.toString() }}]")
    */
+}
+
+private fun callTest(sipgateClient: SipgateClient) {
+  val sipgateService = SipgateService()
+  sipgateService.sipgateClient = sipgateClient
+  sipgateService.postConstruct()
+  sipgateService.initCall(deviceId = "e23", callerId = "0561-31679321", callee = "+49 561 51080985", caller = "p22")
   // sipgateService.initCall(deviceId = "x1", callerId = "p1", callee = "01234567", caller = "p1")
   // sipgateService.sendSms(smsId = "s0", message = "Test sipgate", recipient = "012345")
 }

@@ -36,6 +36,7 @@ import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.business.orga.VisitorbookDao
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
@@ -85,6 +86,9 @@ open class MenuCreator {
 
   @Autowired
   private lateinit var dvelopConfiguration: DvelopConfiguration
+
+  @Autowired
+  private lateinit var sipgateConfiguration: SipgateConfiguration
 
   @Autowired
   private lateinit var vacationService: VacationService
@@ -219,9 +223,8 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
-    configurationService.telephoneSystemUrl?.let {
-      if (it.isNotEmpty())
-        commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
+    if (sipgateConfiguration.isConfigured()) {
+      commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     }
     if (smsSenderConfig.isSmsConfigured()) {
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))

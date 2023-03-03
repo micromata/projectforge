@@ -131,8 +131,10 @@ open class SipgateService {
 
   /**
    * Initiates a new call: /sessions/calls
-   * DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
-   * Use callerId to set a custom number that will be displayed to the callee.
+   * @param DeviceId is only required if the caller parameter is a phone number and not a deviceId itself.
+   * @param caller sipgate phone number or extension.
+   * @param callee to set the recipient phone number.
+   * @param callerId to set a custom number that will be displayed to the callee.
    */
   fun initCall(deviceId: String?, caller: String, callee: String, callerId: String): Boolean {
     val newCallRequest = NewCallRequest(deviceId = deviceId, caller = caller, callee = callee, callerId = callerId)

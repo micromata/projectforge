@@ -54,6 +54,20 @@ open class SipgateConfiguration {
   open lateinit var token: String
 
   /**
+   * This device is used for calls, if the user doesn't use configured sipgate devices.
+   * The user may use any foreign caller number.
+   * Foreign caller numbers may be specified by the user via MyAccount page (e. g. p2).
+   */
+  @Value("\${projectforge.sipgate.defaultDevice}")
+  open lateinit var defaultDevice: String
+
+  /**
+   * Work-around: This number is used as base-number for building full numbers.
+   */
+  @Value("\${projectforge.sipgate.basePhoneNumber}")
+  open lateinit var basePhoneNumber: String
+
+  /**
    * If true, any changes in Sipgate will update local addresses (false only for testing).
    */
   @Value("\${projectforge.sipgate.updateLocalAddresses}")
