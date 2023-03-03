@@ -27,6 +27,10 @@ open class SipgateDirectCallService {
   @Autowired
   private lateinit var sipgateService: SipgateService
 
+  open fun isAvailable(): Boolean {
+    return sipgateConfiguration.isConfigured()
+  }
+
   /**
    * Gets the caller id's of the user (by user devices and configured phone id under MyAccount.
    */

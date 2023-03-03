@@ -241,15 +241,15 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       }
     };
     numberTextField.withLabelValue(true).withMatchContains(true).withMinChars(2).withFocus(true).withAutoSubmit(true);
-    if (StringUtils.isBlank(phoneNumber) == true) {
+    if (StringUtils.isBlank(phoneNumber)) {
       if (address != null) {
         final String no = parentPage.getFirstPhoneNumber();
-        if (StringUtils.isNotBlank(no) == true) {
+        if (StringUtils.isNotBlank(no)) {
           phoneNumber = parentPage.extractPhonenumber(no);
         }
       } else {
         final String recentNumber = getRecentSearchTermsQueue().get(0);
-        if (StringUtils.isNotBlank(recentNumber) == true) {
+        if (StringUtils.isNotBlank(recentNumber)) {
           phoneNumber = recentNumber;
         }
       }
@@ -258,11 +258,11 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
     fs.addKeyboardHelpIcon(new ResourceModel("tooltip.autocompletion.title"),
         new ResourceModel("address.directCall.number.tooltip"));
 
-    {
+    if (sipgateDirectCallService.isAvailable()) {
       // DropDownChoice myCurrentPhoneId
       fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));
       final LabelValueChoiceRenderer<String> myCurrentPhoneIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      final List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getUser());
+      List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getUser());
       if (CollectionUtils.isEmpty(ids)) {
         myCurrentPhoneIdChoiceRenderer.addValue("--", getString("user.personalPhoneIdentifiers.pleaseDefine"));
       } else {
@@ -277,12 +277,11 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       fs.add(myCurrentPhoneIdChoice);
       fs.addHelpIcon(new ResourceModel("address.myCurrentPhoneId.tooltip.title"),
           new ResourceModel("address.myCurrentPhoneId.tooltip.content"));
-    }
-    {
+
       // DropDownChoice myCurrentCallerId
       fs = gridBuilder.newFieldset(getString("address.myCurrentCallerId"));
       final LabelValueChoiceRenderer<String> myCurrentCalerIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      final List<String> ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getUser());
+      ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getUser());
       for (final String id : ids) {
         myCurrentCalerIdChoiceRenderer.addValue(id, id);
       }
@@ -317,13 +316,13 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
               if (address.getForm() != null) {
                 buf.append(getString(address.getForm().getI18nKey())).append(" ");
               }
-              if (StringUtils.isNotBlank(address.getTitle()) == true) {
+              if (StringUtils.isNotBlank(address.getTitle())) {
                 buf.append(address.getTitle()).append(" ");
               }
-              if (StringUtils.isNotBlank(address.getFirstName()) == true) {
+              if (StringUtils.isNotBlank(address.getFirstName())) {
                 buf.append(address.getFirstName()).append(" ");
               }
-              if (StringUtils.isNotBlank(address.getName()) == true) {
+              if (StringUtils.isNotBlank(address.getName())) {
                 buf.append(address.getName());
               }
               return buf.toString();
@@ -341,7 +340,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
     {
       final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("call")) {
         @Override
-        public final void onSubmit() {
+        public void onSubmit() {
           parentPage.call();
         }
       };
@@ -395,7 +394,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
           return false;
         }
         final String number = (String) BeanHelper.getProperty(address, property);
-        return (StringUtils.isNotBlank(number) == true);
+        return (StringUtils.isNotBlank(number));
       }
     };
     numberLinkPanel.getLabel().setEscapeModelStrings(false);
