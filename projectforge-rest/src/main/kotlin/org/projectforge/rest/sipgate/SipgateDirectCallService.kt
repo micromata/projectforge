@@ -55,7 +55,7 @@ open class SipgateDirectCallService {
   }
 
   /**
-   * Gets the caller id's of the user (by user devices and configured phone id under MyAccount.
+   * Gets the caller id's of the user (by user devices and configured phone id under MyAccount).
    */
   open fun getCallerNumbers(user: PFUserDO): List<String> {
     val devices = sipgateSyncService.getStorage().getUserDevices(user)?.devices
@@ -82,6 +82,12 @@ open class SipgateDirectCallService {
         }
       }
     }
+    getPersonalPhoneIdentifiers(user)?.forEach { number ->
+      val fullNumber = getFullNumber(number)!!
+      if (!list.contains(fullNumber)) {
+        list.add(fullNumber)
+      }
+    }
     return list
   }
 
@@ -91,7 +97,7 @@ open class SipgateDirectCallService {
    * @param callerIdString If given, this id is displayed at the callees device.
    * @param callee Whom to call?
    */
-  internal fun getCallerData(user: PFUserDO, callerString: String, callerIdString: String?, callee: String): CallData? {
+  private fun getCallerData(user: PFUserDO, callerString: String, callerIdString: String?, callee: String): CallData? {
     val storage = sipgateSyncService.getStorage()
     val userDevices = storage.getUserDevices(user)?.devices
     return getCallerData(
@@ -113,13 +119,12 @@ open class SipgateDirectCallService {
     val data =
       getCallerData(user, callerString = callerString, callerIdString = callerId, callee = callee) ?: return false
     log.info { "deviceId=${data.deviceId}, caller=${data.caller}, callerId=${data.callerId}, callee=${data.callee}" }
-    sipgateService.initCall(
+    return sipgateService.initCall(
       deviceId = data.deviceId,
       caller = data.caller,
       callee = data.callee,
       callerId = data.callerId,
     )
-    return false
   }
 
   private fun getCallerId(storage: SipgateDataStorage, device: SipgateDevice): String? {
@@ -130,14 +135,17 @@ open class SipgateDirectCallService {
     } else {
       null
     }
-    number?.localized?.trim { it <= ' ' }?.let { localized ->
-      return if (localized.length < 4) {
-        "${sipgateConfiguration.basePhoneNumber}$localized"
-      } else {
-        localized
-      }
+    return getFullNumber(number?.localized)
+  }
+
+  private fun getFullNumber(number: String?): String? {
+    number ?: return null
+    val trimmed = number.trim { it <= ' ' }
+    return if (trimmed.length < 4) {
+      "${sipgateConfiguration.basePhoneNumber}$trimmed"
+    } else {
+      trimmed
     }
-    return null
   }
 
   companion object {
@@ -179,6 +187,8 @@ open class SipgateDirectCallService {
 
     /**
      * For testing.
+     * @param callerString My phone (number or device string)
+     * @param callerIdString My current caller id to display at the callee's phone.
      */
     internal fun getCallerData(
       userDevices: List<SipgateDevice>?,
@@ -224,7 +234,7 @@ open class SipgateDirectCallService {
       val caller = if (number?.endpointId != null) {
         number.endpointId!!
       } else {
-        defaultDevice
+        callerId ?: defaultDevice
       }
       if (callerId == null) {
         log.error { "No caller-id found for user '${user.username}' and callerId='$callerId'." }
