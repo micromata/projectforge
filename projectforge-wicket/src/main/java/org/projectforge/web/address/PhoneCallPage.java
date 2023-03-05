@@ -24,6 +24,7 @@
 package org.projectforge.web.address;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
@@ -35,6 +36,9 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.AddressPagesRest;
+import org.projectforge.rest.AddressViewPageRest;
+import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.sipgate.SipgateDirectCallService;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
@@ -48,7 +52,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   public final static String PARAMETER_KEY_NUMBER = "number";
 
   protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[]{PARAMETER_KEY_ADDRESS_ID + "|address",
-      PARAMETER_KEY_NUMBER + "|no"};
+      PARAMETER_KEY_NUMBER + "|no", "callerPage|cp"};
 
   private static final String SEPARATOR = " | ";
 
@@ -101,6 +105,14 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     if (StringUtils.isNotBlank(number) == true) {
       form.setPhoneNumber(extractPhonenumber(number));
     }
+  }
+
+  public String getCallerPage() {
+    return form.callerPage;
+  }
+
+  public void setCallerPage(final String callerPage) {
+    form.setCallerPage(callerPage);
   }
 
   /**
@@ -197,6 +209,15 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     }
     processPhoneNumber();
     form.numberTextField.modelChanged();
+  }
+
+  void backToCaller() {
+    String callerPage = form.getCallerPage();
+    if ("addressView".equals(callerPage)) {
+      throw new RedirectToUrlException(PagesResolver.getDynamicPageUrl(AddressViewPageRest.class, null, getAddressId(), true));
+    } else {
+      throw new RedirectToUrlException(PagesResolver.getListPageUrl(AddressPagesRest.class, null, true));
+    }
   }
 
   void call() {

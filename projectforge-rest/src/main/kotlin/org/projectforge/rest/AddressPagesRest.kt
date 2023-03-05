@@ -262,7 +262,7 @@ class AddressPagesRest
       .valueIconMap = mapOf(true to UIIconType.STAR_REGULAR)
     var menuIndex = 0
     if (sipgateConfiguration.isConfigured()) {
-      layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
+      layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall?callerPage=addressList"), menuIndex++)
     }
     if (smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()) {
       val sendSmsUrl = if (SystemStatus.isDevelopmentMode()) {
@@ -534,7 +534,7 @@ class AddressPagesRest
         MenuItem(
           "address.directCall",
           i18nKey = "address.directCall.call",
-          url = "wa/phoneCall?addressId=${dto.id}",
+          url = "wa/phoneCall?addressId=${dto.id}&callerPage=addressList",
           type = MenuItemTargetType.REDIRECT
         )
       )

@@ -43,7 +43,6 @@ import org.projectforge.business.address.PhoneType;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
@@ -82,6 +81,8 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
 
   protected String phoneNumber;
 
+  protected String callerPage;
+
   private String myCurrentPhoneId;
 
   private String myCurrentCallerId;
@@ -100,6 +101,14 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
 
   public void setPhoneNumber(final String phoneNumber) {
     this.phoneNumber = phoneNumber;
+  }
+
+  public String getCallerPage() {
+    return callerPage;
+  }
+
+  public void setCallerPage(String callerPage) {
+    this.callerPage = callerPage;
   }
 
   public String getMyCurrentPhoneId() {
@@ -338,6 +347,17 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       addPhoneNumber("privateMobilePhone", getString(PhoneType.PRIVATE_MOBILE.getI18nKey()));
     }
     {
+      final Button backButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("back")) {
+        @Override
+        public void onSubmit() {
+          parentPage.backToCaller();
+        }
+      };
+      final SingleButtonPanel backButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), backButton,
+          getString("back"), SingleButtonPanel.INFO);
+      actionButtons.add(backButtonPanel);
+    }
+    {
       final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("call")) {
         @Override
         public void onSubmit() {
@@ -348,13 +368,6 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
           getString("address.directCall.call"), SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(callButtonPanel);
       setDefaultButton(callButton);
-    }
-    final String url = ConfigXml.getInstance().getTelephoneSystemOperatorPanelUrl();
-    if (url != null) {
-      final DivPanel section = gridBuilder.newGridPanel().getPanel();
-      final TextPanel showOperatorPanel = new TextPanel(section.newChildId(), url);
-      showOperatorPanel.getLabel().setEscapeModelStrings(false);
-      section.add(showOperatorPanel);
     }
   }
 

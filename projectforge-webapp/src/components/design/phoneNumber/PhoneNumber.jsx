@@ -14,6 +14,7 @@ function PhoneNumber(
         phoneType,
         sms,
         smsEnabled,
+        callerPage,
     },
 ) {
     const stopPropagation = (event) => event.stopPropagation();
@@ -27,7 +28,7 @@ function PhoneNumber(
             {phoneCallEnabled ? (
                 <Link
                     onClick={stopPropagation}
-                    to={`/wa/phoneCall?addressId=${addressId}&number=${encodeURIComponent(number)}`}
+                    to={`/wa/phoneCall?addressId=${addressId}&number=${encodeURIComponent(number)}&callerPage=${callerPage}`}
                 >
                     {number}
                 </Link>
@@ -54,6 +55,7 @@ PhoneNumber.propTypes = {
     phoneCallEnabled: PropTypes.bool.isRequired,
     phoneType: PropTypes.string.isRequired,
     smsEnabled: PropTypes.bool.isRequired,
+    callerPage: PropTypes.string.isRequired,
     sms: PropTypes.bool,
 };
 
