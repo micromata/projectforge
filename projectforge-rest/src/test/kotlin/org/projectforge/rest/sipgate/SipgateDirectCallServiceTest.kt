@@ -61,10 +61,10 @@ class SipgateDirectCallServiceTest {
       )
     )
     assert(
-      callerId = "0777777", caller = "default", callee = "55555", deviceId = "default",
+      callerId = "0170123456", caller = "0170123456", callee = "55555", deviceId = "defaultDeviceId",
       SipgateDirectCallService.getCallerData(
-        emptyList(), emptyList(), "default", "012345", user, "099999999",
-        "0777777", "55555"
+        emptyList(), emptyList(), "defaultDeviceId", "012345", user, "0170123456",
+        "0170123456", "55555"
       )
     )
     Assertions.assertNull(

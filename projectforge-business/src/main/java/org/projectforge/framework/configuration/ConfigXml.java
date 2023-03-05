@@ -75,8 +75,6 @@ public class ConfigXml {
 
   private StorageConfig storageConfig;
 
-  private String telephoneSystemOperatorPanelUrl;
-
   private List<ConfigureHoliday> holidays;
 
   private transient File configFile;
@@ -119,7 +117,6 @@ public class ConfigXml {
   private void reset() {
     jiraBrowseBaseUrl = null;
     jiraServers = null;
-    telephoneSystemOperatorPanelUrl = null;
     holidays = null;
     databaseDirectory = "database";
     ehcacheDirectory = "ehcache";
@@ -413,10 +410,6 @@ public class ConfigXml {
 
   public boolean isStorageConfigured() {
     return storageConfig != null && StringUtils.isNotBlank(storageConfig.getAuthenticationToken());
-  }
-
-  public String getTelephoneSystemOperatorPanelUrl() {
-    return telephoneSystemOperatorPanelUrl;
   }
 
   public List<ContractType> getContractTypes() {
