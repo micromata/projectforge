@@ -28,11 +28,13 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.sipgate.SipgateDevice
 import org.projectforge.business.sipgate.SipgateNumber
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.utils.NumberHelper
 
 
 class SipgateDirectCallServiceTest {
   @Test
   fun getCallerData() {
+    NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
     val userDevices = listOf(
       createUserDevice("e1", "Berta's phone", routingId = "p1", routingAlias = "Berta"),
       createUserDevice("p2", "Berta's cellular", routingId = "p1", routingAlias = "Berta")
@@ -65,6 +67,13 @@ class SipgateDirectCallServiceTest {
       SipgateDirectCallService.getCallerData(
         emptyList(), emptyList(), "defaultDeviceId", "012345", user, "0170123456",
         "0170123456", "55555"
+      )
+    )
+    assert(
+      callerId = "1111111", caller = "2222222", callee = "55555", deviceId = "defaultDeviceId",
+      SipgateDirectCallService.getCallerData(
+        emptyList(), emptyList(), "defaultDeviceId", "012345", user, "2222222",
+        "1111111", "55555"
       )
     )
     Assertions.assertNull(

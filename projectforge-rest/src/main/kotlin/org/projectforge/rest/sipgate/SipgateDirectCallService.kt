@@ -139,13 +139,7 @@ open class SipgateDirectCallService {
   }
 
   private fun getFullNumber(number: String?): String? {
-    number ?: return null
-    val trimmed = number.trim { it <= ' ' }
-    return if (trimmed.length < 4) {
-      "${sipgateConfiguration.basePhoneNumber}$trimmed"
-    } else {
-      trimmed
-    }
+    return getFullNumber(sipgateConfiguration.basePhoneNumber, number)
   }
 
   companion object {
@@ -234,7 +228,7 @@ open class SipgateDirectCallService {
       val caller = if (number?.endpointId != null) {
         number.endpointId!!
       } else {
-        callerId ?: defaultDevice
+        getFullNumber(basePhoneNumber = basePhoneNumber, number = callerString) ?: defaultDevice
       }
       if (callerId == null) {
         log.error { "No caller-id found for user '${user.username}' and callerId='$callerId'." }
@@ -242,5 +236,16 @@ open class SipgateDirectCallService {
       }
       return CallData(callerId = callerId!!, caller = caller, deviceId = callerDeviceId, callee = callee)
     }
+
+    private fun getFullNumber(basePhoneNumber: String?, number: String?): String? {
+      number ?: return null
+      val trimmed = number.trim { it <= ' ' }
+      return if (trimmed.length < 4) {
+        "${basePhoneNumber}$trimmed"
+      } else {
+        trimmed
+      }
+    }
+
   }
 }
