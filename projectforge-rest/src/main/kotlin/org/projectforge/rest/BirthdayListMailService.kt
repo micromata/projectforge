@@ -1,41 +1,45 @@
 package org.projectforge.rest
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.projectforge.mail.Mail
+import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
+import org.projectforge.rest.config.BirthdayListConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.File
 
 @Service
 class BirthdayListMailService {
     @Autowired
     private lateinit var sendMail: SendMail
 
-    fun sendMail() {
+    @Autowired
+    private lateinit var birthdayListConfiguration: BirthdayListConfiguration
 
-        val emailAddresses = getMailAddressesFromConfig()
-
-        for (address in emailAddresses) {
-            val mail = Mail()
-            mail.subject = "Testmail"
-            mail.contentType = Mail.CONTENTTYPE_HTML
-            mail.setTo(address.email)
-            mail.content = "Hallo, guten Tag. Dies ist eine Testmail von Jona Fleckenstein."
-            sendMail.send(mail)
+    fun sendMail(mailAttachments: List<MailAttachment>) {
+        val emails = getEMailAddressesFromConfig()
+        if (!emails.isNullOrEmpty()) {
+            for (address in emails) {
+                val mail = Mail()
+                mail.subject = "Testmail"
+                mail.contentType = Mail.CONTENTTYPE_HTML
+                mail.setTo(address)
+                mail.content = "Hallo, guten Tag. Dies ist eine Testmail von Jona Fleckenstein."
+                sendMail.send(mail, attachments = mailAttachments)
+            }
         }
     }
 
-    private fun getMailAddressesFromConfig(): List<MailJson> {
-        val mapper = jacksonObjectMapper()
-        mapper.registerKotlinModule()
-        mapper.registerModule(JavaTimeModule())
-        return mapper.readValue<List<MailJson>>(File("projectforge-rest/src/main/kotlin/org/projectforge/rest/Test.json").readText(Charsets.UTF_8))
-    }
-
-    data class MailJson(val email: String) {
+    private fun getEMailAddressesFromConfig(): MutableList<String>? {
+        if (!birthdayListConfiguration.emails.isNullOrBlank()){
+            val splittedEmailsList = birthdayListConfiguration.emails!!.split(",")
+            var trimmedEmailsList = mutableListOf<String>()
+            for (mail in splittedEmailsList) {
+                if (mail.isNotBlank())
+                    trimmedEmailsList.add(mail.trim())
+            }
+            if (trimmedEmailsList.size != 0)
+                return trimmedEmailsList
+        }
+        return null
     }
 }

@@ -2987,6 +2987,5 @@
   {"i18nKey":"plugins.teamcal.title.list.select","bundleName":null,"translation":null,"translationDE":null,"usedInClasses":["org.projectforge.web.teamcal.admin.TeamCalEditPage","org.projectforge.web.teamcal.admin.TeamCalListPage"],"usedInFiles":[]},
   {"i18nKey":"plugins.teamcalendar.event","bundleName":null,"translation":null,"translationDE":null,"usedInClasses":["org.projectforge.business.user.UserRightId"],"usedInFiles":[]},
   {"i18nKey":"plugins.todo.title.list.select","bundleName":null,"translation":null,"translationDE":null,"usedInClasses":["org.projectforge.plugins.todo.ToDoEditPage","org.projectforge.plugins.todo.ToDoListPage"],"usedInFiles":[]},
-  {"i18nKey":"timesheet.title.list.select","bundleName":null,"translation":null,"translationDE":null,"usedInClasses":["org.projectforge.web.timesheet.TimesheetEditPage","org.projectforge.web.timesheet.TimesheetListPage"],"usedInFiles":[]},
-  {"i18nKey":"userPref.title.list.select","bundleName":null,"translation":null,"translationDE":null,"usedInClasses":["org.projectforge.web.user.UserPrefEditPage","org.projectforge.web.user.UserPrefListPage"],"usedInFiles":[]}
+  {"i18nKey":"timesheet.title.list.select","bundleName":null,"translation":null,"translationDE":null,"usedInClasses":["org.projectforge.web.timesheet.TimesheetEditPage","org.projectforge.web.timesheet.TimesheetListPage"],"usedInFiles":[]}
 ]
