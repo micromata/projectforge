@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 open class BirthdayListConfiguration {
     @Value("\${projectforge.birthdaylist.organization}")
-    open var organization: String? = null
+    open lateinit var organization: String
 
     @Value("\${projectforge.birthdaylist.emails}")
     open var emails: String? = null
