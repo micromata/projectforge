@@ -7,7 +7,7 @@
 #RUN npm install
 #RUN npm run build
 
-FROM maven:3.8.1-jdk-11 AS build
+FROM maven:3.8.1-jdk-15 AS build
 RUN mkdir /app
 COPY . /app
 WORKDIR /app
@@ -22,7 +22,7 @@ WORKDIR /dist
 # For test only: RUN unzip /app/projectforge-application*.jar
 RUN unzip /app/projectforge-application-*.jar
 
-FROM openjdk:11-buster
+FROM openjdk:15-buster
 
 # See: https://spring.io/guides/gs/spring-boot-docker/
 

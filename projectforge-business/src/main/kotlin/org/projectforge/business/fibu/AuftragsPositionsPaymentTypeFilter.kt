@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import mu.KotlinLogging
-import org.apache.commons.collections.CollectionUtils
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 private val log = KotlinLogging.logger {}

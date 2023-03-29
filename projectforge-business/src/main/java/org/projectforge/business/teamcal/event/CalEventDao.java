@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.event;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;

@@ -25,11 +25,10 @@ package org.projectforge.mail
 
 import de.micromata.genome.util.validation.ValContext
 import mu.KotlinLogging
-import org.apache.commons.collections.CollectionUtils
+import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.DomainService
-import org.projectforge.mail.SendMail
 import org.projectforge.business.scripting.GroovyEngine
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage

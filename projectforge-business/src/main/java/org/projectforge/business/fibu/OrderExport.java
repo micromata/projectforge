@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;

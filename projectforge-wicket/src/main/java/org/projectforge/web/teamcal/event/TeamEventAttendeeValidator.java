@@ -23,11 +23,11 @@
 
 package org.projectforge.web.teamcal.event;
 
-import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.common.StringHelper;
 import org.projectforge.framework.i18n.I18nHelper;
 
 import java.util.Collection;
@@ -42,8 +42,7 @@ public class TeamEventAttendeeValidator implements IValidator<Collection<TeamEve
     Collection<TeamEventAttendeeDO> attendeeList = validatable.getValue();
     for (TeamEventAttendeeDO attendee : attendeeList) {
       if (attendee.getUser() == null && attendee.getAddress() == null && attendee.getUrl() != null) {
-        EmailValidator validator = EmailValidator.getInstance();
-        boolean isValid = validator.isValid(attendee.getUrl());
+        boolean isValid = StringHelper.isEmailValid(attendee.getUrl());
         if (isValid == false) {
           error(validatable, I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.invalid"));
         }

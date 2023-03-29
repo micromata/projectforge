@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.kost;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.reporting.Kost2Art;

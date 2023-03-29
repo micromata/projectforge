@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu
 
-import org.apache.commons.collections.CollectionUtils
+import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.user.*
 import org.projectforge.business.user.UserGroupCache.Companion.getInstance
 import org.projectforge.framework.access.AccessChecker

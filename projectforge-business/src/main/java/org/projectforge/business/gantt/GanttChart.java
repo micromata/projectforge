@@ -23,7 +23,7 @@
 
 package org.projectforge.business.gantt;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.export.SVGColor;
 import org.projectforge.export.SVGHelper;

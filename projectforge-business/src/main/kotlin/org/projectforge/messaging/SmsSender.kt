@@ -24,7 +24,7 @@
 package org.projectforge.messaging
 
 import mu.KotlinLogging
-import org.apache.commons.collections.MapUtils
+import org.apache.commons.collections4.MapUtils
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.Consts

@@ -51,10 +51,10 @@ public class StringHelperTest {
     assertEquals("Micromata,Computer,IT-Services", StringHelper.listToString(list, ",", false));
     assertEquals("Computer, IT-Services, Micromata", StringHelper.listToString(list, ", ", true));
     assertEquals("Micromata,Computer,IT-Services",
-            StringHelper.listToString(",", "Micromata", "Computer", "IT-Services"));
+        StringHelper.listToString(",", "Micromata", "Computer", "IT-Services"));
     assertEquals("Micromata", StringHelper.listToString(",", "Micromata"));
     assertEquals("(Micromata == ?) and (Computer == ?) and (IT-Services == ?)",
-            StringHelper.listToExpressions(" and ", "(", " == ?)", "Micromata", "Computer", "IT-Services"));
+        StringHelper.listToExpressions(" and ", "(", " == ?)", "Micromata", "Computer", "IT-Services"));
     assertEquals("(Micromata == ?)", StringHelper.listToExpressions(" and ", "(", " == ?)", "Micromata"));
 
     assertEquals("a,b,c", StringHelper.listToString(",", "a", null, "b", "", "c"));
@@ -69,7 +69,7 @@ public class StringHelperTest {
     compareStringArray(new String[]{"hallo"}, StringHelper.sortAndUnique(new String[]{"hallo"}));
     compareStringArray(new String[]{"hallo"}, StringHelper.sortAndUnique(new String[]{"hallo", "hallo"}));
     compareStringArray(new String[]{"1", "2", "3"},
-            StringHelper.sortAndUnique(new String[]{"1", "3", "2", "1", "3"}));
+        StringHelper.sortAndUnique(new String[]{"1", "3", "2", "1", "3"}));
   }
 
   @Test
@@ -149,11 +149,11 @@ public class StringHelperTest {
     assertEquals("1: Hello: ProjectForge", str);
     assertTrue(str.length() <= 22);
     str = StringHelper.abbreviate(new String[]{"11234567", "Hello, how are you?",
-            "ProjectForge is the world fines Project management app."}, maxWidth, 22, ": ");
+        "ProjectForge is the world fines Project management app."}, maxWidth, 22, ": ");
     assertTrue(str.length() == 22);
     assertEquals("11...: He...: Proje...", str);
     str = StringHelper.abbreviate(new String[]{null, "1", "ProjectForge is the world fines Project management app."},
-            maxWidth, 22, ": ");
+        maxWidth, 22, ": ");
     assertTrue(str.length() == 22);
     assertEquals("1: ProjectForge is ...", str);
   }
@@ -289,7 +289,18 @@ public class StringHelperTest {
     assertEquals("c++", StringHelper.normalize("C++", true));
   }
 
-    private void testBlank(final boolean expectedValue, final String... strs) {
+  @Test
+  public void emailValid() {
+    assertTrue(StringHelper.isEmailValid("j.dee@devnull.com"));
+    assertFalse(StringHelper.isEmailValid("j.dee_devnull.com"));
+    assertFalse(StringHelper.isEmailValid("@devnull.com"));
+    assertFalse(StringHelper.isEmailValid("j.dee@d"));
+    assertFalse(StringHelper.isEmailValid(""));
+    assertFalse(StringHelper.isEmailValid(" 1.test@devnull.com"));
+    assertFalse(StringHelper.isEmailValid("test@devnull com"));
+  }
+
+  private void testBlank(final boolean expectedValue, final String... strs) {
     assertEquals(expectedValue, StringHelper.isBlank(strs));
     assertEquals(!expectedValue, StringHelper.isNotBlank(strs));
   }
