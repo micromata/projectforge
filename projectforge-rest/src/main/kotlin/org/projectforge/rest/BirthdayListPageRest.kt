@@ -4,13 +4,13 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
 import mu.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.hibernate.annotations.Type
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.scripting.I18n.getString
-import org.projectforge.business.teamcal.event.model.TeamEventAttachmentDO
 import org.projectforge.business.user.UserDao
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.MailAttachment
 import org.projectforge.rest.config.BirthdayListConfiguration
 import org.projectforge.rest.config.Rest
@@ -26,12 +26,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.*
-import java.io.File
 import java.io.IOException
-import java.io.PrintWriter
 import java.time.LocalDateTime
 import java.time.Month
-import javax.persistence.Column
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
@@ -102,12 +99,30 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
         //validateCsrfToken(request, postData)?.let { return it }
 
         if (postData.data.month in 1..12) {
-            val birthdaylist = getBirthdayList(postData.data.month - 1)
+            val birthdayList = getBirthdayList(postData.data.month - 1)
 
-            return if (birthdaylist.isNotEmpty())
+            /*val wordDocument = createWordDocument(getBirthdayList(11))
+
+            val attachment = object : MailAttachment {
+                override fun getFilename(): String {
+                    return "blabla.docx"
+                }
+
+                override fun getContent(): ByteArray? {
+                    return wordDocument?.toByteArray()
+                }
+            }
+
+            val list = mutableListOf<MailAttachment>()
+            list.add(attachment)
+            birthdayListMailService.sendMail(list)
+
+         */
+
+            return if (birthdayList.isNotEmpty())
                 RestUtils.downloadFile(
                     "Geburtstagsliste_" + Month.values()[postData.data.month - 1] + "_" + LocalDateTime.now().year + ".docx",
-                    createWordDocument(birthdaylist)!!.toByteArray()
+                    createWordDocument(birthdayList)!!.toByteArray()
                 )
             else
                 ResponseEntity(
@@ -133,7 +148,7 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
         )
     }
 
-    private fun createWordDocument(addressList: List<AddressDO>): ByteArrayOutputStream? {
+    private fun createWordDocument(addressList: MutableList<AddressDO>): ByteArrayOutputStream? {
         return try {
             var listDates: String = ""
             var listNames: String = ""
@@ -185,27 +200,54 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
         }
     }
 
-    private fun getBirthdayList(month: Int): ArrayList<AddressDO> {
-        val filter = AddressFilter()
-        //filter.isDeleted = false
-        val addressList = addressDao.getList(filter)
+    private fun getBirthdayList(month: Int): MutableList<AddressDO> {
+        val filter = QueryFilter()
+        val addressList = addressDao.internalGetList(filter)
+
         val pFUserList = userDao.internalLoadAll()
-        val filteredList = ArrayList<AddressDO>()
+
+        val foundUser = mutableListOf<AddressDO>()
+        val userFoundWithoutBirthday = mutableListOf<PFUserDO>()
 
         pFUserList.forEach { user ->
-            addressList.forEach { addressEntry ->
-                if (addressEntry.firstName.equals(user.firstname, ignoreCase = true) && addressEntry.name.equals(user.lastname, ignoreCase = true) && addressEntry.organization.equals(
-                        user.organization, ignoreCase = true) && addressEntry.birthday != null && addressEntry.birthday?.month == Month.values()[month]
-                )
-                    filteredList.add(addressEntry)
+            addressList.firstOrNull { address ->
+                address.firstName?.trim()?.equals(user.firstname?.trim(), ignoreCase = true) == true &&
+                        address.name?.equals(user.lastname, ignoreCase = true) == true &&
+                        address.organization?.contains(birthdayListConfiguration.organization, ignoreCase = true) == true
+            }?.let { found ->
+                if (found.birthday != null) {
+                    if(found.birthday?.month == Month.values()[month])
+                    foundUser.add(found)
+
+                } else {
+                    userFoundWithoutBirthday.add(user)
+                }
             }
         }
-        return filteredList
+        return foundUser
     }
 
     //@Scheduled(cron = "0 0 8 L-2 * ?") -> Jeden vorletzten Tag des Monats
-    @Scheduled(cron = "0/5 * * ? * *")
+   // @Scheduled(cron = "1 * * ? * *")
     fun sendBirthdayListJob() {
+        val wordDocument = createWordDocument(getBirthdayList(12))
+
+        val attachment = object : MailAttachment {
+            override fun getFilename(): String {
+                return "blabla.docx"
+            }
+
+            override fun getContent(): ByteArray? {
+                return wordDocument?.toByteArray()
+            }
+        }
+
+        val list = mutableListOf<MailAttachment>()
+        list.add(attachment)
+        birthdayListMailService.sendMail(list)
+
+
+
         /*val obj = mailAttachmentimpl()
         val wordDocument = createWordDocument(getBirthdayList(11))
 

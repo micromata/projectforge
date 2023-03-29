@@ -20,7 +20,7 @@ class BirthdayListMailService {
         if (!emails.isNullOrEmpty()) {
             for (address in emails) {
                 val mail = Mail()
-                mail.subject = "Testmail"
+                mail.subject = "You have mail."
                 mail.contentType = Mail.CONTENTTYPE_HTML
                 mail.setTo(address)
                 mail.content = "Hallo, guten Tag. Dies ist eine Testmail von Jona Fleckenstein."
