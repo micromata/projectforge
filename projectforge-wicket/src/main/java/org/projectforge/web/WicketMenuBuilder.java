@@ -23,7 +23,7 @@
 
 package org.projectforge.web;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.Model;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;

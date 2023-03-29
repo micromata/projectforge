@@ -267,7 +267,7 @@ private constructor(
       confirmMessage: String? = "question.forceDeleteQuestion",
     ): UIButton {
       return UIButton(
-        "deleteIt",
+        "forceDelete",
         color = UIColor.WARNING,
         responseAction = responseAction,
         outline = true,

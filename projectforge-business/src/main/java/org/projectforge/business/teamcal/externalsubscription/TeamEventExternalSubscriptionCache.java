@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.externalsubscription;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;

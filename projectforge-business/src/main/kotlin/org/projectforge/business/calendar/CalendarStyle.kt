@@ -37,15 +37,21 @@ class CalendarStyle(
   /**
    * Color will be calculated from bgColor.
    */
-  val textColor: String
-    get() = colorCache.getTextColor(bgColor)
+  fun getTextColor(colorScheme: CalendarEventColorScheme?): String {
+    return colorCache.getTextColor(bgColor, colorScheme)
+  }
 
   /**
    * Color will be calculated from bgColor (bgColor with alpha value):
    * #777 -> #7773, #777777 -> #77777733
+   * For classical mode, the background color is returned unmodified.
    */
-  val backgroundColor: String
-    get() = if (bgColor.length == 4) "${bgColor}3" else "${bgColor}33"
+  fun getBackgroundColor(calendarEventColorScheme: CalendarEventColorScheme?): String {
+    if (calendarEventColorScheme == CalendarEventColorScheme.CLASSIC) {
+      return bgColor
+    }
+    return if (bgColor.length == 4) "${bgColor}3" else "${bgColor}33"
+  }
 
   internal class RGB(val r: Int, val g: Int, val b: Int)
 
@@ -57,22 +63,25 @@ class CalendarStyle(
     private val hexPattern = """#[a-f\d]{6}""".toRegex()
 
     private class ColorCache : AbstractCache() { // 1 hour expire time
-      private var map: MutableMap<String, String> = mutableMapOf()
+      private var standardColorsMap: MutableMap<String, String> = mutableMapOf()
+      private var classicColorsMap: MutableMap<String, String> = mutableMapOf()
 
-      fun getTextColor(bgColor: String): String {
+      fun getTextColor(bgColor: String, colorScheme: CalendarEventColorScheme?): String {
         checkRefresh()
+        val map = if (colorScheme == CalendarEventColorScheme.CLASSIC) classicColorsMap else standardColorsMap
         synchronized(map) {
           // if (!SystemStatus.isDevelopmentMode()) {
           map[bgColor]?.let { return it }
           // }
-          val color = calculateTextColor(bgColor)
+          val color = calculateTextColor(bgColor, colorScheme)
           map[bgColor] = color
           return color
         }
       }
 
       override fun refresh() {
-        map = mutableMapOf()
+        standardColorsMap = mutableMapOf()
+        classicColorsMap = mutableMapOf()
       }
     }
 
@@ -114,11 +123,14 @@ class CalendarStyle(
       }
     }
 
-    fun getTextColor(backgroundColor: String?): String {
-      return colorCache.getTextColor(backgroundColor ?: "#000")
+    fun getTextColor(backgroundColor: String?, colorScheme: CalendarEventColorScheme?): String {
+      return colorCache.getTextColor(backgroundColor ?: "#000", colorScheme)
     }
 
-    private fun calculateTextColor(backgroundColor: String?): String {
+    private fun calculateTextColor(backgroundColor: String?, colorScheme: CalendarEventColorScheme?): String {
+      if (colorScheme == CalendarEventColorScheme.CLASSIC) {
+        return if (dark(backgroundColor)) "#fff" else "#444"
+      }
       val bgColor = hexToColor(backgroundColor)
       val hsbColor = Color.RGBtoHSB(bgColor.red, bgColor.green, bgColor.blue, null)
       val hue = hsbColor[0]
@@ -132,6 +144,18 @@ class CalendarStyle(
       // }
       val color = Color(Color.HSBtoRGB(hue, saturation, brightness))
       return String.format("#%02x%02x%02x", color.red, color.green, color.blue)
+    }
+
+    private fun brightness(rgb: RGB): Int {
+      return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+    }
+
+    private fun brightness(color: String?): Int {
+      return brightness(hexToRGB(color))
+    }
+
+    fun dark(color: String?): Boolean {
+      return brightness(color) < 180
     }
   }
 }

@@ -24,7 +24,7 @@
 package org.projectforge.framework.utils;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;

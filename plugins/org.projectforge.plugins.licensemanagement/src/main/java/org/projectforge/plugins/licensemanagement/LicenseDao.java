@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.BaseDao;

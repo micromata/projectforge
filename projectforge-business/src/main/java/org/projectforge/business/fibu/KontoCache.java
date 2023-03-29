@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.hibernate.LazyInitializationException;
 import org.projectforge.framework.cache.AbstractCache;
 import org.slf4j.Logger;

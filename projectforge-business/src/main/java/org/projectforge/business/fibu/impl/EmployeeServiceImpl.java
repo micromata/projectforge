@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.impl;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.api.EmployeeService;

@@ -30,7 +30,7 @@ import net.ftlines.wicket.fullcalendar.callback.CalendarDropMode;
 import net.ftlines.wicket.fullcalendar.callback.ClickedEvent;
 import net.ftlines.wicket.fullcalendar.callback.SelectedRange;
 import net.ftlines.wicket.fullcalendar.callback.View;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.head.IHeaderResponse;
