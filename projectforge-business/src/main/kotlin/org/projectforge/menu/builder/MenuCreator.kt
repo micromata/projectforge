@@ -218,6 +218,7 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
+      .add(MenuItemDef(MenuItemDefId.BIRTHDAY_LIST))
     configurationService.telephoneSystemUrl?.let {
       if (it.isNotEmpty())
         commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))

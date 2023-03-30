@@ -15,15 +15,15 @@ class BirthdayListMailService {
     @Autowired
     private lateinit var birthdayListConfiguration: BirthdayListConfiguration
 
-    fun sendMail(mailAttachments: List<MailAttachment>) {
+    fun sendMail(subject: String, content: String, mailAttachments: List<MailAttachment>?) {
         val emails = getEMailAddressesFromConfig()
         if (!emails.isNullOrEmpty()) {
             for (address in emails) {
                 val mail = Mail()
-                mail.subject = "You have mail."
+                mail.subject = subject
                 mail.contentType = Mail.CONTENTTYPE_HTML
                 mail.setTo(address)
-                mail.content = "Hallo, guten Tag. Dies ist eine Testmail von Jona Fleckenstein."
+                mail.content = content
                 sendMail.send(mail, attachments = mailAttachments)
             }
         }

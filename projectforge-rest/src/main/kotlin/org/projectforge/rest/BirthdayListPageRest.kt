@@ -4,9 +4,9 @@ import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
 import mu.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
-import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.scripting.I18n.getString
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest
 private val log = KotlinLogging.logger {}
 
 @RestController
-@RequestMapping("${Rest.URL}/birthdayListExporter")
+@RequestMapping("${Rest.URL}/birthdayList")
 class BirthdayListPageRest : AbstractDynamicPageRest() {
 
     @Autowired
@@ -52,31 +52,29 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var birthdayListConfiguration: BirthdayListConfiguration
 
+    val months = arrayOf(
+        getString("calendar.month.january"),
+        getString("calendar.month.february"),
+        getString("calendar.month.march"),
+        getString("calendar.month.april"),
+        getString("calendar.month.may"),
+        getString("calendar.month.june"),
+        getString("calendar.month.july"),
+        getString("calendar.month.august"),
+        getString("calendar.month.september"),
+        getString("calendar.month.october"),
+        getString("calendar.month.november"),
+        getString("calendar.month.december")
+    )
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest, @RequestParam("userId") userIdString: String?): FormLayoutData {
-        val layout = UILayout("BirthdayListExporter")
-        val months = arrayOf(
-            getString("calendar.month.january"),
-            getString("calendar.month.february"),
-            getString("calendar.month.march"),
-            getString("calendar.month.april"),
-            getString("calendar.month.may"),
-            getString("calendar.month.june"),
-            getString("calendar.month.july"),
-            getString("calendar.month.august"),
-            getString("calendar.month.september"),
-            getString("calendar.month.october"),
-            getString("calendar.month.november"),
-            getString("calendar.month.december")
-        )
+        val layout = UILayout("Birthday list")
 
         val values = ArrayList<UISelectValue<Int>>()
-        for (i in months.indices) {
-            values.add(UISelectValue(i + 1, months[i]))
-        }
-        layout.add(UISelect("month", required = true, values = values, label = getString("calendar.month")))
+        months.forEachIndexed { index, month -> values.add(UISelectValue(index + 1, month)) }
 
+        layout.add(UISelect("month", required = true, values = values, label = getString("calendar.month")))
         layout.addAction(
             UIButton.createDefaultButton(
                 id = "download_button",
@@ -89,39 +87,21 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
                 )
             )
         )
-        LayoutUtils.process(layout) // Macht i18n und so...
+        LayoutUtils.process(layout)
         val data = BirthdayListData()
         return FormLayoutData(data, layout, createServerData(request))
     }
 
     @PostMapping("downloadBirthdayList")
     fun downloadBirthdayList(request: HttpServletRequest, @RequestBody postData: PostData<BirthdayListData>) : ResponseEntity<*>? {
-        //validateCsrfToken(request, postData)?.let { return it }
+        validateCsrfToken(request, postData)?.let { return it }
 
         if (postData.data.month in 1..12) {
-            val birthdayList = getBirthdayList(postData.data.month - 1)
-
-            /*val wordDocument = createWordDocument(getBirthdayList(11))
-
-            val attachment = object : MailAttachment {
-                override fun getFilename(): String {
-                    return "blabla.docx"
-                }
-
-                override fun getContent(): ByteArray? {
-                    return wordDocument?.toByteArray()
-                }
-            }
-
-            val list = mutableListOf<MailAttachment>()
-            list.add(attachment)
-            birthdayListMailService.sendMail(list)
-
-         */
+            val birthdayList = getBirthdayList(postData.data.month)
 
             return if (birthdayList.isNotEmpty())
                 RestUtils.downloadFile(
-                    "Geburtstagsliste_" + Month.values()[postData.data.month - 1] + "_" + LocalDateTime.now().year + ".docx",
+                    "Birthday_list_" + Month.values()[postData.data.month - 1].toString().lowercase() + "_" + LocalDateTime.now().year + ".docx",
                     createWordDocument(birthdayList)!!.toByteArray()
                 )
             else
@@ -153,20 +133,6 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
             var listDates: String = ""
             var listNames: String = ""
             val sortedList = addressList.sortedBy { it.birthday!!.dayOfMonth }
-            val months = arrayOf(
-                getString("calendar.month.january"),
-                getString("calendar.month.february"),
-                getString("calendar.month.march"),
-                getString("calendar.month.april"),
-                getString("calendar.month.may"),
-                getString("calendar.month.june"),
-                getString("calendar.month.july"),
-                getString("calendar.month.august"),
-                getString("calendar.month.september"),
-                getString("calendar.month.october"),
-                getString("calendar.month.november"),
-                getString("calendar.month.december")
-            )
 
             if (sortedList.isNotEmpty()) {
                 for (i in sortedList.indices) {
@@ -181,19 +147,24 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
 
                     listDates += sortedList[i].birthday!!.dayOfMonth.toString() + "." + sortedList[i].birthday!!.month.value.toString() + ".:"
                 }
+
+
+                val variables = Variables()
+                variables.put("listNames", listNames)
+                variables.put("listDates", listDates)
+                variables.put("listLength", sortedList.size)
+                variables.put("year", LocalDateTime.now().year)
+                variables.put("month", months[sortedList[0].birthday!!.month.value - 1])
+
+                val birthdayListTemplate =
+                    applicationContext.getResource("classpath:officeTemplates/BirthdayListTemplate" + ".docx")
+                WordDocument(birthdayListTemplate.inputStream, birthdayListTemplate.file.name).use { document ->
+                    document.process(variables)
+                    document.asByteArrayOutputStream
+                }
             }
-
-            val variables = Variables()
-            variables.put("listNames", listNames)
-            variables.put("listDates", listDates)
-            variables.put("listLength", sortedList.size)
-            variables.put("year", LocalDateTime.now().year)
-            variables.put("month", months[sortedList[0].birthday!!.month.value - 1])
-
-            val birthdayListTemplate = applicationContext.getResource("classpath:officeTemplates/BirthdayListTemplate" + ".docx")
-            WordDocument(birthdayListTemplate.inputStream, birthdayListTemplate.file.name).use { document ->
-                document.process(variables)
-                document.asByteArrayOutputStream
+            else{
+                null
             }
         } catch (e: IOException) {
             null
@@ -216,7 +187,7 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
                         address.organization?.contains(birthdayListConfiguration.organization, ignoreCase = true) == true
             }?.let { found ->
                 if (found.birthday != null) {
-                    if(found.birthday?.month == Month.values()[month])
+                    if(found.birthday?.month == Month.values()[month - 1])
                     foundUser.add(found)
 
                 } else {
@@ -227,35 +198,30 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
         return foundUser
     }
 
+
     //@Scheduled(cron = "0 0 8 L-2 * ?") -> Jeden vorletzten Tag des Monats
-   // @Scheduled(cron = "1 * * ? * *")
+    @Scheduled(cron = "0/20 * * ? * *")
     fun sendBirthdayListJob() {
-        val wordDocument = createWordDocument(getBirthdayList(12))
+        val currentMonth =  LocalDateTime.now().monthValue
+        val birthdayList = getBirthdayList(currentMonth)
 
-        val attachment = object : MailAttachment {
-            override fun getFilename(): String {
-                return "blabla.docx"
+        if (birthdayList.isNotEmpty()) {
+            val wordDocument = createWordDocument(birthdayList)
+
+            val attachment = object : MailAttachment {
+                override fun getFilename(): String {
+                    return "Birthday_list_" + Month.values()[currentMonth - 1].toString().lowercase()  + "_" + LocalDateTime.now().year + ".docx"
+                }
+                override fun getContent(): ByteArray? {
+                    return wordDocument?.toByteArray()
+                }
             }
 
-            override fun getContent(): ByteArray? {
-                return wordDocument?.toByteArray()
-            }
+            val list = mutableListOf<MailAttachment>()
+            list.add(attachment)
+            birthdayListMailService.sendMail(subject = "Birthday list for " + Month.values()[currentMonth - 1].toString().lowercase(), content = "Attached is the list of upcoming birthdays for the next month.\n \n This E-Mail is automatically generated by ProjectForge", mailAttachments = list)
+        }else {
+           birthdayListMailService.sendMail(subject = "Birthday list for " + Month.values()[currentMonth - 1].toString().lowercase(), content = "No birthdays found for this month.\n\nThis E-Mail is automatically generated by ProjectForge", mailAttachments = null)
         }
-
-        val list = mutableListOf<MailAttachment>()
-        list.add(attachment)
-        birthdayListMailService.sendMail(list)
-
-
-
-        /*val obj = mailAttachmentimpl()
-        val wordDocument = createWordDocument(getBirthdayList(11))
-
-        obj.setFilename("Test123")
-        obj.setContent(wordDocument!!.toByteArray())
-
-        val list = mutableListOf<mailAttachmentimpl>()
-        list.add(obj)
-        birthdayListMailService.sendMail(list)*/
     }
 }
