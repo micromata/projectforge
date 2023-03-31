@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,17 +27,16 @@ import mu.KotlinLogging
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.http.Consts
-import org.apache.http.HttpStatus
-import org.apache.http.NameValuePair
-import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.methods.HttpRequestBase
-import org.apache.http.client.utils.URIBuilder
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.message.BasicNameValuePair
+import org.apache.hc.client5.http.classic.methods.HttpGet
+import org.apache.hc.client5.http.classic.methods.HttpPost
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.HttpClients
+import org.apache.hc.core5.http.HttpStatus
+import org.apache.hc.core5.http.NameValuePair
+import org.apache.hc.core5.http.message.BasicNameValuePair
+import org.apache.hc.core5.net.URIBuilder
 import org.projectforge.common.StringHelper
 import org.projectforge.sms.SmsSenderConfig
 import java.io.IOException
@@ -78,7 +77,7 @@ class SmsSender(private var config: SmsSenderConfig) {
     createHttpClient().use { client ->
       return try {
         client.execute(method).use { httpResponse ->
-          val statusCode = httpResponse.statusLine.statusCode
+          val statusCode = httpResponse.code
           var response: String? = null
           if (statusCode == HttpStatus.SC_OK) {
             val stream = httpResponse.entity.content
@@ -162,7 +161,7 @@ class SmsSender(private var config: SmsSenderConfig) {
    * @param url
    * @return
    */
-  protected fun createHttpMethod(url: String?, phoneNumber: String?, message: String): HttpRequestBase {
+  protected fun createHttpMethod(url: String?, phoneNumber: String?, message: String): HttpUriRequestBase {
     if (config.httpMethodType === SmsSenderConfig.HttpMethodType.GET) {
       return try {
         val uriBuilder = URIBuilder(url)
@@ -190,7 +189,7 @@ class SmsSender(private var config: SmsSenderConfig) {
       for ((key, value1) in config.httpParams!!) {
         val value = replaceVariables(value1, phoneNumber, message, false)
         formparams.add(BasicNameValuePair(key, value))
-        val entity = UrlEncodedFormEntity(formparams, Consts.UTF_8)
+        val entity = UrlEncodedFormEntity(formparams, StandardCharsets.UTF_8)
         post.entity = entity
       }
     }

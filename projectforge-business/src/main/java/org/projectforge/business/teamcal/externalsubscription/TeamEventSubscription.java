@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,11 +25,11 @@ package org.projectforge.business.teamcal.externalsubscription;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpStatus;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
@@ -37,6 +37,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHelper;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -117,13 +118,13 @@ public class TeamEventSubscription implements Serializable {
     final String displayUrl = teamCalDO.getExternalSubscriptionUrlAnonymized();
     log.info("Getting subscribed calendar #" + teamCalDO.getId() + " from: " + displayUrl);
     byte[] bytes = null;
-    try {
 
-      // Create a method instance.
-      try (final CloseableHttpClient client = HttpClients.createDefault()) {
-        final HttpGet method = new HttpGet(url);
-        final HttpResponse httpResponse = client.execute(method);
-        final int statusCode = httpResponse.getStatusLine().getStatusCode();
+    // Create a method instance.
+    try (final CloseableHttpClient client = HttpClients.createDefault()) {
+      final HttpGet method = new HttpGet(url);
+
+      bytes = client.execute(method, response -> {
+        final int statusCode = response.getCode();
         if (statusCode != HttpStatus.SC_OK) {
           error("Unable to gather subscription calendar #"
               + teamCalDO.getId()
@@ -131,24 +132,35 @@ public class TeamEventSubscription implements Serializable {
               + displayUrl
               + "'. Received statusCode: "
               + statusCode, null);
-          return;
+          return null;
         }
-
-        final MessageDigest md = MessageDigest.getInstance("MD5");
-
-        // Read the response body.
-        try (final InputStream stream = httpResponse.getEntity().getContent()) {
-          bytes = IOUtils.toByteArray(stream);
+        final HttpEntity responseEntity = response.getEntity();
+        if (responseEntity == null) {
+          return null;
         }
-
-        final String md5 = calcHexHash(md.digest(bytes));
-        if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
-          teamCalDO.setExternalSubscriptionHash(md5);
-          teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
-          teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
-          // internalUpdate is valid at this point, because we are calling this method in an async thread
-          teamCalDao.internalUpdate(teamCalDO);
+        try (InputStream inputStream = responseEntity.getContent()) {
+          return IOUtils.toByteArray(inputStream);
         }
+      });
+    } catch (IOException ex) {
+      log.error(ex.getMessage(), ex);
+      return;
+    }
+    if (bytes == null) {
+      return;
+    }
+
+    try {
+
+      final MessageDigest md = MessageDigest.getInstance("MD5");
+
+      final String md5 = calcHexHash(md.digest(bytes));
+      if (!StringUtils.equals(md5, teamCalDO.getExternalSubscriptionHash())) {
+        teamCalDO.setExternalSubscriptionHash(md5);
+        teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
+        teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
+        // internalUpdate is valid at this point, because we are calling this method in an async thread
+        teamCalDao.internalUpdate(teamCalDO);
       }
     } catch (final Exception e) {
       bytes = teamCalDO.getExternalSubscriptionCalendarBinary();

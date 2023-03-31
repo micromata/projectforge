@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -80,6 +80,7 @@ class User(
    * For admin's user page for setting initial password while creating new users.
    */
   var password: String? = null
+
   /**
    * For admin's user page for setting initial wlan password while creating new users.
    */

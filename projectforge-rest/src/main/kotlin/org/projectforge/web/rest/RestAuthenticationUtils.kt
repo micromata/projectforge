@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -105,23 +105,6 @@ open class RestAuthenticationUtils {
     return authInfo.userString
   }
 
-  fun getUserSecret(authInfo: RestAuthenticationInfo, secretAttributes: Array<String>): String? {
-    val secret = getAttribute(authInfo.request, *secretAttributes)
-    if (secret.isNullOrBlank()) {
-      // Log message, because userString was found, but authentication token not:
-      logError(
-        authInfo,
-        "Authentication failed, no user secret (authentication token) given by request params ${
-          joinToString(secretAttributes)
-        }. Rest call forbidden."
-      )
-      return null
-    } else if (log.isDebugEnabled) {
-      logDebug(authInfo, "Got user secret by request parameters ${joinToString(secretAttributes)}.")
-    }
-    return secret
-  }
-
   /**
    * Tries a basic authorization by getting the "Authorization" header containing String "Basic" and base64 encoded "user:secret".
    * @param userTokenType Type of authentication (or null) for separating time penalties of login protection for different types (DAV, REST_CLIENT and normal login).
@@ -142,6 +125,7 @@ open class RestAuthenticationUtils {
         authInfo.resultCode = HttpStatus.UNAUTHORIZED
         authInfo.response.setHeader("WWW-Authenticate", "Basic realm=\"Basic authenticaiton required\"")
         logError(authInfo, "Basic authentication failed, header 'authorization' not found.")
+        log.debug{ "Basic authentication failed, header 'authorization' not found (debug info): ${RequestLog.asJson(authInfo.request)}"}
       } else if (log.isDebugEnabled) {
         logDebug(authInfo, "Basic authentication failed, no authentication given in header (OK).")
       }
@@ -393,7 +377,7 @@ open class RestAuthenticationUtils {
   }
 
   private fun logError(authInfo: RestAuthenticationInfo, msg: String) {
-    log.error("$msg (requestUri=${RequestLog.asString(authInfo.request)})")
+    log.error("$msg (${RequestLog.asString(authInfo.request)})")
     SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "REST AUTHENTICATION FAILED", msg)
   }
 
@@ -469,7 +453,7 @@ open class RestAuthenticationUtils {
      * Might be used for backwards compatibility.
      * @return
      */
-    private fun getHeader(req: HttpServletRequest, vararg keys: String): String? {
+    fun getHeader(req: HttpServletRequest, vararg keys: String): String? {
       keys.forEach { key ->
         val value = req.getHeader(key)
         if (value != null) {

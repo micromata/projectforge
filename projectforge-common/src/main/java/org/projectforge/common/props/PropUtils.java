@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -134,9 +134,15 @@ public class PropUtils {
   }
 
   public static String getI18nKey(final Class<?> clazz, final String property) {
+    return getI18nKey(clazz, property, true);
+  }
+
+  public static String getI18nKey(final Class<?> clazz, final String property, boolean logErrorIfPropertyInfoNotFound) {
     final PropertyInfo info = get(clazz, property);
     if (info == null) {
-      log.error("PropertyInfo not found for field '" + clazz.getName() + "." + property + "' not found.");
+      if (logErrorIfPropertyInfoNotFound) {
+        log.error("PropertyInfo not found for field '" + clazz.getName() + "." + property + "' not found.");
+      }
       return null;
     }
     return info.i18nKey();

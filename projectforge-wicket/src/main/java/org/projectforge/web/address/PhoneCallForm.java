@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.web.address;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Button;
@@ -39,15 +40,14 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
 import org.projectforge.business.address.PhoneType;
-import org.projectforge.business.user.service.UserService;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.rest.AddressViewPageRest;
+import org.projectforge.rest.sipgate.SipgateDirectCallService;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -71,7 +71,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
   private AddressDao addressDao;
 
   @SpringBean
-  private UserService userService;
+  private SipgateDirectCallService sipgateDirectCallService;
 
   protected AddressDO address;
 
@@ -81,7 +81,11 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
 
   protected String phoneNumber;
 
+  protected String callerPage;
+
   private String myCurrentPhoneId;
+
+  private String myCurrentCallerId;
 
   Date lastSuccessfulPhoneCall;
 
@@ -99,6 +103,14 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
     this.phoneNumber = phoneNumber;
   }
 
+  public String getCallerPage() {
+    return callerPage;
+  }
+
+  public void setCallerPage(String callerPage) {
+    this.callerPage = callerPage;
+  }
+
   public String getMyCurrentPhoneId() {
     if (myCurrentPhoneId == null) {
       myCurrentPhoneId = parentPage.getRecentMyPhoneId();
@@ -112,6 +124,21 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       parentPage.setRecentMyPhoneId(this.myCurrentPhoneId);
     }
   }
+
+  public String getMyCurrentCallerId() {
+    if (myCurrentCallerId == null) {
+      myCurrentCallerId = parentPage.getRecentMyCallerId();
+    }
+    return myCurrentCallerId;
+  }
+
+  public void setMyCurrentCallerId(final String myCurrentCallerId) {
+    this.myCurrentCallerId = myCurrentCallerId;
+    if (this.myCurrentCallerId != null) {
+      parentPage.setRecentMyCallerId(this.myCurrentCallerId);
+    }
+  }
+
 
   public AddressDO getAddress() {
     return address;
@@ -157,7 +184,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
     super.init();
     gridBuilder.newSplitPanel(GridSize.COL50);
     FieldsetPanel fs = gridBuilder.newFieldset(getString("address.phoneCall.number.label"),
-            getString("address.phoneCall.number.labeldescription"));
+        getString("address.phoneCall.number.labeldescription"));
     numberTextField = new PFAutoCompleteTextField<AddressDO>(InputPanel.WICKET_ID, new Model() {
       @Override
       public Serializable getObject() {
@@ -223,29 +250,29 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       }
     };
     numberTextField.withLabelValue(true).withMatchContains(true).withMinChars(2).withFocus(true).withAutoSubmit(true);
-    if (StringUtils.isBlank(phoneNumber) == true) {
+    if (StringUtils.isBlank(phoneNumber)) {
       if (address != null) {
         final String no = parentPage.getFirstPhoneNumber();
-        if (StringUtils.isNotBlank(no) == true) {
+        if (StringUtils.isNotBlank(no)) {
           phoneNumber = parentPage.extractPhonenumber(no);
         }
       } else {
         final String recentNumber = getRecentSearchTermsQueue().get(0);
-        if (StringUtils.isNotBlank(recentNumber) == true) {
+        if (StringUtils.isNotBlank(recentNumber)) {
           phoneNumber = recentNumber;
         }
       }
     }
     fs.add(numberTextField);
     fs.addKeyboardHelpIcon(new ResourceModel("tooltip.autocompletion.title"),
-            new ResourceModel("address.directCall.number.tooltip"));
+        new ResourceModel("address.directCall.number.tooltip"));
 
-    {
+    if (sipgateDirectCallService.isAvailable()) {
       // DropDownChoice myCurrentPhoneId
       fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));
       final LabelValueChoiceRenderer<String> myCurrentPhoneIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      final String[] ids = userService.getPersonalPhoneIdentifiers(ThreadLocalUserContext.getUser());
-      if (ids == null) {
+      List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getUser());
+      if (CollectionUtils.isEmpty(ids)) {
         myCurrentPhoneIdChoiceRenderer.addValue("--", getString("user.personalPhoneIdentifiers.pleaseDefine"));
       } else {
         for (final String id : ids) {
@@ -253,12 +280,27 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
         }
       }
       final DropDownChoice myCurrentPhoneIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
-              new PropertyModel(this, "myCurrentPhoneId"), myCurrentPhoneIdChoiceRenderer.getValues(),
-              myCurrentPhoneIdChoiceRenderer);
+          new PropertyModel(this, "myCurrentPhoneId"), myCurrentPhoneIdChoiceRenderer.getValues(),
+          myCurrentPhoneIdChoiceRenderer);
       myCurrentPhoneIdChoice.setNullValid(false).setRequired(true);
       fs.add(myCurrentPhoneIdChoice);
       fs.addHelpIcon(new ResourceModel("address.myCurrentPhoneId.tooltip.title"),
-              new ResourceModel("address.myCurrentPhoneId.tooltip.content"));
+          new ResourceModel("address.myCurrentPhoneId.tooltip.content"));
+
+      // DropDownChoice myCurrentCallerId
+      fs = gridBuilder.newFieldset(getString("address.myCurrentCallerId"));
+      final LabelValueChoiceRenderer<String> myCurrentCalerIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
+      ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getUser());
+      for (final String id : ids) {
+        myCurrentCalerIdChoiceRenderer.addValue(id, id);
+      }
+      final DropDownChoice myCurrentCallerIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
+          new PropertyModel(this, "myCurrentCallerId"), myCurrentCalerIdChoiceRenderer.getValues(),
+          myCurrentCalerIdChoiceRenderer);
+      myCurrentCallerIdChoice.setNullValid(false).setRequired(true);
+      fs.add(myCurrentCallerIdChoice);
+      fs.addHelpIcon(new ResourceModel("address.myCurrentCallerId.tooltip.title"),
+          new ResourceModel("address.myCurrentCallerId.tooltip.content"));
     }
     addressPanel = gridBuilder.newSplitPanel(GridSize.COL50).getPanel();
     {
@@ -273,28 +315,28 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
         }
       };
       final TextLinkPanel addressLinkPanel = new TextLinkPanel(addressPanel.newChildId(), addressViewLink,
-              new Model<String>() {
-                @Override
-                public String getObject() {
-                  if (address == null) {
-                    return "";
-                  }
-                  final StringBuffer buf = new StringBuffer();
-                  if (address.getForm() != null) {
-                    buf.append(getString(address.getForm().getI18nKey())).append(" ");
-                  }
-                  if (StringUtils.isNotBlank(address.getTitle()) == true) {
-                    buf.append(address.getTitle()).append(" ");
-                  }
-                  if (StringUtils.isNotBlank(address.getFirstName()) == true) {
-                    buf.append(address.getFirstName()).append(" ");
-                  }
-                  if (StringUtils.isNotBlank(address.getName()) == true) {
-                    buf.append(address.getName());
-                  }
-                  return buf.toString();
-                }
-              });
+          new Model<String>() {
+            @Override
+            public String getObject() {
+              if (address == null) {
+                return "";
+              }
+              final StringBuffer buf = new StringBuffer();
+              if (address.getForm() != null) {
+                buf.append(getString(address.getForm().getI18nKey())).append(" ");
+              }
+              if (StringUtils.isNotBlank(address.getTitle())) {
+                buf.append(address.getTitle()).append(" ");
+              }
+              if (StringUtils.isNotBlank(address.getFirstName())) {
+                buf.append(address.getFirstName()).append(" ");
+              }
+              if (StringUtils.isNotBlank(address.getName())) {
+                buf.append(address.getName());
+              }
+              return buf.toString();
+            }
+          });
       addressPanel.add(addressLinkPanel);
       addLineBreak();
     }
@@ -305,23 +347,27 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       addPhoneNumber("privateMobilePhone", getString(PhoneType.PRIVATE_MOBILE.getI18nKey()));
     }
     {
+      final Button backButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("back")) {
+        @Override
+        public void onSubmit() {
+          parentPage.backToCaller();
+        }
+      };
+      final SingleButtonPanel backButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), backButton,
+          getString("back"), SingleButtonPanel.INFO);
+      actionButtons.add(backButtonPanel);
+    }
+    {
       final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("call")) {
         @Override
-        public final void onSubmit() {
+        public void onSubmit() {
           parentPage.call();
         }
       };
       final SingleButtonPanel callButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), callButton,
-              getString("address.directCall.call"), SingleButtonPanel.DEFAULT_SUBMIT);
+          getString("address.directCall.call"), SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(callButtonPanel);
       setDefaultButton(callButton);
-    }
-    final String url = ConfigXml.getInstance().getTelephoneSystemOperatorPanelUrl();
-    if (url != null) {
-      final DivPanel section = gridBuilder.newGridPanel().getPanel();
-      final TextPanel showOperatorPanel = new TextPanel(section.newChildId(), url);
-      showOperatorPanel.getLabel().setEscapeModelStrings(false);
-      section.add(showOperatorPanel);
     }
   }
 
@@ -361,7 +407,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
           return false;
         }
         final String number = (String) BeanHelper.getProperty(address, property);
-        return (StringUtils.isNotBlank(number) == true);
+        return (StringUtils.isNotBlank(number));
       }
     };
     numberLinkPanel.getLabel().setEscapeModelStrings(false);
@@ -371,8 +417,8 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
   protected String getPhoneNumberAndPerson(final AddressDO address, final PhoneType phoneType, final String number,
                                            final String countryPrefix) {
     return StringHelper.listToString(", ",
-            NumberHelper.extractPhonenumber(number, countryPrefix) + ": " + address.getName(),
-            address.getFirstName(), getString(phoneType.getI18nKey()), address.getOrganization());
+        NumberHelper.extractPhonenumber(number, countryPrefix) + ": " + address.getName(),
+        address.getFirstName(), getString(phoneType.getI18nKey()), address.getOrganization());
   }
 
   @SuppressWarnings("unchecked")
@@ -382,7 +428,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
     }
     if (recentSearchTermsQueue == null) {
       recentSearchTermsQueue = (RecentQueue<String>) parentPage
-              .getUserPrefEntry("org.projectforge.web.address.PhoneCallAction:recentSearchTerms");
+          .getUserPrefEntry("org.projectforge.web.address.PhoneCallAction:recentSearchTerms");
       if (recentSearchTermsQueue != null) {
         // Old entries:
         parentPage.putUserPrefEntry(USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true);

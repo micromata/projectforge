@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,12 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.configuration.ConfigurationServiceAccessor;
-import org.projectforge.jira.JiraUtilsTest;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.xmlstream.XmlHelper;
+import org.projectforge.jira.JiraUtilsTest;
 import org.projectforge.test.TestSetup;
 
 import java.time.Month;
@@ -41,42 +41,54 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigXmlTest {
   private final static String xml = XmlHelper.replaceQuotes(XmlHelper.XML_HEADER
-          + "\n"
-          + "<config>\n"
-          + "  <jiraBrowseBaseUrl>"
-          + JiraUtilsTest.JIRA_BASE_URL
-          + "</jiraBrowseBaseUrl>\n"
-          + "  <holidays>\n"
-          + "    <holiday label='Erster Mai' month='5' dayOfMonth='1' workingDay='false' />\n"
-          + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3' workingDay='false' />\n"
-          + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5' />\n"
-          + "    <holiday id='SHROVE_TUESDAY' ignore='true' />\n"
-          + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5' />\n"
-          + "  </holidays>\n"
-          + "</config>\n");
+      + "\n"
+      + "<config>\n"
+      + "  <jiraBrowseBaseUrl>"
+      + JiraUtilsTest.JIRA_BASE_URL
+      + "</jiraBrowseBaseUrl>\n"
+      + "<jiraServers>\n"
+      + "  <jiraServer browse-base-url=\""
+      + JiraUtilsTest.JIRA_ACME_BASE_URL
+      + "\" projects=\"ACME; ADMIN, portal\" />\n"
+      + "  <jiraServer browse-base-url=\"https://customer2.acme.com/browse/\" projects=\"SUPPORT\" />\n"
+      + "</jiraServers>\n"
+      + "  <holidays>\n"
+      + "    <holiday label='Erster Mai' month='5' dayOfMonth='1' workingDay='false' />\n"
+      + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3' workingDay='false' />\n"
+      + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5' />\n"
+      + "    <holiday id='SHROVE_TUESDAY' ignore='true' />\n"
+      + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5' />\n"
+      + "  </holidays>\n"
+      + "</config>\n");
 
   private final static String exportXml = XmlHelper.replaceQuotes(XmlHelper.XML_HEADER
-          + "\n"
-          + "<config>\n"
-          + "  <jiraBrowseBaseUrl>"
-          + JiraUtilsTest.JIRA_BASE_URL
-          + "</jiraBrowseBaseUrl>\n"
-          + "  <holidays>\n"
-          + "    <holiday label='Erster Mai' month='5' dayOfMonth='1'/>\n"
-          + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>\n"
-          + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5'/>\n"
-          + "    <holiday id='SHROVE_TUESDAY' ignore='true'/>\n"
-          + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5'/>\n"
-          + "  </holidays>\n"
-          + "  <databaseDirectory>database</databaseDirectory>\n"
-          + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
-          + "  <loggingDirectory>logs</loggingDirectory>\n"
-          + "  <jcrDirectory>jcr</jcrDirectory>\n"
-          + "  <workingDirectory>work</workingDirectory>\n"
-          + "  <backupDirectory>backup</backupDirectory>\n"
-          + "  <tempDirectory>tmp</tempDirectory>\n"
-          + "  <accountingConfig/>\n"
-          + "</config>");
+      + "\n"
+      + "<config>\n"
+      + "  <jiraBrowseBaseUrl>"
+      + JiraUtilsTest.JIRA_BASE_URL
+      + "</jiraBrowseBaseUrl>\n"
+      + "  <jiraServers>\n"
+      + "    <jiraServer browse-base-url=\""
+      + JiraUtilsTest.JIRA_ACME_BASE_URL
+      + "\" projects=\"ACME; ADMIN, portal\"/>\n"
+      + "    <jiraServer browse-base-url=\"https://customer2.acme.com/browse/\" projects=\"SUPPORT\"/>\n"
+      + "  </jiraServers>\n"
+      + "  <holidays>\n"
+      + "    <holiday label='Erster Mai' month='5' dayOfMonth='1'/>\n"
+      + "    <holiday label='Dritter Oktober' month='10' dayOfMonth='3'/>\n"
+      + "    <holiday id='XMAS_EVE' workingDay='true' workFraction='0.5'/>\n"
+      + "    <holiday id='SHROVE_TUESDAY' ignore='true'/>\n"
+      + "    <holiday id='NEW_YEARS_EVE' workingDay='true' workFraction='0.5'/>\n"
+      + "  </holidays>\n"
+      + "  <databaseDirectory>database</databaseDirectory>\n"
+      + "  <ehcacheDirectory>ehcache</ehcacheDirectory>\n"
+      + "  <loggingDirectory>logs</loggingDirectory>\n"
+      + "  <jcrDirectory>jcr</jcrDirectory>\n"
+      + "  <workingDirectory>work</workingDirectory>\n"
+      + "  <backupDirectory>backup</backupDirectory>\n"
+      + "  <tempDirectory>tmp</tempDirectory>\n"
+      + "  <accountingConfig/>\n"
+      + "</config>");
 
   /**
    * Creates a test configuration if no configuration does already exists.
@@ -85,6 +97,20 @@ public class ConfigXmlTest {
     ConfigurationServiceAccessor.internalInitJunitTestMode();
     ConfigXml.internalSetInstance(xml);
     return ConfigXml.getInstance();
+  }
+
+  @Test
+  public void testJiraDefinition() {
+    createTestConfiguration();
+    final ConfigXml config = ConfigXml.getInstance();
+    assertEquals(2, config.getJiraServers().size());
+    assertEquals("https://customer.acme.com/jira/browse/", config.getJiraServers().get(0).getBaseUrl());
+    assertEquals("https://customer2.acme.com/browse/", config.getJiraServers().get(1).getBaseUrl());
+    assertEquals("ACME; ADMIN, portal", config.getJiraServers().get(0)
+        .getProjectsAsString());
+    assertEquals("SUPPORT", config.getJiraServers().get(1).getProjectsAsString());
+    assertEquals("ACME", config.getJiraServers().get(0).getProjects()[0]);
+    assertEquals("PORTAL", config.getJiraServers().get(0).getProjects()[2]);
   }
 
   @Test

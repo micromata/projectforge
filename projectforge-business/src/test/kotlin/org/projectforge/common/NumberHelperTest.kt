@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -21,11 +21,12 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web
+package org.projectforge.common
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 
 class NumberHelperTest {
   @Test
@@ -148,5 +149,41 @@ class NumberHelperTest {
     Assertions.assertEquals(0, NumberHelper.ensureRange(0, 4, -1))
     Assertions.assertEquals(4, NumberHelper.ensureRange(0, 4, 5))
     Assertions.assertEquals(4, NumberHelper.ensureRange(0, 4, 4))
+  }
+
+  @Test
+  fun extractPhonenumber() {
+    Assertions.assertNull(extractPhonenumber(null, null))
+    Assertions.assertEquals("", extractPhonenumber("", "+49"))
+    Assertions.assertEquals("", extractPhonenumber("+", "+49"))
+    Assertions.assertEquals("4", extractPhonenumber("+4", "+49"))
+    Assertions.assertEquals("0", extractPhonenumber("+49", "+49"))
+    Assertions.assertEquals("01", extractPhonenumber("+491", "+49"))
+    Assertions.assertEquals("05613167930", extractPhonenumber("0561 / 316793-0", null))
+    Assertions.assertEquals("00495613167930", extractPhonenumber("+49 561 / 316793-0", null))
+    Assertions.assertEquals("05613167930", extractPhonenumber("+49 561 / 316793-0", "+49"))
+    Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 316793-0", "+49"))
+    Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 31:6793-0", "+49"))
+    Assertions.assertEquals("00445613167930", extractPhonenumber("+44 561 / 31 h6793-0", "+49"))
+    Assertions.assertEquals(
+      "1234567890",
+      extractPhonenumber("\u202D1234567890\u202C", "+49")
+    ) // Apple white spaces from contacts.
+
+    Assertions.assertEquals("007123456", extractPhonenumber("+7123456", "+49"))
+    Assertions.assertEquals("007123456", extractPhonenumber("+7 123456", "+49"))
+    Assertions.assertEquals("012345678", extractPhonenumber("+49 (0) 12345 - 678", "+49"))
+    Assertions.assertEquals("004112345678", extractPhonenumber("+41 (0) 12345 - 678", "+49"))
+  }
+
+  @Test
+  fun formatPhonenumber() {
+    NumberHelper.TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY = "+49"
+    Assertions.assertEquals("12345678", NumberHelper.formatPhonenumber("12345678"))
+    Assertions.assertEquals("0", NumberHelper.formatPhonenumber("0"))
+    Assertions.assertEquals("00", NumberHelper.formatPhonenumber("00"))
+    Assertions.assertEquals("+1", NumberHelper.formatPhonenumber("001"))
+    Assertions.assertEquals("+1 12345", NumberHelper.formatPhonenumber("001 12345"))
+    Assertions.assertEquals("+49 12345 6789", NumberHelper.formatPhonenumber("012345 6789"))
   }
 }

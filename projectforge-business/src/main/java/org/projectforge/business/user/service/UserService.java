@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -285,7 +285,7 @@ public class UserService {
       return errorMsgKeys;
     }
     encryptAndSavePassword(user, newPassword);
-    onPasswordChange(user, true);
+    onPasswordChange(user);
     userDao.internalUpdate(user);
     Login.getInstance().passwordChanged(user, newPassword);
     log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
@@ -301,7 +301,7 @@ public class UserService {
    * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> internalChangePasswordAfter2FA(final Integer userId, final char[] newPassword) {
+  public List<I18nKeyAndParams> internalChangePasswordAfterPasswordReset(final Integer userId, final char[] newPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(newPassword.length > 0);
@@ -314,7 +314,7 @@ public class UserService {
       final PFUserDO user = userDao.internalGetById(userId);
       ThreadLocalUserContext.setUser(user);
       encryptAndSavePassword(user, newPassword);
-      onPasswordChange(user, true);
+      onPasswordChange(user);
       userDao.internalUpdate(user);
       Login.getInstance().passwordChanged(user, newPassword);
       log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
@@ -328,18 +328,20 @@ public class UserService {
   /**
    * Changes the user's WLAN password. Checks the password quality and the correct authentication for the login password before.
    *
-   * @param user
+   * @param userId
    * @param loginPassword   Will be cleared at the end of this method due to security reasons
    * @param newWlanPassword Will be cleared at the end of this method due to security reasons
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final char[] loginPassword, final char[] newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPassword(final Integer userId, final char[] loginPassword, final char[] newWlanPassword) {
     try {
-      Validate.notNull(user);
+      Validate.notNull(userId);
       Validate.isTrue(loginPassword.length > 0);
-      Validate.isTrue(Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()), "User is only allowed to change his own Wlan/Samba password-");
-      user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
-      if (user == null) {
+      Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getUserId()), "User is only allowed to change his own Wlan/Samba password-");
+      final PFUserDO user = userDao.internalGetById(userId);
+      Validate.notNull(user);
+      final PFUserDO userCheck = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
+      if (userCheck == null) {
         return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
       }
       return doWlanPasswordChange(user, newWlanPassword);
@@ -354,14 +356,15 @@ public class UserService {
    * Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
    *
    * @param userId
-   * @param newPassword Will be cleared at the end of this method due to security reasons.
+   * @param newWlanPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final PFUserDO user, final char[] newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final Integer userId, final char[] newWlanPassword) {
     try {
-      Validate.notNull(user);
-      Validate.isTrue(!Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
+      Validate.notNull(userId);
+      Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
+      final PFUserDO user = userDao.internalGetById(userId);
       return doWlanPasswordChange(user, newWlanPassword);
     } finally {
       LoginHandler.clearPassword(newWlanPassword);
@@ -369,20 +372,17 @@ public class UserService {
   }
 
   private List<I18nKeyAndParams> doWlanPasswordChange(final PFUserDO user, final char[] newWlanPassword) {
-    onWlanPasswordChange(user, true); // set last change time and creaty history entry
     Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
+    user.setLastWlanPasswordChange(new Date());
+    userDao.internalUpdate(user);
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
     return Collections.emptyList();
   }
 
 
 
-  public void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
-    userPasswordDao.onPasswordChange(user, createHistoryEntry);
-  }
-
-  public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry) {
-    userPasswordDao.onWlanPasswordChange(user, createHistoryEntry);
+  public void onPasswordChange(final PFUserDO user) {
+    userPasswordDao.onPasswordChange(user);
   }
 
   /**
@@ -485,59 +485,6 @@ public class UserService {
    */
   public List<PFUserDO> internalLoadAll() {
     return userDao.internalLoadAll();
-  }
-
-  public String getNormalizedPersonalPhoneIdentifiers(final PFUserDO user) {
-    return getNormalizedPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
-  }
-
-  public String getNormalizedPersonalPhoneIdentifiers(final String personalPhoneIdentifiers) {
-    if (StringUtils.isNotBlank(personalPhoneIdentifiers)) {
-      final String[] ids = getPersonalPhoneIdentifiers(personalPhoneIdentifiers);
-      if (ids != null) {
-        final StringBuilder buf = new StringBuilder();
-        boolean first = true;
-        for (final String id : ids) {
-          if (first) {
-            first = false;
-          } else {
-            buf.append(",");
-          }
-          buf.append(id);
-        }
-        return buf.toString();
-      }
-    }
-    return null;
-  }
-
-  public String[] getPersonalPhoneIdentifiers(final PFUserDO user) {
-    return getPersonalPhoneIdentifiers(user.getPersonalPhoneIdentifiers());
-  }
-
-  public String[] getPersonalPhoneIdentifiers(final String personalPhoneIdentifiers) {
-    final String[] tokens = StringUtils.split(personalPhoneIdentifiers, ", ;|");
-    if (tokens == null) {
-      return null;
-    }
-    int n = 0;
-    for (final String token : tokens) {
-      if (StringUtils.isNotBlank(token)) {
-        n++;
-      }
-    }
-    if (n == 0) {
-      return null;
-    }
-    final String[] result = new String[n];
-    n = 0;
-    for (final String token : tokens) {
-      if (StringUtils.isNotBlank(token)) {
-        result[n] = token.trim();
-        n++;
-      }
-    }
-    return result;
   }
 
   public UserDao getUserDao() {

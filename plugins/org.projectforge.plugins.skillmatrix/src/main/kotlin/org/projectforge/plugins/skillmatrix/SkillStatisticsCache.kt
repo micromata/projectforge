@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -110,7 +110,7 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
         skillEntryDao.register(this)
     }
 
-    override fun afterSaveOrModifify(changedObject: SkillEntryDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: SkillEntryDO, operationType: OperationType) {
         setExpired()
     }
 

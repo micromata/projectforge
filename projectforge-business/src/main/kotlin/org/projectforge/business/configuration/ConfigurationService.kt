@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -66,6 +66,13 @@ open class ConfigurationService {
   open var resourceDirName: String? = null
     protected set
 
+  /**
+   * If true, the http session id and the ssl session id (both truncated due to security reasons) are displayed in the log files.
+   */
+  @Value("\${projectforge.logSessionIds}")
+  open var logSessionIds: Boolean? = null
+    protected set
+
   open var usersSSLSocketFactory: SSLSocketFactory? = null
     protected set
 
@@ -91,15 +98,6 @@ open class ConfigurationService {
   @Value("\${projectforge.fontsDirectory}")
   open var fontsDir: String? = null
     protected set
-
-  /**
-   * Format http://asterisk.acme.com/originatecall.php?source=#source&amp;target=#target<br></br>
-   * #source will be replaced by the current user's phone and #target by the chosen phone number to call.
-   */
-  @Value("\${projectforge.telephoneSystemUrl}")
-  open var telephoneSystemUrl: String? = null
-    protected set
-
 
   /**
    * For direct calls all numbers beginning with the this number will be stripped, e. g. for 0561316793: 056131679323 ->
@@ -342,8 +340,6 @@ open class ConfigurationService {
     } else null
   }
 
-  open val isTelephoneSystemUrlConfigured: Boolean
-    get() = StringUtils.isNotEmpty(telephoneSystemUrl)
   open val contractTypes: List<ContractType>
     get() = configXml.contractTypes
   open val isSecurityConfigured: Boolean

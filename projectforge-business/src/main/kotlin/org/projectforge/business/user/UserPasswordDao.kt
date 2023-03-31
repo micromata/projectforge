@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -32,9 +32,8 @@ import org.projectforge.business.login.PasswordCheckResult
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPasswordDO
 import org.projectforge.framework.persistence.utils.SQLHelper
@@ -173,18 +172,11 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     )
   }
 
-  open fun onPasswordChange(user: PFUserDO, createHistoryEntry: Boolean) {
+  open fun onPasswordChange(user: PFUserDO) {
     val passwordObj = internalGetByUserId(user.id) ?: return
     passwordObj.checkAndFixPassword()
     if (passwordObj.passwordHash != null) {
-      if (createHistoryEntry) {
-        HistoryBaseDaoAdapter.wrapHistoryUpdate(user) {
-          user.lastPasswordChange = Date()
-          ModificationStatus.MAJOR
-        }
-      } else {
-        user.lastPasswordChange = Date()
-      }
+      user.lastPasswordChange = Date()
       if (user.id != null) {
         // Renew token only for existing users.
         userAuthenticationsService.renewToken(user.id, UserTokenType.STAY_LOGGED_IN_KEY)
@@ -194,17 +186,6 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
       throw IllegalArgumentException(
         "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database)."
       )
-    }
-  }
-
-  open fun onWlanPasswordChange(user: PFUserDO, createHistoryEntry: Boolean) {
-    if (createHistoryEntry) {
-      HistoryBaseDaoAdapter.wrapHistoryUpdate(user) {
-        user.lastWlanPasswordChange = Date()
-        ModificationStatus.MAJOR
-      }
-    } else {
-      user.lastWlanPasswordChange = Date()
     }
   }
 

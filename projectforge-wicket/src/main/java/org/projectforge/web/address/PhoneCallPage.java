@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,27 +23,25 @@
 
 package org.projectforge.web.address;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.sipgate.SipgateConfiguration;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.rest.AddressPagesRest;
+import org.projectforge.rest.AddressViewPageRest;
+import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.rest.sipgate.SipgateDirectCallService;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 public class PhoneCallPage extends AbstractStandardFormPage {
@@ -54,11 +52,13 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   public final static String PARAMETER_KEY_NUMBER = "number";
 
   protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[]{PARAMETER_KEY_ADDRESS_ID + "|address",
-      PARAMETER_KEY_NUMBER + "|no"};
+      PARAMETER_KEY_NUMBER + "|no", "callerPage|cp"};
 
   private static final String SEPARATOR = " | ";
 
   private static final String USER_PREF_KEY_MY_RECENT_PHONE_ID = "PhoneCall:recentPhoneId";
+
+  private static final String USER_PREF_KEY_MY_RECENT_CALLER_ID = "PhoneCall:recentCallerId";
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallPage.class);
 
@@ -67,6 +67,12 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private SipgateConfiguration sipgateConfiguration;
+
+  @SpringBean
+  private SipgateDirectCallService sipgateDirectCallService;
 
   private final PhoneCallForm form;
 
@@ -99,6 +105,14 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     if (StringUtils.isNotBlank(number) == true) {
       form.setPhoneNumber(extractPhonenumber(number));
     }
+  }
+
+  public String getCallerPage() {
+    return form.callerPage;
+  }
+
+  public void setCallerPage(final String callerPage) {
+    form.setCallerPage(callerPage);
   }
 
   /**
@@ -197,6 +211,15 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     form.numberTextField.modelChanged();
   }
 
+  void backToCaller() {
+    String callerPage = form.getCallerPage();
+    if ("addressView".equals(callerPage)) {
+      throw new RedirectToUrlException(PagesResolver.getDynamicPageUrl(AddressViewPageRest.class, null, getAddressId(), true));
+    } else {
+      throw new RedirectToUrlException(PagesResolver.getListPageUrl(AddressPagesRest.class, null, true));
+    }
+  }
+
   void call() {
     final boolean extracted = processPhoneNumber();
     if (extracted == true) {
@@ -212,13 +235,15 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   }
 
   private void callNow() {
-    if (StringUtils.isBlank(configurationService.getTelephoneSystemUrl()) == true) {
-      log.error("Telephone system url not configured. Phone calls not supported.");
+    if (!sipgateConfiguration.isConfigured()) {
+      log.error("Sipgate isn't configured. Phone calls not supported.");
       return;
     }
     log.info("User initiates direct call from phone with id '"
         + form.getMyCurrentPhoneId()
-        + "' to destination numer: "
+        + "' with caller-id '"
+        + form.getMyCurrentCallerId()
+        + "' to destination number: "
         + StringHelper.hideStringEnding(form.getPhoneNumber(), 'x', 3));
     result = null;
     final StringBuffer buf = new StringBuffer();
@@ -238,41 +263,12 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     } else {
       buf.append("???");
     }
-    String url = configurationService.getTelephoneSystemUrl();
-    url = StringUtils.replaceOnce(url, "#source", form.getMyCurrentPhoneId());
-    url = StringUtils.replaceOnce(url, "#target", form.getPhoneNumber());
-    final String urlProtected = StringHelper.hideStringEnding(url, 'x', 3);
-    String errorKey = null;
-    try (final CloseableHttpClient client = HttpClients.createDefault()) {
-      final HttpGet method = new HttpGet(url);
-      form.lastSuccessfulPhoneCall = new Date();
-      String resultStatus = null;
-      try (final CloseableHttpResponse httpResponse = client.execute(method)) {
-        final int statusCode = httpResponse.getStatusLine().getStatusCode();
-        if (statusCode == HttpStatus.SC_OK) {
-          final InputStream stream = httpResponse.getEntity().getContent();
-          resultStatus = IOUtils.toString(stream, StandardCharsets.UTF_8);
-        }
-      }
-      log.info("Call URL: " + urlProtected + " with result code: " + resultStatus);
-      if ("0".equals(resultStatus)) {
-        result = DateTimeFormatter.instance().getFormattedDateTime(new Date()) + ": "
-            + getString("address.phoneCall.result.successful");
-        form.getRecentSearchTermsQueue().append(buf.toString());
-      } else if ("2".equals(resultStatus)) {
-        errorKey = "address.phoneCall.result.wrongSourceNumber";
-      } else if ("3".equals(resultStatus)) {
-        errorKey = "address.phoneCall.result.wrongDestinationNumber";
-      } else {
-        errorKey = "address.phoneCall.result.callingError";
-      }
-    } catch (final Exception ex) {
-      result = "Call failed. Please contact administrator.";
-      log.error(result + ": " + urlProtected);
-      throw new RuntimeException(ex);
-    }
-    if (errorKey != null) {
-      form.addError(errorKey);
+    if (sipgateDirectCallService.initCall(getUser(), form.getMyCurrentPhoneId(), form.getMyCurrentCallerId(), form.getPhoneNumber())) {
+      result = DateTimeFormatter.instance().getFormattedDateTime(new Date()) + ": "
+          + getString("address.phoneCall.result.successful");
+      form.getRecentSearchTermsQueue().append(buf.toString());
+    } else {
+      form.addError("address.phoneCall.result.callingError");
     }
   }
 
@@ -282,6 +278,14 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   protected void setRecentMyPhoneId(final String myPhoneId) {
     putUserPrefEntry(USER_PREF_KEY_MY_RECENT_PHONE_ID, myPhoneId, true);
+  }
+
+  protected String getRecentMyCallerId() {
+    return (String) getUserPrefEntry(USER_PREF_KEY_MY_RECENT_CALLER_ID);
+  }
+
+  protected void setRecentMyCallerId(final String myCallerId) {
+    putUserPrefEntry(USER_PREF_KEY_MY_RECENT_CALLER_ID, myCallerId, true);
   }
 
   @Override

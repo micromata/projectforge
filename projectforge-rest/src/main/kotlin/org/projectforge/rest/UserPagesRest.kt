@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -603,7 +603,7 @@ class UserPagesRest
     }
     if (!wlanPassword.isNullOrBlank() && Login.getInstance().isWlanPasswordChangeSupported(obj)) {
       log.info { "Admin user wants to create WLAN/Samba password of new user '${obj.userDisplayName}' with id ${obj.id}." }
-      userService.changeWlanPasswordByAdmin(obj, wlanPassword.toCharArray())
+      userService.changeWlanPasswordByAdmin(obj.id, wlanPassword.toCharArray())
     }
     return super.onAfterSave(obj, postData)
   }
