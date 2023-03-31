@@ -431,7 +431,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -473,4 +472,122 @@
             </plugin>
         </plugins>
     </build>
+    <reporting>
+        <outputDirectory>target/site</outputDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.4</version>
+                <configuration>
+                    <outputDirectory>/target/site/findbugs/</outputDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.7</version>
+                <reportSets>
+                    <reportSet>
+                        <!-- defines pmd reports in the modules -->
+                        <id>pmd-report</id>
+                        <reports>
+                            <report>pmd</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <!-- defines pmd aggregate report -->
+                        <id>pmd-aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>pmd</report>
+                        </reports>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                        </configuration>
+                    </reportSet>
+                    <reportSet>
+                        <!-- defines cpd reports in the modules -->
+                        <id>cpd-report</id>
+                        <reports>
+                            <report>cpd</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <!-- defines cpd aggregate report -->
+                        <id>cpd-aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>cpd</report>
+                        </reports>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                        </configuration>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>3.2.0</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <encoding>utf-8</encoding>
+                    <charset>utf-8</charset>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.3</version>
+                <reportSets>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.9</version>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
