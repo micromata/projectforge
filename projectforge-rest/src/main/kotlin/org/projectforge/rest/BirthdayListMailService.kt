@@ -35,8 +35,10 @@ class BirthdayListMailService {
             val trimmedEmails = mutableListOf<String>()
             if (!splitEmails.isNullOrEmpty()){
                 splitEmails.forEach {
-                    if (it.isNotBlank())
+                    if (it.isNotBlank() && it.trim().matches(Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", RegexOption.IGNORE_CASE)))
                         trimmedEmails.add(it.trim())
+                    //else
+                        // log warn invalid email address
                 }
                 return trimmedEmails.ifNotEmpty { trimmedEmails }
             }
