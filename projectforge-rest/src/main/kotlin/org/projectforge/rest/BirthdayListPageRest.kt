@@ -93,40 +93,60 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
     }
 
     @PostMapping("downloadBirthdayList")
-    fun downloadBirthdayList(request: HttpServletRequest, @RequestBody postData: PostData<BirthdayListData>) : ResponseEntity<*>? {
+    fun downloadBirthdayList(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<BirthdayListData>
+    ): ResponseEntity<*> {
         validateCsrfToken(request, postData)?.let { return it }
 
         if (postData.data.month in 1..12) {
             val birthdayList = getBirthdayList(postData.data.month)
 
-            return if (birthdayList.isNotEmpty())
-                RestUtils.downloadFile(
-                    "Birthday_list_" + Month.values()[postData.data.month - 1].toString().lowercase() + "_" + LocalDateTime.now().year + ".docx",
-                    createWordDocument(birthdayList)!!.toByteArray()
-                )
-            else
+            return if (birthdayList.isNotEmpty()) {
+                val wordDocument = createWordDocument(birthdayList)
+                if (wordDocument != null) {
+                    RestUtils.downloadFile(
+                        "Birthday_list_" + Month.values()[postData.data.month - 1].toString()
+                            .lowercase() + "_" + LocalDateTime.now().year + ".docx",
+                        wordDocument.toByteArray()
+                    )
+                } else {
+                    ResponseEntity(
+                        ResponseAction(
+                            validationErrors = createValidationErrors(
+                                ValidationError(
+                                    getString("plugins.birthdayList.month.response.wordDocument.error"),
+                                    fieldId = "month"
+                                )
+                            )
+                        ), HttpStatus.NOT_ACCEPTABLE
+                    )
+                }
+            } else {
                 ResponseEntity(
                     ResponseAction(
                         validationErrors = createValidationErrors(
                             ValidationError(
-                                getString("plugins.birthdaylist.month.response.noentry"),
+                                getString("plugins.birthdayList.month.response.noEntry"),
                                 fieldId = "month"
                             )
                         )
                     ), HttpStatus.NOT_ACCEPTABLE
                 )
+            }
         }
         return ResponseEntity(
             ResponseAction(
                 validationErrors = createValidationErrors(
                     ValidationError(
-                        getString("plugins.birthdaylist.month.response.nothingselected"),
+                        getString("plugins.birthdayList.month.response.nothingSelected"),
                         fieldId = "month"
                     )
                 )
             ), HttpStatus.NOT_ACCEPTABLE
         )
     }
+
 
     private fun createWordDocument(addressList: MutableList<AddressDO>): ByteArrayOutputStream? {
         return try {
@@ -148,7 +168,6 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
                     listDates += sortedList[i].birthday!!.dayOfMonth.toString() + "." + sortedList[i].birthday!!.month.value.toString() + ".:"
                 }
 
-
                 val variables = Variables()
                 variables.put("listNames", listNames)
                 variables.put("listDates", listDates)
@@ -162,8 +181,7 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
                     document.process(variables)
                     document.asByteArrayOutputStream
                 }
-            }
-            else{
+            } else {
                 null
             }
         } catch (e: IOException) {
@@ -174,35 +192,31 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
     private fun getBirthdayList(month: Int): MutableList<AddressDO> {
         val filter = QueryFilter()
         val addressList = addressDao.internalGetList(filter)
-
         val pFUserList = userDao.internalLoadAll()
-
         val foundUser = mutableListOf<AddressDO>()
-        val userFoundWithoutBirthday = mutableListOf<PFUserDO>()
 
         pFUserList.forEach { user ->
             addressList.firstOrNull { address ->
-                address.firstName?.trim()?.equals(user.firstname?.trim(), ignoreCase = true) == true &&
-                        address.name?.equals(user.lastname, ignoreCase = true) == true &&
-                        address.organization?.contains(birthdayListConfiguration.organization, ignoreCase = true) == true
+                address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
+                        address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true) &&
+                        address.organization?.contains(
+                    birthdayListConfiguration.organization,
+                    ignoreCase = true
+                ) == true
             }?.let { found ->
-                if (found.birthday != null) {
-                    if(found.birthday?.month == Month.values()[month - 1])
-                    foundUser.add(found)
-
-                } else {
-                    userFoundWithoutBirthday.add(user)
-                }
+                if (found.birthday != null)
+                    if (found.birthday?.month == Month.values()[month - 1])
+                        foundUser.add(found)
             }
         }
         return foundUser
     }
 
 
-    //@Scheduled(cron = "0 0 8 L-2 * ?") -> Jeden vorletzten Tag des Monats
-    @Scheduled(cron = "0/20 * * ? * *")
+    //@Scheduled(cron = "0 0 8 L-2 * ?") -> Every month on the second last day at 8:00 AM
+    @Scheduled(cron = "0/10 * * ? * *")
     fun sendBirthdayListJob() {
-        val currentMonth =  LocalDateTime.now().monthValue
+        val currentMonth = LocalDateTime.now().monthValue
         val birthdayList = getBirthdayList(currentMonth)
 
         if (birthdayList.isNotEmpty()) {
@@ -210,8 +224,10 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
 
             val attachment = object : MailAttachment {
                 override fun getFilename(): String {
-                    return "Birthday_list_" + Month.values()[currentMonth - 1].toString().lowercase()  + "_" + LocalDateTime.now().year + ".docx"
+                    return "Birthday_list_" + Month.values()[currentMonth - 1].toString()
+                        .lowercase() + "_" + LocalDateTime.now().year + ".docx"
                 }
+
                 override fun getContent(): ByteArray? {
                     return wordDocument?.toByteArray()
                 }
@@ -219,9 +235,17 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
 
             val list = mutableListOf<MailAttachment>()
             list.add(attachment)
-            birthdayListMailService.sendMail(subject = "Birthday list for " + Month.values()[currentMonth - 1].toString().lowercase(), content = "Attached is the list of upcoming birthdays for the next month.\n \n This E-Mail is automatically generated by ProjectForge", mailAttachments = list)
-        }else {
-           birthdayListMailService.sendMail(subject = "Birthday list for " + Month.values()[currentMonth - 1].toString().lowercase(), content = "No birthdays found for this month.\n\nThis E-Mail is automatically generated by ProjectForge", mailAttachments = null)
+            birthdayListMailService.sendMail(
+                subject = "Birthday list for " + Month.values()[currentMonth - 1].toString().lowercase(),
+                content = "Attached is the list of upcoming birthdays for the next month.<br /> This E-Mail is automatically generated by ProjectForge",
+                mailAttachments = list
+            )
+        } else {
+            birthdayListMailService.sendMail(
+                subject = "Birthday list for " + Month.values()[currentMonth - 1].toString().lowercase(),
+                content = "No birthdays found for this month.<br />This E-Mail is automatically generated by ProjectForge",
+                mailAttachments = null
+            )
         }
     }
 }

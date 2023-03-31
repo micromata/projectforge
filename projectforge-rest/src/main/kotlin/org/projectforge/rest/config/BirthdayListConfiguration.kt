@@ -8,6 +8,6 @@ open class BirthdayListConfiguration {
     @Value("\${projectforge.birthdaylist.organization}")
     open lateinit var organization: String
 
-    @Value("\${projectforge.birthdaylist.emails}")
-    open var emails: String? = null
+    @Value("\${projectforge.birthdaylist.emailAddresses}")
+    open var emailAddresses: String? = null
 }
