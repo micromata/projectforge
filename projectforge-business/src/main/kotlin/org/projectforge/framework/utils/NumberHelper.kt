@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -304,13 +304,35 @@ object NumberHelper {
   /**
    * Uses the default country phone prefix from the configuration.
    *
-   * @see .extractPhonenumber
+   * @see extractPhonenumber
    */
   @JvmStatic
   fun extractPhonenumber(str: String?): String? {
-    val defaultCountryPhonePrefix =
-      Configuration.instance.getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX)
     return extractPhonenumber(str, defaultCountryPhonePrefix)
+  }
+
+  private val defaultCountryPhonePrefix: String
+    get() {
+      return TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY
+        ?: Configuration.instance.getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX) ?: "+1"
+    }
+
+  /**
+   * "01234 5678" -> "+49 1234 5678", "0034 8888 88888" -> "+34 8888 88888"
+   */
+  @JvmStatic
+  fun formatPhonenumber(str: String?): String? {
+    str ?: return null
+    if (str.startsWith("00")) {
+      return if (str.length > 2) {
+        "+${str.substring(2)}"
+      } else {
+        str
+      }
+    } else if (str.startsWith("0") && str.length > 1) {
+      return "$defaultCountryPhonePrefix ${str.substring(1)}"
+    }
+    return str
   }
 
   /**
@@ -335,14 +357,18 @@ object NumberHelper {
     if (!countryPrefix.isNullOrEmpty() && s.startsWith(countryPrefix)) {
       buf.append('0')
       s = s.substring(countryPrefix.length)
-    } else if (s.length > 3 && s[0] == '+' && Character.isDigit(s[1])
-      && Character.isDigit(s[2])
-    ) {
+    } else if (s.length > 3 && s[0] == '+' && Character.isDigit(s[1])) {
       buf.append("00")
       buf.append(s[1])
-      buf.append(s[2])
-      s = s.substring(3)
+      if (Character.isDigit(s[2])) {
+        buf.append(s[2])
+        s = s.substring(3)
+      } else {
+        s = s.substring(2)
+      }
     }
+    s = s.replace("\\s+".toRegex(), "") // Remove whitespaces.
+    s = s.replace("(0)", "") // Remove '(0)' in +49 (0) 123456789
     for (i in s.indices) {
       val ch = s[i]
       if (Character.isDigit(s[i])) {
@@ -597,4 +623,6 @@ object NumberHelper {
 
   internal val REDUCED_ALPHA_NUMERICS_CHARSET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789"
   private val REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH = REDUCED_ALPHA_NUMERICS_CHARSET.length
+
+  var TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY: String? = null
 }

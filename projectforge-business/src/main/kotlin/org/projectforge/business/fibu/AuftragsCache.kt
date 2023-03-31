@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -156,7 +156,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
   /**
    * Set order as expired, if any invoice on this order was changed.
    */
-  override fun afterSaveOrModifify(changedObject: RechnungDO, operationType: OperationType) {
+  override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType) {
     changedObject.positionen?.forEach { pos ->
       pos.auftragsPosition?.auftrag?.let {
         setExpired(it)

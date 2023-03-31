@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,7 +25,7 @@ package org.projectforge.excel
 
 import de.micromata.merlin.excel.*
 import mu.KotlinLogging
-import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.*
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.DateFormatType
 import org.projectforge.common.i18n.I18nEnum
@@ -86,8 +86,14 @@ object ExcelUtils {
    */
   @JvmStatic
   @JvmOverloads
-  fun registerColumn(sheet: ExcelSheet, clazz: Class<*>, property: String, size: Int? = null): ExcelColumnDef {
-    val i18nKey = PropUtils.getI18nKey(clazz, property) ?: property
+  fun registerColumn(
+    sheet: ExcelSheet,
+    clazz: Class<*>,
+    property: String,
+    size: Int? = null,
+    logErrorIfPropertyInfoNotFound: Boolean = true,
+  ): ExcelColumnDef {
+    val i18nKey = PropUtils.getI18nKey(clazz, property, logErrorIfPropertyInfoNotFound) ?: property
     val colDef = sheet.registerColumn(translate(i18nKey), property)
     if (size != null) {
       colDef.withSize(size)
@@ -99,12 +105,15 @@ object ExcelUtils {
           null -> {
             colDef.withSize(Size.STANDARD)
           }
+
           LocalDate::class.java -> {
             colDef.withSize(Size.DATE)
           }
+
           Date::class.java, LocalDateTime::class.java -> {
             colDef.withSize(Size.DATE_TIME)
           }
+
           else -> {
             colDef.withSize(Size.STANDARD)
           }
@@ -115,14 +124,21 @@ object ExcelUtils {
   }
 
   @JvmOverloads
-  fun registerColumn(sheet: ExcelSheet, property: KProperty<*>, size: Int? = null): ExcelColumnDef {
+  fun registerColumn(
+    sheet: ExcelSheet,
+    property: KProperty<*>,
+    size: Int? = null,
+    logErrorIfPropertyInfoNotFound: Boolean = true,
+  ): ExcelColumnDef {
     if (property is MutablePropertyReference) {
       val kClass = property.owner as? KClass<*>
       if (kClass != null) {
-        return registerColumn(sheet, kClass.java, property.name, size)
+        return registerColumn(sheet, kClass.java, property.name, size, logErrorIfPropertyInfoNotFound)
       }
     }
-    log.error { "Can't get declaringClass of property '${property.name}'. Can't register column." }
+    if (logErrorIfPropertyInfoNotFound) {
+      log.error { "Can't get declaringClass of property '${property.name}'. Can't register column." }
+    }
     return ExcelColumnDef(sheet, property.name)
   }
 
@@ -148,6 +164,40 @@ object ExcelUtils {
     } else {
       false
     }
+  }
+
+  @JvmStatic
+  fun createCellStyle(
+    workbook: ExcelWorkbook, name: String,
+    font: Font? = null,
+    alignment: HorizontalAlignment? = null,
+    fillForegroundColor: IndexedColors? = null,
+    fillPattern: FillPatternType? = null,
+    borderStyle: BorderStyle? = null,
+  ): CellStyle {
+    val style = workbook.createOrGetCellStyle(name)
+    if (font != null) {
+      style.setFont(font)
+    }
+    if (alignment != null) {
+      style.alignment = alignment
+    }
+    if (fillForegroundColor != null) {
+      style.fillForegroundColor = fillForegroundColor.index
+      if (fillPattern == null) {
+        style.fillPattern = FillPatternType.SOLID_FOREGROUND
+      }
+    }
+    if (fillPattern != null) {
+      style.fillPattern = fillPattern
+    }
+    if (borderStyle != null) {
+      style.borderTop = borderStyle
+      style.borderBottom = borderStyle
+      style.borderLeft = borderStyle
+      style.borderRight = borderStyle
+    }
+    return style
   }
 
   object Size {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -71,7 +71,7 @@ class My2FABruteForceProtectionTest {
     user.deactivated = false
     Assertions.assertEquals(12, protection.getNumberOfFailures(42), "12 failed tries expected.")
     Assertions.assertTrue(protection.isBlocked(42), "Retry shouldn't be allowed after 12 failed tries.")
-    protection.userChangeListener.afterSaveOrModifify(user, OperationType.UPDATE)
+    protection.userChangeListener.afterSaveOrModify(user, OperationType.UPDATE)
     Assertions.assertNull(protection.getLastFailedTry(42), "No last failure millis expected, user should be cleared.")
     Assertions.assertEquals(0, protection.getNumberOfFailures(42), "No failed tries expected, user should be cleared.")
     Assertions.assertFalse(protection.isBlocked(42), "Retry should be allowed, user is cleared.")

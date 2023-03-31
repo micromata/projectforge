@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -217,6 +217,14 @@ class VacationAccountPageRest {
                 .add(UICustomized("vacation.entries"))
             )
         )
+    )
+    layout.add(
+      MenuItem(
+        "export",
+        i18nKey = "vacation.export.title",
+        url = PagesResolver.getDynamicPageUrl(VacationExportPageRest::class.java),
+        type = MenuItemTargetType.REDIRECT,
+      )
     )
     layout.add(
       MenuItem(

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,11 +27,10 @@ import mu.KotlinLogging
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.caldav.config.DAVMethodsInterceptor
-import org.projectforge.common.logging.MDC_IP
-import org.projectforge.common.logging.MDC_SESSION
-import org.projectforge.common.logging.MDC_USER
-import org.projectforge.common.logging.MDC_USER_AGENT
+import org.projectforge.common.logging.*
 import org.projectforge.login.LoginService
+import org.projectforge.rest.core.AbstractSessionCache
+import org.projectforge.rest.utils.RequestLog
 import org.projectforge.web.WebUtils
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.slf4j.MDC
@@ -47,6 +46,8 @@ private val log = KotlinLogging.logger {}
  * @see ConfigurationService.accessLogConfiguration
  */
 class LoggingFilter : Filter {
+  private var logSessionIds: Boolean = false
+
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(req: ServletRequest, resp: ServletResponse, chain: FilterChain) {
     val request = req as HttpServletRequest
@@ -56,7 +57,17 @@ class LoggingFilter : Filter {
       val sessionId = request.getSession(false)?.id
       val clientIp = WebUtils.getClientIp(request) ?: "unknown"
       MDC.put(MDC_IP, clientIp)
-      MDC.put(MDC_SESSION, sessionId ?: "")
+      val truncatedHttpSessionId = RequestLog.getTruncatedSessionId(sessionId)
+      val truncatedSslSessionId = RequestLog.getTruncatedSessionId(AbstractSessionCache.getSslSessionId(request))
+      MDC.put(MDC_SESSION, truncatedHttpSessionId ?: "---")
+      MDC.put(MDC_SSL_SESSION, truncatedSslSessionId ?: "---")
+      if (logSessionIds) {
+        if (truncatedSslSessionId != null) {
+          MDC.put(MDC_LOG_SESSIONS, " sessions=[http=$truncatedHttpSessionId, ssl=$truncatedSslSessionId]")
+        } else {
+          MDC.put(MDC_LOG_SESSIONS, " sessions=[http=$truncatedHttpSessionId]")
+        }
+      }
       MDC.put(MDC_USER_AGENT, userAgent)
       val username = LoginService.getUserContext(request)?.user?.username
       MDC.put(MDC_USER, username ?: "")
@@ -68,6 +79,7 @@ class LoggingFilter : Filter {
         "NONE" -> {
           // Do nothing.
         }
+
         "ALL" -> {
           // Log all
           if (!logSuspiciousURI(request, username)) {
@@ -75,6 +87,7 @@ class LoggingFilter : Filter {
             SecurityLogging.logAccessInfo(request, this.javaClass)
           }
         }
+
         else -> {
           logSuspiciousURI(request, username)
         }
@@ -83,9 +96,17 @@ class LoggingFilter : Filter {
     } finally {
       MDC.remove(MDC_IP)
       MDC.remove(MDC_SESSION)
+      MDC.remove(MDC_SSL_SESSION)
+      if (logSessionIds) {
+        MDC.remove(MDC_LOG_SESSIONS)
+      }
       MDC.remove(MDC_USER_AGENT)
       MDC.remove(MDC_USER)
     }
+  }
+
+  init {
+    logSessionIds = ConfigurationServiceAccessor.get().logSessionIds ?: false
   }
 
   companion object {

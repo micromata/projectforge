@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -612,7 +612,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   protected void callObjectChangedListeners(final O obj, final OperationType operationType) {
     for (final BaseDOChangedListener<O> objectChangedListener : objectChangedListeners) {
-      objectChangedListener.afterSaveOrModifify(obj, operationType);
+      objectChangedListener.afterSaveOrModify(obj, operationType);
     }
   }
 

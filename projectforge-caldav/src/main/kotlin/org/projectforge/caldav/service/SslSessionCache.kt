@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -26,6 +26,7 @@ package org.projectforge.caldav.service
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractSessionCache
+import org.projectforge.rest.utils.RequestLog
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
 
@@ -36,27 +37,53 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class SslSessionCache
-    : AbstractSessionCache<PFUserDO>(
-        expireTimeInMillis = 5 * TICKS_PER_MINUTE,
-        clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
-        sessionType = "SSL session id") {
+  : AbstractSessionCache<SslSessionData>(
+  expireTimeInMillis = 5 * TICKS_PER_MINUTE,
+  clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
+  sessionType = "SSL session id",
+) {
+  fun registerSessionData(request: HttpServletRequest, user: PFUserDO) {
+    val session = request.getSession(true)
+    val data = SslSessionData(session.id, user)
+    super.registerSessionData(request, data)
+    session.setAttribute(HTTP_SESSION_ATTRIBUTE, data)
+    log.info { "Registering ${getLogInfo(data, getSslSessionId(request))}" }
+  }
 
-    override fun entryAsString(entry: PFUserDO): String {
-        return "'${entry.username}' with id ${entry.id}"
-    }
+  override fun entryAsString(entry: SslSessionData): String {
+    return getLogInfo(entry)
+  }
 
-    override fun equals(entry: PFUserDO, other: PFUserDO): Boolean {
-        return entry.id == other.id
-    }
+  override fun getSessionId(request: HttpServletRequest): String? {
+    return getSslSessionId(request)
+  }
 
-    override fun getSessionId(request: HttpServletRequest): String? {
-        val sslSessionId = request.getAttribute(REQUEST_ATTRIBUTE_SSL_SESSION_ID) ?: return null
-        if (sslSessionId is String) {
-            return sslSessionId
-        }
-        log.warn { "Oups, Attribute '$REQUEST_ATTRIBUTE_SSL_SESSION_ID' isn't of type String. Ignoring." }
-        return null
+  override fun getSessionData(request: HttpServletRequest): SslSessionData? {
+    var data = super.getSessionData(request)
+    if (data != null) {
+      if (log.isInfoEnabled) {
+        log.info("Found registered user in ssl-session-cache: ${getLogInfo(data, getSslSessionId(request))}")
+      }
+    } else {
+      data = request.getSession(false)?.getAttribute(HTTP_SESSION_ATTRIBUTE) as? SslSessionData
+      if (data != null && log.isInfoEnabled) {
+        log.info("Found registered user in http-session: ${getLogInfo(data, getSslSessionId(request))}")
+      }
     }
+    return data
+  }
+
+  private fun getLogInfo(data: SslSessionData, sslSessionId: String? = null): String {
+    val sb = StringBuilder()
+    sb.append("user '${data.user.username}' (#${data.user.id}) with ")
+    if (sslSessionId != null) {
+      sb.append("ssl-session-id='${RequestLog.getTruncatedSessionId(data.httpSessionId)}'")
+    }
+    sb.append(" and http-session-id='${RequestLog.getTruncatedSessionId(data.httpSessionId)}'")
+    return sb.toString()
+  }
+
+  companion object {
+    private const val HTTP_SESSION_ATTRIBUTE = "sslSessionData"
+  }
 }
-
-private const val REQUEST_ATTRIBUTE_SSL_SESSION_ID = "javax.servlet.request.ssl_session_id"

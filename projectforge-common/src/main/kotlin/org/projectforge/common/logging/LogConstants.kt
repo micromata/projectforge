@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,6 +24,8 @@
 package org.projectforge.common.logging
 
 const val MDC_IP = "ip"
+const val MDC_LOG_SESSIONS = "logSessions"
 const val MDC_SESSION = "session"
+const val MDC_SSL_SESSION = "sslSession"
 const val MDC_USER = "user"
 const val MDC_USER_AGENT = "userAgent"

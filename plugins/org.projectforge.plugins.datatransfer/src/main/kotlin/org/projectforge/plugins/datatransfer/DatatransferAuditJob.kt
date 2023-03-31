@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 private val log = KotlinLogging.logger {}
 
 /**
- * This job is running hourly and will sent notifications to observers if any action was audited in their observed
+ * This job is running hourly and will send notifications to observers if any action was audited in their observed
  * data transfer areas.
  * Outdated audit entries (older than 30 days will be deleted).
  */
@@ -69,6 +69,7 @@ class DatatransferAuditJob {
       val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)
       if (!auditEntries.isNullOrEmpty()) {
         dataTransferNotificationMailService.sendMails(area, auditEntries, downloadAuditEntries)
+        ++sentMailCounter
         dataTransferAuditDao.removeFromQueue(auditEntries)
       }
     }

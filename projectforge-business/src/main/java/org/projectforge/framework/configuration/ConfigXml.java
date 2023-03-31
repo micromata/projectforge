@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.configuration;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
@@ -70,9 +71,9 @@ public class ConfigXml {
 
   private String jiraBrowseBaseUrl;
 
-  private StorageConfig storageConfig;
+  private List<ConfigureJiraServer> jiraServers;
 
-  private String telephoneSystemOperatorPanelUrl;
+  private StorageConfig storageConfig;
 
   private List<ConfigureHoliday> holidays;
 
@@ -115,7 +116,7 @@ public class ConfigXml {
 
   private void reset() {
     jiraBrowseBaseUrl = null;
-    telephoneSystemOperatorPanelUrl = null;
+    jiraServers = null;
     holidays = null;
     databaseDirectory = "database";
     ehcacheDirectory = "ehcache";
@@ -207,7 +208,7 @@ public class ConfigXml {
       if (xml != null) {
         try {
           // Fix mis-spelled new year's eve (it's not Mr. Stallone's day ;-)
-          xml = xml.replace("SYLVESTER","NEW_YEARS_EVE"); // Used before 2022/03/26
+          xml = xml.replace("SYLVESTER", "NEW_YEARS_EVE"); // Used before 2022/03/26
           final ConfigXml cfg = (ConfigXml) reader.read(xml);
           final String warnings = reader.getWarnings();
           copyDeclaredFields(null, this.getClass(), cfg, this);
@@ -233,7 +234,7 @@ public class ConfigXml {
       @Override
       protected boolean ignoreField(final Object obj, final Field field) {
         if (field.getDeclaringClass().isAssignableFrom(ConfigXml.class)
-                && StringHelper.isIn(field.getName(), "expireTime", "timeOfLastRefresh")) {
+            && StringHelper.isIn(field.getName(), "expireTime", "timeOfLastRefresh")) {
           return true;
         }
         return super.ignoreField(obj, field);
@@ -264,6 +265,7 @@ public class ConfigXml {
     final AliasMap aliasMap = new AliasMap();
     reader.setAliasMap(aliasMap);
     reader.initialize(ConfigXml.class);
+    reader.initialize(ConfigureJiraServer.class);
     reader.initialize(ConfigureHoliday.class);
     reader.initialize(ContractType.class);
     AccountingConfig.registerXmlObjects(reader, aliasMap);
@@ -275,7 +277,7 @@ public class ConfigXml {
    *
    * @param config
    */
-  static void internalSetInstance(final String config) {
+  public static void internalSetInstance(final String config) {
     final XmlObjectReader reader = getReader();
     final ConfigXml cfg = (ConfigXml) reader.read(config);
     instance = new ConfigXml();
@@ -388,7 +390,15 @@ public class ConfigXml {
    * @return true if a JIRA browse base url is given.
    */
   public final boolean isJIRAConfigured() {
-    return StringUtils.isNotBlank(getJiraBrowseBaseUrl());
+    return StringUtils.isNotBlank(getJiraBrowseBaseUrl()) || CollectionUtils.isNotEmpty(jiraServers);
+  }
+
+  public List<ConfigureJiraServer> getJiraServers() {
+    return jiraServers;
+  }
+
+  public void setJiraServers(List<ConfigureJiraServer> jiraServers) {
+    this.jiraServers = jiraServers;
   }
 
   /**
@@ -400,10 +410,6 @@ public class ConfigXml {
 
   public boolean isStorageConfigured() {
     return storageConfig != null && StringUtils.isNotBlank(storageConfig.getAuthenticationToken());
-  }
-
-  public String getTelephoneSystemOperatorPanelUrl() {
-    return telephoneSystemOperatorPanelUrl;
   }
 
   public List<ContractType> getContractTypes() {

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,9 +27,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
 import org.projectforge.Constants
+import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.framework.calendar.DurationUtils
+import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.springframework.scheduling.annotation.Scheduled
+import org.projectforge.mail.Mail
+import org.projectforge.mail.SendMail
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.lang.management.ManagementFactory
 import javax.annotation.PreDestroy
 import kotlin.concurrent.thread
 
@@ -37,11 +43,19 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class JobHandler {
+  @Autowired
+  private lateinit var sendMail: SendMail
+
+  @Autowired
+  private lateinit var configService: ConfigurationService
+
   private val jobs = mutableListOf<AbstractJob>()
 
-  // Runs every minute
-  @Scheduled(fixedDelay = 60 * 1000, initialDelay = 60 * 1000)
+  /**
+   * Will be called by JobHandlerScheduler.
+   */
   fun tidyUp() {
+    lastRun = System.currentTimeMillis()
     runningJobs.forEach { job ->
       if (job.timeoutReached) {
         internalCancelJob(job)
@@ -71,10 +85,9 @@ class JobHandler {
       var start = true
       runBlocking {
         job.coroutinesJob = launch(
-          Dispatchers.Default
-              + ThreadLocalUserContext.getUserAsContextElement(userContext)
-              + ThreadLocalUserContext.getLocaleAsContextElement(locale)
-              + mdcContext
+          Dispatchers.Default + ThreadLocalUserContext.getUserAsContextElement(userContext) + ThreadLocalUserContext.getLocaleAsContextElement(
+            locale
+          ) + mdcContext
         ) {
           for (i in 0..10000) {// Paranoia counter (wait time max 10.000s)
             var blocking: AbstractJob.Status? = null
@@ -204,6 +217,59 @@ class JobHandler {
           job.coroutinesJob.join()
         }
       }
+    }
+  }
+
+  private var lastRun: Long? = null
+
+  fun checkStatus() {
+    lastRun.let {
+      if (it == null) {
+        // Job wasn't executed yet. It's OK, if ProjectForge isn't running longer than a few minutes.
+        val processUptime = ManagementFactory.getRuntimeMXBean().uptime
+        val processUptimeFormatted = DurationUtils.getFormattedDaysHoursAndMinutes(processUptime)
+        if (processUptime > 5 * Constants.MILLIS_PER_MINUTE) {
+          reportErrorMail("ProjectForge is running since $processUptimeFormatted but no scheduled job of JobHandler was running.")
+        } else {
+          log.info { "Checking status of Spring's job scheduler: ProjectForge was started $processUptimeFormatted ago, no job was scheduled yet (OK)." }
+        }
+      } else {
+        val durationSinceLastRun = System.currentTimeMillis() - it
+        val durationSinceLastRunFormatted = DurationUtils.getFormattedDaysHoursAndMinutes(durationSinceLastRun)
+        if (durationSinceLastRun > 5 * Constants.MILLIS_PER_MINUTE) {
+          reportErrorMail(
+            "The last scheduled job of JobHandler was running $durationSinceLastRunFormatted ago but should be started every minute."
+          )
+        } else {
+          log.info { "Checking status of Spring's job scheduler: lastRun was $durationSinceLastRunFormatted ago (OK)." }
+        }
+      }
+    }
+  }
+
+  private fun reportErrorMail(message: String) {
+    val fullMessage =
+      "Job scheduling might not be running (no backups, no e-mail notification etc.) You should restart ProjectForge. Reason: $message"
+    log.error { fullMessage }
+    configService.pfSupportMailAddress?.let { receiver ->
+      val data = mutableMapOf("description" to fullMessage)
+      val params = mutableMapOf<String, Any?>("data" to data)
+      val msg = Mail()
+      msg.addTo(receiver)
+      val subject = "Jobs not running? Restart required (no backups, no mail notification etc.)"
+      msg.setProjectForgeSubject(subject)
+      params.put("subject", subject)
+      val content = sendMail.renderGroovyTemplate(
+        msg,
+        "mail/feedback.txt",
+        params,
+        getLocalizedMessage("administration.configuration.param.feedbackEMail.label"),
+        null
+      )
+      msg.content = content
+      msg.contentType = Mail.CONTENTTYPE_TEXT
+      sendMail.send(msg, null, null)
+
     }
   }
 

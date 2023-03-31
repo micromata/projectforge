@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -38,8 +38,6 @@ public class SendFeedback {
   @Autowired
   private SendMail sendMail;
 
-  private final Map<String, Object> params = new HashMap<String, Object>();
-
   /**
    * Sender will be set automatically to logged in context user, if not given.
    *
@@ -49,6 +47,7 @@ public class SendFeedback {
     if (data.getSender() == null) {
       data.setSender(ThreadLocalUserContext.getUser().getFullname());
     }
+    final Map<String, Object> params = new HashMap<String, Object>();
     params.put("data", data);
     final Mail msg = new Mail();
     msg.addTo(data.getReceiver());
@@ -62,15 +61,5 @@ public class SendFeedback {
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_TEXT);
     return sendMail.send(msg, null, null);
-  }
-
-  /**
-   * TSendFeedbackData will be added automatically.
-   *
-   * @param key
-   * @param value
-   */
-  public void addParameter(final String key, final Object value) {
-    params.put(key, value);
   }
 }
