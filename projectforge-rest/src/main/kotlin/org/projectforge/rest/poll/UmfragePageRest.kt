@@ -1,4 +1,4 @@
-package org.projectforge.rest.umfrage
+package org.projectforge.rest.poll
 
 import org.projectforge.business.scripting.I18n
 import org.projectforge.rest.config.Rest
@@ -51,7 +51,7 @@ class UmfragePageRest : AbstractDynamicPageRest() {
             )
         )
         LayoutUtils.process(layout)
-        val data = UmfrageData()
+        val data = PollOverview()
         return FormLayoutData(data, layout, createServerData(request))
     }
 }
