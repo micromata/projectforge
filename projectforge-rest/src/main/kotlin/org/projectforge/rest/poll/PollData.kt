@@ -1,5 +1,5 @@
 package org.projectforge.rest.poll
 
-class PollOverview {
+class PollData {
     var month: Int = 0
 }
