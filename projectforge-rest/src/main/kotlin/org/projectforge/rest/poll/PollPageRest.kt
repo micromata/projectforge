@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/umfrage")
-class UmfragePageRest : AbstractDynamicPageRest() {
+class PollPageRest : AbstractDynamicPageRest() {
 
     val months = arrayOf(
         I18n.getString("calendar.month.january"),
@@ -51,7 +51,7 @@ class UmfragePageRest : AbstractDynamicPageRest() {
             )
         )
         LayoutUtils.process(layout)
-        val data = PollOverview()
+        val data = PollData()
         return FormLayoutData(data, layout, createServerData(request))
     }
 }
