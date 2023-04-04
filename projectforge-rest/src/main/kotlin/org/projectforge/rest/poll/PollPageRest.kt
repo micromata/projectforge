@@ -2,11 +2,19 @@ package org.projectforge.rest.poll
 
 import org.projectforge.business.scripting.I18n
 import org.projectforge.rest.config.Rest
+import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
+import org.projectforge.rest.poll.Detail.View.PollDetailRest
+import org.projectforge.rest.poll.Exel.ExcelExport
 import org.projectforge.ui.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.core.io.Resource
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -45,7 +53,7 @@ class PollPageRest : AbstractDynamicPageRest() {
                 responseAction = ResponseAction(
                     RestResolver.getRestUrl(
                         this::class.java,
-                        "downloadBirthdayList"
+                        "Export"
                     ), targetType = TargetType.POST
                 )
             )
@@ -53,5 +61,21 @@ class PollPageRest : AbstractDynamicPageRest() {
         LayoutUtils.process(layout)
         val data = PollData()
         return FormLayoutData(data, layout, createServerData(request))
+    }
+
+    private val log: Logger = LoggerFactory.getLogger(PollDetailRest::class.java)
+
+    @PostMapping("Export")
+    fun export(request: HttpServletRequest) : ResponseEntity<Resource>? {
+        val ihkExporter = ExcelExport()
+        val bytes: ByteArray? = ihkExporter
+            .getExcel()
+        val filename = ("test.xlsx")
+
+        if (bytes == null || bytes.size == 0) {
+            log.error("Oups, xlsx has zero size. Filename: $filename")
+            return null;
+        }
+        return RestUtils.downloadFile(filename, bytes)
     }
 }
