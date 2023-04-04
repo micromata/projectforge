@@ -19,24 +19,24 @@ class ExcelExport {
 
 
     fun getExcel(): ByteArray? {
-        var excelSheet: ExcelSheet? = null
-        var emptyRow: ExcelRow? = null
+        //var excelSheet: ExcelSheet? = null
+        //var emptyRow: ExcelRow? = null
 
         val classPathResource =  ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
 
         try {
             ExcelWorkbook(classPathResource.inputStream, classPathResource.file.name).use { workbook ->
-                excelSheet = workbook.getSheet(0)
-                emptyRow = excelSheet!!.getRow(5)
+                val excelSheet = workbook.getSheet(0)
+                val emptyRow = excelSheet.getRow(5)
                 val anzNewRows = 3
-                excelSheet!!.getRow(0).getCell(0).setCellValue(contentOfCell)
+                //excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell)
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 var hourCounter = 0.0
                 for (i in 0 until anzNewRows) {
-                    hourCounter = setNewRows(hourCounter, excelSheet!!, i)
+                    hourCounter = setNewRows(hourCounter, excelSheet, i)
                 }
-                return returnByteFile(excelSheet!!)
+                return returnByteFile(excelSheet)
             }
         } catch (e: NullPointerException) {
             e.printStackTrace()
@@ -47,8 +47,8 @@ class ExcelExport {
     }
 
     private fun setNewRows(hourCounter: Double, excelSheet: ExcelSheet, cell: Int): Double {
-        var hourCounter = hourCounter
-        var description: String? = ""
+        val hourCounter = hourCounter
+        val description: String = ""
 
         val excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + cell)
 
@@ -60,9 +60,9 @@ class ExcelExport {
 
 
         val puffer = description
-        var counterOfBreaking = -1
+        var counterOfBreaking = 0
         var counterOfOverlength = 0
-        val pufferSplit = puffer!!.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val pufferSplit = puffer.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
 
         // check for line-breaks
         for (i in pufferSplit.indices) {
