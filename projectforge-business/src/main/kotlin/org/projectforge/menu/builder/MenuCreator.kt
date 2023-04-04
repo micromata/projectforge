@@ -224,9 +224,6 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
       .add(MenuItemDef(MenuItemDefId.BIRTHDAY_LIST))
-    configurationService.telephoneSystemUrl?.let {
-      if (it.isNotEmpty())
-        commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     if (sipgateConfiguration.isConfigured()) {
       commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     }
@@ -257,7 +254,7 @@ open class MenuCreator {
           checkAccess =
           {
             hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
-                !isInGroup(*FIBU_ORGA_GROUPS) // Orderbook is shown under menu FiBu for FiBu users
+                    !isInGroup(*FIBU_ORGA_GROUPS) // Orderbook is shown under menu FiBu for FiBu users
           },
           badgeCounter = {
             if (isInGroup(*FIBU_ORGA_GROUPS))
@@ -309,14 +306,14 @@ open class MenuCreator {
         MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST,
           checkAccess = {
             hasRight(RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
       .add(
         MenuItemDef(MenuItemDefId.INCOMING_INVOICE_LIST,
           checkAccess = {
             hasRight(EingangsrechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
     if (Configuration.instance.isCostConfigured) {
@@ -328,7 +325,7 @@ open class MenuCreator {
           MenuItemDef(MenuItemDefId.PROJECT_LIST,
             checkAccess = {
               hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                  isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                      isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
             })
         )
     }
@@ -361,7 +358,7 @@ open class MenuCreator {
           checkAccess =
           {
             hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
       .add(
@@ -369,7 +366,7 @@ open class MenuCreator {
           checkAccess =
           {
             hasRight(Kost1Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
       .add(
@@ -377,7 +374,7 @@ open class MenuCreator {
           checkAccess =
           {
             hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
       .add(
@@ -385,7 +382,7 @@ open class MenuCreator {
           checkAccess =
           {
             hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
           })
       )
 
