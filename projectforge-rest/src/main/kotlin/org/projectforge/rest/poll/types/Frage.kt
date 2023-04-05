@@ -1,6 +1,12 @@
 package org.projectforge.rest.poll.types
 
-
+enum class BaseType {
+    JaNeinFrage,
+    DatumsAbfrage,
+    MultipleChoices,
+    FreiTextFrage,
+    DropDownFrage
+}
 class Frage(
     val uid: String,
     val question: String,
@@ -9,11 +15,4 @@ class Frage(
     var perrent: String?
 ){
 
-}
-enum class BaseType {
-    JaNeinFrage,
-    DatumsAbfrage,
-    MultipleChoices,
-    FreiTextFrage,
-    DropDownFrage
 }
