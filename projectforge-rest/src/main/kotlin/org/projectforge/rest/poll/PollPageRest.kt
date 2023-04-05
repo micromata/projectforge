@@ -11,9 +11,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.mail.MailAttachment
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
@@ -28,11 +26,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -44,6 +43,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @Autowired
     private lateinit var pollDao: PollDao
+
+    @Autowired
+    private lateinit var pollMailService: PollMailService
 
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
@@ -124,6 +126,29 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
+    @Scheduled(fixedRate = 5000)
+    fun cronJobSch() {
+       val ihkExporter = ExcelExport()
+           val exel = ihkExporter
+               .getExcel()
+
+
+
+           val attachment = object : MailAttachment {
+               override fun getFilename(): String {
+                   return "test"+ "_" + LocalDateTime.now().year + ".xlsx"
+               }
+
+               override fun getContent(): ByteArray? {
+                   return exel
+               }
+           }
+
+           val list = mutableListOf<MailAttachment>()
+           list.add(attachment)
+       pollMailService.sendMail("test","user",list)
+    }
+
 
     @PostMapping("Export")
     fun export(request: HttpServletRequest) : ResponseEntity<Resource>? {
@@ -133,7 +158,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val filename = ("test.xlsx")
 
         if (bytes == null || bytes.size == 0) {
-            log.error("Oups, xlsx has zero size. Filename: $filename")
+            log.error("Oups, xlsx has zero s <ize. Filename: $filename")
             return null;
         }
         return RestUtils.downloadFile(filename, bytes)
