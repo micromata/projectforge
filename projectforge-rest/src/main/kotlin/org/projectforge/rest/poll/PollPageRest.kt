@@ -1,41 +1,23 @@
 package org.projectforge.rest.poll
 
-import org.checkerframework.checker.guieffect.qual.UIType
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.scripting.I18n
-import org.projectforge.business.user.UserRightId
-import org.projectforge.business.user.UserRightValue
-import org.projectforge.business.vacation.model.VacationDO
-import org.projectforge.business.vacation.model.VacationStatus
-import org.projectforge.business.vacation.repository.VacationDao
-import org.projectforge.business.vacation.service.ConflictingVacationsCache
-import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.business.poll.PollDO
+import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
-import org.projectforge.rest.dto.Employee
-import org.projectforge.rest.dto.FormLayoutData
-import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/poll")
 class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.java, "poll.title") {
-
-    @Autowired
-    private lateinit var pollDao: PollDao
 
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
@@ -72,28 +54,18 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
-
-        val layout = super.createEditLayout(dto, userAccess).add(UILabel("poll.create"))
-
-    /*   // dto.inputFields?.forEachIndexed { field, index ->
-            if (field.type == UIDataType.BOOLEAN) {
- // layout.add() // ID: type[]
-                // "type[$index]"
-                // Id: name
-            }
-        }*/
-        /*layout.add(UIRow().add(UIFieldset(UILength(md = 6, lg = 4))
-            .add(lc, "name")))
-        */
-
+        val obj = PollDO()
+        dto.copyTo(obj)
+        val layout = super.createEditLayout(dto, userAccess)
         layout.add(
             UIRow()
                 .add(
                     UIFieldset(UILength(md = 6, lg = 4))
                         .add(lc, "title", "description", "location", "owner", "deadline")
                 ))
+            .add(UIButton.createAddButton(responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST)))
 
-        layout.watchFields.addAll(
+                layout.watchFields.addAll(
             arrayOf(
                 "title",
                 "description",
@@ -102,9 +74,64 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "deadline"
             )
         )
-        // layout.addAction() // Button mit Rest-Endpunkt add
+        updateStats(dto)
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest,
+        dto: Poll,
+        watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+        val title = dto.title
+        val description = dto.description
+        val location = dto.location
+/*
+        val owner = dto.owner
+*/
+        val deadline = dto.deadline
+
+        updateStats(dto)
+        val userAccess = UILayout.UserAccess()
+        val poll = PollDO()
+        dto.copyTo(poll)
+        checkUserAccess(poll, userAccess)
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, userAccess))
+        )
+    }
+
+    private fun updateStats(dto: Poll) {
+
+        val title = dto.title
+        val description = dto.description
+        val location = dto.location
+/*
+        val owner = dto.owner
+*/
+        val deadline = dto.deadline
+
+        val pollDO = PollDO()
+        dto.copyTo(pollDO)
+    }
+
     // PostMapping add
+    @PostMapping("/add")
+    fun abc(){
+
+    }
+
+
+    /*dto.inputFields?.forEachIndexed { field, index ->
+            if (field.type == msc) {
+             layout.add() //
+             "type[$index]"
+              Id: name
+            }
+        }
+        layout.add(UIRow().add(UIFieldset(UILength(md = 6, lg = 4))
+            .add(lc, "name")))
+        */
 }
