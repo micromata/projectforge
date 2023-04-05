@@ -128,7 +128,7 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
         accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.ORGA_TEAM, ProjectForgeGroup.ADMIN_GROUP)
         validateCsrfToken(request, postData)?.let { return it }
 
-        if (birthdayListConfiguration.organization.isBlank()){
+        if (birthdayListConfiguration.organization.isBlank()) {
             log.error { "Organization property is not set." }
             val validationErrors = mutableListOf<ValidationError>()
             validationErrors.add(ValidationError.create("birthdayList.organization.notSet"))
@@ -242,10 +242,11 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
                 val birthdayListTemplate =
                     applicationContext.getResource("classpath:officeTemplates/BirthdayListTemplate" + ".docx")
 
-                val wordDocument = WordDocument(birthdayListTemplate.inputStream, birthdayListTemplate.file.name).use { document ->
-                    document.process(variables)
-                    document.asByteArrayOutputStream
-                }
+                val wordDocument =
+                    WordDocument(birthdayListTemplate.inputStream, birthdayListTemplate.file.name).use { document ->
+                        document.process(variables)
+                        document.asByteArrayOutputStream
+                    }
                 log.info { "Birthday list created" }
                 return wordDocument
             } else {
@@ -302,13 +303,15 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
             val list = mutableListOf<MailAttachment>()
             list.add(attachment)
             birthdayListMailService.sendMail(
-                subject = getString("birthdayList.email.subject") + " " + Month.values()[currentMonth - 1].toString().lowercase(),
+                subject = getString("birthdayList.email.subject") + " " + Month.values()[currentMonth - 1].toString()
+                    .lowercase(),
                 content = getString("birthdayList.email.content"),
                 mailAttachments = list
             )
         } else {
             birthdayListMailService.sendMail(
-                subject = getString("birthdayList.email.subject") + " " + Month.values()[currentMonth - 1].toString().lowercase(),
+                subject = getString("birthdayList.email.subject") + " " + Month.values()[currentMonth - 1].toString()
+                    .lowercase(),
                 content = getString("birthdayList.email.content.noBirthdaysFound"),
                 mailAttachments = null
             )

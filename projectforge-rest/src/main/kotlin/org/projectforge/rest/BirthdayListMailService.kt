@@ -23,6 +23,7 @@
 
 package org.projectforge.rest
 
+import mu.KotlinLogging
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -30,6 +31,8 @@ import org.projectforge.mail.SendMail
 import org.projectforge.rest.config.BirthdayListConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class BirthdayListMailService {
@@ -49,6 +52,7 @@ class BirthdayListMailService {
                 mail.setTo(address)
                 mail.content = content
                 sendMail.send(mail, attachments = mailAttachments)
+                log.info { "Send mail to $address" }
             }
     }
 
@@ -56,12 +60,14 @@ class BirthdayListMailService {
         if (!birthdayListConfiguration.emailAddresses.isNullOrBlank()) {
             val splitEmails = birthdayListConfiguration.emailAddresses?.split(",")
             val trimmedEmails = mutableListOf<String>()
-            if (!splitEmails.isNullOrEmpty()){
-                splitEmails.forEach {
-                    if (it.isNotBlank() && it.trim().matches(Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", RegexOption.IGNORE_CASE)))
-                        trimmedEmails.add(it.trim())
-                    //else
-                        // log warn invalid email address
+            if (!splitEmails.isNullOrEmpty()) {
+                splitEmails.forEach { address ->
+                    if (address.isNotBlank() && address.trim()
+                            .matches(Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", RegexOption.IGNORE_CASE))
+                    )
+                        trimmedEmails.add(address.trim())
+                    else
+                        log.error { "Invalid email address: $address" }
                 }
                 return trimmedEmails.ifNotEmpty { trimmedEmails }
             }
