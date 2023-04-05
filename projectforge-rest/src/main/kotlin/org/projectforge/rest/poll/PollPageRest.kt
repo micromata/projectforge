@@ -72,7 +72,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
-        val layout = UILayout(I18n.getString("poll.create"))
+
+        val layout = super.createEditLayout(dto, userAccess).add(UILabel("poll.create"))
+
     /*   // dto.inputFields?.forEachIndexed { field, index ->
             if (field.type == UIDataType.BOOLEAN) {
  // layout.add() // ID: type[]
