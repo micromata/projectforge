@@ -2,12 +2,15 @@ package org.projectforge.rest.poll
 
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -70,7 +73,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "title",
                 "description",
                 "location",
-                "owner",
                 "deadline"
             )
         )
@@ -86,9 +88,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val title = dto.title
         val description = dto.description
         val location = dto.location
-/*
-        val owner = dto.owner
-*/
         val deadline = dto.deadline
 
         updateStats(dto)
@@ -108,9 +107,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val title = dto.title
         val description = dto.description
         val location = dto.location
-/*
-        val owner = dto.owner
-*/
         val deadline = dto.deadline
 
         val pollDO = PollDO()
@@ -120,7 +116,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     // PostMapping add
     @PostMapping("/add")
     fun abc(){
-
     }
 
 
