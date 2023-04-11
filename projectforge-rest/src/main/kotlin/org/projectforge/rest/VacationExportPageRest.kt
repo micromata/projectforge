@@ -25,7 +25,7 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
@@ -68,7 +68,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
   }
 
   @Autowired
-  private lateinit var employeeService: EmployeeService
+  private lateinit var employeeDao: EmployeeDao
 
   @Autowired
   private lateinit var groupService: GroupService
@@ -154,13 +154,13 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
     val employees = mutableSetOf<EmployeeDO>()
     data?.employees?.forEach { employee ->
       if (employees.none { it.id == employee.id }) {
-        val employeeDO = employeeService.getById(employee.id)
+        val employeeDO = employeeDao.internalGetById(employee.id)
         employees.add(employeeDO)
       }
     }
     data?.groups?.forEach { group ->
       userGroupCache.getGroup(group.id)?.assignedUsers?.forEach { user ->
-        employeeService.getEmployeeByUserId(user.id)?.let { employeeDO ->
+        employeeDao.findByUserId(user.id)?.let { employeeDO ->
           employees.add(employeeDO)
         }
       }
