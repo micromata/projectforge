@@ -3,10 +3,10 @@ package org.projectforge.rest.poll.types
 
 class Frage(
     val uid: String,
-    val question: String,
-    val type: BaseType,
-    var antworten: List<AntwortMöglichkeiten>,
-    var perrent: String?
+    val question: String? = "",
+    val type: BaseType = BaseType.FreiTextFrage,
+    var antworten: List<String> = mutableListOf(),
+    var parent: String? = null,
 ){
 
 }

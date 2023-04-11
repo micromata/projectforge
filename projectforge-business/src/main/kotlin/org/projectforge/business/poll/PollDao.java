@@ -3,7 +3,6 @@ package org.projectforge.business.poll;
 import org.projectforge.framework.access.*;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.user.entities.*;
-import org.springframework.context.annotation.*;
 import org.springframework.stereotype.*;
 
 @Repository
