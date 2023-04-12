@@ -27,27 +27,26 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "description", nullable = true, length = 10000)
     open var description: String? = null
 
-  /*  @PropertyInfo(i18nKey = "poll.owner")
-    @IndexedEmbedded(depth = 1)
-    @ManyToOne
-    @JoinColumn(name = "owner_pk")
-    open var owner: PFUserDO? = null*/
+    @get:PropertyInfo(i18nKey = "poll.owner")
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "owner_pk")
+    open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "poll.location")
     @get:Column(name = "location", nullable = true)
     open var location: String? = null
 
-/*    @PropertyInfo(i18nKey = "poll.date")
-    @get:Column(name = "date", nullable = true)
-    open var date: LocalDate? = null
-
     @PropertyInfo(i18nKey = "poll.deadline")
     @get:Column(name = "deadline", nullable = true)
     open var deadline: LocalDate? = null
 
+    @PropertyInfo(i18nKey = "poll.date")
+    @get:Column(name = "date", nullable = true)
+    open var date: LocalDate? = null
+
     @PropertyInfo(i18nKey = "poll.inputlist")
     @get:Column(name = "input_list", nullable = true, length = 10000)
-    open var inputFields: String? = null*/
+    open var inputFields: String? = null
 
    /* @PropertyInfo(i18nKey = "poll.canSeeResultUsers")
     @get:Column(name = "canSeeResultUsers", nullable = true)
