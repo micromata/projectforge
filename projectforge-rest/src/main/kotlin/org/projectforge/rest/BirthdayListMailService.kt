@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import mu.KotlinLogging
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.projectforge.common.StringHelper
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
@@ -59,17 +60,16 @@ class BirthdayListMailService {
     private fun getEMailAddressesFromConfig(): MutableList<String>? {
         if (!birthdayListConfiguration.emailAddresses.isNullOrBlank()) {
             val splitEmails = birthdayListConfiguration.emailAddresses?.split(",")
-            val trimmedEmails = mutableListOf<String>()
+            val validEmailAddresses = mutableListOf<String>()
+
             if (!splitEmails.isNullOrEmpty()) {
                 splitEmails.forEach { address ->
-                    if (address.isNotBlank() && address.trim()
-                            .matches(Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", RegexOption.IGNORE_CASE))
-                    )
-                        trimmedEmails.add(address.trim())
+                    if (address.isNotBlank() && StringHelper.isEmailValid(address.trim()))
+                        validEmailAddresses.add(address.trim())
                     else
                         log.error { "Invalid email address: $address" }
                 }
-                return trimmedEmails.ifNotEmpty { trimmedEmails }
+                return validEmailAddresses.ifNotEmpty { validEmailAddresses }
             }
         }
         return null

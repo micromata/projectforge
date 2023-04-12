@@ -224,7 +224,7 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
       .add(MenuItemDef(MenuItemDefId.BIRTHDAY_LIST,
-          requiredGroups = arrayOf(ProjectForgeGroup.ORGA_TEAM, ProjectForgeGroup.ADMIN_GROUP)))
+          requiredGroups = arrayOf(ProjectForgeGroup.ORGA_TEAM)))
     if (sipgateConfiguration.isConfigured()) {
       commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     }
