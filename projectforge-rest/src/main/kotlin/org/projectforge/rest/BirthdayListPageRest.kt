@@ -53,6 +53,7 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.Month
 import javax.servlet.http.HttpServletRequest
+import kotlin.text.StringBuilder
 
 private val log = KotlinLogging.logger {}
 
@@ -78,25 +79,26 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var birthdayListConfiguration: BirthdayListConfiguration
 
-    val months = arrayOf(
-        getString("calendar.month.january"),
-        getString("calendar.month.february"),
-        getString("calendar.month.march"),
-        getString("calendar.month.april"),
-        getString("calendar.month.may"),
-        getString("calendar.month.june"),
-        getString("calendar.month.july"),
-        getString("calendar.month.august"),
-        getString("calendar.month.september"),
-        getString("calendar.month.october"),
-        getString("calendar.month.november"),
-        getString("calendar.month.december")
-    )
+    val months: Array<String>
+        get() = arrayOf(
+            getString("calendar.month.january"),
+            getString("calendar.month.february"),
+            getString("calendar.month.march"),
+            getString("calendar.month.april"),
+            getString("calendar.month.may"),
+            getString("calendar.month.june"),
+            getString("calendar.month.july"),
+            getString("calendar.month.august"),
+            getString("calendar.month.september"),
+            getString("calendar.month.october"),
+            getString("calendar.month.november"),
+            getString("calendar.month.december")
+        )
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
 
-        accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.ORGA_TEAM, ProjectForgeGroup.ADMIN_GROUP)
+        accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.ORGA_TEAM)
         val layout = UILayout(getString("menu.birthdayList"))
 
         val values = ArrayList<UISelectValue<Int>>()
@@ -214,27 +216,27 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
 
     private fun createWordDocument(addressList: MutableList<AddressDO>): ByteArrayOutputStream? {
         try {
-            var listDates = ""
-            var listNames = ""
+            val listDates = StringBuilder()
+            val listNames = StringBuilder()
             val sortedList = addressList.sortedBy { it.birthday!!.dayOfMonth }
 
             if (sortedList.isNotEmpty()) {
                 sortedList.forEachIndexed { index, address ->
-                    listDates += "\n"
-                    listNames += "\n" + address.firstName + " " + address.name
+                    listDates.append("\n")
+                    listNames.append("\n ${address.firstName} ${address.name}")
                     if (index != 0 && address.birthday!!.dayOfMonth == sortedList[index - 1].birthday!!.dayOfMonth) {
-                        listDates += "\t"
+                        listDates.append("\t")
                         return@forEachIndexed
                     }
                     if (address.birthday!!.dayOfMonth < 10)
-                        listDates += "0"
+                        listDates.append("0")
 
-                    listDates += address.birthday!!.dayOfMonth.toString() + "." + address.birthday!!.month.value.toString() + ".:"
+                    listDates.append("${address.birthday!!.dayOfMonth}.${address.birthday!!.month.value}.:")
                 }
 
                 val variables = Variables()
-                variables.put("listNames", listNames)
-                variables.put("listDates", listDates)
+                variables.put("listNames", listNames.toString())
+                variables.put("listDates", listDates.toString())
                 variables.put("listLength", sortedList.size)
                 variables.put("year", LocalDateTime.now().year)
                 variables.put("month", months[sortedList[0].birthday!!.month.value - 1])
@@ -260,21 +262,19 @@ class BirthdayListPageRest : AbstractDynamicPageRest() {
 
     private fun getBirthdayList(month: Int): MutableList<AddressDO> {
         val filter = QueryFilter()
-        val addressList = addressDao.internalGetList(filter)
+        val addressList = addressDao.internalGetList(filter).filter { address ->
+            address.birthday?.month == Month.values()[month - 1] && address.organization?.contains(
+                        birthdayListConfiguration.organization,
+                        ignoreCase = true) == true
+        }
         val pFUserList = userDao.internalLoadAll()
         val foundUser = mutableListOf<AddressDO>()
 
-        pFUserList.forEach { user ->
-            addressList.firstOrNull { address ->
+        addressList.forEach { address ->
+            pFUserList.firstOrNull() { user ->
                 address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
-                        address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true) &&
-                        address.organization?.contains(
-                            birthdayListConfiguration.organization,
-                            ignoreCase = true
-                        ) == true
-            }?.let { found ->
-                if (found.birthday?.month == Month.values()[month - 1])
-                    foundUser.add(found)
+                    address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true)
+                    foundUser.add(address)
             }
         }
         return foundUser
