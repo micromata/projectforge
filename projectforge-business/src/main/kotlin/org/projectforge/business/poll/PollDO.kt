@@ -20,33 +20,35 @@ import javax.persistence.*
 open class PollDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "poll.title")
-    @get:Column(name = "title", nullable = true, length = 1000)
+    @get:Column(name = "title", nullable = false, length = 1000)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "poll.description")
-    @get:Column(name = "description", nullable = true, length = 10000)
+    @get:Column(name = "description", length = 10000)
     open var description: String? = null
 
     @get:PropertyInfo(i18nKey = "poll.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "owner_pk")
+    @get:JoinColumn(name = "owner_pk", nullable = false)
     open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "poll.location")
-    @get:Column(name = "location", nullable = true)
+    @get:Column(name = "location")
     open var location: String? = null
 
     @PropertyInfo(i18nKey = "poll.deadline")
-    @get:Column(name = "deadline", nullable = true)
+    @get:Column(name = "deadline", nullable = false)
     open var deadline: LocalDate? = null
 
     @PropertyInfo(i18nKey = "poll.date")
-    @get:Column(name = "date", nullable = true)
+    @get:Column(name = "date")
     open var date: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "poll.inputlist")
+    /*@PropertyInfo(i18nKey = "poll.inputlist")
     @get:Column(name = "input_list", nullable = true, length = 10000)
     open var inputFields: String? = null
+
+     */
 
    /* @PropertyInfo(i18nKey = "poll.canSeeResultUsers")
     @get:Column(name = "canSeeResultUsers", nullable = true)
