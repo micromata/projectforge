@@ -205,7 +205,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         list.add(attachment)
 
         if(mail.isNotEmpty()){
-            pollMailService.sendMail("Die Umfrage ","Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema [Titel der Umfrage] teilzunehmen. Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten, unsere Forschungsergebnisse zu verbessern.Für diese Umfrage ist [Name des Ansprechpartners] zuständig. Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der [Enddatum] ist. Wir würden uns freuen, wenn Sie sich die Zeit nehmen könnten, um diese Umfrage auszufüllen.Vielen Dank im Voraus für Ihre Unterstützung.Mit freundlichen Grüßen,[Name des Absenders]",list)
+            pollMailService.sendMail(header,mail,list)
         }
     }
 
