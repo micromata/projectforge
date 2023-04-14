@@ -140,6 +140,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        super.onAfterSaveOrUpdate(request, obj, postData)
+        se
+    }
+
     @PostMapping("/addAntwort/{fieldId}")
     fun addAntwort(
         @RequestBody postData: PostData<Poll>,
