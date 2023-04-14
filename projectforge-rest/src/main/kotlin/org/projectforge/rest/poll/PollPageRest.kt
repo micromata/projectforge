@@ -142,7 +142,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, obj, postData)
-        se
+        val dto = postData.data
+        pollMailService.sendMail(subject = "", content = "", to = "test.mail")
     }
 
     @PostMapping("/addAntwort/{fieldId}")
@@ -210,7 +211,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         list.add(attachment)
 
         if(mail.isNotEmpty()){
-            pollMailService.sendMail(header,mail,list)
+            pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
         }
     }
 
