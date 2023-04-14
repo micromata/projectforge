@@ -12,6 +12,7 @@ CREATE TABLE T_POLL
     owner_pk INTEGER NOT NULL,
     deadline DATE NOT NULL,
     inputFields CHARACTER Varying(1000),
+    date DATE
 );
 
 ALTER TABLE T_POLL

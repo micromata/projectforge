@@ -1,5 +1,7 @@
 package org.projectforge.rest.poll
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.json.simple.JSONObject
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -25,12 +27,19 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
         dto.copyTo(pollDO)
+        if(dto.inputFields!= null){
+            pollDO.inputFields = ObjectMapper().writeValueAsString(dto.inputFields)
+        }
         return pollDO
     }
 
     override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
         poll.copyFrom(obj)
+        if(obj.inputFields!= null){
+            var a = ObjectMapper().readValue(obj.inputFields, MutableList::class.java)
+            poll.inputFields = a.map { Frage().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+        }
         return poll
     }
 
