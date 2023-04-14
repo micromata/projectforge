@@ -38,9 +38,9 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "deadline", nullable = false)
     open var deadline: LocalDate? = null
 
-        @PropertyInfo(i18nKey = "poll.date")
-        @get:Column(name = "date")
-        open var date: LocalDate? = null
+    @PropertyInfo(i18nKey = "poll.date")
+    @get:Column(name = "date")
+    open var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "poll.inputFields")
     @get:Column(name = "inputFields", nullable = true, length = 1000)
