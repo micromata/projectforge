@@ -58,20 +58,13 @@ class BirthdayListMailService {
     }
 
     private fun getEMailAddressesFromConfig(): MutableList<String>? {
-        if (!birthdayListConfiguration.emailAddresses.isNullOrBlank()) {
-            val splitEmails = birthdayListConfiguration.emailAddresses?.split(",")
-            val validEmailAddresses = mutableListOf<String>()
-
-            if (!splitEmails.isNullOrEmpty()) {
-                splitEmails.forEach { address ->
-                    if (address.isNotBlank() && StringHelper.isEmailValid(address.trim()))
-                        validEmailAddresses.add(address.trim())
-                    else
-                        log.error { "Invalid email address: $address" }
-                }
-                return validEmailAddresses.ifNotEmpty { validEmailAddresses }
+        val validEmailAddresses = mutableListOf<String>()
+        birthdayListConfiguration.emailAddresses
+            ?.split(",")
+            ?.filter { StringHelper.isEmailValid(it.trim()) }
+            ?.forEach { address ->
+                validEmailAddresses.add(address.trim())
             }
-        }
-        return null
+        return validEmailAddresses.ifEmpty { null }
     }
 }
