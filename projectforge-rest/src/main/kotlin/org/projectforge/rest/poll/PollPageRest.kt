@@ -2,7 +2,6 @@ package org.projectforge.rest.poll
 
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -36,10 +35,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     override fun createListLayout(
-        request: HttpServletRequest,
-        layout: UILayout,
-        magicFilter: MagicFilter,
-        userAccess: UILayout.UserAccess
+        request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess
     ) {
         agGridSupport.prepareUIGrid4ListPage(
             request,
@@ -47,10 +43,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             magicFilter,
             this,
             userAccess = userAccess,
-        )
-            .add(lc, "title", "description", "location")
-            .add(lc, "owner")
-            .add(lc, "deadline")
+        ).add(lc, "title", "description", "location").add(lc, "owner").add(lc, "deadline")
         layout.add(
             MenuItem(
                 "export",
@@ -61,41 +54,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
-    private fun addQuestionFieldset(dto: Poll): List<UIRow>{
 
-        val rows = mutableListOf<UIRow>()
-        dto.inputFields?.forEach { field ->
-            if(field.type == null){
-                return rows
-            }
-
-            var feld = UIRow()
-                    if(field.type == BaseType.JaNeinFrage){
-                       feld.add(
-                           UIFieldset(UILength(md = 6, lg = 4))
-                           .add(UIInput (field.uid+"question"))
-                           .add(UICheckbox(field.uid+"antworten1", label = "Ja"))
-                           .add(UICheckbox(field.uid+"antworten2", label = "Nein")))}
-
-                    if(field.type == BaseType.FreiTextFrage){
-                    feld.add(UIFieldset(UILength(md = 6, lg = 4))
-                        .add(UIInput (field.uid+"question"))
-                        .add(UIInput(field.uid+"antworten")
-                    ))}
-
-                    if(field.type == BaseType.MultipleChoices){
-                    feld.add(UIFieldset(UILength(md = 6, lg = 4))
-                        .add(lc, "question","antworten")
-                        .add( UIButton.createAddButton(
-                            responseAction = ResponseAction("${Rest.URL}/poll/addAntwortmöglichkeite", targetType = TargetType.POST)
-                        )))
-                    }
-
-
-            rows.add(feld)
-        }
-        return rows
-    }
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
@@ -103,59 +62,64 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto.copyTo(obj)
         val layout = super.createEditLayout(dto, userAccess)
         layout.add(
-            UIRow()
-                .add(
-                    UIFieldset(UILength(md = 6, lg = 4))
-                        .add(lc, "title", "description", "location", "owner", "deadline")
-                )
+            UIRow().add(
+                UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location", "owner", "deadline")
+            )
         )
         layout.add(
-            UIRow()
-                .add(
-                    UIFieldset(UILength(md = 6, lg = 4))
-                .add(
-                UIButton.createAddButton(
-                    responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST)
-                ))
-                .add(
-                    UISelect(
-                        "questionType",
-                        values = BaseType.values().map {UISelectValue(it, it.name)}
+            UIRow().add(
+                UIFieldset(UILength(md = 6, lg = 4)).add(
+                    UIButton.createAddButton(
+                        responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST)
                     )
+                ).add(
+                    UISelect("questionType", values = BaseType.values().map { UISelectValue(it, it.name) })
 
-        )))
-        addQuestionFieldset(dto).forEach(layout::add)
+                )
+            )
+        )
+        addQuestionFieldset(layout, dto)
 
 
         layout.watchFields.addAll(
             arrayOf(
-                "title",
-                "description",
-                "location",
-                "deadline"
+                "title", "description", "location", "deadline"
             )
         )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
     override fun onWatchFieldsUpdate(
-        request: HttpServletRequest,
-        dto: Poll,
-        watchFieldsTriggered: Array<String>?
+        request: HttpServletRequest, dto: Poll, watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
         val title = dto.title
         val description = dto.description
         val location = dto.location
         val deadline = dto.deadline
 
+
         val userAccess = UILayout.UserAccess()
         val poll = PollDO()
         dto.copyTo(poll)
         checkUserAccess(poll, userAccess)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("data", dto)
-                .addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+        )
+    }
+
+    @PostMapping("/addAntwort/{fieldId}")
+    fun abc(
+        @RequestBody postData: PostData<Poll>,
+        @PathVariable("fieldId") fieldUid: String,
+    ): ResponseEntity<ResponseAction> {
+        val dto = postData.data
+        val userAccess = UILayout.UserAccess(insert = true, update = true)
+
+        val found = dto.inputFields?.find { it.uid == fieldUid }
+        found?.antworten?.add("")
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
 
@@ -163,24 +127,95 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @PostMapping("/add")
     fun abc(
         @RequestBody postData: PostData<Poll>,
-        ): ResponseEntity<ResponseAction> {
+    ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
-        var type = BaseType.valueOf(dto.questionType?:"FreiTextFrage")
+        var type = BaseType.valueOf(dto.questionType ?: "FreiTextFrage")
 
 
         val poll = PollDO()
         if (dto.inputFields == null) {
             dto.inputFields = mutableListOf()
         }
-        dto.inputFields!!.add(Frage(uid = UUID.randomUUID().toString(), type = type))
+
+        var frage = Frage(uid = UUID.randomUUID().toString(), type = type)
+        if(type== BaseType.JaNeinFrage) {
+            frage.antworten = mutableListOf("ja", "nein")
+        }
+        if(type== BaseType.DatumsAbfrage) {
+            frage.antworten = mutableListOf("Ja", "Vielleicht", "Nein")
+        }
+
+        dto.inputFields!!.add(frage)
 
         dto.copyTo(poll)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("data", dto)
-                .addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
+    }
+
+
+    private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
+
+        dto.inputFields?.forEachIndexed { index, field ->
+            val feld = UIRow()
+            if (field.type == BaseType.JaNeinFrage) {
+                val groupLayout = UIGroup()
+                field.antworten?.forEach { antwort ->
+                    groupLayout.add(
+                        UIRadioButton(
+                            "JaNeinRadio", antwort, label = antwort
+                        )
+                    )
+                }
+                feld.add(
+                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question")).add
+                        (groupLayout)
+                )
+            }
+
+            if (field.type == BaseType.FreiTextFrage) {
+                feld.add(
+                    UIFieldset(UILength(md = 6, lg = 4)).add(UIInput("inputFields[${index}].question"))
+                )
+            }
+
+            if (field.type == BaseType.MultipleChoices || field.type == BaseType.DropDownFrage) {
+                val f = UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString())
+                    .add(UIInput("inputFields[${index}].question", label = "Die Frage"))
+                field.antworten?.forEachIndexed { i, _ ->
+                    f.add(UIInput("inputFields[${index}].antworten[${i}]", label = "AntwortMöglichkeit ${i + 1}"))
+                }
+                f.add(
+                    UIButton.createAddButton(
+                        responseAction = ResponseAction(
+                            "${Rest.URL}/poll/addAntwort/${field.uid}", targetType = TargetType.POST
+                        )
+                    )
+                )
+                if (field.type == BaseType.MultipleChoices) {
+                    f.add(
+                        UIInput(
+                            "inputFields[${index}].numberOfSelect", dataType = UIDataType.INT, label = "Wie viele Sollen " +
+                                    "angeklickt werden können "
+                        )
+                    )
+                }
+                feld.add(f)
+            }
+            if (field.type == BaseType.DatumsAbfrage) {
+                feld.add(
+                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(
+                        UIInput(
+                            "inputFields[${index}].question",
+                            label = "Hast du am ... Zeit?"
+                        )
+                    )
+
+                )
+            }
+            layout.add(feld)
+        }
     }
 
     // create a update layout funktion, welche das lyout nummr updatet und rurück gibt es soll für jeden Frage Basistyp eine eigene funktion haben
