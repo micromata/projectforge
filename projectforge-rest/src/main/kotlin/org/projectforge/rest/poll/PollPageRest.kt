@@ -5,6 +5,7 @@ import org.json.simple.JSONObject
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.mail.MailAttachment
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
@@ -13,7 +14,6 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.poll.Detail.View.PollDetailRest
 import org.projectforge.rest.poll.Exel.ExcelExport
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.Frage
@@ -21,16 +21,34 @@ import org.projectforge.ui.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import java.util.*
 import javax.servlet.http.HttpServletRequest
+import kotlin.collections.ArrayList
 
 @RestController
 @RequestMapping("${Rest.URL}/poll")
 class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.java, "poll.title") {
 
+
     private val log: Logger = LoggerFactory.getLogger(PollPageRest::class.java)
+
+    @Autowired
+    private lateinit var pollDao: PollDao
+
+    @Autowired
+    private lateinit var pollMailService: PollMailService
 
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
@@ -114,7 +132,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val location = dto.location
         val deadline = dto.deadline
 
-
         val userAccess = UILayout.UserAccess()
         val poll = PollDO()
         dto.copyTo(poll)
@@ -124,8 +141,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        super.onAfterSaveOrUpdate(request, obj, postData)
+        val dto = postData.data
+        pollMailService.sendMail(subject = "", content = "", to = "test.mail")
+    }
+
     @PostMapping("/addAntwort/{fieldId}")
-    fun abc(
+    fun addAntwort(
         @RequestBody postData: PostData<Poll>,
         @PathVariable("fieldId") fieldUid: String,
     ): ResponseEntity<ResponseAction> {
@@ -140,9 +163,80 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+    @Scheduled(fixedRate = 50000)
+    fun cronJobSch() {
+        // check if poll end in Future
+        val polls = pollDao.internalLoadAll()
+        var mail = "";
+        var header = "";
+        // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
+        val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false}
+        pollsInFuture.forEach{
+            val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
+            if(daysDifference == 1L || daysDifference == 7L){
+                header = "Umfrage Endet in $daysDifference Tage"
+                mail ="""
+                    Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
+                    Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
+                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owmer
+                }zuständig.
+                    Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
+                    Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
+                    Wir würden uns freuen, wenn Sie sich die Zeit nehmen könnten, um diese Umfrage auszufüllen.
+                    Vielen Dank im Voraus für Ihre Unterstützung.
+                    
+                    Mit freundlichen Grüßen,${it  ///owmer
+                }
+                     """.trimMargin()
+            }
+        }
+
+        // check if state ist open or closed
+        val list = ArrayList<MailAttachment>()
+
+        val ihkExporter = ExcelExport()
+       // val exel = ihkExporter
+        //    .getExcel()
+
+
+
+        val attachment = object : MailAttachment {
+            override fun getFilename(): String {
+                return "test"+ "_" + LocalDateTime.now().year + ".xlsx"
+            }
+
+            override fun getContent(): ByteArray? {
+               // return exel
+                return null
+            }
+        }
+        list.add(attachment)
+
+        if(mail.isNotEmpty()){
+            pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
+        }
+    }
+
+
+
+
+    @Scheduled(fixedRate = 50000) //cron = "0 0 1 * * *" // 1am
+    fun cronDeletePolls() {
+        // check if poll end in Future
+        val polls = pollDao.internalLoadAll()
+        val pollsMoreThanOneYearPast = polls.filter { it.created?.before(Date.from(LocalDate.now().minusYears(1).atStartOfDay(
+            ZoneId.systemDefault()
+        ).toInstant())) ?: false }
+        pollsMoreThanOneYearPast.forEach {
+            pollDao.delete(it)
+        }
+    }
+
+
+
     // PostMapping add
     @PostMapping("/add")
-    fun abc(
+    fun addFrageField(
         @RequestBody postData: PostData<Poll>,
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
