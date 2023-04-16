@@ -235,11 +235,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
     }
 
+
     @PostMapping("Export")
-    fun export(request: HttpServletRequest) : ResponseEntity<Resource>? {
+    fun export(request: HttpServletRequest,poll: Poll) : ResponseEntity<Resource>? {
         val ihkExporter = ExcelExport()
         val bytes: ByteArray? = ihkExporter
-            .getExcel()
+            .getExcel(poll)
         val filename = ("test.xlsx")
 
         if (bytes == null || bytes.size == 0) {

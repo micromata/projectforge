@@ -3,6 +3,7 @@ package org.projectforge.rest.poll.Exel
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
+import org.projectforge.rest.poll.Poll
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
@@ -18,7 +19,7 @@ class ExcelExport {
     private val FIRST_DATA_ROW_NUM = 5
 
 
-    fun getExcel(): ByteArray? {
+    fun getExcel(obj: Poll): ByteArray? {
         //var excelSheet: ExcelSheet? = null
         //var emptyRow: ExcelRow? = null
 
