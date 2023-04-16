@@ -51,13 +51,13 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "canSeeResultUsers", nullable = true)
     open var canSeeResultUsers: String? = null
 
-    @PropertyInfo(i18nKey = "poll.canEditPollUsers")
-    @get:Column(name = "canEditPollUsers", nullable = true)
-    open var canEditPollUsers: String? = null
+        @PropertyInfo(i18nKey = "poll.canEditPollUsers")
+        @get:Column(name = "canEditPollUsers", nullable = true)
+        open var canEditPollUsers: String? = null
 
-    @PropertyInfo(i18nKey = "poll.canVoteInPoll")
-    @get:Column(name = "canVoteInPoll", nullable = true)
-    open var canVoteInPoll: String? = null
+        @PropertyInfo(i18nKey = "poll.canVoteInPoll")
+        @get:Column(name = "canVoteInPoll", nullable = true)
+        open var canVoteInPoll: String? = null
     */
 
 }
