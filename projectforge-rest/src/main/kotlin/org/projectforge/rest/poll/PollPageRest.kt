@@ -79,11 +79,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             this,
             userAccess = userAccess,
         )
-            .add(lc, "title", "description", "location", "owner", "deadline")
-            .add(lc, "canSeeResultUsers")
-            .add(lc, "canEditPollUsers")
-            .add(lc, "canVoteInPoll")
-            .add(lc,"button")
+            .add(lc, "title", "description", "location", "owner", "deadline", "state")
 
 
         layout.add(
@@ -97,7 +93,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         layout.add(UIButton.createAddButton(responseAction = ResponseAction("${Rest.URL}/poll/edit?id=${id}", targetType = TargetType.GET)))
 
     }
-
 
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
@@ -123,7 +118,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             )
         )
         addQuestionFieldset(layout, dto)
-
 
         layout.watchFields.addAll(
             arrayOf(
@@ -172,64 +166,90 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
-    @Scheduled(fixedRate = 50000)
-    fun cronJobSch() {
-        // check if poll end in Future
+    /**
+     * Method to end polls after deadline
+     */
+    fun cronEndPolls() {
         val polls = pollDao.internalLoadAll()
-        var mail = "";
-        var header = "";
-        // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
-        val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false}
-        pollsInFuture.forEach{
-            val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
-            if(daysDifference == 1L || daysDifference == 7L){
-                header = "Umfrage Endet in $daysDifference Tage"
-                mail ="""
+
+        // set State.FINISHED for all old polls
+        polls.forEach {
+            if (it.deadline?.isBefore(LocalDate.now()) == true) {
+                it.state = PollDO.State.FINISHED
+                pollDao.internalSaveOrUpdate(it)
+            }
+        }
+
+        try {
+            var mail = "";
+            var header = "";
+            // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
+            val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false}
+            pollsInFuture.forEach{
+                val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
+                if(daysDifference == 1L || daysDifference == 7L){
+                    header = "Umfrage Endet in $daysDifference Tage"
+                    mail ="""
                     Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
                     Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
                     unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owmer
-                }zuständig.
+                    }zuständig.
                     Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
                     Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
                     Wir würden uns freuen, wenn Sie sich die Zeit nehmen könnten, um diese Umfrage auszufüllen.
                     Vielen Dank im Voraus für Ihre Unterstützung.
                     
                     Mit freundlichen Grüßen,${it  ///owmer
-                }
+                    }
                      """.trimMargin()
+                }
+            }
+
+            // check if state is open or closed
+            val list = ArrayList<MailAttachment>()
+
+            val ihkExporter = ExcelExport()
+            // val exel = ihkExporter
+            //    .getExcel()
+
+
+
+            val attachment = object : MailAttachment {
+                override fun getFilename(): String {
+                    return "test"+ "_" + LocalDateTime.now().year + ".xlsx"
+                }
+
+                override fun getContent(): ByteArray? {
+                    // return exel
+                    return null
+                }
+            }
+            list.add(attachment)
+
+            if(mail.isNotEmpty()){
+                pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
             }
         }
-
-        // check if state ist open or closed
-        val list = ArrayList<MailAttachment>()
-
-        val ihkExporter = ExcelExport()
-       // val exel = ihkExporter
-        //    .getExcel()
-
-
-
-        val attachment = object : MailAttachment {
-            override fun getFilename(): String {
-                return "test"+ "_" + LocalDateTime.now().year + ".xlsx"
-            }
-
-            override fun getContent(): ByteArray? {
-               // return exel
-                return null
-            }
-        }
-        list.add(attachment)
-
-        if(mail.isNotEmpty()){
-            pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
+        catch (e:Exception) {
+            log.error(e.toString())
         }
     }
 
 
+    /**
+     * Cron job for daily stuff
+     */
+    //@Scheduled(cron = "0 0 1 * * *") // 1am everyday
+    @Scheduled(cron = "0 * * * * *") // 1am everyday
+    fun dailyCronJobs() {
+        cronDeletePolls()
+        cronEndPolls()
+    }
 
 
-    @Scheduled(fixedRate = 50000) //cron = "0 0 1 * * *" // 1am
+    /**
+     * Method to delete old polls
+     */
     fun cronDeletePolls() {
         // check if poll end in Future
         val polls = pollDao.internalLoadAll()

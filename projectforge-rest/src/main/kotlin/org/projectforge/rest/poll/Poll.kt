@@ -13,7 +13,7 @@ class Poll(
     var location: String? = null,
     var date: LocalDate? = null,
     var deadline: LocalDate? = null,
-    var state: State? = State.RUNNING,
+    var state: PollDO.State? = PollDO.State.RUNNING,
     var questionType: String? = null,
     var inputFields: MutableList<Frage>? = null,
     var canSeeResultUsers: String? = null,
