@@ -13,6 +13,7 @@ CREATE TABLE T_POLL
     deadline DATE NOT NULL,
     date DATE,
     state CHARACTER VARYING(1000),
+    inputFields CHARACTER Varying(1000)
 /*
     canSeeResultUsers CHARACTER VARYING(1000),
     canEditPollUsers CHARACTER VARYING(1000),
