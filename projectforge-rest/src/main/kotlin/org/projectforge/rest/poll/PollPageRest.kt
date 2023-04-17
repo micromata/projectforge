@@ -185,7 +185,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
             if (field.type == BaseType.FreiTextFrage) {
                 feld.add(
-                    UIFieldset(UILength(md = 6, lg = 4)).add(UIInput("inputFields[${index}].question"))
+                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question"))
                 )
             }
 
