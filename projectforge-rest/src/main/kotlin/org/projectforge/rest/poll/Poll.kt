@@ -1,12 +1,11 @@
 package org.projectforge.rest.poll
 
-import net.sf.mpxj.LocaleData
 import org.projectforge.business.poll.PollDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.ui.UIDataType
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.User
 import java.time.LocalDate
-import java.util.*
 
 class Poll(
     var title: String? = null,
@@ -15,14 +14,19 @@ class Poll(
     var location: String? = null,
     var date: LocalDate? = null,
     var deadline: LocalDate? = null,
-    var inputFields: List<InputField>? = null,
-    var canSeeResultUsers: String? = null,
-    var canEditPollUsers: String? = null,
-    var canVoteInPoll: String? = null
-) : BaseDTO<PollDO>() {
-    class InputField(
-        var type: UIDataType? = null,
-        var name: String? = null,
-        var value: Any? = null,
-    )
+    var fullAccessGroups: List<Group>? = null,
+    var fullAccessUsers: List<User>? = null
+    ) : BaseDTO<PollDO>() {
+    override fun copyFrom(src: PollDO) {
+        super.copyFrom(src)
+        fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
+        fullAccessUsers = User.toUserList(src.fullAccessUserIds)
+    }
+
+    // The user and group ids are stored as csv list of integers in the data base.
+    override fun copyTo(dest: PollDO) {
+        super.copyTo(dest)
+        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
+        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
+    }
 }

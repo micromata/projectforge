@@ -10,7 +10,8 @@ CREATE TABLE T_POLL
     description CHARACTER VARYING(1000),
     location    CHARACTER VARYING(1000),
     owner_pk INTEGER NOT NULL,
-    deadline DATE NOT NULL
+    deadline DATE NOT NULL,
+    accessUser CHARACTER VARYING(1000)
 );
 
 ALTER TABLE T_POLL
