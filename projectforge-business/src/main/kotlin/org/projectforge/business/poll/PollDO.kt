@@ -1,12 +1,10 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import java.time.LocalDate
 import javax.persistence.*
@@ -50,7 +48,16 @@ open class PollDO : DefaultBaseDO() {
 
      */
 
-   /* @PropertyInfo(i18nKey = "poll.canSeeResultUsers")
+    enum class State {
+        RUNNING, FINISHED
+    }
+
+    @PropertyInfo(i18nKey = "poll.state")
+    @get:Column(name = "state", nullable = false)
+    open var state: State? = State.RUNNING
+
+/*
+    @PropertyInfo(i18nKey = "poll.canSeeResultUsers")
     @get:Column(name = "canSeeResultUsers", nullable = true)
     open var canSeeResultUsers: String? = null
 
@@ -60,6 +67,7 @@ open class PollDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "poll.canVoteInPoll")
     @get:Column(name = "canVoteInPoll", nullable = true)
-    open var canVoteInPoll: String? = null*/
+    open var canVoteInPoll: String? = null
+*/
 
 }

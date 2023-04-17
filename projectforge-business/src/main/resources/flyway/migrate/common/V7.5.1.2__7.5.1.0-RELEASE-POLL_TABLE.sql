@@ -11,7 +11,13 @@ CREATE TABLE T_POLL
     location    CHARACTER VARYING(1000),
     owner_pk INTEGER NOT NULL,
     deadline DATE NOT NULL,
-    date DATE
+    date DATE,
+    state CHARACTER VARYING(1000),
+/*
+    canSeeResultUsers CHARACTER VARYING(1000),
+    canEditPollUsers CHARACTER VARYING(1000),
+    canVoteInPoll CHARACTER VARYING(1000),
+*/
 );
 
 ALTER TABLE T_POLL

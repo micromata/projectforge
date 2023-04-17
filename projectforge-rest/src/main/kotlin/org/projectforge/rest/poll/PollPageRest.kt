@@ -2,15 +2,12 @@ package org.projectforge.rest.poll
 
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
-import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
-import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -35,6 +32,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+        var id = 10094
         agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
@@ -42,9 +40,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             this,
             userAccess = userAccess,
         )
-            .add(lc, "title", "description", "location")
-            .add(lc, "owner")
-            .add(lc, "deadline")
+            .add(lc, "title", "description", "location", "owner", "deadline")
+            .add(lc, "canSeeResultUsers")
+            .add(lc, "canEditPollUsers")
+            .add(lc, "canVoteInPoll")
+            .add(lc,"button")
+
+
         layout.add(
             MenuItem(
                 "export",
@@ -53,6 +55,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 type = MenuItemTargetType.REDIRECT,
             )
         )
+        layout.add(UIButton.createAddButton(responseAction = ResponseAction("${Rest.URL}/poll/edit?id=${id}", targetType = TargetType.GET)))
+
     }
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
@@ -68,7 +72,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 ))
             .add(UIButton.createAddButton(responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST)))
 
-                layout.watchFields.addAll(
+        layout.watchFields.addAll(
             arrayOf(
                 "title",
                 "description",
@@ -115,7 +119,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     // PostMapping add
     @PostMapping("/add")
-    fun abc(){
+    fun add(){
     }
 
 
