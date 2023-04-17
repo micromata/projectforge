@@ -42,11 +42,9 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "date")
     open var date: LocalDate? = null
 
-    /*@PropertyInfo(i18nKey = "poll.inputlist")
-    @get:Column(name = "input_list", nullable = true, length = 10000)
+    @PropertyInfo(i18nKey = "poll.inputFields")
+    @get:Column(name = "inputFields", nullable = true, length = 1000)
     open var inputFields: String? = null
-
-     */
 
     enum class State {
         RUNNING, FINISHED
