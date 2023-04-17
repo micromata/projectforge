@@ -11,6 +11,7 @@ CREATE TABLE T_POLL
     location    CHARACTER VARYING(1000),
     owner_pk INTEGER NOT NULL,
     deadline DATE NOT NULL,
+    inputFields CHARACTER Varying(1000),
     date DATE
 );
 
