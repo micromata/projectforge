@@ -1,17 +1,21 @@
 package org.projectforge.rest.poll
 
-import org.projectforge.business.poll.PollDO
-import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.*
 import org.projectforge.business.vacation.model.VacationDO
+import org.projectforge.business.vacation.model.VacationMode
+import org.projectforge.business.vacation.model.VacationModeFilter
+import org.projectforge.business.vacation.model.VacationStatus
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
-import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.Vacation
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -78,6 +82,40 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
         updateStats(dto)
         return LayoutUtils.processEditPage(layout, dto, this)
+    }
+
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
+                .buildValues(PollAssignment.OWNER, PollAssignment.OTHER)
+        )
+        elements.add(
+            UIFilterListElement("status", label = translate("poll.status"), defaultFilter = true)
+                .buildValues(PollStatus.ACTIVE, PollStatus.EXPIRED)
+        )
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>>? {
+        val filters = mutableListOf<CustomResultFilter<PollDO>>()
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
+        if (assignmentFilterEntry != null) {
+            assignmentFilterEntry.synthetic = true
+            val values = assignmentFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollAssignment.valueOf(it) }
+                filters.add(PollAssignmentFilter(enums))
+            }
+        }
+        val statusFilterEntry = source.entries.find { it.field == "status" }
+        if (statusFilterEntry != null) {
+            statusFilterEntry.synthetic = true
+            val values = statusFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollStatus.valueOf(it) }
+                filters.add(PollStatusFilter(enums))
+            }
+        }
+        return filters
     }
 
     override fun onWatchFieldsUpdate(

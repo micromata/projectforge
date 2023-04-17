@@ -1,12 +1,11 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import java.time.LocalDate
 import javax.persistence.*
@@ -43,6 +42,27 @@ open class PollDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "poll.date")
     @get:Column(name = "date")
     open var date: LocalDate? = null
+
+    @Transient
+    fun getPollAssignment(): PollAssignment {
+        val currentUserId = ThreadLocalUserContext.userId
+        val owner = if (owner != null) owner!!.id else null
+        return if (currentUserId == owner) {
+            PollAssignment.OWNER
+        } else {
+            PollAssignment.OTHER
+        }
+    }
+
+    @Transient
+    fun getPollStatus(): PollStatus {
+        return if (LocalDate.now().isAfter(deadline)) {
+            PollStatus.EXPIRED
+        } else {
+            PollStatus.ACTIVE
+        }
+    }
+
 
     /*@PropertyInfo(i18nKey = "poll.inputlist")
     @get:Column(name = "input_list", nullable = true, length = 10000)
