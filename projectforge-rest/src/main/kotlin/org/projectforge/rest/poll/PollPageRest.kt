@@ -33,6 +33,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return pollDO
     }
 
+
+    //override fun transformForDB editMode not used
     override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
         poll.copyFrom(obj)
@@ -117,7 +119,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     @PostMapping("/addAntwort/{fieldId}")
-    fun abc(
+    fun addAntwortFeld(
         @RequestBody postData: PostData<Poll>,
         @PathVariable("fieldId") fieldUid: String,
     ): ResponseEntity<ResponseAction> {
@@ -134,7 +136,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     // PostMapping add
     @PostMapping("/add")
-    fun abc(
+    fun addFrageFeld(
         @RequestBody postData: PostData<Poll>,
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
