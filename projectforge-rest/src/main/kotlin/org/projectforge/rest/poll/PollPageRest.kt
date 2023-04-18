@@ -91,8 +91,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 type = MenuItemTargetType.REDIRECT,
             )
         )
-        layout.add(UIButton.createAddButton(responseAction = ResponseAction("${Rest.URL}/poll/edit?id=${id}", targetType = TargetType.GET)))
-
     }
 
 
