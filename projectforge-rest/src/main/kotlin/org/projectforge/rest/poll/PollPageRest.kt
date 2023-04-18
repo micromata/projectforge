@@ -71,7 +71,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun createListLayout(
         request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess
     ) {
-        var id = 10094
         agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
