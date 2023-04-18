@@ -7,6 +7,7 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.rest.CardDAVInfoPageRest
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -72,6 +73,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val obj = PollDO()
         dto.copyTo(obj)
         val layout = super.createEditLayout(dto, userAccess)
+        layout.add(MenuItem("zt", "moin", url =  PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java), type = MenuItemTargetType
+            .MODAL))
         layout.add(
             UIRow().add(
                 UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location", "owner", "deadline")
@@ -97,6 +100,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "title", "description", "location", "deadline"
             )
         )
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -116,6 +120,19 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
+    }
+    @GetMapping("anleitung")
+    fun rendernleitung():UILayout{
+        val layout = UILayout("poll.anleitung")
+        layout.add(
+            UIRow().add(
+                UIFieldset(UILength(md = 6, lg = 4)).add(
+                    UILabel("poll.anleitung")
+                )
+            )
+        )
+
+        return layout
     }
 
     @PostMapping("/addAntwort/{fieldId}")
