@@ -170,19 +170,52 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
      * Method to end polls after deadline
      */
     fun cronEndPolls() {
-        val polls = pollDao.internalLoadAll()
 
+        var mail = "";
+        var header = "";
+
+
+
+        val polls = pollDao.internalLoadAll()
+        val list = ArrayList<MailAttachment>()
         // set State.FINISHED for all old polls
         polls.forEach {
-            if (it.deadline?.isBefore(LocalDate.now()) == true) {
+            if (it.deadline?.isBefore(LocalDate.now().minusDays(1)) == true) {
                 it.state = PollDO.State.FINISHED
+                // check if state is open or closed
+
+                val ihkExporter = ExcelExport()
+
+                val poll = Poll()
+                poll.copyFrom(it)
+
+                val exel = ihkExporter
+                    .getExcel(poll)
+
+                val attachment = object : MailAttachment {
+                    override fun getFilename(): String {
+                        return it.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx"
+                    }
+
+                    override fun getContent(): ByteArray? {
+                        return exel
+                    }
+                }
+                list.add(attachment)
+
+
+                header = "Umfrage ist abgelaufen"
+                mail ="""
+                        Die Umfrage ist zu ende. Hier die ergebnisse.
+                     """.trimMargin()
+
                 pollDao.internalSaveOrUpdate(it)
             }
+
         }
 
         try {
-            var mail = "";
-            var header = "";
+
             // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
             val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false}
             pollsInFuture.forEach{
@@ -205,26 +238,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 }
             }
 
-            // check if state is open or closed
-            val list = ArrayList<MailAttachment>()
 
-            val ihkExporter = ExcelExport()
-            // val exel = ihkExporter
-            //    .getExcel()
-
-
-
-            val attachment = object : MailAttachment {
-                override fun getFilename(): String {
-                    return "test"+ "_" + LocalDateTime.now().year + ".xlsx"
-                }
-
-                override fun getContent(): ByteArray? {
-                    // return exel
-                    return null
-                }
-            }
-            list.add(attachment)
 
             if(mail.isNotEmpty()){
                 pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
@@ -239,8 +253,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     /**
      * Cron job for daily stuff
      */
-    //@Scheduled(cron = "0 0 1 * * *") // 1am everyday
-    @Scheduled(cron = "0 * * * * *") // 1am everyday
+    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
     fun dailyCronJobs() {
         cronDeletePolls()
         cronEndPolls()
