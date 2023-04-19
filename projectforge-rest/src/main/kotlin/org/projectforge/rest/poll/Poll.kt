@@ -3,7 +3,7 @@ package org.projectforge.rest.poll
 import org.projectforge.business.poll.PollDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.poll.types.Frage
+import org.projectforge.rest.poll.types.Question
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import java.time.LocalDate
@@ -17,7 +17,7 @@ class Poll(
     var deadline: LocalDate? = null,
     var state: PollDO.State? = PollDO.State.RUNNING,
     var questionType: String? = null,
-    var inputFields: MutableList<Frage>? = null,
+    var inputFields: MutableList<Question>? = mutableListOf(),
     var fullAccessGroups: List<Group>? = null,
     var fullAccessUsers: List<User>? = null,
     var groupAttendees: List<Group>? = null,

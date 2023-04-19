@@ -17,7 +17,7 @@ CREATE TABLE T_POLL
     groupAttendeesIds VARCHAR(5000),
     full_access_user_ids CHARACTER VARYING(255),
     full_access_group_ids CHARACTER VARYING(255),
-    inputFields CHARACTER Varying(1000)
+    inputFields CHARACTER Varying(100000)
 );
 
 ALTER TABLE T_POLL
