@@ -1,14 +1,16 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.core.*
+import org.projectforge.rest.dto.*
 import org.projectforge.rest.poll.Exel.ExcelExport
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PREMADE_QUESTIONS
@@ -16,14 +18,11 @@ import org.projectforge.rest.poll.types.Question
 import org.projectforge.ui.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.Resource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -33,9 +32,19 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     private val log: Logger = LoggerFactory.getLogger(PollPageRest::class.java)
 
     @Autowired
-    private lateinit var pollDao: PollDao
+    private lateinit var userService: UserService;
+
+    @Autowired
+    private lateinit var groupService: GroupService;
+
     @Autowired
     private lateinit var pollMailService: PollMailService
+
+    override fun newBaseDTO(request: HttpServletRequest?): Poll {
+        val result = Poll()
+        result.owner = ThreadLocalUserContext.user
+        return result
+    }
 
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
@@ -52,9 +61,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = Poll()
         poll.copyFrom(pollDO)
         if (pollDO.inputFields != null) {
-            var a = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
-            poll.inputFields = a.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+            val fields = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
+            poll.inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
+        User.restoreDisplayNames(poll.fullAccessUsers, userService)
+        Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
+        User.restoreDisplayNames(poll.attendees, userService)
+        Group.restoreDisplayNames(poll.groupAttendees, groupService)
         return poll
     }
 
@@ -68,7 +81,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             this,
             userAccess = userAccess,
         )
-            .add(lc, "title", "description", "location", "owner", "deadline", "state")
+            .add(lc, "title", "description", "location", "owner", "deadline", "date", "state")
+
     }
 
 
@@ -79,7 +93,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
         layout.add(
             UIRow().add(
-                UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location", "owner", "deadline")
+                UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location")
+                        .add(lc, "owner")
+                        .add(lc, "deadline", "date")
+                        .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "poll.fullAccessUsers"))
+                        .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
+                        .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
+                        .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
             )
         )
         layout.add(
@@ -110,35 +130,17 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
-        layout.watchFields.addAll(
+                layout.watchFields.addAll(
             arrayOf(
-                "title", "description", "location", "deadline"
+                "title", "description", "location", "deadline",
+                "date"
             )
         )
 
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-
     //TODO refactor this whole file into multiple smaller files
-
-    override fun onWatchFieldsUpdate(
-        request: HttpServletRequest, dto: Poll, watchFieldsTriggered: Array<String>?
-    ): ResponseEntity<ResponseAction> {
-        val title = dto.title
-        val description = dto.description
-        val location = dto.location
-        val deadline = dto.deadline
-
-        val userAccess = UILayout.UserAccess()
-        val poll = PollDO()
-        dto.copyTo(poll)
-        checkUserAccess(poll, userAccess)
-        return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
-        )
-    }
-
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
@@ -302,5 +304,5 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
         layout.add(UIRow().add(UIFieldset(UILength(md = 6, lg = 4))
             .add(lc, "name")))
-        */
+    */
 }
