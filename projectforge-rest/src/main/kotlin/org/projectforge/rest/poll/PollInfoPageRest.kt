@@ -66,19 +66,6 @@ class PollInfoPageRest: AbstractDynamicPageRest() {
                         | kann""".trimMargin()
             ))))
 
-            layout.add(
-                UIRow().add(
-                UIButton.createBackButton(
-                    responseAction = ResponseAction(
-                        PagesResolver.getEditPageUrl(
-                            PollPageRest::class.java,
-                            absolute = true,
-                        ), targetType = TargetType.REDIRECT
-                    ),
-                    default = true
-                )
-                )
-            )
 
             LayoutUtils.process(layout)
 
