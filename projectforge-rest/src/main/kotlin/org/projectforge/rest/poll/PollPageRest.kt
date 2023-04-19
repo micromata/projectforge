@@ -1,46 +1,29 @@
 package org.projectforge.rest.poll
 
-import org.projectforge.business.group.service.GroupService
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.user.service.UserService
-import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.mail.MailAttachment
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.*
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.AbstractDTOPagesRest
-import org.projectforge.rest.core.PagesResolver
-import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.core.*
+import org.projectforge.rest.dto.*
 import org.projectforge.rest.poll.Exel.ExcelExport
 import org.projectforge.rest.poll.types.BaseType
-import org.projectforge.rest.poll.types.Frage
-import org.projectforge.rest.dto.*
+import org.projectforge.rest.poll.types.PREMADE_QUESTIONS
+import org.projectforge.rest.poll.types.Question
 import org.projectforge.ui.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import javax.servlet.http.HttpServletRequest
-import kotlin.collections.ArrayList
 
 @RestController
 @RequestMapping("${Rest.URL}/poll")
@@ -53,9 +36,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @Autowired
     private lateinit var groupService: GroupService;
-
-    @Autowired
-    private lateinit var pollDao: PollDao
 
     @Autowired
     private lateinit var pollMailService: PollMailService
@@ -77,12 +57,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
     //override fun transformForDB editMode not used
-    override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
+    override fun transformFromDB(pollDO: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
-        poll.copyFrom(obj)
-        if(obj.inputFields!= null){
-            var a = ObjectMapper().readValue(obj.inputFields, MutableList::class.java)
-            poll.inputFields = a.map { Frage().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+        poll.copyFrom(pollDO)
+        if (pollDO.inputFields != null) {
+            var a = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
+            poll.inputFields = a.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         User.restoreDisplayNames(poll.fullAccessUsers, userService)
         Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
@@ -102,21 +82,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             userAccess = userAccess,
         )
             .add(lc, "title", "description", "location", "owner", "deadline", "date", "state")
-        layout.add(
-            MenuItem(
-                "export",
-                i18nKey = "poll.export.title",
-                url = PagesResolver.getDynamicPageUrl(VacationExportPageRest::class.java),
-                type = MenuItemTargetType.REDIRECT,
-            )
-        )
+
     }
 
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
-        val obj = PollDO()
-        dto.copyTo(obj)
+        val poll = PollDO()
+        dto.copyTo(poll)
         val layout = super.createEditLayout(dto, userAccess)
         layout.add(
             UIRow().add(
@@ -132,15 +105,29 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         layout.add(
             UIRow().add(
                 UIFieldset(UILength(md = 6, lg = 4)).add(
-                    UIButton.createAddButton(
-                        responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST)
+                    UIButton.createDefaultButton(
+                        id = "add-question-button",
+                        responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST),
+                        title = "Eigene Frage hinzufügen"
                     )
                 ).add(
                     UISelect("questionType", values = BaseType.values().map { UISelectValue(it, it.name) })
-
                 )
             )
         )
+
+        layout.add(
+            UIRow().add(
+                UIFieldset(UILength(md = 6, lg = 4)).add(
+                    UIButton.createDefaultButton(
+                        id = "micromata-vorlage-button",
+                        responseAction = ResponseAction("${Rest.URL}/poll/addPremadeQuestions", targetType = TargetType.POST),
+                        title = "Micromata Vorlage nutzen"
+                    )
+                )
+            )
+        )
+
         addQuestionFieldset(layout, dto)
 
                 layout.watchFields.addAll(
@@ -149,14 +136,37 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "date"
             )
         )
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
-        super.onAfterSaveOrUpdate(request, obj, postData)
+
+    //TODO refactor this whole file into multiple smaller files
+
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest, dto: Poll, watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+        val title = dto.title
+        val description = dto.description
+        val location = dto.location
+        val deadline = dto.deadline
+
+        val userAccess = UILayout.UserAccess()
+        val poll = PollDO()
+        dto.copyTo(poll)
+        checkUserAccess(poll, userAccess)
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+        )
+    }
+
+
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
+        super.onAfterSaveOrUpdate(request, poll, postData)
         val dto = postData.data
         pollMailService.sendMail(subject = "", content = "", to = "test.mail")
     }
+
 
     @PostMapping("/addAntwort/{fieldId}")
     fun addAntwortFeld(
@@ -167,143 +177,53 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val userAccess = UILayout.UserAccess(insert = true, update = true)
 
         val found = dto.inputFields?.find { it.uid == fieldUid }
-        found?.antworten?.add("")
+        found?.answers?.add("")
 
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
 
-    /**
-     * Method to end polls after deadline
-     */
-    fun cronEndPolls() {
 
-        var mail = "";
-        var header = "";
-
-        val polls = pollDao.internalLoadAll()
-        val list = ArrayList<MailAttachment>()
-        // set State.FINISHED for all old polls
-        polls.forEach {
-            if (it.deadline?.isBefore(LocalDate.now().minusDays(1)) == true) {
-                it.state = PollDO.State.FINISHED
-                // check if state is open or closed
-
-                val ihkExporter = ExcelExport()
-
-                val poll = Poll()
-                poll.copyFrom(it)
-
-                val exel = ihkExporter
-                    .getExcel(poll)
-
-                val attachment = object : MailAttachment {
-                    override fun getFilename(): String {
-                        return it.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx"
-                    }
-
-                    override fun getContent(): ByteArray? {
-                        return exel
-                    }
-                }
-                list.add(attachment)
-
-
-                header = "Umfrage ist abgelaufen"
-                mail ="""
-                        Die Umfrage ist zu ende. Hier die ergebnisse.
-                     """.trimMargin()
-
-                pollDao.internalSaveOrUpdate(it)
-            }
-
-        }
-
-        try {
-
-            // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
-            val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false}
-            pollsInFuture.forEach{
-                val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
-                if(daysDifference == 1L || daysDifference == 7L){
-                    header = "Umfrage Endet in $daysDifference Tage"
-                    mail ="""
-                    Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
-                    Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
-                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owmer
-                    }zuständig.
-                    Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
-                    Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
-                    Wir würden uns freuen, wenn Sie sich die Zeit nehmen könnten, um diese Umfrage auszufüllen.
-                    Vielen Dank im Voraus für Ihre Unterstützung.
-                    
-                    Mit freundlichen Grüßen,${it  ///owmer
-                    }
-                     """.trimMargin()
-                }
-            }
-
-
-
-            if(mail.isNotEmpty()){
-                pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
-            }
-        }
-        catch (e:Exception) {
-            log.error(e.toString())
-        }
-    }
-
-
-    /**
-     * Cron job for daily stuff
-     */
-    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
-    fun dailyCronJobs() {
-        cronDeletePolls()
-        cronEndPolls()
-    }
-
-
-    /**
-     * Method to delete old polls
-     */
-    fun cronDeletePolls() {
-        // check if poll end in Future
-        val polls = pollDao.internalLoadAll()
-        val pollsMoreThanOneYearPast = polls.filter { it.created?.before(Date.from(LocalDate.now().minusYears(1).atStartOfDay(
-            ZoneId.systemDefault()
-        ).toInstant())) ?: false }
-        pollsMoreThanOneYearPast.forEach {
-            pollDao.delete(it)
-        }
-    }
 
     // PostMapping add
     @PostMapping("/add")
     fun addQuestionField(
+        @RequestBody postData: PostData<Poll>
+    ): ResponseEntity<ResponseAction> {
+        val userAccess = UILayout.UserAccess(insert = true, update = true)
+        val dto = postData.data
+        val poll = PollDO()
+
+        var type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
+        var question = Question(uid = UUID.randomUUID().toString(), type = type)
+        if(type == BaseType.YesNoQuestion) {
+            question.answers = mutableListOf("ja", "nein")
+        }
+        if(type == BaseType.DateQuestion) {
+            question.answers = mutableListOf("Ja", "Vielleicht", "Nein")
+        }
+
+        dto.inputFields!!.add(question)
+
+        dto.copyTo(poll)
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+        )
+    }
+
+
+    @PostMapping("/addPremadeQuestions")
+    private fun addPremadeQuestionsField(
         @RequestBody postData: PostData<Poll>,
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
-        var type = BaseType.valueOf(dto.questionType ?: "FreiTextFrage")
-
-
         val poll = PollDO()
-        if (dto.inputFields == null) {
-            dto.inputFields = mutableListOf()
-        }
 
-        var frage = Frage(uid = UUID.randomUUID().toString(), type = type)
-        if(type== BaseType.JaNeinFrage) {
-            frage.antworten = mutableListOf("ja", "nein")
+        PREMADE_QUESTIONS.entries.forEach { entry ->
+            dto.inputFields?.add(entry.value)
         }
-        if(type== BaseType.DatumsAbfrage) {
-            frage.antworten = mutableListOf("Ja", "Vielleicht", "Nein")
-        }
-
-        dto.inputFields!!.add(frage)
 
         dto.copyTo(poll)
         return ResponseEntity.ok(
@@ -313,35 +233,34 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
-
         dto.inputFields?.forEachIndexed { index, field ->
-            val feld = UIRow()
-            if (field.type == BaseType.JaNeinFrage) {
+            val row = UIRow()
+            if (field.type == BaseType.YesNoQuestion) {
                 val groupLayout = UIGroup()
-                field.antworten?.forEach { antwort ->
+                field.answers?.forEach { answer ->
                     groupLayout.add(
                         UIRadioButton(
-                            "JaNeinRadio", antwort, label = antwort
+                            "YesNoQuestion[${index}].question", answer, label = answer
                         )
                     )
                 }
-                feld.add(
+                row.add(
                     UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question")).add
                         (groupLayout)
                 )
             }
 
-            if (field.type == BaseType.FreiTextFrage) {
-                feld.add(
+            if (field.type == BaseType.TextQuestion) {
+                row.add(
                     UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question"))
                 )
             }
 
-            if (field.type == BaseType.MultipleChoices || field.type == BaseType.DropDownFrage) {
+            if (field.type == BaseType.MultipleChoices || field.type == BaseType.DropDownQuestion) {
                 val f = UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString())
                     .add(UIInput("inputFields[${index}].question", label = "Die Frage"))
-                field.antworten?.forEachIndexed { i, _ ->
-                    f.add(UIInput("inputFields[${index}].antworten[${i}]", label = "AntwortMöglichkeit ${i + 1}"))
+                field.answers?.forEachIndexed { i, _ ->
+                    f.add(UIInput("inputFields[${index}].answers[${i}]", label = "Antwortmöglichkeit ${i + 1}"))
                 }
                 f.add(
                     UIButton.createAddButton(
@@ -353,15 +272,16 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 if (field.type == BaseType.MultipleChoices) {
                     f.add(
                         UIInput(
-                            "inputFields[${index}].numberOfSelect", dataType = UIDataType.INT, label = "Wie viele Sollen " +
-                                    "angeklickt werden können "
+                            "inputFields[${index}].numberOfSelect", dataType = UIDataType.INT, label = "Wie viele sollen " +
+                                    "angeklickt werden können?"
                         )
                     )
                 }
-                feld.add(f)
+                row.add(f)
             }
-            if (field.type == BaseType.DatumsAbfrage) {
-                feld.add(
+
+            if (field.type == BaseType.DateQuestion) {
+                row.add(
                     UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(
                         UIInput(
                             "inputFields[${index}].question",
@@ -371,7 +291,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
                 )
             }
-            layout.add(feld)
+
+            layout.add(row)
         }
     }
 
@@ -384,13 +305,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val filename = ("test.xlsx")
 
         if (bytes == null || bytes.size == 0) {
-            log.error("Oups, xlsx has zero size. Filename: $filename")
+            log.error("Oops, xlsx has zero size. Filename: $filename")
             return null;
         }
         return RestUtils.downloadFile(filename, bytes)
     }
 
-    // create a update layout funktion, welche die layout nummer updatet und zurück gibt es soll für jeden Frage Basistyp eine eigene funktion haben
+    // create a update layout funktion, welche das layout nummr updatet und zurück gibt es soll für jeden Frage Basistyp eine eigene funktion haben
 
 
     /*dto.inputFields?.forEachIndexed { field, index ->
