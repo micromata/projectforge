@@ -1,21 +1,22 @@
 package org.projectforge.rest.poll
 
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
-import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.*
-import org.projectforge.rest.dto.Group
-import org.projectforge.rest.dto.User
+import org.projectforge.rest.dto.*
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -27,6 +28,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @Autowired
     private lateinit var userService: UserService;
 
+    @Autowired
+    private lateinit var groupService: GroupService;
+
+    override fun newBaseDTO(request: HttpServletRequest?): Poll {
+        val result = Poll()
+        result.owner = ThreadLocalUserContext.user
+        return result
+    }
+
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
         dto.copyTo(pollDO)
@@ -37,6 +47,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = Poll()
         poll.copyFrom(obj)
         User.restoreDisplayNames(poll.fullAccessUsers, userService)
+        Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
+        User.restoreDisplayNames(poll.attendees, userService)
+        Group.restoreDisplayNames(poll.groupAttendees, groupService)
         return poll
     }
 
@@ -71,37 +84,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             UIRow()
                 .add(
                     UIFieldset(UILength(md = 6, lg = 4))
-                        .add(lc, "title", "description", "location", "owner", "deadline", "date")
+                        .add(lc, "title", "description", "location")
+                        .add(lc, "owner")
+                        .add(lc, "deadline", "date")
                         .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "poll.fullAccessUsers"))
                         .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
-                /*.add(
-        UIFieldset(UILength(md = 12, lg = 12), title = "access.title.heading")
-          .add(
-            UIRow()
-              .add(
-                UIFieldset(6, title = "access.users")
-                  .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "plugins.banking.account.fullAccess"))
-                  .add(
-                    UISelect.createUserSelect(
-                      lc,
-                      "readonlyAccessUsers",
-                      true,
-                      "plugins.banking.account.readonlyAccess"
-                    )
-                  )
-              )
-              .add(
-                UIFieldset(6, title = "access.groups")
-                  .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "plugins.banking.account.fullAccess"))
-                  .add(
-                    UISelect.createGroupSelect(
-                      lc,
-                      "readonlyAccessGroups",
-                      true,
-                      "plugins.banking.account.readonlyAccess"
-                    )
-                  )
-              )*/
+                        .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
+                        .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
                 ))
             .add(UIButton.createAddButton(responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST)))
                 layout.watchFields.addAll(
@@ -113,44 +102,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "date"
             )
         )
-        updateStats(dto)
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-    override fun onWatchFieldsUpdate(
-        request: HttpServletRequest,
-        dto: Poll,
-        watchFieldsTriggered: Array<String>?
-    ): ResponseEntity<ResponseAction> {
-        val title = dto.title
-        val description = dto.description
-        val location = dto.location
-        val deadline = dto.deadline
-        val date = dto.date
 
-        updateStats(dto)
-        val userAccess = UILayout.UserAccess()
-        val poll = PollDO()
-        dto.copyTo(poll)
-        checkUserAccess(poll, userAccess)
-        return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
-                .addVariable("data", dto)
-                .addVariable("ui", createEditLayout(dto, userAccess))
-        )
-    }
-
-    private fun updateStats(dto: Poll) {
-
-        val title = dto.title
-        val description = dto.description
-        val location = dto.location
-        val deadline = dto.deadline
-        val date = dto.date
-
-        val pollDO = PollDO()
-        dto.copyTo(pollDO)
-    }
 
 
     /*dto.inputFields?.forEachIndexed { field, index ->

@@ -25,7 +25,7 @@ open class PollDO : BaseUserGroupRightsDO() {
     @get:Column(name = "description", nullable = true, length = 10000)
     open var description: String? = null
 
-    @get:PropertyInfo(i18nKey = "poll.owner")
+    @get:PropertyInfo(i18nKey = "poll.owner", additionalI18nKey = "poll.owner.explaination")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_pk")
     override var owner: PFUserDO? = null
@@ -41,4 +41,12 @@ open class PollDO : BaseUserGroupRightsDO() {
     @PropertyInfo(i18nKey = "poll.date")
     @get:Column(name = "date", nullable = true)
     open var date: LocalDate? = null
+
+    @PropertyInfo(i18nKey = "poll.attendees")
+    @get:Column(name = "attendeesIds", nullable = true)
+    open var attendeesIds: String? = null
+
+    @PropertyInfo(i18nKey = "poll.group_attendees")
+    @get:Column(name = "groupAttendeesIds", nullable = true)
+    open var groupAttendeesIds: String? = null
 }
