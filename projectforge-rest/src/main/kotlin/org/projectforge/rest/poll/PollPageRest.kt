@@ -6,7 +6,6 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.TokenInfoPageRest
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -73,15 +72,21 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
         layout.add(
             MenuItem(
-                "pollDirections", "Description", url = PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java), type =
-                MenuItemTargetType.MODAL
+                "pollDirections",
+                "Description",
+                url = ResponseAction(
+                    PagesResolver.getDynamicPageUrl(
+                        PollInfoPageRest::class.java, absolute = true
+                    ), targetType = TargetType.MODAL
+                ).toString()
             )
-        )
-            .add(
+        ).add(
                 UIButton.createLinkButton(
-                    id = "pollDirections",
+                    id="pollDirections",
                     responseAction = ResponseAction(
-                        targetType = TargetType.MODAL
+                        PagesResolver.getDynamicPageUrl(
+                            PollInfoPageRest::class.java, absolute = true
+                        ), targetType = TargetType.MODAL
                     )
                 )
             )
@@ -203,8 +208,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
                 }
                 feld.add(
-                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question")).add
-                        (groupLayout)
+                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question"))
+                        .add(groupLayout)
                 )
             }
 
@@ -215,8 +220,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             }
 
             if (field.type == BaseType.MultipleChoices || field.type == BaseType.DropDownFrage) {
-                val f = UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString())
-                    .add(UIInput("inputFields[${index}].question", label = "Die Frage"))
+                val f = UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(
+                        UIInput(
+                            "inputFields[${index}].question",
+                            label = "Die Frage"
+                        )
+                    )
                 field.antworten?.forEachIndexed { i, _ ->
                     f.add(UIInput("inputFields[${index}].antworten[${i}]", label = "AntwortMöglichkeit ${i + 1}"))
                 }
@@ -230,8 +239,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 if (field.type == BaseType.MultipleChoices) {
                     f.add(
                         UIInput(
-                            "inputFields[${index}].numberOfSelect", dataType = UIDataType.INT, label = "Wie viele Sollen " +
-                                    "angeklickt werden können "
+                            "inputFields[${index}].numberOfSelect",
+                            dataType = UIDataType.INT,
+                            label = "Wie viele Sollen " + "angeklickt werden können "
                         )
                     )
                 }
@@ -241,11 +251,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 feld.add(
                     UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(
                         UIInput(
-                            "inputFields[${index}].question",
-                            label = "Hast du am ... Zeit?"
+                            "inputFields[${index}].question", label = "Hast du am ... Zeit?"
                         )
                     )
-
                 )
             }
             layout.add(feld)
