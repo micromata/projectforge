@@ -1,2 +1,0 @@
-ALTER TABLE T_POLL
-    ADD date Date;
