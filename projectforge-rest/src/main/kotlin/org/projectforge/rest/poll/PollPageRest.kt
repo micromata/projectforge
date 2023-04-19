@@ -1,13 +1,11 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.json.simple.JSONObject
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.CardDAVInfoPageRest
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -73,8 +71,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val obj = PollDO()
         dto.copyTo(obj)
         val layout = super.createEditLayout(dto, userAccess)
-        layout.add(MenuItem("zt", "moin", url =  PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java), type = MenuItemTargetType
-            .MODAL))
+        layout.add(MenuItem("pollDirections", "Description", url =  PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java), type =
+        MenuItemTargetType.MODAL))
         layout.add(
             UIRow().add(
                 UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location", "owner", "deadline")
@@ -107,11 +105,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun onWatchFieldsUpdate(
         request: HttpServletRequest, dto: Poll, watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
-        val title = dto.title
-        val description = dto.description
-        val location = dto.location
-        val deadline = dto.deadline
-
 
         val userAccess = UILayout.UserAccess()
         val poll = PollDO()
