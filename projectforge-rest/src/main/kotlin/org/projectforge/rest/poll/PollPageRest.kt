@@ -6,6 +6,7 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.rest.TokenInfoPageRest
 import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -26,7 +27,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
         dto.copyTo(pollDO)
-        if(dto.inputFields!= null){
+        if (dto.inputFields != null) {
             pollDO.inputFields = ObjectMapper().writeValueAsString(dto.inputFields)
         }
         return pollDO
@@ -37,7 +38,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
         poll.copyFrom(obj)
-        if(obj.inputFields!= null){
+        if (obj.inputFields != null) {
             var a = ObjectMapper().readValue(obj.inputFields, MutableList::class.java)
             poll.inputFields = a.map { Frage().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
@@ -65,14 +66,25 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
         val obj = PollDO()
         dto.copyTo(obj)
         val layout = super.createEditLayout(dto, userAccess)
-        layout.add(MenuItem("pollDirections", "Description", url =  PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java), type =
-        MenuItemTargetType.MODAL))
+        layout.add(
+            MenuItem(
+                "pollDirections", "Description", url = PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java), type =
+                MenuItemTargetType.MODAL
+            )
+        )
+            .add(
+                UIButton.createLinkButton(
+                    id = "pollDirections",
+                    responseAction = ResponseAction(
+                        targetType = TargetType.MODAL
+                    )
+                )
+            )
         layout.add(
             UIRow().add(
                 UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location", "owner", "deadline")
@@ -114,8 +126,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
+
     @GetMapping("anleitung")
-    fun rendernleitung():UILayout{
+    fun rendernleitung(): UILayout {
         val layout = UILayout("poll.anleitung")
         layout.add(
             UIRow().add(
@@ -160,10 +173,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
 
         var frage = Frage(uid = UUID.randomUUID().toString(), type = type)
-        if(type== BaseType.JaNeinFrage) {
+        if (type == BaseType.JaNeinFrage) {
             frage.antworten = mutableListOf("ja", "nein")
         }
-        if(type== BaseType.DatumsAbfrage) {
+        if (type == BaseType.DatumsAbfrage) {
             frage.antworten = mutableListOf("Ja", "Vielleicht", "Nein")
         }
 
