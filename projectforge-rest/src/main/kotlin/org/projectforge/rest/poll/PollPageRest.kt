@@ -7,6 +7,7 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -86,7 +87,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
-        val lc = LayoutContext(PollDO::class.java)
         val poll = PollDO()
         dto.copyTo(poll)
         val layout = super.createEditLayout(dto, userAccess)
@@ -148,12 +148,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
         addQuestionFieldset(layout, dto)
 
-                layout.watchFields.addAll(
-            arrayOf(
-                "title", "description", "location", "deadline",
-                "date"
-            )
-        )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -173,6 +167,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
         val userAccess = UILayout.UserAccess(insert = true, update = true)
+        //TODO: owner is empty,why? Only id is set
+        if(dto.owner?.lastname == null || dto.owner?.firstname == null){
+            val owner = userService.getUser(dto.owner?.id)
+            dto.owner?.firstname = owner.firstname
+            dto.owner?.lastname = owner.lastname
+        }
 
         val found = dto.inputFields?.find { it.uid == fieldUid }
         found?.answers?.add("")
@@ -191,8 +191,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val dto = postData.data
         val poll = PollDO()
 
-        var type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
-        var question = Question(uid = UUID.randomUUID().toString(), type = type)
+        //TODO: owner is empty,why? Only id is set
+        if(dto.owner?.lastname == null || dto.owner?.firstname == null){
+            val owner = userService.getUser(dto.owner?.id)
+            dto.owner?.firstname = owner.firstname
+            dto.owner?.lastname = owner.lastname
+        }
+
+        val type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
+        val question = Question(uid = UUID.randomUUID().toString(), type = type)
         if(type == BaseType.YesNoQuestion) {
             question.answers = mutableListOf("ja", "nein")
         }
