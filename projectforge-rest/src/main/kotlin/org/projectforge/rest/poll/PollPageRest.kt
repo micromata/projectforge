@@ -61,8 +61,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = Poll()
         poll.copyFrom(pollDO)
         if (pollDO.inputFields != null) {
-            var a = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
-            poll.inputFields = a.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+            val fields = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
+            poll.inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         User.restoreDisplayNames(poll.fullAccessUsers, userService)
         Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
@@ -140,26 +140,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
-
     //TODO refactor this whole file into multiple smaller files
-
-    override fun onWatchFieldsUpdate(
-        request: HttpServletRequest, dto: Poll, watchFieldsTriggered: Array<String>?
-    ): ResponseEntity<ResponseAction> {
-        val title = dto.title
-        val description = dto.description
-        val location = dto.location
-        val deadline = dto.deadline
-
-        val userAccess = UILayout.UserAccess()
-        val poll = PollDO()
-        dto.copyTo(poll)
-        checkUserAccess(poll, userAccess)
-        return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
-        )
-    }
-
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
