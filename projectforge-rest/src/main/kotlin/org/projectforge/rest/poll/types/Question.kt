@@ -24,7 +24,5 @@ enum class BaseType {
     YesNoQuestion,
     DateQuestion,
     MultipleChoices,
-    TextQuestion,
-    DropDownQuestion,
-    PremadeQuestion
+    TextQuestion
 }
