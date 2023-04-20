@@ -90,26 +90,27 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = PollDO()
         dto.copyTo(poll)
         val layout = super.createEditLayout(dto, userAccess)
-        layout.add(
-            MenuItem(
-                "pollDirections",
-                "Description",
-                url = ResponseAction(
-                    PagesResolver.getDynamicPageUrl(
-                        PollInfoPageRest::class.java, absolute = true
-                    ), targetType = TargetType.MODAL
-                ).toString()
-            )
-        ).add(
-                UIButton.createLinkButton(
-                    id="pollDirections",
-                    responseAction = ResponseAction(
-                        PagesResolver.getDynamicPageUrl(
-                            PollInfoPageRest::class.java, absolute = true
-                        ), targetType = TargetType.MODAL
+        
+         layout.add(
+            UIRow().add(
+                    UICol(
+                        UILength(11)
                     )
+                ).add(
+                    UICol(
+                        UILength(1)
+                    ).add(
+                            UIButton.createLinkButton(
+                                id = "pollDirections", responseAction = ResponseAction(
+                                    PagesResolver.getDynamicPageUrl(
+                                        PollInfoPageRest::class.java, absolute = true
+                                    ), targetType = TargetType.MODAL
+                                )
+                            )
+                        )
                 )
-            )
+        )
+         
         layout.add(
             UIRow().add(
                 UIFieldset(UILength(md = 6, lg = 4)).add(lc, "title", "description", "location")
