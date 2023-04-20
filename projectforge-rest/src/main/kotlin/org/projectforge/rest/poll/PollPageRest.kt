@@ -102,40 +102,34 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
             )
         )
-        layout.add(
-            UIRow().add(
-                UIFieldset(UILength(md = 6, lg = 4)).add(
-                    UIButton.createDefaultButton(
-                        id = "add-question-button",
-                        responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST),
-                        title = "Eigene Frage hinzufügen"
-                    )
-                ).add(
-                    UISelect("questionType", values = BaseType.values().map { UISelectValue(it, it.name) })
-                )
-            )
-        )
-
-        layout.add(
-            UIRow().add(
-                UIFieldset(UILength(md = 6, lg = 4)).add(
-                    UIButton.createDefaultButton(
-                        id = "micromata-vorlage-button",
-                        responseAction = ResponseAction("${Rest.URL}/poll/addPremadeQuestions", targetType = TargetType.POST),
-                        title = "Micromata Vorlage nutzen"
+        if(dto.id == null){
+            layout.add(
+                UIRow().add(
+                    UIFieldset(UILength(md = 6, lg = 4)).add(
+                        UIButton.createDefaultButton(
+                            id = "add-question-button",
+                            responseAction = ResponseAction("${Rest.URL}/poll/add", targetType = TargetType.POST),
+                            title = "Eigene Frage hinzufügen"
+                        )
+                    ).add(
+                        UISelect("questionType", values = BaseType.values().map { UISelectValue(it, it.name) })
                     )
                 )
             )
-        )
+            layout.add(
+                UIRow().add(
+                    UIFieldset(UILength(md = 6, lg = 4)).add(
+                        UIButton.createDefaultButton(
+                            id = "micromata-vorlage-button",
+                            responseAction = ResponseAction("${Rest.URL}/poll/addPremadeQuestions", targetType = TargetType.POST),
+                            title = "Micromata Vorlage nutzen"
+                        )
+                    )
+                )
+            )
+        }
 
         addQuestionFieldset(layout, dto)
-
-                layout.watchFields.addAll(
-            arrayOf(
-                "title", "description", "location", "deadline",
-                "date"
-            )
-        )
 
         return LayoutUtils.processEditPage(layout, dto, this)
     }
@@ -186,8 +180,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
 
         dto.inputFields!!.add(question)
-
         dto.copyTo(poll)
+        dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
@@ -215,6 +209,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
+            val objGiven = dto.id != null
             val row = UIRow()
             if (field.type == BaseType.YesNoQuestion) {
                 val groupLayout = UIGroup()
@@ -226,35 +221,37 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
                 }
                 row.add(
-                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question")).add
+                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(getUiElement(objGiven, "inputFields[${index}].question")).add
                         (groupLayout)
                 )
             }
 
             if (field.type == BaseType.TextQuestion) {
                 row.add(
-                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(UIInput("inputFields[${index}].question"))
+                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(getUiElement(objGiven,"inputFields[${index}].question"))
                 )
             }
 
             if (field.type == BaseType.MultipleChoices || field.type == BaseType.DropDownQuestion) {
                 val f = UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString())
-                    .add(UIInput("inputFields[${index}].question", label = "Die Frage"))
+                    .add(getUiElement(objGiven, "inputFields[${index}].question", "Die Frage"))
                 field.answers?.forEachIndexed { i, _ ->
-                    f.add(UIInput("inputFields[${index}].answers[${i}]", label = "Antwortmöglichkeit ${i + 1}"))
+                    f.add(getUiElement(objGiven, "inputFields[${index}].answers[${i}]", "Antwortmöglichkeit ${i + 1}"))
                 }
-                f.add(
-                    UIButton.createAddButton(
-                        responseAction = ResponseAction(
-                            "${Rest.URL}/poll/addAntwort/${field.uid}", targetType = TargetType.POST
+                if(!objGiven) {
+                    f.add(
+                        UIButton.createAddButton(
+                            responseAction = ResponseAction(
+                                "${Rest.URL}/poll/addAntwort/${field.uid}", targetType = TargetType.POST
+                            )
                         )
                     )
-                )
+                }
                 if (field.type == BaseType.MultipleChoices) {
                     f.add(
-                        UIInput(
-                            "inputFields[${index}].numberOfSelect", dataType = UIDataType.INT, label = "Wie viele sollen " +
-                                    "angeklickt werden können?"
+                        getUiElement(objGiven,
+                            "inputFields[${index}].numberOfSelect", "Wie viele sollen angeklickt werden können?",
+                            UIDataType.INT
                         )
                     )
                 }
@@ -264,15 +261,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             if (field.type == BaseType.DateQuestion) {
                 row.add(
                     UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(
-                        UIInput(
+                        getUiElement(objGiven,
                             "inputFields[${index}].question",
-                            label = "Hast du am ... Zeit?"
+                             "Hast du am ... Zeit?"
                         )
                     )
 
                 )
             }
-
             layout.add(row)
         }
     }
@@ -290,6 +286,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             return null;
         }
         return RestUtils.downloadFile(filename, bytes)
+    }
+
+    //once created, questions should be ReadOnly
+    fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
+        if (obj)
+            return UIReadOnlyField(id, label = label, dataType = dataType)
+        else
+            return UIInput(id, label = label, dataType = dataType)
     }
 
     // create a update layout funktion, welche das layout nummr updatet und zurück gibt es soll für jeden Frage Basistyp eine eigene funktion haben

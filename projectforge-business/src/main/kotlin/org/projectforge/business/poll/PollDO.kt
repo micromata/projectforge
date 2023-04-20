@@ -29,7 +29,7 @@ open class PollDO : DefaultBaseDO() {
     @get:PropertyInfo(i18nKey = "poll.owner", additionalI18nKey = "poll.owner.explaination")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_pk", nullable = false)
-    var owner: PFUserDO? = null
+    open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "poll.location")
     @get:Column(name = "location")
