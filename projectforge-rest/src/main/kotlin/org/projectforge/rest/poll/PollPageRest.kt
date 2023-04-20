@@ -1,7 +1,6 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.json.simple.JSONObject
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -39,7 +38,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = Poll()
         poll.copyFrom(obj)
         if(obj.inputFields!= null){
-            var a = ObjectMapper().readValue(obj.inputFields, MutableList::class.java)
+            val a = ObjectMapper().readValue(obj.inputFields, MutableList::class.java)
             poll.inputFields = a.map { Frage().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         return poll
@@ -64,8 +63,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             )
         )
     }
-
-
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
@@ -141,7 +138,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
-        var type = BaseType.valueOf(dto.questionType ?: "FreiTextFrage")
+        val type = BaseType.valueOf(dto.questionType ?: "FreiTextFrage")
 
 
         val poll = PollDO()
@@ -149,7 +146,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             dto.inputFields = mutableListOf()
         }
 
-        var frage = Frage(uid = UUID.randomUUID().toString(), type = type)
+        val frage = Frage(uid = UUID.randomUUID().toString(), type = type)
         if(type== BaseType.JaNeinFrage) {
             frage.antworten = mutableListOf("ja", "nein")
         }
