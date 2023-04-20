@@ -87,6 +87,6 @@ Your users only need a modern Internet browser. There is no need to install anyt
 
 == Technical requirements
 
-- The ProjectForge server is available as a ready-to-run executable jar (for Windows, Mac, Linux and all Java-capable platforms).
+- The ProjectForge server is vailable as a ready-to-run executable jar (for Windows, Mac, Linux and all Java-capable platforms).
 - ProjectForge is available as docker image.
 - The users only need a modern web browser to have full access to ProjectForge anywhere.
