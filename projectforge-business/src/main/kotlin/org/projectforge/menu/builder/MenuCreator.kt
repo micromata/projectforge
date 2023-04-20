@@ -36,6 +36,7 @@ import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.business.orga.VisitorbookDao
+import org.projectforge.business.poll.PollDao
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
@@ -449,6 +450,7 @@ open class MenuCreator {
           requiredUserRightId = ContractDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE
         )
       )
+      .add(MenuItemDef(MenuItemDefId.POLL))
       .add(
         MenuItemDef(
           MenuItemDefId.VISITORBOOK,
