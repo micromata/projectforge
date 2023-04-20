@@ -21,8 +21,8 @@ class Question(
 }
 
 enum class BaseType {
-    TextQuestion,
-    SingleResponseQuestion,
-    MultiResponseQuestion,
-    DateQuestion
+    YesNoQuestion,
+    DateQuestion,
+    MultipleChoices,
+    TextQuestion
 }
