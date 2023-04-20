@@ -6,19 +6,18 @@ CREATE TABLE T_POLL
     deleted     BOOLEAN NOT NULL,
     created     TIMESTAMP WITHOUT TIME ZONE,
     last_update TIMESTAMP WITHOUT TIME ZONE,
-    title       CHARACTER VARYING(1000),
+    title       CHARACTER VARYING(1000) NOT NULL,
     description CHARACTER VARYING(1000),
     location    CHARACTER VARYING(1000),
     owner_pk INTEGER NOT NULL,
     deadline DATE NOT NULL,
     date DATE,
-    state CHARACTER VARYING(1000),
+    state CHARACTER VARYING(1000) NOT NULL,
+    attendeesIds VARCHAR(5000),
+    groupAttendeesIds VARCHAR(5000),
+    full_access_user_ids CHARACTER VARYING(255),
+    full_access_group_ids CHARACTER VARYING(255),
     inputFields CHARACTER Varying(100000)
-/*
-    canSeeResultUsers CHARACTER VARYING(1000),
-    canEditPollUsers CHARACTER VARYING(1000),
-    canVoteInPoll CHARACTER VARYING(1000),
-*/
 );
 
 ALTER TABLE T_POLL
