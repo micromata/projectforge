@@ -1,7 +1,6 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.projectforge.Constants
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
@@ -22,9 +21,8 @@ import org.springframework.web.bind.annotation.*
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
 
-
 @RestController
-@RequestMapping("${Rest.URL}/antwort")
+@RequestMapping("${Rest.URL}/response")
 class ResponsePageRest : AbstractDynamicPageRest() {
 
     @Autowired
@@ -34,13 +32,12 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     private lateinit var pollResponseDao: PollResponseDao
 
     @GetMapping("dynamic")
-    fun test(request: HttpServletRequest, @RequestParam("id") pollStringId: String?): FormLayoutData {
-        //val lc = LayoutContext(PollDO::class.java)
+    fun getForm(request: HttpServletRequest, @RequestParam("id") pollStringId: String?): FormLayoutData {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
         val pollData = pollDao.internalGetById(id) ?: PollDO()
         val pollDto = transformPollFromDB(pollData)
 
-        val layout = UILayout("poll.antwort.title")
+        val layout = UILayout("poll.response.title")
         val fieldSet = UIFieldset(12, title = pollDto.title)
         fieldSet
             .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
@@ -57,17 +54,16 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             response.owner == ThreadLocalUserContext.user
                     && response.poll?.id == pollData.id
         }?.let {
-                pollResponse.copyFrom(it)
-            }
+            pollResponse.copyFrom(it)
+        }
 
-        //addQuestions(layout, pollDto)
         pollDto.inputFields?.forEachIndexed { index, field ->
             val fieldSet2 = UIFieldset(title = field.question)
             val answer = Answer()
             answer.uid = UUID.randomUUID().toString()
             answer.questionUid = field.uid
-            pollResponse.responses?.firstOrNull() {
-                it.questionUid==field.uid
+            pollResponse.responses?.firstOrNull {
+                it.questionUid == field.uid
             }.let {
                 if (it == null)
                     pollResponse.responses?.add(answer)
@@ -75,42 +71,49 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
             val col = UICol()
 
-            if (field.type == BaseType.FreiTextFrage) {
-                col.add(UITextArea("responses[$index].antworten[0]"))
+            if (field.type == BaseType.TextQuestion) {
+                col.add(UITextArea("responses[$index].answers[0]"))
             }
-            if (field.type == BaseType.JaNeinFrage) {
-                col.add(UIRadioButton("responses[$index].antworten[0]", value = field.antworten!![0], label = field.antworten?.get(0) ?: ""))
-                col.add(UIRadioButton("responses[$index].antworten[0]", value = field.antworten!![1], label = field.antworten?.get(1) ?: ""))
+            if (field.type == BaseType.YesNoQuestion) {
+                col.add(
+                    UIRadioButton(
+                        "responses[$index].answers[0]",
+                        value = field.answers!![0],
+                        label = field.answers?.get(0) ?: ""
+                    )
+                )
+                col.add(
+                    UIRadioButton(
+                        "responses[$index].answers[0]",
+                        value = field.answers!![1],
+                        label = field.answers?.get(1) ?: ""
+                    )
+                )
             }
-            if (field.type == BaseType.DatumsAbfrage) {
-                col.add(UITextArea("responses[$index].antworten[0]"))
-            }
-            if (field.type == BaseType.DropDownFrage) {
-                col.add(UISelect("responses[$index].antworten[0]", values = field.antworten?.map { UISelectValue(it, it) }))
+            if (field.type == BaseType.DateQuestion) {
+                col.add(UITextArea("responses[$index].answers[0]"))
             }
             if (field.type == BaseType.MultipleChoices) {
-                //for (i in 1 until field.antworten!!.size)
-                    //answer.antworten?.add("")
-
-
-                field.antworten?.forEachIndexed { index2, _ ->
-                    col.add(UICheckbox("responses[$index].antworten[$index2]", label = field.antworten?.get(index2) ?: ""))
+                field.answers?.forEachIndexed { index2, _ ->
+                    col.add(UICheckbox("responses[$index].answers[$index2]", label = field.answers?.get(index2) ?: ""))
                 }
             }
             fieldSet2.add(UIRow().add(col))
             layout.add(fieldSet2)
         }
 
-        layout.add(UIButton.createDefaultButton(
-            id = "doResponse",
-            title = "response",
-            responseAction = ResponseAction(
-                RestResolver.getRestUrl(
-                    this::class.java,
-                    "doResponse"
-                ), targetType = TargetType.POST
+        layout.add(
+            UIButton.createDefaultButton(
+                id = "doResponse",
+                title = "response",
+                responseAction = ResponseAction(
+                    RestResolver.getRestUrl(
+                        this::class.java,
+                        "doResponse"
+                    ), targetType = TargetType.POST
+                )
             )
-        ))
+        )
 
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
@@ -119,7 +122,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun doResponse(
         request: HttpServletRequest,
         @RequestBody postData: PostData<PollResponse>
-    ): ResponseAction {
+    ): ResponseEntity<ResponseAction>? {
 
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
@@ -127,17 +130,26 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         pollResponseDao.internalLoadAll().firstOrNull { pollResponse ->
             pollResponse.owner == ThreadLocalUserContext.user
-                    && pollResponse.poll?.id == postData.data.poll?.id }
-            ?.let {
-                it.responses = pollResponseDO.responses
-                pollResponseDao.update(it)
-                return ResponseAction(targetType = TargetType.REDIRECT, url = "")
-            }
+                    && pollResponse.poll?.id == postData.data.poll?.id
+        }?.let {
+            it.responses = pollResponseDO.responses
+            pollResponseDao.update(it)
+            return ResponseEntity.ok(
+                ResponseAction(
+                    targetType = TargetType.REDIRECT,
+                    url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                )
+            )
+        }
 
         pollResponseDao.saveOrUpdate(pollResponseDO)
-        return ResponseAction(targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true))
+        return ResponseEntity.ok(
+            ResponseAction(
+                targetType = TargetType.REDIRECT,
+                url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+            )
+        )
     }
-
 
 
     private fun transformPollFromDB(obj: PollDO): Poll {
@@ -145,7 +157,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         poll.copyFrom(obj)
         if (obj.inputFields != null) {
             val a = ObjectMapper().readValue(obj.inputFields, MutableList::class.java)
-            poll.inputFields = a.map { Frage().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+            poll.inputFields = a.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         return poll
     }

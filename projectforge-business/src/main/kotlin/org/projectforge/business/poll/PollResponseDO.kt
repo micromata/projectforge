@@ -1,7 +1,6 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
-import org.projectforge.business.poll.PollDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO

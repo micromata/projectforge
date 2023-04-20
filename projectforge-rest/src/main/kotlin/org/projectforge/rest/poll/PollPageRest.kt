@@ -40,6 +40,18 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @Autowired
     private lateinit var pollMailService: PollMailService
 
+   /* @GetMapping("/edit/{id}")
+    fun getForm(@RequestBody postData: PostData<Poll>,request: HttpServletRequest, @RequestParam("id") pollStringId: String?): ResponseEntity<ResponseAction> {
+        val dto = postData.data
+        val userAccess = UILayout.UserAccess(insert = true, update = true)
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", FormLayoutData(pollResponse, layout, createServerData(request)))
+        )
+    }
+
+    */
+
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
         result.owner = ThreadLocalUserContext.user
@@ -94,6 +106,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         val fieldset = UIFieldset(UILength(12))
         fieldset
+            .add(UIButton.createDefaultButton(
+                id = "response-poll-button",
+                responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}", targetType = TargetType.REDIRECT),
+                title = "poll.response.poll"
+            ))
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
             .add(lc, "deadline", "date")
