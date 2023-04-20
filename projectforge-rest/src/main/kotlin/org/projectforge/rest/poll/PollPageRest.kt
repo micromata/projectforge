@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
+
+
 @RestController
 @RequestMapping("${Rest.URL}/poll")
 class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.java, "poll.title") {
@@ -68,6 +70,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
         User.restoreDisplayNames(poll.attendees, userService)
         Group.restoreDisplayNames(poll.groupAttendees, groupService)
+        poll.attendees?.sortedBy { it.displayName }
         return poll
     }
 
@@ -130,13 +133,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
-                layout.watchFields.addAll(
-            arrayOf(
-                "title", "description", "location", "deadline",
-                "date"
-            )
-        )
-
+                layout.watchFields.addAll(listOf("groupAttendees"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -194,6 +191,37 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest,
+        dto: Poll,
+        watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+
+        val userAccess = UILayout.UserAccess()
+
+        val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
+        val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
+        val users = User.toUserList(userIds)
+        User.restoreDisplayNames(users, userService)
+        val allUsers = users?.toMutableList()?: mutableListOf()
+
+        dto.attendees?.forEach { user ->
+            if(allUsers?.filter { it.id == user.id }?.isEmpty() == true) {
+                allUsers.add(user)
+            }
+        }
+
+        dto.attendees = allUsers.sortedBy { it.displayName }
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE)
+                .addVariable("ui", createEditLayout(dto, userAccess))
+                .addVariable("data", dto)
+        )
+
+    }
+
+
     @PostMapping("/addPremadeQuestions")
     private fun addPremadeQuestionsField(
         @RequestBody postData: PostData<Poll>,
@@ -211,8 +239,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
-
-
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
             val row = UIRow()

@@ -1,5 +1,6 @@
 package org.projectforge.business.poll
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
@@ -54,14 +55,31 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java){
 
     fun isAttendee(obj: PollDO): Boolean {
         val loggedInUser = user
-        if (!obj.attendeesIds.isNullOrBlank() && obj.attendeesIds!!.split(", ").contains(loggedInUser?.id.toString()))
-            return true
-        if (!obj.groupAttendeesIds.isNullOrBlank()){
-            val groupIdArray = obj.groupAttendeesIds!!.split(", ").map { it.toInt() }.toIntArray()
-            val groupUsers = groupService?.getGroupUsers(groupIdArray)
+
+        var listOfAttendeesIds = ObjectMapper().readValue(obj.attendeesIds, IntArray::class.java)
+
+        if (loggedInUser != null) {
+            if(listOfAttendeesIds.contains(loggedInUser.id)){
+                return true
+            }
+        }
+
+        var stringBuilder = StringBuilder()
+        if (listOfAttendeesIds.isNotEmpty()){
+            val groupUsers = groupService?.getGroupUsers(listOfAttendeesIds)
+
+            groupUsers?.forEach{
+                if (!listOfAttendeesIds.contains(it.id)){
+                   listOfAttendeesIds.plus(it.id)
+                }
+            }
             if(groupUsers?.contains(loggedInUser) == true)
                 return true
         }
+
+        obj.attendeesIds= ObjectMapper().writeValueAsString(listOfAttendeesIds)
+
+
         return false
     }
 }
