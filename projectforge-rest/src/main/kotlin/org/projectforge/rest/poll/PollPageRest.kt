@@ -148,7 +148,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             )
                     )
             }
-
         layout.add(fieldset)
 
         addQuestionFieldset(layout, dto)
@@ -289,8 +288,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             "Hast du am ... Zeit?"
                         )
                     )
+
                 )
             }
+
             layout.add(fieldset)
         }
     }
