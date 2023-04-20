@@ -1,12 +1,10 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.poi.ss.formula.functions.T
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.poll.types.Frage
 
 class PollResponse: BaseDTO<PollResponseDO>() {
     var poll: PollDO? = null
@@ -15,8 +13,6 @@ class PollResponse: BaseDTO<PollResponseDO>() {
 
     override fun copyTo(dest: PollResponseDO) {
         if (!this.responses.isNullOrEmpty()) {
-
-
             dest.responses = ObjectMapper().writeValueAsString(this.responses)
         }
         super.copyTo(dest)
@@ -34,7 +30,7 @@ class PollResponse: BaseDTO<PollResponseDO>() {
 class Answer {
     var uid: String? = null
     var questionUid: String? = ""
-    var antworten: MutableList<Any>? = mutableListOf()
+    var answers: MutableList<Any>? = mutableListOf()
 
     fun toObject(string:String): Answer {
         return ObjectMapper().readValue(string, Answer::class.java)
