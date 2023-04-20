@@ -1,7 +1,6 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.bouncycastle.asn1.x500.style.RFC4519Style.uid
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
@@ -89,8 +88,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
-        val poll = PollDO()
-        dto.copyTo(poll)
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
@@ -154,7 +151,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
-        val dto = postData.data
         pollMailService.sendMail(subject = "", content = "", to = "test.mail")
     }
 
@@ -184,7 +180,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
-        val poll = PollDO()
 
         var type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
         var question = Question(uid = UUID.randomUUID().toString(), type = type)
@@ -197,7 +192,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         dto.inputFields!!.add(question)
 
-        dto.copyTo(poll)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
@@ -210,13 +204,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
-        val poll = PollDO()
 
         PREMADE_QUESTIONS.entries.forEach { entry ->
             dto.inputFields?.add(entry.value)
         }
 
-        dto.copyTo(poll)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
@@ -290,12 +282,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
         val userAccess = UILayout.UserAccess(insert = true, update = true)
-        val poll = PollDO()
 
         dto.inputFields?.find { it.uid.equals(questionUid) }?.answers?.removeAt(answerIndex)
 
-
-        dto.copyTo(poll)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
@@ -328,12 +317,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
         val userAccess = UILayout.UserAccess(insert = true, update = true)
-        val poll = PollDO()
 
         val matchingQuestion: Question? = dto.inputFields?.find { it.uid.equals(uid) }
         dto.inputFields?.remove(matchingQuestion)
 
-        dto.copyTo(poll)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
