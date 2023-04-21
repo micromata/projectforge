@@ -7,13 +7,13 @@ val PREMADE_QUESTIONS = mapOf(
     "HAS_FOOD" to Question(
         uid = UUID.randomUUID().toString(),
         question = "Was willst du essen?",
-        type = BaseType.SingleResponseQuestion,
+        type = BaseType.YesNoQuestion,
         answers = mutableListOf("Fleisch", "Vegetarisch", "Vegan")
     ),
     "IS_REMOTE" to Question(
         uid = UUID.randomUUID().toString(),
         question = "Nimmst du remote teil?",
-        type = BaseType.SingleResponseQuestion,
+        type = BaseType.YesNoQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
     "CAN_HAVE_COMPANIONS" to Question(
@@ -31,13 +31,13 @@ val PREMADE_QUESTIONS = mapOf(
     "CAN_STAY_OVERNIGHT" to Question(
         uid = UUID.randomUUID().toString(),
         question = "Willst du dort übernachten?",
-        type = BaseType.SingleResponseQuestion,
+        type = BaseType.YesNoQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
     "HAS_BREAKFAST" to Question(
         uid = UUID.randomUUID().toString(),
         question = "Willst du am nächsten Tag frühstücken?",
-        type = BaseType.SingleResponseQuestion,
+        type = BaseType.YesNoQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
 )
