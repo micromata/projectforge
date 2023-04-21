@@ -39,6 +39,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @Autowired
     private lateinit var pollMailService: PollMailService
+    @Autowired
+    private lateinit var pollDao: PollDao
 
    /* @GetMapping("/edit/{id}")
     fun getForm(@RequestBody postData: PostData<Poll>,request: HttpServletRequest, @RequestParam("id") pollStringId: String?): ResponseEntity<ResponseAction> {
@@ -331,9 +333,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    @PostMapping("Export")
-    fun export(request: HttpServletRequest,poll: Poll) : ResponseEntity<Resource>? {
+    @PostMapping("/export/{id}")
+    fun export(request: HttpServletRequest ,@PathVariable("id") id: String) : ResponseEntity<Resource>? {
         val ihkExporter = ExcelExport()
+        val poll = Poll()
+        var pollDo = pollDao.getById(id.toInt())
+        poll.copyFrom(pollDo)
         val bytes: ByteArray? = ihkExporter
             .getExcel(poll)
         val filename = ("test.xlsx")
