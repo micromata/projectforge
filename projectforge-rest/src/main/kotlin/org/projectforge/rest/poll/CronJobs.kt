@@ -22,6 +22,7 @@ class CronJobs {
     private val log: Logger = LoggerFactory.getLogger(CronJobs::class.java)
     @Autowired
     private lateinit var pollDao: PollDao
+
     @Autowired
     private lateinit var pollMailService: PollMailService
 
@@ -109,7 +110,7 @@ class CronJobs {
     /**
      * Cron job for daily stuff
      */
-    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
+    @Scheduled(cron = "0 * * * * *") // 1am everyday
     fun dailyCronJobs() {
         cronDeletePolls()
         cronEndPolls()
