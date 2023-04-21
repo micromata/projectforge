@@ -74,7 +74,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             if (field.type == BaseType.TextQuestion) {
                 col.add(UITextArea("responses[$index].answers[0]"))
             }
-            if (field.type == BaseType.YesNoQuestion) {
+            if (field.type == BaseType.SingleResponseQuestion) {
                 col.add(
                     UIRadioButton(
                         "responses[$index].answers[0]",

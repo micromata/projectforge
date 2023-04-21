@@ -6,18 +6,11 @@ import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.business.poll.*
-import org.projectforge.business.vacation.model.VacationDO
-import org.projectforge.business.vacation.model.VacationMode
-import org.projectforge.business.vacation.model.VacationModeFilter
-import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.menu.MenuItem
-import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.VacationExportPageRest
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -212,11 +205,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(
             UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
-                .buildValues(PollAssignment.OWNER, PollAssignment.OTHER)
+                .buildValues(PollAssignment.OWNER, PollAssignment.ACCESS, PollAssignment.ATTENDEE, PollAssignment.OTHER)
         )
         elements.add(
             UIFilterListElement("status", label = translate("poll.status"), defaultFilter = true)
-                .buildValues(PollStatus.RUNNING, PollStatus.FINISHED)
+                .buildValues(PollState.RUNNING, PollState.FINISHED)
         )
     }
 
@@ -236,7 +229,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             statusFilterEntry.synthetic = true
             val values = statusFilterEntry.value.values
             if (!values.isNullOrEmpty()) {
-                val enums = values.map { PollStatus.valueOf(it) }
+                val enums = values.map { PollState.valueOf(it) }
                 filters.add(PollStatusFilter(enums))
             }
         }
