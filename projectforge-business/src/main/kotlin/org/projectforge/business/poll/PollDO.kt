@@ -1,22 +1,17 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
-import org.projectforge.business.common.BaseUserGroupRightsDO
-import org.projectforge.business.user.GroupDao
-import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
-import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import java.time.LocalDate
 import javax.persistence.*
 
 
+@Suppress("UNREACHABLE_CODE")
 @Entity
 @Indexed
 @Table(name = "t_poll")
@@ -50,44 +45,60 @@ open class PollDO : DefaultBaseDO() {
     open var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "poll.attendees")
-    @get:Column(name = "attendeesIds", nullable = true)
-    open var attendeesIds: String? = null
+    @get:Column(name = "attendeeIds")
+    open var attendeeIds: String? = null
 
     @PropertyInfo(i18nKey = "poll.group_attendees")
-    @get:Column(name = "groupAttendeesIds", nullable = true)
-    open var groupAttendeesIds: String? = null
+    @get:Column(name = "groupAttendeeIds")
+    open var groupAttendeeIds: String? = null
 
-    @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
+    @get:Column(name = "full_access_group_ids", length = 4000)
     open var fullAccessGroupIds: String? = null
 
-    @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
+    @get:Column(name = "full_access_user_ids", length = 4000)
     open var fullAccessUserIds: String? = null
 
     @PropertyInfo(i18nKey = "poll.inputFields")
-    @get:Column(name = "inputFields", nullable = true, length = 1000)
+    @get:Column(name = "inputFields", length = 1000)
     open var inputFields: String? = null
 
     @PropertyInfo(i18nKey = "poll.state")
     @get:Column(name = "state", nullable = false)
-    open var state: State? = State.RUNNING
+    open var state: State = State.RUNNING
 
     @Transient
-    fun getPollAssignment(): PollAssignment {
-        val currentUserId = ThreadLocalUserContext.userId
-        val owner = if (owner != null) owner!!.id else null
-        return if (currentUserId == owner) {
-            PollAssignment.OWNER
-        } else {
-            PollAssignment.OTHER
+    fun getPollAssignment(): MutableList<PollAssignment> {
+        val currentUserId = ThreadLocalUserContext.userId!!
+        val assignmentList = mutableListOf<PollAssignment>()
+        if (currentUserId == this.owner?.id) {
+            assignmentList.add(PollAssignment.OWNER)
         }
+        if (this.fullAccessUserIds != null) {
+            val accessUserIds = this.fullAccessUserIds!!.split(", ").map { it.toInt() }.toIntArray()
+            if (accessUserIds.contains(currentUserId)) {
+                assignmentList.add(PollAssignment.ACCESS)
+            }
+        }
+        if (this.attendeeIds != null) {
+            val attendeeUserIds = this.attendeeIds!!.split(", ").map { it.toInt() }.toIntArray()
+            if (attendeeUserIds.contains(currentUserId)) {
+                assignmentList.add(PollAssignment.ATTENDEE)
+            }
+        }
+        if (assignmentList.isEmpty())
+            assignmentList.add(PollAssignment.OTHER)
+
+        return assignmentList
     }
 
     @Transient
-    fun getPollStatus(): PollStatus {
-        return if (LocalDate.now().isAfter(deadline)) {
-            PollStatus.FINISHED
+    fun getPollStatus(): PollState {
+        //TODO: Maybe change this to enum class State
+
+        return if (this.state == State.FINISHED) {
+            PollState.FINISHED
         } else {
-            PollStatus.RUNNING
+            PollState.RUNNING
         }
     }
 
