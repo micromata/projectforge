@@ -206,7 +206,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         val userAccess = UILayout.UserAccess()
 
-        var message = ""
         val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
         val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
         val users = User.toUserList(userIds)
