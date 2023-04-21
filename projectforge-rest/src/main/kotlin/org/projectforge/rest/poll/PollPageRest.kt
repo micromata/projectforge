@@ -149,7 +149,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             )
         )
 
-        return LayoutUtils.processEditPage(layout, dto, this)
+        var processedLayout = LayoutUtils.processEditPage(layout, dto, this)
+        processedLayout.actions.filterIsInstance<UIButton>().find {
+            it.id == "create"
+        }?.confirmMessage = "Willst du wirklich die Umfrage erstellen? Du kannst die Fragen im Nachhinein nicht mehr bearbeiten."
+        return processedLayout
     }
 
 
