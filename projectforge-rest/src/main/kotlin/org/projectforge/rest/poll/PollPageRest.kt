@@ -254,10 +254,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
-            val objGiven = dto.id != null
+            val objGiven = dto.id != null //differentiates between initial creation and editing
             val fieldset = UIFieldset(UILength(12), title = field.type.toString())
-                .add(generateDeleteButton(layout, field.uid))
-                .add(getUiElement(objGiven, "inputFields[${index}].question", "Frage"))
+                if(!objGiven)
+                    fieldset.add(generateDeleteButton(layout, field.uid))
+                fieldset.add(getUiElement(objGiven, "inputFields[${index}].question", "Frage"))
             if (field.type == BaseType.YesNoQuestion) {
                 val buttons = UIGroup()
                 field.answers?.forEach { answer ->
@@ -274,7 +275,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             if (field.type == BaseType.MultipleChoices) {
                 val groupLayout = UIGroup()
                 field.answers?.forEachIndexed { i, _ ->
-                    groupLayout.add(UIInput("inputFields[${index}].answers[${i}]", label = "Antwortmöglichkeit ${i + 1}"))
+                    groupLayout.add(getUiElement(objGiven, "inputFields[${index}].answers[${i}]", "Antwortmöglichkeit ${i + 1}"))
                 }
             if(!objGiven) {
                 groupLayout.add(
@@ -286,11 +287,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 )
                 if (field.type == BaseType.MultipleChoices) {
                     groupLayout.add(
-                        UIInput(
+                        getUiElement(objGiven,
                             "inputFields[${index}].numberOfSelect",
-                            dataType = UIDataType.INT,
-                            label = "Wie viele sollen " +
-                                    "angeklickt werden können?"
+                            "Wie viele sollen angeklickt werden können?",
+                            UIDataType.INT,
                         )
                     )
                 }
