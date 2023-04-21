@@ -183,7 +183,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         val found = dto.inputFields?.find { it.uid == fieldUid }
         found?.answers?.add("")
-
+        dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
@@ -203,9 +203,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         var question = Question(uid = UUID.randomUUID().toString(), type = type)
         if(type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("ja", "nein")
-        }
-        if(type == BaseType.DateQuestion) {
-            question.answers = mutableListOf("Ja", "Vielleicht", "Nein")
         }
 
         dto.inputFields!!.add(question)
@@ -261,19 +258,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 fieldset.add(groupLayout)
             }
 
-            if (field.type == BaseType.DateQuestion) {
-                fieldset
-                    .add(
-                    UIFieldset(UILength(md = 6, lg = 4), title = field.type.toString()).add(
-                        getUiElement(objGiven,
-                            "inputFields[${index}].question",
-                            "Hast du am ... Zeit?"
-                        )
-                    )
-
-                )
-            }
-
             layout.add(fieldset)
         }
     }
@@ -311,7 +295,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val userAccess = UILayout.UserAccess(insert = true, update = true)
 
         dto.inputFields?.find { it.uid.equals(questionUid) }?.answers?.removeAt(answerIndex)
-
+        dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
