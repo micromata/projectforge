@@ -240,12 +240,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             fieldset.add(getUiElement(objGiven, "inputFields[${index}].question", "Frage"))
 
             if (field.type == BaseType.SingleResponseQuestion || field.type == BaseType.MultiResponseQuestion) {
-                val groupLayout = UIGroup()
                 field.answers?.forEachIndexed { answerIndex, _ ->
-                    groupLayout.add(generateSingleAndMultiResponseAnswer(objGiven, index, field.uid, answerIndex, layout))
+                    fieldset.add(generateSingleAndMultiResponseAnswer(objGiven, index, field.uid, answerIndex, layout))
                 }
             if(!objGiven) {
-                groupLayout.add(
+                fieldset.add(
                     UIRow().add(
                         UIButton.createAddButton(
                             responseAction = ResponseAction(
@@ -255,7 +254,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     )
                 )
             }
-                fieldset.add(groupLayout)
             }
 
             layout.add(fieldset)
@@ -279,7 +277,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             responseAction = ResponseAction(
                                 "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}", targetType = TargetType.POST
                             )
-                        ).withConfirmMessage(layout, confirmMessage = "Willst du wirklich diese Antwortmöglichkeit löschen?")))}
+                        ).withConfirmMessage(layout, confirmMessage = "Willst du wirklich diese Antwortmöglichkeit löschen?")))
+        }
 
         return row
     }
@@ -352,7 +351,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     //once created, questions should be ReadOnly
-    fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
+    private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
         if (obj)
             return UIReadOnlyField(id, label = label, dataType = dataType)
         else
