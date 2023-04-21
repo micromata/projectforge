@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -39,8 +41,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @Autowired
     private lateinit var pollMailService: PollMailService
+
     @Autowired
     private lateinit var pollDao: PollDao
+
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
+    @Autowired
+    private lateinit var excelExport: ExcelExport
 
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
@@ -51,9 +60,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
         dto.copyTo(pollDO)
-        if(dto.inputFields!= null){
-            pollDO.inputFields = ObjectMapper().writeValueAsString(dto.inputFields)
-        }
         return pollDO
     }
 
@@ -62,10 +68,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformFromDB(pollDO: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
         poll.copyFrom(pollDO)
-        if (pollDO.inputFields != null) {
-            val fields = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
-            poll.inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
-        }
         User.restoreDisplayNames(poll.fullAccessUsers, userService)
         Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
         User.restoreDisplayNames(poll.attendees, userService)
@@ -98,6 +100,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 id = "response-poll-button",
                 responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}", targetType = TargetType.REDIRECT),
                 title = "poll.response.poll"
+            ))
+            .add(UIButton.createExportButton(
+                id = "export-poll-response-button",
+                responseAction = ResponseAction("${Rest.URL}/poll/export/${dto.id}", targetType = TargetType.POST),
+                title = "poll.export.response.poll"
             ))
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
@@ -362,13 +369,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @PostMapping("/export/{id}")
     fun export(request: HttpServletRequest ,@PathVariable("id") id: String) : ResponseEntity<Resource>? {
-        val ihkExporter = ExcelExport()
         val poll = Poll()
-        var pollDo = pollDao.getById(id.toInt())
+        val pollDo = pollDao.getById(id.toInt())
         poll.copyFrom(pollDo)
-        val bytes: ByteArray? = ihkExporter
+        val bytes: ByteArray? = excelExport
             .getExcel(poll)
-        val filename = ("test.xlsx")
+        val filename = ( poll.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx")
 
         if (bytes == null || bytes.size == 0) {
             log.error("Oops, xlsx has zero size. Filename: $filename")
