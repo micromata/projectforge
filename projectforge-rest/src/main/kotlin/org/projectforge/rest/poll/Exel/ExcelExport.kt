@@ -19,7 +19,7 @@ class ExcelExport {
     private val FIRST_DATA_ROW_NUM = 5
 
 
-    fun getExcel(obj: Poll): ByteArray? {
+    fun getExcel(poll: Poll): ByteArray? {
         //var excelSheet: ExcelSheet? = null
         //var emptyRow: ExcelRow? = null
 
@@ -30,8 +30,8 @@ class ExcelExport {
             ExcelWorkbook(classPathResource.inputStream, classPathResource.file.name).use { workbook ->
                 val excelSheet = workbook.getSheet(0)
                 val emptyRow = excelSheet.getRow(5)
-                val anzNewRows = 3
-                //excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell)
+                val anzNewRows = poll.attendees!!.size
+               // excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell)
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 var hourCounter = 0.0
                 for (i in 0 until anzNewRows) {
