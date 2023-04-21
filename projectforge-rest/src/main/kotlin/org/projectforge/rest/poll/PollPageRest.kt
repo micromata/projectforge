@@ -238,7 +238,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
         elements.add(
             UIFilterListElement("status", label = translate("poll.status"), defaultFilter = true)
-                .buildValues(PollStatus.ACTIVE, PollStatus.EXPIRED)
+                .buildValues(PollStatus.RUNNING, PollStatus.FINISHED)
         )
     }
 

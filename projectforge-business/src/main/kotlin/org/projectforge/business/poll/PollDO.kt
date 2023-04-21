@@ -2,12 +2,17 @@ package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.business.common.BaseUserGroupRightsDO
+import org.projectforge.business.user.GroupDao
+import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
+import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -80,9 +85,9 @@ open class PollDO : DefaultBaseDO() {
     @Transient
     fun getPollStatus(): PollStatus {
         return if (LocalDate.now().isAfter(deadline)) {
-            PollStatus.EXPIRED
+            PollStatus.FINISHED
         } else {
-            PollStatus.ACTIVE
+            PollStatus.RUNNING
         }
     }
 
