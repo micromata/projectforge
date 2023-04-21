@@ -3,9 +3,14 @@ package org.projectforge.rest.poll.Exel
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.excel.ExcelWorkbook
+import org.projectforge.business.poll.PollResponseDO
+import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
+import org.projectforge.rest.poll.PollResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ClassPathResource
 import java.io.IOException
 import java.time.LocalDate
@@ -16,26 +21,28 @@ class ExcelExport {
 
     private val log: Logger = LoggerFactory.getLogger(ExcelExport::class.java)
 
-    private val FIRST_DATA_ROW_NUM = 5
+    private val FIRST_DATA_ROW_NUM = 1
+    @Autowired
+    lateinit var pollResponseDao: PollResponseDao
 
+    fun getExcel(poll: Poll): ByteArray? {
+        var responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
 
-    fun getExcel(obj: Poll): ByteArray? {
-        //var excelSheet: ExcelSheet? = null
-        //var emptyRow: ExcelRow? = null
-
-        val classPathResource =  ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
+        val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
 
         try {
             ExcelWorkbook(classPathResource.inputStream, classPathResource.file.name).use { workbook ->
                 val excelSheet = workbook.getSheet(0)
                 val emptyRow = excelSheet.getRow(5)
-                val anzNewRows = 3
-                //excelSheet.getRow(0).getCell(0).setCellValue(contentOfCell)
+                val anzNewRows = poll.attendees!!.size
                 createNewRow(excelSheet, emptyRow, anzNewRows)
-                var hourCounter = 0.0
-                for (i in 0 until anzNewRows) {
-                    hourCounter = setNewRows(hourCounter, excelSheet, i)
+                setFirstRow(excelSheet, poll)
+                poll.attendees?.sortedBy { it.displayName }
+                poll.attendees?.forEachIndexed { index, user ->
+                    val res = PollResponse()
+                    responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                    setNewRows(excelSheet,poll, user, res, index)
                 }
                 return returnByteFile(excelSheet)
             }
@@ -47,31 +54,27 @@ class ExcelExport {
         return null
     }
 
-    private fun setNewRows(hourCounter: Double, excelSheet: ExcelSheet, cell: Int): Double {
-        val hourCounter = hourCounter
-        val description: String = ""
-
-        val excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + cell)
-
-        excelRow.getCell(0).setCellValue("test1")
-        excelRow.getCell(1).setCellValue("test2")
-        excelRow.getCell(3).setCellValue("test3")
-        excelRow.getCell(4).setCellValue("test4")
-        excelRow.getCell(5).setCellValue("test5")
-
-
-        val puffer = description
-        var counterOfBreaking = 0
-        var counterOfOverlength = 0
-        val pufferSplit = puffer.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-
-        // check for line-breaks
-        for (i in pufferSplit.indices) {
-            counterOfBreaking++
-            counterOfOverlength += pufferSplit[i].length / 70
+    private fun setFirstRow(excelSheet: ExcelSheet, poll: Poll){
+        val excelRow = excelSheet.getRow(0)
+        poll.inputFields?.forEachIndexed{i, question ->
+            excelRow.getCell(i+1).setCellValue(question.question)
         }
-        excelRow.setHeight((14 + counterOfOverlength * 14 + counterOfBreaking * 14).toFloat())
-        return hourCounter
+        excelRow.setHeight(20F)
+    }
+    private fun setNewRows(excelSheet: ExcelSheet, poll:Poll, user: User, res:PollResponse?, index: Int) {
+
+
+
+        val excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + index)
+
+        excelRow.getCell(0).setCellValue(user.displayName)
+
+        poll.inputFields?.forEachIndexed{i, question ->
+            val answer = res?.responses?.find { it.uid == question.uid }
+            excelRow.getCell(i+1).setCellValue(answer?.answers.toString())
+        }
+
+        excelRow.setHeight(20F)
     }
 
 
