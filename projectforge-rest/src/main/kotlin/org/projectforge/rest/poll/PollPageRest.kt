@@ -158,7 +158,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         found?.answers?.add("")
 
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui",
+                createEditLayout(dto, userAccess))
         )
     }
 
@@ -199,22 +200,28 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         val userAccess = UILayout.UserAccess()
 
+        var message = ""
         val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
         val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
         val users = User.toUserList(userIds)
         User.restoreDisplayNames(users, userService)
-        val allUsers = users?.toMutableList()?: mutableListOf()
+        val allUsers = dto.attendees?.toMutableList()?: mutableListOf()
 
-        dto.attendees?.forEach { user ->
+        var counter = 0 ;
+        users?.forEach { user ->
             if(allUsers?.filter { it.id == user.id }?.isEmpty() == true) {
                 allUsers.add(user)
+                counter ++
             }
         }
 
+
+        dto.groupAttendees = mutableListOf()
         dto.attendees = allUsers.sortedBy { it.displayName }
 
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE)
+            ResponseAction(targetType = TargetType.UPDATE
+            )
                 .addVariable("ui", createEditLayout(dto, userAccess))
                 .addVariable("data", dto)
         )
