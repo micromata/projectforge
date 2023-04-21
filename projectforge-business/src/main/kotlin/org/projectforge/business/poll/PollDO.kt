@@ -27,8 +27,7 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "description", length = 10000)
     open var description: String? = null
 
-    @get:PropertyInfo(i18nKey = "poll.owner", additionalI18nKey = "poll.owner.explaination")
-    @IndexedEmbedded(depth = 1)
+    @get:PropertyInfo(i18nKey = "poll.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk", nullable = false)
     open var owner: PFUserDO? = null
