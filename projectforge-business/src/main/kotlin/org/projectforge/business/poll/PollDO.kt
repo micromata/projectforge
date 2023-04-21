@@ -26,7 +26,7 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "description", length = 10000)
     open var description: String? = null
 
-    @get:PropertyInfo(i18nKey = "poll.owner", additionalI18nKey = "poll.owner.explaination")
+    @get:PropertyInfo(i18nKey = "poll.owner", additionalI18nKey = "poll.owner.explanation")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_pk", nullable = false)
     open var owner: PFUserDO? = null
@@ -47,13 +47,15 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "attendeesIds", nullable = true)
     open var attendeesIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.group_attendees")
+    @PropertyInfo(i18nKey = "poll.attendee_groups")
     @get:Column(name = "groupAttendeesIds", nullable = true)
     open var groupAttendeesIds: String? = null
 
+    @PropertyInfo(i18nKey = "poll.full_access_groups")
     @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
     open var fullAccessGroupIds: String? = null
 
+    @PropertyInfo(i18nKey = "poll.full_access_user")
     @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
     open var fullAccessUserIds: String? = null
 
