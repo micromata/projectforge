@@ -87,8 +87,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
-        val poll = PollDO()
-        dto.copyTo(poll)
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
@@ -146,7 +144,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             )
                     )
             )
-            .add(
+          .add(
                 UIRow()
                     .add(
                         UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
@@ -165,10 +163,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
+        layout.watchFields.addAll(listOf("groupAttendees"))
+
         return LayoutUtils.processEditPage(layout, dto, this)
     }
-
-
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
@@ -183,18 +181,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
         val userAccess = UILayout.UserAccess(insert = true, update = true)
-        //TODO: owner is empty,why? Only id is set
-        if(dto.owner?.lastname == null || dto.owner?.firstname == null){
-            val owner = userService.getUser(dto.owner?.id)
-            dto.owner?.firstname = owner.firstname
-            dto.owner?.lastname = owner.lastname
-        }
 
         val found = dto.inputFields?.find { it.uid == fieldUid }
         found?.answers?.add("")
 
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui",
+                createEditLayout(dto, userAccess))
         )
     }
 
@@ -206,15 +199,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
 
-        //TODO: owner is empty,why? Only id is set
-        if(dto.owner?.lastname == null || dto.owner?.firstname == null){
-            val owner = userService.getUser(dto.owner?.id)
-            dto.owner?.firstname = owner.firstname
-            dto.owner?.lastname = owner.lastname
-        }
-
-        val type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
-        val question = Question(uid = UUID.randomUUID().toString(), type = type)
+        var type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
+        var question = Question(uid = UUID.randomUUID().toString(), type = type)
         if(type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("ja", "nein")
         }
@@ -227,6 +213,39 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
+    }
+
+
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest,
+        dto: Poll,
+        watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+        val userAccess = UILayout.UserAccess()
+        val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
+        val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
+        val users = User.toUserList(userIds)
+        User.restoreDisplayNames(users, userService)
+        val allUsers = dto.attendees?.toMutableList()?: mutableListOf()
+
+        var counter = 0 ;
+        users?.forEach { user ->
+            if(allUsers?.filter { it.id == user.id }?.isEmpty() == true) {
+                allUsers.add(user)
+                counter ++
+            }
+        }
+
+        dto.groupAttendees = mutableListOf()
+        dto.attendees = allUsers.sortedBy { it.displayName }
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE
+            )
+                .addVariable("ui", createEditLayout(dto, userAccess))
+                .addVariable("data", dto)
+        )
+
     }
 
 
@@ -245,8 +264,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
-
-
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
             val fieldset = UIFieldset(UILength(12), title = field.type.toString())
