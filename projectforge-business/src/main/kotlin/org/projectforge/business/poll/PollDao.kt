@@ -26,6 +26,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java){
         operationType: OperationType?,
         throwException: Boolean
     ): Boolean {
+
         if (obj == null && operationType == OperationType.SELECT) {
             return true
         };
@@ -55,28 +56,12 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java){
 
     fun isAttendee(obj: PollDO): Boolean {
         val loggedInUser = user
-
-        var listOfAttendeesIds = ObjectMapper().readValue(obj.attendeesIds, IntArray::class.java)
-
+        val listOfAttendeesIds = ObjectMapper().readValue(obj.attendeesIds, IntArray::class.java)
         if (loggedInUser != null) {
             if(listOfAttendeesIds.contains(loggedInUser.id)){
                 return true
             }
         }
-
-        var stringBuilder = StringBuilder()
-        if (listOfAttendeesIds.isNotEmpty()){
-            val groupUsers = groupService?.getGroupUsers(listOfAttendeesIds)
-
-            groupUsers?.forEach{
-                if (!listOfAttendeesIds.contains(it.id)){
-                   listOfAttendeesIds.plus(it.id)
-                }
-            }
-            if(groupUsers?.contains(loggedInUser) == true)
-                return true
-        }
-
         obj.attendeesIds= ObjectMapper().writeValueAsString(listOfAttendeesIds)
 
 
