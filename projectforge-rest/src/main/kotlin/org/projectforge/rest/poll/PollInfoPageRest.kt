@@ -35,9 +35,8 @@ class PollInfoPageRest: AbstractDynamicPageRest() {
             field.add(UICol()
                 .add(UIReadOnlyField("deadline", label = "deadline", value = "deadline")))
 
-            field.add(UIRow().add(UICol().add(UILabel("""  Anschließend werden die Fragen der Umfrage angelegt.
-                    Die Fragen können aus verschiedenen Typen bestehen.
-                """))))
+            field.add(UIRow().add(UICol().add(UILabel("""Anschließend werden die Fragen der Umfrage angelegt.
+                    Die Fragen können aus verschiedenen Typen bestehen. """))))
 
             layout.add(field)
 
@@ -51,19 +50,19 @@ class PollInfoPageRest: AbstractDynamicPageRest() {
             ))
             layout.add(UIFieldset().add(UILabel("TextQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = """Eine Frage die mit einer Freitext Antwort Beantwortet werden kann""".trimMargin()))
+                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit einer Freitext Antwort Beantwortet werden kann"))
 
             ))
             layout.add(UIFieldset().add(UILabel("DateQuestion")).add(
                 UICol()
                     .add(UIReadOnlyField("question", label = "Question",
                         value = """Eine Frage ob an einem Tag (Uhrzeit) die Teilnehmer zeit haben. Die einem Ja, Nein oder Vielleicht 
-                            Beantwortet werden kann""".trimMargin()
+                            Beantwortet werden kann"""
             ))))
             layout.add(UIFieldset().add(UILabel("Dropdown")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = """ Eine Frage die mit einem Dropdown Beantwortet werden
-                        | kann""".trimMargin()
+                    .add(UIReadOnlyField("question", label = "Question",
+                        value = """ Eine Frage die mit einem Dropdown Beantwortet werden kann"""
             ))))
 
 
