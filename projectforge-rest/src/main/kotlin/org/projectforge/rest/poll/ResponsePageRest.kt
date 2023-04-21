@@ -93,6 +93,11 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             if (field.type == BaseType.DateQuestion) {
                 col.add(UITextArea("responses[$index].answers[0]"))
             }
+            if (field.type == BaseType.MultiResponseQuestion) {
+                field.answers?.forEachIndexed { index2, _ ->
+                    col.add(UICheckbox("responses[$index].answers[$index2]", label = field.answers?.get(index2) ?: ""))
+                }
+            }
             fieldSet2.add(UIRow().add(col))
             layout.add(fieldSet2)
         }
