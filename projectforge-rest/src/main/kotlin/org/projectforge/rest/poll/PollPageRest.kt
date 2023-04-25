@@ -91,12 +91,20 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
+        if (dto.state == PollDO.State.RUNNING) {
+            fieldset
+                .add(
+                    UIButton.createDefaultButton(
+                        id = "response-poll-button",
+                        responseAction = ResponseAction(
+                            PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}",
+                            targetType = TargetType.REDIRECT
+                        ),
+                        title = "poll.response.poll"
+                    )
+                )
+        }
         fieldset
-            .add(UIButton.createDefaultButton(
-                id = "response-poll-button",
-                responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}", targetType = TargetType.REDIRECT),
-                title = "poll.response.poll"
-            ))
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
             .add(lc, "deadline", "date")
