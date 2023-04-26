@@ -156,17 +156,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
-        layout.watchFields.addAll(
-            arrayOf(
-                "title", "description", "location", "deadline",
-                "date"
-            )
-        )
+        layout.watchFields.addAll(listOf("groupAttendees"))
 
-        return LayoutUtils.processEditPage(layout, dto, this)
+        var processedLayout = LayoutUtils.processEditPage(layout, dto, this)
+        processedLayout.actions.filterIsInstance<UIButton>().find {
+            it.id == "create"
+        }?.confirmMessage = "Willst du wirklich die Umfrage erstellen? Du kannst die Fragen im Nachhinein nicht mehr bearbeiten."
+        return processedLayout
     }
-
-
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
@@ -186,7 +183,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         found?.answers?.add("")
         dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui",
+                createEditLayout(dto, userAccess))
         )
     }
 
@@ -214,6 +212,39 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
+    override fun onWatchFieldsUpdate(
+        request: HttpServletRequest,
+        dto: Poll,
+        watchFieldsTriggered: Array<String>?
+    ): ResponseEntity<ResponseAction> {
+        val userAccess = UILayout.UserAccess()
+        val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
+        val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
+        val users = User.toUserList(userIds)
+        User.restoreDisplayNames(users, userService)
+        val allUsers = dto.attendees?.toMutableList()?: mutableListOf()
+
+        var counter = 0 ;
+        users?.forEach { user ->
+            if(allUsers?.filter { it.id == user.id }?.isEmpty() == true) {
+                allUsers.add(user)
+                counter ++
+            }
+        }
+
+        dto.groupAttendees = mutableListOf()
+        dto.attendees = allUsers.sortedBy { it.displayName }
+
+        return ResponseEntity.ok(
+            ResponseAction(targetType = TargetType.UPDATE
+            )
+                .addVariable("ui", createEditLayout(dto, userAccess))
+                .addVariable("data", dto)
+        )
+
+    }
+
+
     @PostMapping("/addPremadeQuestions")
     private fun addPremadeQuestionsField(
         @RequestBody postData: PostData<Poll>,
@@ -229,8 +260,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
-
-
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
             val objGiven = dto.id != null //differentiates between initial creation and editing
