@@ -48,13 +48,15 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "attendeesIds", nullable = true)
     open var attendeesIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.group_attendees")
+    @PropertyInfo(i18nKey = "poll.attendee_groups")
     @get:Column(name = "groupAttendeesIds", nullable = true)
     open var groupAttendeesIds: String? = null
 
+    @PropertyInfo(i18nKey = "poll.full_access_groups")
     @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
     open var fullAccessGroupIds: String? = null
 
+    @PropertyInfo(i18nKey = "poll.full_access_user")
     @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
     open var fullAccessUserIds: String? = null
 
