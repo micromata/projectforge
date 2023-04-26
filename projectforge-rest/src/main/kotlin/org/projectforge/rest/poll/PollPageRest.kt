@@ -155,11 +155,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
-                layout.watchFields.addAll(listOf("groupAttendees"))
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
+        layout.watchFields.addAll(listOf("groupAttendees"))
 
-    //TODO refactor this whole file into multiple smaller files
+        var processedLayout = LayoutUtils.processEditPage(layout, dto, this)
+        processedLayout.actions.filterIsInstance<UIButton>().find {
+            it.id == "create"
+        }?.confirmMessage = "Willst du wirklich die Umfrage erstellen? Du kannst die Fragen im Nachhinein nicht mehr bearbeiten."
+        return processedLayout
+    }
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
