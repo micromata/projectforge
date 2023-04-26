@@ -8,6 +8,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -50,7 +51,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
         dto.copyTo(pollDO)
-        if(dto.inputFields!= null){
+        if (dto.inputFields != null) {
             pollDO.inputFields = ObjectMapper().writeValueAsString(dto.inputFields)
         }
         return pollDO
@@ -85,18 +86,43 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             .add(lc, "title", "description", "location", "owner", "deadline", "date", "state")
     }
 
-
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
-        val lc = LayoutContext(PollDO::class.java)
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
-        if(dto.id != null){
-            fieldset.add(UIButton.createDefaultButton(
-                id = "response-poll-button",
-                responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}", targetType = TargetType.REDIRECT),
-                title = "poll.response.poll"
-            ))}
+        if (dto.state == PollDO.State.RUNNING && dto.id != null) {
+            fieldset.add(
+                UIButton.createDefaultButton(
+                    id = "response-poll-button",
+                    responseAction = ResponseAction(
+                        PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}",
+                        targetType = TargetType.REDIRECT
+                    ),
+                    title = "poll.response.poll"
+                )
+            )
+        }
+        fieldset.add(
+            UIRow().add(
+                UICol(
+                    UILength(10)
+                )
+            ).add(
+                UICol(
+                    UILength(1)
+                ).add(
+                    UIButton.createLinkButton(
+                        id = "poll-guide",title= "Poll Guide", responseAction = ResponseAction(
+                            PagesResolver.getDynamicPageUrl(
+                                PollInfoPageRest::class.java, absolute = true
+                            ), targetType = TargetType.MODAL
+                        )
+                    )
+                )
+            )
+        )
+
+
         fieldset
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
@@ -105,53 +131,53 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
             .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
             .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
-            if(dto.id == null) {
-                fieldset.add(
+        if (dto.id == null) {
+            fieldset.add(
+                UIRow()
+                    .add(
+                        UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
+                            .add(
+                                UISelect(
+                                    "questionType",
+                                    values = BaseType.values().map { UISelectValue(it, it.name) },
+                                    label = "questionType"
+                                )
+                            )
+                    )
+                    .add(
+                        UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
+                            .add(
+                                UIButton.createDefaultButton(
+                                    id = "add-question-button",
+                                    responseAction = ResponseAction(
+                                        "${Rest.URL}/poll/add",
+                                        targetType = TargetType.POST
+                                    ),
+                                    title = "Eigene Frage hinzufügen"
+                                )
+                            )
+                    )
+            )
+                .add(
                     UIRow()
                         .add(
                             UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
-                                .add(
-                                    UISelect(
-                                        "questionType",
-                                        values = BaseType.values().map { UISelectValue(it, it.name) },
-                                        label = "questionType"
-                                    )
-                                )
                         )
                         .add(
                             UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
                                 .add(
                                     UIButton.createDefaultButton(
-                                        id = "add-question-button",
+                                        id = "micromata-vorlage-button",
                                         responseAction = ResponseAction(
-                                            "${Rest.URL}/poll/add",
+                                            "${Rest.URL}/poll/addPremadeQuestions",
                                             targetType = TargetType.POST
                                         ),
-                                        title = "Eigene Frage hinzufügen"
+                                        title = "Micromata Vorlage nutzen"
                                     )
                                 )
                         )
                 )
-                    .add(
-                        UIRow()
-                            .add(
-                                UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
-                            )
-                            .add(
-                                UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
-                                    .add(
-                                        UIButton.createDefaultButton(
-                                            id = "micromata-vorlage-button",
-                                            responseAction = ResponseAction(
-                                                "${Rest.URL}/poll/addPremadeQuestions",
-                                                targetType = TargetType.POST
-                                            ),
-                                            title = "Micromata Vorlage nutzen"
-                                        )
-                                    )
-                            )
-                    )
-            }
+        }
         layout.add(fieldset)
 
         addQuestionFieldset(layout, dto)
@@ -273,26 +299,26 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto.inputFields?.forEachIndexed { index, field ->
             val objGiven = dto.id != null //differentiates between initial creation and editing
             val fieldset = UIFieldset(UILength(12), title = field.type.toString())
-                if(!objGiven){
-                    fieldset.add(generateDeleteButton(layout, field.uid))
-                }
+            if(!objGiven){
+                fieldset.add(generateDeleteButton(layout, field.uid))
+            }
             fieldset.add(getUiElement(objGiven, "inputFields[${index}].question", "Frage"))
 
             if (field.type == BaseType.SingleResponseQuestion || field.type == BaseType.MultiResponseQuestion) {
                 field.answers?.forEachIndexed { answerIndex, _ ->
                     fieldset.add(generateSingleAndMultiResponseAnswer(objGiven, index, field.uid, answerIndex, layout))
                 }
-            if(!objGiven) {
-                fieldset.add(
-                    UIRow().add(
-                        UIButton.createAddButton(
-                            responseAction = ResponseAction(
-                                "${Rest.URL}/poll/addAnswer/${field.uid}", targetType = TargetType.POST
+                if(!objGiven) {
+                    fieldset.add(
+                        UIRow().add(
+                            UIButton.createAddButton(
+                                responseAction = ResponseAction(
+                                    "${Rest.URL}/poll/addAnswer/${field.uid}", targetType = TargetType.POST
+                                )
                             )
                         )
                     )
-                )
-            }
+                }
             }
 
             layout.add(fieldset)
