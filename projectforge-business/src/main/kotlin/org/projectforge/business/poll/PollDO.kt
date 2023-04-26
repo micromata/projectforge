@@ -1,6 +1,7 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.IndexedEmbedded
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -28,7 +29,7 @@ open class PollDO : DefaultBaseDO() {
 
     @get:PropertyInfo(i18nKey = "poll.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "owner_pk", nullable = false)
+    @get:JoinColumn(name = "owner_fk", nullable = false)
     open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "poll.location")
