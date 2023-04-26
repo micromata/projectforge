@@ -26,6 +26,9 @@ class CronJobs {
     @Autowired
     private lateinit var pollMailService: PollMailService
 
+    @Autowired
+    private lateinit var exporter: ExcelExport
+
     /**
      * Method to end polls after deadline
      */
@@ -39,14 +42,11 @@ class CronJobs {
         polls.forEach {
             if (it.deadline?.isBefore(LocalDate.now().minusDays(1)) == true) {
                 it.state = PollDO.State.FINISHED
-                // check if state is open or closed
-
-                val ihkExporter = ExcelExport()
 
                 val poll = Poll()
                 poll.copyFrom(it)
 
-                val exel = ihkExporter
+                val exel = exporter
                     .getExcel(poll)
 
                 val attachment = object : MailAttachment {

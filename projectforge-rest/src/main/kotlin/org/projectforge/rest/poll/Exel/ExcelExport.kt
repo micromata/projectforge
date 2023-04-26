@@ -79,6 +79,10 @@ class ExcelExport {
 
         poll.inputFields?.forEachIndexed{i, question ->
             val answer = res?.responses?.find { it.uid == question.uid }
+            val cell =
+            answer?.answers?.forEachIndexed { j, s ->
+
+            }
             excelRow.getCell(i+1).setCellValue(answer?.answers.toString())
         }
 
