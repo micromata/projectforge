@@ -91,18 +91,17 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
-        if (dto.state == PollDO.State.RUNNING) {
-            fieldset
-                .add(
-                    UIButton.createDefaultButton(
-                        id = "response-poll-button",
-                        responseAction = ResponseAction(
-                            PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}",
-                            targetType = TargetType.REDIRECT
-                        ),
-                        title = "poll.response.poll"
-                    )
+        if (dto.state == PollDO.State.RUNNING && dto.id != null) {
+            fieldset.add(
+                UIButton.createDefaultButton(
+                    id = "response-poll-button",
+                    responseAction = ResponseAction(
+                        PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}",
+                        targetType = TargetType.REDIRECT
+                    ),
+                    title = "poll.response.poll"
                 )
+            )
         }
         fieldset
             .add(lc, "title", "description", "location")
@@ -112,62 +111,65 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
             .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
             .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
-            if(dto.id == null) {
-                fieldset.add(
+        if (dto.id == null) {
+            fieldset.add(
+                UIRow()
+                    .add(
+                        UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
+                            .add(
+                                UISelect(
+                                    "questionType",
+                                    values = BaseType.values().map { UISelectValue(it, it.name) },
+                                    label = "questionType"
+                                )
+                            )
+                    )
+                    .add(
+                        UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
+                            .add(
+                                UIButton.createDefaultButton(
+                                    id = "add-question-button",
+                                    responseAction = ResponseAction(
+                                        "${Rest.URL}/poll/add",
+                                        targetType = TargetType.POST
+                                    ),
+                                    title = "Eigene Frage hinzufügen"
+                                )
+                            )
+                    )
+            )
+                .add(
                     UIRow()
                         .add(
                             UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
-                                .add(
-                                    UISelect(
-                                        "questionType",
-                                        values = BaseType.values().map { UISelectValue(it, it.name) },
-                                        label = "questionType"
-                                    )
-                                )
                         )
                         .add(
                             UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
                                 .add(
                                     UIButton.createDefaultButton(
-                                        id = "add-question-button",
+                                        id = "micromata-vorlage-button",
                                         responseAction = ResponseAction(
-                                            "${Rest.URL}/poll/add",
+                                            "${Rest.URL}/poll/addPremadeQuestions",
                                             targetType = TargetType.POST
                                         ),
-                                        title = "Eigene Frage hinzufügen"
+                                        title = "Micromata Vorlage nutzen"
                                     )
                                 )
                         )
                 )
-                    .add(
-                        UIRow()
-                            .add(
-                                UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
-                            )
-                            .add(
-                                UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
-                                    .add(
-                                        UIButton.createDefaultButton(
-                                            id = "micromata-vorlage-button",
-                                            responseAction = ResponseAction(
-                                                "${Rest.URL}/poll/addPremadeQuestions",
-                                                targetType = TargetType.POST
-                                            ),
-                                            title = "Micromata Vorlage nutzen"
-                                        )
-                                    )
-                            )
-                    )
-            }
+        }
         layout.add(fieldset)
 
         addQuestionFieldset(layout, dto)
 
-                layout.watchFields.addAll(listOf("groupAttendees"))
-        return LayoutUtils.processEditPage(layout, dto, this)
-    }
+        layout.watchFields.addAll(listOf("groupAttendees"))
 
-    //TODO refactor this whole file into multiple smaller files
+        var processedLayout = LayoutUtils.processEditPage(layout, dto, this)
+        processedLayout.actions.filterIsInstance<UIButton>().find {
+            it.id == "create"
+        }?.confirmMessage = "Willst du wirklich die Umfrage erstellen? Du kannst die Fragen im Nachhinein nicht mehr bearbeiten."
+        return processedLayout
+    }
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
