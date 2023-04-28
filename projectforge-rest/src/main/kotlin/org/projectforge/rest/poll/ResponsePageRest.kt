@@ -5,7 +5,9 @@ import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -20,6 +22,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 import javax.servlet.http.HttpServletRequest
+import org.projectforge.rest.dto.User
+
 
 @RestController
 @RequestMapping("${Rest.URL}/response")
@@ -31,10 +35,24 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
 
+    @Autowired
+    private lateinit var userService: UserService
+
     @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("id") pollStringId: String?): FormLayoutData {
+    fun getForm(request: HttpServletRequest, @RequestParam("pollid") pollStringId: String?, @RequestParam("questionOwner") delUser: String?): FormLayoutData {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
+
+        //used to load awnsers, is an attendee chosen by a fullaccessuser in order to awnser for them or the Threadlocal User
+        var questionOwner: Int? = null
+
         val pollData = pollDao.internalGetById(id) ?: PollDO()
+
+        if (delUser != "null" && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser?.toInt()))
+            questionOwner = delUser?.toInt()
+        else
+            questionOwner = ThreadLocalUserContext.user?.id
+
+
         val pollDto = transformPollFromDB(pollData)
 
         val layout = UILayout("poll.response.title")
@@ -43,7 +61,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
             .add(UIReadOnlyField(value = pollDto.location, label = "Location"))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "Owner"))
-            .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
+             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
 
         layout.add(fieldSet)
 
@@ -51,7 +69,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         pollResponse.poll = pollData
 
         pollResponseDao.internalLoadAll().firstOrNull { response ->
-            response.owner == ThreadLocalUserContext.user
+            response.owner?.id  == questionOwner
                     && response.poll?.id == pollData.id
         }?.let {
             pollResponse.copyFrom(it)
@@ -101,13 +119,13 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         layout.add(
             UIButton.createDefaultButton(
-                id = "doResponse",
-                title = "response",
+                id = "addResponse",
+                title = "submit",
                 responseAction = ResponseAction(
                     RestResolver.getRestUrl(
                         this::class.java,
-                        "doResponse"
-                    ), targetType = TargetType.POST
+                        "addResponse"
+                    ) + "/?questionOwner=${questionOwner}", targetType = TargetType.POST
                 )
             )
         )
@@ -115,18 +133,17 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
-    @PostMapping("doResponse")
-    fun doResponse(
+    @PostMapping("addResponse")
+    fun addResponse(
         request: HttpServletRequest,
-        @RequestBody postData: PostData<PollResponse>
+        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
     ): ResponseEntity<ResponseAction>? {
-
+        val questionOwner: Int? = questionOwner
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
-        pollResponseDO.owner = ThreadLocalUserContext.user
-
+        pollResponseDO.owner = userService.getUser(questionOwner)
         pollResponseDao.internalLoadAll().firstOrNull { pollResponse ->
-            pollResponse.owner == ThreadLocalUserContext.user
+            pollResponse.owner?.id == questionOwner
                     && pollResponse.poll?.id == postData.data.poll?.id
         }?.let {
             it.responses = pollResponseDO.responses

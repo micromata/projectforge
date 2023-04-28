@@ -21,7 +21,8 @@ class Poll(
     var fullAccessGroups: List<Group>? = null,
     var fullAccessUsers: List<User>? = null,
     var groupAttendees: List<Group>? = null,
-    var attendees: List<User>? = null
+    var attendees: List<User>? = null,
+    var delegationUser: User? = null
 ) : BaseDTO<PollDO>() {
     override fun copyFrom(src: PollDO) {
         super.copyFrom(src)

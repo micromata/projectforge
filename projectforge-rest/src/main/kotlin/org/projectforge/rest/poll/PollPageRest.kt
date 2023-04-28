@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -89,14 +91,16 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val lc = LayoutContext(PollDO::class.java)
         val layout = super.createEditLayout(dto, userAccess)
-
         val fieldset = UIFieldset(UILength(12))
         if(dto.id != null){
-            fieldset.add(UIButton.createDefaultButton(
-                id = "response-poll-button",
-                responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}", targetType = TargetType.REDIRECT),
-                title = "poll.response.poll"
-            ))}
+            fieldset.add(UIRow()
+                .add(UIButton.createDefaultButton(
+                    id = "response-poll-button",
+                    responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "?pollid=${dto.id}&questionOwner=${dto.delegationUser?.id}", targetType = TargetType.REDIRECT),
+                    title = "poll.response.poll"
+            ))
+                .add(UIInput(id = "delegationUser", label = "poll.delegation_label", dataType = UIDataType.USER))
+            )}
         fieldset
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
@@ -156,6 +160,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
+        layout.watchFields.add("delegationUser")
         layout.watchFields.addAll(listOf("groupAttendees"))
 
         var processedLayout = LayoutUtils.processEditPage(layout, dto, this)
@@ -218,23 +223,29 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess()
-        val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
-        val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
-        val users = User.toUserList(userIds)
-        User.restoreDisplayNames(users, userService)
-        val allUsers = dto.attendees?.toMutableList()?: mutableListOf()
+        if(watchFieldsTriggered?.get(0) == "groupAttendees") {
+            val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+            val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
+            val users = User.toUserList(userIds)
+            User.restoreDisplayNames(users, userService)
+            val allUsers = dto.attendees?.toMutableList() ?: mutableListOf()
 
-        var counter = 0 ;
-        users?.forEach { user ->
-            if(allUsers?.filter { it.id == user.id }?.isEmpty() == true) {
-                allUsers.add(user)
-                counter ++
+            var counter = 0;
+            users?.forEach { user ->
+                if (allUsers?.filter { it.id == user.id }?.isEmpty() == true) {
+                    allUsers.add(user)
+                    counter++
+                }
             }
+
+            dto.groupAttendees = mutableListOf()
+            dto.attendees = allUsers.sortedBy { it.displayName }
         }
-
-        dto.groupAttendees = mutableListOf()
-        dto.attendees = allUsers.sortedBy { it.displayName }
-
+        //i dont know why this is necessary
+        if (watchFieldsTriggered?.get(0) == "delegationUser"){
+            dto.delegationUser = dto.delegationUser
+        }
+        dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE
             )
