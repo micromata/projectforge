@@ -83,7 +83,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
   private lateinit var vacationService: VacationService
 
   @GetMapping("dynamic")
-  fun getForm(): FormLayoutData {
+  fun getForm(request: HttpServletRequest): FormLayoutData {
     val layout = UILayout("vacation.export.title")
     layout.add(
       UICol(sm = 6, md = 3, lg = 2).add(
@@ -132,6 +132,8 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
       )
     )
     val data = ensureUserPref()
+    data.startDate = PFDay.now().beginOfMonth.date
+    setSessionData(request, data)
     return FormLayoutData(data, layout, null)
   }
 
@@ -141,7 +143,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
   @PostMapping(RestPaths.WATCH_FIELDS)
   @Override
   fun watchFields(request: HttpServletRequest, @Valid @RequestBody postData: PostData<Data>) {
-    request.session.setAttribute(SESSION_ATTRIBUTE_DATA, postData.data)
+    setSessionData(request, postData.data)
     val data = ensureUserPref()
     data.copyFrom(postData.data)
     checkData(data)
@@ -149,7 +151,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("exportExcel")
   fun exportExcel(request: HttpServletRequest): ResponseEntity<*> {
-    val data = request.session.getAttribute(SESSION_ATTRIBUTE_DATA) as? Data
+    val data = getSessionData(request)
     log.info { "Exporting Excel sheet with vacations of groups=[${data?.groups?.joinToString { it.displayName ?: "???" }}] and users=[${data?.employees?.joinToString { it.displayName ?: "???" }}]" }
     val employees = mutableSetOf<EmployeeDO>()
     data?.employees?.forEach { employee ->
@@ -193,10 +195,18 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
 
   private fun checkData(data: Data) {
     if (data.startDate == null) {
-      data.startDate = LocalDate.now()
+      data.startDate = PFDay.now().beginOfMonth.date
     }
     Employee.restoreDisplayNames(data.employees)
     Group.restoreDisplayNames(data.groups, groupService)
+  }
+
+  private fun setSessionData(request: HttpServletRequest, data: Data) {
+    request.session.setAttribute(SESSION_ATTRIBUTE_DATA, data)
+  }
+
+  private fun getSessionData(request: HttpServletRequest): Data? {
+    return request.session.getAttribute(SESSION_ATTRIBUTE_DATA) as? Data
   }
 
   companion object {
