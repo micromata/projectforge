@@ -26,14 +26,13 @@ package org.projectforge.caldav.controller;
 import io.milton.annotations.Authenticate;
 import org.projectforge.caldav.model.User;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
-import org.projectforge.framework.json.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Created by blumenstein on 21.11.16.
  */
-public class BaseDAVAuthenticationController {
+abstract public class BaseDAVAuthenticationController {
   private boolean autowired = false;
 
   protected void ensureAutowire() {
@@ -47,29 +46,17 @@ public class BaseDAVAuthenticationController {
   /**
    * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
    *
-   * @param digest
+   * @param user
+   * @param requestedPassword
    * @return
    */
   @Authenticate
   public Boolean authenticate(final User user, final String requestedPassword) {
-    String username = user.getUsername();
-    log.debug("user object: " + JsonUtils.toJson(user) + ", pw=" + requestedPassword);
-    return checkAuthentication(username, requestedPassword);
-    // log.info("**** DEBUG: " + username + JsonUtils.toJson(digest));
-    /*log.info("**** DEBUG: " + username + "/" + requestedPassword);
-    final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-    if (contextUser != null && StringUtils.equals(contextUser.getUsername(), username)) {
-      log.info("User '" + username + "' authenticated.");
-      return true;
-    }
-    log.warn("User '" + username + "' not authenticated.");
-    return false;*/
+    ensureAutowire();
+    return checkAuthentication(user, requestedPassword);
   }
 
-  protected Boolean checkAuthentication(final String username, final String token) {
-    log.error("Oups, authenticate should never be called!");
-    return false;
-  }
+  abstract protected Boolean checkAuthentication(final User user, final String token);
 
   private static Logger log = LoggerFactory.getLogger(BaseDAVAuthenticationController.class);
 }

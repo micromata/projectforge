@@ -26,7 +26,6 @@ package org.projectforge.caldav.service
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractSessionCache
-import org.projectforge.rest.utils.RequestLog
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
 
@@ -55,14 +54,28 @@ open class DavSessionCache
   }
 
   override fun getSessionId(request: HttpServletRequest): String? {
-    return headerParams.joinToString(separator = ",") { "$it=[${request.getHeader(it)}]" }
+    request.requestURI.let { uri ->
+      if (uri.isNullOrBlank() || !uri.startsWith("/users/")) {
+        log.info { "uri doesn't start with /users/: $uri" }
+        return null
+      }
+      val username = uri.removePrefix("/users/").substringBefore('/')
+      if (username.isBlank()) {
+        log.info { "uri doesn't contain username after /users/: $uri" }
+        return null
+      }
+      val sb = StringBuilder()
+      sb.append("user=[").append(username).append("],")
+      headerParams.forEach { sb.append(",").append(it).append("=[").append(request.getHeader(it)).append("]") }
+      return sb.toString()
+    }
   }
 
   override fun getTruncatedSessionId(sessionId: String?): String? {
     return sessionId // No trunc
   }
 
-  override fun getSessionData(request: HttpServletRequest): DavSessionData? {
+  override fun getSessionData(request: HttpServletRequest): DavSessionCache.DavSessionData? {
     val data = super.getSessionData(request)
     if (data != null) {
       if (log.isInfoEnabled) {
@@ -76,7 +89,7 @@ open class DavSessionCache
     val sb = StringBuilder()
     sb.append("user '${data.user.username}' (#${data.user.id}) with ")
     if (sessionId != null) {
-      sb.append("session-id='${RequestLog.getTruncatedSessionId(sessionId)}'")
+      sb.append("session-id='$sessionId'")
     }
     return sb.toString()
   }
