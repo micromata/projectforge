@@ -27,7 +27,7 @@ import io.milton.servlet.MiltonFilter
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.caldav.service.SslSessionCache
+import org.projectforge.caldav.service.DavSessionCache
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
 import org.projectforge.web.rest.BasicAuthenticationData
@@ -50,13 +50,13 @@ class PFMiltonFilter : MiltonFilter() {
   private lateinit var springContext: WebApplicationContext
 
   @Autowired
+  private lateinit var davSessionCache: DavSessionCache
+
+  @Autowired
   private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
   @Autowired
   private lateinit var userAuthenticationsService: UserAuthenticationsService
-
-  @Autowired
-  private lateinit var sslSessionCache: SslSessionCache
 
   @Throws(ServletException::class)
   override fun init(filterConfig: FilterConfig) {
@@ -70,13 +70,13 @@ class PFMiltonFilter : MiltonFilter() {
     if (log.isDebugEnabled) {
       log.debug("Trying to authenticate user (${RequestLog.asString(authInfo.request)})...")
     }
-    val sslSessionData = sslSessionCache.getSessionData(authInfo.request)
-    val sslSessionUser = sslSessionData?.user
-    if (sslSessionUser != null) {
+    val davSessionData = davSessionCache.getSessionData(authInfo.request)
+    val davSessionUser = davSessionData?.user
+    if (davSessionUser != null) {
       if (log.isDebugEnabled) {
         log.debug("User found by session id (${RequestLog.asString(authInfo.request)})...")
       }
-      authInfo.user = sslSessionUser
+      authInfo.user = davSessionUser
     } else {
       log.debug { "No user found by session id (${RequestLog.asString(authInfo.request)})..." }
       restAuthenticationUtils.basicAuthentication(
@@ -103,7 +103,7 @@ class PFMiltonFilter : MiltonFilter() {
           )
         } else {
           log.debug { "Registering authenticated user: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
-          sslSessionCache.registerSessionData(authInfo.request, authenticatedUser)
+          davSessionCache.registerSessionData(authInfo.request, authenticatedUser)
           log.info { "Authenticated user registered: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
         }
         authenticatedUser
@@ -142,6 +142,7 @@ class PFMiltonFilter : MiltonFilter() {
         return
       }
       log.info("Request with method=${request.method} for Milton (${RequestLog.asString(request)})...")
+      log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
       restAuthenticationUtils.doFilter(request,
         response,
         UserTokenType.DAV_TOKEN,

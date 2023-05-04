@@ -25,7 +25,6 @@ package org.projectforge.rest.utils
 
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.ToStringUtil
-import org.projectforge.rest.core.AbstractSessionCache
 import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationUtils
 import java.security.Principal
@@ -48,8 +47,7 @@ object RequestLog {
   fun asString(request: HttpServletRequest, user: String? = null): String {
     val userString = if (user.isNullOrBlank()) "" else ", user='$user'"
     val sessionId = getTruncatedSessionId(request.getSession(false)?.id)
-    val sslSessionId = getTruncatedSessionId(AbstractSessionCache.getSslSessionId(request))
-    return "uri=${request.requestURI}, session-id=$sessionId, ssl-session-id=$sslSessionId$userString"
+    return "uri=${request.requestURI}, session-id=$sessionId$userString"
   }
 
   /**

@@ -29,7 +29,6 @@ import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.caldav.config.DAVMethodsInterceptor
 import org.projectforge.common.logging.*
 import org.projectforge.login.LoginService
-import org.projectforge.rest.core.AbstractSessionCache
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.web.WebUtils
 import org.projectforge.web.rest.RestAuthenticationUtils
@@ -58,15 +57,9 @@ class LoggingFilter : Filter {
       val clientIp = WebUtils.getClientIp(request) ?: "unknown"
       MDC.put(MDC_IP, clientIp)
       val truncatedHttpSessionId = RequestLog.getTruncatedSessionId(sessionId)
-      val truncatedSslSessionId = RequestLog.getTruncatedSessionId(AbstractSessionCache.getSslSessionId(request))
       MDC.put(MDC_SESSION, truncatedHttpSessionId ?: "---")
-      MDC.put(MDC_SSL_SESSION, truncatedSslSessionId ?: "---")
       if (logSessionIds) {
-        if (truncatedSslSessionId != null) {
-          MDC.put(MDC_LOG_SESSIONS, " sessions=[http=$truncatedHttpSessionId, ssl=$truncatedSslSessionId]")
-        } else {
-          MDC.put(MDC_LOG_SESSIONS, " sessions=[http=$truncatedHttpSessionId]")
-        }
+        MDC.put(MDC_LOG_SESSIONS, " sessions=[http=$truncatedHttpSessionId]")
       }
       MDC.put(MDC_USER_AGENT, userAgent)
       val username = LoginService.getUserContext(request)?.user?.username
@@ -96,7 +89,6 @@ class LoggingFilter : Filter {
     } finally {
       MDC.remove(MDC_IP)
       MDC.remove(MDC_SESSION)
-      MDC.remove(MDC_SSL_SESSION)
       if (logSessionIds) {
         MDC.remove(MDC_LOG_SESSIONS)
       }

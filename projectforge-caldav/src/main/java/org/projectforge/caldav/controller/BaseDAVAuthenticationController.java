@@ -24,11 +24,9 @@
 package org.projectforge.caldav.controller;
 
 import io.milton.annotations.Authenticate;
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.caldav.model.User;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.json.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,18 +47,27 @@ public class BaseDAVAuthenticationController {
   /**
    * Function as Java code needed, because Milton fails while checking return type of this method (java.lang.Boolean required).
    *
-   * @param user
-   * @param requestedPassword
+   * @param digest
    * @return
    */
   @Authenticate
   public Boolean authenticate(final User user, final String requestedPassword) {
+    String username = user.getUsername();
+    log.debug("user object: " + JsonUtils.toJson(user) + ", pw=" + requestedPassword);
+    return checkAuthentication(username, requestedPassword);
+    // log.info("**** DEBUG: " + username + JsonUtils.toJson(digest));
+    /*log.info("**** DEBUG: " + username + "/" + requestedPassword);
     final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-    if (contextUser != null && StringUtils.equals(contextUser.getUsername(), user.getUsername())) {
-      log.info("User '" + user.getUsername() + "' authenticated.");
+    if (contextUser != null && StringUtils.equals(contextUser.getUsername(), username)) {
+      log.info("User '" + username + "' authenticated.");
       return true;
     }
-    log.warn("User '" + user.getUsername() + "' not authenticated.");
+    log.warn("User '" + username + "' not authenticated.");
+    return false;*/
+  }
+
+  protected Boolean checkAuthentication(final String username, final String token) {
+    log.error("Oups, authenticate should never be called!");
     return false;
   }
 
