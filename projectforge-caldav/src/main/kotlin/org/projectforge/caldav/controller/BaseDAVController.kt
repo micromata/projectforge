@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserAuthenticationsDao
 import org.projectforge.business.user.UserTokenType
 import org.projectforge.caldav.model.User
 import org.projectforge.caldav.model.UsersHome
+import org.projectforge.framework.json.JsonUtils.toJson
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.security.RegisterUser4Thread
 import org.projectforge.security.SecurityLogging
@@ -77,9 +78,9 @@ open class BaseDAVController : BaseDAVAuthenticationController() {
     return listOf(user)
   }
 
-  override fun checkAuthentication(username: String?, token: String?): Boolean {
-    ensureAutowire()
-    log.debug { "checkAuthentication" }
+  override fun checkAuthentication(user: User?, token: String?): Boolean {
+    log.debug { "checkAuthentication: user object: ${toJson(user)}, pw=${token?.take(4)}*" }
+    val username = user?.username
     if (username.isNullOrBlank()) {
       log.info { "username not given, can't authenticate user." }
       return false
