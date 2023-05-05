@@ -17,12 +17,12 @@ open class PollResponseDO : DefaultBaseDO() {
 
     @get:PropertyInfo(i18nKey = "poll.response.poll")
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "poll_pk", nullable = false)
+    @get:JoinColumn(name = "poll_fk", nullable = false)
     open var poll: PollDO? = null
 
     @get:PropertyInfo(i18nKey = "poll.response.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "owner_pk", nullable = false)
+    @get:JoinColumn(name = "owner_fk", nullable = false)
     open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "poll.responses")
