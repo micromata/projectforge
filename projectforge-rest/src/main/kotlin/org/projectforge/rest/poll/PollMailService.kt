@@ -14,12 +14,12 @@ class PollMailService {
 
 
     fun sendMail(to:String ,subject: String,content: String, mailAttachments: List<MailAttachment>?= null){
-                val mail = Mail()
-                mail.subject = subject
-                mail.contentType = Mail.CONTENTTYPE_HTML
-                mail.setTo(to)
-                mail.content = content
-                sendMail.send(mail, attachments = mailAttachments)
+        val mail = Mail()
+        mail.subject = subject
+        mail.contentType = Mail.CONTENTTYPE_HTML
+        mail.setTo(to)
+        mail.content = content
+        sendMail.send(mail, attachments = mailAttachments)
 
     }
 

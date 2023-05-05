@@ -151,7 +151,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addQuestionFieldset(layout, dto)
 
-                layout.watchFields.addAll(listOf("groupAttendees"))
+        layout.watchFields.addAll(listOf("groupAttendees"))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
@@ -309,7 +309,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                 "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}", targetType = TargetType.POST
                             )
                         ).withConfirmMessage(layout, confirmMessage = "Willst du wirklich diese Antwort löschen?"))
-                    )
+            )
         return row
     }
 
@@ -372,6 +372,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val poll = Poll()
         val pollDo = pollDao.getById(id.toInt())
         poll.copyFrom(pollDo)
+        User.restoreDisplayNames(poll.attendees, userService)
         val bytes: ByteArray? = excelExport
             .getExcel(poll)
         val filename = ( poll.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx")
