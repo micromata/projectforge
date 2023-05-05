@@ -30,6 +30,17 @@ class CronJobs {
     private lateinit var exporter: ExcelExport
 
     /**
+     * Cron job for daily stuff
+     */
+//    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
+    @Scheduled(cron = "0 * * * * *") // 1am everyday
+    fun dailyCronJobs() {
+        cronDeletePolls()
+        cronEndPolls()
+    }
+
+
+    /**
      * Method to end polls after deadline
      */
     fun cronEndPolls() {
@@ -53,13 +64,11 @@ class CronJobs {
                     override fun getFilename(): String {
                         return it.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx"
                     }
-
                     override fun getContent(): ByteArray? {
                         return exel
                     }
                 }
                 list.add(attachment)
-
 
                 header = "Umfrage ist abgelaufen"
                 mail ="""
@@ -96,8 +105,7 @@ class CronJobs {
             }
 
 
-
-            if(mail.isNotEmpty()){
+            if (mail.isNotEmpty()) {
                 pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
             }
         }
@@ -108,20 +116,10 @@ class CronJobs {
 
 
     /**
-     * Cron job for daily stuff
-     */
-    @Scheduled(cron = "0 * * * * *") // 1am everyday
-    fun dailyCronJobs() {
-        cronDeletePolls()
-        cronEndPolls()
-    }
-
-
-    /**
      * Method to delete old polls
      */
     fun cronDeletePolls() {
-        // check if poll end in Future
+        // check if poll end in future
         val polls = pollDao.internalLoadAll()
         val pollsMoreThanOneYearPast = polls.filter { it.created?.before(Date.from(LocalDate.now().minusYears(1).atStartOfDay(
             ZoneId.systemDefault()
