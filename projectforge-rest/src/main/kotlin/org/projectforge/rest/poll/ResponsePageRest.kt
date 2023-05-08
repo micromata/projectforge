@@ -6,8 +6,10 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
@@ -20,9 +22,8 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
+import java.util.*
 import javax.servlet.http.HttpServletRequest
-import org.projectforge.rest.dto.User
 
 
 @RestController
@@ -37,6 +38,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var accesscheck: AccessChecker
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest, @RequestParam("pollid") pollStringId: String?, @RequestParam("questionOwner") delUser: String?): FormLayoutData {
@@ -54,6 +58,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         val questionOwnerName = userService.getUser(questionOwner).displayName
         val pollDto = transformPollFromDB(pollData)
+
+        if (pollDto.state == PollDO.State.FINISHED) {
+            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage wurde bereits beendet");
+        }
 
         val layout = UILayout("poll.response.title")
         val fieldSet = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
