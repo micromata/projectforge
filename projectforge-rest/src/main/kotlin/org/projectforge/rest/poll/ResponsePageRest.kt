@@ -52,16 +52,16 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         else
             questionOwner = ThreadLocalUserContext.user?.id
 
-
+        val questionOwnerName = userService.getUser(questionOwner).displayName
         val pollDto = transformPollFromDB(pollData)
 
         val layout = UILayout("poll.response.title")
-        val fieldSet = UIFieldset(12, title = pollDto.title)
+        val fieldSet = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
         fieldSet
             .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
             .add(UIReadOnlyField(value = pollDto.location, label = "Location"))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "Owner"))
-             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
+            .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
 
         layout.add(fieldSet)
 

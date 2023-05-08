@@ -93,14 +93,16 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
         val fieldset = UIFieldset(UILength(12))
         if(dto.id != null){
-            fieldset.add(UIRow()
+                fieldset
                 .add(UIButton.createDefaultButton(
                     id = "response-poll-button",
                     responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "?pollid=${dto.id}&questionOwner=${dto.delegationUser?.id}", targetType = TargetType.REDIRECT),
                     title = "poll.response.poll"
             ))
-                .add(UIInput(id = "delegationUser", label = "poll.delegation_label", dataType = UIDataType.USER))
-            )}
+            if(hasFullAccess(dto)){
+                fieldset.add(UIInput(id = "delegationUser", label = "poll.delegation_label", dataType = UIDataType.USER))
+            }
+        }
         fieldset
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
@@ -397,5 +399,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             return UIReadOnlyField(id, label = label, dataType = dataType)
         else
             return UIInput(id, label = label, dataType = dataType)
+    }
+
+    private fun hasFullAccess(dto: Poll): Boolean{
+        val loggedInUser = ThreadLocalUserContext.user
+        val foundUser = dto.fullAccessUsers?.any { user -> user.id == loggedInUser?.id }
+        if(foundUser == true || dto.owner?.id == loggedInUser?.id) {
+            return true
+        }
+            return false
     }
 }
