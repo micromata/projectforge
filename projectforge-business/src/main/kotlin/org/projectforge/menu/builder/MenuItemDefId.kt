@@ -45,6 +45,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
     ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
+    BIRTHDAY_LIST("menu.birthdayList", getReactDynamicPageUrl("birthdayList")), //
     BOOK_LIST("menu.bookList", getReactListUrl("book")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
     TEAMCALENDAR("menu.plugins.teamcal", getReactListUrl("teamCal")), //
