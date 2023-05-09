@@ -270,7 +270,7 @@
         <xstream.version>1.4.19</xstream.version> <!-- com.thoughtworks.xstream -->
 
         <!-- HIBERNATE 5 -->
-        <postgresql.version>42.5.1</postgresql.version>
+        <postgresql.version>42.6.0</postgresql.version>
         <hsqldb.version>2.7.1</hsqldb.version>
 
         <!-- TEST -->

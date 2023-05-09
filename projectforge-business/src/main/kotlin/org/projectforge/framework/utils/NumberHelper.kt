@@ -508,12 +508,17 @@ object NumberHelper {
    */
   @JvmStatic
   fun getSecureRandomAlphanumeric(length: Int): String {
+    return getSecureRandomString(ALPHA_NUMERICS_CHARSET, length)
+  }
+
+  private fun getSecureRandomString(usedChars: String, length: Int): String {
     val random = SecureRandom()
     val bytes = ByteArray(length)
     random.nextBytes(bytes)
     val sb = StringBuilder()
+    val charsLength = usedChars.length
     for (i in 0 until length) {
-      sb.append(ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH])
+      sb.append(usedChars[(bytes[i].toInt() and 0xFF) % charsLength])
     }
     return sb.toString()
     /*
@@ -522,7 +527,6 @@ object NumberHelper {
         charset[i] = ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % ALPHA_NUMERICS_CHARSET_LENGTH]
     }
     return String(charset)
-
      */
   }
 
@@ -565,28 +569,58 @@ object NumberHelper {
    */
   @JvmStatic
   fun getSecureRandomReducedAlphanumeric(length: Int): String {
-    val random = SecureRandom()
-    val bytes = ByteArray(length)
-    random.nextBytes(bytes)
-    val sb = StringBuilder()
-    for (i in 0 until length) {
-      sb.append(REDUCED_ALPHA_NUMERICS_CHARSET[(bytes[i].toInt() and 0xFF) % REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH])
-    }
-    return sb.toString()
+    return getSecureRandomString(REDUCED_ALPHA_NUMERICS_CHARSET, length)
   }
 
   @JvmStatic
   fun checkSecureRandomReducedAlphanumeric(token: String?, minLength: Int): Boolean {
+    return checkUsedChars(usedChars = REDUCED_ALPHA_NUMERICS_CHARSET, token = token, minLength = minLength)
+  }
+
+  private fun checkUsedChars(usedChars: String, token: String?, minLength: Int): Boolean {
     if (token.isNullOrBlank() || token.length < minLength) {
       return false
     }
     token.forEach {
-      if (!REDUCED_ALPHA_NUMERICS_CHARSET.contains(it)) {
+      if (!usedChars.contains(it)) {
         return false
       }
     }
     return true
   }
+
+  /**
+   * Generates secure random String of the given length. Doesn't user chars "lIO0".
+   *
+   * @param length
+   * @return Secure random string.
+   */
+  @JvmStatic
+  fun getSecureRandomReducedAlphanumericWithSpecialChars(length: Int): String {
+    var result: String = getSecureRandomString(REDUCED_ALPHA_NUMERICS_CHARSET_WITH_SPECIAL_CHARS, length)
+    for (i in 0..100) {
+      if (result.any { SPECIAL_CHARS.contains(it) }) {
+        return result
+      }
+      result = getSecureRandomString(REDUCED_ALPHA_NUMERICS_CHARSET_WITH_SPECIAL_CHARS, length)
+    }
+    // Giving up (should never occur):
+    return if (length > 2)
+      result.replaceRange(length - 2, length - 1, "!")
+    else
+      "!" + result.substring(1)
+  }
+
+  @JvmStatic
+  fun checkSecureRandomReducedAlphanumericWithSpecialChars(token: String, minLength: Int): Boolean {
+    return checkUsedChars(
+      usedChars = REDUCED_ALPHA_NUMERICS_CHARSET_WITH_SPECIAL_CHARS,
+      token = token,
+      minLength = minLength
+    ) &&
+        token.any { SPECIAL_CHARS.contains(it) }
+  }
+
 
   @JvmStatic
   fun isIn(value: Int, vararg numbers: Int): Boolean {
@@ -618,11 +652,11 @@ object NumberHelper {
     else value
   }
 
-  internal val ALPHA_NUMERICS_CHARSET: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-  private val ALPHA_NUMERICS_CHARSET_LENGTH = ALPHA_NUMERICS_CHARSET.size
-
+  internal val ALPHA_NUMERICS_CHARSET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).joinToString(separator = "")
   internal val REDUCED_ALPHA_NUMERICS_CHARSET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789"
-  private val REDUCED_ALPHA_NUMERICS_CHARSET_LENGTH = REDUCED_ALPHA_NUMERICS_CHARSET.length
+  private val SPECIAL_CHARS = "*#+-.,:;?=()/&%$§!"
+  internal val REDUCED_ALPHA_NUMERICS_CHARSET_WITH_SPECIAL_CHARS =
+    "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789" + SPECIAL_CHARS
 
   var TEST_COUNTRY_PREFIX_USAGE_IN_TESTCASES_ONLY: String? = null
 }

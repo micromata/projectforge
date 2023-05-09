@@ -28,46 +28,81 @@ import io.milton.annotations.ChildrenOf
 import io.milton.annotations.Users
 import io.milton.resource.AccessControlledResource
 import io.milton.resource.AccessControlledResource.Priviledge
+import mu.KotlinLogging
+import org.projectforge.business.user.UserAuthenticationsDao
+import org.projectforge.business.user.UserTokenType
 import org.projectforge.caldav.model.User
 import org.projectforge.caldav.model.UsersHome
+import org.projectforge.framework.json.JsonUtils.toJson
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.slf4j.LoggerFactory
+import org.projectforge.security.RegisterUser4Thread
+import org.projectforge.security.SecurityLogging
+import org.springframework.beans.factory.annotation.Autowired
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Created by blumenstein on 21.11.16.
  */
-open class BaseDAVController: BaseDAVAuthenticationController() {
+open class BaseDAVController : BaseDAVAuthenticationController() {
+  @Autowired
+  private lateinit var userAuthenticationsDao: UserAuthenticationsDao
 
-    @JvmField
-    var usersHome: UsersHome? = null
+  @JvmField
+  var usersHome: UsersHome? = null
 
-    @AccessControlList
-    fun getUserPrivs(target: User?, currentUser: User?): List<Priviledge> {
-        val result = mutableListOf<Priviledge>()
-        if (target != null && target.id == currentUser?.id) {
-            result.add(Priviledge.ALL)
-        } else {
-            return AccessControlledResource.NONE
-        }
-        return result
+  @AccessControlList
+  fun getUserPrivs(target: User?, currentUser: User?): List<Priviledge> {
+    log.debug { "getUserPrivs" }
+    val result = mutableListOf<Priviledge>()
+    if (target != null && target.id == currentUser?.id) {
+      result.add(Priviledge.ALL)
+    } else {
+      return AccessControlledResource.NONE
     }
+    return result
+  }
 
-    @ChildrenOf
-    @Users
-    fun getUsers(usersHome: UsersHome?): Collection<User> {
-        val contextUser = ThreadLocalUserContext.user
-        if (contextUser == null) {
-            log.error("No user authenticated, can't get list of users.")
-            return emptyList()
-        }
-        log.info("Trying to get list of users. Return only logged-in one due to security reasons.")
-        val user = User()
-        user.id = contextUser.id.toLong()
-        user.username = contextUser.username
-        return listOf(user)
+  @ChildrenOf
+  @Users
+  fun getUsers(usersHome: UsersHome?): Collection<User> {
+    val contextUser = ThreadLocalUserContext.user
+    if (contextUser == null) {
+      log.error("No user authenticated, can't get list of users.")
+      return emptyList()
     }
+    log.info("Trying to get list of users. Return only logged-in one due to security reasons.")
+    val user = User()
+    user.id = contextUser.id.toLong()
+    user.username = contextUser.username
+    return listOf(user)
+  }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(BaseDAVController::class.java)
+  override fun checkAuthentication(user: User?, token: String?): Boolean {
+    log.debug { "checkAuthentication: user object: ${toJson(user)}, pw=${token?.take(4)}*" }
+    val username = user?.username
+    if (username.isNullOrBlank()) {
+      log.info { "username not given, can't authenticate user." }
+      return false
     }
+    if (token.isNullOrBlank()) {
+      log.info { "DAV token (password) not given, can't authenticate user." }
+      return false
+    }
+    log.debug { "Trying to authenticate user '$username'..." }
+    val authenticatedUser = userAuthenticationsDao.getUserByToken(username, UserTokenType.DAV_TOKEN, token)
+    if (authenticatedUser == null) {
+      val msg = "Can't authenticate user '$username' by given token. User name and/or token invalid."
+      log.error(msg)
+      SecurityLogging.logSecurityWarn(
+        this::class.java,
+        "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED",
+        msg
+      )
+      return false
+    }
+    log.debug { "Registering authenticated user '$username'" }
+    RegisterUser4Thread.registerUser(authenticatedUser)
+    return true
+  }
 }
