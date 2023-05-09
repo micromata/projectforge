@@ -65,7 +65,7 @@ open class DavSessionCache
         return null
       }
       val sb = StringBuilder()
-      sb.append("user=[").append(username).append("],")
+      sb.append("user=[").append(username).append("]")
       headerParams.forEach { sb.append(",").append(it).append("=[").append(request.getHeader(it)).append("]") }
       return sb.toString()
     }
