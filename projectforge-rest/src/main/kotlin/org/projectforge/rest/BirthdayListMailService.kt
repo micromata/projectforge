@@ -24,7 +24,6 @@
 package org.projectforge.rest
 
 import mu.KotlinLogging
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.projectforge.common.StringHelper
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -37,34 +36,38 @@ private val log = KotlinLogging.logger {}
 
 @Service
 class BirthdayListMailService {
-    @Autowired
-    private lateinit var sendMail: SendMail
+  @Autowired
+  private lateinit var sendMail: SendMail
 
-    @Autowired
-    private lateinit var birthdayListConfiguration: BirthdayListConfiguration
+  @Autowired
+  private lateinit var birthdayListConfiguration: BirthdayListConfiguration
 
-    fun sendMail(subject: String, content: String, mailAttachments: List<MailAttachment>?) {
-        val emails = getEMailAddressesFromConfig()
-        if (!emails.isNullOrEmpty())
-            emails.forEach { address ->
-                val mail = Mail()
-                mail.subject = subject
-                mail.contentType = Mail.CONTENTTYPE_HTML
-                mail.setTo(address)
-                mail.content = content
-                sendMail.send(mail, attachments = mailAttachments)
-                log.info { "Send mail to $address" }
-            }
-    }
+  fun sendMail(subject: String, content: String, mailAttachments: List<MailAttachment>?) {
+    val emails = getEMailAddressesFromConfig()
+    if (!emails.isNullOrEmpty())
+      emails.forEach { address ->
+        val mail = Mail()
+        mail.subject = subject
+        mail.contentType = Mail.CONTENTTYPE_HTML
+        mail.setTo(address)
+        mail.content = content
+        try {
+          sendMail.send(mail, attachments = mailAttachments)
+          log.info { "Send mail to $address" }
+        } catch (ex: Exception) {
+          log.error("error while trying to send mail to '$address': ${ex.message}", ex)
+        }
+      }
+  }
 
-    private fun getEMailAddressesFromConfig(): MutableList<String>? {
-        val validEmailAddresses = mutableListOf<String>()
-        birthdayListConfiguration.emailAddresses
-            ?.split(",")
-            ?.filter { StringHelper.isEmailValid(it.trim()) }
-            ?.forEach { address ->
-                validEmailAddresses.add(address.trim())
-            }
-        return validEmailAddresses.ifEmpty { null }
-    }
+  private fun getEMailAddressesFromConfig(): MutableList<String>? {
+    val validEmailAddresses = mutableListOf<String>()
+    birthdayListConfiguration.emailAddresses
+      ?.split(",")
+      ?.filter { StringHelper.isEmailValid(it.trim()) }
+      ?.forEach { address ->
+        validEmailAddresses.add(address.trim())
+      }
+    return validEmailAddresses.ifEmpty { null }
+  }
 }
