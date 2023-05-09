@@ -97,12 +97,40 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
+        if (dto.state == PollDO.State.RUNNING && dto.id != null) {
+            fieldset.add(
+                UIButton.createDefaultButton(
+                    id = "response-poll-button",
+                    responseAction = ResponseAction(
+                        PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}",
+                        targetType = TargetType.REDIRECT
+                    ),
+                    title = "poll.response.poll"
+                )
+            )
+        }
+        fieldset.add(
+            UIRow().add(
+                UICol(
+                    UILength(10)
+                )
+            ).add(
+                UICol(
+                    UILength(1)
+                ).add(
+                    UIButton.createLinkButton(
+                        id = "poll-guide",title= "Poll Guide", responseAction = ResponseAction(
+                            PagesResolver.getDynamicPageUrl(
+                                PollInfoPageRest::class.java, absolute = true
+                            ), targetType = TargetType.MODAL
+                        )
+                    )
+                )
+            )
+        )
+
+
         fieldset
-            .add(UIButton.createDefaultButton(
-                id = "response-poll-button",
-                responseAction = ResponseAction(PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}", targetType = TargetType.REDIRECT),
-                title = "poll.response.poll"
-            ))
             .add(lc, "title", "description", "location")
             .add(lc, "owner")
             .add(lc, "deadline", "date")
@@ -384,7 +412,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
         return RestUtils.downloadFile(filename, bytes)
     }
-
     //once created, questions should be ReadOnly
     private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
         if (obj)
