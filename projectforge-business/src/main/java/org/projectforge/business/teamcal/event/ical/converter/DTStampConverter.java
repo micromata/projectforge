@@ -37,7 +37,11 @@ public class DTStampConverter extends PropertyConverter
   @Override
   public Property toVEvent(final TeamEventDO event)
   {
-    DateTime dtStampValue = new DateTime(event.getDtStamp());
+    Date date = event.getDtStamp();
+    if (date == null) {
+      return null;
+    }
+    DateTime dtStampValue = new DateTime(date);
     dtStampValue.setUtc(true);
     return new DtStamp(dtStampValue);
   }

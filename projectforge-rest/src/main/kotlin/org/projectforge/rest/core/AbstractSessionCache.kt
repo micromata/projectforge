@@ -32,7 +32,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
- * The session id is the http session id, or for SslSessionCache the ssl session id.
+ * The session id is the http session id.
  */
 abstract class AbstractSessionCache<T : Any>(
   /**
@@ -83,7 +83,7 @@ abstract class AbstractSessionCache<T : Any>(
 
   fun registerSessionData(sessionId: String?, data: T) {
     if (sessionId == null || sessionId.length < 20) {
-      log.info { "$storageId: $sessionType id to short. Usage denied: ${RequestLog.getTruncatedSessionId(sessionId)}" }
+      log.info { "$storageId: $sessionType id to short. Usage denied: ${getTruncatedSessionId(sessionId)}" }
       return
     }
     synchronized(cache) {
@@ -91,7 +91,7 @@ abstract class AbstractSessionCache<T : Any>(
       if (entry != null) {
         entry._data = data
         log.info {
-          "$storageId: $sessionType '${RequestLog.getTruncatedSessionId(sessionId)}' is re-used for entry ${
+          "$storageId: $sessionType '${getTruncatedSessionId(sessionId)}' is re-used for entry ${
             entryAsString(
               data
             )
@@ -101,7 +101,7 @@ abstract class AbstractSessionCache<T : Any>(
       } else {
         log.info {
           "$storageId: Registering entry ${entryAsString(data)} by new $sessionType '${
-            RequestLog.getTruncatedSessionId(
+            getTruncatedSessionId(
               sessionId
             )
           }'."
@@ -111,6 +111,10 @@ abstract class AbstractSessionCache<T : Any>(
     }
   }
 
+  open fun getTruncatedSessionId(sessionId: String?): String? {
+    return RequestLog.getTruncatedSessionId(sessionId)
+  }
+
   open fun getSessionData(request: HttpServletRequest): T? {
     val sessionId = getSessionId(request) ?: return null
     return getSessionData(sessionId)
@@ -118,7 +122,7 @@ abstract class AbstractSessionCache<T : Any>(
 
   fun getSessionData(sessionId: String?): T? {
     if (sessionId == null || sessionId.length < 20) {
-      log.info { "$storageId: $sessionType to short. Usage denied: ${RequestLog.getTruncatedSessionId(sessionId)}" }
+      log.info { "$storageId: $sessionType to short. Usage denied: ${getTruncatedSessionId(sessionId)}" }
       return null
     }
     synchronized(cache) {
@@ -127,7 +131,7 @@ abstract class AbstractSessionCache<T : Any>(
         if (log.isDebugEnabled) {
           log.debug {
             "$storageId: Found expired session entry for $sessionType '${
-              RequestLog.getTruncatedSessionId(
+              getTruncatedSessionId(
                 sessionId
               )
             }'."
@@ -137,7 +141,7 @@ abstract class AbstractSessionCache<T : Any>(
       }
       log.info {
         "$storageId: Restore entry ${entryAsString(entry.data)} by $sessionType '${
-          RequestLog.getTruncatedSessionId(
+          getTruncatedSessionId(
             sessionId
           )
         }'."
@@ -164,26 +168,9 @@ abstract class AbstractSessionCache<T : Any>(
 
   override fun refresh() {
     synchronized(cache) {
-      val size = cache.size
       cache.removeIf {
         isExpired(it)
       }
-      if (log.isDebugEnabled) {
-        log.debug { "$storageId ($sessionType): ${size - cache.size} expired entries removed from SSL session cache." }
-      }
-    }
-
-  }
-
-  companion object {
-    private const val REQUEST_ATTRIBUTE_SSL_SESSION_ID = "javax.servlet.request.ssl_session_id"
-    fun getSslSessionId(request: HttpServletRequest): String? {
-      val sslSessionId = request.getAttribute(REQUEST_ATTRIBUTE_SSL_SESSION_ID) ?: return null
-      if (sslSessionId is String) {
-        return sslSessionId
-      }
-      log.warn { "Oups, Attribute '$REQUEST_ATTRIBUTE_SSL_SESSION_ID' isn't of type String. Ignoring." }
-      return null
     }
   }
 }

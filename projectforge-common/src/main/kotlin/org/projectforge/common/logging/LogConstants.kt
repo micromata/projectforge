@@ -26,6 +26,5 @@ package org.projectforge.common.logging
 const val MDC_IP = "ip"
 const val MDC_LOG_SESSIONS = "logSessions"
 const val MDC_SESSION = "session"
-const val MDC_SSL_SESSION = "sslSession"
 const val MDC_USER = "user"
 const val MDC_USER_AGENT = "userAgent"
