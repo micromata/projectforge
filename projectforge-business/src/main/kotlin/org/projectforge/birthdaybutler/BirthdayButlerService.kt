@@ -176,10 +176,14 @@ class BirthdayButlerService {
             listDates.append("\t")
             return@forEachIndexed
           }
-          if (address.birthday!!.dayOfMonth < 10)
+          if (address.birthday!!.dayOfMonth < 10) {
             listDates.append("0")
-
-          listDates.append("${address.birthday!!.dayOfMonth}.${address.birthday!!.month.value}.:")
+          }
+          listDates.append(address.birthday!!.dayOfMonth).append(".")
+          if (address.birthday!!.month.value < 10) {
+            listDates.append("0")
+          }
+          listDates.append(address.birthday!!.month.value).append(".:")
         }
 
         val variables = Variables()
