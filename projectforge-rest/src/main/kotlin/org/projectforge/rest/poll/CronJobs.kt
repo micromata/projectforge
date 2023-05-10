@@ -48,7 +48,7 @@ class CronJobs {
         val list = ArrayList<MailAttachment>()
         // set State.FINISHED for all old polls
         polls.forEach {
-            if (it.deadline?.isBefore(LocalDate.now().minusDays(1)) == true) {
+            if (it.deadline?.isBefore(LocalDate.now()) == true) {
                 it.state = PollDO.State.FINISHED
                 // check if state is open or closed
 
@@ -91,7 +91,7 @@ class CronJobs {
                     mail ="""
                     Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
                     Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
-                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owmer
+                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owner
                     }zuständig.
                     Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
                     Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
