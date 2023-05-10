@@ -1,10 +1,9 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.projectforge.business.poll.PollDO
-import org.projectforge.business.poll.PollDao
-import org.projectforge.business.poll.PollResponseDO
-import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.poll.*
+import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
@@ -36,6 +35,15 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
         val pollData = pollDao.internalGetById(id) ?: PollDO()
         val pollDto = transformPollFromDB(pollData)
+
+        // todo I18N_keys ändern
+        if (pollData.id == null) {
+            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage nicht gefunden.")
+        }
+
+        if (pollData.getPollAssignment().contains(PollAssignment.ATTENDEE)) {
+            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Du darfst nicht auf diese Umfrage antworten.")
+        }
 
         val layout = UILayout("poll.response.title")
         val fieldSet = UIFieldset(12, title = pollDto.title)
