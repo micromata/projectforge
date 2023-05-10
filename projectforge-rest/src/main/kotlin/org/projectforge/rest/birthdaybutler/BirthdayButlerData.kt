@@ -21,8 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest
+package org.projectforge.rest.birthdaybutler
 
-class BirthdayListData {
-    var month: Int = 0
+import java.time.LocalDateTime
+
+class BirthdayButlerData {
+    var month: Int = LocalDateTime.now().monthValue
 }

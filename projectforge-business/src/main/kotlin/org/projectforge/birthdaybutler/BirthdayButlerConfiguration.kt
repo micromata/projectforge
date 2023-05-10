@@ -21,16 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.config
+package org.projectforge.birthdaybutler
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-open class BirthdayListConfiguration {
-    @Value("\${projectforge.birthdaylist.organization}")
+open class BirthdayButlerConfiguration {
+    @Value("\${projectforge.birthdaybutler.organization}")
     open lateinit var organization: String
 
-    @Value("\${projectforge.birthdaylist.emailAddresses}")
+    @Value("\${projectforge.birthdaybutler.emailAddresses}")
     open var emailAddresses: String? = null
+
+    @Value("\${projectforge.birthdaybutler.locale}")
+    open var locale: String? = null
+
+    open fun isConfigured(): Boolean {
+        return organization.isNotBlank()
+    }
 }
