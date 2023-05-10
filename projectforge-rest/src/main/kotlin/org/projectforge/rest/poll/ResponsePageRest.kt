@@ -5,6 +5,9 @@ import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
@@ -31,11 +34,18 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
 
+    @Autowired
+    private lateinit var accesscheck: AccessChecker
+
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest, @RequestParam("id") pollStringId: String?): FormLayoutData {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
         val pollData = pollDao.internalGetById(id) ?: PollDO()
         val pollDto = transformPollFromDB(pollData)
+
+        if (pollDto.state == PollDO.State.FINISHED) {
+            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage wurde bereits beendet");
+        }
 
         val layout = UILayout("poll.response.title")
         val fieldSet = UIFieldset(12, title = pollDto.title)
@@ -89,9 +99,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                         label = field.answers?.get(1) ?: ""
                     )
                 )
-            }
-            if (field.type == BaseType.DateQuestion) {
-                col.add(UITextArea("responses[$index].answers[0]"))
             }
             if (field.type == BaseType.MultiResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
