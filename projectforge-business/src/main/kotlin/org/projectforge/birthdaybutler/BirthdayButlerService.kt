@@ -34,6 +34,7 @@ import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
@@ -80,8 +81,8 @@ class BirthdayButlerService {
         locale = Locale(it)
       }
     }
-    log.info { "BirthdayButlerJob started: using locale '${locale.language}'..." }
-    val month = LocalDateTime.now().month
+    val month = PFDateTime.now().plusMonths(1).month // Use next month.
+    log.info { "BirthdayButlerJob started: using locale '${locale.language}' and month '${month.name}'..." }
     val response = createWord(month, locale)
     val error = response.errorMessage
     if (error != null) {
