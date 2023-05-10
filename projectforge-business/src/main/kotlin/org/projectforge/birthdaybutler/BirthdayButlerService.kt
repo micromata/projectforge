@@ -29,6 +29,7 @@ import mu.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
@@ -61,6 +62,9 @@ class BirthdayButlerService {
 
   @Autowired
   private lateinit var birthdayButlerConfiguration: BirthdayButlerConfiguration
+
+  @Autowired
+  private lateinit var configurationService: ConfigurationService
 
   @Autowired
   private lateinit var sendMail: SendMail
@@ -193,10 +197,8 @@ class BirthdayButlerService {
         variables.put("listLength", sortedList.size)
         variables.put("year", LocalDateTime.now().year)
         variables.put("month", translateMonth(sortedList[0].birthday!!.month, locale = locale))
-
-        val birthdayButlerTemplate =
-          applicationContext.getResource("classpath:officeTemplates/birthdayButlerTemplate" + ".docx")
-
+        val birthdayButlerTemplate = configurationService.getOfficeTemplateFile("BirthdayButlerTemplate.docx")
+        check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
         val wordDocument =
           WordDocument(birthdayButlerTemplate.inputStream, birthdayButlerTemplate.file.name).use { document ->
             document.process(variables)
