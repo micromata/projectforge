@@ -107,7 +107,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     ),
                     title = "poll.response.poll"
                 )
-            )
+            ).add(UIButton.createExportButton(
+                    id = "export-poll-response-button",
+                    responseAction = ResponseAction("${Rest.URL}/poll/export/${dto.id}", targetType = TargetType.POST),
+                    title = "poll.export.response.poll"
+                ))
         }
         fieldset.add(
             UIRow().add(
