@@ -21,7 +21,8 @@ class Poll(
     var fullAccessGroups: List<Group>? = null,
     var fullAccessUsers: List<User>? = null,
     var groupAttendees: List<Group>? = null,
-    var attendees: List<User>? = null
+    var attendees: List<User>? = null,
+    private var frontendState: String? = null
 ) : BaseDTO<PollDO>() {
     override fun copyFrom(src: PollDO) {
         super.copyFrom(src)
@@ -29,6 +30,10 @@ class Poll(
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
         groupAttendees = Group.toGroupList(src.groupAttendeeIds)
         attendees = User.toUserList(src.attendeeIds)
+        frontendState = if (state == PollDO.State.RUNNING)
+            "Endet am $deadline"
+        else
+            "Beendet"
     }
 
     override fun copyTo(dest: PollDO) {

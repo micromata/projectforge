@@ -87,8 +87,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             this,
             userAccess = userAccess,
         )
-            .add(lc, "title", "description", "location", "owner", "deadline", "date", "state")
-
+            .add(lc, "title", "description", "location", "owner", "deadline", "date")
+            .add(UIAgGridColumnDef.createCol(
+                field = "frontendState",
+                headerName = "State"
+            ))
     }
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
@@ -273,8 +276,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
         return filters
     }
-
-
 
     override fun onWatchFieldsUpdate(
         request: HttpServletRequest,
