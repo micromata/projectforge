@@ -48,7 +48,6 @@ class ExcelExport {
                 var anzNewRows = 2
 
                 anzNewRows += (poll.attendees?.size ?: 0)
-
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
                 poll.attendees?.sortedBy { it.displayName }
@@ -166,6 +165,7 @@ class ExcelExport {
             )
         }
     }
+
     private fun returnByteFile(excelSheet: ExcelSheet): ByteArray? {
         excelSheet.excelWorkbook.use { workbook ->
             val byteArrayOutputStream = workbook.asByteArrayOutputStream
