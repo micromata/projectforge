@@ -32,7 +32,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest, @RequestParam("id") pollStringId: String?): FormLayoutData {
-        val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
+        val id = NumberHelper.parseInteger(pollStringId) ?: throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage nicht gefunden.")
         val pollData = pollDao.internalGetById(id) ?: PollDO()
         val pollDto = transformPollFromDB(pollData)
 
