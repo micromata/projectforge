@@ -1,6 +1,8 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.annotations.IndexedEmbedded
+import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -29,8 +31,8 @@ open class PollDO : DefaultBaseDO() {
 
     @get:PropertyInfo(i18nKey = "poll.owner")
     @get:ManyToOne(fetch = FetchType.LAZY)
-    @get:JoinColumn(name = "owner_pk", nullable = false)
-    var owner: PFUserDO? = null
+    @get:JoinColumn(name = "owner_fk", nullable = false)
+    open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "poll.location")
     @get:Column(name = "location")
@@ -48,14 +50,16 @@ open class PollDO : DefaultBaseDO() {
     @get:Column(name = "attendeeIds")
     open var attendeeIds: String? = null
 
-    @PropertyInfo(i18nKey = "poll.group_attendees")
-    @get:Column(name = "groupAttendeeIds")
-    open var groupAttendeeIds: String? = null
+    @PropertyInfo(i18nKey = "poll.attendee_groups")
+    @get:Column(name = "groupAttendeesIds", nullable = true)
+    open var groupAttendeesIds: String? = null
 
-    @get:Column(name = "full_access_group_ids", length = 4000)
+    @PropertyInfo(i18nKey = "poll.full_access_groups")
+    @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
     open var fullAccessGroupIds: String? = null
 
-    @get:Column(name = "full_access_user_ids", length = 4000)
+    @PropertyInfo(i18nKey = "poll.full_access_user")
+    @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
     open var fullAccessUserIds: String? = null
 
     @PropertyInfo(i18nKey = "poll.inputFields")
