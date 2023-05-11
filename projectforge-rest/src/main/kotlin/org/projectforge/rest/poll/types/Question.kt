@@ -24,5 +24,4 @@ enum class BaseType {
     TextQuestion,
     SingleResponseQuestion,
     MultiResponseQuestion,
-    DateQuestion
 }
