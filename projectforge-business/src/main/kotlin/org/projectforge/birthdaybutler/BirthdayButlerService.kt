@@ -233,10 +233,10 @@ class BirthdayButlerService {
     addressList = addressList.filter { address ->
       address.birthday?.month == Month.values()[month.ordinal]
     }
-    val pFUserList = userDao.internalLoadAll()
+    val activeUsers = userDao.internalLoadAll().filter { it.hasSystemAccess() }
     val foundUser = mutableListOf<AddressDO>()
     addressList.forEach { address ->
-      pFUserList.firstOrNull { user ->
+      activeUsers.firstOrNull { user ->
         address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
             address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true)
         foundUser.add(address)
