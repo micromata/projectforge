@@ -25,6 +25,18 @@ class CronJobs {
     @Autowired
     private lateinit var pollMailService: PollMailService
 
+
+    /**
+     * Cron job for daily stuff
+     */
+//    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
+    @Scheduled(cron = "0 * * * * *") // 1am everyday
+    fun dailyCronJobs() {
+        cronDeletePolls()
+        cronEndPolls()
+    }
+
+
     /**
      * Method to end polls after deadline
      */
@@ -36,7 +48,7 @@ class CronJobs {
         val list = ArrayList<MailAttachment>()
         // set State.FINISHED for all old polls
         polls.forEach {
-            if (it.deadline?.isBefore(LocalDate.now().minusDays(1)) == true) {
+            if (it.deadline?.isBefore(LocalDate.now()) == true) {
                 it.state = PollDO.State.FINISHED
                 // check if state is open or closed
 
@@ -52,13 +64,11 @@ class CronJobs {
                     override fun getFilename(): String {
                         return it.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx"
                     }
-
                     override fun getContent(): ByteArray? {
                         return exel
                     }
                 }
                 list.add(attachment)
-
 
                 header = "Umfrage ist abgelaufen"
                 mail ="""
@@ -81,7 +91,7 @@ class CronJobs {
                     mail ="""
                     Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
                     Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
-                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owmer
+                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owner
                     }zuständig.
                     Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
                     Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
@@ -95,8 +105,7 @@ class CronJobs {
             }
 
 
-
-            if(mail.isNotEmpty()){
+            if (mail.isNotEmpty()) {
                 pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
             }
         }
@@ -107,20 +116,10 @@ class CronJobs {
 
 
     /**
-     * Cron job for daily stuff
-     */
-    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
-    fun dailyCronJobs() {
-        cronDeletePolls()
-        cronEndPolls()
-    }
-
-
-    /**
      * Method to delete old polls
      */
     fun cronDeletePolls() {
-        // check if poll end in Future
+        // check if poll end in future
         val polls = pollDao.internalLoadAll()
         val pollsMoreThanOneYearPast = polls.filter { it.created?.before(Date.from(LocalDate.now().minusYears(1).atStartOfDay(
             ZoneId.systemDefault()

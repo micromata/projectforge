@@ -9,7 +9,7 @@ CREATE TABLE T_POLL
     title       CHARACTER VARYING(1000) NOT NULL,
     description CHARACTER VARYING(1000),
     location    CHARACTER VARYING(1000),
-    owner_pk INTEGER NOT NULL,
+    owner_fk INTEGER NOT NULL,
     deadline DATE NOT NULL,
     date DATE,
     state CHARACTER VARYING(1000) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE T_POLL
 ALTER TABLE T_POLL
     ADD CONSTRAINT t_poll_pkey PRIMARY KEY (pk);
 ALTER TABLE T_POLL
-    ADD CONSTRAINT fk_t_poll_pf_user FOREIGN KEY (owner_pk) REFERENCES t_pf_user (pk);
+    ADD CONSTRAINT fk_t_poll_pf_user FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 
 CREATE TABLE T_POLL_RESPONSE
 (
@@ -31,14 +31,14 @@ CREATE TABLE T_POLL_RESPONSE
     deleted     BOOLEAN NOT NULL,
     created     TIMESTAMP WITHOUT TIME ZONE,
     last_update TIMESTAMP WITHOUT TIME ZONE,
-    poll_pk     INTEGER NOT NULL,
-    owner_pk     INTEGER NOT NULL,
+    poll_fk     INTEGER NOT NULL,
+    owner_fk     INTEGER NOT NULL,
     responses   CHARACTER Varying(10000)
 );
 
 ALTER TABLE T_POLL_RESPONSE
     ADD CONSTRAINT t_poll_response_pkey PRIMARY KEY (pk);
 ALTER TABLE T_POLL_RESPONSE
-    ADD CONSTRAINT fk_t_poll_response_pf_user FOREIGN KEY (owner_pk) REFERENCES t_pf_user (pk);
+    ADD CONSTRAINT fk_t_poll_response_pf_user FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 ALTER TABLE T_POLL_RESPONSE
-    ADD CONSTRAINT fk_t_poll_response_poll FOREIGN KEY (poll_pk) REFERENCES t_poll (pk);
+    ADD CONSTRAINT fk_t_poll_response_poll FOREIGN KEY (poll_fk) REFERENCES t_poll (pk);
