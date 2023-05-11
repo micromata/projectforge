@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 class CronJobs {
 
     private val log: Logger = LoggerFactory.getLogger(CronJobs::class.java)
+
     @Autowired
     private lateinit var pollDao: PollDao
 
@@ -62,8 +63,9 @@ class CronJobs {
 
                 val attachment = object : MailAttachment {
                     override fun getFilename(): String {
-                        return it.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx"
+                        return it.title + "_" + LocalDateTime.now().year + "_Result" + ".xlsx"
                     }
+
                     override fun getContent(): ByteArray? {
                         return exel
                     }
@@ -71,7 +73,7 @@ class CronJobs {
                 list.add(attachment)
 
                 header = "Umfrage ist abgelaufen"
-                mail ="""
+                mail = """
                         Die Umfrage ist zu ende. Hier die ergebnisse.
                      """.trimMargin()
 
@@ -83,22 +85,24 @@ class CronJobs {
         try {
 
             // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
-            val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false}
-            pollsInFuture.forEach{
+            val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false }
+            pollsInFuture.forEach {
                 val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
-                if(daysDifference == 1L || daysDifference == 7L){
+                if (daysDifference == 1L || daysDifference == 7L) {
                     header = "Umfrage Endet in $daysDifference Tage"
-                    mail ="""
+                    mail = """
                     Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
                     Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
-                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${it ///owner
+                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${
+                        it ///owner
                     }zuständig.
                     Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
                     Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
                     Wir würden uns freuen, wenn Sie sich die Zeit nehmen könnten, um diese Umfrage auszufüllen.
                     Vielen Dank im Voraus für Ihre Unterstützung.
                     
-                    Mit freundlichen Grüßen,${it  ///owmer
+                    Mit freundlichen Grüßen,${
+                        it  ///owmer
                     }
                      """.trimMargin()
                 }
@@ -106,10 +110,9 @@ class CronJobs {
 
 
             if (mail.isNotEmpty()) {
-                pollMailService.sendMail(to="test", subject = header, content = mail, mailAttachments = list)
+                pollMailService.sendMail(to = "test", subject = header, content = mail, mailAttachments = list)
             }
-        }
-        catch (e:Exception) {
+        } catch (e: Exception) {
             log.error(e.toString())
         }
     }
@@ -121,9 +124,15 @@ class CronJobs {
     fun cronDeletePolls() {
         // check if poll end in future
         val polls = pollDao.internalLoadAll()
-        val pollsMoreThanOneYearPast = polls.filter { it.created?.before(Date.from(LocalDate.now().minusYears(1).atStartOfDay(
-            ZoneId.systemDefault()
-        ).toInstant())) ?: false }
+        val pollsMoreThanOneYearPast = polls.filter {
+            it.created?.before(
+                Date.from(
+                    LocalDate.now().minusYears(1).atStartOfDay(
+                        ZoneId.systemDefault()
+                    ).toInstant()
+                )
+            ) ?: false
+        }
         pollsMoreThanOneYearPast.forEach {
             pollDao.delete(it)
         }

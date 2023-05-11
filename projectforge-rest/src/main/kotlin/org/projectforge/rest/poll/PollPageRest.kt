@@ -230,8 +230,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         found?.answers?.add("")
         dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui",
-                createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable(
+                "ui",
+                createEditLayout(dto, userAccess)
+            )
         )
     }
 
@@ -246,7 +248,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         var type = BaseType.valueOf(dto.questionType ?: "poll.question.textQuestion")
         var question = Question(uid = UUID.randomUUID().toString(), type = type)
-        if(type == BaseType.SingleResponseQuestion) {
+        if (type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("yes", "no")
         }
 
@@ -264,11 +266,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
         val userAccess = UILayout.UserAccess()
-        val groupIds = dto.groupAttendees?.filter{it.id != null}?.map{it.id!!}?.toIntArray()
+        val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
         val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
         val users = User.toUserList(userIds)
         User.restoreDisplayNames(users, userService)
-        val allUsers = dto.attendees?.toMutableList()?: mutableListOf()
+        val allUsers = dto.attendees?.toMutableList() ?: mutableListOf()
 
         var counter = 0
         users?.forEach { user ->
@@ -282,7 +284,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto.attendees = allUsers.sortedBy { it.displayName }
 
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE
+            ResponseAction(
+                targetType = TargetType.UPDATE
             )
                 .addVariable("ui", createEditLayout(dto, userAccess))
                 .addVariable("data", dto)
@@ -305,6 +308,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
+
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
             val fieldset = UIFieldset(UILength(12), title = field.type.toString())
@@ -334,7 +338,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
     }
 
-    private fun generateSingleAndMultiResponseAnswer(objGiven: Boolean, inputFieldIndex: Int, questionUid: String?, answerIndex: Int, layout: UILayout):UIRow {
+    private fun generateSingleAndMultiResponseAnswer(
+        objGiven: Boolean,
+        inputFieldIndex: Int,
+        questionUid: String?,
+        answerIndex: Int,
+        layout: UILayout
+    ): UIRow {
         val row = UIRow()
         row.add(
             UICol()
@@ -377,7 +387,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    private fun generateDeleteButton(layout: UILayout, uid:String?):UIRow {
+    private fun generateDeleteButton(layout: UILayout, uid: String?): UIRow {
         val row = UIRow()
         row.add(
             UICol(UILength(11))

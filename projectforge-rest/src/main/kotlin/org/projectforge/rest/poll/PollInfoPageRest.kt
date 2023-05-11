@@ -13,64 +13,104 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/pollInfo")
-class PollInfoPageRest: AbstractDynamicPageRest() {
+class PollInfoPageRest : AbstractDynamicPageRest() {
 
-        @GetMapping("dynamic")
-        fun getForm(request: HttpServletRequest): FormLayoutData {
+    @GetMapping("dynamic")
+    fun getForm(request: HttpServletRequest): FormLayoutData {
 
-            val layout = UILayout("poll.infopage")
-                val field = UIFieldset()
-                .add(UILabel(""" Anleitung um eine Umfrage zu erstellen 
+        val layout = UILayout("poll.infopage")
+        val field = UIFieldset()
+            .add(
+                UILabel(
+                    """ Anleitung um eine Umfrage zu erstellen 
                     | Als erstes werden die Parameter einer Umfrage angelegt.
-                """.trimMargin()))
+                """.trimMargin()
+                )
+            )
 
-            field.add(UICol()
-                .add(UIReadOnlyField("title", label = "title", value = "Test")))
-            field.add(UICol()
-                .add(UIReadOnlyField("description", label = "description", value = "description")))
-            field.add(UICol()
-                .add(UIReadOnlyField("location", label = "location", value = "location")))
-            field.add(UICol()
-                .add(UIReadOnlyField("owner", label = "owner", value = "owner")))
-            field.add(UICol()
-                .add(UIReadOnlyField("deadline", label = "deadline", value = "deadline")))
+        field.add(
+            UICol()
+                .add(UIReadOnlyField("title", label = "title", value = "Test"))
+        )
+        field.add(
+            UICol()
+                .add(UIReadOnlyField("description", label = "description", value = "description"))
+        )
+        field.add(
+            UICol()
+                .add(UIReadOnlyField("location", label = "location", value = "location"))
+        )
+        field.add(
+            UICol()
+                .add(UIReadOnlyField("owner", label = "owner", value = "owner"))
+        )
+        field.add(
+            UICol()
+                .add(UIReadOnlyField("deadline", label = "deadline", value = "deadline"))
+        )
 
-            field.add(UIRow().add(UICol().add(UILabel("""Anschließend werden die Fragen der Umfrage angelegt.
-                    Die Fragen können aus verschiedenen Typen bestehen. """))))
+        field.add(
+            UIRow().add(
+                UICol().add(
+                    UILabel(
+                        """Anschließend werden die Fragen der Umfrage angelegt.
+                    Die Fragen können aus verschiedenen Typen bestehen. """
+                    )
+                )
+            )
+        )
 
-            layout.add(field)
+        layout.add(field)
 
-            layout.add(UIFieldset().add(UILabel("YesNoQuestion")).add(
+        layout.add(
+            UIFieldset().add(UILabel("YesNoQuestion")).add(
                 UICol()
                     .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit Ja oder Nein Beantwortet werden kann"))
-            ))
-            layout.add(UIFieldset().add(UILabel("MultipleChoiceQuestion")).add(
+            )
+        )
+        layout.add(
+            UIFieldset().add(UILabel("MultipleChoiceQuestion")).add(
                 UICol()
                     .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit mehreren Antworten Beantwortet werden kann"))
-            ))
-            layout.add(UIFieldset().add(UILabel("TextQuestion")).add(
+            )
+        )
+        layout.add(
+            UIFieldset().add(UILabel("TextQuestion")).add(
                 UICol()
                     .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit einer Freitext Antwort Beantwortet werden kann"))
 
-            ))
-            layout.add(UIFieldset().add(UILabel("DateQuestion")).add(
+            )
+        )
+        layout.add(
+            UIFieldset().add(UILabel("DateQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question",
-                        value = """Eine Frage ob an einem Tag (Uhrzeit) die Teilnehmer zeit haben. Die einem Ja, Nein oder Vielleicht 
+                    .add(
+                        UIReadOnlyField(
+                            "question", label = "Question",
+                            value = """Eine Frage ob an einem Tag (Uhrzeit) die Teilnehmer zeit haben. Die einem Ja, Nein oder Vielleicht 
                             Beantwortet werden kann"""
-            ))))
-            layout.add(UIFieldset().add(UILabel("Dropdown")).add(
+                        )
+                    )
+            )
+        )
+        layout.add(
+            UIFieldset().add(UILabel("Dropdown")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question",
-                        value = """ Eine Frage die mit einem Dropdown Beantwortet werden kann"""
-            ))))
+                    .add(
+                        UIReadOnlyField(
+                            "question", label = "Question",
+                            value = """ Eine Frage die mit einem Dropdown Beantwortet werden kann"""
+                        )
+                    )
+            )
+        )
 
 
-            LayoutUtils.process(layout)
+        LayoutUtils.process(layout)
 
-            return FormLayoutData(null, layout, createServerData(request))
+        return FormLayoutData(null, layout, createServerData(request))
 
 
-        }
+    }
 
 }
