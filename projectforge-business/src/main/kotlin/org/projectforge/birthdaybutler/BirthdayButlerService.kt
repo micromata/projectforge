@@ -23,10 +23,16 @@
 
 package org.projectforge.birthdaybutler
 
+import de.micromata.merlin.word.RunsProcessor
 import de.micromata.merlin.word.WordDocument
 import de.micromata.merlin.word.templating.Variables
 import mu.KotlinLogging
 import org.apache.commons.io.output.ByteArrayOutputStream
+import org.apache.poi.xwpf.usermodel.XWPFDocument
+import org.apache.poi.xwpf.usermodel.XWPFTable
+import org.apache.poi.xwpf.usermodel.XWPFTableRow
+import org.apache.xmlbeans.XmlException
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.configuration.ConfigurationService
@@ -137,7 +143,7 @@ class BirthdayButlerService {
       log.info { "No user with birthday in selected month" }
       return Response(errorMessage = "birthdayButler.month.response.noEntry")
     }
-    val wordDocument = createWordDocument(birthdayList, locale)
+    val wordDocument = createWordDocument(month, birthdayList, locale)
     if (wordDocument != null) {
       log.info { "Birthday list for month $month created for ${birthdayList.size} users." }
       return Response(wordDocument.toByteArray())
@@ -167,40 +173,18 @@ class BirthdayButlerService {
     }
   }
 
-  private fun createWordDocument(addressList: MutableList<AddressDO>, locale: Locale?): ByteArrayOutputStream? {
+  private fun createWordDocument(month: Month, addressList: MutableList<AddressDO>, locale: Locale?): ByteArrayOutputStream? {
     try {
-      val listDates = StringBuilder()
-      val listNames = StringBuilder()
-      val sortedList = addressList.sortedBy { it.birthday!!.dayOfMonth }
-
-      if (sortedList.isNotEmpty()) {
-        sortedList.forEachIndexed { index, address ->
-          listDates.append("\n")
-          listNames.append("\n ${address.firstName} ${address.name}")
-          if (index != 0 && address.birthday!!.dayOfMonth == sortedList[index - 1].birthday!!.dayOfMonth) {
-            listDates.append("\t")
-            return@forEachIndexed
-          }
-          if (address.birthday!!.dayOfMonth < 10) {
-            listDates.append("0")
-          }
-          listDates.append(address.birthday!!.dayOfMonth).append(".")
-          if (address.birthday!!.month.value < 10) {
-            listDates.append("0")
-          }
-          listDates.append(address.birthday!!.month.value).append(".:")
-        }
-
+      if (addressList.isNotEmpty()) {
         val variables = Variables()
-        variables.put("listNames", listNames.toString())
-        variables.put("listDates", listDates.toString())
-        variables.put("listLength", sortedList.size)
+        variables.put("table", "") // Marker for finding table (should be removed).
         variables.put("year", LocalDateTime.now().year)
-        variables.put("month", translateMonth(sortedList[0].birthday!!.month, locale = locale))
+        variables.put("month", translateMonth(month, locale = locale))
         val birthdayButlerTemplate = configurationService.getOfficeTemplateFile("BirthdayButlerTemplate.docx")
         check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
         val wordDocument =
           WordDocument(birthdayButlerTemplate.inputStream, birthdayButlerTemplate.file.name).use { document ->
+            generateBirthdayTableRows(document.document, addressList)
             document.process(variables)
             document.asByteArrayOutputStream
           }
@@ -256,7 +240,58 @@ class BirthdayButlerService {
     return validEmailAddresses.ifEmpty { null }
   }
 
+  private fun generateBirthdayTableRows(templateDocument: XWPFDocument, addresses: List<AddressDO>): XWPFTable? {
+    var posTbl: XWPFTable? = null
+    for (tbl in templateDocument.tables) {
+      val cell = tbl.getRow(0).getCell(0)
+      cell.paragraphs?.let { paragraphs ->
+        for (paragraph in paragraphs) {
+          val runsProcessor = RunsProcessor(paragraph)
+          if (runsProcessor.text.contains("\${table}")) {
+            posTbl = tbl
+            break
+          }
+        }
+      }
+    }
+    if (posTbl == null) {
+      log.error("Table with marker '\${table}' in first row and first column not found. Can't process invoice positions.")
+      return null
+    }
+    var rowCounter = 2
+    addresses.sortedBy { it.birthday!!.dayOfMonth }.forEach { address ->
+      createBirthdayRow(posTbl, rowCounter++, address)
+    }
+    posTbl!!.removeRow(1)
+    return posTbl
+  }
+
+  private fun createBirthdayRow(posTbl: XWPFTable?, rowCounter: Int, address: AddressDO) {
+    try {
+      val sourceRow = posTbl!!.getRow(1)
+      val ctrow = CTRow.Factory.parse(sourceRow.ctRow.newInputStream())
+      val newRow = XWPFTableRow(ctrow, posTbl)
+      val variables = Variables()
+      variables.put("day", "${format(address.birthday!!.dayOfMonth)}.${format(address.birthday!!.monthValue)}.")
+      variables.put("name", "${address.firstName} ${address.name}")
+      for (cell in newRow.tableCells) {
+        for (cellParagraph in cell.paragraphs) {
+          RunsProcessor(cellParagraph).replace(variables)
+        }
+      }
+      posTbl.addRow(newRow, rowCounter)
+    } catch (ex: IOException) {
+      log.error("Error while trying to copy row: " + ex.message, ex)
+    } catch (ex: XmlException) {
+      log.error("Error while trying to copy row: " + ex.message, ex)
+    }
+  }
+
   companion object {
+    private fun format(number: Int): String {
+      return StringHelper.format2DigitNumber(number)
+    }
+
     private val months = arrayOf(
       "calendar.month.january",
       "calendar.month.february",
