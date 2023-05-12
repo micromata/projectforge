@@ -42,7 +42,7 @@ class Poll(
         dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
         dest.groupAttendeesIds = Group.toIntList(groupAttendees)
         dest.attendeesIds = User.toIntList(attendees)
-        if(inputFields!= null){
+        if (inputFields != null) {
             dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
         }
     }

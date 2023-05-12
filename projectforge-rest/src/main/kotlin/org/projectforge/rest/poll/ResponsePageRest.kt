@@ -5,7 +5,6 @@ import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -34,9 +33,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
 
-    @Autowired
-    private lateinit var accesscheck: AccessChecker
-
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest, @RequestParam("id") pollStringId: String?): FormLayoutData {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
@@ -44,7 +40,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val pollDto = transformPollFromDB(pollData)
 
         if (pollDto.state == PollDO.State.FINISHED) {
-            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage wurde bereits beendet");
+            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage wurde bereits beendet")
         }
 
         val layout = UILayout("poll.response.title")
@@ -102,7 +98,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             }
             if (field.type == BaseType.MultiResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
-                    if(pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null){
+                    if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
                     }
                     col.add(UICheckbox("responses[$index].answers[$index2]", label = field.answers?.get(index2) ?: ""))

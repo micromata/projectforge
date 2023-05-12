@@ -2,6 +2,7 @@ package org.projectforge.rest.poll
 
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
 import org.projectforge.rest.poll.Exel.ExcelExport
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,13 +45,14 @@ class CronJobs {
     /**
      * Method to end polls after deadline
      */
-    fun cronEndPolls() {
-        var mail = "";
-        var header = "";
+    private fun cronEndPolls() {
+        var mailContent = ""
+        var mailHeader = ""
+        val mailAttachments = ArrayList<MailAttachment>()
+        val mailTo = "l.spohr@micromata.de"
 
         val polls = pollDao.internalLoadAll()
-        val list = ArrayList<MailAttachment>()
-        // set State.FINISHED for all old polls
+        // set State.FINISHED for all old polls and export excel
         polls.forEach {
             if (it.deadline?.isBefore(LocalDate.now()) == true) {
                 it.state = PollDO.State.FINISHED
@@ -58,70 +60,60 @@ class CronJobs {
                 val poll = Poll()
                 poll.copyFrom(it)
 
-                val exel = exporter
-                    .getExcel(poll)
+                val excel = exporter.getExcel(poll)
 
-                val attachment = object : MailAttachment {
+                val mailAttachment = object : MailAttachment {
                     override fun getFilename(): String {
-                        return it.title + "_" + LocalDateTime.now().year + "_Result" + ".xlsx"
+                        return "${it.title}_${LocalDateTime.now().year}_Result.xlsx"
                     }
 
                     override fun getContent(): ByteArray? {
-                        return exel
+                        return excel
                     }
                 }
-                list.add(attachment)
+                mailAttachments.add(mailAttachment)
 
-                header = "Umfrage ist abgelaufen"
-                mail = """
-                        Die Umfrage ist zu ende. Hier die ergebnisse.
-                     """.trimMargin()
+                mailHeader = translateMsg("poll.mail.ended.header")
+                mailContent = translateMsg(
+                    "poll.mail.ended.content", it.title, it.owner?.displayName
+                )
 
                 pollDao.internalSaveOrUpdate(it)
-            }
 
+                sendMail(mailTo, mailContent, mailHeader, mailAttachments)
+            }
         }
 
-        try {
-
-            // erstell mir eine funktion, die alles deadlines mir gibt die in der zukunft liegen
-            val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false }
-            pollsInFuture.forEach {
-                val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
-                if (daysDifference == 1L || daysDifference == 7L) {
-                    header = "Umfrage Endet in $daysDifference Tage"
-                    mail = """
-                    Sehr geehrter Teilnehmer,wir laden Sie herzlich dazu ein, an unserer Umfrage zum Thema ${it.title} teilzunehmen. 
-                    Ihre Meinung ist uns sehr wichtig und wir würden uns freuen, wenn Sie uns dabei helfen könnten,
-                    unsere Forschungsergebnisse zu verbessern. Für diese Umfrage ist ${
-                        it ///owner
-                    }zuständig.
-                    Bei Fragen oder Anmerkungen können Sie sich gerne an ihn wenden.
-                    Bitte beachten Sie, dass das Enddatum für die Teilnahme an dieser Umfrage der ${it.deadline.toString()} ist.
-                    Wir würden uns freuen, wenn Sie sich die Zeit nehmen könnten, um diese Umfrage auszufüllen.
-                    Vielen Dank im Voraus für Ihre Unterstützung.
-                    
-                    Mit freundlichen Grüßen,${
-                        it  ///owmer
-                    }
-                     """.trimMargin()
-                }
+        val pollsInFuture = polls.filter { it.deadline?.isAfter(LocalDate.now()) ?: false }
+        pollsInFuture.forEach {
+            val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), it.deadline)
+            if (daysDifference == 1L || daysDifference == 7L) {
+                mailHeader = translateMsg("poll.mail.endingSoon.header", daysDifference)
+                mailContent = translateMsg(
+                    "poll.mail.endingSoon.content",
+                    it.title,
+                    it.owner?.displayName,
+                    it.deadline.toString(),
+                    "https://projectforge.micromata.de/react/response/dynamic/${it.id}"
+                )
             }
+        }
+    }
 
-
-            if (mail.isNotEmpty()) {
-                pollMailService.sendMail(to = "test", subject = header, content = mail, mailAttachments = list)
+    private fun sendMail(to: String, subject: String, content: String, mailAttachments: List<MailAttachment>? = null) {
+        try {
+            if (content.isNotEmpty()) {
+                pollMailService.sendMail(subject = subject, content = content, mailAttachments = mailAttachments, to = to)
             }
         } catch (e: Exception) {
             log.error(e.toString())
         }
     }
 
-
     /**
      * Method to delete old polls
      */
-    fun cronDeletePolls() {
+    private fun cronDeletePolls() {
         // check if poll end in future
         val polls = pollDao.internalLoadAll()
         val pollsMoreThanOneYearPast = polls.filter {

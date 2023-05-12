@@ -2,7 +2,6 @@ package org.projectforge.rest.poll
 
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
-import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,7 +21,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         val field = UIFieldset()
             .add(
                 UILabel(
-                    """ Anleitung um eine Umfrage zu erstellen 
+                    """ Anleitung, um eine Umfrage zu erstellen 
                     | Als erstes werden die Parameter einer Umfrage angelegt.
                 """.trimMargin()
                 )
@@ -65,19 +64,25 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(
             UIFieldset().add(UILabel("YesNoQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit Ja oder Nein Beantwortet werden kann"))
+                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage, die mit Ja oder Nein beantwortet werden kann"))
             )
         )
         layout.add(
             UIFieldset().add(UILabel("MultipleChoiceQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit mehreren Antworten Beantwortet werden kann"))
+                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage, die mit mehreren Antworten beantwortet werden kann"))
             )
         )
         layout.add(
             UIFieldset().add(UILabel("TextQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage die mit einer Freitext Antwort Beantwortet werden kann"))
+                    .add(
+                        UIReadOnlyField(
+                            "question",
+                            label = "Question",
+                            value = "Eine Frage, die mit einer Freitext Antwort beantwortet werden kann"
+                        )
+                    )
 
             )
         )
@@ -87,8 +92,8 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
                     .add(
                         UIReadOnlyField(
                             "question", label = "Question",
-                            value = """Eine Frage ob an einem Tag (Uhrzeit) die Teilnehmer zeit haben. Die einem Ja, Nein oder Vielleicht 
-                            Beantwortet werden kann"""
+                            value = """Eine Frage, ob an einem Tag (Uhrzeit) die Teilnehmer Zeit haben. Die mit einem Ja, Nein oder Vielleicht 
+                            beantwortet werden kann"""
                         )
                     )
             )
@@ -99,7 +104,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
                     .add(
                         UIReadOnlyField(
                             "question", label = "Question",
-                            value = """ Eine Frage die mit einem Dropdown Beantwortet werden kann"""
+                            value = """ Eine Frage, die mit einem Dropdown beantwortet werden kann"""
                         )
                     )
             )
@@ -109,8 +114,5 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         LayoutUtils.process(layout)
 
         return FormLayoutData(null, layout, createServerData(request))
-
-
     }
-
 }
