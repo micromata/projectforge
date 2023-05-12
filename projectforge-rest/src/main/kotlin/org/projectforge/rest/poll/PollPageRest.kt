@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
-import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
@@ -35,19 +35,16 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     private val log: Logger = LoggerFactory.getLogger(PollPageRest::class.java)
 
     @Autowired
-    private lateinit var userService: UserService;
+    private lateinit var userService: UserService
 
     @Autowired
-    private lateinit var groupService: GroupService;
+    private lateinit var groupService: GroupService
 
     @Autowired
     private lateinit var pollMailService: PollMailService
 
     @Autowired
     private lateinit var pollDao: PollDao
-
-    @Autowired
-    private lateinit var pollResponseDao: PollResponseDao
 
     @Autowired
     private lateinit var excelExport: ExcelExport
@@ -141,7 +138,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
             .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
             .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
-        if (dto.isAlreadyCreated() == false) {
+        if (!dto.isAlreadyCreated()) {
             fieldset.add(
                 UIRow()
                     .add(
@@ -194,7 +191,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         layout.watchFields.addAll(listOf("groupAttendees"))
 
-        var processedLayout = LayoutUtils.processEditPage(layout, dto, this)
+        val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
             it.id == "create"
         }?.confirmMessage = "poll.confirmation.creation"
@@ -246,8 +243,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
 
-        var type = BaseType.valueOf(dto.questionType ?: "poll.question.textQuestion")
-        var question = Question(uid = UUID.randomUUID().toString(), type = type)
+        val type = BaseType.valueOf(dto.questionType ?: "poll.question.textQuestion")
+        val question = Question(uid = UUID.randomUUID().toString(), type = type)
         if (type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("yes", "no")
         }
@@ -274,7 +271,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         var counter = 0
         users?.forEach { user ->
-            if (allUsers?.none { it.id == user.id } == true) {
+            if (allUsers.none { it.id == user.id }) {
                 allUsers.add(user)
                 counter++
             }
@@ -315,7 +312,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             if (!dto.isAlreadyCreated()) {
                 fieldset.add(generateDeleteButton(layout, field.uid))
             }
-            fieldset.add(getUiElement(dto.isAlreadyCreated(), "inputFields[${index}].question", "Frage"))
+            fieldset.add(getUiElement(dto.isAlreadyCreated(), "inputFields[${index}].question", translateMsg("poll.question")))
 
             if (field.type == BaseType.SingleResponseQuestion || field.type == BaseType.MultiResponseQuestion) {
                 field.answers?.forEachIndexed { answerIndex, _ ->
@@ -349,7 +346,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         row.add(
             UICol()
                 .add(
-                    getUiElement(objGiven, "inputFields[${inputFieldIndex}].answers[${answerIndex}]", "poll.answer" + " ${answerIndex + 1}")
+                    getUiElement(
+                        objGiven,
+                        "inputFields[${inputFieldIndex}].answers[${answerIndex}]",
+                        translateMsg("poll.answer") + " ${answerIndex + 1}"
+                    )
                 )
         )
         if (!objGiven) {
@@ -424,18 +425,18 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     @PostMapping("/export/{id}")
-    fun export(request: HttpServletRequest ,@PathVariable("id") id: String) : ResponseEntity<Resource>? {
+    fun export(@PathVariable("id") id: String) : ResponseEntity<Resource>? {
         val poll = Poll()
         val pollDo = pollDao.getById(id.toInt())
         poll.copyFrom(pollDo)
         User.restoreDisplayNames(poll.attendees, userService)
         val bytes: ByteArray? = excelExport
             .getExcel(poll)
-        val filename = ( poll.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx")
+        val filename = ( "${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
 
-        if (bytes == null || bytes.size == 0) {
+        if (bytes == null || bytes.isEmpty()) {
             log.error("Oops, xlsx has zero size. Filename: $filename")
-            return null;
+            return null
         }
         return RestUtils.downloadFile(filename, bytes)
     }
