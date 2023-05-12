@@ -22,9 +22,12 @@ class CronJobs {
     private val log: Logger = LoggerFactory.getLogger(CronJobs::class.java)
     @Autowired
     private lateinit var pollDao: PollDao
+
     @Autowired
     private lateinit var pollMailService: PollMailService
 
+    @Autowired
+    private lateinit var exporter: ExcelExport
 
     /**
      * Cron job for daily stuff
@@ -50,14 +53,11 @@ class CronJobs {
         polls.forEach {
             if (it.deadline?.isBefore(LocalDate.now()) == true) {
                 it.state = PollDO.State.FINISHED
-                // check if state is open or closed
-
-                val ihkExporter = ExcelExport()
 
                 val poll = Poll()
                 poll.copyFrom(it)
 
-                val exel = ihkExporter
+                val exel = exporter
                     .getExcel(poll)
 
                 val attachment = object : MailAttachment {

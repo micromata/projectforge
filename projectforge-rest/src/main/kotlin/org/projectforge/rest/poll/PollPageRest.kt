@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -41,6 +43,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @Autowired
     private lateinit var pollMailService: PollMailService
+
+    @Autowired
+    private lateinit var pollDao: PollDao
+
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
+    @Autowired
+    private lateinit var excelExport: ExcelExport
 
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
@@ -62,10 +73,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     override fun transformFromDB(pollDO: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
         poll.copyFrom(pollDO)
-        if (pollDO.inputFields != null) {
-            val fields = ObjectMapper().readValue(pollDO.inputFields, MutableList::class.java)
-            poll.inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
-        }
         User.restoreDisplayNames(poll.fullAccessUsers, userService)
         Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
         User.restoreDisplayNames(poll.attendees, userService)
@@ -100,7 +107,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     ),
                     title = "poll.response.poll"
                 )
-            )
+            ).add(UIButton.createExportButton(
+                    id = "export-poll-response-button",
+                    responseAction = ResponseAction("${Rest.URL}/poll/export/${dto.id}", targetType = TargetType.POST),
+                    title = "poll.export.response.poll"
+                ))
         }
         fieldset.add(
             UIRow().add(
@@ -343,8 +354,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                 "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}", targetType = TargetType.POST
                             )
                         ).withConfirmMessage(layout, confirmMessage = "Willst du wirklich diese Antwortmöglichkeit löschen?")))
-        }
-
+            }
         return row
     }
 
@@ -401,12 +411,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
-    @PostMapping("Export")
-    fun export(request: HttpServletRequest,poll: Poll) : ResponseEntity<Resource>? {
-        val ihkExporter = ExcelExport()
-        val bytes: ByteArray? = ihkExporter
+    @PostMapping("/export/{id}")
+    fun export(request: HttpServletRequest ,@PathVariable("id") id: String) : ResponseEntity<Resource>? {
+        val poll = Poll()
+        val pollDo = pollDao.getById(id.toInt())
+        poll.copyFrom(pollDo)
+        User.restoreDisplayNames(poll.attendees, userService)
+        val bytes: ByteArray? = excelExport
             .getExcel(poll)
-        val filename = ("test.xlsx")
+        val filename = ( poll.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx")
 
         if (bytes == null || bytes.size == 0) {
             log.error("Oops, xlsx has zero size. Filename: $filename")
@@ -414,7 +427,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
         return RestUtils.downloadFile(filename, bytes)
     }
-
     //once created, questions should be ReadOnly
     private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
         if (obj)
