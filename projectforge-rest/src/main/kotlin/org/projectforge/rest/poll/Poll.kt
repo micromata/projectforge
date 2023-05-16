@@ -47,4 +47,7 @@ class Poll(
         }
     }
 
+    fun isAlreadyCreated(): Boolean {
+        return id != null
+    }
 }
