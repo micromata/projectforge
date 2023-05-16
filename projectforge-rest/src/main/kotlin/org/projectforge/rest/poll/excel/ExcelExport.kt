@@ -32,7 +32,6 @@ class ExcelExport {
 
     fun getExcel(poll: Poll): ByteArray? {
         val responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
-
         val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
         try {
@@ -82,7 +81,6 @@ class ExcelExport {
                 }
                 excelRow.getCell(merge).setCellValue(question.question)
                 excelSheet.autosize(merge)
-                // cuter -1 because the
                 counter--
                 excelSheet.addMergeRegion(CellRangeAddress(0, 0, merge, counter))
                 merge = counter
