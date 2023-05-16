@@ -69,9 +69,7 @@ class ExcelExport {
 
         var merge = 1
         poll.inputFields?.forEach { question ->
-            if (question.type == BaseType.MultiResponseQuestion ||
-                question.type == BaseType.SingleResponseQuestion
-            ) {
+            if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)

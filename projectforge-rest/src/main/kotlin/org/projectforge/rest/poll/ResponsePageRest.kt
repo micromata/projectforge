@@ -5,8 +5,8 @@ import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
-import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.config.Rest
@@ -20,7 +20,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
+import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -40,16 +40,16 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val pollDto = transformPollFromDB(pollData)
 
         if (pollDto.state == PollDO.State.FINISHED) {
-            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage wurde bereits beendet")
+            throw AccessException("access.exception.noAccess", "poll.error.closed")
         }
 
         val layout = UILayout("poll.response.title")
         val fieldSet = UIFieldset(12, title = pollDto.title)
         fieldSet
-            .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
-            .add(UIReadOnlyField(value = pollDto.location, label = "Location"))
-            .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "Owner"))
-            .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
+            .add(UIReadOnlyField(value = pollDto.description, label = translateMsg("poll.description")))
+            .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
+            .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
+            .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
 
         layout.add(fieldSet)
 

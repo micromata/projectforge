@@ -55,6 +55,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return result
     }
 
+
     override fun transformForDB(dto: Poll): PollDO {
         val pollDO = PollDO()
         dto.copyTo(pollDO)
@@ -65,16 +66,17 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    //override fun transformForDB editMode not used
-    override fun transformFromDB(pollDO: PollDO, editMode: Boolean): Poll {
+    // override fun transformForDB editMode not used
+    override fun transformFromDB(obj: PollDO, editMode: Boolean): Poll {
         val poll = Poll()
-        poll.copyFrom(pollDO)
+        poll.copyFrom(obj)
         User.restoreDisplayNames(poll.fullAccessUsers, userService)
         Group.restoreDisplayNames(poll.fullAccessGroups, groupService)
         User.restoreDisplayNames(poll.attendees, userService)
         Group.restoreDisplayNames(poll.groupAttendees, groupService)
         return poll
     }
+
 
     override fun createListLayout(
         request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess
@@ -88,6 +90,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
             .add(lc, "title", "description", "location", "owner", "deadline", "date", "state")
     }
+
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
@@ -130,7 +133,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 )
             )
         )
-
 
         fieldset
             .add(lc, "title", "description", "location")
@@ -193,10 +195,16 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         layout.watchFields.addAll(listOf("groupAttendees"))
 
+
+        val confirmMessage = if (dto.attendees.isNullOrEmpty()) {
+            translateMsg("poll.confirmation.creation")
+        } else {
+            translateMsg("poll.confirmation.creationNoAttendees")
+        }
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
             it.id == "create"
-        }?.confirmMessage = translateMsg("poll.confirmation.creation")
+        }?.confirmMessage = confirmMessage
         return processedLayout
     }
 
@@ -264,7 +272,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
 
-        val type = BaseType.valueOf(dto.questionType ?: "poll.question.textQuestion")
+        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.TextQuestion
         val question = Question(uid = UUID.randomUUID().toString(), type = type)
         if (type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("yes", "no")
@@ -327,6 +335,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
             val fieldset = UIFieldset(UILength(12), title = field.type.toString())
@@ -355,6 +364,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             layout.add(fieldset)
         }
     }
+
 
     private fun generateSingleAndMultiResponseAnswer(
         objGiven: Boolean,
@@ -445,6 +455,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+
     @PostMapping("/export/{id}")
     fun export(@PathVariable("id") id: String): ResponseEntity<Resource>? {
         val poll = Poll()
@@ -461,6 +472,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
         return RestUtils.downloadFile(filename, bytes)
     }
+
 
     // once created, questions should be ReadOnly
     private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
