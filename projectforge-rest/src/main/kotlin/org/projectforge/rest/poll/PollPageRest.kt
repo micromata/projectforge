@@ -13,7 +13,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
 import org.projectforge.rest.dto.*
-import org.projectforge.rest.poll.Exel.ExcelExport
+import org.projectforge.rest.poll.excel.ExcelExport
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PREMADE_QUESTIONS
 import org.projectforge.rest.poll.types.Question
@@ -103,11 +103,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     ),
                     title = "poll.response.page"
                 )
-            ).add(UIButton.createExportButton(
+            ).add(
+                UIButton.createExportButton(
                     id = "export-poll-response-button",
                     responseAction = ResponseAction("${Rest.URL}/poll/export/${dto.id}", targetType = TargetType.POST),
                     title = "poll.export.response.poll"
-                ))
+                )
+            )
         }
         fieldset.add(
             UIRow().add(
@@ -425,14 +427,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     @PostMapping("/export/{id}")
-    fun export(@PathVariable("id") id: String) : ResponseEntity<Resource>? {
+    fun export(@PathVariable("id") id: String): ResponseEntity<Resource>? {
         val poll = Poll()
         val pollDo = pollDao.getById(id.toInt())
         poll.copyFrom(pollDo)
         User.restoreDisplayNames(poll.attendees, userService)
         val bytes: ByteArray? = excelExport
             .getExcel(poll)
-        val filename = ( "${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
+        val filename = ("${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
 
         if (bytes == null || bytes.isEmpty()) {
             log.error("Oops, xlsx has zero size. Filename: $filename")

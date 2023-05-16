@@ -4,7 +4,7 @@ import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
-import org.projectforge.rest.poll.Exel.ExcelExport
+import org.projectforge.rest.poll.excel.ExcelExport
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 import org.springframework.scheduling.annotation.Scheduled
