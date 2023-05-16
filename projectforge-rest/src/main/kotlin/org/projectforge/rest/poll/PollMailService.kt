@@ -13,7 +13,7 @@ class PollMailService {
     private lateinit var sendMail: SendMail
 
 
-    fun sendMail(to:String ,subject: String,content: String, mailAttachments: List<MailAttachment>?= null){
+    fun sendMail(to: String, subject: String, content: String, mailAttachments: List<MailAttachment>? = null) {
         val mail = Mail()
         mail.subject = subject
         mail.contentType = Mail.CONTENTTYPE_HTML
@@ -22,9 +22,5 @@ class PollMailService {
         sendMail.send(mail, attachments = mailAttachments)
 
     }
-
-
-
-
 
 }
