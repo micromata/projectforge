@@ -196,7 +196,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
             it.id == "create"
-        }?.confirmMessage = "poll.confirmation.creation"
+        }?.confirmMessage = translateMsg("poll.confirmation.creation")
         return processedLayout
     }
 
@@ -210,10 +210,29 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
-        super.onAfterSaveOrUpdate(request, poll, postData)
-        // todo i18n hier einfügen vielleicht
-        pollMailService.sendMail(subject = "", content = "", to = "test.mail")
+    override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        val mailTo: ArrayList<String> = ArrayList()
+        // add all attendees mails
+        postData.data.attendees?.map { it.email.toString() }?.let { mailTo.addAll(it) }
+        val owner = userService.getUser(obj.owner?.id)
+        val mailFrom = owner?.email.toString()
+        val mailSubject: String
+        val mailContent: String
+
+        if (postData.data.isAlreadyCreated()) {
+            mailSubject = translateMsg("poll.mail.update.subject")
+            mailContent = translateMsg(
+                "poll.mail.update.content", obj.title, owner?.displayName
+            )
+        } else {
+            mailSubject = translateMsg("poll.mail.created.subject")
+            mailContent = translateMsg(
+                "poll.mail.created.content", obj.title, owner?.displayName
+            )
+        }
+        pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+
+        super.onAfterSaveOrUpdate(request, obj, postData)
     }
 
 
