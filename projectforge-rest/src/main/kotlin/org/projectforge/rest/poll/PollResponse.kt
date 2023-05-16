@@ -6,7 +6,7 @@ import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
 
-class PollResponse: BaseDTO<PollResponseDO>() {
+class PollResponse : BaseDTO<PollResponseDO>() {
     var poll: PollDO? = null
     var owner: PFUserDO? = null
     var responses: MutableList<QuestionAnswer>? = mutableListOf()
@@ -32,8 +32,7 @@ class QuestionAnswer {
     var answers: MutableList<Any>? = mutableListOf()
 
 
-
-    fun toObject(string:String): QuestionAnswer {
+    fun toObject(string: String): QuestionAnswer {
         return ObjectMapper().readValue(string, QuestionAnswer::class.java)
     }
 }

@@ -6,7 +6,6 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
 import org.projectforge.rest.poll.excel.ExcelExport
 import org.springframework.beans.factory.annotation.Autowired
-import java.util.*
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
@@ -14,7 +13,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import kotlin.collections.ArrayList
+import java.util.*
 
 @RestController
 class PollCronJobs {
@@ -66,7 +65,7 @@ class PollCronJobs {
                     }
                 }
                 // add all attendees mails
-                var mailTo: ArrayList<String> = poll.attendees?.map { it.email } as ArrayList<String>
+                val mailTo: ArrayList<String> = poll.attendees?.map { it.email } as ArrayList<String>
                 val mailFrom = pollDO.owner?.email.toString()
                 val mailSubject = translateMsg("poll.mail.ended.subject")
                 val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
@@ -83,7 +82,7 @@ class PollCronJobs {
             val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
             if (daysDifference == 1L || daysDifference == 7L) {
                 // add all attendees mails
-                var mailTo: ArrayList<String> = poll.attendees?.map { it.email } as ArrayList<String>
+                val mailTo: ArrayList<String> = poll.attendees?.map { it.email } as ArrayList<String>
                 val mailFrom = pollDO.owner?.email.toString()
                 val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                 val mailContent = translateMsg(
