@@ -1,5 +1,6 @@
 package org.projectforge.rest.poll
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
@@ -30,6 +31,10 @@ class Poll(
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
         groupAttendees = Group.toGroupList(src.groupAttendeeIds)
         attendees = User.toUserList(src.attendeeIds)
+        if (src.inputFields != null) {
+            val fields = ObjectMapper().readValue(src.inputFields, MutableList::class.java)
+            inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+        }
         frontendState = if (state == PollDO.State.RUNNING)
             "Endet am $deadline"
         else
@@ -42,6 +47,12 @@ class Poll(
         dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
         dest.groupAttendeeIds = Group.toIntList(groupAttendees)
         dest.attendeeIds = User.toIntList(attendees)
+        if (inputFields != null) {
+            dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
+        }
     }
 
+    fun isAlreadyCreated(): Boolean {
+        return id != null
+    }
 }
