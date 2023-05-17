@@ -1,5 +1,6 @@
 package org.projectforge.rest.poll
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
@@ -29,6 +30,10 @@ class Poll(
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
         groupAttendees = Group.toGroupList(src.groupAttendeesIds)
         attendees = User.toUserList(src.attendeesIds)
+        if (src.inputFields != null) {
+            val fields = ObjectMapper().readValue(src.inputFields, MutableList::class.java)
+            inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+        }
     }
 
     override fun copyTo(dest: PollDO) {
@@ -37,6 +42,9 @@ class Poll(
         dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
         dest.groupAttendeesIds = Group.toIntList(groupAttendees)
         dest.attendeesIds = User.toIntList(attendees)
+        if(inputFields!= null){
+            dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
+        }
     }
 
 }
