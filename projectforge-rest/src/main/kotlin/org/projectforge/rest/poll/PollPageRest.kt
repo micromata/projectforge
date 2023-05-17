@@ -9,6 +9,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -128,7 +130,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     title = "poll.button.addQuestion",
                                     responseAction = ResponseAction(
                                         "${Rest.URL}/poll/add",
-                                        targetType = TargetType.POST
+                                        targetType = TargetType.PUT
                                     ),
                                 )
                             )
@@ -166,13 +168,42 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         } else {
             translateMsg("poll.confirmation.creation")
         }
+
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
             it.id == "create"
         }?.confirmMessage = confirmMessage
+
+
+        if (getId(dto) != null) {
+            processedLayout.addAction(
+                UIButton.createDangerButton(
+                    id = "poll-button-finish",
+                    title = "poll.button.finish",
+                    confirmMessage = translateMsg("poll.confirmation.finish"),
+                    responseAction = ResponseAction(
+                        "${Rest.URL}/poll/finish",
+                        targetType = TargetType.PUT
+                    ),
+                    layout = layout,
+                )
+            )
+        }
+
         return processedLayout
     }
 
+
+    @PutMapping("/finish")
+    fun changeStatToFinish(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<Poll>
+    ): ResponseEntity<ResponseAction> {
+        postData.data.state = PollDO.State.FINISHED
+        postData.data.deadline = LocalDate.now()
+
+        return super.saveOrUpdate(request, postData)
+    }
 
     override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         if (obj.inputFields.isNullOrEmpty() || obj.inputFields.equals("[]")) {
@@ -185,7 +216,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
-        val mailTo: ArrayList<String> = ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+        val mailTo: ArrayList<String> =
+            ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
         val owner = userService.getUser(obj.owner?.id)
         val mailFrom = owner?.email.toString()
         val mailSubject: String
@@ -245,7 +277,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto.inputFields!!.add(question)
         dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
 
@@ -295,7 +328,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
 
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
 
@@ -306,11 +340,25 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             if (!dto.isAlreadyCreated()) {
                 fieldset.add(generateDeleteButton(layout, field.uid))
             }
-            fieldset.add(getUiElement(dto.isAlreadyCreated(), "inputFields[${index}].question", translateMsg("poll.question")))
+            fieldset.add(
+                getUiElement(
+                    dto.isAlreadyCreated(),
+                    "inputFields[${index}].question",
+                    translateMsg("poll.question")
+                )
+            )
 
             if (field.type == BaseType.SingleResponseQuestion || field.type == BaseType.MultiResponseQuestion) {
                 field.answers?.forEachIndexed { answerIndex, _ ->
-                    fieldset.add(generateSingleAndMultiResponseAnswer(dto.isAlreadyCreated(), index, field.uid, answerIndex, layout))
+                    fieldset.add(
+                        generateSingleAndMultiResponseAnswer(
+                            dto.isAlreadyCreated(),
+                            index,
+                            field.uid,
+                            answerIndex,
+                            layout
+                        )
+                    )
                 }
                 if (!dto.isAlreadyCreated()) {
                     fieldset.add(
@@ -355,7 +403,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         UIButton.createDangerButton(
                             id = "X",
                             responseAction = ResponseAction(
-                                "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}", targetType = TargetType.POST
+                                "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}",
+                                targetType = TargetType.POST
                             )
                         ).withConfirmMessage(layout, confirmMessage = "poll.confirmation.deleteAnswer")
                     )
@@ -378,7 +427,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto.inputFields?.find { it.uid.equals(questionUid) }?.answers?.removeAt(answerIndex)
         dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
 
@@ -415,7 +465,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto.inputFields?.remove(matchingQuestion)
 
         return ResponseEntity.ok(
-            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
+            ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
+                .addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
 
@@ -441,7 +492,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     /**
      *  Once created, questions should be ReadOnly
      */
-    private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+    private fun getUiElement(
+        obj: Boolean,
+        id: String,
+        label: String? = null,
+        dataType: UIDataType = UIDataType.STRING
+    ): UIElement {
         return if (obj)
             UIReadOnlyField(id, label = label, dataType = dataType)
         else
@@ -454,14 +510,25 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 .add(lc, "title", "description", "location")
                 .add(UISelect.createUserSelect(lc, "owner", false, "poll.owner"))
                 .add(lc, "deadline", "date")
-        }
-        else {
+        } else {
             fieldset
                 .add(UIReadOnlyField(value = pollDto.title, label = "titel", dataType = UIDataType.STRING))
                 .add(UIReadOnlyField(value = pollDto.description, label = "description", dataType = UIDataType.STRING))
                 .add(UIReadOnlyField(value = pollDto.location, label = "location", dataType = UIDataType.STRING))
-                .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "deadline", dataType = UIDataType.STRING))
-                .add(UIReadOnlyField(value = (pollDto.date?.toString() ?: ""), label = "date", dataType = UIDataType.STRING))
+                .add(
+                    UIReadOnlyField(
+                        value = pollDto.deadline.toString(),
+                        label = "deadline",
+                        dataType = UIDataType.STRING
+                    )
+                )
+                .add(
+                    UIReadOnlyField(
+                        value = (pollDto.date?.toString() ?: ""),
+                        label = "date",
+                        dataType = UIDataType.STRING
+                    )
+                )
                 .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "owner", dataType = UIDataType.STRING))
         }
     }
@@ -483,7 +550,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 UILayout.UserAccess(insert = true, update = true, delete = false, history = true)
             } else {
                 // full access when viewing old poll
-               UILayout.UserAccess(insert = false, update = false, delete = true, history = false)
+                UILayout.UserAccess(insert = false, update = false, delete = true, history = false)
             }
         }
     }
