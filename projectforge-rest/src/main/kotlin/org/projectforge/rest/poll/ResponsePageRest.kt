@@ -69,14 +69,14 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         pollDto.inputFields?.forEachIndexed { index, field ->
             val fieldSet2 = UIFieldset(title = field.question)
-            val answer = Answer()
-            answer.uid = UUID.randomUUID().toString()
-            answer.questionUid = field.uid
+            val questionAnswer = QuestionAnswer()
+            questionAnswer.uid = UUID.randomUUID().toString()
+            questionAnswer.questionUid = field.uid
             pollResponse.responses?.firstOrNull {
                 it.questionUid == field.uid
             }.let {
                 if (it == null)
-                    pollResponse.responses?.add(answer)
+                    pollResponse.responses?.add(questionAnswer)
             }
 
             val col = UICol()
@@ -102,6 +102,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             }
             if (field.type == BaseType.MultiResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
+                    if(pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null){
+                        pollResponse.responses?.get(index)?.answers?.add(index2, false)
+                    }
                     col.add(UICheckbox("responses[$index].answers[$index2]", label = field.answers?.get(index2) ?: ""))
                 }
             }
@@ -133,6 +136,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
+
         pollResponseDO.owner = ThreadLocalUserContext.user
 
         pollResponseDao.internalLoadAll().firstOrNull { pollResponse ->
@@ -149,7 +153,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             )
         }
 
+
         pollResponseDao.saveOrUpdate(pollResponseDO)
+
         return ResponseEntity.ok(
             ResponseAction(
                 targetType = TargetType.REDIRECT,
