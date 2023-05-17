@@ -53,7 +53,7 @@ class CronJobs {
         val list = ArrayList<MailAttachment>()
         // set State.FINISHED for all old polls
         polls.forEach {
-            if (it.deadline?.isBefore(LocalDate.now().minusDays(1)) == true) {
+            if (it.deadline?.isBefore(LocalDate.now()) == true) {
                 it.state = PollDO.State.FINISHED
                 // check if state is open or closed
 
