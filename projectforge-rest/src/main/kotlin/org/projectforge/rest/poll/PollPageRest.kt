@@ -463,6 +463,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
+<<<<<<< Updated upstream
     /**
      *  Once created, questions should be ReadOnly
      */
@@ -476,7 +477,21 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             UIReadOnlyField(id, label = label, dataType = dataType)
         else
             UIInput(id, label = label, dataType = dataType)
+=======
+    companion object {
+        /**
+         *  Once created, questions should be ReadOnly
+         */
+        @JvmStatic
+        fun getUiElement(isReadOnly: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+            return if (isReadOnly)
+                UIReadOnlyField(id, label = label, dataType = dataType)
+            else
+                UIInput(id, label = label, dataType = dataType)
+        }
+>>>>>>> Stashed changes
     }
+
 
     private fun addDefaultParameterFields(pollDto: Poll, fieldset: UIFieldset, isRunning: Boolean) {
         if (isRunning) {
