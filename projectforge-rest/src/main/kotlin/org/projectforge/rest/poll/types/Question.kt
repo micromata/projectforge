@@ -11,10 +11,11 @@ class Question(
     var parent: String? = null,
     var isRequired: Boolean? = false,
     var numberOfSelect: Int? = 1,
-){
-    fun toObject(string:String): Question {
+) {
+    fun toObject(string: String): Question {
         return ObjectMapper().readValue(string, Question::class.java)
     }
+
     fun toJson(): String {
         return ObjectMapper().writeValueAsString(this)
     }

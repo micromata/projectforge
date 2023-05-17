@@ -1,4 +1,4 @@
-package org.projectforge.rest.poll.Exel
+package org.projectforge.rest.poll.excel
 
 import de.micromata.merlin.excel.ExcelRow
 import de.micromata.merlin.excel.ExcelSheet
@@ -6,7 +6,6 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
-import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
@@ -30,13 +29,9 @@ class ExcelExport {
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
 
-    @Autowired
-    private lateinit var pollDao: PollDao
-
 
     fun getExcel(poll: Poll): ByteArray? {
         val responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
-
         val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
         try {
@@ -48,14 +43,13 @@ class ExcelExport {
                 var anzNewRows = 2
 
                 anzNewRows += (poll.attendees?.size ?: 0)
-
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
                 poll.attendees?.sortedBy { it.displayName }
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                    setNewRows(excelSheet,poll, user, res, index)
+                    setNewRows(excelSheet, poll, user, res, index)
                 }
                 return returnByteFile(excelSheet)
             }
@@ -67,16 +61,17 @@ class ExcelExport {
         return null
     }
 
-    private fun setFirstRow(excelSheet: ExcelSheet,style: CellStyle,poll: Poll){
+    private fun setFirstRow(excelSheet: ExcelSheet, style: CellStyle, poll: Poll) {
         val excelRow = excelSheet.getRow(0)
         val excelRow1 = excelSheet.getRow(1)
 
         style.alignment = HorizontalAlignment.CENTER
 
         var merge = 1
-        poll.inputFields?.forEach{question ->
-            if(question.type==BaseType.MultiResponseQuestion ||
-                question.type==BaseType.SingleResponseQuestion ) {
+        poll.inputFields?.forEach { question ->
+            if (question.type == BaseType.MultiResponseQuestion ||
+                question.type == BaseType.SingleResponseQuestion
+            ) {
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
@@ -86,12 +81,10 @@ class ExcelExport {
                 }
                 excelRow.getCell(merge).setCellValue(question.question)
                 excelSheet.autosize(merge)
-                // cuter -1 because the
                 counter--
-                excelSheet.addMergeRegion(CellRangeAddress(0,0,merge,counter))
+                excelSheet.addMergeRegion(CellRangeAddress(0, 0, merge, counter))
                 merge = counter
-            }
-            else {
+            } else {
                 excelRow.getCell(merge).setCellValue(question.question)
                 excelRow.setCellStyle(style)
                 excelSheet.autosize(merge)
@@ -100,42 +93,41 @@ class ExcelExport {
         }
         excelRow.setHeight(30F)
     }
-    private fun setNewRows(excelSheet: ExcelSheet, poll:Poll, user: User, res:PollResponse?, index: Int) {
 
+    private fun setNewRows(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, index: Int) {
         val excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + index)
 
         excelRow.getCell(0).setCellValue(user.displayName)
         excelSheet.autosize(0)
-        var CELL=0
+        var cell = 0
 
-        var largestAwsnser="";
-        poll.inputFields?.forEachIndexed{i, question ->
+        var largestAnswer = ""
+        poll.inputFields?.forEachIndexed { _, question ->
             val questionAnswer = res?.responses?.find { it.questionUid == question.uid }
 
-            if (questionAnswer?.answers.isNullOrEmpty()){
-                CELL += question.answers?.size?:0
+            if (questionAnswer?.answers.isNullOrEmpty()) {
+                cell += question.answers?.size ?: 0
             }
             questionAnswer?.answers?.forEachIndexed { ind, antwort ->
-                CELL++
-                if (question.type == BaseType.SingleResponseQuestion || question.type == BaseType.MultiResponseQuestion){
-                    if(antwort is Boolean && antwort == true){
-                        excelRow.getCell(CELL).setCellValue("X")
+                cell++
+                if (question.type == BaseType.SingleResponseQuestion || question.type == BaseType.MultiResponseQuestion) {
+                    if (antwort is Boolean && antwort == true) {
+                        excelRow.getCell(cell).setCellValue("X")
                     }
-                    if(antwort is String && antwort.equals(question.answers?.get(ind))){
-                        excelRow.getCell(CELL).setCellValue("X")
+                    if (antwort is String && antwort == question.answers?.get(ind)) {
+                        excelRow.getCell(cell).setCellValue("X")
+                    }
+                } else {
+                    excelRow.getCell(cell).setCellValue(antwort.toString())
+                    if (countLines(antwort.toString()) > countLines(largestAnswer)) {
+                        largestAnswer = antwort.toString()
                     }
                 }
-                else{
-                    excelRow.getCell(CELL).setCellValue(antwort.toString())
-                    if(countLines(antwort.toString()) > countLines(largestAwsnser)){
-                        largestAwsnser = antwort.toString()
-                    }
-                }
-                excelSheet.autosize(CELL)
+                excelSheet.autosize(cell)
             }
         }
 
-        val puffer: String = largestAwsnser
+        val puffer: String = largestAnswer
         var counterOfBreaking = 0
         var counterOfOverlength = 0
 
@@ -143,11 +135,12 @@ class ExcelExport {
         // check for line-breaks
         for (i in pufferSplit.indices) {
             counterOfBreaking++
-            counterOfOverlength += pufferSplit.get(i).length / 70
+            counterOfOverlength += pufferSplit[i].length / 70
         }
         excelRow.setHeight((14 + counterOfOverlength * 14 + counterOfBreaking * 14).toFloat())
         //excelRow.setHeight(20F) ///TODO LEON FIX THIS PROBLEM
     }
+
     private fun countLines(str: String): Int {
         val lines = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         return lines.size
@@ -166,6 +159,7 @@ class ExcelExport {
             )
         }
     }
+
     private fun returnByteFile(excelSheet: ExcelSheet): ByteArray? {
         excelSheet.excelWorkbook.use { workbook ->
             val byteArrayOutputStream = workbook.asByteArrayOutputStream
