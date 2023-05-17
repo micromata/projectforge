@@ -1,4 +1,4 @@
-package org.projectforge.rest.poll
+package org.projectforge.rest.poll.types
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO

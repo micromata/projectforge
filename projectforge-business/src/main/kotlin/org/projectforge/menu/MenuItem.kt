@@ -47,8 +47,6 @@ class MenuItem(var id: String? = null,
         if (menuItemDef == null)
             return
         id = menuItemDef.id
-        title = translate(menuItemDef.i18nKey)
-        i18nKey = menuItemDef.i18nKey
         key = menuItemDef.id
         url = menuItemDef.url
         if (menuItemDef.badgeCounter != null) {

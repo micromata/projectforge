@@ -3,10 +3,10 @@ package org.projectforge.rest.poll
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 @Service
 class PollMailService {
@@ -18,7 +18,7 @@ class PollMailService {
 
     fun sendMail(from: String, to: List<String>, subject: String, content: String, mailAttachments: List<MailAttachment>? = null) {
         try {
-            if (content.isNotEmpty()) {
+            if (content.isNotEmpty() && to.isNotEmpty()) {
                 val mail = Mail()
                 mail.subject = subject
                 mail.contentType = Mail.CONTENTTYPE_HTML

@@ -77,18 +77,21 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return poll
     }
 
+    /**
+     * @return the response page.
+     */
+    override fun getStandardEditPage(): String {
+        return "${PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java)}:id"
+    }
 
     override fun createListLayout(
         request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess
     ) {
-        agGridSupport.prepareUIGrid4ListPage(
-            request,
-            layout,
-            magicFilter,
-            this,
-            userAccess = userAccess,
+        val pollLC = LayoutContext(lc)
+        layout.add(
+            UITable.createUIResultSetTable()
+                .add(pollLC, "title", "description", "location", "owner", "deadline", "date", "state")
         )
-            .add(lc, "title", "description", "location", "owner", "deadline", "date", "state")
     }
 
 
@@ -96,43 +99,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
-        if (dto.state == PollDO.State.RUNNING && dto.isAlreadyCreated()) {
-            fieldset.add(
-                UIButton.createDefaultButton(
-                    id = "response-poll-button",
-                    responseAction = ResponseAction(
-                        PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${dto.id}",
-                        targetType = TargetType.REDIRECT
-                    ),
-                    title = "poll.response.page"
-                )
-            ).add(
-                UIButton.createExportButton(
-                    id = "export-poll-response-button",
-                    responseAction = ResponseAction("${Rest.URL}/poll/export/${dto.id}", targetType = TargetType.POST),
-                    title = "poll.export.response.poll"
-                )
-            )
-        }
-        fieldset.add(
-            UIRow().add(
-                UICol(
-                    UILength(10)
-                )
-            ).add(
-                UICol(
-                    UILength(1)
-                ).add(
-                    UIButton.createLinkButton(
-                        id = "poll-guide", title = "poll.guide", responseAction = ResponseAction(
-                            PagesResolver.getDynamicPageUrl(
-                                PollInfoPageRest::class.java, absolute = true
-                            ), targetType = TargetType.MODAL
-                        )
-                    )
-                )
-            )
-        )
 
         fieldset
             .add(lc, "title", "description", "location")
@@ -197,9 +163,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
         val confirmMessage = if (dto.attendees.isNullOrEmpty()) {
-            translateMsg("poll.confirmation.creation")
-        } else {
             translateMsg("poll.confirmation.creationNoAttendees")
+        } else {
+            translateMsg("poll.confirmation.creation")
         }
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
@@ -219,9 +185,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
-        val mailTo: ArrayList<String> = ArrayList()
         // add all attendees mails
-        postData.data.attendees?.map { it.email.toString() }?.let { mailTo.addAll(it) }
+        val mailTo: ArrayList<String> = ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
         val owner = userService.getUser(obj.owner?.id)
         val mailFrom = owner?.email.toString()
         val mailSubject: String

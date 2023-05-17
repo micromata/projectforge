@@ -9,8 +9,8 @@ import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
-import org.projectforge.rest.poll.PollResponse
 import org.projectforge.rest.poll.types.BaseType
+import org.projectforge.rest.poll.types.PollResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
