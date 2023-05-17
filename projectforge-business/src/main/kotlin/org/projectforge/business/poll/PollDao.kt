@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 @Repository
-open class PollDao : BaseDao<PollDO>(PollDO::class.java){
+open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
     @Autowired
     private val groupService: GroupService? = null
@@ -30,25 +30,26 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java){
         if (obj == null && operationType == OperationType.SELECT) {
             return true
         };
-        if (obj != null && operationType == OperationType.SELECT){
-            if(hasFullAccess(obj) || isAttendee(obj))
+        if (obj != null && operationType == OperationType.SELECT) {
+            if (hasFullAccess(obj) || isAttendee(obj))
                 return true
         }
-        if(obj != null) {
+        if (obj != null) {
             return hasFullAccess(obj)
         }
         return false
     }
+
     fun hasFullAccess(obj: PollDO): Boolean {
         val loggedInUser = user
-        if(!obj.fullAccessUserIds.isNullOrBlank() && obj.fullAccessUserIds!!.contains(loggedInUser?.id.toString()))
+        if (!obj.fullAccessUserIds.isNullOrBlank() && obj.fullAccessUserIds!!.contains(loggedInUser?.id.toString()))
             return true
-        if(obj.owner?.id == loggedInUser?.id)
+        if (obj.owner?.id == loggedInUser?.id)
             return true
-        if (!obj.fullAccessGroupIds.isNullOrBlank()){
+        if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
             val groupUsers = groupService?.getGroupUsers(groupIdArray)
-            if(groupUsers?.contains(loggedInUser) == true)
+            if (groupUsers?.contains(loggedInUser) == true)
                 return true
         }
         return false
@@ -58,11 +59,11 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java){
         val loggedInUser = user
         val listOfAttendeesIds = ObjectMapper().readValue(obj.attendeesIds, IntArray::class.java)
         if (loggedInUser != null) {
-            if(listOfAttendeesIds.contains(loggedInUser.id)){
+            if (listOfAttendeesIds.contains(loggedInUser.id)) {
                 return true
             }
         }
-        obj.attendeesIds= ObjectMapper().writeValueAsString(listOfAttendeesIds)
+        obj.attendeesIds = ObjectMapper().writeValueAsString(listOfAttendeesIds)
 
 
         return false
