@@ -125,12 +125,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             .add(
                                 UIButton.createDefaultButton(
                                     id = "add-question-button",
-                                    title = "Eigene Frage hinzufügen",
+                                    title = "poll.button.addQuestion",
                                     responseAction = ResponseAction(
                                         "${Rest.URL}/poll/add",
                                         targetType = TargetType.POST
                                     ),
-                                    title = "poll.button.addQuestion"
                                 )
                             )
                     )
@@ -442,9 +441,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     /**
      *  Once created, questions should be ReadOnly
      */
-    private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
-        if (obj)
-            return UIReadOnlyField(id, label = label, dataType = dataType)
+    private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+        return if (obj)
+            UIReadOnlyField(id, label = label, dataType = dataType)
         else
             UIInput(id, label = label, dataType = dataType)
     }
