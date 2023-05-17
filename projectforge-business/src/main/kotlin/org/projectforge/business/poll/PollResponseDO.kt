@@ -1,5 +1,7 @@
 package org.projectforge.business.poll
 
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import org.hibernate.search.annotations.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -16,6 +18,7 @@ import javax.persistence.*
 open class PollResponseDO : DefaultBaseDO() {
     @get:PropertyInfo(i18nKey = "poll.response.poll")
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:OnDelete(action = OnDeleteAction.CASCADE)
     @get:JoinColumn(name = "poll_fk", nullable = false)
     open var poll: PollDO? = null
 

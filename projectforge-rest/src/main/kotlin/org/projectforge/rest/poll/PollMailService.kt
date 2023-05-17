@@ -12,19 +12,20 @@ class PollMailService {
     @Autowired
     private lateinit var sendMail: SendMail
 
-
-    fun sendMail(to:String ,subject: String,content: String, mailAttachments: List<MailAttachment>?= null){
-                val mail = Mail()
-                mail.subject = subject
-                mail.contentType = Mail.CONTENTTYPE_HTML
-                mail.setTo(to)
-                mail.content = content
-                sendMail.send(mail, attachments = mailAttachments)
-
+    fun sendMail(to: String, subject: String, content: String, mailAttachments: List<MailAttachment>? = null) {
+        val mail = Mail()
+        mail.subject = subject
+        mail.contentType = Mail.CONTENTTYPE_HTML
+        mail.setTo(to)
+        mail.content = content
+        sendMail.send(mail, attachments = mailAttachments)
     }
 
-
-
-
-
+    fun sendPollDeletedMail(to: String, pollDto: Poll, mailAttachments: List<MailAttachment>? = null) {
+        val mail = Mail()
+        mail.setTo(to)
+        mail.subject = "Poll ${pollDto.title} deleted"
+        mail.content = "Poll ${pollDto.title} deleted. The Excel files are attached."
+        sendMail.send(mail, attachments = mailAttachments)
+    }
 }
