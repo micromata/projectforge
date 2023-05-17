@@ -141,6 +141,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         }?.let {
             it.responses = pollResponseDO.responses
             pollResponseDao.update(it)
+            pollDao.delete(pollResponseDO.poll)
             return ResponseEntity.ok(
                 ResponseAction(
                     targetType = TargetType.REDIRECT,
@@ -148,7 +149,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                 )
             )
         }
-
+        pollDao.delete(pollResponseDO.poll)
         pollResponseDao.saveOrUpdate(pollResponseDO)
         return ResponseEntity.ok(
             ResponseAction(
