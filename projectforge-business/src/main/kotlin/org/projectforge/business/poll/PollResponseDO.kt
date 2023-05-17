@@ -16,6 +16,7 @@ import javax.persistence.*
 @AUserRightId(value = "poll.response", checkAccess = false)
 @DependsOn("org.projectforge.framework.persistence.user.entities.PFUserDO")
 open class PollResponseDO : DefaultBaseDO() {
+
     @get:PropertyInfo(i18nKey = "poll.response.poll")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:OnDelete(action = OnDeleteAction.CASCADE)
