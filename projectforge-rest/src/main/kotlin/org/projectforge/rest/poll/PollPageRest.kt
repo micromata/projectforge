@@ -9,7 +9,6 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -175,7 +174,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }?.confirmMessage = confirmMessage
 
 
-        if (getId(dto) != null) {
+        if (dto.isAlreadyCreated()) {
             processedLayout.addAction(
                 UIButton.createDangerButton(
                     id = "poll-button-finish",
@@ -195,7 +194,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
     @PutMapping("/finish")
-    fun changeStatToFinish(
+    fun changeStateToFinsish(
         request: HttpServletRequest,
         @RequestBody postData: PostData<Poll>
     ): ResponseEntity<ResponseAction> {
