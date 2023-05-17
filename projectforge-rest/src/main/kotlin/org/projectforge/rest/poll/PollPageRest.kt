@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -168,13 +169,42 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         } else {
             translateMsg("poll.confirmation.creation")
         }
+
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
             it.id == "create"
         }?.confirmMessage = confirmMessage
+
+
+        if (dto.isAlreadyCreated()) {
+            processedLayout.addAction(
+                UIButton.createDangerButton(
+                    id = "poll-button-finish",
+                    title = "poll.button.finish",
+                    confirmMessage = translateMsg("poll.confirmation.finish"),
+                    responseAction = ResponseAction(
+                        "${Rest.URL}/poll/finish",
+                        targetType = TargetType.PUT
+                    ),
+                    layout = layout,
+                )
+            )
+        }
+
         return processedLayout
     }
 
+
+    @PutMapping("/finish")
+    fun changeStateToFinsish(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<Poll>
+    ): ResponseEntity<ResponseAction> {
+        postData.data.state = PollDO.State.FINISHED
+        postData.data.deadline = LocalDate.now()
+
+        return super.saveOrUpdate(request, postData)
+    }
 
     override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         if (obj.inputFields.isNullOrEmpty() || obj.inputFields.equals("[]")) {
