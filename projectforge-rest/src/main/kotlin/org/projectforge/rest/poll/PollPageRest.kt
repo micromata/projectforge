@@ -9,7 +9,6 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.MenuItem
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -123,7 +122,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     UILength(1)
                 ).add(
                     UIButton.createLinkButton(
-                        id = "poll-guide",title= "Poll Guide", responseAction = ResponseAction(
+                        id = "poll-guide",
+                        title = "Poll Guide",
+                        responseAction = ResponseAction(
                             PagesResolver.getDynamicPageUrl(
                                 PollInfoPageRest::class.java, absolute = true
                             ), targetType = TargetType.MODAL
@@ -134,10 +135,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
 
 
+        addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
+
         fieldset
-            .add(lc, "title", "description", "location")
-            .add(lc, "owner")
-            .add(lc, "deadline", "date")
             .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "poll.fullAccessUsers"))
             .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
             .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
@@ -160,11 +160,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             .add(
                                 UIButton.createDefaultButton(
                                     id = "add-question-button",
+                                    title = "Eigene Frage hinzufügen",
                                     responseAction = ResponseAction(
                                         "${Rest.URL}/poll/add",
                                         targetType = TargetType.POST
-                                    ),
-                                    title = "Eigene Frage hinzufügen"
+                                    )
                                 )
                             )
                     )
@@ -224,7 +224,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         @PathVariable("fieldId") fieldUid: String,
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
-        val userAccess = UILayout.UserAccess(insert = true, update = true)
+        val userAccess = getUserAccess(dto)
 
         val found = dto.inputFields?.find { it.uid == fieldUid }
         found?.answers?.add("")
@@ -241,8 +241,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     fun addQuestionField(
         @RequestBody postData: PostData<Poll>
     ): ResponseEntity<ResponseAction> {
-        val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
+        val userAccess = getUserAccess(dto)
 
         var type = BaseType.valueOf(dto.questionType ?: "TextQuestion")
         var question = Question(uid = UUID.randomUUID().toString(), type = type)
@@ -295,8 +295,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     private fun addPremadeQuestionsField(
         @RequestBody postData: PostData<Poll>,
     ): ResponseEntity<ResponseAction> {
-        val userAccess = UILayout.UserAccess(insert = true, update = true)
         val dto = postData.data
+        val userAccess = getUserAccess(dto)
 
         PREMADE_QUESTIONS.entries.forEach { entry ->
             dto.inputFields?.add(entry.value)
@@ -306,9 +306,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto).addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
+
+
     private fun addQuestionFieldset(layout: UILayout, dto: Poll) {
         dto.inputFields?.forEachIndexed { index, field ->
-            val objGiven = dto.id != null //differentiates between initial creation and editing
+            val objGiven = dto.id != null // differentiates between initial creation and editing
             val fieldset = UIFieldset(UILength(12), title = field.type.toString())
             if(!objGiven){
                 fieldset.add(generateDeleteButton(layout, field.uid))
@@ -319,7 +321,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 field.answers?.forEachIndexed { answerIndex, _ ->
                     fieldset.add(generateSingleAndMultiResponseAnswer(objGiven, index, field.uid, answerIndex, layout))
                 }
-                if(!objGiven) {
+                if (!objGiven) {
                     fieldset.add(
                         UIRow().add(
                             UIButton.createAddButton(
@@ -366,7 +368,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         @PathVariable("answerIndex") answerIndex: Int
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
-        val userAccess = UILayout.UserAccess(insert = true, update = true)
+        val userAccess = getUserAccess(dto)
 
         dto.inputFields?.find { it.uid.equals(questionUid) }?.answers?.removeAt(answerIndex)
         dto.owner = userService.getUser(dto.owner?.id)
@@ -421,17 +423,61 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             .getExcel(poll)
         val filename = ( poll.title+ "_" + LocalDateTime.now().year +"_Result"+ ".xlsx")
 
-        if (bytes == null || bytes.size == 0) {
+        if (bytes == null || bytes.isEmpty()) {
             log.error("Oops, xlsx has zero size. Filename: $filename")
-            return null;
+            return null
         }
         return RestUtils.downloadFile(filename, bytes)
     }
-    //once created, questions should be ReadOnly
+    
+    
+    /**
+     *  Once created, questions should be ReadOnly
+     */
     private fun getUiElement(obj: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement{
         if (obj)
             return UIReadOnlyField(id, label = label, dataType = dataType)
         else
             return UIInput(id, label = label, dataType = dataType)
+    }
+
+    private fun addDefaultParameterFields(pollDto: Poll, fieldset: UIFieldset, isRunning: Boolean) {
+        if (isRunning) {
+            fieldset
+                .add(lc, "title", "description", "location")
+                .add(UISelect.createUserSelect(lc, "owner", false, "poll.owner"))
+                .add(lc, "deadline", "date")
+        }
+        else {
+            fieldset
+                .add(UIReadOnlyField(value = pollDto.title, label = "titel", dataType = UIDataType.STRING))
+                .add(UIReadOnlyField(value = pollDto.description, label = "description", dataType = UIDataType.STRING))
+                .add(UIReadOnlyField(value = pollDto.location, label = "location", dataType = UIDataType.STRING))
+                .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "deadline", dataType = UIDataType.STRING))
+                .add(UIReadOnlyField(value = (pollDto.date?.toString() ?: ""), label = "date", dataType = UIDataType.STRING))
+                .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "owner", dataType = UIDataType.STRING))
+        }
+    }
+
+
+    /**
+     * restricts the user access accordingly
+     */
+    private fun getUserAccess(pollDto: Poll): UILayout.UserAccess {
+        val pollDO = PollDO()
+        pollDto.copyTo(pollDO)
+
+        return if (pollDao.hasFullAccess(pollDO) == false) {
+            // no full access user
+            UILayout.UserAccess(insert = false, update = false, delete = false, history = false)
+        } else {
+            if (pollDto.id == null) {
+                // full access when creating new poll
+                UILayout.UserAccess(insert = true, update = true, delete = false, history = true)
+            } else {
+                // full access when viewing old poll
+               UILayout.UserAccess(insert = false, update = false, delete = true, history = false)
+            }
+        }
     }
 }
