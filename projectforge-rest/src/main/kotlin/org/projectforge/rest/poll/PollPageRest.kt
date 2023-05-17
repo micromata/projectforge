@@ -259,7 +259,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto: Poll,
         watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
-        val userAccess = UILayout.UserAccess()
+        
         val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
         val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
         val users = User.toUserList(userIds)
@@ -276,6 +276,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         dto.groupAttendees = mutableListOf()
         dto.attendees = allUsers.sortedBy { it.displayName }
+        dto.owner = userService.getUser(dto.owner?.id)
+        val userAccess = getUserAccess(dto)
 
         return ResponseEntity.ok(
             ResponseAction(
