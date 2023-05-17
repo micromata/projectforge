@@ -7,6 +7,7 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.business.poll.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.MenuItem
@@ -199,6 +200,16 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return processedLayout
     }
 
+
+    override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        if (obj.inputFields.isNullOrEmpty() || obj.inputFields.equals("[]")) {
+            throw AccessException("poll.error.oneQuestionRequired")
+        }
+
+        super.onBeforeSaveOrUpdate(request, obj, postData)
+    }
+
+
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, poll: PollDO, postData: PostData<Poll>) {
         super.onAfterSaveOrUpdate(request, poll, postData)
         pollMailService.sendMail(subject = "", content = "", to = "test.mail")
@@ -221,6 +232,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 createEditLayout(dto, userAccess))
         )
     }
+
 
     // PostMapping add
     @PostMapping("/add")
