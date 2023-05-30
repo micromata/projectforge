@@ -289,7 +289,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         dto: Poll,
         watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
-        
+
         val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
         val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
         val users = User.toUserList(userIds)
@@ -493,21 +493,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-<<<<<<< Updated upstream
-    /**
-     *  Once created, questions should be ReadOnly
-     */
-    private fun getUiElement(
-        obj: Boolean,
-        id: String,
-        label: String? = null,
-        dataType: UIDataType = UIDataType.STRING
-    ): UIElement {
-        return if (obj)
-            UIReadOnlyField(id, label = label, dataType = dataType)
-        else
-            UIInput(id, label = label, dataType = dataType)
-=======
     companion object {
         /**
          *  Once created, questions should be ReadOnly
@@ -519,7 +504,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             else
                 UIInput(id, label = label, dataType = dataType)
         }
->>>>>>> Stashed changes
     }
 
 
