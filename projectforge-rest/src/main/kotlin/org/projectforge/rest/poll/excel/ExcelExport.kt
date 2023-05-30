@@ -9,8 +9,8 @@ import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
-import org.projectforge.rest.poll.PollResponse
 import org.projectforge.rest.poll.types.BaseType
+import org.projectforge.rest.poll.types.PollResponse
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -69,9 +69,7 @@ class ExcelExport {
 
         var merge = 1
         poll.inputFields?.forEach { question ->
-            if (question.type == BaseType.MultiResponseQuestion ||
-                question.type == BaseType.SingleResponseQuestion
-            ) {
+            if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
