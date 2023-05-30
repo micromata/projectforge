@@ -1,11 +1,12 @@
 package org.projectforge.rest.poll
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.poll.types.Question
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.poll.types.Question
 import java.time.LocalDate
 
 class Poll(
@@ -29,6 +30,10 @@ class Poll(
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
         groupAttendees = Group.toGroupList(src.groupAttendeeIds)
         attendees = User.toUserList(src.attendeeIds)
+        if (src.inputFields != null) {
+            val fields = ObjectMapper().readValue(src.inputFields, MutableList::class.java)
+            inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+        }
     }
 
     override fun copyTo(dest: PollDO) {
@@ -37,6 +42,16 @@ class Poll(
         dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
         dest.groupAttendeeIds = Group.toIntList(groupAttendees)
         dest.attendeeIds = User.toIntList(attendees)
+        if (inputFields != null) {
+            dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
+        }
     }
 
+    fun isAlreadyCreated(): Boolean {
+        return id != null
+    }
+
+    fun isFinished(): Boolean {
+        return state == PollDO.State.FINISHED
+    }
 }
