@@ -198,14 +198,14 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         }?.let {
             it.responses = pollResponseDO.responses
             pollResponseDao.update(it)
+            pollDao.delete(pollResponseDO.poll)
             return ResponseEntity.ok(
                 ResponseAction(
                     targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
                 )
             )
         }
-
-
+        pollDao.delete(pollResponseDO.poll)
         pollResponseDao.saveOrUpdate(pollResponseDO)
 
         return ResponseEntity.ok(
