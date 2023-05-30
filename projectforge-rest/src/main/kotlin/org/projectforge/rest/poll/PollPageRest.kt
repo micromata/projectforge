@@ -5,10 +5,15 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.business.poll.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -22,6 +27,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
+import org.projectforge.ui.filter.UIFilterListElement
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
@@ -93,6 +99,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             UITable.createUIResultSetTable()
                 .add(pollLC, "title", "description", "location", "owner", "deadline", "date", "state")
         )
+            .add(lc, "title", "description", "location", "owner", "deadline", "date")
+            .add(UIAgGridColumnDef.createCol(
+                field = "frontendState",
+                headerName = "State"
+            ))
     }
 
 
@@ -283,6 +294,39 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
+                .buildValues(PollAssignment.OWNER, PollAssignment.ACCESS, PollAssignment.ATTENDEE, PollAssignment.OTHER)
+        )
+        elements.add(
+            UIFilterListElement("status", label = translate("poll.status"), defaultFilter = true)
+                .buildValues(PollState.RUNNING, PollState.FINISHED)
+        )
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>> {
+        val filters = mutableListOf<CustomResultFilter<PollDO>>()
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
+        if (assignmentFilterEntry != null) {
+            assignmentFilterEntry.synthetic = true
+            val values = assignmentFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollAssignment.valueOf(it) }
+                filters.add(PollAssignmentFilter(enums))
+            }
+        }
+        val statusFilterEntry = source.entries.find { it.field == "status" }
+        if (statusFilterEntry != null) {
+            statusFilterEntry.synthetic = true
+            val values = statusFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollState.valueOf(it) }
+                filters.add(PollStatusFilter(enums))
+            }
+        }
+        return filters
+    }
 
     override fun onWatchFieldsUpdate(
         request: HttpServletRequest,
