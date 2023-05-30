@@ -1,16 +1,17 @@
 package org.projectforge.rest.poll
 
-import com.beust.jcommander.internal.Nullable
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
@@ -43,7 +44,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun getForm(
         request: HttpServletRequest,
         @RequestParam("pollid") pollStringId: String?,
-        @RequestParam("questionOwner") @Nullable delegatedUser: String?
+        @RequestParam("questionOwner") delegatedUser: String?
     ): FormLayoutData {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
         val pollData = pollDao.internalGetById(id) ?: PollDO()
@@ -59,18 +60,62 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val pollDto = transformPollFromDB(pollData)
 
         if (pollDto.state == PollDO.State.FINISHED) {
-            throw AccessException(I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF, "Umfrage wurde bereits beendet")
+            throw AccessException("access.exception.noAccess", "poll.error.closed")
         }
 
         val layout = UILayout("poll.response.title")
-        val fieldSet = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
-        fieldSet
+        val fieldset = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
+        fieldset
             .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
             .add(UIReadOnlyField(value = pollDto.location, label = "Location"))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "Owner"))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
 
-        layout.add(fieldSet)
+
+        if (pollDto.isFinished() == false && pollDto.isAlreadyCreated() && pollDao.hasFullAccess(pollData)) {
+            fieldset.add(
+                UIButton.createExportButton(
+                    id = "export-poll-response-button",
+                    responseAction = ResponseAction("${Rest.URL}/poll/export/${pollDto.id}", targetType = TargetType.POST),
+                    title = "poll.export.response.poll"
+                )
+            )
+        }
+        fieldset.add(
+            UIRow().add(
+                UICol(
+                    UILength(10)
+                )
+            ).add(
+                UICol(
+                    UILength(1)
+                ).add(
+                    UIButton.createLinkButton(
+                        id = "poll-guide", title = "poll.guide", responseAction = ResponseAction(
+                            PagesResolver.getDynamicPageUrl(
+                                PollInfoPageRest::class.java, absolute = true
+                            ), targetType = TargetType.MODAL
+                        )
+                    )
+                )
+            )
+        )
+
+        fieldset.add(UIReadOnlyField(value = pollDto.description, label = translateMsg("poll.description")))
+            .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
+            .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
+            .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
+
+        layout.add(fieldset)
+
+        layout.add(
+            MenuItem(
+                "EDIT",
+                i18nKey = "poll.title.edit",
+                url = PagesResolver.getEditPageUrl(PollPageRest::class.java, pollDto.id),
+                type = MenuItemTargetType.REDIRECT
+            )
+        )
 
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
@@ -90,28 +135,46 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             pollResponse.responses?.firstOrNull {
                 it.questionUid == field.uid
             }.let {
-                if (it == null)
-                    pollResponse.responses?.add(questionAnswer)
+                if (it == null) pollResponse.responses?.add(questionAnswer)
             }
 
             val col = UICol()
 
             if (field.type == BaseType.TextQuestion) {
-                col.add(UITextArea("responses[$index].answers[0]"))
+                col.add(
+                    PollPageRest.getUiElement(
+                        pollDto.isFinished(),
+                        "responses[$index].answers[0]",
+                        "poll.question.textQuestion",
+                        UIDataType.STRING
+                    )
+                )
             }
             if (field.type == BaseType.SingleResponseQuestion) {
                 col.add(
-                    UIRadioButton(
+                    PollPageRest.getUiElement(
+                        pollDto.isFinished(),
                         "responses[$index].answers[0]",
-                        value = field.answers!![0],
-                        label = field.answers?.get(0) ?: ""
+                        "poll.question.textQuestion",
+                        UIDataType.BOOLEAN
+                    )
+                )
+                col.add(
+                    PollPageRest.getUiElement(
+                        pollDto.isFinished(),
+                        "responses[$index].answers[0]",
+                        "poll.question.textQuestion",
+                        UIDataType.BOOLEAN
                     )
                 )
                 col.add(
                     UIRadioButton(
-                        "responses[$index].answers[0]",
-                        value = field.answers!![1],
-                        label = field.answers?.get(1) ?: ""
+                        "responses[$index].answers[0]", value = field.answers!![0], label = field.answers?.get(0) ?: ""
+                    )
+                )
+                col.add(
+                    UIRadioButton(
+                        "responses[$index].answers[0]", value = field.answers!![1], label = field.answers?.get(1) ?: ""
                     )
                 )
             }
@@ -129,9 +192,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         layout.add(
             UIButton.createDefaultButton(
-                id = "addResponse",
-                title = "submit",
-                responseAction = ResponseAction(
+                id = "addResponse", title = translateMsg("poll.respond"), responseAction = ResponseAction(
                     RestResolver.getRestUrl(
                         this::class.java,
                         "addResponse"
@@ -140,13 +201,13 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             )
         )
 
+        LayoutUtils.process(layout)
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
     @PostMapping("addResponse")
     fun addResponse(
-        request: HttpServletRequest,
-        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
+        request: HttpServletRequest, @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
     ): ResponseEntity<ResponseAction>? {
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
@@ -160,8 +221,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             pollResponseDao.update(it)
             return ResponseEntity.ok(
                 ResponseAction(
-                    targetType = TargetType.REDIRECT,
-                    url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                    targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
                 )
             )
         }
@@ -171,8 +231,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         return ResponseEntity.ok(
             ResponseAction(
-                targetType = TargetType.REDIRECT,
-                url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
             )
         )
     }
