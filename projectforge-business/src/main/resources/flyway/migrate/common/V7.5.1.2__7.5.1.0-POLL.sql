@@ -13,8 +13,8 @@ CREATE TABLE T_POLL
     deadline DATE NOT NULL,
     date DATE,
     state CHARACTER VARYING(1000) NOT NULL,
-    attendeeIds VARCHAR(5000),
-    groupAttendeeIds VARCHAR(5000),
+    attendeesIds VARCHAR(5000),
+    groupAttendeesIds VARCHAR(5000),
     full_access_user_ids CHARACTER VARYING(255),
     full_access_group_ids CHARACTER VARYING(255),
     inputFields CHARACTER Varying(100000)

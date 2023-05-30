@@ -55,15 +55,15 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
-    private fun isAttendee(obj: PollDO): Boolean {
+    fun isAttendee(obj: PollDO): Boolean {
         val loggedInUser = user
-        val listOfAttendeesIds = ObjectMapper().readValue(obj.attendeeIds, IntArray::class.java)
+        val listOfAttendeesIds = ObjectMapper().readValue(obj.attendeesIds, IntArray::class.java)
         if (loggedInUser != null) {
             if (listOfAttendeesIds.contains(loggedInUser.id)) {
                 return true
             }
         }
-        obj.attendeeIds = ObjectMapper().writeValueAsString(listOfAttendeesIds)
+        obj.attendeesIds = ObjectMapper().writeValueAsString(listOfAttendeesIds)
 
 
         return false

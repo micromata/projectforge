@@ -22,31 +22,26 @@ class Poll(
     var fullAccessGroups: List<Group>? = null,
     var fullAccessUsers: List<User>? = null,
     var groupAttendees: List<Group>? = null,
-    var attendees: List<User>? = null,
-    private var frontendState: String? = null
+    var attendees: List<User>? = null
 ) : BaseDTO<PollDO>() {
     override fun copyFrom(src: PollDO) {
         super.copyFrom(src)
         fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
-        groupAttendees = Group.toGroupList(src.groupAttendeeIds)
-        attendees = User.toUserList(src.attendeeIds)
+        groupAttendees = Group.toGroupList(src.groupAttendeesIds)
+        attendees = User.toUserList(src.attendeesIds)
         if (src.inputFields != null) {
             val fields = ObjectMapper().readValue(src.inputFields, MutableList::class.java)
             inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
-        frontendState = if (state == PollDO.State.RUNNING)
-            "Endet am $deadline"
-        else
-            "Beendet"
     }
 
     override fun copyTo(dest: PollDO) {
         super.copyTo(dest)
         dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
         dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-        dest.groupAttendeeIds = Group.toIntList(groupAttendees)
-        dest.attendeeIds = User.toIntList(attendees)
+        dest.groupAttendeesIds = Group.toIntList(groupAttendees)
+        dest.attendeesIds = User.toIntList(attendees)
         if (inputFields != null) {
             dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
         }

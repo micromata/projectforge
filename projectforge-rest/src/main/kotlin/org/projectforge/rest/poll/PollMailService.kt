@@ -30,14 +30,7 @@ class PollMailService {
         } catch (e: Exception) {
             log.error(e.toString())
         }
-    }
 
-    fun sendPollDeletedMail(to: String, pollDto: Poll, mailAttachments: List<MailAttachment>? = null) {
-        val mail = Mail()
-        mail.setTo(to)
-        mail.subject = "Poll ${pollDto.title} deleted"
-        mail.content = "Poll ${pollDto.title} deleted. The Excel files are attached."
-        sendMail.send(mail, attachments = mailAttachments)
     }
 
 }
