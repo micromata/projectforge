@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.dto.BaseDTO
-import org.projectforge.rest.poll.types.Question
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
+import org.projectforge.rest.poll.types.Question
 import java.time.LocalDate
 
 class Poll(
@@ -54,5 +54,9 @@ class Poll(
 
     fun isAlreadyCreated(): Boolean {
         return id != null
+    }
+
+    fun isFinished(): Boolean {
+        return state == PollDO.State.FINISHED
     }
 }

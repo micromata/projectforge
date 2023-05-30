@@ -50,17 +50,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val layout = UILayout("poll.response.title")
         val fieldset = UIFieldset(12, title = pollDto.title)
 
-        if (pollDto.state == PollDO.State.RUNNING && pollDto.isAlreadyCreated()) {
+
+
+        if (pollDto.isFinished() == false && pollDto.isAlreadyCreated() && pollDao.hasFullAccess(pollData)) {
             fieldset.add(
-                UIButton.createDefaultButton(
-                    id = "response-poll-button",
-                    responseAction = ResponseAction(
-                        PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java, absolute = true) + "${pollDto.id}",
-                        targetType = TargetType.REDIRECT
-                    ),
-                    title = "poll.response.page"
-                )
-            ).add(
                 UIButton.createExportButton(
                     id = "export-poll-response-button",
                     responseAction = ResponseAction("${Rest.URL}/poll/export/${pollDto.id}", targetType = TargetType.POST),
@@ -127,9 +120,32 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             val col = UICol()
 
             if (field.type == BaseType.TextQuestion) {
-                col.add(UITextArea("responses[$index].answers[0]"))
+                col.add(
+                    PollPageRest.getUiElement(
+                        pollDto.isFinished(),
+                        "responses[$index].answers[0]",
+                        "poll.question.textQuestion",
+                        UIDataType.STRING
+                    )
+                )
             }
             if (field.type == BaseType.SingleResponseQuestion) {
+                col.add(
+                    PollPageRest.getUiElement(
+                        pollDto.isFinished(),
+                        "responses[$index].answers[0]",
+                        "poll.question.textQuestion",
+                        UIDataType.BOOLEAN
+                    )
+                )
+                col.add(
+                    PollPageRest.getUiElement(
+                        pollDto.isFinished(),
+                        "responses[$index].answers[0]",
+                        "poll.question.textQuestion",
+                        UIDataType.BOOLEAN
+                    )
+                )
                 col.add(
                     UIRadioButton(
                         "responses[$index].answers[0]", value = field.answers!![0], label = field.answers?.get(0) ?: ""

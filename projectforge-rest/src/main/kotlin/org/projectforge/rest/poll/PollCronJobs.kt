@@ -43,7 +43,6 @@ class PollCronJobs {
      * Method to end polls after deadline
      */
     private fun cronEndPolls() {
-
         val pollDOs = pollDao.internalLoadAll()
         // set State.FINISHED for all old polls and export excel
         pollDOs.forEach { pollDO ->
