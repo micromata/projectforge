@@ -1,12 +1,12 @@
 package org.projectforge.rest.poll
 
+import com.beust.jcommander.internal.Nullable
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -39,20 +39,19 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var userService: UserService
 
-    @Autowired
-    private lateinit var accesscheck: AccessChecker
-
     @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest, @RequestParam("pollid") pollStringId: String?, @RequestParam("questionOwner") delUser: String?): FormLayoutData {
+    fun getForm(
+        request: HttpServletRequest,
+        @RequestParam("pollid") pollStringId: String?,
+        @RequestParam("questionOwner") @Nullable delegatedUser: String?
+    ): FormLayoutData {
         val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
-
-        //used to load awnsers, is an attendee chosen by a fullaccessuser in order to awnser for them or the Threadlocal User
-        var questionOwner: Int? = null
-
         val pollData = pollDao.internalGetById(id) ?: PollDO()
 
-        if (delUser != "null" && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser?.toInt()))
-            questionOwner = delUser?.toInt()
+        // used to load answers, is an attendee chosen by a fullaccessuser in order to answer for them or the ThreadLocalUserContext.user
+        var questionOwner: Int?
+        if (delegatedUser != "null" && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delegatedUser?.toInt()))
+            questionOwner = delegatedUser?.toInt()
         else
             questionOwner = ThreadLocalUserContext.user?.id
 
@@ -149,7 +148,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         request: HttpServletRequest,
         @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
     ): ResponseEntity<ResponseAction>? {
-        val questionOwner: Int? = questionOwner
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
 

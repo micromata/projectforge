@@ -102,7 +102,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 )
             )
             if(hasFullAccess(dto)){
-                fieldset.add(UIInput(id = "delegationUser", label = "poll.delegation_label", dataType = UIDataType.USER))
+                fieldset.add(
+                    UIInput(
+                        id = "delegationUser",
+                        label = "poll.delegationUser",
+                        dataType = UIDataType.USER
+                    )
+                )
             }
             fieldset.add(
                 UIButton.createExportButton(
