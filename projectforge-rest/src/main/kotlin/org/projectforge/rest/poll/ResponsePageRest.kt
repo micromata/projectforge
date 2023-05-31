@@ -40,7 +40,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun getForm(
         request: HttpServletRequest, @RequestParam("id") pollStringId: String?
     ): FormLayoutData {
-        val id = NumberHelper.parseInteger(pollStringId) ?: throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
+        val id = NumberHelper.parseInteger(pollStringId) ?: throw AccessException(
+            "access.exception.noAccess",
+            "Umfrage nicht gefunden."
+        )
         val pollData = pollDao.internalGetById(id) ?: PollDO()
         val pollDto = transformPollFromDB(pollData)
 
@@ -48,7 +51,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
         }
 
-        if (pollData.getPollAssignment().contains(PollAssignment.ATTENDEE)) {
+        if (!pollData.getPollAssignment().contains(PollAssignment.ATTENDEE)) {
             throw AccessException("access.exception.noAccess", "Du darfst nicht auf diese Umfrage antworten.")
         }
         if (pollDto.state == PollDO.State.FINISHED) {
@@ -64,7 +67,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             fieldset.add(
                 UIButton.createExportButton(
                     id = "export-poll-response-button",
-                    responseAction = ResponseAction("${Rest.URL}/poll/export/${pollDto.id}", targetType = TargetType.POST),
+                    responseAction = ResponseAction(
+                        "${Rest.URL}/poll/export/${pollDto.id}",
+                        targetType = TargetType.POST
+                    ),
                     title = "poll.export.response.poll"
                 )
             )
@@ -208,7 +214,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             pollResponseDao.update(it)
             return ResponseEntity.ok(
                 ResponseAction(
-                    targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                    targetType = TargetType.REDIRECT,
+                    url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
                 )
             )
         }
@@ -218,7 +225,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         return ResponseEntity.ok(
             ResponseAction(
-                targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                targetType = TargetType.REDIRECT,
+                url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
             )
         )
     }
