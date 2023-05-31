@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
@@ -50,10 +51,23 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @Autowired
     private lateinit var excelExport: ExcelExport
 
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
         result.owner = ThreadLocalUserContext.user
         return result
+    }
+
+    override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        val responsesToDelete = pollResponseDao.internalLoadAll().filter {
+            it.poll!!.id == obj.id
+        }
+        responsesToDelete.forEach {
+            pollResponseDao.markAsDeleted(it)
+        }
+        super.onBeforeMarkAsDeleted(request, obj, postData)
     }
 
 
@@ -100,6 +114,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
+
 
         addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
 
@@ -498,7 +513,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
          *  Once created, questions should be ReadOnly
          */
         @JvmStatic
-        fun getUiElement(isReadOnly: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+        fun getUiElement(
+            isReadOnly: Boolean,
+            id: String,
+            label: String? = null,
+            dataType: UIDataType = UIDataType.STRING
+        ): UIElement {
             return if (isReadOnly)
                 UIReadOnlyField(id, label = label, dataType = dataType)
             else
