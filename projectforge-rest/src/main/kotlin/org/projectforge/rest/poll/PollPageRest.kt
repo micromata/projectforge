@@ -321,7 +321,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-
     override fun onWatchFieldsUpdate(
         request: HttpServletRequest,
         dto: Poll,
@@ -536,7 +535,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
          *  Once created, questions should be ReadOnly
          */
         @JvmStatic
-        fun getUiElement(isReadOnly: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+        fun getUiElement(
+            isReadOnly: Boolean,
+            id: String,
+            label: String? = null,
+            dataType: UIDataType = UIDataType.STRING
+        ): UIElement {
             return if (isReadOnly)
                 UIReadOnlyField(id, label = label, dataType = dataType)
             else
