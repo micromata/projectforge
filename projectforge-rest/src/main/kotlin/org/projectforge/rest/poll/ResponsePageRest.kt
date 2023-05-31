@@ -219,9 +219,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         pollResponseDao.saveOrUpdate(pollResponseDO)
 
         if (ThreadLocalUserContext.user != pollResponseDO.owner) {
-            sendMailResponseOwner(pollResponseDO, ThreadLocalUserContext.user!!)
+            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.user!!)
         }
-        
+
         return ResponseEntity.ok(
             ResponseAction(
                 targetType = TargetType.REDIRECT,
@@ -230,7 +230,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         )
     }
 
-    private fun sendMailResponseOwner(pollResponseDO: PollResponseDO, canedUser: PFUserDO) {
+    private fun sendMailResponseToOwner(pollResponseDO: PollResponseDO, canedUser: PFUserDO) {
         var emailList = ArrayList<String>()
         pollResponseDO.owner?.email?.let { emailList.add(it) }
         pollMailService.sendMail(
