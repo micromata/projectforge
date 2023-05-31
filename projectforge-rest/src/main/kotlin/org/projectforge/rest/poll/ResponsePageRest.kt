@@ -51,7 +51,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
         }
 
-        if (!pollData.getPollAssignment().contains(PollAssignment.ATTENDEE)) {
+        if (pollData.getPollAssignment().contains(PollAssignment.OTHER)) {
             throw AccessException("access.exception.noAccess", "Du darfst nicht auf diese Umfrage antworten.")
         }
         if (pollDto.state == PollDO.State.FINISHED) {
