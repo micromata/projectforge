@@ -12,12 +12,14 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.types.*
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +27,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import javax.servlet.http.HttpServletRequest
+import javax.validation.Valid
 
 
 @RestController
@@ -40,19 +43,22 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var userService: UserService
 
+    var pollId: Int? = null
+    var delegatedUser: User? = null
     @GetMapping("dynamic")
-    fun getForm(
-        request: HttpServletRequest,
-        @RequestParam("pollid") pollStringId: String?,
-        @RequestParam("questionOwner") delegatedUser: String?
-    ): FormLayoutData {
-        val id = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
-        val pollData = pollDao.internalGetById(id) ?: PollDO()
+    fun getForm(request: HttpServletRequest,
+                @RequestParam("number") pollStringId: String?,
+                @RequestParam("delegatedUser") delUser: String?,
+                ): FormLayoutData {
+        pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
 
-        // used to load answers, is an attendee chosen by a fullaccessuser in order to answer for them or the ThreadLocalUserContext.user
-        var questionOwner: Int?
-        if (delegatedUser != "null" && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delegatedUser?.toInt()))
-            questionOwner = delegatedUser?.toInt()
+        //used to load awnsers, is an attendee chosen by a fullaccessuser in order to awnser for them or the Threadlocal User
+        var questionOwner: Int? = null
+
+        val pollData = pollDao.internalGetById(pollId) ?: PollDO()
+
+        if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt()))
+            questionOwner = delUser.toInt()
         else
             questionOwner = ThreadLocalUserContext.user?.id
 
@@ -64,16 +70,37 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         }
 
         val layout = UILayout("poll.response.title")
-        val fieldset = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
-        fieldset
+        val fieldSet = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
+        if (hasFullAccess(pollDto)) {
+            fieldSet.add(
+                UIInput(
+                    id = "delegationUser",
+                    label = "poll.delegationUser",
+                    dataType = UIDataType.USER
+                )
+            )
+            .add(
+            UIButton.createDefaultButton(
+                id = "response-poll-button",
+                responseAction = ResponseAction(
+                    RestResolver.getRestUrl(
+                        this::class.java,
+                        "showDelegatedUser"
+                    ), targetType = TargetType.PUT
+            ),
+                title = "poll.response.page"
+            ),
+            )}
+            fieldSet
             .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
             .add(UIReadOnlyField(value = pollDto.location, label = "Location"))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "Owner"))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = "Deadline"))
 
 
+
         if (pollDto.isFinished() == false && pollDto.isAlreadyCreated() && pollDao.hasFullAccess(pollData)) {
-            fieldset.add(
+            fieldSet.add(
                 UIButton.createExportButton(
                     id = "export-poll-response-button",
                     responseAction = ResponseAction("${Rest.URL}/poll/export/${pollDto.id}", targetType = TargetType.POST),
@@ -81,7 +108,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                 )
             )
         }
-        fieldset.add(
+        fieldSet.add(
             UIRow().add(
                 UICol(
                     UILength(10)
@@ -101,12 +128,12 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             )
         )
 
-        fieldset.add(UIReadOnlyField(value = pollDto.description, label = translateMsg("poll.description")))
+        fieldSet.add(UIReadOnlyField(value = pollDto.description, label = translateMsg("poll.description")))
             .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
 
-        layout.add(fieldset)
+        layout.add(fieldSet)
 
         layout.add(
             MenuItem(
@@ -192,7 +219,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         layout.add(
             UIButton.createDefaultButton(
-                id = "addResponse", title = translateMsg("poll.respond"), responseAction = ResponseAction(
+                id = "addResponse",
+                title = translateMsg("poll.respond"),
+                responseAction = ResponseAction(
                     RestResolver.getRestUrl(
                         this::class.java,
                         "addResponse"
@@ -200,15 +229,17 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                 )
             )
         )
-
+        layout.watchFields.add("delegationUser")
         LayoutUtils.process(layout)
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
     @PostMapping("addResponse")
     fun addResponse(
-        request: HttpServletRequest, @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
     ): ResponseEntity<ResponseAction>? {
+        val questionOwner: Int? = questionOwner
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
 
@@ -235,7 +266,27 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             )
         )
     }
+    @PutMapping("showDelegatedUser")
+    fun showDelegatedUser(
+        request: HttpServletRequest,
+        @RequestBody postData: PostData<PollResponse>
+    ): ResponseEntity<ResponseAction>? {
+            return ResponseEntity.ok(
+                ResponseAction(
+                    PagesResolver.getDynamicPageUrl(
+                        ResponsePageRest::class.java,
+                        absolute = true
+                    ) + "?number=${pollId}&delegatedUser=${delegatedUser?.id}",
+                    targetType = TargetType.REDIRECT
+                )
+            )
+        }
 
+    @PostMapping(RestPaths.WATCH_FIELDS)
+    fun watchFields(@Valid @RequestBody postData: PostData<Poll>): ResponseEntity<ResponseAction> {
+        delegatedUser = postData.data.delegationUser
+        return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE))
+    }
 
     private fun transformPollFromDB(obj: PollDO): Poll {
         val poll = Poll()
@@ -245,5 +296,14 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             poll.inputFields = a.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         return poll
+    }
+
+    fun hasFullAccess(dto: Poll): Boolean {
+        val loggedInUser = ThreadLocalUserContext.user
+        val foundUser = dto.fullAccessUsers?.any { user -> user.id == loggedInUser?.id }
+        if (foundUser == true || dto.owner?.id == loggedInUser?.id) {
+            return true
+        }
+        return false
     }
 }
