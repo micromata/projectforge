@@ -45,11 +45,13 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
     var pollId: Int? = null
     var delegatedUser: User? = null
+
     @GetMapping("dynamic")
-    fun getForm(request: HttpServletRequest,
-                @RequestParam("number") pollStringId: String?,
-                @RequestParam("delegatedUser") delUser: String?,
-                ): FormLayoutData {
+    fun getForm(
+        request: HttpServletRequest,
+        @RequestParam("number") pollStringId: String?,
+        @RequestParam("delegatedUser") delUser: String?,
+    ): FormLayoutData {
         pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
 
         //used to load awnsers, is an attendee chosen by a fullaccessuser in order to awnser for them or the Threadlocal User
@@ -79,19 +81,20 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                     dataType = UIDataType.USER
                 )
             )
-            .add(
-            UIButton.createDefaultButton(
-                id = "response-poll-button",
-                responseAction = ResponseAction(
-                    RestResolver.getRestUrl(
-                        this::class.java,
-                        "showDelegatedUser"
-                    ), targetType = TargetType.PUT
-            ),
-                title = "poll.response.page"
-            ),
-            )}
-            fieldSet
+                .add(
+                    UIButton.createDefaultButton(
+                        id = "response-poll-button",
+                        responseAction = ResponseAction(
+                            RestResolver.getRestUrl(
+                                this::class.java,
+                                "showDelegatedUser"
+                            ), targetType = TargetType.PUT
+                        ),
+                        title = "poll.response.page"
+                    ),
+                )
+        }
+        fieldSet
             .add(UIReadOnlyField(value = pollDto.description, label = "Description"))
             .add(UIReadOnlyField(value = pollDto.location, label = "Location"))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "Owner"))
@@ -103,7 +106,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             fieldSet.add(
                 UIButton.createExportButton(
                     id = "export-poll-response-button",
-                    responseAction = ResponseAction("${Rest.URL}/poll/export/${pollDto.id}", targetType = TargetType.POST),
+                    responseAction = ResponseAction(
+                        "${Rest.URL}/poll/export/${pollDto.id}",
+                        targetType = TargetType.POST
+                    ),
                     title = "poll.export.response.poll"
                 )
             )
@@ -148,7 +154,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         pollResponse.poll = pollData
 
         pollResponseDao.internalLoadAll().firstOrNull { response ->
-            response.owner?.id  == questionOwner
+            response.owner?.id == questionOwner
                     && response.poll?.id == pollData.id
         }?.let {
             pollResponse.copyFrom(it)
@@ -252,7 +258,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             pollResponseDao.update(it)
             return ResponseEntity.ok(
                 ResponseAction(
-                    targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                    targetType = TargetType.REDIRECT,
+                    url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
                 )
             )
         }
@@ -262,25 +269,24 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         return ResponseEntity.ok(
             ResponseAction(
-                targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                targetType = TargetType.REDIRECT,
+                url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
             )
         )
     }
+
     @PutMapping("showDelegatedUser")
     fun showDelegatedUser(
         request: HttpServletRequest,
         @RequestBody postData: PostData<PollResponse>
     ): ResponseEntity<ResponseAction>? {
-            return ResponseEntity.ok(
-                ResponseAction(
-                    PagesResolver.getDynamicPageUrl(
-                        ResponsePageRest::class.java,
-                        absolute = true
-                    ) + "?number=${pollId}&delegatedUser=${delegatedUser?.id}",
-                    targetType = TargetType.REDIRECT
-                )
+        return ResponseEntity.ok(
+            ResponseAction(
+                url = "/react/response/dynamic/?number=${pollId}&delegatedUser=${delegatedUser?.id}",
+                targetType = TargetType.REDIRECT
             )
-        }
+        )
+    }
 
     @PostMapping(RestPaths.WATCH_FIELDS)
     fun watchFields(@Valid @RequestBody postData: PostData<Poll>): ResponseEntity<ResponseAction> {
