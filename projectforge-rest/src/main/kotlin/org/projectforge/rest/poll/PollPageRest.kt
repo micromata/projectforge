@@ -82,7 +82,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
      * @return the response page.
      */
     override fun getStandardEditPage(): String {
-        return "${PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java)}"
+        return "${PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java)}?number=:id"
     }
 
     override fun createListLayout(
@@ -116,15 +116,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         ),
                     )
             )
-            if (hasFullAccess(dto)) {
-                fieldset.add(
-                    UIInput(
-                        id = "delegationUser",
-                        label = "poll.delegationUser",
-                        dataType = UIDataType.USER
-                    )
-                )
-            }
             fieldset.add(
                 UIButton.createExportButton(
                     id = "export-poll-response-button",
@@ -622,12 +613,4 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
     }
 
-    private fun hasFullAccess(dto: Poll): Boolean {
-        val loggedInUser = ThreadLocalUserContext.user
-        val foundUser = dto.fullAccessUsers?.any { user -> user.id == loggedInUser?.id }
-        if (foundUser == true || dto.owner?.id == loggedInUser?.id) {
-            return true
-        }
-        return false
-    }
 }
