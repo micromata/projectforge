@@ -1,6 +1,8 @@
 package org.projectforge.business.poll
 
 import org.hibernate.search.annotations.Indexed
+import org.projectforge.business.poll.filter.PollAssignment
+import org.projectforge.business.poll.filter.PollState
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -45,7 +47,7 @@ open class PollDO : DefaultBaseDO() {
     open var date: LocalDate? = null
 
     @PropertyInfo(i18nKey = "poll.attendees")
-    @get:Column(name = "attendeeIds")
+    @get:Column(name = "attendeeIds", nullable = true)
     open var attendeeIds: String? = null
 
     @PropertyInfo(i18nKey = "poll.attendee_groups")

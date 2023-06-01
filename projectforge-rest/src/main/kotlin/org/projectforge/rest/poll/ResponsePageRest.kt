@@ -7,6 +7,7 @@ import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.business.poll.*
+import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
@@ -144,22 +145,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
             if (field.type == BaseType.SingleResponseQuestion) {
-                col.add(
-                    PollPageRest.getUiElement(
-                        pollDto.isFinished(),
-                        "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
-                        UIDataType.BOOLEAN
-                    )
-                )
-                col.add(
-                    PollPageRest.getUiElement(
-                        pollDto.isFinished(),
-                        "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
-                        UIDataType.BOOLEAN
-                    )
-                )
                 col.add(
                     UIRadioButton(
                         "responses[$index].answers[0]", value = field.answers!![0], label = field.answers?.get(0) ?: ""
