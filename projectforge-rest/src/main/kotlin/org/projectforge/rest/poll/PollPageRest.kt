@@ -4,10 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.filter.PollAssignment
+import org.projectforge.business.poll.filter.PollAssignmentFilter
+import org.projectforge.business.poll.filter.PollState
+import org.projectforge.business.poll.filter.PollStateFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
@@ -18,6 +25,7 @@ import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PREMADE_QUESTIONS
 import org.projectforge.rest.poll.types.Question
 import org.projectforge.ui.*
+import org.projectforge.ui.filter.UIFilterListElement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -95,6 +103,39 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
+                .buildValues(PollAssignment.OWNER, PollAssignment.OTHER)
+        )
+        elements.add(
+            UIFilterListElement("status", label = translate("poll.state"), defaultFilter = true)
+                .buildValues(PollState.RUNNING, PollState.FINISHED)
+        )
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>>? {
+        val filters = mutableListOf<CustomResultFilter<PollDO>>()
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
+        if (assignmentFilterEntry != null) {
+            assignmentFilterEntry.synthetic = true
+            val values = assignmentFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollAssignment.valueOf(it) }
+                filters.add(PollAssignmentFilter(enums))
+            }
+        }
+        val statusFilterEntry = source.entries.find { it.field == "status" }
+        if (statusFilterEntry != null) {
+            statusFilterEntry.synthetic = true
+            val values = statusFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollState.valueOf(it) }
+                filters.add(PollStateFilter(enums))
+            }
+        }
+        return filters
+    }
 
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
@@ -498,7 +539,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
          *  Once created, questions should be ReadOnly
          */
         @JvmStatic
-        fun getUiElement(isReadOnly: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+        fun getUiElement(
+            isReadOnly: Boolean,
+            id: String,
+            label: String? = null,
+            dataType: UIDataType = UIDataType.STRING
+        ): UIElement {
             return if (isReadOnly)
                 UIReadOnlyField(id, label = label, dataType = dataType)
             else
