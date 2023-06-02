@@ -8,6 +8,7 @@ import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.poll.filter.PollAssignmentFilter
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.business.poll.filter.PollStateFilter
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
@@ -58,10 +59,23 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @Autowired
     private lateinit var excelExport: ExcelExport
 
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
         result.owner = ThreadLocalUserContext.user
         return result
+    }
+
+    override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        val responsesToDelete = pollResponseDao.internalLoadAll().filter {
+            it.poll!!.id == obj.id
+        }
+        responsesToDelete.forEach {
+            pollResponseDao.markAsDeleted(it)
+        }
+        super.onBeforeMarkAsDeleted(request, obj, postData)
     }
 
 
@@ -141,6 +155,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
+
 
         addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
 
