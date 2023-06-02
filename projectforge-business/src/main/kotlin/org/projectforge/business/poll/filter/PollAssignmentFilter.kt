@@ -26,13 +26,6 @@ class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilte
             }
         }
         return false
-
-        /*element.getPollAssignment().forEach { pollAssignment ->
-            if (values.contains(pollAssignment)) {
-                return true
-            }
-        }
-        return false*/
     }
 
     companion object {
@@ -45,6 +38,4 @@ class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilte
                 return _groupService!!
             }
     }
-
-
 }
