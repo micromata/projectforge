@@ -12,7 +12,6 @@ import org.springframework.context.annotation.DependsOn
 import java.time.LocalDate
 import javax.persistence.*
 
-
 @Entity
 @Indexed
 @Table(name = "t_poll")
