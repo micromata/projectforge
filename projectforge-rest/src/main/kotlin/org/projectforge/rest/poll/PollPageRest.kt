@@ -105,8 +105,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(
-            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
-                .buildValues(PollAssignment.OWNER, PollAssignment.OTHER)
+            UIFilterListElement("assignment", label = translate("poll.assignment"), defaultFilter = true)
+                .buildValues(PollAssignment.OWNER, PollAssignment.ACCESS, PollAssignment.ATTENDEE, PollAssignment.OTHER)
         )
         elements.add(
             UIFilterListElement("status", label = translate("poll.state"), defaultFilter = true)
@@ -114,7 +114,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
-    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>>? {
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>> {
         val filters = mutableListOf<CustomResultFilter<PollDO>>()
         val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
         if (assignmentFilterEntry != null) {
@@ -590,7 +590,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollDO = PollDO()
         pollDto.copyTo(pollDO)
 
-        return if (pollDao.hasFullAccess(pollDO) == false) {
+        return if (!pollDao.hasFullAccess(pollDO)) {
             // no full access user
             UILayout.UserAccess(insert = false, update = false, delete = false, history = false)
         } else {
@@ -599,7 +599,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 UILayout.UserAccess(insert = true, update = true, delete = false, history = true)
             } else {
                 // full access when viewing old poll
-                UILayout.UserAccess(insert = false, update = false, delete = true, history = false)
+                UILayout.UserAccess(insert = true, update = true, delete = true, history = false)
             }
         }
     }
