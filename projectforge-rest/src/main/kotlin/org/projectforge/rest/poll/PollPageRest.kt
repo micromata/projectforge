@@ -9,6 +9,8 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.*
@@ -116,34 +118,28 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         ),
                     )
             )
-            fieldset.add(
-                UIButton.createExportButton(
-                    id = "export-poll-response-button",
-                    responseAction = ResponseAction("${Rest.URL}/poll/export/${dto.id}", targetType = TargetType.POST),
-                    title = "poll.export.response.poll"
+            layout.add(
+                MenuItem(
+                    "export-poll-response-button",
+                    i18nKey = "poll.export.response.poll",
+                    url = RestResolver.getRestUrl(
+                        restClass = PollPageRest::class.java,
+                        subPath = "export",
+                        params = mapOf("id" to dto.id)
+                    ),
+                    type = MenuItemTargetType.DOWNLOAD
                 )
             )
         }
-        fieldset.add(
-            UIRow().add(
-                UICol(
-                    UILength(10)
-                )
-            ).add(
-                UICol(
-                    UILength(1)
-                ).add(
-                    UIButton.createLinkButton(
-                        id = "poll-guide", title = "poll.guide", responseAction = ResponseAction(
-                            PagesResolver.getDynamicPageUrl(
-                                PollInfoPageRest::class.java, absolute = true
-                            ), targetType = TargetType.MODAL
-                        )
-                    )
-                )
+
+        layout.add(
+            MenuItem(
+                "poll-guide",
+                i18nKey = "poll.guide",
+                url = PagesResolver.getDynamicPageUrl(PollInfoPageRest::class.java, absolute = false),
+                type = MenuItemTargetType.MODAL
             )
         )
-
 
         addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
 
@@ -525,8 +521,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    @PostMapping("/export/{id}")
-    fun export(@PathVariable("id") id: String): ResponseEntity<Resource>? {
+    @GetMapping("export")
+    fun export(@RequestParam("id") id: String): ResponseEntity<Resource>? {
         val poll = Poll()
         val pollDo = pollDao.getById(id.toInt())
         poll.copyFrom(pollDo)
