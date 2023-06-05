@@ -2,6 +2,7 @@ package org.projectforge.rest.poll
 
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
 import org.projectforge.rest.poll.excel.ExcelExport
@@ -10,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -18,9 +18,11 @@ import java.util.*
 @RestController
 class PollCronJobs {
 
-
     @Autowired
     private lateinit var pollDao: PollDao
+
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
 
     @Autowired
     private lateinit var pollMailService: PollMailService
@@ -31,13 +33,12 @@ class PollCronJobs {
     /**
      * Cron job for daily stuff
      */
-// todo   @Scheduled(cron = "0 0 1 * * *") // 1am everyday
-    @Scheduled(cron = "0 * * * * *") // 1am everyday
+    // todo   @Scheduled(cron = "0 0 1 * * *") // 1am everyday
+    @Scheduled(cron = "0 * * * * *") // Every Minute
     fun dailyCronJobs() {
         cronDeletePolls()
         cronEndPolls()
     }
-
 
     /**
      * Method to end polls after deadline
@@ -96,25 +97,22 @@ class PollCronJobs {
         }
     }
 
-
     /**
      * Method to delete old polls
      */
     private fun cronDeletePolls() {
-        // check if poll end in future
         val polls = pollDao.internalLoadAll()
         val pollsMoreThanOneYearPast = polls.filter {
-            it.created?.before(
-                Date.from(
-                    LocalDate.now().minusYears(1).atStartOfDay(
-                        ZoneId.systemDefault()
-                    ).toInstant()
-                )
-            ) ?: false
+            it.deadline!!.isBefore(LocalDate.now().minusYears(1))
         }
-        pollsMoreThanOneYearPast.forEach {
-            pollDao.delete(it)
+        pollsMoreThanOneYearPast.forEach { poll ->
+            val pollResponses = pollResponseDao.internalLoadAll().filter { response ->
+                response.poll!!.id == poll.id
+            }
+            pollResponses.forEach {
+                pollResponseDao.internalMarkAsDeleted(it)
+            }
+            pollDao.internalMarkAsDeleted(poll)
         }
     }
-
 }
