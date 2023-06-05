@@ -3,6 +3,10 @@ package org.projectforge.rest.poll
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.*
+import org.projectforge.business.poll.filter.PollAssignment
+import org.projectforge.business.poll.filter.PollAssignmentFilter
+import org.projectforge.business.poll.filter.PollState
+import org.projectforge.business.poll.filter.PollStateFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
@@ -96,6 +100,40 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             UITable.createUIResultSetTable()
                 .add(pollLC, "title", "description", "location", "owner", "deadline", "date", "state")
         )
+    }
+
+    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
+        elements.add(
+            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
+                .buildValues(PollAssignment.OWNER, PollAssignment.OTHER)
+        )
+        elements.add(
+            UIFilterListElement("status", label = translate("poll.state"), defaultFilter = true)
+                .buildValues(PollState.RUNNING, PollState.FINISHED)
+        )
+    }
+
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>>? {
+        val filters = mutableListOf<CustomResultFilter<PollDO>>()
+        val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
+        if (assignmentFilterEntry != null) {
+            assignmentFilterEntry.synthetic = true
+            val values = assignmentFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollAssignment.valueOf(it) }
+                filters.add(PollAssignmentFilter(enums))
+            }
+        }
+        val statusFilterEntry = source.entries.find { it.field == "status" }
+        if (statusFilterEntry != null) {
+            statusFilterEntry.synthetic = true
+            val values = statusFilterEntry.value.values
+            if (!values.isNullOrEmpty()) {
+                val enums = values.map { PollState.valueOf(it) }
+                filters.add(PollStateFilter(enums))
+            }
+        }
+        return filters
     }
 
 
@@ -279,42 +317,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 .addVariable("ui", createEditLayout(dto, userAccess))
         )
     }
-
-    override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
-        elements.add(
-            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
-                .buildValues(PollAssignment.OWNER, PollAssignment.ACCESS, PollAssignment.ATTENDEE, PollAssignment.OTHER)
-        )
-        elements.add(
-            UIFilterListElement("status", label = translate("poll.status"), defaultFilter = true)
-                .buildValues(PollState.RUNNING, PollState.FINISHED)
-        )
-    }
-
-    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>> {
-        val filters = mutableListOf<CustomResultFilter<PollDO>>()
-        val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
-        if (assignmentFilterEntry != null) {
-            assignmentFilterEntry.synthetic = true
-            val values = assignmentFilterEntry.value.values
-            if (!values.isNullOrEmpty()) {
-                val enums = values.map { PollAssignment.valueOf(it) }
-                filters.add(PollAssignmentFilter(enums))
-            }
-        }
-        val statusFilterEntry = source.entries.find { it.field == "status" }
-        if (statusFilterEntry != null) {
-            statusFilterEntry.synthetic = true
-            val values = statusFilterEntry.value.values
-            if (!values.isNullOrEmpty()) {
-                val enums = values.map { PollState.valueOf(it) }
-                filters.add(PollStatusFilter(enums))
-            }
-        }
-        return filters
-    }
-
-
 
     override fun onWatchFieldsUpdate(
         request: HttpServletRequest,
@@ -530,7 +532,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
          *  Once created, questions should be ReadOnly
          */
         @JvmStatic
-        fun getUiElement(isReadOnly: Boolean, id: String, label: String? = null, dataType: UIDataType = UIDataType.STRING): UIElement {
+        fun getUiElement(
+            isReadOnly: Boolean,
+            id: String,
+            label: String? = null,
+            dataType: UIDataType = UIDataType.STRING
+        ): UIElement {
             return if (isReadOnly)
                 UIReadOnlyField(id, label = label, dataType = dataType)
             else

@@ -55,7 +55,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
-    private fun isAttendee(obj: PollDO): Boolean {
+    fun isAttendee(obj: PollDO): Boolean {
         val loggedInUser = user
         val listOfAttendeeIds = ObjectMapper().readValue(obj.attendeeIds, IntArray::class.java)
         if (loggedInUser != null) {
