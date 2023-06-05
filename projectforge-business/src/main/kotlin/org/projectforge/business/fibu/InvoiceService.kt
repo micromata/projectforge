@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -35,7 +35,6 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow
 import org.apache.xmlbeans.XmlException
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateTimeFormatter
@@ -44,7 +43,6 @@ import org.projectforge.framework.utils.NumberHelper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationContext
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import java.io.File
@@ -63,13 +61,7 @@ import java.util.stream.Collectors
 @Service
 open class InvoiceService {
     @Autowired
-    private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
     private lateinit var configurationService: ConfigurationService
-
-    @Autowired
-    private lateinit var domainService: DomainService
 
     @Value("\${projectforge.invoiceTemplate}")
     protected open var customInvoiceTemplateName: String? = null
@@ -103,12 +95,9 @@ open class InvoiceService {
             var invoiceTemplate: Resource? = null
             val isSkonto = data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
             if (!customInvoiceTemplateName.isNullOrEmpty()) {
-                val resourceDir = configurationService.resourceDirName
                 val langSuffix = if (lang.isNullOrBlank()) "" else "_$lang"
-                invoiceTemplate = applicationContext.getResource("file://$resourceDir/officeTemplates/$customInvoiceTemplateName$langSuffix.docx")
-            }
-            if (invoiceTemplate == null || !invoiceTemplate.exists()) {
-                invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/InvoiceTemplate" + ".docx")
+                invoiceTemplate = configurationService.getOfficeTemplateFile("$customInvoiceTemplateName$langSuffix.docx",
+                    "InvoiceTemplate.docx")
             }
             val variables = Variables()
             variables.put("table", "") // Marker for finding table (should be removed).

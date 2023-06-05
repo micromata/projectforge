@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -27,10 +27,10 @@ import io.milton.servlet.MiltonFilter
 import mu.KotlinLogging
 import org.projectforge.business.user.UserAuthenticationsService
 import org.projectforge.business.user.UserTokenType
-import org.projectforge.caldav.service.SslSessionCache
-import org.projectforge.rest.pub.CalendarSubscriptionServiceRest
+import org.projectforge.caldav.service.DavSessionCache
 import org.projectforge.rest.utils.RequestLog
 import org.projectforge.security.SecurityLogging
+import org.projectforge.web.rest.BasicAuthenticationData
 import org.projectforge.web.rest.RestAuthenticationInfo
 import org.projectforge.web.rest.RestAuthenticationUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,73 +47,108 @@ private val log = KotlinLogging.logger {}
  * Ensuring a white url list for using Milton filter. MiltonFilter at default supports only black list.
  */
 class PFMiltonFilter : MiltonFilter() {
-    private lateinit var springContext: WebApplicationContext
+  private lateinit var springContext: WebApplicationContext
 
-    @Autowired
-    private lateinit var restAuthenticationUtils: RestAuthenticationUtils
+  @Autowired
+  private lateinit var davSessionCache: DavSessionCache
 
-    @Autowired
-    private lateinit var userAuthenticationsService: UserAuthenticationsService
+  @Autowired
+  private lateinit var restAuthenticationUtils: RestAuthenticationUtils
 
-    @Autowired
-    private lateinit var sslSessionCache: SslSessionCache
+  @Autowired
+  private lateinit var userAuthenticationsService: UserAuthenticationsService
 
-    @Throws(ServletException::class)
-    override fun init(filterConfig: FilterConfig) {
-        super.init(filterConfig)
-        springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
-        val beanFactory = springContext.autowireCapableBeanFactory
-        beanFactory.autowireBean(this)
+  @Throws(ServletException::class)
+  override fun init(filterConfig: FilterConfig) {
+    super.init(filterConfig)
+    springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.servletContext)
+    val beanFactory = springContext.autowireCapableBeanFactory
+    beanFactory.autowireBean(this)
+  }
+
+  private fun authenticate(authInfo: RestAuthenticationInfo) {
+    if (log.isDebugEnabled) {
+      log.debug("Trying to authenticate user (${RequestLog.asString(authInfo.request)})...")
     }
-
-    private fun authenticate(authInfo: RestAuthenticationInfo) {
-        if (log.isDebugEnabled) {
-            log.debug("Trying to authenticate user (requestUri=${RequestLog.asString(authInfo.request)})...")
-        }
-        val sslSessionUser = sslSessionCache.getSessionData(authInfo.request)
-        if (sslSessionUser != null) {
-            if (log.isDebugEnabled) {
-                log.debug("User found by session id (requestUri=${RequestLog.asString(authInfo.request)})...")
-            }
-            authInfo.user = sslSessionUser
+    val davSessionData = davSessionCache.getSessionData(authInfo.request)
+    val davSessionUser = davSessionData?.user
+    if (davSessionUser != null) {
+      if (log.isDebugEnabled) {
+        log.debug("User found by session id (${RequestLog.asString(authInfo.request)})...")
+      }
+      authInfo.user = davSessionUser
+    } else {
+      log.debug { "No user found by session id (${RequestLog.asString(authInfo.request)})..." }
+      restAuthenticationUtils.basicAuthentication(
+        authInfo,
+        UserTokenType.DAV_TOKEN,
+        true
+      ) { userString, authenticationToken ->
+        val authenticatedUser = userAuthenticationsService.getUserByToken(
+          authInfo.request,
+          userString,
+          UserTokenType.DAV_TOKEN,
+          authenticationToken
+        )
+        if (authenticatedUser == null) {
+          val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (${
+            RequestLog.asString(authInfo.request)
+          }."
+          log.error(msg)
+          SecurityLogging.logSecurityWarn(
+            authInfo.request,
+            this::class.java,
+            "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED",
+            msg
+          )
         } else {
-            restAuthenticationUtils.basicAuthentication(authInfo, UserTokenType.DAV_TOKEN, true) { userString, authenticationToken ->
-                val authenticatedUser = userAuthenticationsService.getUserByToken(authInfo.request, userString, UserTokenType.DAV_TOKEN, authenticationToken)
-                if (authenticatedUser == null) {
-                    val msg = "Can't authenticate user '$userString' by given token. User name and/or token invalid (requestUri=${RequestLog.asString(authInfo.request)}."
-                    log.error(msg)
-                    SecurityLogging.logSecurityWarn(authInfo.request, this::class.java, "${UserTokenType.DAV_TOKEN.name} AUTHENTICATION FAILED", msg)
-                } else {
-                    sslSessionCache.registerSessionData(authInfo.request, authenticatedUser)
-                }
-                authenticatedUser
-            }
+          log.debug { "Registering authenticated user: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
+          davSessionCache.registerSessionData(authInfo.request, authenticatedUser)
+          log.info { "Authenticated user registered: ${RequestLog.asString(authInfo.request, authenticatedUser.username)}" }
         }
+        authenticatedUser
+      }
     }
+  }
 
-    @Throws(IOException::class, ServletException::class)
-    override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-        request as HttpServletRequest
-        if (!DAVMethodsInterceptor.handledByMiltonFilter(request)) {
-            if (log.isDebugEnabled) {
-                log.debug("Request is not for us (neither CalDAV nor CardDAV-call), processing normal filter chain (requestUri=${RequestLog.asString(request)})...")
-            }
-            // Not for us:
-            chain.doFilter(request, response)
-        } else {
-            if (request.method == "PUT") {
-                log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
-                response as HttpServletResponse
-                response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "PUT not (yet) supported by ProjectForge.")
-                return
-            }
-            log.info("Request with method=${request.method} for Milton (requestUri=${RequestLog.asString(request)})...")
-            restAuthenticationUtils.doFilter(request,
-                    response,
-                    UserTokenType.DAV_TOKEN,
-                    authenticate = { authInfo -> authenticate(authInfo) },
-                    doFilter = { -> super.doFilter(request, response, chain) }
+  @Throws(IOException::class, ServletException::class)
+  override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+    request as HttpServletRequest
+    if (log.isDebugEnabled) {
+      var username: String? = null
+      val authHeader = RestAuthenticationUtils.getHeader(request, "authorization", "Authorization")
+      if (authHeader != null) {
+        username = BasicAuthenticationData(request, authHeader).username
+      }
+      log.debug { "PFMiltonFilter.doFilter: ${RequestLog.asString(request, username)}" }
+    }
+    if (!DAVMethodsInterceptor.handledByMiltonFilter(request)) {
+      if (log.isDebugEnabled) {
+        log.debug(
+          "Request is not for us (neither CalDAV nor CardDAV-call), processing normal filter chain (${
+            RequestLog.asString(
+              request
             )
-        }
+          })..."
+        )
+      }
+      // Not for us:
+      chain.doFilter(request, response)
+    } else {
+      if (request.method == "PUT") {
+        log.info { "DAV doesn't support PUT method (yet): ${request.requestURI}" }
+        response as HttpServletResponse
+        response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "PUT not (yet) supported by ProjectForge.")
+        return
+      }
+      log.info("Request with method=${request.method} for Milton (${RequestLog.asString(request)})...")
+      log.debug { "Request-Info: ${RequestLog.asJson(request, true)}" }
+      restAuthenticationUtils.doFilter(request,
+        response,
+        UserTokenType.DAV_TOKEN,
+        authenticate = { authInfo -> authenticate(authInfo) },
+        doFilter = { -> super.doFilter(request, response, chain) }
+      )
     }
+  }
 }

@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.6</version><!-- Don't forget to modify also below in properties. -->
+        <version>2.7.8</version><!-- Don't forget to modify also below in properties. -->
     </parent>
 
     <name>ProjectForge</name>
@@ -260,8 +260,8 @@
         <poi.version>5.2.2</poi.version>
         <rhino.version>1.7.14</rhino.version>
         <springfox-swagger.version>3.0.0</springfox-swagger.version>
-        <spring.version>5.3.24</spring.version> <!-- Should match spring boot's parent pom -->
-        <spring.boot.version>2.7.6</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+        <spring.version>5.3.25</spring.version> <!-- Should match spring boot's parent pom -->
+        <spring.boot.version>2.7.8</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
         <webauthn4j.version>0.20.5.RELEASE</webauthn4j.version>
         <wicket.version>8.14.0</wicket.version>
         <wicket-stuff.version>8.14.0</wicket-stuff.version>
@@ -270,7 +270,7 @@
         <xstream.version>1.4.19</xstream.version> <!-- com.thoughtworks.xstream -->
 
         <!-- HIBERNATE 5 -->
-        <postgresql.version>42.5.1</postgresql.version>
+        <postgresql.version>42.6.0</postgresql.version>
         <hsqldb.version>2.7.1</hsqldb.version>
 
         <!-- TEST -->

@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -37,7 +37,11 @@ public class DTStampConverter extends PropertyConverter
   @Override
   public Property toVEvent(final TeamEventDO event)
   {
-    DateTime dtStampValue = new DateTime(event.getDtStamp());
+    Date date = event.getDtStamp();
+    if (date == null) {
+      return null;
+    }
+    DateTime dtStampValue = new DateTime(date);
     dtStampValue.setUtc(true);
     return new DtStamp(dtStampValue);
   }

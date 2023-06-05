@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,41 +23,45 @@
 
 package org.projectforge.web.rest
 
+import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.StringUtils
-import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 import javax.servlet.http.HttpServletRequest
 
+private val log = KotlinLogging.logger {}
+
 class BasicAuthenticationData(request: HttpServletRequest, authHeader: String, required: Boolean = false) {
-    var username: String? = null
-    var secret: String? = null
-    private val log = LoggerFactory.getLogger(BasicAuthenticationData::class.java)
+  var username: String? = null
+  var secret: String? = null
 
-    init {
-        val basic = StringUtils.split(authHeader)
-        if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
-            if (required) {
-                logError(request, "Basic authentication failed, header 'authorization' not in supported format (Basic <base64>).")
-            }
-        } else {
-            val credentials = String(Base64.decodeBase64(basic[1]), StandardCharsets.UTF_8)
-            val p = credentials.indexOf(":")
-            if (p < 1) {
-                logError(request, "Basic authentication failed, credentials not of format 'user:secret'.")
-            } else {
-                username = credentials.substring(0, p).trim { it <= ' ' }
-                secret = credentials.substring(p + 1).trim { it <= ' ' }
-            }
-        }
+  init {
+    val basic = StringUtils.split(authHeader)
+    if (basic.size != 2 || !StringUtils.equalsIgnoreCase(basic[0], "Basic")) {
+      if (required) {
+        logError(
+          request,
+          "Basic authentication failed, header 'authorization' not in supported format (Basic <base64>)."
+        )
+      }
+    } else {
+      val credentials = String(Base64.decodeBase64(basic[1]), StandardCharsets.UTF_8)
+      val p = credentials.indexOf(":")
+      if (p < 1) {
+        logError(request, "Basic authentication failed, credentials not of format 'user:secret'.")
+      } else {
+        username = credentials.substring(0, p).trim { it <= ' ' }
+        secret = credentials.substring(p + 1).trim { it <= ' ' }
+      }
     }
+  }
 
-    override fun toString(): String {
-        username ?: return "invalid"
-        return "Basic '$username'/'***'"
-    }
+  override fun toString(): String {
+    username ?: return "invalid"
+    return "Basic '$username'/'***'"
+  }
 
-    private fun logError(request: HttpServletRequest, msg: String) {
-        log.error("$msg (requestUri=${request.requestURI}, ${request.queryString})")
-    }
+  private fun logError(request: HttpServletRequest, msg: String) {
+    log.error("$msg (requestUri=${request.requestURI}, ${request.queryString})")
+  }
 }

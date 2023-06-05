@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -43,11 +43,11 @@ import org.projectforge.business.ldap.*;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.password.PasswordQualityService;
+import org.projectforge.business.sipgate.SipgateConfiguration;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
@@ -83,6 +83,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private SipgateConfiguration sipgateConfiguration;
 
   @SpringBean
   private UserRightDao userRightDao;
@@ -332,6 +335,25 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     fs.add(localeChoice);
   }
 
+  /**
+   * If no telephone system url is set in config.xml nothing will be done.
+   *
+   * @param gridBuilder
+   * @param user
+   */
+  public void createPhoneIds(final GridBuilder gridBuilder, final PFUserDO user) {
+    if (sipgateConfiguration.isConfigured()) {
+      // Personal phone identifiers
+      final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.personalPhoneIdentifiers"));
+      MaxLengthTextField personalPhoneIdentifiers = new MaxLengthTextField(fs.getTextFieldId(),
+          new PropertyModel<String>(user, "personalPhoneIdentifiers"));
+      personalPhoneIdentifiers.setMarkupId("personalPhoneIdentifiers").setOutputMarkupId(true);
+      fs.add(personalPhoneIdentifiers);
+      fs.addHelpIcon(new ResourceModel("user.personalPhoneIdentifiers.tooltip.title"), new ResourceModel(
+          "user.personalPhoneIdentifiers.tooltip.content"));
+    }
+  }
+
   public static void createDateFormat(final GridBuilder gridBuilder, final PFUserDO user) {
     addDateFormatCombobox(gridBuilder, user, "dateFormat", "dateFormat", Configuration.getInstance().getDateFormats(),
             false);
@@ -362,26 +384,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
             new PropertyModel<TimeZone>(user, "timeZone"));
     fs.addKeyboardHelpIcon(gridBuilder.getString("tooltip.autocomplete.timeZone"));
     fs.add(timeZone);
-  }
-
-  /**
-   * If no telephone system url is set in config.xml nothing will be done.
-   *
-   * @param gridBuilder
-   * @param user
-   */
-  public static void createPhoneIds(final GridBuilder gridBuilder, final PFUserDO user) {
-    if (StringUtils.isNotEmpty(ApplicationContextProvider.getApplicationContext().getBean(ConfigurationService.class)
-            .getTelephoneSystemUrl()) == true) {
-      // Personal phone identifiers
-      final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.personalPhoneIdentifiers"));
-      MaxLengthTextField personalPhoneIdentifiers = new MaxLengthTextField(fs.getTextFieldId(),
-              new PropertyModel<String>(user, "personalPhoneIdentifiers"));
-      personalPhoneIdentifiers.setMarkupId("personalPhoneIdentifiers").setOutputMarkupId(true);
-      fs.add(personalPhoneIdentifiers);
-      fs.addHelpIcon(new ResourceModel("user.personalPhoneIdentifiers.tooltip.title"), new ResourceModel(
-              "user.personalPhoneIdentifiers.tooltip.content"));
-    }
   }
 
   public static void createDescription(final GridBuilder gridBuilder, final PFUserDO user) {

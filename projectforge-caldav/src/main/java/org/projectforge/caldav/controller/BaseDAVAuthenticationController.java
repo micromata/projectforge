@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,18 +24,15 @@
 package org.projectforge.caldav.controller;
 
 import io.milton.annotations.Authenticate;
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.caldav.model.User;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Created by blumenstein on 21.11.16.
  */
-public class BaseDAVAuthenticationController {
+abstract public class BaseDAVAuthenticationController {
   private boolean autowired = false;
 
   protected void ensureAutowire() {
@@ -55,14 +52,11 @@ public class BaseDAVAuthenticationController {
    */
   @Authenticate
   public Boolean authenticate(final User user, final String requestedPassword) {
-    final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-    if (contextUser != null && StringUtils.equals(contextUser.getUsername(), user.getUsername())) {
-      log.info("User '" + user.getUsername() + "' authenticated.");
-      return true;
-    }
-    log.warn("User '" + user.getUsername() + "' not authenticated.");
-    return false;
+    ensureAutowire();
+    return checkAuthentication(user, requestedPassword);
   }
+
+  abstract protected Boolean checkAuthentication(final User user, final String token);
 
   private static Logger log = LoggerFactory.getLogger(BaseDAVAuthenticationController.class);
 }

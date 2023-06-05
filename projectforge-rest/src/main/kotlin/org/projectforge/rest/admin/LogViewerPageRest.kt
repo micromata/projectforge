@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -80,9 +80,9 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
     val logSubscription = LogSubscription.getSubscription(id)
     val logEntriesTable = UITable(
       "logEntries",
-      refreshUrl = RestResolver.getRestUrl(this::class.java, "/refresh"),
-      refreshIntervalSeconds = 5,
-      autoRefreshFlag = "autoRefresh"
+      //refreshUrl = RestResolver.getRestUrl(this::class.java, "/refresh"),
+      //refreshIntervalSeconds = 5,
+      //autoRefreshFlag = "autoRefresh"
     )
     var title = logSubscription?.displayTitle
     if (adminLogViewer) {
@@ -106,12 +106,12 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
                 UICol(UILength(md = 2))
                   .add(filterLc, "threshold")
               )
-              .add(
+              /*.add(
                 UICol(UILength(md = 2))
                   .add(
                     filterLc, "autoRefresh"
                   )
-              )
+              )*/
           )
       )
 

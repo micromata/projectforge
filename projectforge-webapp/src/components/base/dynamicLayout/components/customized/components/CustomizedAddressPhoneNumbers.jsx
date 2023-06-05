@@ -40,6 +40,7 @@ function CustomizedAddressPhoneNumbers({ data }) {
                             addressId={address.id}
                             phoneCallEnabled={phoneCallEnabled}
                             smsEnabled={smsEnabled}
+                            callerPage="addressList"
                             {...value}
                         />
                     ))}

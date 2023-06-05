@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -45,7 +45,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     ADDRESS_LIST("menu.addressList", getReactListUrl("address")), //
     ADMIN_LOG_VIEWER("system.admin.logViewer.title", "${getReactDynamicPageUrl("adminLogViewer")}/-1"), //
     BANK_ACCOUNT_LIST("menu.finance.bankAccounts"), //
-    BIRTHDAY_LIST("menu.birthdayList", getReactDynamicPageUrl("birthdayList")), //
+    BIRTHDAY_BUTLER("menu.birthdayButler", getReactDynamicPageUrl("birthdayButler")), //
     BOOK_LIST("menu.bookList", getReactListUrl("book")), //
     CALENDAR("menu.calendar", getReactListUrl("calendar")), //
     TEAMCALENDAR("menu.plugins.teamcal", getReactListUrl("teamCal")), //
@@ -62,6 +62,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
 
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DOCUMENTATION("menu.documentation"), //
+    DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
     EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
@@ -121,6 +122,6 @@ private fun getReactListUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name"
 }
 
-private fun getReactDynamicPageUrl(name: String): String {
+fun getReactDynamicPageUrl(name: String): String {
     return "${Constants.REACT_APP_PATH}$name/dynamic"
 }
