@@ -1,12 +1,8 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.projectforge.business.poll.PollDO
-import org.projectforge.business.poll.PollDao
-import org.projectforge.business.poll.PollResponseDO
-import org.projectforge.business.poll.PollResponseDao
-import org.projectforge.framework.access.AccessException
 import org.projectforge.business.poll.*
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
@@ -48,16 +44,12 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
         }
 
-        if (pollData.getPollAssignment().contains(PollAssignment.ATTENDEE)) {
+        if (!pollData.getPollAssignment().contains(PollAssignment.ATTENDEE)) {
             throw AccessException("access.exception.noAccess", "Du darfst nicht auf diese Umfrage antworten.")
-        }
-        if (pollDto.state == PollDO.State.FINISHED) {
-            throw AccessException("access.exception.noAccess", "poll.error.closed")
         }
 
         val layout = UILayout("poll.response.title")
         val fieldset = UIFieldset(12, title = pollDto.title)
-
 
 
         if (pollDto.isFinished() == false && pollDto.isAlreadyCreated() && pollDao.hasFullAccess(pollData)) {
