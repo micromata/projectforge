@@ -111,7 +111,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                 PagesResolver.getDynamicPageUrl(
                                     ResponsePageRest::class.java,
                                     absolute = true
-                                ) + "?pollid=${dto.id}&questionOwner=${dto.delegationUser?.id}",
+                                ) + "?pollId=${dto.id}&questionOwner=${dto.delegationUser?.id}",
                                 targetType = TargetType.GET
                             ),
                             title = "poll.response.page"

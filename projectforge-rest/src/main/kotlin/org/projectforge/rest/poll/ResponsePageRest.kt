@@ -48,8 +48,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     @GetMapping("dynamic")
     fun getForm(
         request: HttpServletRequest,
-        @RequestParam("number") pollStringId: String?,
-        @RequestParam("delegatedUser") delUser: String?,
+        @RequestParam("pollId") pollStringId: String?,
+        @RequestParam("questionOwner") delUser: String?,
     ): FormLayoutData {
         if (pollId === null || (pollStringId != null && pollId != null)) {
             pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
@@ -57,10 +57,11 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         //used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
         val pollData = pollDao.internalGetById(pollId) ?: PollDO()
 
-        questionOwnerId = if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt()))
-            delUser.toInt()
-        else
-            ThreadLocalUserContext.user?.id
+        questionOwnerId =
+            if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt()))
+                delUser.toInt()
+            else
+                ThreadLocalUserContext.user?.id
 
         val questionOwnerName = userService.getUser(questionOwnerId).displayName
         val pollDto = transformPollFromDB(pollData)
@@ -71,9 +72,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         val layout = UILayout("poll.response.title")
 
-        val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
 
-        if (hasFullAccess(pollDto)) {
+        if (hasFullAccess(pollDto) && ThreadLocalUserContext.user?.id === questionOwnerId) {
+            val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
             fieldSetDelegationUser.add(
                 UIInput(
                     id = "delegationUser",
@@ -94,8 +95,19 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                         title = "poll.response.page"
                     ),
                 )
+            layout.add(fieldSetDelegationUser)
         }
-        layout.add(fieldSetDelegationUser)
+
+        if (hasFullAccess(pollDto)) {
+            layout.add(
+                MenuItem(
+                    "EDIT",
+                    i18nKey = "poll.title.edit",
+                    url = PagesResolver.getEditPageUrl(PollPageRest::class.java, pollDto.id),
+                    type = MenuItemTargetType.REDIRECT
+                )
+            )
+        }
 
         val fieldSet = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
         fieldSet
@@ -111,14 +123,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         layout.add(fieldSet)
 
-        layout.add(
-            MenuItem(
-                "EDIT",
-                i18nKey = "poll.title.edit",
-                url = PagesResolver.getEditPageUrl(PollPageRest::class.java, pollDto.id),
-                type = MenuItemTargetType.REDIRECT
-            )
-        )
 
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
