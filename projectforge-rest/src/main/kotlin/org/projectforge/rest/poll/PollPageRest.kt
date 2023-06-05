@@ -167,16 +167,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         layout.watchFields.addAll(listOf("groupAttendees"))
 
 
-        val confirmMessage = if (dto.attendees.isNullOrEmpty()) {
-            translateMsg("poll.confirmation.creationNoAttendees")
-        } else {
-            translateMsg("poll.confirmation.creation")
-        }
-
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         processedLayout.actions.filterIsInstance<UIButton>().find {
             it.id == "create"
-        }?.confirmMessage = confirmMessage
+        }?.confirmMessage = translateMsg("poll.confirmation.creation")
 
 
         if (dto.isAlreadyCreated()) {
