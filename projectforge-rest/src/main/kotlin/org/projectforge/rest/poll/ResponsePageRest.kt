@@ -19,7 +19,6 @@ import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
-import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.types.*
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,27 +43,27 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     private lateinit var userService: UserService
 
     var pollId: Int? = null
-    var delegatedUser: User? = null
+    var questionOwnerId: Int? = null
 
     @GetMapping("dynamic")
     fun getForm(
         request: HttpServletRequest,
-        @RequestParam("number") pollStringId: String?,
-        @RequestParam("delegatedUser") delUser: String?,
+        @RequestParam("pollId") number: String?,
+        @RequestParam("questionOwner") delUser: String?,
     ): FormLayoutData {
-        pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
-
+        if (pollId === null || (number != null && pollId != null)) {
+            pollId = NumberHelper.parseInteger(number) ?: throw IllegalArgumentException("id not given.")
+        }
         //used to load awnsers, is an attendee chosen by a fullaccessuser in order to awnser for them or the Threadlocal User
-        var questionOwner: Int? = null
 
         val pollData = pollDao.internalGetById(pollId) ?: PollDO()
 
         if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt()))
-            questionOwner = delUser.toInt()
+            questionOwnerId = delUser.toInt()
         else
-            questionOwner = ThreadLocalUserContext.user?.id
+            questionOwnerId = ThreadLocalUserContext.user?.id
 
-        val questionOwnerName = userService.getUser(questionOwner).displayName
+        val questionOwnerName = userService.getUser(questionOwnerId).displayName
         val pollDto = transformPollFromDB(pollData)
 
         if (pollDto.state == PollDO.State.FINISHED) {
@@ -73,7 +72,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         val layout = UILayout("poll.response.title")
         val fieldSet = UIFieldset(12, title = pollDto.title + " Antworten von " + questionOwnerName)
-        if (hasFullAccess(pollDto)) {
+        if (hasFullAccess(pollDto) && ThreadLocalUserContext.user?.id === questionOwnerId) {
             fieldSet.add(
                 UIInput(
                     id = "delegationUser",
@@ -88,7 +87,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                             RestResolver.getRestUrl(
                                 this::class.java,
                                 "showDelegatedUser"
-                            ), targetType = TargetType.PUT
+                            ),
+                            targetType = TargetType.GET
                         ),
                         title = "poll.response.page"
                     ),
@@ -154,7 +154,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         pollResponse.poll = pollData
 
         pollResponseDao.internalLoadAll().firstOrNull { response ->
-            response.owner?.id == questionOwner
+            response.owner?.id == questionOwnerId
                     && response.poll?.id == pollData.id
         }?.let {
             pollResponse.copyFrom(it)
@@ -231,7 +231,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                     RestResolver.getRestUrl(
                         this::class.java,
                         "addResponse"
-                    ) + "/?questionOwner=${questionOwner}", targetType = TargetType.POST
+                    ) + "/?questionOwner=${questionOwnerId}", targetType = TargetType.POST
                 )
             )
         )
@@ -275,14 +275,13 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         )
     }
 
-    @PutMapping("showDelegatedUser")
+    @GetMapping("showDelegatedUser")
     fun showDelegatedUser(
-        request: HttpServletRequest,
-        @RequestBody postData: PostData<PollResponse>
+        request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
         return ResponseEntity.ok(
             ResponseAction(
-                url = "/react/response/dynamic/?number=${pollId}&delegatedUser=${delegatedUser?.id}",
+                url = "/react/response/dynamic/?pollId=${pollId}&questionOwner=${questionOwnerId}",
                 targetType = TargetType.REDIRECT
             )
         )
@@ -290,7 +289,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
     @PostMapping(RestPaths.WATCH_FIELDS)
     fun watchFields(@Valid @RequestBody postData: PostData<Poll>): ResponseEntity<ResponseAction> {
-        delegatedUser = postData.data.delegationUser
+        questionOwnerId = postData.data.delegationUser?.id
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE))
     }
 
