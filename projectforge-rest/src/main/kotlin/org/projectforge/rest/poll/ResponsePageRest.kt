@@ -2,6 +2,7 @@ package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.projectforge.business.poll.*
+import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -36,7 +37,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun getForm(
         request: HttpServletRequest, @RequestParam("id") pollStringId: String?
     ): FormLayoutData {
-        val id = NumberHelper.parseInteger(pollStringId) ?: throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
+        val id = NumberHelper.parseInteger(pollStringId) ?: throw AccessException(
+            "access.exception.noAccess",
+            "Umfrage nicht gefunden."
+        )
         val pollData = pollDao.internalGetById(id) ?: PollDO()
         val pollDto = transformPollFromDB(pollData)
 
@@ -56,7 +60,10 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             fieldset.add(
                 UIButton.createExportButton(
                     id = "export-poll-response-button",
-                    responseAction = ResponseAction("${Rest.URL}/poll/export/${pollDto.id}", targetType = TargetType.POST),
+                    responseAction = ResponseAction(
+                        "${Rest.URL}/poll/export/${pollDto.id}",
+                        targetType = TargetType.POST
+                    ),
                     title = "poll.export.response.poll"
                 )
             )
@@ -131,22 +138,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             }
             if (field.type == BaseType.SingleResponseQuestion) {
                 col.add(
-                    PollPageRest.getUiElement(
-                        pollDto.isFinished(),
-                        "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
-                        UIDataType.BOOLEAN
-                    )
-                )
-                col.add(
-                    PollPageRest.getUiElement(
-                        pollDto.isFinished(),
-                        "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
-                        UIDataType.BOOLEAN
-                    )
-                )
-                col.add(
                     UIRadioButton(
                         "responses[$index].answers[0]", value = field.answers!![0], label = field.answers?.get(0) ?: ""
                     )
@@ -200,7 +191,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             pollResponseDao.update(it)
             return ResponseEntity.ok(
                 ResponseAction(
-                    targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                    targetType = TargetType.REDIRECT,
+                    url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
                 )
             )
         }
@@ -210,7 +202,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         return ResponseEntity.ok(
             ResponseAction(
-                targetType = TargetType.REDIRECT, url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+                targetType = TargetType.REDIRECT,
+                url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
             )
         )
     }
