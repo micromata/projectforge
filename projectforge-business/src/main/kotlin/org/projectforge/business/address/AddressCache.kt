@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -78,7 +78,7 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
     addressDao.register(this)
   }
 
-  override fun afterSaveOrModifify(changedObject: AddressDO, operationType: OperationType) {
+  override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
     synchronized(addressMap) {
       addressMap.remove(changedObject.id)
     }

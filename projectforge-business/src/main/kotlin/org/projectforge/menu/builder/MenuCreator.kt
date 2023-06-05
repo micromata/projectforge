@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -24,7 +24,9 @@
 package org.projectforge.menu.builder
 
 import mu.KotlinLogging
+import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -35,6 +37,7 @@ import org.projectforge.business.orga.ContractDao
 import org.projectforge.business.orga.PostausgangDao
 import org.projectforge.business.orga.PosteingangDao
 import org.projectforge.business.orga.VisitorbookDao
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.ConflictingVacationsCache
@@ -73,8 +76,6 @@ open class MenuCreator {
 
   private var menuItemDefHolder = MenuItemDefHolder()
 
-  private var menuItemsRegistry = mutableMapOf<String, MutableList<MenuItemDef>>()
-
   @Autowired
   private lateinit var accessChecker: AccessChecker
 
@@ -82,7 +83,16 @@ open class MenuCreator {
   private lateinit var smsSenderConfig: SmsSenderConfig
 
   @Autowired
+  private lateinit var birthdayButlerConfiguration: BirthdayButlerConfiguration
+
+  @Autowired
   private lateinit var configurationService: ConfigurationService
+
+  @Autowired
+  private lateinit var dvelopConfiguration: DvelopConfiguration
+
+  @Autowired
+  private lateinit var sipgateConfiguration: SipgateConfiguration
 
   @Autowired
   private lateinit var vacationService: VacationService
@@ -128,13 +138,12 @@ open class MenuCreator {
    * @return this for chaining.
    */
   fun register(parentId: String, menuItemDef: MenuItemDef) {
-    synchronized(menuItemsRegistry) {
-      var items = menuItemsRegistry[parentId]
-      if (items == null) {
-        items = mutableListOf()
-        menuItemsRegistry[parentId] = items
+    synchronized(menuItemDefHolder) {
+      findById(parentId)?.let {
+        it.add(menuItemDef)
+      } ?: {
+        log.error { "Can't add Menu ${menuItemDef.id}: parentId=$parentId not found." }
       }
-      items.add(menuItemDef)
     }
   }
 
@@ -218,10 +227,8 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.BOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESSBOOK_LIST))
       .add(MenuItemDef(MenuItemDefId.ADDRESS_LIST))
-      .add(MenuItemDef(MenuItemDefId.BIRTHDAY_LIST))
-    configurationService.telephoneSystemUrl?.let {
-      if (it.isNotEmpty())
-        commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
+    if (sipgateConfiguration.isConfigured()) {
+      commonMenu.add(MenuItemDef(MenuItemDefId.PHONE_CALL))
     }
     if (smsSenderConfig.isSmsConfigured()) {
       commonMenu.add(MenuItemDef(MenuItemDefId.SEND_SMS))
@@ -325,6 +332,13 @@ open class MenuCreator {
             })
         )
     }
+    if (dvelopConfiguration.isConfigured()) {
+      fibuMenu.add(
+        MenuItemDef(MenuItemDefId.DVELOP,
+          checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) })
+      )
+    }
+
     // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
     fibuMenu.add(
       MenuItemDef(MenuItemDefId.ORDER_LIST,
@@ -415,12 +429,14 @@ open class MenuCreator {
     //
     // ORGA
     //
-    menuItemDefHolder.add(
-      MenuItemDef(
-        MenuItemDefId.ORGA,
-        requiredGroups = FIBU_ORGA_HR_GROUPS
+    val orgaMenu =
+      menuItemDefHolder.add(
+        MenuItemDef(
+          MenuItemDefId.ORGA,
+          requiredGroups = FIBU_ORGA_HR_GROUPS
+        )
       )
-    )
+    orgaMenu
       .add(
         MenuItemDef(
           MenuItemDefId.OUTBOX_LIST,
@@ -445,6 +461,14 @@ open class MenuCreator {
           requiredUserRightId = VisitorbookDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE
         )
       )
+    if (birthdayButlerConfiguration.isConfigured()) {
+      orgaMenu.add(
+        MenuItemDef(
+          MenuItemDefId.BIRTHDAY_BUTLER,
+          requiredGroups = arrayOf(ProjectForgeGroup.ORGA_TEAM, ProjectForgeGroup.HR_GROUP)
+        )
+      )
+    }
 
     //////////////////////////////////////
     //
@@ -529,17 +553,6 @@ open class MenuCreator {
     // MISC
     //
     menuItemDefHolder.add(MenuItemDef(MenuItemDefId.MISC))
-
-    menuItemsRegistry.forEach { parentId, list ->
-      val parent = findById(parentId)
-      if (parent == null) {
-        log.error("Can't append menu items to parent menu '$parentId'. Parent not found.")
-      } else {
-        list.forEach { menuItemDef ->
-          add(parent, menuItemDef)
-        }
-      }
-    }
   }
 
   /**

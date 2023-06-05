@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -191,9 +191,9 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
       return ResponseEntity(ResponseAction(validationErrors = validationErrors), HttpStatus.NOT_ACCEPTABLE)
     }
     log.info { "The user wants to change his password." }
-    val errorMsgKeys = userService.internalChangePasswordAfter2FA(user.id, newPassword)
+    val errorMsgKeys = userService.internalChangePasswordAfterPasswordReset(user.id, newPassword)
     processErrorKeys(errorMsgKeys)?.let {
-      return it // Error messages occured:
+      return it // Error messages occurred:
     }
     cancel(request) // Clear session
     val layout =

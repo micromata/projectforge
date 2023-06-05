@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -67,7 +67,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
      * After modification of any address (insert, update, delete, undelete) this address should be removed from
      * this cache.
      */
-    override fun afterSaveOrModifify(changedObject: AddressbookDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: AddressbookDO, operationType: OperationType) {
         setExpired()
     }
 

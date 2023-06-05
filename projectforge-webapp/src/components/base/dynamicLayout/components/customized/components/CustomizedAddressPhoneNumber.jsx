@@ -14,6 +14,7 @@ function CustomizedAddressPhoneNumber({ values }) {
                 phoneType={data.phoneType}
                 sms={data.sms}
                 smsEnabled={data.smsEnabled}
+                callerPage="addressView"
             />
         ),
         [data],

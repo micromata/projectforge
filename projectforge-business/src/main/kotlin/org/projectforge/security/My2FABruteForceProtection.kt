@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -67,7 +67,7 @@ internal class My2FABruteForceProtection {
    * an user and this listener will be notified in this case.
    */
   internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
-    override fun afterSaveOrModifify(changedObject: PFUserDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: PFUserDO, operationType: OperationType) {
       val data = protection.getData(changedObject.id) ?: return
       if (operationType == OperationType.UPDATE && !changedObject.deactivated && data.counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
         // User is probably changed from deactivated to activated again (by an admin user).

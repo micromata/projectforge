@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -25,6 +25,7 @@ package org.projectforge.framework.json
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -86,6 +87,17 @@ object JsonUtils {
       objectMapper.readValue(json, classOfT)
     } else {
       objectMapperIgnoreUnknownProps.readValue(json, classOfT)
+    }
+  }
+
+  @JvmStatic
+  @JvmOverloads
+  @Throws(IOException::class)
+  fun <T> fromJson(json: String?, typeReference: TypeReference<T>?, failOnUnknownProps: Boolean = true): T? {
+    return if (failOnUnknownProps) {
+      objectMapper.readValue(json, typeReference)
+    } else {
+      objectMapperIgnoreUnknownProps.readValue(json, typeReference)
     }
   }
 

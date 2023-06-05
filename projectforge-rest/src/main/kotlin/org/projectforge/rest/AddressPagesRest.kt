@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -29,6 +29,7 @@ import org.projectforge.SystemStatus
 import org.projectforge.business.address.*
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.image.ImageService
+import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -110,6 +111,9 @@ class AddressPagesRest
 
   @Autowired
   private lateinit var personalAddressDao: PersonalAddressDao
+
+  @Autowired
+  private lateinit var sipgateConfiguration: SipgateConfiguration
 
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
@@ -257,8 +261,8 @@ class AddressPagesRest
     )
       .valueIconMap = mapOf(true to UIIconType.STAR_REGULAR)
     var menuIndex = 0
-    if (configurationService.isTelephoneSystemUrlConfigured) {
-      layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall"), menuIndex++)
+    if (sipgateConfiguration.isConfigured()) {
+      layout.add(MenuItem("address.phoneCall", i18nKey = "menu.phoneCall", url = "wa/phoneCall?callerPage=addressList"), menuIndex++)
     }
     if (smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()) {
       val sendSmsUrl = if (SystemStatus.isDevelopmentMode()) {
@@ -315,7 +319,7 @@ class AddressPagesRest
 
   override fun addVariablesForListPage(): Map<String, Any>? {
     return mutableMapOf(
-      "phoneCallEnabled" to configurationService.isTelephoneSystemUrlConfigured,
+      "phoneCallEnabled" to sipgateConfiguration.isConfigured(),
       "smsEnabled" to smsSenderConfig.isSmsConfigured()
     )
   }
@@ -530,7 +534,7 @@ class AddressPagesRest
         MenuItem(
           "address.directCall",
           i18nKey = "address.directCall.call",
-          url = "wa/phoneCall?addressId=${dto.id}",
+          url = "wa/phoneCall?addressId=${dto.id}&callerPage=addressList",
           type = MenuItemTargetType.REDIRECT
         )
       )

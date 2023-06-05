@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -23,7 +23,7 @@
 
 package org.projectforge.web
 
-import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.hc.core5.net.URLEncodedUtils
 import java.net.InetAddress
 import java.net.URI
 import java.net.URLEncoder

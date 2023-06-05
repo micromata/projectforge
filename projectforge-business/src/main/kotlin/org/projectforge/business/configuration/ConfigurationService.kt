@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -36,6 +36,8 @@ import org.projectforge.framework.utils.FileHelper
 import org.projectforge.mail.SendMailConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationContext
+import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import java.io.*
 import java.nio.file.Paths
@@ -54,6 +56,9 @@ open class ConfigurationService {
   private lateinit var configXml: ConfigXml
 
   @Autowired
+  private lateinit var applicationContext: ApplicationContext
+
+  @Autowired
   private lateinit var configDao: ConfigurationDao
 
   @Value("\${projectforge.base.dir}")
@@ -64,6 +69,13 @@ open class ConfigurationService {
    */
   @Value("\${projectforge.resourcesDirectory}")
   open var resourceDirName: String? = null
+    protected set
+
+  /**
+   * If true, the http session id and the ssl session id (both truncated due to security reasons) are displayed in the log files.
+   */
+  @Value("\${projectforge.logSessionIds}")
+  open var logSessionIds: Boolean? = null
     protected set
 
   open var usersSSLSocketFactory: SSLSocketFactory? = null
@@ -91,15 +103,6 @@ open class ConfigurationService {
   @Value("\${projectforge.fontsDirectory}")
   open var fontsDir: String? = null
     protected set
-
-  /**
-   * Format http://asterisk.acme.com/originatecall.php?source=#source&amp;target=#target<br></br>
-   * #source will be replaced by the current user's phone and #target by the chosen phone number to call.
-   */
-  @Value("\${projectforge.telephoneSystemUrl}")
-  open var telephoneSystemUrl: String? = null
-    protected set
-
 
   /**
    * For direct calls all numbers beginning with the this number will be stripped, e. g. for 0561316793: 056131679323 ->
@@ -342,12 +345,32 @@ open class ConfigurationService {
     } else null
   }
 
-  open val isTelephoneSystemUrlConfigured: Boolean
-    get() = StringUtils.isNotEmpty(telephoneSystemUrl)
   open val contractTypes: List<ContractType>
     get() = configXml.contractTypes
   open val isSecurityConfigured: Boolean
     get() = StringUtils.isNotBlank(securityConfig.passwordPepper)
+
+  /**
+   * @param dir The directory name.
+   * @param filename The filename of the resource dir officeTemplates.
+   * @param resourceFilename The filename of the resource dir officeTemplates inside classpath, if differ from filename.
+   */
+  open fun getTemplateFile(dir: String, filename: String, resourceFilename: String = filename): Resource? {
+    var resource: Resource? = applicationContext.getResource("file://$resourceDirName/officeTemplates/$filename")
+    if (resource == null || !resource.exists()) {
+      resource = applicationContext.getResource("classpath:officeTemplates/$resourceFilename")
+    }
+    log.info { "Using file '${resource.toString()}...'" }
+    return resource
+  }
+
+  /**
+   * @param filename The filename of the resource dir officeTemplates.
+   * @param resourceFilename The filename of the resource dir officeTemplates inside classpath, if differ from filename.
+   */
+  open fun getOfficeTemplateFile(filename: String, resourceFilename: String = filename): Resource? {
+    return getTemplateFile("officeTemplates", filename, resourceFilename)
+  }
 
   private fun setupKeyStores() {
     if (!StringUtils.isBlank(keystoreFileName)) {

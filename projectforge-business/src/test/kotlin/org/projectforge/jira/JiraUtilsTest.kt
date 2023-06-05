@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -105,6 +105,10 @@ class JiraUtilsTest {
       "<a href=\"" + JIRA_BASE_URL + "PF-222" + "\">PF-222</a>",
       buildJiraIssueBrowseLink("PF-222")
     )
+    Assertions.assertEquals(
+      "<a href=\"" + JIRA_ACME_BASE_URL + "PORTAL-222" + "\">PORTAL-222</a>",
+      buildJiraIssueBrowseLink("PORTAL-222")
+    )
   }
 
   @Test
@@ -132,6 +136,7 @@ class JiraUtilsTest {
 
   companion object {
     const val JIRA_BASE_URL = "https://jira.acme.com/jira/browse/"
+    const val JIRA_ACME_BASE_URL = "https://customer.acme.com/jira/browse/"
 
     @BeforeAll
     @JvmStatic

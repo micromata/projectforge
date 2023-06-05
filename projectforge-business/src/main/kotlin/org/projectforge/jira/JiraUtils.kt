@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2022 Micromata GmbH, Germany (www.micromata.com)
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
 //
 // ProjectForge is dual-licensed.
 //
@@ -41,7 +41,27 @@ object JiraUtils {
    */
   @JvmStatic
   fun buildJiraIssueBrowseLinkUrl(jiraIssue: String): String {
-    return ConfigXml.getInstance().jiraBrowseBaseUrl + jiraIssue
+    return "${getJiraBrowseBaseUrl(jiraIssue)}$jiraIssue"
+  }
+
+  private fun getJiraBrowseBaseUrl(jiraIssue: String): String {
+    val config = ConfigXml.getInstance()
+    config.jiraServers?.forEach { server ->
+      server.baseUrl?.let { baseUrl ->
+        if (server.projects?.any { jiraIssue.startsWith(it) } == true) {
+          return getNonBlankServerUrl(baseUrl)
+        }
+      }
+    }
+    return getNonBlankServerUrl(config.jiraBrowseBaseUrl)
+  }
+
+  private fun getNonBlankServerUrl(baseUrl: String?): String {
+    return if (baseUrl.isNullOrBlank()) {
+      "config-xml-jiraBrowseBaseUrl-undefined"
+    } else {
+      baseUrl
+    }
   }
 
   /**
@@ -52,7 +72,7 @@ object JiraUtils {
    */
   @JvmStatic
   fun buildJiraIssueBrowseLink(jiraIssue: String): String {
-    return "<a href=\"" + ConfigXml.getInstance().jiraBrowseBaseUrl + jiraIssue + "\">" + jiraIssue + "</a>"
+    return "<a href=\"${getJiraBrowseBaseUrl(jiraIssue)}$jiraIssue\">$jiraIssue</a>"
   }
 
   /**
@@ -60,11 +80,11 @@ object JiraUtils {
    *
    * @param text
    * @return [.parseJiraIssues]
-   * @see Configuration.getJiraBrowseBaseUrl
+   * @see ConfigXml.isJIRAConfigured
    */
   @JvmStatic
   fun checkForJiraIssues(text: String?): Array<String>? {
-    return if (ConfigXml.getInstance().jiraBrowseBaseUrl == null) {
+    return if (!ConfigXml.getInstance().isJIRAConfigured) {
       null
     } else parseJiraIssues(text)
   }
