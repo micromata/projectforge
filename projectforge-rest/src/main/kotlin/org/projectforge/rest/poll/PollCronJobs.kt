@@ -33,8 +33,7 @@ class PollCronJobs {
     /**
      * Cron job for daily stuff
      */
-    // todo   @Scheduled(cron = "0 0 1 * * *") // 1am everyday
-    @Scheduled(cron = "0 * * * * *") // Every Minute
+    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
     fun dailyCronJobs() {
         cronDeletePolls()
         cronEndPolls()
