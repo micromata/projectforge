@@ -6,6 +6,7 @@ import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
@@ -257,12 +258,16 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        return ResponseEntity.ok(
-            ResponseAction(
-                url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
-                targetType = TargetType.REDIRECT
+        var attendees = pollDao.internalGetById(pollId).attendeesIds
+        if (attendees != null && attendees.split(",").any { it.toIntOrNull() == questionOwnerId }){
+            return ResponseEntity.ok(
+                ResponseAction(
+                    url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
+                    targetType = TargetType.REDIRECT
+                )
             )
-        )
+        }
+        else throw AccessException("poll.exception.noAttendee")
     }
 
 
