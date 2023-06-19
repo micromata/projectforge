@@ -1,6 +1,7 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
@@ -170,8 +171,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                     } else {
                         col.add(
                             UIRadioButton(
-                                "responses[$index].answer",
-                                value = field.answers?.get(index2) ?: false,
+                                "responses[$index].answers[0]",
+                                value = field.answers?.get(index2) ?: "",
                                 label = field.answers?.get(index2) ?: ""
                             )
                         )
@@ -259,15 +260,14 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
         var attendees = pollDao.internalGetById(pollId).attendeesIds
-        if (attendees != null && attendees.split(",").any { it.toIntOrNull() == questionOwnerId }){
+        if (attendees != null && attendees.split(",").any { it.toIntOrNull() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
                     targetType = TargetType.REDIRECT
                 )
             )
-        }
-        else throw AccessException("poll.exception.noAttendee")
+        } else throw AccessException("poll.exception.noAttendee")
     }
 
 
