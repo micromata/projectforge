@@ -77,13 +77,13 @@ open class PollDO : DefaultBaseDO() {
         if (currentUserId == this.owner?.id) {
             assignmentList.add(PollAssignment.OWNER)
         }
-        if (this.fullAccessUserIds != null) {
+        if (!this.fullAccessUserIds.isNullOrBlank()) {
             val accessUserIds = this.fullAccessUserIds!!.split(", ").map { it.toInt() }.toIntArray()
             if (accessUserIds.contains(currentUserId)) {
                 assignmentList.add(PollAssignment.ACCESS)
             }
         }
-        if (this.attendeeIds != null) {
+        if (!this.attendeeIds.isNullOrBlank()) {
             val attendeeUserIds = this.attendeeIds!!.split(", ").map { it.toInt() }.toIntArray()
             if (attendeeUserIds.contains(currentUserId)) {
                 assignmentList.add(PollAssignment.ATTENDEE)
@@ -97,8 +97,6 @@ open class PollDO : DefaultBaseDO() {
 
     @Transient
     fun getPollStatus(): PollState {
-        //TODO: Maybe change this to enum class State
-
         return if (this.state == State.FINISHED) {
             PollState.FINISHED
         } else {
