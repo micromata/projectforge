@@ -371,11 +371,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             User.restoreDisplayNames(users, userService)
             val allUsers = dto.attendees?.toMutableList() ?: mutableListOf()
 
-            var counter = 0
             users?.forEach { user ->
                 if (allUsers.none { it.id == user.id }) {
                     allUsers.add(user)
-                    counter++
                 }
             }
 
