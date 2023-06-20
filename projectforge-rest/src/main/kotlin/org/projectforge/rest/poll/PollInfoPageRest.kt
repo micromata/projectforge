@@ -64,13 +64,13 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(
             UIFieldset().add(UILabel("YesNoQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage, die mit Ja oder Nein beantwortet werden kann"))
+                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage, die mit Ja oder Nein beantwortet werden kann."))
             )
         )
         layout.add(
             UIFieldset().add(UILabel("MultipleChoiceQuestion")).add(
                 UICol()
-                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage, die mit mehreren Antworten beantwortet werden kann"))
+                    .add(UIReadOnlyField("question", label = "Question", value = "Eine Frage, die mit mehreren Antworten beantwortet werden kann."))
             )
         )
         layout.add(
@@ -80,22 +80,10 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
                         UIReadOnlyField(
                             "question",
                             label = "Question",
-                            value = "Eine Frage, die mit einer Freitext Antwort beantwortet werden kann"
+                            value = "Eine Frage, die mit einer Freitext Antwort beantwortet werden kann."
                         )
                     )
 
-            )
-        )
-        layout.add(
-            UIFieldset().add(UILabel("DateQuestion")).add(
-                UICol()
-                    .add(
-                        UIReadOnlyField(
-                            "question", label = "Question",
-                            value = """Eine Frage, ob an einem Tag (Uhrzeit) die Teilnehmer Zeit haben. Die mit einem Ja, Nein oder Vielleicht 
-                            beantwortet werden kann"""
-                        )
-                    )
             )
         )
         layout.add(
@@ -104,7 +92,7 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
                     .add(
                         UIReadOnlyField(
                             "question", label = "Question",
-                            value = """ Eine Frage, die mit einem Dropdown beantwortet werden kann"""
+                            value = "Eine Frage, die mit einem Dropdown beantwortet werden kann."
                         )
                     )
             )
