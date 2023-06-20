@@ -10,6 +10,7 @@ import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -25,6 +26,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -39,6 +41,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
+
+    @Autowired
+    private lateinit var pollMailService: PollMailService
 
     @Autowired
     private lateinit var userService: UserService
@@ -248,13 +253,33 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             )
         }
 
-
         pollResponseDao.saveOrUpdate(pollResponseDO)
+
+        if (ThreadLocalUserContext.user != pollResponseDO.owner) {
+            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.user!!)
+        }
 
         return ResponseEntity.ok(
             ResponseAction(
                 targetType = TargetType.REDIRECT,
                 url = PagesResolver.getListPageUrl(PollPageRest::class.java, absolute = true)
+            )
+        )
+    }
+
+
+    private fun sendMailResponseToOwner(pollResponseDO: PollResponseDO, canedUser: PFUserDO) {
+        var emailList = ArrayList<String>()
+        pollResponseDO.owner?.email?.let { emailList.add(it) }
+        pollMailService.sendMail(
+            canedUser?.email.toString(), emailList,
+            translateMsg("poll.response.mail.update.subject", canedUser.displayName),
+            translateMsg(
+                "poll.response.mail.update.content",
+                pollResponseDO.owner?.displayName,
+                pollResponseDO.poll?.title,
+                canedUser.displayName,
+                pollResponseDO.poll?.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString()
             )
         )
     }
