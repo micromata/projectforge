@@ -6,11 +6,14 @@ import de.micromata.merlin.excel.ExcelWorkbook
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
+import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PollResponse
+import org.projectforge.web.rest.converter.PFUserDOConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +32,12 @@ class ExcelExport {
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
 
+    @Autowired
+    private lateinit var groupService: GroupService
+
+    @Autowired
+    private lateinit var userService: UserService
+
 
     fun getExcel(poll: Poll): ByteArray? {
         val responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
@@ -43,14 +52,57 @@ class ExcelExport {
                 var anzNewRows = 2
 
                 anzNewRows += (poll.attendees?.size ?: 0)
+
+
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
+
+
+
                 poll.attendees?.sortedBy { it.displayName }
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                     setNewRows(excelSheet, poll, user, res, index)
                 }
+
+
+                var fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+                val accesGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+                val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accesGroupIds))
+                val accessUsers = User.toUserList(accessUserIds)
+                User.restoreDisplayNames(accessUsers, userService)
+
+                accessUsers?.forEach { user ->
+                    if (fullAccessUser.none { it.id == user.id }) {
+                        fullAccessUser.add(user)
+                    }
+                }
+
+                var owner = User.getUser(poll.owner?.id, false)
+                if (owner != null) {
+                    fullAccessUser.add(owner)
+                }
+
+                fullAccessUser.forEachIndexed { index, user ->
+                    var number = index + (poll.attendees?.size ?: 0)
+                    if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
+                        val res = PollResponse()
+                        responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                        // User add a Response
+                        if (res.id != null) {
+                            // create A new Row emptyRow
+                            Objects.requireNonNull(
+                                excelSheet.getRow(FIRST_DATA_ROW_NUM)
+                            ).copyAndInsert(
+                                emptyRow.sheet
+                            )
+                            // Put Data's in the Row
+                            setNewRows(excelSheet, poll, user, res, number)
+                        }
+                    }
+                }
+
                 return returnByteFile(excelSheet)
             }
         } catch (e: NullPointerException) {
@@ -108,11 +160,12 @@ class ExcelExport {
             }
             questionAnswer?.answers?.forEachIndexed { ind, antwort ->
                 cell++
-                if (question.type == BaseType.SingleResponseQuestion || question.type == BaseType.MultiResponseQuestion) {
+                if (question.type == BaseType.MultiResponseQuestion) {
                     if (antwort is Boolean && antwort == true) {
                         excelRow.getCell(cell).setCellValue("X")
                     }
-                    if (antwort is String && antwort == question.answers?.get(ind)) {
+                } else if (question.type == BaseType.SingleResponseQuestion) {
+                    if (antwort is String && antwort.equals(question.answers?.get(ind))) {
                         excelRow.getCell(cell).setCellValue("X")
                     }
                 } else {
@@ -129,7 +182,8 @@ class ExcelExport {
         var counterOfBreaking = 0
         var counterOfOverlength = 0
 
-        val pufferSplit: Array<String> = puffer.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val pufferSplit: Array<String> =
+            puffer.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         // check for line-breaks
         for (i in pufferSplit.indices) {
             counterOfBreaking++
