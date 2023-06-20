@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.*
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
-import kotlin.collections.ArrayList
 import javax.validation.Valid
 
 
@@ -253,7 +252,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                 )
             )
         }
-
 
         pollResponseDao.saveOrUpdate(pollResponseDO)
 
