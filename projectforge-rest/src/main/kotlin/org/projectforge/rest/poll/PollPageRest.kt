@@ -7,6 +7,7 @@ import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.poll.filter.PollAssignmentFilter
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.business.poll.filter.PollStateFilter
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
@@ -57,10 +58,23 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @Autowired
     private lateinit var excelExport: ExcelExport
 
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
+
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
         result.owner = ThreadLocalUserContext.user
         return result
+    }
+
+    override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+        val responsesToDelete = pollResponseDao.internalLoadAll().filter {
+            it.poll!!.id == obj.id
+        }
+        responsesToDelete.forEach {
+            pollResponseDao.markAsDeleted(it)
+        }
+        super.onBeforeMarkAsDeleted(request, obj, postData)
     }
 
 
@@ -104,8 +118,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
         elements.add(
-            UIFilterListElement("assignment", label = translate("poll.pollAssignment"), defaultFilter = true)
-                .buildValues(PollAssignment.OWNER, PollAssignment.OTHER)
+            UIFilterListElement("assignment", label = translate("poll.assignment"), defaultFilter = true)
+                .buildValues(PollAssignment.OWNER, PollAssignment.ACCESS, PollAssignment.ATTENDEE, PollAssignment.OTHER)
         )
         elements.add(
             UIFilterListElement("status", label = translate("poll.state"), defaultFilter = true)
@@ -113,7 +127,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         )
     }
 
-    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>>? {
+    override fun preProcessMagicFilter(target: QueryFilter, source: MagicFilter): List<CustomResultFilter<PollDO>> {
         val filters = mutableListOf<CustomResultFilter<PollDO>>()
         val assignmentFilterEntry = source.entries.find { it.field == "assignment" }
         if (assignmentFilterEntry != null) {
@@ -141,6 +155,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val layout = super.createEditLayout(dto, userAccess)
 
         val fieldset = UIFieldset(UILength(12))
+
 
         addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
 
@@ -583,7 +598,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollDO = PollDO()
         dto.copyTo(pollDO)
 
-        return if (pollDao.hasFullAccess(pollDO) == false) {
+        return if (!pollDao.hasFullAccess(pollDO)) {
             // no full access user
             UILayout.UserAccess(insert = false, update = false, delete = false, history = false)
         } else {
@@ -592,7 +607,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 UILayout.UserAccess(insert = true, update = true, delete = false, history = true)
             } else {
                 // full access when viewing old poll
-                UILayout.UserAccess(insert = false, update = false, delete = true, history = false)
+                UILayout.UserAccess(insert = true, update = true, delete = true, history = false)
             }
         }
     }
