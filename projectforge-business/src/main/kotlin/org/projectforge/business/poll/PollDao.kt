@@ -56,7 +56,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
     }
 
     fun isAttendee(obj: PollDO, user: Int?): Boolean {
-        if (!obj.attendeesIds.isNullOrBlank() && obj.attendeesIds!!.split(", ").contains(user.toString())
+        if (!obj.attendeeIds.isNullOrBlank() && obj.attendeeIds!!.split(", ").contains(user.toString())
         )
             return true
         return false
