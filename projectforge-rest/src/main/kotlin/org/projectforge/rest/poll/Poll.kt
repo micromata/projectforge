@@ -22,14 +22,15 @@ class Poll(
     var fullAccessGroups: List<Group>? = null,
     var fullAccessUsers: List<User>? = null,
     var groupAttendees: List<Group>? = null,
-    var attendees: List<User>? = null
+    var attendees: List<User>? = null,
+    var delegationUser: User? = null
 ) : BaseDTO<PollDO>() {
     override fun copyFrom(src: PollDO) {
         super.copyFrom(src)
         fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
         fullAccessUsers = User.toUserList(src.fullAccessUserIds)
-        groupAttendees = Group.toGroupList(src.groupAttendeesIds)
-        attendees = User.toUserList(src.attendeesIds)
+        groupAttendees = Group.toGroupList(src.groupAttendeeIds)
+        attendees = User.toUserList(src.attendeeIds)
         if (src.inputFields != null) {
             val fields = ObjectMapper().readValue(src.inputFields, MutableList::class.java)
             inputFields = fields.map { Question().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
@@ -40,8 +41,8 @@ class Poll(
         super.copyTo(dest)
         dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
         dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-        dest.groupAttendeesIds = Group.toIntList(groupAttendees)
-        dest.attendeesIds = User.toIntList(attendees)
+        dest.groupAttendeeIds = Group.toIntList(groupAttendees)
+        dest.attendeeIds = User.toIntList(attendees)
         if (inputFields != null) {
             dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
         }
