@@ -203,10 +203,15 @@ object ExcelUtils {
   object Size {
     const val DATE = 10
     const val DATE_TIME = 20
+    const val DURATION = 10
     const val EMAIL = 30
     const val EXTRA_LONG = 80
     const val ID = 10
+    const val KOSTENTRAEGER = 11
     const val PHONENUMBER = 20
+    const val TASK_PATH = 60
+    const val TIMESTAMP = 16
+    const val USER = 20
     const val STANDARD = 30
     const val ZIPCODE = 7
   }
