@@ -73,7 +73,7 @@ open class SessionCsrfService
       // Check OK.
       return null
     }
-    log.warn("Check of CSRF token failed, a validation error will be shown. $logAction of data declined: ${postData.data}")
+    log.warn("Check of CSRF token failed, a validation error will be shown. $logAction of data declined: ${postData.data}. Expected token: ${super.getSessionData(request)}")
     val validationErrors = mutableListOf<ValidationError>()
     validationErrors.add(ValidationError.create("errorpage.csrfError"))
     postData.serverData = createServerData(request)
@@ -90,7 +90,7 @@ open class SessionCsrfService
     return ServerData(csrfToken = ensureAndGetToken(request))
   }
 
-  fun checkToken(request: HttpServletRequest, token: String?): Boolean {
+  private fun checkToken(request: HttpServletRequest, token: String?): Boolean {
     if (token.isNullOrEmpty() || token.trim().length < 30) {
       log.info { "Token to short, check faild for session id '${request.getSession(false)?.id}'." }
       return false
@@ -98,7 +98,7 @@ open class SessionCsrfService
     return super.getSessionData(request) == token
   }
 
-  fun ensureAndGetToken(request: HttpServletRequest): String {
+  private fun ensureAndGetToken(request: HttpServletRequest): String {
     var token = super.getSessionData(request)
     if (token != null) {
       return token
