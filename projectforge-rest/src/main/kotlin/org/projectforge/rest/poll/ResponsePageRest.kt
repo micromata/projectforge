@@ -1,15 +1,16 @@
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.projectforge.business.calendar.event.model.SeriesModificationMode
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDO
 import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -25,6 +26,7 @@ import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
@@ -39,6 +41,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
+
+    @Autowired
+    private lateinit var pollMailService: PollMailService
 
     @Autowired
     private lateinit var userService: UserService
@@ -71,10 +76,16 @@ class ResponsePageRest : AbstractDynamicPageRest() {
 
         val pollDto = transformPollFromDB(pollData)
 
+        if (pollData.id == null) {
+            throw AccessException("access.exception.noAccess", "Umfrage nicht gefunden.")
+        }
+
+        // allow access to attendee, full access and owner
+        if (pollData.getPollAssignment().contains(PollAssignment.OTHER)) {
+            throw AccessException("access.exception.noAccess", "Du darfst nicht auf diese Umfrage antworten.")
+        }
 
         val layout = UILayout("poll.response.title")
-
-
         if (pollDao.hasFullAccess(pollData)) {
             layout.add(
                 MenuItem(
@@ -84,43 +95,42 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                     type = MenuItemTargetType.REDIRECT
                 )
             )
-
-            if (!pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId) {
-                val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
-                fieldSetDelegationUser.add(
-                    UIInput(
-                        id = "delegationUser",
-                        label = "user",
-                        dataType = UIDataType.USER
-                    )
-                )
-                    .add(UISpacer())
-                    .add(
-                        UIButton.createDefaultButton(
-                            id = "response-poll-button",
-                            responseAction = ResponseAction(
-                                RestResolver.getRestUrl(
-                                    this::class.java,
-                                    "showDelegatedUser"
-                                ),
-                                targetType = TargetType.GET
-                            ),
-                            title = "poll.selectUser"
-                        ),
-                    )
-                layout.add(fieldSetDelegationUser)
-            }
         }
 
-        val fieldSet = UIFieldset(12, title = pollDto.title + " - " + answerTitle)
-        fieldSet.add(UIReadOnlyField(value = pollDto.description, label = translateMsg("poll.description")))
+        val fieldset = UIFieldset(12, title = pollDto.title + " - " + answerTitle)
+        layout.add(fieldset)
+        fieldset.add(UIReadOnlyField(value = pollDto.description, label = translateMsg("poll.description")))
             .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
             .add(UISpacer())
             .add(UISpacer())
-        layout.add(fieldSet)
 
+        if (!pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId) {
+            val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
+            fieldSetDelegationUser.add(
+                UIInput(
+                    id = "delegationUser",
+                    label = "user",
+                    dataType = UIDataType.USER
+                )
+            )
+                .add(UISpacer())
+                .add(
+                    UIButton.createDefaultButton(
+                        id = "response-poll-button",
+                        responseAction = ResponseAction(
+                            RestResolver.getRestUrl(
+                                this::class.java,
+                                "showDelegatedUser"
+                            ),
+                            targetType = TargetType.GET
+                        ),
+                        title = "poll.selectUser"
+                    ),
+                )
+            layout.add(fieldSetDelegationUser)
+        }
 
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
@@ -180,7 +190,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                 }
             }
             fieldSetQuestions.add(UIRow().add(col))
-            fieldSet.add(fieldSetQuestions)
+            fieldset.add(fieldSetQuestions)
         }
 
         val backUrl = if (returnToCaller.isNullOrEmpty()) {
@@ -243,8 +253,11 @@ class ResponsePageRest : AbstractDynamicPageRest() {
             )
         }
 
-
         pollResponseDao.saveOrUpdate(pollResponseDO)
+
+        if (ThreadLocalUserContext.user != pollResponseDO.owner) {
+            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.user!!)
+        }
 
         return ResponseEntity.ok(
             ResponseAction(
@@ -255,12 +268,34 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     }
 
 
+    private fun sendMailResponseToOwner(pollResponseDO: PollResponseDO, canedUser: PFUserDO) {
+        var emailList = ArrayList<String>()
+        pollResponseDO.owner?.email?.let { emailList.add(it) }
+        pollMailService.sendMail(
+            canedUser?.email.toString(), emailList,
+            translateMsg("poll.response.mail.update.subject", canedUser.displayName),
+            translateMsg(
+                "poll.response.mail.update.content",
+                pollResponseDO.owner?.displayName,
+                pollResponseDO.poll?.title,
+                canedUser.displayName,
+                pollResponseDO.poll?.deadline?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")).toString()
+            )
+        )
+    }
+
+
     @GetMapping("showDelegatedUser")
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        var attendees = pollDao.internalGetById(pollId).attendeesIds
-        if (attendees != null && attendees.split(",").any { it.toIntOrNull() == questionOwnerId }) {
+        var attendees = listOf(
+            pollDao.internalGetById(pollId).attendeeIds,
+            pollDao.internalGetById(pollId).fullAccessUserIds,
+            pollDao.internalGetById(pollId).owner?.id
+        )
+        var joinedAttendeeIds = attendees.joinToString(", ")
+        if (attendees != null && joinedAttendeeIds.split(", ").any { it.toIntOrNull() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
