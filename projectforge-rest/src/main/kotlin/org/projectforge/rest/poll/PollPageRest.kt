@@ -153,11 +153,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         return filters
     }
 
+
     override fun createEditLayout(dto: Poll, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
         val fieldset = UIFieldset(UILength(12))
         layout.add(fieldset)
-        if (dto.state == PollDO.State.RUNNING && dto.isAlreadyCreated()) {
+        if (dto.isFinished() && dto.isAlreadyCreated()) {
             layout.add(
                 MenuItem(
                     "export-poll-response-button",
@@ -357,7 +358,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 .addVariable("ui", createEditLayout(dto, getUserAccess(dto)))
         )
     }
-
 
     override fun onWatchFieldsUpdate(
         request: HttpServletRequest,
