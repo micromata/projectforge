@@ -31,25 +31,24 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             return true
         };
         if (obj != null && operationType == OperationType.SELECT){
-            if(hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
+            if(hasFullAccess(obj, ThreadLocalUserContext.user!!) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
                 return true
         }
         if (obj != null) {
-            return hasFullAccess(obj)
+            return hasFullAccess(obj, ThreadLocalUserContext.user!!)
         }
         return false
     }
 
-    fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUser = user
-        if (!obj.fullAccessUserIds.isNullOrBlank() && obj.fullAccessUserIds!!.contains(loggedInUser?.id.toString()))
+    fun hasFullAccess(obj: PollDO, user: PFUserDO): Boolean {
+        if (!obj.fullAccessUserIds.isNullOrBlank() && obj.fullAccessUserIds!!.contains(user.id.toString()))
             return true
-        if (obj.owner?.id == loggedInUser?.id)
+        if (obj.owner?.id == user.id)
             return true
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
             val groupUsers = groupService?.getGroupUsers(groupIdArray)
-            if (groupUsers?.contains(loggedInUser) == true)
+            if (groupUsers?.contains(user) == true)
                 return true
         }
         return false

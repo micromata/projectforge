@@ -636,7 +636,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollDO = PollDO()
         pollDto.copyTo(pollDO)
 
-        return if (!pollDao.hasFullAccess(pollDO)) {
+        return if (!pollDao.hasFullAccess(pollDO, ThreadLocalUserContext.user!!)) {
             // no full access user
             UILayout.UserAccess(insert = false, update = false, delete = false, history = false)
         } else {
