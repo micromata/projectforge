@@ -65,7 +65,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val pollData = pollDao.internalGetById(pollId) ?: PollDO()
 
         var answerTitle = ""
-        if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt())) {
+        //check if the delegation user is an attendee or has full access and the one delegating has also full access
+        if (delUser != null && pollDao.hasFullAccess(pollData, ThreadLocalUserContext.user!!) && (pollDao.isAttendee(pollData, delUser.toInt()) || pollDao.hasFullAccess(pollData, userService.getUser(questionOwnerId)))) {
             questionOwnerId = delUser.toInt()
             answerTitle = translateMsg("poll.delegationAnswers") + userService.getUser(questionOwnerId).displayName
         } else {
@@ -86,7 +87,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         }
 
         val layout = UILayout("poll.response.title")
-        if (pollDao.hasFullAccess(pollData)) {
+        if (pollDao.hasFullAccess(pollData, ThreadLocalUserContext.user!!)) {
             layout.add(
                 MenuItem(
                     "EDIT",
