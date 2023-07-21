@@ -64,7 +64,8 @@ class PollCronJobs {
                     }
                 }
                 // add all attendees mails
-                val mailTo: ArrayList<String> = ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+                val mailTo: ArrayList<String> =
+                    ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
                 val mailFrom = pollDO.owner?.email.toString()
                 val mailSubject = translateMsg("poll.mail.ended.subject")
                 val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
@@ -81,7 +82,8 @@ class PollCronJobs {
             val daysDifference = ChronoUnit.DAYS.between(LocalDate.now(), pollDO.deadline)
             if (daysDifference == 1L || daysDifference == 7L) {
                 // add all attendees mails
-                val mailTo: ArrayList<String> = ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+                val mailTo: ArrayList<String> =
+                    ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
                 val mailFrom = pollDO.owner?.email.toString()
                 val mailSubject = translateMsg("poll.mail.endingSoon.subject", daysDifference)
                 val mailContent = translateMsg(
