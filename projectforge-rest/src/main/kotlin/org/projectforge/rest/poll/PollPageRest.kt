@@ -17,6 +17,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
@@ -296,8 +297,14 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
-        val mailTo: ArrayList<String> =
+
+        var mailTo: ArrayList<String> =
             ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+        var a = User.toIntList(postData.data.attendees)
+
+        var b = userService.getSortedUsers(a)
+
+        mailTo = ArrayList(b.map { it.email })
         val owner = userService.getUser(obj.owner?.id)
         val mailFrom = owner?.email.toString()
         val mailSubject: String
