@@ -13,7 +13,6 @@ import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PollResponse
-import org.projectforge.web.rest.converter.PFUserDOConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,7 +52,6 @@ class ExcelExport {
 
                 anzNewRows += (poll.attendees?.size ?: 0)
 
-
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
 
@@ -83,9 +81,10 @@ class ExcelExport {
                 if (owner != null) {
                     fullAccessUser.add(owner)
                 }
+
                 User.restoreDisplayNames(fullAccessUser, userService)
                 fullAccessUser.forEachIndexed { index, user ->
-                    var number = (index) + (anzNewRows)
+                    var number = (anzNewRows)
                     if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
@@ -93,6 +92,7 @@ class ExcelExport {
                         if (res.id != null) {
                             // Put Data's in the Row
                             setNewRows(excelSheet, poll, user, res, number)
+                            number++
                         }
                     }
                 }
@@ -106,6 +106,7 @@ class ExcelExport {
         }
         return null
     }
+
 
     private fun setFirstRow(excelSheet: ExcelSheet, style: CellStyle, poll: Poll) {
         val excelRow = excelSheet.getRow(0)
