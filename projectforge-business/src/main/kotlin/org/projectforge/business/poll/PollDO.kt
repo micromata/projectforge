@@ -104,18 +104,9 @@ open class PollDO : DefaultBaseDO() {
         if (accessUserIds?.contains(currentUserId) == true) {
             assignmentList.add(PollAssignment.ACCESS)
         }
-
-        if (!this.fullAccessUserIds.isNullOrBlank()) {
-            val accessUserIds = toIntArray(this.fullAccessUserIds)
-            if (accessUserIds?.contains(currentUserId) == true) {
-                assignmentList.add(PollAssignment.ACCESS)
-            }
-        }
-        if (!this.attendeeIds.isNullOrBlank()) {
-            val attendeeUserIds = toIntArray(this.attendeeIds)
-            if (attendeeUserIds?.contains(currentUserId) == true) {
-                assignmentList.add(PollAssignment.ATTENDEE)
-            }
+        val attendeeUserIds = toIntArray(this.attendeeIds)
+        if (attendeeUserIds?.contains(currentUserId) == true) {
+            assignmentList.add(PollAssignment.ATTENDEE)
         }
         if (assignmentList.isEmpty())
             assignmentList.add(PollAssignment.OTHER)
