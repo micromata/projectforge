@@ -289,20 +289,32 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        var attendees = listOf(
+        var attendees = listOfNotNull(
             pollDao.internalGetById(pollId).attendeeIds,
             pollDao.internalGetById(pollId).fullAccessUserIds,
             pollDao.internalGetById(pollId).owner?.id
         )
         var joinedAttendeeIds = attendees.joinToString(", ")
-        if (attendees != null && joinedAttendeeIds.split(", ").any { it.toIntOrNull() == questionOwnerId }) {
+        if (questionOwnerId == ThreadLocalUserContext.userId) {
+            return ResponseEntity.ok(
+                ResponseAction()
+            )
+        }
+        if (joinedAttendeeIds.split(", ").any { it.toInt() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
                     targetType = TargetType.REDIRECT
                 )
             )
-        } else throw AccessException("poll.exception.noAttendee")
+        } else {
+            return ResponseEntity.badRequest().body(
+                ResponseAction(
+                    url = "/react/poll",
+                    targetType = TargetType.REDIRECT,
+                    message = ResponseAction.Message("poll.exception.noAttendee")
+                ))
+        }
     }
 
 
