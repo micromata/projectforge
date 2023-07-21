@@ -40,17 +40,23 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
+    //returns true if current user hast full access, otherwise returns false
     fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUser = user
-        if (!obj.fullAccessUserIds.isNullOrBlank() && obj.fullAccessUserIds!!.contains(loggedInUser?.id.toString()))
-            return true
-        if (obj.owner?.id == loggedInUser?.id)
+        val loggedInUserId = ThreadLocalUserContext.userId!!
+        if (!obj.fullAccessUserIds.isNullOrBlank()) {
+            val userIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
+            if (userIdArray.contains(loggedInUserId))
+                return true
+        }
+        if (obj.owner?.id == loggedInUserId)
             return true
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
             val groupUsers = groupService?.getGroupUsers(groupIdArray)
-            if (groupUsers?.contains(loggedInUser) == true)
-                return true
+            groupUsers!!.map { it.id }.forEach {
+                if (it == loggedInUserId)
+                    return true
+            }
         }
         return false
     }
