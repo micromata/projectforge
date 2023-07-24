@@ -30,13 +30,13 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PollResponse
-import org.projectforge.web.rest.converter.PFUserDOConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -88,7 +88,6 @@ class ExcelExport {
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                     setNewRows(excelSheet, poll, user, res, index)
                 }
-
 
                 var fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
                 val accesGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
