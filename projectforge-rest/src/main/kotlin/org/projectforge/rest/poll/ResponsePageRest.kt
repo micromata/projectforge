@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -58,13 +81,13 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") delUser: String?,
         @RequestParam("returnToCaller") returnToCaller: String?,
     ): FormLayoutData {
-        if (pollId === null || (pollStringId != null && pollId != null)) {
+        if (pollId === null || pollStringId != null) {
             pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
         }
         // used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
         val pollData = pollDao.internalGetById(pollId) ?: PollDO()
 
-        var answerTitle = ""
+        val answerTitle: String
         if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt())) {
             questionOwnerId = delUser.toInt()
             answerTitle = translateMsg("poll.delegationAnswers") + userService.getUser(questionOwnerId).displayName
@@ -229,7 +252,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
-
     @PostMapping("addResponse")
     fun addResponse(
         request: HttpServletRequest,
@@ -267,12 +289,11 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         )
     }
 
-
     private fun sendMailResponseToOwner(pollResponseDO: PollResponseDO, canedUser: PFUserDO) {
-        var emailList = ArrayList<String>()
+        val emailList = ArrayList<String>()
         pollResponseDO.owner?.email?.let { emailList.add(it) }
         pollMailService.sendMail(
-            canedUser?.email.toString(), emailList,
+            canedUser.email.toString(), emailList,
             translateMsg("poll.response.mail.update.subject", canedUser.displayName),
             translateMsg(
                 "poll.response.mail.update.content",
@@ -284,18 +305,17 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         )
     }
 
-
     @GetMapping("showDelegatedUser")
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        var attendees = listOf(
+        val attendees = listOf(
             pollDao.internalGetById(pollId).attendeeIds,
             pollDao.internalGetById(pollId).fullAccessUserIds,
             pollDao.internalGetById(pollId).owner?.id
         )
-        var joinedAttendeeIds = attendees.joinToString(", ")
-        if (attendees != null && joinedAttendeeIds.split(", ").any { it.toIntOrNull() == questionOwnerId }) {
+        val joinedAttendeeIds = attendees.joinToString(", ")
+        if (joinedAttendeeIds.split(", ").any { it.toIntOrNull() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
@@ -311,7 +331,6 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         questionOwnerId = postData.data.delegationUser?.id
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE))
     }
-
 
     private fun transformPollFromDB(obj: PollDO): Poll {
         val poll = Poll()
