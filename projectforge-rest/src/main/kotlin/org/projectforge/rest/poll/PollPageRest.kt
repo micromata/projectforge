@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2023 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.rest.poll
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -73,7 +96,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         val responsesToDelete = pollResponseDao.internalLoadAll().filter {
-            it.poll!!.id == obj.id
+            it.poll?.id == obj.id
         }
         responsesToDelete.forEach {
             pollResponseDao.markAsDeleted(it)
@@ -281,7 +304,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         postData.data.state = PollDO.State.FINISHED
         postData.data.deadline = LocalDate.now()
-
         return super.saveOrUpdate(request, postData)
     }
 
@@ -297,14 +319,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
+        var mailTo = pollMailService.getAllMails(postData.data)
 
-        var mailTo: ArrayList<String> =
-            ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
-        var a = User.toIntList(postData.data.attendees)
-
-        var b = userService.getSortedUsers(a)
-
-        mailTo = ArrayList(b.map { it.email })
         val owner = userService.getUser(obj.owner?.id)
         val mailFrom = owner?.email.toString()
         val mailSubject: String
@@ -389,7 +405,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
         dto.owner = userService.getUser(dto.owner?.id)
 
-        // I dont know why this is necessary
+        // I don't know why this is necessary
         if (watchFieldsTriggered?.get(0) == "delegationUser") {
             dto.delegationUser = dto.delegationUser
         }
@@ -573,9 +589,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val filename = ("${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
 
         if (bytes == null || bytes.isEmpty()) {
-            log.error("Oops, xlsx has zero size. Filename: $filename")
+            log.error("Oops, xlsx is empty. Filename: $filename")
             return null
         }
+        log.info("Exporting $filename")
         return RestUtils.downloadFile(filename, bytes)
     }
 
