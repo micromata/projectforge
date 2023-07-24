@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
@@ -318,8 +319,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
-
-
         var mailTo = pollMailService.getAllMails(postData.data)
 
         val owner = userService.getUser(obj.owner?.id)
@@ -654,7 +653,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollDO = PollDO()
         pollDto.copyTo(pollDO)
 
-        return if (!pollDao.hasFullAccess(pollDO)) {
+        return if (!pollDao.hasFullAccess(pollDO, ThreadLocalUserContext.user!!)) {
             // no full access user
             UILayout.UserAccess(insert = false, update = false, delete = false, history = false)
         } else {
@@ -671,6 +670,5 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             }
         }
     }
-
 
 }
