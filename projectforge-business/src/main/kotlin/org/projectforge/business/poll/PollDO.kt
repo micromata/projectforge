@@ -128,7 +128,7 @@ open class PollDO : DefaultBaseDO() {
     }
 
     companion object {
-        internal fun toIntArray(str: String?): IntArray? {
+        fun toIntArray(str: String?): IntArray? {
             if (str.isNullOrBlank()) return null
             return StringHelper.splitToInts(str, ",", false)
         }
