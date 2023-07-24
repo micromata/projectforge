@@ -635,13 +635,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         dataType = UIDataType.STRING
                     )
                 )
-                .add(
-                    UIReadOnlyField(
-                        value = (pollDto.date?.toString() ?: ""),
-                        label = "date",
-                        dataType = UIDataType.STRING
-                    )
-                )
                 .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = "owner", dataType = UIDataType.STRING))
         }
     }
