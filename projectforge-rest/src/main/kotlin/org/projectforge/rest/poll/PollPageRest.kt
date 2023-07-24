@@ -318,8 +318,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
-        val mailTo: ArrayList<String> =
-            ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+
+
+        var mailTo = pollMailService.getAllMails(postData.data)
+
         val owner = userService.getUser(obj.owner?.id)
         val mailFrom = owner?.email.toString()
         val mailSubject: String
@@ -669,5 +671,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             }
         }
     }
+
 
 }
