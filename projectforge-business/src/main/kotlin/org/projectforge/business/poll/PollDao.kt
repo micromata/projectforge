@@ -75,8 +75,8 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             return true
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
-            val groupUsers = groupService?.getGroupUsers(groupIdArray)
-            groupUsers!!.map { it.id }.forEach {
+            val groupUsers = groupService.getGroupUsers(groupIdArray)
+            groupUsers.map { it.id }.forEach {
                 if (it == loggedInUserId)
                     return true
             }
