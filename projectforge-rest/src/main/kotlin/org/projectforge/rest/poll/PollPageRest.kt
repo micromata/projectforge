@@ -622,7 +622,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             fieldset
                 .add(lc, "title", "description", "location")
                 .add(UISelect.createUserSelect(lc, "owner", false, "poll.owner"))
-                .add(lc, "deadline", "date")
+                .add(lc, "deadline")
         } else {
             fieldset
                 .add(UIReadOnlyField(value = pollDto.title, label = "titel", dataType = UIDataType.STRING))
