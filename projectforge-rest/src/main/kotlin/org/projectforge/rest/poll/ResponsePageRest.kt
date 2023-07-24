@@ -309,12 +309,12 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        var attendees = listOfNotNull(
+        val attendees = listOfNotNull(
             pollDao.internalGetById(pollId).attendeeIds,
             pollDao.internalGetById(pollId).fullAccessUserIds,
             pollDao.internalGetById(pollId).owner?.id
         )
-        var joinedAttendeeIds = attendees.joinToString(", ")
+        val joinedAttendeeIds = attendees.joinToString(", ")
         if (questionOwnerId == ThreadLocalUserContext.userId) {
             return ResponseEntity.ok(
                 ResponseAction()
@@ -333,7 +333,8 @@ class ResponsePageRest : AbstractDynamicPageRest() {
                     url = "/react/poll",
                     targetType = TargetType.REDIRECT,
                     message = ResponseAction.Message("poll.exception.noAttendee")
-                ))
+                )
+            )
         }
     }
 
