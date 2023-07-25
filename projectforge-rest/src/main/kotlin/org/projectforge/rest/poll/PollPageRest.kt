@@ -138,7 +138,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollLC = LayoutContext(lc)
         layout.add(
             UITable.createUIResultSetTable()
-                .add(pollLC, "title", "description", "location", "owner", "deadline", "date", "state")
+                .add(pollLC, "title", "description", "location", "owner", "deadline", "state")
         )
     }
 
