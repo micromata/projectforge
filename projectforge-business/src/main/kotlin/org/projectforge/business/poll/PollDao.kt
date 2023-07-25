@@ -27,7 +27,6 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -53,8 +52,8 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         if (obj == null && operationType == OperationType.SELECT) {
             return true
         };
-        if (obj != null && operationType == OperationType.SELECT){
-            if(hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
+        if (obj != null && operationType == OperationType.SELECT) {
+            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
                 return true
         }
         if (obj != null) {
