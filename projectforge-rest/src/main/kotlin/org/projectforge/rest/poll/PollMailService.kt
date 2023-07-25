@@ -69,7 +69,7 @@ class PollMailService {
                 log.error("There are missing parameters for sending mail: from: $from, to: $to, subject: $subject, content: $content")
             }
         } catch (e: Exception) {
-            log.error(e.toString())
+            log.error(e.message, e)
         }
 
     }
