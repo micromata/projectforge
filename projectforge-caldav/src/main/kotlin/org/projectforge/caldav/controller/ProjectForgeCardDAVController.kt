@@ -27,7 +27,6 @@ import io.milton.annotations.*
 import mu.KotlinLogging
 import org.projectforge.caldav.model.*
 import org.projectforge.caldav.service.AddressService
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 // curl -A "CoreDAV" --user "kai:xxxx" -H "Content-Type: text/xml" -H "Depth: 1" --data "<propfind xmlns='DAV:'><prop><address-data xmlns='urn:ietf:params:xml:ns:carddav'/></prop></propfind>" -X PROPFIND "http://localhost:8080/users/kai/addressBooks/default"

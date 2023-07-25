@@ -31,7 +31,7 @@ import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 class NumberHelperTest {
   @Test
   fun randomAlphaNumericTest() {
-    Assertions.assertEquals(62, NumberHelper.ALPHA_NUMERICS_CHARSET.size)
+    Assertions.assertEquals(62, NumberHelper.ALPHA_NUMERICS_CHARSET.length)
     var str = NumberHelper.getSecureRandomAlphanumeric(1000)
     Assertions.assertEquals(1000, str.length)
     for (ch in NumberHelper.ALPHA_NUMERICS_CHARSET) {
@@ -92,6 +92,34 @@ class NumberHelperTest {
           NumberHelper.getSecureRandomReducedAlphanumeric(
             10
           ), 10
+        )
+      )
+    }
+  }
+
+  @Test
+  fun checkRandomReducedAlphaNumericWithSpecialCharsTest() {
+    Assertions.assertFalse(NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars("", 5))
+    Assertions.assertFalse(NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars("1234", 5))
+    Assertions.assertFalse(NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars("12345", 5))
+    Assertions.assertTrue(NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars("123!5", 5))
+    Assertions.assertFalse(NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars("1Ildsfdsfas", 5))
+    for (i in 0..100) {
+      Assertions.assertTrue(
+        NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars(
+          NumberHelper.getSecureRandomReducedAlphanumericWithSpecialChars(
+            10
+          ), 10
+        )
+      )
+    }
+    // Use shorter strings, so the probability for missing special chars is increased.
+    for (i in 0..100) {
+      Assertions.assertTrue(
+        NumberHelper.checkSecureRandomReducedAlphanumericWithSpecialChars(
+          NumberHelper.getSecureRandomReducedAlphanumericWithSpecialChars(
+            3
+          ), 3
         )
       )
     }

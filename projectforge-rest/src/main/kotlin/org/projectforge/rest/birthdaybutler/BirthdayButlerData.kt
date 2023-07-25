@@ -21,11 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.caldav.service
+package org.projectforge.rest.birthdaybutler
 
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.time.LocalDateTime
 
-/**
- * User data of ssl session cache.
- */
-class SslSessionData(val httpSessionId: String, val user: PFUserDO)
+class BirthdayButlerData {
+    var month: Int = LocalDateTime.now().monthValue
+}

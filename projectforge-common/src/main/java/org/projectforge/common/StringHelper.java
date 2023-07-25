@@ -699,6 +699,9 @@ public class StringHelper {
     }
 
     public static boolean isEmailValid(String emailAddress) {
+        if (emailAddress == null) {
+            return false;
+        }
         return emailRegexPattern.matcher(emailAddress).matches();
     }
 }

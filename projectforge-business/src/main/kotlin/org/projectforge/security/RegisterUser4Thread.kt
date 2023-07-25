@@ -28,7 +28,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.MDC
-import javax.servlet.http.HttpServletRequest
 
 /**
  * Helper class for registering and unregistering user in thread. Hanlding ThreadLocalUserContext as well as MDC stuff.
@@ -53,6 +52,7 @@ object RegisterUser4Thread {
    */
   fun registerUser(user: PFUserDO) {
     registerUser(UserContext(user))
+    MDC.put(MDC_USER, user.username)
   }
 
   fun unregister() {

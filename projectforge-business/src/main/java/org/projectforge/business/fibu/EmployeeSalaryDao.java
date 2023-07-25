@@ -48,7 +48,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE_SALARY;
   private static final Logger log = LoggerFactory.getLogger(EmployeeSalaryDao.class);
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"employee.user.lastname",
-          "employee.user.firstname"};
+          "employee.user.firstname", "employee.staffNumber"};
   @Autowired
   private PfEmgrFactory pfEmgrFactory;
   @Autowired
