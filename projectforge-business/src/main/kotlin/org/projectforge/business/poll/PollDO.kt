@@ -101,17 +101,9 @@ open class PollDO : DefaultBaseDO() {
         if (accessUserIds?.contains(currentUserId) == true) {
             assignmentList.add(PollAssignment.ACCESS)
         }
-        if (!this.fullAccessUserIds.isNullOrBlank()) {
-            val accessUserIds = this.fullAccessUserIds!!.split(", ").map { it.toInt() }.toIntArray()
-            if (accessUserIds.contains(currentUserId)) {
-                assignmentList.add(PollAssignment.ACCESS)
-            }
-        }
-        if (!this.attendeeIds.isNullOrBlank()) {
-            val attendeeUserIds = this.attendeeIds!!.split(", ").map { it.toInt() }.toIntArray()
-            if (attendeeUserIds.contains(currentUserId)) {
-                assignmentList.add(PollAssignment.ATTENDEE)
-            }
+        val attendeeUserIds = toIntArray(this.attendeeIds)
+        if (attendeeUserIds?.contains(currentUserId) == true) {
+            assignmentList.add(PollAssignment.ATTENDEE)
         }
         if (assignmentList.isEmpty())
             assignmentList.add(PollAssignment.OTHER)
@@ -133,7 +125,7 @@ open class PollDO : DefaultBaseDO() {
     }
 
     companion object {
-        internal fun toIntArray(str: String?): IntArray? {
+        fun toIntArray(str: String?): IntArray? {
             if (str.isNullOrBlank()) return null
             return StringHelper.splitToInts(str, ",", false)
         }

@@ -30,6 +30,7 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.dto.User
@@ -86,7 +87,6 @@ class ExcelExport {
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                     setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
-
 
                 var fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
                 val accesGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
