@@ -27,7 +27,6 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -53,8 +52,8 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         if (obj == null && operationType == OperationType.SELECT) {
             return true
         };
-        if (obj != null && operationType == OperationType.SELECT){
-            if(hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
+        if (obj != null && operationType == OperationType.SELECT) {
+            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
                 return true
         }
         if (obj != null) {
@@ -63,17 +62,23 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
+    //returns true if current user has full access, otherwise returns false
     fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUser = user
-        if (!obj.fullAccessUserIds.isNullOrBlank() && obj.fullAccessUserIds!!.contains(loggedInUser?.id.toString()))
-            return true
-        if (obj.owner?.id == loggedInUser?.id)
+        val loggedInUserId = ThreadLocalUserContext.userId!!
+        if (!obj.fullAccessUserIds.isNullOrBlank()) {
+            val userIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
+            if (userIdArray.contains(loggedInUserId))
+                return true
+        }
+        if (obj.owner?.id == loggedInUserId)
             return true
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
             val groupUsers = groupService.getGroupUsers(groupIdArray)
-            if (groupUsers?.contains(loggedInUser) == true)
-                return true
+            groupUsers.map { it.id }.forEach {
+                if (it == loggedInUserId)
+                    return true
+            }
         }
         return false
     }
