@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.poll
 
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
@@ -43,41 +44,34 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         val layout = UILayout("poll.infopage")
         val field = UIFieldset()
             .add(
-                UILabel(
-                    """ Anleitung, um eine Umfrage zu erstellen 
-                    | Als erstes werden die Parameter einer Umfrage angelegt.
-                """.trimMargin()
-                )
+                UILabel("poll.manual.title")
             )
 
         field.add(
             UICol()
-                .add(UIReadOnlyField("title", label = "title", value = "Test"))
+                .add(UIReadOnlyField("title", label = "title", value = translate("poll.title")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("description", label = "description", value = "description"))
+                .add(UIReadOnlyField("description", label = "description", value = translate("poll.description")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("location", label = "location", value = "location"))
+                .add(UIReadOnlyField("location", label = "location", value = translate("poll.location")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("owner", label = "owner", value = "owner"))
+                .add(UIReadOnlyField("owner", label = "owner", value = translate("poll.owner")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("deadline", label = "deadline", value = "deadline"))
+                .add(UIReadOnlyField("deadline", label = "deadline", value = translate("poll.deadline")))
         )
 
         field.add(
             UIRow().add(
                 UICol().add(
-                    UILabel(
-                        """Anschließend werden die Fragen der Umfrage angelegt.
-                    Die Fragen können aus verschiedenen Typen bestehen. """
-                    )
+                    UILabel("poll.manual.questions")
                 )
             )
         )
@@ -85,51 +79,40 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(field)
 
         layout.add(
-            UIFieldset().add(UILabel("YesNoQuestion")).add(
+            UIFieldset().add(UILabel("Single Response " + translate("poll.question"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
-                            label = "Question",
-                            value = "Eine Frage, die mit Ja oder Nein beantwortet werden kann."
+                            label = "poll.question",
+                            value = translate("poll.manual.singleResponse")
                         )
                     )
             )
         )
         layout.add(
-            UIFieldset().add(UILabel("MultipleChoiceQuestion")).add(
+            UIFieldset().add(UILabel("Multiple Response " + translate("poll.question"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
-                            label = "Question",
-                            value = "Eine Frage, die mit mehreren Antworten beantwortet werden kann."
+                            label = "poll.question",
+                            value = translate("poll.manual.multiResponse")
                         )
                     )
             )
         )
         layout.add(
-            UIFieldset().add(UILabel("TextQuestion")).add(
+            UIFieldset().add(UILabel("Text " + translate("poll.question"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
-                            label = "Question",
-                            value = "Eine Frage, die mit einer Freitext Antwort beantwortet werden kann."
+                            label = "poll.question",
+                            value = translate("poll.manual.textQuestion")
                         )
                     )
 
-            )
-        )
-        layout.add(
-            UIFieldset().add(UILabel("Dropdown")).add(
-                UICol()
-                    .add(
-                        UIReadOnlyField(
-                            "question", label = "Question",
-                            value = "Eine Frage, die mit einem Dropdown beantwortet werden kann."
-                        )
-                    )
             )
         )
 
