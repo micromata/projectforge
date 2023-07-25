@@ -305,7 +305,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     }
 
     fun generateExternalPassword(): String {
-      return NumberHelper.getSecureRandomReducedAlphanumeric(PASSWORD_LENGTH)
+      return NumberHelper.getSecureRandomReducedAlphanumericWithSpecialChars(PASSWORD_LENGTH)
     }
 
     fun ensureSecureExternalAccess(obj: IDataTransferArea) {
@@ -355,7 +355,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     const val MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB = 100 * MB
 
     const val ACCESS_TOKEN_LENGTH = 30
-    const val PASSWORD_LENGTH = 6
+    const val PASSWORD_LENGTH = 10
 
     /**
      * External (anonymous user are marked by this prefix), needed for internationalization.

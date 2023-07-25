@@ -26,64 +26,75 @@ package org.projectforge.caldav.service
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractSessionCache
-import org.projectforge.rest.utils.RequestLog
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Caches the session id's of the clients (for up to 5 Minutes). Every 10 Minutes, expired sessions will be removed.
+ * Work around for authenticate carddav and caldav clients. Expires after 1 minute.
  */
 @Service
-open class SslSessionCache
-  : AbstractSessionCache<SslSessionData>(
-  expireTimeInMillis = 5 * TICKS_PER_MINUTE,
-  clearEntriesIntervalInMillis = 10 * TICKS_PER_MINUTE,
-  sessionType = "SSL session id",
+open class DavSessionCache
+  : AbstractSessionCache<DavSessionCache.DavSessionData>(
+  expireTimeInMillis = 1 * TICKS_PER_MINUTE,
+  clearEntriesIntervalInMillis = 2 * TICKS_PER_MINUTE,
+  sessionType = "DavSessionCache",
 ) {
+  class DavSessionData(val user: PFUserDO)
+
   fun registerSessionData(request: HttpServletRequest, user: PFUserDO) {
-    val session = request.getSession(true)
-    val data = SslSessionData(session.id, user)
+    val data = DavSessionData(user)
     super.registerSessionData(request, data)
-    session.setAttribute(HTTP_SESSION_ATTRIBUTE, data)
-    log.info { "Registering ${getLogInfo(data, getSslSessionId(request))}" }
+    log.info { "Registering ${getLogInfo(data, getSessionId(request))}" }
   }
 
-  override fun entryAsString(entry: SslSessionData): String {
+  override fun entryAsString(entry: DavSessionData): String {
     return getLogInfo(entry)
   }
 
   override fun getSessionId(request: HttpServletRequest): String? {
-    return getSslSessionId(request)
+    request.requestURI.let { uri ->
+      if (uri.isNullOrBlank() || !uri.startsWith("/users/")) {
+        log.info { "uri doesn't start with /users/: $uri" }
+        return null
+      }
+      val username = uri.removePrefix("/users/").substringBefore('/')
+      if (username.isBlank()) {
+        log.info { "uri doesn't contain username after /users/: $uri" }
+        return null
+      }
+      val sb = StringBuilder()
+      sb.append("user=[").append(username).append("]")
+      headerParams.forEach { sb.append(",").append(it).append("=[").append(request.getHeader(it)).append("]") }
+      return sb.toString()
+    }
   }
 
-  override fun getSessionData(request: HttpServletRequest): SslSessionData? {
-    var data = super.getSessionData(request)
+  override fun getTruncatedSessionId(sessionId: String?): String? {
+    return sessionId // No trunc
+  }
+
+  override fun getSessionData(request: HttpServletRequest): DavSessionCache.DavSessionData? {
+    val data = super.getSessionData(request)
     if (data != null) {
       if (log.isInfoEnabled) {
-        log.info("Found registered user in ssl-session-cache: ${getLogInfo(data, getSslSessionId(request))}")
-      }
-    } else {
-      data = request.getSession(false)?.getAttribute(HTTP_SESSION_ATTRIBUTE) as? SslSessionData
-      if (data != null && log.isInfoEnabled) {
-        log.info("Found registered user in http-session: ${getLogInfo(data, getSslSessionId(request))}")
+        log.info("Found registered user in ssl-session-cache: ${getLogInfo(data, getSessionId(request))}")
       }
     }
     return data
   }
 
-  private fun getLogInfo(data: SslSessionData, sslSessionId: String? = null): String {
+  private fun getLogInfo(data: DavSessionData, sessionId: String? = null): String {
     val sb = StringBuilder()
     sb.append("user '${data.user.username}' (#${data.user.id}) with ")
-    if (sslSessionId != null) {
-      sb.append("ssl-session-id='${RequestLog.getTruncatedSessionId(data.httpSessionId)}'")
+    if (sessionId != null) {
+      sb.append("session-id='$sessionId'")
     }
-    sb.append(" and http-session-id='${RequestLog.getTruncatedSessionId(data.httpSessionId)}'")
     return sb.toString()
   }
 
   companion object {
-    private const val HTTP_SESSION_ATTRIBUTE = "sslSessionData"
+    private val headerParams = arrayOf("x-real-ip", "x-forward-for", "user-agent")
   }
 }

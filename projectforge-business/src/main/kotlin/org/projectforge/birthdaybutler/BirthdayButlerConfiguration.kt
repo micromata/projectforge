@@ -21,39 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event.ical.converter;
+package org.projectforge.birthdaybutler
 
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.DtStamp;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Configuration
 
-import java.util.Date;
+@Configuration
+open class BirthdayButlerConfiguration {
+    @Value("\${projectforge.birthdaybutler.organization}")
+    open lateinit var organization: String
 
+    @Value("\${projectforge.birthdaybutler.emailAddresses}")
+    open var emailAddresses: String? = null
 
-public class DTStampConverter extends PropertyConverter
-{
-  @Override
-  public Property toVEvent(final TeamEventDO event)
-  {
-    Date date = event.getDtStamp();
-    if (date == null) {
-      return null;
+    @Value("\${projectforge.birthdaybutler.locale}")
+    open var locale: String? = null
+
+    open fun isConfigured(): Boolean {
+        return organization.isNotBlank()
     }
-    DateTime dtStampValue = new DateTime(date);
-    dtStampValue.setUtc(true);
-    return new DtStamp(dtStampValue);
-  }
-
-  @Override
-  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
-  {
-    if (vEvent.getDateStamp() != null) {
-      event.setDtStamp(new Date(vEvent.getDateStamp().getDate().getTime()));
-      return true;
-    }
-
-    return false;
-  }
 }

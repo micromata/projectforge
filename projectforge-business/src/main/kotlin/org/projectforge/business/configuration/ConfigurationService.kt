@@ -36,6 +36,8 @@ import org.projectforge.framework.utils.FileHelper
 import org.projectforge.mail.SendMailConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationContext
+import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import java.io.*
 import java.nio.file.Paths
@@ -52,6 +54,9 @@ private val log = KotlinLogging.logger {}
 @Service
 open class ConfigurationService {
   private lateinit var configXml: ConfigXml
+
+  @Autowired
+  private lateinit var applicationContext: ApplicationContext
 
   @Autowired
   private lateinit var configDao: ConfigurationDao
@@ -344,6 +349,28 @@ open class ConfigurationService {
     get() = configXml.contractTypes
   open val isSecurityConfigured: Boolean
     get() = StringUtils.isNotBlank(securityConfig.passwordPepper)
+
+  /**
+   * @param dir The directory name.
+   * @param filename The filename of the resource dir officeTemplates.
+   * @param resourceFilename The filename of the resource dir officeTemplates inside classpath, if differ from filename.
+   */
+  open fun getTemplateFile(dir: String, filename: String, resourceFilename: String = filename): Resource? {
+    var resource: Resource? = applicationContext.getResource("file://$resourceDirName/officeTemplates/$filename")
+    if (resource == null || !resource.exists()) {
+      resource = applicationContext.getResource("classpath:officeTemplates/$resourceFilename")
+    }
+    log.info { "Using file '${resource.toString()}...'" }
+    return resource
+  }
+
+  /**
+   * @param filename The filename of the resource dir officeTemplates.
+   * @param resourceFilename The filename of the resource dir officeTemplates inside classpath, if differ from filename.
+   */
+  open fun getOfficeTemplateFile(filename: String, resourceFilename: String = filename): Resource? {
+    return getTemplateFile("officeTemplates", filename, resourceFilename)
+  }
 
   private fun setupKeyStores() {
     if (!StringUtils.isBlank(keystoreFileName)) {

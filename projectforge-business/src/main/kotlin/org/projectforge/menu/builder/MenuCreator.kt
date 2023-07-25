@@ -24,6 +24,7 @@
 package org.projectforge.menu.builder
 
 import mu.KotlinLogging
+import org.projectforge.birthdaybutler.BirthdayButlerConfiguration
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.dvelop.DvelopConfiguration
 import org.projectforge.business.fibu.*
@@ -80,6 +81,9 @@ open class MenuCreator {
 
   @Autowired
   private lateinit var smsSenderConfig: SmsSenderConfig
+
+  @Autowired
+  private lateinit var birthdayButlerConfiguration: BirthdayButlerConfiguration
 
   @Autowired
   private lateinit var configurationService: ConfigurationService
@@ -425,12 +429,14 @@ open class MenuCreator {
     //
     // ORGA
     //
-    menuItemDefHolder.add(
-      MenuItemDef(
-        MenuItemDefId.ORGA,
-        requiredGroups = FIBU_ORGA_HR_GROUPS
+    val orgaMenu =
+      menuItemDefHolder.add(
+        MenuItemDef(
+          MenuItemDefId.ORGA,
+          requiredGroups = FIBU_ORGA_HR_GROUPS
+        )
       )
-    )
+    orgaMenu
       .add(
         MenuItemDef(
           MenuItemDefId.OUTBOX_LIST,
@@ -456,6 +462,14 @@ open class MenuCreator {
           requiredUserRightId = VisitorbookDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE
         )
       )
+    if (birthdayButlerConfiguration.isConfigured()) {
+      orgaMenu.add(
+        MenuItemDef(
+          MenuItemDefId.BIRTHDAY_BUTLER,
+          requiredGroups = arrayOf(ProjectForgeGroup.ORGA_TEAM, ProjectForgeGroup.HR_GROUP)
+        )
+      )
+    }
 
     //////////////////////////////////////
     //
