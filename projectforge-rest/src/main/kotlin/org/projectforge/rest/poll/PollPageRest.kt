@@ -138,7 +138,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollLC = LayoutContext(lc)
         layout.add(
             UITable.createUIResultSetTable()
-                .add(pollLC, "title", "description", "location", "owner", "deadline", "date", "state")
+                .add(pollLC, "title", "description", "location", "owner", "deadline", "state")
         )
     }
 
@@ -251,12 +251,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
                                 .add(
                                     UIButton.createDefaultButton(
-                                        id = "micromata-template-button",
+                                        id = "template-button",
                                         responseAction = ResponseAction(
                                             "${Rest.URL}/poll/addPremadeQuestions",
                                             targetType = TargetType.PUT
                                         ),
-                                        title = "poll.button.micromataTemplate",
+                                        title = "poll.button.template",
                                         default = false
                                     )
                                 )
@@ -318,8 +318,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
-        val mailTo: ArrayList<String> =
-            ArrayList(postData.data.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+        var mailTo = pollMailService.getAllMails(postData.data)
+
         val owner = userService.getUser(obj.owner?.id)
         val mailFrom = owner?.email.toString()
         val mailSubject: String
@@ -620,7 +620,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             fieldset
                 .add(lc, "title", "description", "location")
                 .add(UISelect.createUserSelect(lc, "owner", false, "poll.owner"))
-                .add(lc, "deadline", "date")
+                .add(lc, "deadline")
         } else {
             fieldset
                 .add(UIReadOnlyField(value = pollDto.title, label = "titel", dataType = UIDataType.STRING))
@@ -630,13 +630,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     UIReadOnlyField(
                         value = pollDto.deadline.toString(),
                         label = "deadline",
-                        dataType = UIDataType.STRING
-                    )
-                )
-                .add(
-                    UIReadOnlyField(
-                        value = (pollDto.date?.toString() ?: ""),
-                        label = "date",
                         dataType = UIDataType.STRING
                     )
                 )
