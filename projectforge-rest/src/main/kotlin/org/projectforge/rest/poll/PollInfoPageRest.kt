@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.poll
 
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData
@@ -48,23 +49,23 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
 
         field.add(
             UICol()
-                .add(UIReadOnlyField("title", label = "title", value = "poll.title"))
+                .add(UIReadOnlyField("title", label = "title", value = translate("poll.title")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("description", label = "description", value = "poll.description"))
+                .add(UIReadOnlyField("description", label = "description", value = translate("poll.description")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("location", label = "location", value = "poll.location"))
+                .add(UIReadOnlyField("location", label = "location", value = translate("poll.location")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("owner", label = "owner", value = "poll.owner"))
+                .add(UIReadOnlyField("owner", label = "owner", value = translate("poll.owner")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("deadline", label = "deadline", value = "poll.deadline"))
+                .add(UIReadOnlyField("deadline", label = "deadline", value = translate("poll.deadline")))
         )
 
         field.add(
@@ -78,37 +79,37 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(field)
 
         layout.add(
-            UIFieldset().add(UILabel("Single Response poll.question")).add(
+            UIFieldset().add(UILabel("Single Response " + translate("poll.question"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
                             label = "poll.question",
-                            value = "poll.manual.singleResponse"
+                            value = translate("poll.manual.singleResponse")
                         )
                     )
             )
         )
         layout.add(
-            UIFieldset().add(UILabel("Multiple Choice poll.question")).add(
+            UIFieldset().add(UILabel("Multiple Response " + translate("poll.question"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
                             label = "poll.question",
-                            value = "poll.manual.multiResponse"
+                            value = translate("poll.manual.multiResponse")
                         )
                     )
             )
         )
         layout.add(
-            UIFieldset().add(UILabel("Text poll.question")).add(
+            UIFieldset().add(UILabel("Text " + translate("poll.question"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
                             label = "poll.question",
-                            value = "poll.manual.textQuestion"
+                            value = translate("poll.manual.textQuestion")
                         )
                     )
 
