@@ -138,7 +138,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollLC = LayoutContext(lc)
         layout.add(
             UITable.createUIResultSetTable()
-                .add(pollLC, "title", "description", "location", "owner", "deadline", "date", "state")
+                .add(pollLC, "title", "description", "location", "owner", "deadline", "state")
         )
     }
 
@@ -251,12 +251,12 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
                                 .add(
                                     UIButton.createDefaultButton(
-                                        id = "micromata-template-button",
+                                        id = "template-button",
                                         responseAction = ResponseAction(
                                             "${Rest.URL}/poll/addPremadeQuestions",
                                             targetType = TargetType.PUT
                                         ),
-                                        title = "poll.button.micromataTemplate",
+                                        title = "poll.button.template",
                                         default = false
                                     )
                                 )
@@ -318,8 +318,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         // add all attendees mails
-
-
         var mailTo = pollMailService.getAllMails(postData.data)
 
         val owner = userService.getUser(obj.owner?.id)
@@ -664,6 +662,5 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             }
         }
     }
-
 
 }
