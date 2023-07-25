@@ -309,20 +309,33 @@ class ResponsePageRest : AbstractDynamicPageRest() {
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        val attendees = listOf(
+        val attendees = listOfNotNull(
             pollDao.internalGetById(pollId).attendeeIds,
             pollDao.internalGetById(pollId).fullAccessUserIds,
             pollDao.internalGetById(pollId).owner?.id
         )
         val joinedAttendeeIds = attendees.joinToString(", ")
-        if (joinedAttendeeIds.split(", ").any { it.toIntOrNull() == questionOwnerId }) {
+        if (questionOwnerId == ThreadLocalUserContext.userId) {
+            return ResponseEntity.ok(
+                ResponseAction()
+            )
+        }
+        if (joinedAttendeeIds.split(", ").any { it.toInt() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",
                     targetType = TargetType.REDIRECT
                 )
             )
-        } else throw AccessException("poll.exception.noAttendee")
+        } else {
+            return ResponseEntity.badRequest().body(
+                ResponseAction(
+                    url = "/react/poll",
+                    targetType = TargetType.REDIRECT,
+                    message = ResponseAction.Message("poll.exception.noAttendee")
+                )
+            )
+        }
     }
 
 
@@ -331,6 +344,7 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         questionOwnerId = postData.data.delegationUser?.id
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE))
     }
+
 
     private fun transformPollFromDB(obj: PollDO): Poll {
         val poll = Poll()
@@ -341,5 +355,4 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         }
         return poll
     }
-
 }

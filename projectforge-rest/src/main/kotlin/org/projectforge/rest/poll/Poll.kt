@@ -37,7 +37,6 @@ class Poll(
     var description: String? = null,
     var owner: PFUserDO? = null,
     var location: String? = null,
-    var date: LocalDate? = null,
     var deadline: LocalDate? = null,
     var state: PollDO.State? = PollDO.State.RUNNING,
     var questionType: String? = null,

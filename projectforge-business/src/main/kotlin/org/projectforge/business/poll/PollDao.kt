@@ -27,7 +27,6 @@ import org.projectforge.business.group.service.GroupService
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -63,17 +62,23 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
+    // returns true if current user has full access, otherwise returns false
     fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUser = user
-        if (PollDO.toIntArray(obj.fullAccessGroupIds)?.contains(loggedInUser!!.id) == false)
-            return true
-        if (obj.owner?.id == loggedInUser?.id)
+        val loggedInUserId = ThreadLocalUserContext.userId!!
+        if (!obj.fullAccessUserIds.isNullOrBlank()) {
+            val userIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
+            if (userIdArray.contains(loggedInUserId))
+                return true
+        }
+        if (obj.owner?.id == loggedInUserId)
             return true
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = PollDO.toIntArray(obj.fullAccessGroupIds)
             val groupUsers = groupService.getGroupUsers(groupIdArray)
-            if (groupUsers?.contains(loggedInUser) == true)
-                return true
+            groupUsers.map { it.id }.forEach {
+                if (it == loggedInUserId)
+                    return true
+            }
         }
         return false
     }
