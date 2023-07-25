@@ -36,7 +36,6 @@ import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.Poll
 import org.projectforge.rest.poll.types.BaseType
 import org.projectforge.rest.poll.types.PollResponse
-import org.projectforge.web.rest.converter.PFUserDOConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,7 +75,6 @@ class ExcelExport {
 
                 anzNewRows += (poll.attendees?.size ?: 0)
 
-
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
 
@@ -86,7 +84,7 @@ class ExcelExport {
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
                     responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                    setNewRows(excelSheet, poll, user, res, index)
+                    setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
 
 
@@ -107,21 +105,17 @@ class ExcelExport {
                     fullAccessUser.add(owner)
                 }
 
+                User.restoreDisplayNames(fullAccessUser, userService)
                 fullAccessUser.forEachIndexed { index, user ->
-                    var number = index + (poll.attendees?.size ?: 0)
+                    var number = (anzNewRows)
                     if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         // User add a Response
                         if (res.id != null) {
-                            // create A new Row emptyRow
-                            Objects.requireNonNull(
-                                excelSheet.getRow(FIRST_DATA_ROW_NUM)
-                            ).copyAndInsert(
-                                emptyRow.sheet
-                            )
                             // Put Data's in the Row
                             setNewRows(excelSheet, poll, user, res, number)
+                            number++
                         }
                     }
                 }
@@ -135,6 +129,7 @@ class ExcelExport {
         }
         return null
     }
+
 
     private fun setFirstRow(excelSheet: ExcelSheet, style: CellStyle, poll: Poll) {
         val excelRow = excelSheet.getRow(0)
@@ -167,8 +162,9 @@ class ExcelExport {
         excelRow.setHeight(30F)
     }
 
-    private fun setNewRows(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, index: Int) {
-        val excelRow = excelSheet.getRow(FIRST_DATA_ROW_NUM + index)
+    private fun setNewRows(excelSheet: ExcelSheet, poll: Poll, user: User, res: PollResponse?, rowNumber: Int) {
+        val excelRow = excelSheet.getRow(rowNumber)
+
 
         excelRow.getCell(0).setCellValue(user.displayName)
         excelSheet.autosize(0)

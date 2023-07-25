@@ -355,5 +355,4 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         }
         return poll
     }
-
 }
