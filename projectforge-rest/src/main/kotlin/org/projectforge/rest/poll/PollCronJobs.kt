@@ -135,11 +135,11 @@ class PollCronJobs {
     private fun cronDeletePolls() {
         val polls = pollDao.internalLoadAll()
         val pollsMoreThanOneYearPast = polls.filter {
-            it.deadline!!.isBefore(LocalDate.now().minusYears(1))
+            it.deadline?.isBefore(LocalDate.now().minusYears(1)) == true
         }
         pollsMoreThanOneYearPast.forEach { poll ->
             val pollResponses = pollResponseDao.internalLoadAll().filter { response ->
-                response.poll!!.id == poll.id
+                response.poll?.id == poll.id
             }
             pollResponses.forEach {
                 pollResponseDao.internalMarkAsDeleted(it)

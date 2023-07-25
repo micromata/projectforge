@@ -373,7 +373,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             question.answers = mutableListOf("yes", "no")
         }
 
-        dto.inputFields!!.add(question)
+        dto.inputFields?.add(question)
         dto.owner = userService.getUser(dto.owner?.id)
         return ResponseEntity.ok(
             ResponseAction(targetType = TargetType.UPDATE).addVariable("data", dto)
