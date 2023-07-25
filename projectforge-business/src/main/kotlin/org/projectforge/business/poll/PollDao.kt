@@ -62,7 +62,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
-    //returns true if current user has full access, otherwise returns false
+    // returns true if current user has full access, otherwise returns false
     fun hasFullAccess(obj: PollDO): Boolean {
         val loggedInUserId = ThreadLocalUserContext.userId!!
         if (!obj.fullAccessUserIds.isNullOrBlank()) {
@@ -73,7 +73,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         if (obj.owner?.id == loggedInUserId)
             return true
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
-            val groupIdArray = obj.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
+            val groupIdArray = PollDO.toIntArray(obj.fullAccessGroupIds)
             val groupUsers = groupService.getGroupUsers(groupIdArray)
             groupUsers.map { it.id }.forEach {
                 if (it == loggedInUserId)
@@ -83,10 +83,8 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
         return false
     }
 
-    fun isAttendee(obj: PollDO, user: Int?): Boolean {
-        if (!obj.attendeeIds.isNullOrBlank() && obj.attendeeIds!!.split(", ").contains(user.toString())
-        )
-            return true
-        return false
+    fun isAttendee(obj: PollDO, user: Int): Boolean {
+        return PollDO.toIntArray(obj.attendeeIds)?.contains(user) == true
+
     }
 }
