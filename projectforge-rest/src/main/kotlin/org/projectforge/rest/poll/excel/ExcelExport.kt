@@ -30,7 +30,6 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.dto.User
@@ -139,7 +138,7 @@ class ExcelExport {
 
         var merge = 1
         poll.inputFields?.forEach { question ->
-            var ansers = question.answers ?: mutableListOf("")
+            var answers = question.answers ?: mutableListOf("")
             if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                 var counter = merge
                 question.answers?.forEach { answer ->
@@ -151,7 +150,7 @@ class ExcelExport {
                 excelRow.getCell(merge).setCellValue(question.question)
                 excelSheet.autosize(merge)
                 counter--
-                if (ansers.size >= 2) {
+                if (answers.size >= 2) {
                     excelSheet.addMergeRegion(CellRangeAddress(0, 0, merge, counter))
                 }
                 merge = counter
