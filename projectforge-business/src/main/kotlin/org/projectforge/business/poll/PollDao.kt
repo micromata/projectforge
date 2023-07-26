@@ -85,6 +85,5 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
     fun isAttendee(obj: PollDO, user: Int): Boolean {
         return PollDO.toIntArray(obj.attendeeIds)?.contains(user) == true
-
     }
 }
