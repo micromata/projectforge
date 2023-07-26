@@ -30,7 +30,6 @@ import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.rest.dto.User
@@ -88,9 +87,9 @@ class ExcelExport {
                     setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
 
-                var fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-                val accesGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
-                val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accesGroupIds))
+                val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+                val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+                val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
                 val accessUsers = User.toUserList(accessUserIds)
                 User.restoreDisplayNames(accessUsers, userService)
 
@@ -106,16 +105,15 @@ class ExcelExport {
                 }
 
                 User.restoreDisplayNames(fullAccessUser, userService)
-                fullAccessUser.forEachIndexed { index, user ->
+                fullAccessUser.forEachIndexed { _, user ->
                     var number = (anzNewRows)
                     if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         // User add a Response
                         if (res.id != null) {
-                            // Put Data's in the Row
+                            // Put data in the Row
                             setNewRows(excelSheet, poll, user, res, number)
-                            number++
                         }
                     }
                 }
@@ -209,7 +207,6 @@ class ExcelExport {
             counterOfOverlength += pufferSplit[i].length / 70
         }
         excelRow.setHeight((14 + counterOfOverlength * 14 + counterOfBreaking * 14).toFloat())
-        //excelRow.setHeight(20F) ///TODO LEON FIX THIS PROBLEM
     }
 
     private fun countLines(str: String): Int {
