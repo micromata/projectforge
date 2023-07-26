@@ -139,7 +139,8 @@ class ExcelExport {
 
         var merge = 1
         poll.inputFields?.forEach { question ->
-            if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+            var ansers = question.answers ?: mutableListOf("")
+            if ((question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) && ansers.size >= 2) {
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
