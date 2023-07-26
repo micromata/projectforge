@@ -459,7 +459,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             index,
                             field.uid,
                             answerIndex,
-                            layout
+                            layout,
+                            field.answers!!.size
                         )
                     )
                         .add(UISpacer())
@@ -489,7 +490,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         inputFieldIndex: Int,
         questionUid: String?,
         answerIndex: Int,
-        layout: UILayout
+        layout: UILayout,
+        answerAmount: Int,
     ): UIRow {
         val row = UIRow()
         row.add(
@@ -503,19 +505,22 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 )
         )
         if (!objGiven) {
-            row.add(
-                UICol()
-                    .add(UISpacer())
-                    .add(
-                        UIButton.createDangerButton(
-                            id = "X",
-                            responseAction = ResponseAction(
-                                "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}",
-                                targetType = TargetType.POST
-                            )
-                        ).withConfirmMessage(layout, confirmMessage = "poll.confirmation.deleteAnswer")
-                    )
-            )
+            // require at least two answers
+            if (answerAmount > 2) {
+                row.add(
+                    UICol()
+                        .add(UISpacer())
+                        .add(
+                            UIButton.createDangerButton(
+                                id = "X",
+                                responseAction = ResponseAction(
+                                    "${Rest.URL}/poll/deleteAnswer/${questionUid}/${answerIndex}",
+                                    targetType = TargetType.POST
+                                )
+                            ).withConfirmMessage(layout, confirmMessage = "poll.confirmation.deleteAnswer")
+                        )
+                )
+            }
         }
 
         return row
