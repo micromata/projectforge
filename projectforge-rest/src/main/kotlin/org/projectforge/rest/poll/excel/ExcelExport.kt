@@ -137,7 +137,7 @@ class ExcelExport {
 
         var merge = 1
         poll.inputFields?.forEach { question ->
-            var answers = question.answers ?: mutableListOf("")
+            val answers = question.answers
             if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                 var counter = merge
                 question.answers?.forEach { answer ->
@@ -149,8 +149,10 @@ class ExcelExport {
                 excelRow.getCell(merge).setCellValue(question.question)
                 excelSheet.autosize(merge)
                 counter--
-                if (answers.size >= 2) {
-                    excelSheet.addMergeRegion(CellRangeAddress(0, 0, merge, counter))
+                answers?.size?.let {
+                    if (it >= 2) {
+                        excelSheet.addMergeRegion(CellRangeAddress(0, 0, merge, counter))
+                    }
                 }
                 merge = counter
             } else {
