@@ -64,7 +64,7 @@ open class PollDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "poll.deadline")
     @get:Column(name = "deadline", nullable = false)
     open var deadline: LocalDate? = null
-    
+
 
     @PropertyInfo(i18nKey = "poll.attendees")
     @get:Column(name = "attendeeIds", nullable = true)
@@ -121,7 +121,7 @@ open class PollDO : DefaultBaseDO() {
     }
 
     enum class State {
-        RUNNING, FINISHED
+        RUNNING, FINISHED, FINISHED_AND_MAIL_SENT
     }
 
     companion object {

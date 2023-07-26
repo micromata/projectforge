@@ -66,18 +66,21 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
     fun hasFullAccess(obj: PollDO): Boolean {
         val loggedInUserId = ThreadLocalUserContext.userId!!
         if (!obj.fullAccessUserIds.isNullOrBlank()) {
-            val userIdArray = obj.fullAccessUserIds!!.split(", ").map { it.toInt() }.toIntArray()
-            if (userIdArray.contains(loggedInUserId))
+            val userIdArray = PollDO.toIntArray(obj.fullAccessUserIds)
+            if (userIdArray?.contains(loggedInUserId) == true) {
                 return true
+            }
         }
-        if (obj.owner?.id == loggedInUserId)
+        if (obj.owner?.id == loggedInUserId) {
             return true
+        }
         if (!obj.fullAccessGroupIds.isNullOrBlank()) {
             val groupIdArray = PollDO.toIntArray(obj.fullAccessGroupIds)
             val groupUsers = groupService.getGroupUsers(groupIdArray)
-            groupUsers.map { it.id }.forEach {
-                if (it == loggedInUserId)
+            groupUsers.map { it.id }.forEach { id ->
+                if (id == loggedInUserId) {
                     return true
+                }
             }
         }
         return false

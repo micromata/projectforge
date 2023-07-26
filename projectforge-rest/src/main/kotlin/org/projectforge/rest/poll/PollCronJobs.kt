@@ -38,7 +38,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 @RestController
 class PollCronJobs {
@@ -75,33 +74,41 @@ class PollCronJobs {
         val pollDOs = pollDao.internalLoadAll()
         // set State.FINISHED for all old polls and export excel
         pollDOs.forEach { pollDO ->
-            if (pollDO.deadline?.isBefore(LocalDate.now()) == true && pollDO.state != PollDO.State.FINISHED) {
-                pollDO.state = PollDO.State.FINISHED
+            // try to send mail until successfully changed to FINISHED_AND_MAIL_SENT
+            if (pollDO.state != PollDO.State.FINISHED_AND_MAIL_SENT) {
+                if (pollDO.deadline?.isBefore(LocalDate.now()) == true) {
+                    pollDO.state = PollDO.State.FINISHED
 
-                val poll = Poll()
-                poll.copyFrom(pollDO)
+                    try {
+                        val poll = Poll()
+                        poll.copyFrom(pollDO)
 
-                val excel = exporter.getExcel(poll)
+                        val excel = exporter.getExcel(poll)
 
-                val mailAttachment = object : MailAttachment {
-                    override fun getFilename(): String {
-                        return "${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx"
-                    }
+                        val mailAttachment = object : MailAttachment {
+                            override fun getFilename(): String {
+                                return "${pollDO.title}_${LocalDateTime.now().year}_Result.xlsx"
+                            }
 
-                    override fun getContent(): ByteArray? {
-                        return excel
+                            override fun getContent(): ByteArray? {
+                                return excel
+                            }
+                        }
+                        // add all attendees mails
+                        val mailTo: ArrayList<String> =
+                            ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
+                        val mailFrom = pollDO.owner?.email.toString()
+                        val mailSubject = translateMsg("poll.mail.ended.subject")
+                        val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
+
+                        pollDao.internalSaveOrUpdate(pollDO)
+                        log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED")
+                        pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
+                        pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
+                    } catch (e: Exception) {
+                        log.error(e.message, e)
                     }
                 }
-                // add all attendees mails
-                val mailTo: ArrayList<String> =
-                    ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
-                val mailFrom = pollDO.owner?.email.toString()
-                val mailSubject = translateMsg("poll.mail.ended.subject")
-                val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
-
-                pollDao.internalSaveOrUpdate(pollDO)
-                log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED")
-                pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
             }
         }
 
