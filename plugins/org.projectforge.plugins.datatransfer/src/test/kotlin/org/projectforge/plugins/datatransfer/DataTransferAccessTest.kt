@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
@@ -48,10 +47,7 @@ class DataTransferAccessTest : AbstractTestBase() {
   private var initialized = false
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
-      DataTransferAreaDO::class.java.canonicalName,
-      DataTransferAuditDO::class.java.canonicalName,
-    )
+    DataTransferTestService.addPluginEntitiesForTestMode()
   }
 
   @PostConstruct
