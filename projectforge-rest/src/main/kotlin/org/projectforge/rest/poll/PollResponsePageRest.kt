@@ -57,7 +57,7 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping("${Rest.URL}/response")
-class ResponsePageRest : AbstractDynamicPageRest() {
+class PollResponsePageRest : AbstractDynamicPageRest() {
 
     @Autowired
     private lateinit var pollDao: PollDao
@@ -158,9 +158,9 @@ class ResponsePageRest : AbstractDynamicPageRest() {
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
 
-        pollResponseDao.internalLoadAll().firstOrNull { response ->
-            response.owner?.id == questionOwnerId
-                    && response.poll?.id == pollData.id
+        pollResponseDao.internalLoadAll().firstOrNull { pollResponse ->
+            pollResponse.owner?.id == questionOwnerId
+                    && pollResponse.poll?.id == pollData.id
         }?.let {
             pollResponse.copyFrom(it)
         }
