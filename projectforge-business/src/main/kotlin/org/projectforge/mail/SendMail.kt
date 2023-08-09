@@ -23,7 +23,6 @@
 
 package org.projectforge.mail
 
-import de.micromata.genome.util.validation.ValContext
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
@@ -35,17 +34,15 @@ import org.projectforge.framework.i18n.I18nHelper.getLocalizedMessage
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.mail.Mail
-import org.projectforge.mail.MailAttachment
-import org.projectforge.mail.SendMailConfig
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import javax.activation.DataHandler
 import javax.activation.DataSource
 import javax.activation.MimetypesFileTypeMap
+import javax.annotation.PostConstruct
 import javax.mail.*
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeBodyPart
@@ -69,7 +66,54 @@ open class SendMail {
   @Autowired
   private lateinit var domainService: DomainService
 
+  enum class Protocol {
+    Plain, StartTLS, SSL;
+
+    companion object {
+      fun fromString(type: String?): Protocol {
+        return when (type) {
+          "StartTLS" -> StartTLS
+          "SSL" -> SSL
+          else -> Plain
+        }
+      }
+    }
+  }
+
+  @Value("\${mail.session.pfmailsession.emailEnabled}")
+  private var mailingEnabled: String? = null
+
+  @Value("\${mail.session.pfmailsession.standardEmailSender}")
+  var mailFromStandardEmailSender: String? = null
+    private set
+
+  /**
+   * Mail protocol: Plain, StartTLS,SSL
+   */
+  @Value("\${mail.session.pfmailsession.encryption}")
+  private var mailSmtpEncryptionProtocol: String? = null
+
+  @Value("\${mail.session.pfmailsession.smtp.host}")
+  private var mailSmtpHost: String? = null
+
+  @Value("\${mail.session.pfmailsession.smtp.port}")
+  private var mailSmtpPort: String? = null
+
+  @Value("\${mail.session.pfmailsession.smtp.auth}")
+  private var mailSmtpAuth = false
+
+  @Value("\${mail.session.pfmailsession.smtp.user}")
+  private var mailSmtpUser: String? = null
+
+  @Value("\${mail.session.pfmailsession.smtp.password}")
+  private var mailSmtpPassword: String? = null
+
   private val random = Random()
+
+  @PostConstruct
+  private fun postConstruct() {
+    log.info { info }
+  }
 
   /**
    * @param composedMessage the message to send
@@ -104,15 +148,13 @@ open class SendMail {
       log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.")
       return false
     }
+    if (!isConfigured) {
+      log.error { "Sending of mails is not configured. Mail is ignored: $composedMessage" }
+    }
     val to = composedMessage.to
     if (to == null || to.size == 0) {
       log.error("No to address given. Sending of mail cancelled: $composedMessage")
       throw UserException("mail.error.missingToAddress")
-    }
-    val cf = configurationService.createMailSessionLocalSettingsConfigModel()
-    if (cf == null || !cf.isEmailEnabled) {
-      log.error("No e-mail host configured. E-Mail not sent: $composedMessage")
-      return false
     }
     if (async) {
       CompletableFuture.runAsync { sendIt(composedMessage, icalContent, attachments) }
@@ -122,28 +164,36 @@ open class SendMail {
     return true
   }
 
+  val isConfigured: Boolean
+    get() = this.mailingEnabled == "true" && !this.mailSmtpHost.isNullOrBlank()
+
   private val session: Session?
     get() {
-      val cf = configurationService.createMailSessionLocalSettingsConfigModel()
-      if (!cf.isEmailEnabled) {
-        log.error("Sending email is not enabled")
-        throw InternalErrorException("mail.error.exception")
-      }
-      val ctx = ValContext()
-      cf.validate(ctx)
-      if (ctx.hasErrors()) {
-        log.error("SMPT configuration has validation errors")
-        for (msg in ctx.messages) {
-          log.error(msg.toString())
+      val properties = Properties()
+      properties["mail.smtp.host"] = this.mailSmtpHost // Replace with your SMTP server
+      properties["mail.smtp.port"] = this.mailSmtpPort ?: "25" // Replace with your SMTP server port
+      properties["mail.smtp.auth"] = this.mailSmtpAuth // Enable authentication
+
+      this.mailSmtpUser?.let { properties["mail.smtp.user"] = it }
+      this.mailSmtpPassword?.let { properties["mail.smtp.password"] = it }
+      when (Protocol.fromString(this.mailSmtpEncryptionProtocol)) {
+        Protocol.StartTLS -> {
+          properties["mail.smtp.starttls.enable"] = "true" // Enable TLS
         }
-        throw InternalErrorException("mail.error.exception")
+
+        Protocol.SSL -> {
+          properties["mail.smtp.ssl.enable"] = "true" // Enable TLS
+        }
+
+        else -> {
+        }
       }
-      val addp = Properties()
-      addp["mail.mime.charset"] = "UTF-8"
-      if (cf.standardEmailSender != null) {
-        addp["mail.from"] = cf.standardEmailSender
-      }
-      return cf.createMailSession(addp)
+      properties["mail.mime.charset"] = CHARSET
+      mailFromStandardEmailSender?.let { properties["mail.from"] = it }
+      // properties.put("mail.debug", java.lang.Boolean.toString(smptDebug))
+
+      // Create a mail session
+      return Session.getInstance(properties)
     }
 
   private fun sendIt(
@@ -170,19 +220,18 @@ open class SendMail {
         )
       }
       val subject = composedMessage.subject
-      val sendMailConfig = configurationService.getSendMailConfiguration()!!
-      message.setSubject(subject, sendMailConfig.charset)
+      message.setSubject(subject, CHARSET)
       message.sentDate = Date()
       if (StringUtils.isBlank(icalContent) && attachments == null) {
         // create message without attachments
         if (composedMessage.contentType != null) {
           message.setText(composedMessage.content, composedMessage.charset, composedMessage.contentType)
         } else {
-          message.setText(composedMessage.content, sendMailConfig.charset)
+          message.setText(composedMessage.content, CHARSET)
         }
       } else {
         // create message with attachments
-        val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, sendMailConfig)
+        val mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, CHARSET)
         message.setContent(mp)
       }
       message.saveChanges() // don't forget this
@@ -202,7 +251,7 @@ open class SendMail {
   private fun createMailAttachmentContent(
     message: MimeMessage, composedMessage: Mail, icalContent: String?,
     attachments: Collection<MailAttachment>?,
-    sendMailConfig: SendMailConfig
+    charset: String
   ): MimeMultipart {
     // create and fill the first message part
     val mbp1 = MimeBodyPart()
@@ -213,7 +262,7 @@ open class SendMail {
       type += composedMessage.charset
     } else {
       type = "text/html; charset="
-      type += sendMailConfig.charset
+      type += charset
     }
     mbp1.setContent(composedMessage.content, type)
     mbp1.setHeader("Content-Transfer-Encoding", "8bit")
@@ -313,7 +362,7 @@ open class SendMail {
     recipient: PFUserDO?
   ) {
     val user = ThreadLocalUserContext.user
-    data["createdLabel"] = getLocalizedMessage(user,"created")
+    data["createdLabel"] = getLocalizedMessage(user, "created")
     user?.let {
       data["loggedInUser"] = it
     }
@@ -333,8 +382,36 @@ open class SendMail {
     return domainService.getDomain(subPath)
   }
 
+  private val info: String
+    get() {
+      if (!isConfigured) {
+        return "SendMail isn't configured. No host configured in projectforge.properties."
+      }
+      val sb = StringBuilder()
+      sb.append(
+        "SendMail configured with host='$mailSmtpHost', protocol='${
+          Protocol.fromString(
+            mailSmtpEncryptionProtocol
+          )
+        }', auth=$mailSmtpAuth, port=$mailSmtpPort, from='$mailFromStandardEmailSender'"
+      )
+      mailSmtpUser?.let {
+        if (it.isNotBlank()) {
+          sb.append(", user='$it'")
+        }
+      }
+      mailSmtpPassword?.let {
+        if (it.isNotBlank()) {
+          sb.append(", password='***'")
+        }
+      }
+      return sb.toString()
+    }
+
   companion object {
     private const val STANDARD_SUBJECT_PREFIX = "[ProjectForge] "
+
+    private const val CHARSET = "UTF-8"
 
     /**
      * Get the ProjectForge standard subject: "[ProjectForge] ..."
