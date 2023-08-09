@@ -110,7 +110,7 @@ open class SessionCsrfService
       return token
     }
     token = NumberHelper.getSecureRandomAlphanumeric(30)
-    log.debug { "No csrf token found in AbstractSessionCache, creating '$token'" }
+    log.debug { "No csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
     super.registerSessionData(request, token)
     return token
   }
