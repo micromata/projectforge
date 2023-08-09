@@ -1,10 +1,10 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise';
 import PropTypes from 'prop-types';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
-import 'ag-grid-community/dist/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-grid.css';
 import { LicenseManager } from 'ag-grid-enterprise';
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { connect } from 'react-redux';
 import { DynamicLayoutContext } from '../../context';
 import Formatter from '../../../Formatter';
