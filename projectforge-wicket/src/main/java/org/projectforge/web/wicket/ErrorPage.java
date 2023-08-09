@@ -40,6 +40,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
+import org.projectforge.mail.SendMail;
 import org.projectforge.web.SendFeedback;
 import org.projectforge.web.SendFeedbackData;
 
@@ -70,6 +71,9 @@ public class ErrorPage extends AbstractSecuredPage {
 
   @SpringBean
   private ConfigurationService configService;
+
+  @SpringBean
+  private SendMail sendMail;
 
   @SpringBean
   private DomainService domainService;
@@ -201,14 +205,14 @@ public class ErrorPage extends AbstractSecuredPage {
 
   private void sendProactiveMessageToSupportTeam() {
     if (StringUtils.isBlank(configService.getPfSupportMailAddress()) == Boolean.FALSE
-        && configService.getSendMailConfiguration() != null) {
+        && configService.isSendMailConfigured()) {
       log.info("Sending proactive mail to support.");
       Calendar cal = Calendar.getInstance();
       Date date = cal.getTime();
       SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm");
       String dateString = formatter.format(date);
       SendFeedbackData errorData = new SendFeedbackData();
-      errorData.setSender(configService.getSendMailConfiguration().getDefaultSendMailAddress());
+      errorData.setSender(sendMail.getMailFromStandardEmailSender());
       errorData.setReceiver(configService.getPfSupportMailAddress());
       errorData.setSubject("Error occured: #" + form.data.getMessageNumber() + " on " + domainService.getDomain());
       errorData.setDescription("Error occured at: " + dateString + "(" + cal.getTimeZone().getID()
