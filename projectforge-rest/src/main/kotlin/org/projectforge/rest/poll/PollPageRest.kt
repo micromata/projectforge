@@ -129,7 +129,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
      * @return the response page.
      */
     override fun getStandardEditPage(): String {
-        return "${PagesResolver.getDynamicPageUrl(ResponsePageRest::class.java)}?pollId=:id"
+        return "${PagesResolver.getDynamicPageUrl(PollResponsePageRest::class.java)}?pollId=:id"
     }
 
     override fun createListLayout(
