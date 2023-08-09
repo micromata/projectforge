@@ -67,7 +67,7 @@ class DataTransferTestService {
   private lateinit var pluginAdminService: PluginAdminService
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+    addPluginEntitiesForTestMode()
   }
 
   @PostConstruct
@@ -150,6 +150,13 @@ class DataTransferTestService {
   }
 
   companion object {
+    internal fun addPluginEntitiesForTestMode() {
+      MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
+        DataTransferAreaDO::class.java.canonicalName,
+        DataTransferAuditDO::class.java.canonicalName,
+      )
+    }
+
     internal fun checkZipArchive(byteArray: ByteArray): List<String> {
       val result = mutableListOf<String>()
       ZipInputStream(ByteArrayInputStream(byteArray)).use {

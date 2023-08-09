@@ -25,7 +25,6 @@ package org.projectforge.plugins.datatransfer
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.jcr.FileObject
 import org.projectforge.jcr.RepoService
 import org.projectforge.plugins.datatransfer.rest.DataTransferAreaPagesRest
@@ -51,8 +50,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
   private lateinit var dataTransferTestService: DataTransferTestService
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName, DataTransferAuditDO::class.java.canonicalName)
-    initJCRTestRepo(MODUL_NAME, "cleanUpTestRepo")
+    DataTransferTestService.addPluginEntitiesForTestMode()
   }
 
   @Test

@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.projectforge.framework.jcr.AttachmentsService
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicPageRest
 import org.projectforge.plugins.datatransfer.restPublic.DataTransferPublicServicesRest
@@ -57,7 +56,7 @@ class DataTransferPublicAccessTest : AbstractTestBase() {
   private lateinit var dataTransferPublicSession: DataTransferPublicSession
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(DataTransferAreaDO::class.java.canonicalName)
+    DataTransferTestService.addPluginEntitiesForTestMode()
   }
 
   @PostConstruct
