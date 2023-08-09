@@ -170,10 +170,10 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             val questionAnswer = QuestionAnswer()
             questionAnswer.uid = UUID.randomUUID().toString()
             questionAnswer.questionUid = field.uid
-            pollResponse.responses?.firstOrNull {
+            pollResponse.pollResponses?.firstOrNull {
                 it.questionUid == field.uid
             }.let {
-                if (it == null) pollResponse.responses?.add(questionAnswer)
+                if (it == null) pollResponse.pollResponses?.add(questionAnswer)
             }
 
             val col = UICol()
@@ -182,7 +182,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 col.add(
                     PollPageRest.getUiElement(
                         pollDto.isFinished(),
-                        "responses[$index].answers[0]",
+                        "pollResponses[$index].answers[0]",
                         "poll.question.textQuestion",
                         UIDataType.STRING
                     )
@@ -191,8 +191,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
 
             if (field.type == BaseType.MultiResponseQuestion || field.type === BaseType.SingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
-                    if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
-                        pollResponse.responses?.get(index)?.answers?.add(index2, false)
+                    if (pollResponse.pollResponses?.get(index)?.answers?.getOrNull(index2) == null) {
+                        pollResponse.pollResponses?.get(index)?.answers?.add(index2, false)
                     }
                     if (field.type == BaseType.MultiResponseQuestion) {
                         col.add(
@@ -235,12 +235,12 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         if (!pollDto.isFinished()) {
             layout.add(
                 UIButton.createDefaultButton(
-                    id = "addResponse",
+                    id = "addPollResonse",
                     title = translateMsg("poll.respond"),
                     responseAction = ResponseAction(
                         RestResolver.getRestUrl(
                             this::class.java,
-                            "addResponse"
+                            "addPollResonse"
                         ) + "/?questionOwner=${questionOwnerId}", targetType = TargetType.POST
                     )
                 )
@@ -252,8 +252,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         return FormLayoutData(pollResponse, layout, createServerData(request))
     }
 
-    @PostMapping("addResponse")
-    fun addResponse(
+    @PostMapping("addPollResonse")
+    fun addPollResonse(
         request: HttpServletRequest,
         @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
     ): ResponseEntity<ResponseAction>? {
@@ -265,7 +265,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             pollResponse.owner?.id == questionOwner
                     && pollResponse.poll?.id == postData.data.poll?.id
         }?.let {
-            it.responses = pollResponseDO.responses
+            it.pollResponses = pollResponseDO.pollResponses
             pollResponseDao.update(it)
             return ResponseEntity.ok(
                 ResponseAction(
