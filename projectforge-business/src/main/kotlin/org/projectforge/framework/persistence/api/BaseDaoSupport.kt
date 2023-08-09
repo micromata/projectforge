@@ -70,7 +70,14 @@ object BaseDaoSupport {
     }
     baseDao.prepareHibernateSearch(obj, OperationType.INSERT)
     em.merge(obj)
-    em.flush()
+    try {
+      em.flush()
+    } catch (ex: Exception) {
+      // Exception stack trace:
+      // org.postgresql.util.PSQLException: FEHLER: ungültige Byte-Sequenz für Kodierung »UTF8«: 0x00
+      log.error("${ex.message} while saving object: ${ToStringUtil.toJsonString(obj)}", ex)
+      throw ex
+    }
     baseDao.flushSearchSession(em)
     HistoryBaseDaoAdapter.inserted(emgr, obj)
   }
@@ -135,7 +142,14 @@ object BaseDaoSupport {
         //   log.info("No modifications detected (no update needed): " + dbObj.toString());
         baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
         em.merge(dbObj)
-        em.flush()
+        try {
+          em.flush()
+        } catch (ex: Exception) {
+          // Exception stack trace:
+          // org.postgresql.util.PSQLException: FEHLER: ungültige Byte-Sequenz für Kodierung »UTF8«: 0x00
+          log.error("${ex.message} while updating object: ${ToStringUtil.toJsonString(obj)}", ex)
+          throw ex
+        }
         if (baseDao.logDatabaseActions) {
           log.info("${baseDao.clazz.simpleName} updated: $dbObj")
         }
@@ -181,7 +195,7 @@ object BaseDaoSupport {
         dbObj.setLastUpdate()
         obj.isDeleted = true                     // For callee having same object.
         obj.setLastUpdate(dbObj.getLastUpdate()) // For callee having same object.
-        em.merge(dbObj)
+        em.merge(dbObj) //
         em.flush()
         baseDao.flushSearchSession(em)
         null
