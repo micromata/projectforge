@@ -57,6 +57,17 @@ object RequestLog {
     sessionId ?: return null
     return "${sessionId.take(6)}*"
   }
+
+  /**
+   * Truncated due to security reasons (only first 6 characters will be taken). Will return null if no session is available.
+   * No session will be created.
+   */
+  fun getTruncatedSessionId(request: HttpServletRequest): String? {
+    request.getSession(false)?.id.let { sessionId ->
+      sessionId ?: return null
+      return "${sessionId.take(6)}*"
+    }
+  }
 }
 
 class RequestData(request: HttpServletRequest, longForm: Boolean = false) {
