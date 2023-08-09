@@ -115,8 +115,10 @@ open class PollDO : DefaultBaseDO() {
     fun getPollStatus(): PollState {
         return if (this.state == State.FINISHED) {
             PollState.FINISHED
-        } else {
+        } else if (this.state == State.RUNNING) {
             PollState.RUNNING
+        } else {
+            PollState.FINISHED_AND_MAIL_SENT
         }
     }
 

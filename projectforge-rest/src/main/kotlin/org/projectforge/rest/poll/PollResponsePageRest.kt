@@ -56,7 +56,7 @@ import javax.validation.Valid
 
 
 @RestController
-@RequestMapping("${Rest.URL}/response")
+@RequestMapping("${Rest.URL}/pollResponse")
 class PollResponsePageRest : AbstractDynamicPageRest() {
 
     @Autowired

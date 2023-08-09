@@ -35,14 +35,14 @@ class PollResponse : BaseDTO<PollResponseDO>() {
     var pollResponses: MutableList<QuestionAnswer>? = mutableListOf()
     override fun copyTo(dest: PollResponseDO) {
         if (!this.pollResponses.isNullOrEmpty()) {
-            dest.responses = ObjectMapper().writeValueAsString(this.pollResponses)
+            dest.pollResponses = ObjectMapper().writeValueAsString(this.pollResponses)
         }
         super.copyTo(dest)
     }
 
     override fun copyFrom(src: PollResponseDO) {
-        if (!src.responses.isNullOrEmpty()) {
-            val a = ObjectMapper().readValue(src.responses, MutableList::class.java)
+        if (!src.pollResponses.isNullOrEmpty()) {
+            val a = ObjectMapper().readValue(src.pollResponses, MutableList::class.java)
             this.pollResponses = a.map { QuestionAnswer().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         super.copyFrom(src)
