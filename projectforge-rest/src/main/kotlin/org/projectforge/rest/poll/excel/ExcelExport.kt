@@ -62,7 +62,7 @@ class ExcelExport {
 
 
     fun getExcel(poll: Poll): ByteArray? {
-        val responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
+        val pollResponses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
         val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
         try {
@@ -83,7 +83,7 @@ class ExcelExport {
                 poll.attendees?.sortedBy { it.displayName }
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
-                    responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                    pollResponses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                     setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
 
@@ -109,7 +109,7 @@ class ExcelExport {
                     var number = (anzNewRows)
                     if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
                         val res = PollResponse()
-                        responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                        pollResponses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         // User add a Response
                         if (res.id != null) {
                             // Put data in the Row
@@ -175,25 +175,25 @@ class ExcelExport {
 
         var largestAnswer = ""
         poll.inputFields?.forEachIndexed { _, question ->
-            val questionAnswer = res?.responses?.find { it.questionUid == question.uid }
+            val questionAnswer = res?.pollResponses?.find { it.questionUid == question.uid }
 
             if (questionAnswer?.answers.isNullOrEmpty()) {
                 cell += question.answers?.size ?: 0
             }
-            questionAnswer?.answers?.forEachIndexed { ind, antwort ->
+            questionAnswer?.answers?.forEachIndexed { ind, answer ->
                 cell++
                 if (question.type == BaseType.MultiResponseQuestion) {
-                    if (antwort is Boolean && antwort == true) {
+                    if (answer is Boolean && answer == true) {
                         excelRow.getCell(cell).setCellValue("X")
                     }
                 } else if (question.type == BaseType.SingleResponseQuestion) {
-                    if (antwort is String && antwort.equals(question.answers?.get(ind))) {
+                    if (answer is String && answer.equals(question.answers?.get(ind))) {
                         excelRow.getCell(cell).setCellValue("X")
                     }
                 } else {
-                    excelRow.getCell(cell).setCellValue(antwort.toString())
-                    if (countLines(antwort.toString()) > countLines(largestAnswer)) {
-                        largestAnswer = antwort.toString()
+                    excelRow.getCell(cell).setCellValue(answer.toString())
+                    if (countLines(answer.toString()) > countLines(largestAnswer)) {
+                        largestAnswer = answer.toString()
                     }
                 }
                 excelSheet.autosize(cell)
