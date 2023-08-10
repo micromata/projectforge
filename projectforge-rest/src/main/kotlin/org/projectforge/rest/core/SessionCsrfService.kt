@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.dto.ServerData
+import org.projectforge.rest.utils.RequestLog
 import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.TargetType
 import org.projectforge.ui.ValidationError
@@ -73,7 +74,7 @@ open class SessionCsrfService
       // Check OK.
       return null
     }
-    log.warn("Check of CSRF token failed, a validation error will be shown. $logAction of data declined: ${postData.data}")
+    log.warn("Check of CSRF token failed, a validation error will be shown. $logAction of data declined: ${postData.data}. Expected token='${super.getSessionData(request)}', given token='$csrfToken'")
     val validationErrors = mutableListOf<ValidationError>()
     validationErrors.add(ValidationError.create("errorpage.csrfError"))
     postData.serverData = createServerData(request)
@@ -90,20 +91,26 @@ open class SessionCsrfService
     return ServerData(csrfToken = ensureAndGetToken(request))
   }
 
-  fun checkToken(request: HttpServletRequest, token: String?): Boolean {
+  private fun checkToken(request: HttpServletRequest, token: String?): Boolean {
     if (token.isNullOrEmpty() || token.trim().length < 30) {
-      log.info { "Token to short, check faild for session id '${request.getSession(false)?.id}'." }
+      log.info { "Token to short, check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
       return false
     }
-    return super.getSessionData(request) == token
+    val expected = super.getSessionData(request)
+    if (expected == token) {
+      return true
+    }
+    log.info { "Token check failed for session id '${RequestLog.getTruncatedSessionId(request)}': expected='$expected', given='$token'" }
+    return false
   }
 
-  fun ensureAndGetToken(request: HttpServletRequest): String {
+  private fun ensureAndGetToken(request: HttpServletRequest): String {
     var token = super.getSessionData(request)
     if (token != null) {
       return token
     }
     token = NumberHelper.getSecureRandomAlphanumeric(30)
+    log.debug { "No csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
     super.registerSessionData(request, token)
     return token
   }

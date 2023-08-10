@@ -58,14 +58,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   private final Map<String, IUserRightId> rightIds = new HashMap<>();
 
   private final List<UserRight> orderedRights = new ArrayList<>();
-  /**
-   * The user rights ids.
-   */
-  private Map<String, IUserRightId> userRightIds = new HashMap<>();
-
-  static {
-
-  }
 
   @Override
   public UserRight getRight(final IUserRightId id)
@@ -76,7 +68,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   @Override
   public UserRight getRight(String userRightId)
   {
-    IUserRightId uid = userRightIds.get(userRightId);
+    IUserRightId uid = rightIds.get(userRightId);
     if (uid == null) {
       return null;
     }
@@ -146,10 +138,10 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     for (RightRightIdProviderService service : serviceLoader) {
       String cname = service.getClass().getName();
       for (IUserRightId uid : service.getUserRightIds()) {
-        if (userRightIds.containsKey(uid.getId())) {
+        if (rightIds.containsKey(uid.getId())) {
           log.error("Duplicated UserId: " + uid.getId());
         }
-        userRightIds.put(uid.getId(), uid);
+        rightIds.put(uid.getId(), uid);
       }
     }
 

@@ -26,7 +26,6 @@ package org.projectforge.plugins.datatransfer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,10 +42,7 @@ class DataTransferAuditDaoTest : AbstractTestBase() {
   private lateinit var dataTransferAreaDao: DataTransferAreaDao
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
-      DataTransferAreaDO::class.java.canonicalName,
-      DataTransferAuditDO::class.java.canonicalName,
-    )
+    DataTransferTestService.addPluginEntitiesForTestMode()
   }
 
   @Test

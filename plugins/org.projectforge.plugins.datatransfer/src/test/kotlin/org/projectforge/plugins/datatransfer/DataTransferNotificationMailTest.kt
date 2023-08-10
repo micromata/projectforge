@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.configuration.DomainService
 import org.projectforge.framework.jcr.Attachment
 import org.projectforge.framework.jcr.AttachmentsEventType
-import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
@@ -50,10 +49,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
   private lateinit var dataTransferNotificationMailService: DataTransferNotificationMailService
 
   init {
-    MyJpaWithExtLibrariesScanner.addPluginEntitiesForTestMode(
-      DataTransferAreaDO::class.java.canonicalName,
-      DataTransferAuditDO::class.java.canonicalName,
-    )
+    DataTransferTestService.addPluginEntitiesForTestMode()
   }
 
   @Test
