@@ -1115,7 +1115,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public boolean hasLoggedInUserUpdateAccess(final O obj, final O dbObj, final boolean throwException) {
     return hasUpdateAccess(ThreadLocalUserContext.getUser(), obj, dbObj, throwException);
   }
-
   /**
    * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
    *
