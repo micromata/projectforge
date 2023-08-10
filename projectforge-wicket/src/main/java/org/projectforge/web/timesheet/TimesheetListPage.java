@@ -480,7 +480,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       form.addError("validation.error.nothingToExport");
       return;
     }
-    final String filename = "ProjectForge-TimesheetExport_" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".xls";
+    final String filename = "ProjectForge-TimesheetExport_" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".xlsx";
     final byte[] xls = timesheetExport.export(timeSheets);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);

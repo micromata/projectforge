@@ -23,7 +23,6 @@
 
 package org.projectforge.business.configuration
 
-import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel
 import mu.KotlinLogging
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
@@ -33,7 +32,7 @@ import org.projectforge.framework.configuration.*
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.framework.utils.FileHelper
-import org.projectforge.mail.SendMailConfig
+import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationContext
@@ -61,8 +60,15 @@ open class ConfigurationService {
   @Autowired
   private lateinit var configDao: ConfigurationDao
 
+  @Autowired
+  private lateinit var sendMail: SendMail
+
   @Value("\${projectforge.base.dir}")
   open var applicationHomeDir: String? = null
+
+  @Value("\${projectforge.support.mail}")
+  open var pfSupportMailAddress: String? = null
+    protected set
 
   /**
    * Resource directory relative to application's home (default 'resources').
@@ -91,9 +97,6 @@ open class ConfigurationService {
 
   @Value("\${projectforge.keystorePassphrase}")
   private var keystorePassphrase: String? = null
-
-  @Autowired
-  private lateinit var sendMailConfiguration: SendMailConfig
 
   /**
    * Default value: "resources/fonts" (absolute path).
@@ -179,37 +182,6 @@ open class ConfigurationService {
 
   @Value("\${projectforge.wicket.developmentMode}")
   private var developmentMode = false
-
-  @Value("\${projectforge.support.mail}")
-  open var pfSupportMailAddress: String? = null
-    protected set
-
-  @Value("\${mail.session.pfmailsession.emailEnabled}")
-  private var pfmailsessionEmailEnabled: String? = null
-
-  @Value("\${mail.session.pfmailsession.name}")
-  private var pfmailsessionName: String? = null
-
-  @Value("\${mail.session.pfmailsession.standardEmailSender}")
-  private var pfmailsessionStandardEmailSender: String? = null
-
-  @Value("\${mail.session.pfmailsession.encryption}")
-  private var pfmailsessionEncryption: String? = null
-
-  @Value("\${mail.session.pfmailsession.smtp.host}")
-  private var pfmailsessionHost: String? = null
-
-  @Value("\${mail.session.pfmailsession.smtp.port}")
-  private var pfmailsessionPort: String? = null
-
-  @Value("\${mail.session.pfmailsession.smtp.auth}")
-  private var pfmailsessionAuth = false
-
-  @Value("¢{mail.session.pfmailsession.smtp.user}")
-  private var pfmailsessionUser: String? = null
-
-  @Value("¢{mail.session.pfmailsession.smtp.password}")
-  private var pfmailsessionPassword: String? = null
 
   @Value("\${pf.config.security.sqlConsoleAvailable:false}")
   open var isSqlConsoleAvailable = false
@@ -337,13 +309,7 @@ open class ConfigurationService {
    * @return true if at least a send mail host is given, otherwise false.
    */
   open val isSendMailConfigured: Boolean
-    get() = sendMailConfiguration.isMailSendConfigOk
-
-  open fun getSendMailConfiguration(): SendMailConfig? {
-    return if (isSendMailConfigured) {
-      sendMailConfiguration
-    } else null
-  }
+    get() = sendMail.isConfigured
 
   open val contractTypes: List<ContractType>
     get() = configXml.contractTypes
@@ -436,19 +402,6 @@ open class ConfigurationService {
         TimeZone.getDefault()
       }
     }
-
-  open fun createMailSessionLocalSettingsConfigModel(): MailSessionLocalSettingsConfigModel {
-    return MailSessionLocalSettingsConfigModel()
-      .setEmailEnabled(pfmailsessionEmailEnabled)
-      .setName(pfmailsessionName)
-      .setEmailHost(pfmailsessionHost)
-      .setEmailPort(pfmailsessionPort.toString())
-      .setStandardEmailSender(pfmailsessionStandardEmailSender)
-      .setEmailAuthEnabled(pfmailsessionAuth.toString())
-      .setEmailAuthUser(pfmailsessionUser)
-      .setEmailAuthPass(pfmailsessionPassword)
-      .setEncryption(pfmailsessionEncryption)
-  }
 
   /**
    * 31.03. of the given year, if not configured different. This date determine when vacation days of an employee
