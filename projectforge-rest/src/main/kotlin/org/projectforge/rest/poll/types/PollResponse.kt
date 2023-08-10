@@ -32,18 +32,18 @@ import org.projectforge.rest.dto.BaseDTO
 class PollResponse : BaseDTO<PollResponseDO>() {
     var poll: PollDO? = null
     var owner: PFUserDO? = null
-    var pollResponses: MutableList<QuestionAnswer>? = mutableListOf()
+    var responses: MutableList<QuestionAnswer>? = mutableListOf()
     override fun copyTo(dest: PollResponseDO) {
-        if (!this.pollResponses.isNullOrEmpty()) {
-            dest.pollResponses = ObjectMapper().writeValueAsString(this.pollResponses)
+        if (!this.responses.isNullOrEmpty()) {
+            dest.responses = ObjectMapper().writeValueAsString(this.responses)
         }
         super.copyTo(dest)
     }
 
     override fun copyFrom(src: PollResponseDO) {
-        if (!src.pollResponses.isNullOrEmpty()) {
-            val a = ObjectMapper().readValue(src.pollResponses, MutableList::class.java)
-            this.pollResponses = a.map { QuestionAnswer().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
+        if (!src.responses.isNullOrEmpty()) {
+            val a = ObjectMapper().readValue(src.responses, MutableList::class.java)
+            this.responses = a.map { QuestionAnswer().toObject(ObjectMapper().writeValueAsString(it)) }.toMutableList()
         }
         super.copyFrom(src)
     }

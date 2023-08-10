@@ -62,7 +62,7 @@ class ExcelExport {
 
 
     fun getExcel(poll: Poll): ByteArray? {
-        val pollResponses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
+        val responses = pollResponseDao.internalLoadAll().filter { it.poll?.id == poll.id }
         val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
         try {
@@ -83,7 +83,7 @@ class ExcelExport {
                 poll.attendees?.sortedBy { it.displayName }
                 poll.attendees?.forEachIndexed { index, user ->
                     val res = PollResponse()
-                    pollResponses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                    responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                     setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
                 }
 
@@ -109,7 +109,7 @@ class ExcelExport {
                     var number = (anzNewRows)
                     if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
                         val res = PollResponse()
-                        pollResponses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                        responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
                         // User add a Response
                         if (res.id != null) {
                             // Put data in the Row
@@ -175,7 +175,7 @@ class ExcelExport {
 
         var largestAnswer = ""
         poll.inputFields?.forEachIndexed { _, question ->
-            val questionAnswer = res?.pollResponses?.find { it.questionUid == question.uid }
+            val questionAnswer = res?.responses?.find { it.questionUid == question.uid }
 
             if (questionAnswer?.answers.isNullOrEmpty()) {
                 cell += question.answers?.size ?: 0

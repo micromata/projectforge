@@ -48,7 +48,7 @@ open class PollResponseDO : DefaultBaseDO() {
     @get:JoinColumn(name = "owner_fk", nullable = false)
     open var owner: PFUserDO? = null
 
-    @PropertyInfo(i18nKey = "poll.pollResponses")
-    @get:Column(name = "pollResponses", nullable = true, length = 1000)
-    open var pollResponses: String? = null
+    @PropertyInfo(i18nKey = "poll.responses")
+    @get:Column(name = "responses", nullable = true, length = 1000)
+    open var responses: String? = null
 }
