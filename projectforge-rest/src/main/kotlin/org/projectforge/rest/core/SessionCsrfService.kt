@@ -92,11 +92,11 @@ open class SessionCsrfService
   }
 
   private fun checkToken(request: HttpServletRequest, token: String?): Boolean {
-    if (token.isNullOrEmpty() || token.trim().length < 30) {
+    if (token.isNullOrEmpty() || token.trim().length < TOKEN_LENGTH) {
       log.info { "Token to short, check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
       return false
     }
-    val expected = super.getSessionData(request)
+    val expected = ensureAndGetToken(request) // If no token given, create a new one for next request.
     if (expected == token) {
       return true
     }
@@ -106,16 +106,20 @@ open class SessionCsrfService
 
   private fun ensureAndGetToken(request: HttpServletRequest): String {
     var token = super.getSessionData(request)
-    if (token != null) {
+    if (token != null && token.length == TOKEN_LENGTH) {
       return token
     }
-    token = NumberHelper.getSecureRandomAlphanumeric(30)
-    log.debug { "No csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
+    token = NumberHelper.getSecureRandomAlphanumeric(TOKEN_LENGTH)
+    log.debug { "No valid csrf token found in AbstractSessionCache, creating '$token' for session id '${RequestLog.getTruncatedSessionId(request)}'" }
     super.registerSessionData(request, token)
     return token
   }
 
   override fun entryAsString(entry: String): String {
     return "'${entry.substring(0..5)}...'"
+  }
+
+  companion object {
+    const val TOKEN_LENGTH = 30
   }
 }
