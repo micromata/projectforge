@@ -223,8 +223,8 @@ class BirthdayButlerService {
     val foundUsers = mutableListOf<AddressDO>()
     addressList.forEach { address ->
       if (activeUsers.any { user ->
-          address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
-              address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true)
+          address.firstName?.trim()?.equals(user.firstname?.trim(), ignoreCase = true) == true &&
+              address.name?.trim()?.equals(user.lastname?.trim(), ignoreCase = true) == true
         }) {
         foundUsers.add(address)
       }
