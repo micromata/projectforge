@@ -39,7 +39,6 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.user.UserDao
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.mail.Mail
@@ -203,8 +202,7 @@ class BirthdayButlerService {
    * return list of users with birthday in selected month. Null, if no address with matching company found or empty, if no address with birthday in selected month found.
    */
   private fun getBirthdayList(month: Month): MutableList<AddressDO>? {
-    val queryFilter = QueryFilter()
-    var addressList = addressDao.internalGetList(queryFilter).filter {
+    var addressList = addressDao.internalLoadAllNotDeleted().filter {
       it.organization?.contains(
         birthdayButlerConfiguration.organization,
         ignoreCase = true
@@ -218,15 +216,16 @@ class BirthdayButlerService {
       address.birthday?.month == Month.values()[month.ordinal]
     }
     val activeUsers = userDao.internalLoadAll().filter { it.hasSystemAccess() }
-    val foundUser = mutableListOf<AddressDO>()
+    val foundUsers = mutableListOf<AddressDO>()
     addressList.forEach { address ->
       activeUsers.firstOrNull { user ->
         address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
             address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true)
-        foundUser.add(address)
+      }?.let {
+        foundUsers.add(address)
       }
     }
-    return foundUser
+    return foundUsers
   }
 
   private fun getEMailAddressesFromConfig(): MutableList<String>? {
