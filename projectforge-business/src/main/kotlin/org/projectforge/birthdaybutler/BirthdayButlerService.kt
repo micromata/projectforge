@@ -172,7 +172,11 @@ class BirthdayButlerService {
     }
   }
 
-  private fun createWordDocument(month: Month, addressList: MutableList<AddressDO>, locale: Locale?): ByteArrayOutputStream? {
+  private fun createWordDocument(
+    month: Month,
+    addressList: MutableList<AddressDO>,
+    locale: Locale?
+  ): ByteArrayOutputStream? {
     try {
       if (addressList.isNotEmpty()) {
         val variables = Variables()
@@ -218,10 +222,10 @@ class BirthdayButlerService {
     val activeUsers = userDao.internalLoadAll().filter { it.hasSystemAccess() }
     val foundUsers = mutableListOf<AddressDO>()
     addressList.forEach { address ->
-      activeUsers.firstOrNull { user ->
-        address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
-            address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true)
-      }?.let {
+      if (activeUsers.any { user ->
+          address.firstName?.trim().equals(user.firstname?.trim(), ignoreCase = true) &&
+              address.name?.trim().equals(user.lastname?.trim(), ignoreCase = true)
+        }) {
         foundUsers.add(address)
       }
     }
