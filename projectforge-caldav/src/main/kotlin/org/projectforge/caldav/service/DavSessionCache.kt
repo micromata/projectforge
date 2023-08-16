@@ -79,7 +79,7 @@ open class DavSessionCache
     val data = super.getSessionData(request)
     if (data != null) {
       if (log.isInfoEnabled) {
-        log.info("Found registered user in ssl-session-cache: ${getLogInfo(data, getSessionId(request))}")
+        log.info("Found registered user in cache: ${getLogInfo(data, getSessionId(request))}")
       }
     }
     return data
