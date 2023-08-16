@@ -160,7 +160,11 @@ abstract class AbstractSessionCache<T : Any>(
   protected abstract fun entryAsString(entry: T): String
 
   protected open fun getSessionId(request: HttpServletRequest): String? {
-    return request.getSession(false)?.id
+    val sessionId = request.getSession(false)?.id
+    if (sessionId == null) {
+      log.info { "$storageId: No $sessionType found in request." }
+    }
+    return sessionId
   }
 
   private val storageId: String
