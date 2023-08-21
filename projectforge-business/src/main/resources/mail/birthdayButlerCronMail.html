@@ -1,0 +1,26 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+<div id="mail">
+  <div class="container">
+    <div class="content">
+      <!--Header without the address-->
+      <% if (pf.isVariableGiven("logoUrl")) { %>
+      <a href="<%= pf.getString(baseUrl) %>" target="_blank" rel="noreferrer">
+        <img src="<%= pf.getString(logoUrl) %>" class="logo" alt="Logo">
+      </a> <% } %>
+      <h1 class="title"><%= pf.getString(title) %></h1>
+
+      <p><%= pf.getMessage("birthdayButler.email.opening") %></p>
+      <br>
+      <p>
+        <%= pf.getMessage(content, "<b>${month}</b>", "<b>${listSize}</b>") %>
+      </p>
+      <br>
+      #INCLUDE{mail/mailClosing.html}
+      #INCLUDE{mail/mailFooter.html}
+    </div>
+  </div>
+</div>
+</body>
+</html>
