@@ -61,19 +61,23 @@ public class BookDao extends BaseDao<BookDO> {
    */
   public boolean doesSignatureAlreadyExist(final BookDO book) {
     Validate.notNull(book);
-    if (book.getSignature() == null) {
+    return doesSignatureAlreadyExist(book.getSignature(), book.getId());
+  }
+
+  public boolean doesSignatureAlreadyExist(final String signature, final Integer id) {
+    if (signature == null) {
       return false;
     }
     BookDO other = null;
-    if (book.getId() == null) {
+    if (id == null) {
       // New book
       other = SQLHelper.ensureUniqueResult(em.createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
-              .setParameter("signature", book.getSignature()));
+          .setParameter("signature", signature));
     } else {
       // Book already exists. Check maybe changed signature:
       other = SQLHelper.ensureUniqueResult(em.createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
-              .setParameter("signature", book.getSignature())
-              .setParameter("id", book.getId()));
+          .setParameter("signature", signature)
+          .setParameter("id", id));
     }
     return other != null;
   }

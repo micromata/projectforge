@@ -23,11 +23,11 @@
 
 package org.projectforge.rest
 
-import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.saveOrUpdate
+import org.projectforge.rest.dto.Book
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.ResponseAction
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,34 +41,34 @@ import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookServicesRest() {
+class BookServicesRest {
 
-    @Autowired
-    private lateinit var bookDao: BookDao
+  @Autowired
+  private lateinit var bookDao: BookDao
 
-    @Autowired
-    private lateinit var bookRest: BookPagesRest
+  @Autowired
+  private lateinit var bookRest: BookPagesRest
 
-    /**
-     * Lends the given book out by the logged-in user.
-     */
-    @PostMapping("lendOut")
-    fun lendOut(request: HttpServletRequest, @RequestBody postData: PostData<BookDO>): ResponseEntity<ResponseAction> {
-        val book = postData.data
-        book.lendOutDate = LocalDate.now()
-        bookDao.setLendOutBy(book, userId)
-        return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
-    }
+  /**
+   * Lends the given book out by the logged-in user.
+   */
+  @PostMapping("lendOut")
+  fun lendOut(request: HttpServletRequest, @RequestBody postData: PostData<Book>): ResponseEntity<ResponseAction> {
+    val book = bookRest.transformForDB(postData.data)
+    book.lendOutDate = LocalDate.now()
+    bookDao.setLendOutBy(book, userId)
+    return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
+  }
 
-    /**
-     * Returns the given book by the logged-in user.
-     */
-    @PostMapping("returnBook")
-    fun returnBook( request: HttpServletRequest, @RequestBody postData: PostData<BookDO>): ResponseEntity<ResponseAction> {
-        val book = postData.data
-        book.lendOutBy = null
-        book.lendOutDate = null
-        book.lendOutComment = null
-        return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
-    }
+  /**
+   * Returns the given book by the logged-in user.
+   */
+  @PostMapping("returnBook")
+  fun returnBook(request: HttpServletRequest, @RequestBody postData: PostData<Book>): ResponseEntity<ResponseAction> {
+    val book = bookRest.transformForDB(postData.data)
+    book.lendOutBy = null
+    book.lendOutDate = null
+    book.lendOutComment = null
+    return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
+  }
 }
