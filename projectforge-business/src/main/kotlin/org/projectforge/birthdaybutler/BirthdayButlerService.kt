@@ -158,13 +158,11 @@ class BirthdayButlerService {
     val emails = getEMailAddressesFromConfig()
     if (!emails.isNullOrEmpty()) {
       val subject = "${translate(locale, "birthdayButler.email.subject")} ${translateMonth(month, locale)}"
-      val mail = Mail()
-      mail.subject = subject
-      mail.contentType = Mail.CONTENTTYPE_HTML
       emails.forEach { address ->
+        val mail = Mail()
+        mail.subject = subject
+        mail.contentType = Mail.CONTENTTYPE_HTML
         mail.setTo(address)
-        //mail.content = translate(content)
-
         val data = mutableMapOf<String, Any?>(
           "content" to content,
           "month" to translateMonth(month, locale),
