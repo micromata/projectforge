@@ -45,7 +45,6 @@ import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
 import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.io.IOException
@@ -61,9 +60,6 @@ class BirthdayButlerService {
 
   @Autowired
   private lateinit var addressDao: AddressDao
-
-  @Autowired
-  private lateinit var applicationContext: ApplicationContext
 
   @Autowired
   private lateinit var birthdayButlerConfiguration: BirthdayButlerConfiguration
@@ -95,7 +91,8 @@ class BirthdayButlerService {
     val response = createWord(month, locale)
     val error = response.errorMessage
     if (error != null) {
-      log.error { "BirthdayButlerJob aborted: ${translate(error)}" }
+      log.error { "BirthdayButlerJob aborted: ${translate(error)} + $error" }
+      sendMail(month, content = error, locale = locale)
       return
     }
     val word = response.wordDocument
@@ -113,7 +110,7 @@ class BirthdayButlerService {
       list.add(attachment)
       sendMail(month, content = "birthdayButler.email.content", mailAttachments = list, locale = locale)
     } else {
-      sendMail(month, content = "birthdayButler.email.content.noBirthdaysFound", locale = locale)
+      sendMail(month, content = "birthdayButler.wordDocument.error", locale = locale)
     }
     log.info("BirthdayButlerJob finished.")
   }
@@ -152,21 +149,39 @@ class BirthdayButlerService {
 
   }
 
-  private fun sendMail(month: Month, content: String, mailAttachments: List<MailAttachment>? = null, locale: Locale?) {
+  private fun sendMail(
+    month: Month,
+    content: String,
+    mailAttachments: List<MailAttachment>? = null,
+    locale: Locale?
+  ) {
     val emails = getEMailAddressesFromConfig()
     if (!emails.isNullOrEmpty()) {
       val subject = "${translate(locale, "birthdayButler.email.subject")} ${translateMonth(month, locale)}"
+      val mail = Mail()
+      mail.subject = subject
+      mail.contentType = Mail.CONTENTTYPE_HTML
       emails.forEach { address ->
-        val mail = Mail()
-        mail.subject = subject
-        mail.contentType = Mail.CONTENTTYPE_HTML
         mail.setTo(address)
-        mail.content = translate(content)
+        //mail.content = translate(content)
+
+        val data = mutableMapOf<String, Any?>(
+          "content" to content,
+          "month" to translateMonth(month, locale),
+          "listSize" to getBirthdayList(month)?.size
+        )
+        mail.content = sendMail.renderGroovyTemplate(
+          mail,
+          "mail/birthdayButlerCronMail.html",
+          data,
+          title = subject,
+          recipient = null
+        )
         try {
           sendMail.send(mail, attachments = mailAttachments)
           log.info { "Send mail to $address" }
         } catch (ex: Exception) {
-          log.error("error while trying to send mail to '$address': ${ex.message}", ex)
+          log.error("Error while trying to send mail to '$address': ${ex.message}", ex)
         }
       }
     }
