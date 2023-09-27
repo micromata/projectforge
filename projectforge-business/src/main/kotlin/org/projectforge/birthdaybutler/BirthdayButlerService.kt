@@ -78,9 +78,7 @@ class BirthdayButlerService {
   }
 
   // Every month on the second last day at 8:00 AM
-  //@Scheduled(cron = "0 0 8 L-2 * ?")
-  // Every minute
-  @Scheduled(cron = "0 * * * * *")
+  @Scheduled(cron = "0 0 8 L-2 * ?")
   fun sendBirthdayButlerJob() {
     var locale = ThreadLocalUserContext.getLocale(null)
     birthdayButlerConfiguration.locale?.let {
