@@ -40,6 +40,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -48,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.io.IOException
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Month
 import java.util.*
@@ -57,6 +59,15 @@ private val log = KotlinLogging.logger {}
 @Service
 class BirthdayButlerService {
   class Response(val wordDocument: ByteArray? = null, val errorMessage: String? = null)
+
+  class BirthdayUser(address: AddressDO, user: PFUserDO?) {
+    val name: String = if (user?.nickname.isNullOrBlank()) {
+      "${address.firstName} ${address.name}"
+    } else {
+      "${user?.nickname} ${address.name}"
+    }
+    val birthday: LocalDate = address.birthday ?: LocalDate.now()
+  }
 
   @Autowired
   private lateinit var addressDao: AddressDao
@@ -79,6 +90,7 @@ class BirthdayButlerService {
 
   // Every month on the second last day at 8:00 AM
   @Scheduled(cron = "0 0 8 L-2 * ?")
+  // For testing: @Scheduled(fixedDelay = 3600 * 1000, initialDelay = 10 * 1000)
   fun sendBirthdayButlerJob() {
     var locale = ThreadLocalUserContext.getLocale(null)
     birthdayButlerConfiguration.locale?.let {
@@ -187,11 +199,11 @@ class BirthdayButlerService {
 
   private fun createWordDocument(
     month: Month,
-    addressList: MutableList<AddressDO>,
+    birthdayList: MutableList<BirthdayUser>,
     locale: Locale?
   ): ByteArrayOutputStream? {
     try {
-      if (addressList.isNotEmpty()) {
+      if (birthdayList.isNotEmpty()) {
         val variables = Variables()
         variables.put("table", "") // Marker for finding table (should be removed).
         variables.put("year", LocalDateTime.now().year)
@@ -200,7 +212,7 @@ class BirthdayButlerService {
         check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
         val wordDocument =
           WordDocument(birthdayButlerTemplate.inputStream, birthdayButlerTemplate.file.name).use { document ->
-            generateBirthdayTableRows(document.document, addressList)
+            generateBirthdayTableRows(document.document, birthdayList)
             document.process(variables)
             document.asByteArrayOutputStream
           }
@@ -218,7 +230,7 @@ class BirthdayButlerService {
   /**
    * return list of users with birthday in selected month. Null, if no address with matching company found or empty, if no address with birthday in selected month found.
    */
-  private fun getBirthdayList(month: Month): MutableList<AddressDO>? {
+  private fun getBirthdayList(month: Month): MutableList<BirthdayUser>? {
     var addressList = addressDao.internalLoadAllNotDeleted().filter {
       it.organization?.contains(
         birthdayButlerConfiguration.organization,
@@ -233,13 +245,13 @@ class BirthdayButlerService {
       address.birthday?.month == Month.values()[month.ordinal]
     }
     val activeUsers = userDao.internalLoadAll().filter { it.hasSystemAccess() }
-    val foundUsers = mutableListOf<AddressDO>()
+    val foundUsers = mutableListOf<BirthdayUser>()
     addressList.forEach { address ->
-      if (activeUsers.any { user ->
-          address.firstName?.trim()?.equals(user.firstname?.trim(), ignoreCase = true) == true &&
-              address.name?.trim()?.equals(user.lastname?.trim(), ignoreCase = true) == true
-        }) {
-        foundUsers.add(address)
+      activeUsers.firstOrNull { user ->
+        address.firstName?.trim()?.equals(user.firstname?.trim(), ignoreCase = true) == true &&
+            address.name?.trim()?.equals(user.lastname?.trim(), ignoreCase = true) == true
+      }?.let { user ->
+        foundUsers.add(BirthdayUser(address, user))
       }
     }
     return foundUsers
@@ -256,7 +268,7 @@ class BirthdayButlerService {
     return validEmailAddresses.ifEmpty { null }
   }
 
-  private fun generateBirthdayTableRows(templateDocument: XWPFDocument, addresses: List<AddressDO>): XWPFTable? {
+  private fun generateBirthdayTableRows(templateDocument: XWPFDocument, birthdayList: List<BirthdayUser>): XWPFTable? {
     var posTbl: XWPFTable? = null
     for (tbl in templateDocument.tables) {
       val cell = tbl.getRow(0).getCell(0)
@@ -275,21 +287,21 @@ class BirthdayButlerService {
       return null
     }
     var rowCounter = 2
-    addresses.sortedBy { it.birthday!!.dayOfMonth }.forEach { address ->
-      createBirthdayRow(posTbl, rowCounter++, address)
+    birthdayList.sortedBy { it.birthday.dayOfMonth }.forEach { birthdayUser ->
+      createBirthdayRow(posTbl, rowCounter++, birthdayUser)
     }
     posTbl!!.removeRow(1)
     return posTbl
   }
 
-  private fun createBirthdayRow(posTbl: XWPFTable?, rowCounter: Int, address: AddressDO) {
+  private fun createBirthdayRow(posTbl: XWPFTable?, rowCounter: Int, user: BirthdayUser) {
     try {
       val sourceRow = posTbl!!.getRow(1)
       val ctrow = CTRow.Factory.parse(sourceRow.ctRow.newInputStream())
       val newRow = XWPFTableRow(ctrow, posTbl)
       val variables = Variables()
-      variables.put("day", "${format(address.birthday!!.dayOfMonth)}.${format(address.birthday!!.monthValue)}.")
-      variables.put("name", "${address.firstName} ${address.name}")
+      variables.put("day", "${format(user.birthday.dayOfMonth)}.${format(user.birthday.monthValue)}.")
+      variables.put("name", user.name)
       for (cell in newRow.tableCells) {
         for (cellParagraph in cell.paragraphs) {
           RunsProcessor(cellParagraph).replace(variables)
