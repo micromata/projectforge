@@ -27,13 +27,13 @@ import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
-import org.projectforge.business.book.BookDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.json.JsonValidator
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.AddressPagesRest
 import org.projectforge.rest.BookPagesRest
 import org.projectforge.rest.dto.Address
+import org.projectforge.rest.dto.Book
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import javax.servlet.http.HttpServletRequest
@@ -64,14 +64,14 @@ class UILayoutTest : AbstractTestBase() {
     fun testEditBookActionButtons() {
         val gson = GsonBuilder().create()
         val userAccess = UILayout.UserAccess(true, true, true, true)
-        val book = BookDO()
+        val book = Book()
         var jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         var jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
         assertEquals("create", jsonValidator.get("actions[1].id"))
         assertEquals(2, jsonValidator.getList("actions")?.size)
 
-        book.pk = 42
+        book.id = 42
         jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
@@ -79,7 +79,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("update", jsonValidator.get("actions[2].id"))
         assertEquals(3, jsonValidator.getList("actions")?.size)
 
-        book.isDeleted = true
+        book.deleted = true
         jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
         jsonValidator = JsonValidator(jsonString)
         assertEquals("cancel", jsonValidator.get("actions[0].id"))
@@ -90,7 +90,7 @@ class UILayoutTest : AbstractTestBase() {
     @Test
     fun testEditBookLayout() {
         val gson = GsonBuilder().create()
-        val book = BookDO()
+        val book = Book()
         val userAccess = UILayout.UserAccess(true, true, true, true)
         book.id = 42 // So lend-out component will be visible (only in edit mode)
         val jsonString = gson.toJson(bookRest.createEditLayout(book, userAccess))
@@ -124,7 +124,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("AG_GRID_LIST_PAGE", jsonValidator.get("layout[0].type"))
         assertEquals("el-1", jsonValidator.get("layout[0].key"))
 
-        assertEquals(7, jsonValidator.getList("layout[0].columnDefs")?.size)
+        assertEquals(8, jsonValidator.getList("layout[0].columnDefs")?.size)
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
         assertEquals("reset", jsonValidator.get("actions[0].id"))

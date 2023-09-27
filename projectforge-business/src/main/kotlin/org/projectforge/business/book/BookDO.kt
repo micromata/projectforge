@@ -23,6 +23,8 @@
 
 package org.projectforge.business.book
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -30,6 +32,7 @@ import org.hibernate.search.annotations.*
 import org.hibernate.search.annotations.Index
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
@@ -49,7 +52,7 @@ import javax.persistence.*
 @NamedQueries(
         NamedQuery(name = BookDO.FIND_BY_SIGNATURE, query = "from BookDO where signature=:signature"),
         NamedQuery(name = BookDO.FIND_OTHER_BY_SIGNATURE, query = "from BookDO where signature=:signature and id<>:id"))
-open class BookDO : DefaultBaseDO(), DisplayNameCapable {
+open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     override val displayName: String
         @Transient
         get() = "$authors: $title"
@@ -164,6 +167,33 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable {
             }
             return buf.toString()
         }
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_names")
+    override var attachmentsNames: String? = null
+
+    @JsonIgnore
+    @Field
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_ids")
+    override var attachmentsIds: String? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_counter")
+    override var attachmentsCounter: Int? = null
+
+    @JsonIgnore
+    @field:NoHistory
+    @get:Column(length = 10000, name = "attachments_size")
+    override var attachmentsSize: Long? = null
+
+    @PropertyInfo(i18nKey = "attachment")
+    @JsonIgnore
+    @get:Column(length = 10000, name = "attachments_last_user_action")
+    override var attachmentsLastUserAction: String? = null
 
     companion object {
         internal const val FIND_BY_SIGNATURE = "BookDO_FindBySignature"

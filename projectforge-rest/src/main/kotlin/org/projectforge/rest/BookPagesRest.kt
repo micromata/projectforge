@@ -30,17 +30,30 @@ import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
+import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractDOPagesRest
+import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.Validation
+import org.projectforge.rest.dto.Book
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/book")
-class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, "book.title") {
+class BookPagesRest : AbstractDTOPagesRest<BookDO, Book, BookDao>(BookDao::class.java, "book.title") {
+
+  @PostConstruct
+  private fun postConstruct() {
+    /**
+     * Enable attachments for this entity.
+     */
+    enableJcr()
+    JacksonConfiguration.registerAllowedUnknownProperties(Book::class.java, "statusAsString")
+    JacksonConfiguration.registerAllowedUnknownProperties(Book::class.java, "typeAsString")
+  }
 
   /**
    * Initializes new books for adding.
@@ -52,7 +65,19 @@ class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, 
     return book
   }
 
-  override fun validate(validationErrors: MutableList<ValidationError>, dto: BookDO) {
+  override fun transformForDB(dto: Book): BookDO {
+    val bookDO = BookDO()
+    dto.copyTo(bookDO)
+    return bookDO
+  }
+
+  override fun transformFromDB(obj: BookDO, editMode: Boolean): Book {
+    val book = Book()
+    book.copyFrom(obj)
+    return book
+  }
+
+  override fun validate(validationErrors: MutableList<ValidationError>, dto: Book) {
     Validation.validateInteger(
       validationErrors,
       "yearOfPublishing",
@@ -61,22 +86,37 @@ class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, 
       Constants.MAXYEAR,
       formatNumber = false
     )
-    if (baseDao.doesSignatureAlreadyExist(dto))
+    if (baseDao.doesSignatureAlreadyExist(dto.signature, dto.id))
       validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
   }
 
   /**
    * LAYOUT List page
    */
-  override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
+  override fun createListLayout(
+    request: HttpServletRequest,
+    layout: UILayout,
+    magicFilter: MagicFilter,
+    userAccess: UILayout.UserAccess
+  ) {
     val table = agGridSupport.prepareUIGrid4ListPage(request, layout, magicFilter, this, userAccess = userAccess)
-    table.add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy")
+    table.add(
+      lc,
+      "created",
+      "yearOfPublishing",
+      "signature",
+      "authors",
+      "title",
+      "keywords",
+      "lendOutBy",
+      "attachmentsSizeFormatted",
+    )
   }
 
   /**
    * LAYOUT Edit page
    */
-  override fun createEditLayout(dto: BookDO, userAccess: UILayout.UserAccess): UILayout {
+  override fun createEditLayout(dto: Book, userAccess: UILayout.UserAccess): UILayout {
     val layout = super.createEditLayout(dto, userAccess)
       .add(lc, "title", "authors")
       .add(
@@ -103,7 +143,12 @@ class BookPagesRest : AbstractDOPagesRest<BookDO, BookDao>(BookDao::class.java, 
           .add(UICustomized("book.lendOutComponent"))
           .add(lc, "lendOutComment")
       )
+    layout.add(
+      UIFieldset(title = "attachment.list")
+        .add(UIAttachmentList(category, dto.id, maxSizeInKB = getMaxFileSizeKB()))
+    )
     layout.add(lc, "abstractText", "comment")
+
     layout.getInputById("title").focus = true
     layout.getTextAreaById("authors").rows = 1
     layout.addTranslations("book.lendOut")
