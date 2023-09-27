@@ -146,14 +146,14 @@ public class KostZuweisungExport {
 
     final ContentProvider sheetProvider = sheet.getContentProvider();
     sheetProvider.putFormat(InvoicesCol.BRUTTO, "#,##0.00;[Red]-#,##0.00");
-    sheetProvider.putFormat(InvoicesCol.VAT, "#%");
+    sheetProvider.putFormat(InvoicesCol.VAT, "#0%");
     sheetProvider.putFormat(InvoicesCol.KORREKTUR, "#,##0.00;[Red]-#,##0.00");
     sheetProvider.putFormat(InvoicesCol.KOST1, "#");
     sheetProvider.putFormat(InvoicesCol.KOST2, "#");
     sheetProvider.putFormat(InvoicesCol.DATE, "dd.MM.yyyy");
 
-    final PropertyMapping mapping = new PropertyMapping();
     for (final KostZuweisungDO zuweisung : list) {
+      final PropertyMapping mapping = new PropertyMapping();
       final AbstractRechnungsPositionDO position;
       final AbstractRechnungDO rechnung;
       final String referenz;
@@ -183,6 +183,8 @@ public class KostZuweisungExport {
       mapping.add(InvoicesCol.BRUTTO, zuweisung.getBrutto());
       if (NumberHelper.isNotZero(position.getVat())) {
         mapping.add(InvoicesCol.VAT, position.getVat());
+      } else {
+        mapping.add(InvoicesCol.VAT, BigDecimal.ZERO);
       }
       Integer kontoNummer = null;
       if (rechnung instanceof RechnungDO) {
