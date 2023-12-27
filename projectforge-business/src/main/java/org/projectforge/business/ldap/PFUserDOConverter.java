@@ -280,8 +280,7 @@ public class PFUserDOConverter
     boolean modified;
     final List<String> properties = new LinkedList<>();
     ListHelper.addAll(properties, "commonName", "givenName", "surname", "mail", "description", "organization",
-        "deactivated",
-        "restrictedUser");
+        "deactivated", "restrictedUser", "mobilePhoneNumber");
     if (ldapUserDao.isPosixAccountsConfigured() && !isPosixAccountValuesEmpty(src)) {
       ListHelper.addAll(properties, "uidNumber", "gidNumber", "homeDirectory", "loginShell");
     }
