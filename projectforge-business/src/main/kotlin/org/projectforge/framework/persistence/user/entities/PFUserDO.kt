@@ -428,8 +428,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
   }
 
   companion object {
-    private val log = org.slf4j.LoggerFactory.getLogger(PFUserDO::class.java)
-
     const val FIND_BY_USERNAME = "PFUserDO_FindByUsername"
 
     /**
