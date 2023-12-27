@@ -96,7 +96,7 @@ open class SessionCsrfService
       log.info { "Token to short, check failed for session id '${RequestLog.getTruncatedSessionId(request)}'." }
       return false
     }
-    val expected = ensureAndGetToken(request) // If no token given, create a new one for next request.
+    val expected = ensureAndGetToken(request) // If no token is given or is expired, create a new one for next request.
     if (expected == token) {
       return true
     }
