@@ -76,7 +76,8 @@ class VacationValidatorTest : AbstractTestBase() {
         Assertions.assertNull(vacationService.validate(vacation))
         vacation.halfDayBegin = false
 
-        vacation.startDate = LocalDate.now().with(Month.DECEMBER).withDayOfMonth(24)
+        // Next year x-mas, otherwise test fails on 25th-31th of December.
+        vacation.startDate = LocalDate.now().with(Month.DECEMBER).withDayOfMonth(24).plusYears(1)
         vacation.endDate = vacation.startDate!!.plusMonths(1).withDayOfMonth(6)
         Assertions.assertNull(vacationService.validate(vacation))
 
