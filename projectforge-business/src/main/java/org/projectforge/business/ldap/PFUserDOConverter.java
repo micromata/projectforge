@@ -109,6 +109,7 @@ public class PFUserDOConverter
     ldapUser.setMail(user.getEmail());
     ldapUser.setDeleted(user.isDeleted());
     ldapUser.setDeactivated(user.getDeactivated());
+    ldapUser.setMobilePhoneNumber(user.getMobilePhone());
     if (user.getDeactivated()) {
       ldapUser.setMail(LdapUserDao.DEACTIVATED_MAIL);
     }
