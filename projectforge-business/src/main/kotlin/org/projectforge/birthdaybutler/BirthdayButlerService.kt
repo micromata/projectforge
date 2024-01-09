@@ -133,7 +133,7 @@ class BirthdayButlerService {
         month,
         locale
       )
-    }_${LocalDateTime.now().year}.docx"
+    }_${getYear(month)}.docx"
   }
 
   /**
@@ -206,7 +206,7 @@ class BirthdayButlerService {
       if (birthdayList.isNotEmpty()) {
         val variables = Variables()
         variables.put("table", "") // Marker for finding table (should be removed).
-        variables.put("year", LocalDateTime.now().year)
+        variables.put("year", getYear(month))
         variables.put("month", translateMonth(month, locale = locale))
         val birthdayButlerTemplate = configurationService.getOfficeTemplateFile("BirthdayButlerTemplate.docx")
         check(birthdayButlerTemplate != null) { "BirthdayButlerTemplate.docx not found" }
@@ -318,6 +318,25 @@ class BirthdayButlerService {
   companion object {
     private fun format(number: Int): String {
       return StringHelper.format2DigitNumber(number)
+    }
+
+    /**
+     * Returns the year for the given month. If the month more than 2 months is in the past, the next year is returned.
+     */
+    private fun getYear(month: Month): Int {
+      return getYear(month, LocalDateTime.now().month)
+    }
+
+    /**
+     * Only for testing purposes
+     */
+    internal fun getYear(month: Month, currentMonth: Month): Int {
+      return if (month.ordinal + 2 < currentMonth.ordinal) {
+        // At the end of the year, the next year is meant.
+        LocalDateTime.now().year + 1
+      } else {
+        return LocalDateTime.now().year
+      }
     }
 
     private val months = arrayOf(
