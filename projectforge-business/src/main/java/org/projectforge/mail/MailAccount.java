@@ -35,7 +35,7 @@ import java.util.List;
 
 /**
  * Connects to a mail server and receives mails.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MailAccount
@@ -75,7 +75,7 @@ public class MailAccount
 
   /**
    * Gets a list of all Emails matching the given filter.
-   * 
+   *
    * @return ArrayList of all found Email.
    */
   public Mail[] getMails(final MailFilter filter)
@@ -134,7 +134,7 @@ public class MailAccount
 
   /**
    * Opens the connection to the mailserver. Don't forget to call disconnect if this method returns true!
-   * 
+   *
    * @param mbox The folder name to open. If null then the default folder will be opened.
    * @param readwrite If false then the mbox is connected in readonly mode.
    * @return true on success, otherwise false.
@@ -207,7 +207,7 @@ public class MailAccount
 
   /**
    * Disconnects the folder and store if given and is opened yet.
-   * 
+   *
    * @return
    */
   //  @Deprecated

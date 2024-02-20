@@ -67,6 +67,8 @@ import javax.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/poll")
 class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.java, "poll.title") {
 
+    private var emailSent: Boolean = false
+
     private val log: Logger = LoggerFactory.getLogger(PollPageRest::class.java)
 
     @Autowired
@@ -221,7 +223,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                             .add(
                                 UISelect(
                                     "questionType",
-                                    values = BaseType.values().map { UISelectValue(it, it.name) },
+                                    values = BaseType.values()
+                                        .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
                                     label = "poll.questionType"
                                 )
                             )
@@ -250,6 +253,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                         .add(
                             UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
                                 .add(
+                                    //Sollte zu UISelect geändert werden um mehrere Vorlagen erstellen zu können ohne mehrer Buttons zu haben
                                     UIButton.createDefaultButton(
                                         id = "template-button",
                                         responseAction = ResponseAction(
@@ -298,12 +302,26 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @PutMapping("/finish")
     fun changeStateToFinish(
-        request: HttpServletRequest,
+        request: HttpServletRequest, obj: PollDO,
         @RequestBody postData: PostData<Poll>
     ): ResponseEntity<ResponseAction> {
         postData.data.state = PollDO.State.FINISHED
         postData.data.deadline = LocalDate.now()
-        return super.saveOrUpdate(request, postData)
+        val responseEntity = super.saveOrUpdate(request, postData)
+
+        if (postData.data.state == PollDO.State.FINISHED) {
+
+            val owner = userService.getUser(postData.data.owner?.id)
+            val mailFrom = owner?.email.toString()
+            val mailTo = pollMailService.getAllMails(postData.data)
+            val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
+            val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
+            pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+            emailSent = true
+
+        }
+
+        return responseEntity
     }
 
 
@@ -317,26 +335,39 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
-        // add all attendees mails
-        var mailTo = pollMailService.getAllMails(postData.data)
+        if (postData.data.state != PollDO.State.FINISHED) {
 
-        val owner = userService.getUser(obj.owner?.id)
-        val mailFrom = owner?.email.toString()
-        val mailSubject: String
-        val mailContent: String
+            var mailTo = pollMailService.getAllMails(postData.data)
 
-        if (postData.data.isAlreadyCreated()) {
-            mailSubject = translateMsg("poll.mail.update.subject")
-            mailContent = translateMsg(
-                "poll.mail.update.content", obj.title, owner?.displayName
-            )
-        } else {
-            mailSubject = translateMsg("poll.mail.created.subject")
-            mailContent = translateMsg(
-                "poll.mail.created.content", obj.title, owner?.displayName
-            )
+            val owner = userService.getUser(obj.owner?.id)
+            val mailFrom = owner?.email.toString()
+            val mailSubject: String
+            val mailContent: String
+
+            if (postData.data.isAlreadyCreated()) {
+
+                var mailTo = pollMailService.getAllFullAccessEmails(postData.data)
+
+                mailSubject = translateMsg("poll.mail.update.subject")
+                mailContent = translateMsg("poll.mail.update.content", obj.title, owner?.displayName
+                )
+
+                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+
+
+            } else {
+                mailSubject = translateMsg("poll.mail.created.subject", obj.title)
+                mailContent = translateMsg(
+                    "poll.mail.created.content",
+                    obj.title,
+                    owner?.displayName,
+                    "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}"
+                )
+
+                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+            }
+
         }
-        pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
 
         super.onAfterSaveOrUpdate(request, obj, postData)
     }
@@ -367,10 +398,10 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
 
-        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.TextQuestion
+        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.TextQuestion;
         val question = Question(uid = UUID.randomUUID().toString(), type = type)
         if (type == BaseType.SingleResponseQuestion) {
-            question.answers = mutableListOf("yes", "no")
+            question.answers = mutableListOf("", "")
         }
 
         dto.inputFields?.add(question)
@@ -613,7 +644,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             dataType: UIDataType = UIDataType.STRING
         ): UIElement {
             return if (isReadOnly)
-                UIReadOnlyField(id, label = label, dataType = dataType)
+                UIInput(id, label = label, dataType = dataType)
             else
                 UIInput(id, label = label, dataType = dataType)
         }

@@ -31,7 +31,6 @@ import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Customer
-import org.projectforge.rest.dto.Konto
 import org.projectforge.ui.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

@@ -47,3 +47,4 @@ class Question(
 enum class BaseType {
     TextQuestion, SingleResponseQuestion, MultiResponseQuestion,
 }
+
