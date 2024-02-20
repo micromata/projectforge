@@ -183,7 +183,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                     PollPageRest.getUiElement(
                         pollDto.isFinished(),
                         "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
+                        "poll.question.TextQuestion",
                         UIDataType.STRING
                     )
                 )

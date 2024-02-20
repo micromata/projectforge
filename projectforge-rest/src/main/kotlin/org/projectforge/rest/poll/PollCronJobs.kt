@@ -26,8 +26,10 @@ package org.projectforge.rest.poll
 import org.projectforge.business.poll.PollDO
 import org.projectforge.business.poll.PollDao
 import org.projectforge.business.poll.PollResponseDao
+import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.mail.MailAttachment
+import org.projectforge.rest.dto.PostData
 import org.projectforge.rest.poll.excel.ExcelExport
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -53,6 +55,9 @@ class PollCronJobs {
 
     @Autowired
     private lateinit var exporter: ExcelExport
+
+    @Autowired
+    private lateinit var userService: UserService
 
     private val log: Logger = LoggerFactory.getLogger(PollCronJobs::class.java)
 
@@ -94,12 +99,12 @@ class PollCronJobs {
                                 return excel
                             }
                         }
-                        // add all attendees mails
+                        val owner = userService.getUser(poll.owner?.id)
                         val mailTo: ArrayList<String> =
                             ArrayList(poll.attendees?.map { it.email }?.mapNotNull { it } ?: emptyList())
                         val mailFrom = pollDO.owner?.email.toString()
-                        val mailSubject = translateMsg("poll.mail.ended.subject")
-                        val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
+                        val mailSubject = translateMsg("poll.mail.endedafterdeadline.subject", poll.title)
+                        val mailContent = translateMsg("poll.mail.endedafterdeadline.content", pollDO.title, owner?.displayName, )
 
                         pollDao.internalSaveOrUpdate(pollDO)
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED")

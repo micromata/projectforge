@@ -71,7 +71,6 @@ class PollMailService {
         } catch (e: Exception) {
             log.error(e.message, e)
         }
-
     }
 
     fun getAllMails(poll: Poll): List<String> {
@@ -81,24 +80,35 @@ class PollMailService {
         val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
         val accessUsers = User.toUserList(accessUserIds)
 
+        var userList = fullAccessUser
         accessUsers?.forEach { user ->
             if (fullAccessUser.none { it.id == user.id }) {
-                fullAccessUser.add(user)
+                userList.add(user)
             }
         }
 
         var owner = User.getUser(poll.owner?.id, false)
         if (owner != null) {
-            fullAccessUser.add(owner)
+            userList.add(owner)
         }
         attendees?.forEach {
             if (!fullAccessUser.contains(it)) {
-                fullAccessUser.add(it)
+                userList.add(it)
             }
         }
 
-        User.restoreDisplayNames(fullAccessUser, userService)
-        return fullAccessUser.mapNotNull { it.email }
+        User.restoreDisplayNames(userList, userService)
+        User.restoreEmails(userList, userService)
+        return userList.mapNotNull { it.email }
     }
 
+    fun getAllFullAccessEmails(poll: Poll): List<String> {
+        val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+        val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+
+        var userList = fullAccessUser
+
+        User.restoreEmails(userList, userService)
+        return userList.mapNotNull { it.email }
+    }
 }

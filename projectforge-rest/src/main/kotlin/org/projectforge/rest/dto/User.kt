@@ -238,6 +238,10 @@ class User(
       users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
     }
 
+    fun restoreEmails(users: List<User>?, userService: UserService) {
+      users?.forEach { it.email = userService.getUser(it.id)?.email }
+    }
+
     /**
      * Converts csv of user ids to list of user.
      */

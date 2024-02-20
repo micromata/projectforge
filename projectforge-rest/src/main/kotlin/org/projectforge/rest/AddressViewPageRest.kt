@@ -287,12 +287,14 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     if (email.isNullOrBlank()) {
       return
     }
+    val emailObject = EMail(email)
     col.add(
       UIRow()
         .add(UICol(6).add(UILabel(title)))
-        .add(UICol(6).add(UICustomized("email", mutableMapOf("data" to EMail(email)))))
+        .add(UICol(6).add(UICustomized("email", mutableMapOf("email" to emailObject))))
     )
   }
+
 
   private fun createAddressCol(
     row: UIRow,

@@ -47,7 +47,7 @@ val PREMADE_QUESTIONS = mapOf(
     ),
     "CAN_HAVE_CHILDREN" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Nimmst du ein Kind mit? (Name der Begleitung)",
+        question = "Nimmst du ein Kind mit? (Name des Kindes)",
         type = BaseType.TextQuestion,
         answers = mutableListOf("")
     ),
