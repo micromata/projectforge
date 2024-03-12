@@ -40,16 +40,19 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.mail.MailAttachment
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
-import org.projectforge.rest.core.*
-import org.projectforge.rest.dto.*
+import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
+import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.dto.Group
+import org.projectforge.rest.dto.PostData
+import org.projectforge.rest.dto.User
 import org.projectforge.rest.poll.excel.ExcelExport
-import org.projectforge.rest.poll.types.BaseType
-import org.projectforge.rest.poll.types.PREMADE_QUESTIONS
-import org.projectforge.rest.poll.types.Question
+import org.projectforge.rest.poll.types.*
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.UIFilterListElement
 import org.slf4j.Logger
@@ -63,11 +66,10 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
+
 @RestController
 @RequestMapping("${Rest.URL}/poll")
 class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.java, "poll.title") {
-
-    private var emailSent: Boolean = false
 
     private val log: Logger = LoggerFactory.getLogger(PollPageRest::class.java)
 
@@ -85,6 +87,9 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @Autowired
     private lateinit var excelExport: ExcelExport
+
+    @Autowired
+    private lateinit var exporter: ExcelExport
 
     @Autowired
     private lateinit var pollResponseDao: PollResponseDao
@@ -215,63 +220,88 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
             .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
             .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
-        if (!dto.isAlreadyCreated()) {
+
+        if(!dto.isAlreadyCreated()) {
+
             fieldset.add(
                 UIRow()
                     .add(
-                        UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
+                        UICol(UILength(xs = 10, sm = 10, md = 10, lg = 10))
                             .add(
                                 UISelect(
-                                    "questionType",
-                                    values = BaseType.values()
-                                        .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
-                                    label = "poll.questionType"
-                                )
-                            )
-                    )
-                    .add(
-                        UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
-                            .add(UISpacer())
-                            .add(
-                                UIButton.createDefaultButton(
-                                    id = "add-question-button",
-                                    title = "poll.button.addQuestion",
-                                    responseAction = ResponseAction(
-                                        "${Rest.URL}/poll/add",
-                                        targetType = TargetType.PUT
-                                    ),
-                                    default = false
+                                    "prequestionType",
+                                    values = PreType.values()
+                                        .map { UISelectValue(it, translateMsg("poll.templateType" + it.name)) },
+                                    label = "poll.questionTemplate"
                                 )
                             )
                     )
             )
+
                 .add(
                     UIRow()
                         .add(
-                            UICol(UILength(xs = 9, sm = 9, md = 9, lg = 9))
+                            UICol(UILength(xs = 11, sm = 11, md = 11, lg = 11))
                         )
                         .add(
-                            UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
+                            UICol(UILength(xs = 2, sm = 2, md = 2, lg = 2))
                                 .add(
-                                    //Sollte zu UISelect geändert werden um mehrere Vorlagen erstellen zu können ohne mehrer Buttons zu haben
                                     UIButton.createDefaultButton(
                                         id = "template-button",
+                                        title = "poll.premade.template",
                                         responseAction = ResponseAction(
                                             "${Rest.URL}/poll/addPremadeQuestions",
                                             targetType = TargetType.PUT
                                         ),
-                                        title = "poll.button.template",
                                         default = false
                                     )
                                 )
                         )
                 )
+
+           fieldset.add(
+              UIRow()
+                 .add(
+                    UICol(UILength(xs = 10, sm = 10, md = 10, lg = 10))
+                       .add(
+                          UISelect(
+                             "questionType",
+                                values = BaseType.values()
+                                   .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
+                                      label = "poll.questionType"
+                                   )
+                             )
+                       )
+                 )
+
+
+
+               .add(
+                   UIRow()
+                       .add(
+                           UICol(UILength(xs = 11, sm = 11, md = 11, lg = 11))
+                       )
+                       .add(
+                           UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
+                                    .add(UISpacer())
+                                    .add(
+                                        UIButton.createDefaultButton(
+                                            id = "add-question-button",
+                                            title = "poll.button.addQuestion",
+                                            responseAction = ResponseAction(
+                                                "${Rest.URL}/poll/add",
+                                                targetType = TargetType.PUT
+                                            ),
+                                            default = false
+                                        )
+                                    )
+                            )
+               )
         }
         addQuestionFieldset(layout, dto, fieldset)
 
         layout.watchFields.add("delegationUser")
         layout.watchFields.addAll(listOf("groupAttendees"))
-
 
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         if (!dto.isFinished()) {
@@ -300,44 +330,96 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
+    @GetMapping("export")
+    fun export(@RequestParam("id") id: String): ResponseEntity<Resource>? {
+        val poll = Poll()
+        val pollDo = pollDao.getById(id.toInt())
+        poll.copyFrom(pollDo)
+        User.restoreDisplayNames(poll.attendees, userService)
+        val bytes: ByteArray? = excelExport
+            .getExcel(poll)
+        val filename = ("${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
+
+        if (bytes == null || bytes.isEmpty()) {
+            log.error("Oops, xlsx is empty. Filename: $filename")
+            return null
+        }
+        log.info("Exporting $filename")
+        return RestUtils.downloadFile(filename, bytes)
+    }
+
     @PutMapping("/finish")
     fun changeStateToFinish(
         request: HttpServletRequest, obj: PollDO,
-        @RequestBody postData: PostData<Poll>
+        @RequestBody postData: PostData<Poll>,
     ): ResponseEntity<ResponseAction> {
         postData.data.state = PollDO.State.FINISHED
         postData.data.deadline = LocalDate.now()
         val responseEntity = super.saveOrUpdate(request, postData)
+        var emailSent: Boolean = false
+        var FUemailSent: Boolean = false
 
-        if (postData.data.state == PollDO.State.FINISHED) {
+            if (postData.data.state == PollDO.State.FINISHED) {
 
-            val owner = userService.getUser(postData.data.owner?.id)
-            val mailFrom = owner?.email.toString()
-            val mailTo = pollMailService.getAllMails(postData.data)
-            val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
-            val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
-            pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-            emailSent = true
 
-        }
+                val poll = Poll()
+                val id: String
+                id = postData.data.id.toString()
+                val pollDo = pollDao.getById(id.toInt())
+                poll.copyFrom(pollDo)
+                User.restoreDisplayNames(poll.attendees, userService)
 
+                val excel = excelExport.getExcel(poll)
+                val filename = ("${postData.data.title}_${LocalDateTime.now().year}_Result.xlsx")
+
+                val mailAttachment = object : MailAttachment {
+                    override fun getFilename(): String {
+                        return filename
+                    }
+
+                    override fun getContent(): ByteArray? {
+                        return excel
+                    }
+                }
+
+                if (FUemailSent != true) {
+
+                    val owner = userService.getUser(postData.data.owner?.id)
+                    val mailFrom = owner?.email.toString()
+                    val mailTo = pollMailService.getAllFullAccessEmails(postData.data)
+                    val mailSubject = translateMsg("poll.mail.ended.fullAccess.subject", postData.data.title)
+                    val mailContent = translateMsg("poll.mail.ended.fullAccess.content", postData.data.title, owner?.displayName)
+
+                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
+                    FUemailSent = true
+                }
+
+                val owner = userService.getUser(postData.data.owner?.id)
+                val mailFrom = owner?.email.toString()
+                val mailTo = pollMailService.getAllAttendesEmails(postData.data)
+                val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
+                val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
+                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+                emailSent = true
+            }
         return responseEntity
     }
-
 
     override fun onBeforeSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         if (obj.inputFields.isNullOrEmpty() || obj.inputFields.equals("[]")) {
             throw AccessException("poll.error.oneQuestionRequired")
         }
 
-        super.onBeforeSaveOrUpdate(request, obj, postData)
+        if (obj.attendeeIds.isNullOrEmpty() || obj.attendeeIds.equals("[]")) {
+            throw AccessException("poll.error.oneAttendeRequired")
+        }
+
+        super.onBeforeSaveOrUpdate(request, obj,postData)
     }
 
 
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
         if (postData.data.state != PollDO.State.FINISHED) {
-
-            var mailTo = pollMailService.getAllMails(postData.data)
 
             val owner = userService.getUser(obj.owner?.id)
             val mailFrom = owner?.email.toString()
@@ -346,16 +428,20 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
             if (postData.data.isAlreadyCreated()) {
 
-                var mailTo = pollMailService.getAllFullAccessEmails(postData.data)
+                val mailTo = pollMailService.getAllFullAccessEmails(postData.data)
 
                 mailSubject = translateMsg("poll.mail.update.subject")
-                mailContent = translateMsg("poll.mail.update.content", obj.title, owner?.displayName
+                mailContent = translateMsg(
+                    "poll.mail.update.content", obj.title, owner?.displayName
                 )
 
                 pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
 
 
             } else {
+
+                val mailTo = pollMailService.getAllMails(postData.data)
+
                 mailSubject = translateMsg("poll.mail.created.subject", obj.title)
                 mailContent = translateMsg(
                     "poll.mail.created.content",
@@ -366,9 +452,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
                 pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
             }
-
         }
-
         super.onAfterSaveOrUpdate(request, obj, postData)
     }
 
@@ -402,6 +486,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val question = Question(uid = UUID.randomUUID().toString(), type = type)
         if (type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("", "")
+        } else if (type == BaseType.MultiResponseQuestion) {
+            question.answers = mutableListOf("", "", "")
         }
 
         dto.inputFields?.add(question)
@@ -452,12 +538,24 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @PutMapping("/addPremadeQuestions")
     private fun addPremadeQuestionsField(
-        @RequestBody postData: PostData<Poll>,
+        @RequestBody postData: PostData<Poll>
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
 
-        PREMADE_QUESTIONS.entries.forEach { entry ->
-            dto.inputFields?.add(entry.value)
+        val ptype = dto.prequestionType?.let { PreType.valueOf(it) } ?: PreType.Neujahrsfeier
+        val question = PQuestion(uid = UUID.randomUUID().toString(), pType = ptype)
+        if (ptype == PreType.Sommerfest) {
+            Sommerfest.entries.forEach { entry ->
+                dto.inputFields?.add(entry.value)
+            }
+        } else if (ptype == PreType.Neujahrsfeier) {
+            Neujahrsfeier.entries.forEach { entry ->
+                dto.inputFields?.add(entry.value)
+            }
+        } else if (ptype == PreType.Teamessen) {
+            Teamessen.entries.forEach { entry ->
+                dto.inputFields?.add(entry.value)
+            }
         }
 
         return ResponseEntity.ok(
@@ -465,7 +563,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 .addVariable("ui", createEditLayout(dto, getUserAccess(dto)))
         )
     }
-
 
     private fun addQuestionFieldset(layout: UILayout, dto: Poll, fieldset: UIFieldset) {
         fieldset.add(UISpacer())
@@ -514,7 +611,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             fieldset.add(questionFieldset)
         }
     }
-
 
     private fun generateSingleAndMultiResponseAnswer(
         objGiven: Boolean,
@@ -613,25 +709,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
 
-    @GetMapping("export")
-    fun export(@RequestParam("id") id: String): ResponseEntity<Resource>? {
-        val poll = Poll()
-        val pollDo = pollDao.getById(id.toInt())
-        poll.copyFrom(pollDo)
-        User.restoreDisplayNames(poll.attendees, userService)
-        val bytes: ByteArray? = excelExport
-            .getExcel(poll)
-        val filename = ("${poll.title}_${LocalDateTime.now().year}_Result.xlsx")
-
-        if (bytes == null || bytes.isEmpty()) {
-            log.error("Oops, xlsx is empty. Filename: $filename")
-            return null
-        }
-        log.info("Exporting $filename")
-        return RestUtils.downloadFile(filename, bytes)
-    }
-
-
     companion object {
         /**
          *  Once created, questions should be ReadOnly
@@ -644,7 +721,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             dataType: UIDataType = UIDataType.STRING
         ): UIElement {
             return if (isReadOnly)
-                UIInput(id, label = label, dataType = dataType)
+                UIReadOnlyField(id, label = label, dataType = dataType)
             else
                 UIInput(id, label = label, dataType = dataType)
         }
@@ -677,6 +754,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     /**
      * restricts the user access accordingly
      */
+
     private fun getUserAccess(pollDto: Poll): UILayout.UserAccess {
         val pollDO = PollDO()
         pollDto.copyTo(pollDO)
@@ -698,5 +776,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             }
         }
     }
-
 }
+
+
+
+

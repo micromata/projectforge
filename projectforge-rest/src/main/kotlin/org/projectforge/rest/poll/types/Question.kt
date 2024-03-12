@@ -45,6 +45,6 @@ class Question(
 }
 
 enum class BaseType {
-    TextQuestion, SingleResponseQuestion, MultiResponseQuestion,
+    TextQuestion, SingleResponseQuestion, MultiResponseQuestion
 }
 

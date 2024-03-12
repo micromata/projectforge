@@ -26,7 +26,7 @@ package org.projectforge.rest.poll.types
 import java.util.UUID
 
 
-val PREMADE_QUESTIONS = mapOf(
+val Neujahrsfeier = mapOf(
     "HAS_FOOD" to Question(
         uid = UUID.randomUUID().toString(),
         question = "Was willst du essen?",
@@ -64,3 +64,64 @@ val PREMADE_QUESTIONS = mapOf(
         answers = mutableListOf("Ja", "Nein")
     ),
 )
+
+val Sommerfest = mapOf(
+    "IS_IN" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Nimmst du teil ?",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Ja", "Nein")
+    ),
+    "WHAT_TO_EAT" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Zur Essens Auswahl gibt es",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Pizza", "Pasta", "Burger")
+    ),
+    "CAN_HAVE_COMPANIONS" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Kommst du in Begleitung ?",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Ja", "Nein")
+    ),
+    "HOW_MANY_COMPANIONS" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Wenn du in Begleitung kommst wie viele ?",
+        type = BaseType.TextQuestion,
+        answers = mutableListOf("")
+    ),
+    "CAN_STAY_OVERNIGHT" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Willst du vor ort Übernachten ?",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Ja", "Nein")
+    ),
+    "HAS_BREAKFAST" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Wenn du übernachtest möchtest du am nächsten tag Frühstück ?",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Ja", "Nein")
+    ),
+)
+
+val Teamessen = mapOf(
+    "IS_IN" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Hast du Zeit und Lust ?",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Ja", "Nein")
+    ),
+    "WHAT_TO_EAT" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Zur Essens Auswahl gibt es",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Pizza", "Pasta", "Burger")
+    ),
+    "CAN_STAY_OVERNIGHT" to Question(
+        uid = UUID.randomUUID().toString(),
+        question = "Welcher dieser Termine passt dir am besten ? (Du kannst auch mehrere ankreuzen)",
+        type = BaseType.MultiResponseQuestion,
+        answers = mutableListOf("", "")
+    ),
+)
+
