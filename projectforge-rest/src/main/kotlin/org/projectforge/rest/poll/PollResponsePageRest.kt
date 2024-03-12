@@ -126,8 +126,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
-            .add(UISpacer())
-            .add(UISpacer())
+
 
         if (!pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId) {
             val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
@@ -165,6 +164,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             pollResponse.copyFrom(it)
         }
 
+        var index = 0
         pollDto.inputFields?.forEachIndexed { index, field ->
             val fieldSetQuestions = UIFieldset(title = field.question)
             val questionAnswer = QuestionAnswer()
@@ -194,24 +194,36 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
                     }
-                    if (field.type == BaseType.MultiResponseQuestion) {
+                    if (field.type == BaseType.SingleResponseQuestion) {
+                        col.add(
+                            UIRadioButton(
+                                "responses[$index].answers[$index2]",
+                                value = field.answers?.get(index2) ?: "",
+                                label = field.answers?.get(index2) ?: ""
+                            )
+                        )
+                    } else if (field.type == BaseType.MultiResponseQuestion) {
                         col.add(
                             UICheckbox(
                                 "responses[$index].answers[$index2]",
                                 label = field.answers?.get(index2) ?: ""
                             )
                         )
-                    } else {
-                        col.add(
-                            UIRadioButton(
-                                "responses[$index].answers[0]",
-                                value = field.answers?.get(index2) ?: "",
-                                label = field.answers?.get(index2) ?: ""
-                            )
-                        )
                     }
                 }
             }
+
+         /*   val isLastField = index == pollDto.inputFields?.size?.minus(1)
+
+            if (isLastField) {
+                col.add(
+                    UIInput(
+                        "responses[$index].answers[$index]",
+                    )
+                )
+            }
+            */
+
             fieldSetQuestions.add(UIRow().add(col))
             fieldset.add(fieldSetQuestions)
         }

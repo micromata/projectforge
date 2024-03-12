@@ -28,6 +28,8 @@ import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext

@@ -24,6 +24,9 @@
 package org.projectforge.rest.poll
 
 import org.projectforge.business.group.service.GroupService
+import org.projectforge.business.poll.PollDO
+import org.projectforge.business.poll.PollDao
+import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -45,6 +48,12 @@ class PollMailService {
 
     @Autowired
     private lateinit var userService: UserService
+
+    @Autowired
+    private lateinit var pollDao: PollDao
+
+    @Autowired
+    private lateinit var pollResponseDao: PollResponseDao
 
     private val log: Logger = LoggerFactory.getLogger(PollMailService::class.java)
 
@@ -110,5 +119,14 @@ class PollMailService {
 
         User.restoreEmails(userList, userService)
         return userList.mapNotNull { it.email }
+    }
+
+    fun getAllAttendesEmails(poll: Poll): List<String> {
+        val attendees = poll.attendees
+
+        var userList = attendees
+
+        User.restoreEmails(userList, userService)
+        return userList!!.mapNotNull { it.email }
     }
 }
