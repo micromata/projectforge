@@ -128,7 +128,9 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
 
 
-        if (!pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId) {
+
+      /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
+        if (pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId && pollDao.hasFullAccess(pollData)) {
             val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
             fieldSetDelegationUser.add(
                 UIInput(
@@ -154,6 +156,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             layout.add(fieldSetDelegationUser)
         }
 
+       */
+
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
 
@@ -164,7 +168,6 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             pollResponse.copyFrom(it)
         }
 
-        var index = 0
         pollDto.inputFields?.forEachIndexed { index, field ->
             val fieldSetQuestions = UIFieldset(title = field.question)
             val questionAnswer = QuestionAnswer()
@@ -189,40 +192,38 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
 
+            var index3 = 0
             if (field.type == BaseType.MultiResponseQuestion || field.type === BaseType.SingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
                     }
-                    if (field.type == BaseType.SingleResponseQuestion) {
-                        col.add(
-                            UIRadioButton(
-                                "responses[$index].answers[$index2]",
-                                value = field.answers?.get(index2) ?: "",
-                                label = field.answers?.get(index2) ?: ""
-                            )
-                        )
-                    } else if (field.type == BaseType.MultiResponseQuestion) {
+                    if (field.type == BaseType.MultiResponseQuestion) {
                         col.add(
                             UICheckbox(
                                 "responses[$index].answers[$index2]",
                                 label = field.answers?.get(index2) ?: ""
                             )
                         )
+                    } else {
+                        col.add(
+                            UIRadioButton(
+                                "responses[$index].answers[0]",
+                                value = field.answers?.get(index2) ?: "",
+                                label = field.answers?.get(index2) ?: ""
+                            )
+                        )
                     }
                 }
-            }
-
-         /*   val isLastField = index == pollDto.inputFields?.size?.minus(1)
-
-            if (isLastField) {
                 col.add(
-                    UIInput(
-                        "responses[$index].answers[$index]",
+                    UITextArea(
+                        "responses[$index].annotation[0]",
+                        label = "annotations",
+                        additionalLabel = "poll.annotations.description"
                     )
                 )
+
             }
-            */
 
             fieldSetQuestions.add(UIRow().add(col))
             fieldset.add(fieldSetQuestions)

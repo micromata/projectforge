@@ -133,12 +133,19 @@ class ExcelExport {
         val excelRow = excelSheet.getRow(0)
         val excelRow1 = excelSheet.getRow(1)
 
+
         style.alignment = HorizontalAlignment.CENTER
 
         var merge = 1
         poll.inputFields?.forEach { question ->
             val answers = question.answers
+            var totalAnswerLength = question.answers?.sumBy { countWords(it) } ?: 0
+            var questionLength = question.question?.let { countWords(it) }
             if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+                if (!question.answers!!.contains("Anmerkung")) {
+                    val ind = question.answers!!.size
+                    question.answers!!.add(ind,"Anmerkung")
+                }
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
@@ -170,36 +177,52 @@ class ExcelExport {
 
 
         excelRow.getCell(0).setCellValue(user.displayName)
-        excelSheet.autosize(0)
         var cell = 0
+        excelSheet.autosize(0)
 
         var largestAnswer = ""
         poll.inputFields?.forEachIndexed { _, question ->
-            val questionAnswer = res?.responses?.find { it.questionUid == question.uid }
+            val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
 
-            if (questionAnswer?.answers.isNullOrEmpty()) {
-                cell += question.answers?.size ?: 0
-            }
-            questionAnswer?.answers?.forEachIndexed { ind, answer ->
-                cell++
-                if (question.type == BaseType.MultiResponseQuestion) {
-                    if (answer is Boolean && answer == true) {
-                        excelRow.getCell(cell).setCellValue("X")
+                var index = 0
+                var size = 0;
+                question.answers?.forEachIndexed { ind, answer ->
+                    index = question.answers!!.size - 1
+                    cell++
+
+
+                    if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+                        if (index == ind && questionpossibilities != null) {
+                            excelSheet.autosize(cell)
+                            excelRow.getCell(cell).setCellValue(questionpossibilities.annotation!!.get(0))
+                        }
                     }
-                } else if (question.type == BaseType.SingleResponseQuestion) {
-                    if (answer is String && answer.equals(question.answers?.get(ind))) {
-                        excelRow.getCell(cell).setCellValue("X")
-                    }
-                } else {
-                    excelRow.getCell(cell).setCellValue(answer.toString())
-                    if (countLines(answer.toString()) > countLines(largestAnswer)) {
-                        largestAnswer = answer.toString()
+
+                    if (question.type == BaseType.MultiResponseQuestion) {
+                        questionpossibilities?.answers?.forEach {
+                            excelSheet.autosize(cell)
+                            if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
+                                excelRow.getCell(cell).setCellValue("X")
+                            }
+                        }
+                    } else if (question.type == BaseType.SingleResponseQuestion) {
+                        excelSheet.autosize(cell)
+                        if (answer is String && answer.equals(questionpossibilities?.answers?.get(0)) && ind != index) {
+                            excelRow.getCell(cell).setCellValue("X")
+                        }
+                    } else {
+                        if (questionpossibilities?.answers?.isNotEmpty() == true) {
+                            excelSheet.autosize(cell)
+                            excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
+                            if (countLines(answer.toString()) > countLines(largestAnswer)) {
+                                largestAnswer = answer.toString()
+                            }
+                        }
                     }
                 }
-                excelSheet.autosize(cell)
             }
-        }
 
+        largestAnswer = "i"
         val puffer: String = largestAnswer
         var counterOfBreaking = 0
         var counterOfOverlength = 0
@@ -209,13 +232,19 @@ class ExcelExport {
         // check for line-breaks
         for (i in pufferSplit.indices) {
             counterOfBreaking++
-            counterOfOverlength += pufferSplit[i].length / 70
+            counterOfOverlength += pufferSplit[i].length / 20
         }
         excelRow.setHeight((14 + counterOfOverlength * 14 + counterOfBreaking * 14).toFloat())
     }
 
+
+    private fun countWords(text: String): Int {
+        return text.split("\\s+".toRegex()).filter { it.isNotEmpty() }.size
+    }
+
     private fun countLines(str: String): Int {
         val lines = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+
         return lines.size
     }
 
@@ -240,3 +269,4 @@ class ExcelExport {
         }
     }
 }
+

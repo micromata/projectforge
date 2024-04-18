@@ -33,6 +33,7 @@ import org.projectforge.business.poll.filter.PollAssignmentFilter
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.business.poll.filter.PollStateFilter
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -215,36 +216,99 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
 
+        val rowWidth = UILength(xs = 12, sm = 12, md = 12, lg = 12)
+        val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
+
         fieldset
-            .add(UISelect.createUserSelect(lc, "fullAccessUsers", true, "poll.fullAccessUsers"))
-            .add(UISelect.createGroupSelect(lc, "fullAccessGroups", true, "poll.fullAccessGroups"))
-            .add(UISelect.createUserSelect(lc, "attendees", true, "poll.attendees"))
-            .add(UISelect.createGroupSelect(lc, "groupAttendees", true, "poll.groupAttendees"))
-
-        if(!dto.isAlreadyCreated()) {
-
-            fieldset.add(
+            .add(
                 UIRow()
                     .add(
-                        UICol(UILength(xs = 10, sm = 10, md = 10, lg = 10))
+                        UICol(colWidth)
                             .add(
-                                UISelect(
-                                    "prequestionType",
-                                    values = PreType.values()
-                                        .map { UISelectValue(it, translateMsg("poll.templateType" + it.name)) },
-                                    label = "poll.questionTemplate"
+                                UISelect.createUserSelect(
+                                    lc,
+                                    "fullAccessUsers",
+                                    true,
+                                    "poll.fullAccessUsers",
+                                    tooltip = "poll.fullAccessUser.tooltip"
+                                )
+                            )
+                    )
+                    .add(
+                        UICol(colWidth)
+                            .add(
+                                UISelect.createGroupSelect(
+                                    lc,
+                                    "fullAccessGroups",
+                                    true,
+                                    "poll.fullAccessGroups",
+                                    tooltip = "poll.fullAccessgroups.tooltip"
+                                )
+                            )
+                    )
+            )
+            .add(
+                UIRow()
+                    .add(
+                        UICol(colWidth)
+                            .add(
+                                UISelect.createUserSelect(
+                                    lc,
+                                    "attendees",
+                                    true,
+                                    "poll.attendees",
+                                    tooltip = "poll.attendees.tooltip"
+                                )
+                            )
+                    )
+                    .add(
+                        UICol(colWidth)
+                            .add(
+                                UISelect.createGroupSelect(
+                                    lc,
+                                    "groupAttendees",
+                                    true,
+                                    "poll.groupAttendees",
+                                    tooltip = "poll.groupAttendees.tooltip"
                                 )
                             )
                     )
             )
 
+        if(!dto.isAlreadyCreated()) {
+
+            fieldset
                 .add(
                     UIRow()
                         .add(
-                            UICol(UILength(xs = 11, sm = 11, md = 11, lg = 11))
+                            UICol(colWidth)
+                                .add(
+                                    UISelect(
+                                        "prequestionType",
+                                        values = PreType.values()
+                                            .map { UISelectValue(it, translateMsg("poll.templateType" + it.name)) },
+                                        label = "poll.questionTemplate",
+                                        tooltip = "poll.premadeQuestion.tooltip"
+                                    )
+                                )
                         )
                         .add(
-                            UICol(UILength(xs = 2, sm = 2, md = 2, lg = 2))
+                            UICol(colWidth)
+                                .add(
+                                    UISelect(
+                                        "questionType",
+                                        values = BaseType.values()
+                                            .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
+                                        label = "poll.questionType",
+                                        tooltip = "poll.questionType.tooltip"
+                                    )
+                                )
+                        )
+                )
+                .add(
+                    UIRow()
+                        .add(
+                            UICol(colWidth)
                                 .add(
                                     UIButton.createDefaultButton(
                                         id = "template-button",
@@ -257,47 +321,79 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     )
                                 )
                         )
+                        .add(
+                            UICol(colWidth)
+                                .add(
+                                    UIButton.createDefaultButton(
+                                        id = "add-question-button",
+                                        title = "poll.button.addQuestion",
+                                        responseAction = ResponseAction(
+                                            "${Rest.URL}/poll/add",
+                                            targetType = TargetType.PUT
+                                        ),
+                                        default = false
+                                    )
+                                )
+                        )
+                )
+                .add(
+                    UIRow()
+                        .add(
+                            UICol(colWidth)
+                                .add(
+                                    UIInput(
+                                        "customemailsubject",
+                                        required = false,
+                                        label = "email-subject-field",
+                                        tooltip = "poll.email-subject-tooltip"
+                                    )
+                                )
+                        )
+                        .add(
+                            UICol(colWidth)
+                                .add(
+                                    UISpacer()
+                                )
+                        )
+                )
+                .add(
+                    UIRow()
+                        .add(
+                            UICol(colWidth)
+                                .add(
+                                    UITextArea (
+                                        "customemailcontent",
+                                        label = "email-content-field",
+                                        tooltip = "poll.email-content-tooltip",
+                                        rows = 12,
+                                        maxRows = 60
+                                    )
+                                )
+                        )
+                        .add(
+                            UICol(colWidth)
+                                .add(
+                                    UISpacer()
+                                )
+                        )
                 )
 
-           fieldset.add(
-              UIRow()
-                 .add(
-                    UICol(UILength(xs = 10, sm = 10, md = 10, lg = 10))
-                       .add(
-                          UISelect(
-                             "questionType",
-                                values = BaseType.values()
-                                   .map { UISelectValue(it, translateMsg("poll.questionType." + it.name)) },
-                                      label = "poll.questionType"
-                                   )
-                             )
-                       )
-                 )
-
-
-
-               .add(
-                   UIRow()
-                       .add(
-                           UICol(UILength(xs = 11, sm = 11, md = 11, lg = 11))
-                       )
-                       .add(
-                           UICol(UILength(xs = 3, sm = 3, md = 3, lg = 3))
-                                    .add(UISpacer())
-                                    .add(
-                                        UIButton.createDefaultButton(
-                                            id = "add-question-button",
-                                            title = "poll.button.addQuestion",
-                                            responseAction = ResponseAction(
-                                                "${Rest.URL}/poll/add",
-                                                targetType = TargetType.PUT
-                                            ),
-                                            default = false
-                                        )
-                                    )
-                            )
-               )
         }
+
+
+        val content = "Liebe Teilnehmerinnen und Teilnehmer\n" +
+                "Wir möchten Ihnen mitteilen, dass eine Umfrage erstellt wurde mit dem Titel \"{0}\", und Sie wurden herzlichst eingeladen bei dieser Abzustimmen.\n" +
+                "\n" +
+                "Die Umfrage zu welcher sie Eingeladen worden endet am {4} eine Kurze Beschreibung um was es geht gibt es hier nochmal '{3}'\n" +
+                "Hier kommst du direkt zur {2}\n" +
+                "\n" +
+                "Mit Freundlichen Grüßen\n" +
+                "{1}"
+        dto.customemailcontent = content
+
+        val subject = "Sie wurden zu einer Umfrage eingeladen mit dem Titel \"{0}\" eingeladen.</p>"
+        dto.customemailsubject = subject
+
         addQuestionFieldset(layout, dto, fieldset)
 
         layout.watchFields.add("delegationUser")
@@ -415,10 +511,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
 
         super.onBeforeSaveOrUpdate(request, obj,postData)
+
     }
 
 
+
     override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
+
         if (postData.data.state != PollDO.State.FINISHED) {
 
             val owner = userService.getUser(obj.owner?.id)
@@ -430,7 +529,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
                 val mailTo = pollMailService.getAllFullAccessEmails(postData.data)
 
-                mailSubject = translateMsg("poll.mail.update.subject")
+                mailSubject = translateMsg("poll.mail.update.subject", obj.description, obj.deadline)
                 mailContent = translateMsg(
                     "poll.mail.update.content", obj.title, owner?.displayName
                 )
@@ -439,18 +538,64 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
             } else {
+                val dto = postData.data
 
-                val mailTo = pollMailService.getAllMails(postData.data)
+                val subject = dto.customemailsubject
+                val content = dto.customemailcontent
 
-                mailSubject = translateMsg("poll.mail.created.subject", obj.title)
-                mailContent = translateMsg(
-                    "poll.mail.created.content",
-                    obj.title,
-                    owner?.displayName,
-                    "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}"
-                )
+                if (subject.isNullOrEmpty() && content.isNullOrEmpty()) {
+                    val mailTo = pollMailService.getAllMails(postData.data)
 
-                pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+                    mailSubject = translateMsg("poll.mail.created.subject", obj.title, obj.description, obj.deadline)
+                    mailContent = translateMsg(
+                        "poll.mail.created.content",
+                        obj.title,
+                        owner?.displayName,
+                        "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}"
+                    )
+                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+
+                } else if (subject.isNullOrEmpty() && !content.isNullOrEmpty()) {
+                    val mailTo = pollMailService.getAllMails(postData.data)
+
+                    mailSubject = translateMsg("poll.mail.created.subject", obj.title, obj.deadline)
+                    mailContent = translateMsg(content,
+                        obj.title,
+                        owner?.displayName,
+                        "<p>Hier kommst du direkt <a href=\"http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
+                        obj.description,
+                        obj.deadline
+                    )
+                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+                }  else if (!subject.isNullOrEmpty() && content.isNullOrEmpty()) {
+                    val mailTo = pollMailService.getAllMails(postData.data)
+
+                    mailSubject = translateMsg("$subject", obj.title, obj.deadline)
+                    mailContent = translateMsg("poll.mail.created.content",
+                        obj.title,
+                        owner?.displayName,
+                        "http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}",
+                        obj.description,
+                        obj.deadline
+                    )
+                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+
+                } else if (!subject.isNullOrEmpty() && !content.isNullOrEmpty()){
+                    val mailTo = pollMailService.getAllMails(postData.data)
+
+                    mailSubject = translateMsg("$subject", obj.title, obj.deadline)
+                    mailContent = translateMsg(content,
+                        obj.title,
+                        owner?.displayName,
+                        "<p>Hier kommst du direkt <a href=\"http://localhost:8080/react/pollResponse/dynamic/?pollId=${obj.id}\"> zur Umfrage</a></p>",
+                        obj.description,
+                        obj.deadline
+                    )
+                    pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
+
+                }
+
+
             }
         }
         super.onAfterSaveOrUpdate(request, obj, postData)
@@ -729,11 +874,32 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
 
     private fun addDefaultParameterFields(pollDto: Poll, fieldset: UIFieldset, isRunning: Boolean) {
+
+        val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
         if (isRunning) {
             fieldset
                 .add(lc, "title", "description", "location")
-                .add(UISelect.createUserSelect(lc, "owner", false, "poll.owner"))
-                .add(lc, "deadline")
+                .add(
+                    UIRow()
+                     .add(
+                         UICol(colWidth)
+                            .add(
+                            UISelect.createUserSelect(
+                                lc,
+                                "owner",
+                                false,
+                                "poll.owner",
+                            )
+                        )
+                     )
+                .add(
+                    UICol(colWidth)
+                        .add(
+                            lc,
+                            "deadline",
+                        )
+                    )
+                )
         } else {
             fieldset
                 .add(UIReadOnlyField(value = pollDto.title, label = "titel", dataType = UIDataType.STRING))
@@ -759,6 +925,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val pollDO = PollDO()
         pollDto.copyTo(pollDO)
 
+        //Fua entfernen
+
         return if (!pollDao.hasFullAccess(pollDO)) {
             // no full access user
             UILayout.UserAccess(insert = false, update = false, delete = false, history = false)
@@ -777,7 +945,3 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
     }
 }
-
-
-
-

@@ -65,12 +65,13 @@ class PollCronJobs {
      * Cron job for daily stuff
      */
 
-    @Scheduled(cron = "0 0 1 * * *") // 1am everyday
+    @Scheduled(cron = "0 0 */12 * * *") //Alle 12 Stunden
     fun dailyCronJobs() {
         log.info("Start daily cron jobs")
         cronDeletePolls()
         cronEndPolls()
     }
+
 
     /**
      * Method to end polls after deadline
