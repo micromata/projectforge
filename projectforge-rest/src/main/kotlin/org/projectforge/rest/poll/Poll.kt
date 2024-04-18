@@ -40,6 +40,8 @@ class Poll(
     var deadline: LocalDate? = null,
     var state: PollDO.State? = PollDO.State.RUNNING,
     var questionType: String? = null,
+    var customemailsubject: String? = null,
+    var customemailcontent: String? = null,
     var prequestionType: String? = null,
     var inputFields: MutableList<Question>? = mutableListOf(),
     var fullAccessGroups: List<Group>? = null,

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.poll.types
 
+import net.bytebuddy.pool.TypePool.Empty
 import java.util.UUID
 
 
@@ -32,12 +33,6 @@ val Neujahrsfeier = mapOf(
         question = "Was willst du essen?",
         type = BaseType.SingleResponseQuestion,
         answers = mutableListOf("Fleisch", "Vegetarisch", "Vegan")
-    ),
-    "IS_REMOTE" to Question(
-        uid = UUID.randomUUID().toString(),
-        question = "Nimmst du remote teil?",
-        type = BaseType.SingleResponseQuestion,
-        answers = mutableListOf("Ja", "Nein")
     ),
     "CAN_HAVE_COMPANIONS" to Question(
         uid = UUID.randomUUID().toString(),
@@ -72,21 +67,21 @@ val Sommerfest = mapOf(
         type = BaseType.SingleResponseQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
-    "WHAT_TO_EAT" to Question(
+    "WITH_HOW_MANY" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Zur Essens Auswahl gibt es",
-        type = BaseType.SingleResponseQuestion,
-        answers = mutableListOf("Pizza", "Pasta", "Burger")
+        question = "Kommst du in Begleitung ? Wenn ja mit wie vielen ?",
+        type = BaseType.TextQuestion,
+        answers = mutableListOf("")
     ),
-    "CAN_HAVE_COMPANIONS" to Question(
+    "CHILDRENS" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Kommst du in Begleitung ?",
+        question = "Sind Kinder unter deiner Begleitpersonen ?",
         type = BaseType.SingleResponseQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
-    "HOW_MANY_COMPANIONS" to Question(
+    "HOW_OLD_ARE_THE_CHILDS" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Wenn du in Begleitung kommst wie viele ?",
+        question = "Wenn du Kinder unter deiner Begleitung hast wie alt sind diese ?",
         type = BaseType.TextQuestion,
         answers = mutableListOf("")
     ),
@@ -96,12 +91,18 @@ val Sommerfest = mapOf(
         type = BaseType.SingleResponseQuestion,
         answers = mutableListOf("Ja", "Nein")
     ),
-    "HAS_BREAKFAST" to Question(
+    "WHERE_DO_YOU_WANT_TO_STAY" to Question(
         uid = UUID.randomUUID().toString(),
-        question = "Wenn du übernachtest möchtest du am nächsten tag Frühstück ?",
+        question = "Wenn du übernachtest wo möchtest du übernachten ?",
         type = BaseType.SingleResponseQuestion,
-        answers = mutableListOf("Ja", "Nein")
+        answers = mutableListOf("In meinem eigenen Van/Mobil", "Ich bräuchte eine Übernachtungsmöglichkeit", "Ich komme irgendwo anders unter")
     ),
+    "WHAT_DO_YOU_EAT" to Question (
+        uid = UUID.randomUUID().toString(),
+        question = "Welche Art von Ernährung bevorzugst du ?",
+        type = BaseType.SingleResponseQuestion,
+        answers = mutableListOf("Omnivor (Fleisch)", "Pescetarier (Fisch)", "Vegetarisch", "Vegan")
+    )
 )
 
 val Teamessen = mapOf(
@@ -124,4 +125,3 @@ val Teamessen = mapOf(
         answers = mutableListOf("", "")
     ),
 )
-
