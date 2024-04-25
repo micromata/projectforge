@@ -2,7 +2,7 @@ package org.projectforge.rest.poll.types
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-class PQuestion (
+class PreQuestion (
     val uid: String? = null,
     val question: String? = "",
     val pType: PreType? = PreType.Neujahrsfeier,
@@ -11,8 +11,8 @@ class PQuestion (
     var isRequired: Boolean? = false,
     var numberOfSelect: Int? = 1,
 ) {
-    fun toObject(string: String): PQuestion {
-        return ObjectMapper().readValue(string, PQuestion::class.java)
+    fun toObject(string: String): PreQuestion {
+        return ObjectMapper().readValue(string, PreQuestion::class.java)
     }
 
     fun toJson(): String {
