@@ -33,7 +33,6 @@ import org.projectforge.business.poll.filter.PollAssignmentFilter
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.business.poll.filter.PollStateFilter
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -688,7 +687,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val dto = postData.data
 
         val ptype = dto.prequestionType?.let { PreType.valueOf(it) } ?: PreType.Neujahrsfeier
-        val question = PQuestion(uid = UUID.randomUUID().toString(), pType = ptype)
+        val question = PreQuestion(uid = UUID.randomUUID().toString(), pType = ptype)
         if (ptype == PreType.Sommerfest) {
             Sommerfest.entries.forEach { entry ->
                 dto.inputFields?.add(entry.value)
@@ -902,7 +901,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 )
         } else {
             fieldset
-                .add(UIReadOnlyField(value = pollDto.title, label = "titel", dataType = UIDataType.STRING))
+                .add(UIReadOnlyField(value = pollDto.title, label = "title", dataType = UIDataType.STRING))
                 .add(UIReadOnlyField(value = pollDto.description, label = "description", dataType = UIDataType.STRING))
                 .add(UIReadOnlyField(value = pollDto.location, label = "location", dataType = UIDataType.STRING))
                 .add(
