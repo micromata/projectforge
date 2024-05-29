@@ -78,44 +78,44 @@ class ExcelExport {
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
 
-
-
-                poll.attendees?.sortedBy { it.displayName }
-                poll.attendees?.forEachIndexed { index, user ->
-                    val res = PollResponse()
-                    responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                    setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
-                }
-
-                val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-                val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
-                val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
-                val accessUsers = User.toUserList(accessUserIds)
-                User.restoreDisplayNames(accessUsers, userService)
-
-                accessUsers?.forEach { user ->
-                    if (fullAccessUser.none { it.id == user.id }) {
-                        fullAccessUser.add(user)
-                    }
-                }
-
-                var owner = User.getUser(poll.owner?.id, false)
-                if (owner != null) {
-                    fullAccessUser.add(owner)
-                }
-
-                User.restoreDisplayNames(fullAccessUser, userService)
-                fullAccessUser.forEachIndexed { _, user ->
-                    var number = (anzNewRows)
-                    if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
+                if (responses.isNotEmpty()) {
+                    poll.attendees?.sortedBy { it.displayName }
+                    poll.attendees?.forEachIndexed { index, user ->
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                        // User add a Response
-                        if (res.id != null) {
-                            // Put data in the Row
-                            setNewRows(excelSheet, poll, user, res, number)
+                        setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
+                    }
+
+                    val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+                    val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+                    val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
+                    val accessUsers = User.toUserList(accessUserIds)
+                    User.restoreDisplayNames(accessUsers, userService)
+
+                    accessUsers?.forEach { user ->
+                        if (fullAccessUser.none { it.id == user.id }) {
+                            fullAccessUser.add(user)
                         }
                     }
+
+                    var owner = User.getUser(poll.owner?.id, false)
+                    if (owner != null) {
+                        fullAccessUser.add(owner)
+                    }
+
+                    User.restoreDisplayNames(fullAccessUser, userService)
+                    fullAccessUser.forEachIndexed { _, user ->
+                        var number = (anzNewRows)
+                        if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
+                            val res = PollResponse()
+                            responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                            if (res.id != null) {
+                                setNewRows(excelSheet, poll, user, res, number)
+                            }
+                        }
+                    }
+                } else {
+                    println("Keine Antworten gefunden.")
                 }
 
                 return returnByteFile(excelSheet)
@@ -127,6 +127,7 @@ class ExcelExport {
         }
         return null
     }
+
 
 
     private fun setFirstRow(excelSheet: ExcelSheet, style: CellStyle, poll: Poll) {
@@ -194,7 +195,9 @@ class ExcelExport {
                     if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                         if (index == ind && questionpossibilities != null) {
                             excelSheet.autosize(cell)
-                            excelRow.getCell(cell).setCellValue(questionpossibilities.annotation!!.get(0))
+                            if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
+                                excelRow.getCell(cell).setCellValue(questionpossibilities.annotation!![0])
+                            }
                         }
                     }
 
