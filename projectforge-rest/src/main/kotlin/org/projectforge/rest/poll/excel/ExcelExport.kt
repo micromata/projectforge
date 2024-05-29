@@ -228,7 +228,6 @@ class ExcelExport {
 
         val pufferSplit: Array<String> =
             puffer.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        // check for line-breaks
         for (i in pufferSplit.indices) {
             counterOfBreaking++
             counterOfOverlength += pufferSplit[i].length / 20
