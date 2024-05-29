@@ -98,14 +98,14 @@ class ExcelExport {
                         }
                     }
 
-                    var owner = User.getUser(poll.owner?.id, false)
+                    val owner = User.getUser(poll.owner?.id, false)
                     if (owner != null) {
                         fullAccessUser.add(owner)
                     }
 
                     User.restoreDisplayNames(fullAccessUser, userService)
                     fullAccessUser.forEachIndexed { _, user ->
-                        var number = (anzNewRows)
+                        val number = (anzNewRows)
                         if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
                             val res = PollResponse()
                             responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
@@ -140,8 +140,6 @@ class ExcelExport {
         var merge = 1
         poll.inputFields?.forEach { question ->
             val answers = question.answers
-            var totalAnswerLength = question.answers?.sumBy { countWords(it) } ?: 0
-            var questionLength = question.question?.let { countWords(it) }
             if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                 if (!question.answers!!.contains("Anmerkung")) {
                     val ind = question.answers!!.size
@@ -186,11 +184,9 @@ class ExcelExport {
             val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
 
             var index = 0
-            var size = 0;
             question.answers?.forEachIndexed { ind, answer ->
                 index = question.answers!!.size - 1
                 cell++
-
 
                     if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                         if (index == ind && questionpossibilities != null) {
