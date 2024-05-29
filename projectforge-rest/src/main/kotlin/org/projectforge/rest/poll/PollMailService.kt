@@ -24,9 +24,6 @@
 package org.projectforge.rest.poll
 
 import org.projectforge.business.group.service.GroupService
-import org.projectforge.business.poll.PollDO
-import org.projectforge.business.poll.PollDao
-import org.projectforge.business.poll.PollResponseDao
 import org.projectforge.business.user.service.UserService
 import org.projectforge.mail.Mail
 import org.projectforge.mail.MailAttachment
@@ -48,12 +45,6 @@ class PollMailService {
 
     @Autowired
     private lateinit var userService: UserService
-
-    @Autowired
-    private lateinit var pollDao: PollDao
-
-    @Autowired
-    private lateinit var pollResponseDao: PollResponseDao
 
     private val log: Logger = LoggerFactory.getLogger(PollMailService::class.java)
 
@@ -84,19 +75,19 @@ class PollMailService {
 
     fun getAllMails(poll: Poll): List<String> {
         val attendees = poll.attendees
-        var fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+        val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
         val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
         val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
         val accessUsers = User.toUserList(accessUserIds)
 
-        var userList = fullAccessUser
+        val userList = fullAccessUser
         accessUsers?.forEach { user ->
             if (fullAccessUser.none { it.id == user.id }) {
                 userList.add(user)
             }
         }
 
-        var owner = User.getUser(poll.owner?.id, false)
+        val owner = User.getUser(poll.owner?.id, false)
         if (owner != null) {
             userList.add(owner)
         }
@@ -113,9 +104,9 @@ class PollMailService {
 
     fun getAllFullAccessEmails(poll: Poll): List<String> {
         val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-        val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+        poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
 
-        var userList = fullAccessUser
+        val userList = fullAccessUser
 
         User.restoreEmails(userList, userService)
         return userList.mapNotNull { it.email }
@@ -124,7 +115,7 @@ class PollMailService {
     fun getAllAttendesEmails(poll: Poll): List<String> {
         val attendees = poll.attendees
 
-        var userList = attendees
+        val userList = attendees
 
         User.restoreEmails(userList, userService)
         return userList!!.mapNotNull { it.email }
