@@ -185,18 +185,18 @@ class ExcelExport {
         poll.inputFields?.forEachIndexed { _, question ->
             val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
 
-                var index = 0
-                var size = 0;
-                question.answers?.forEachIndexed { ind, answer ->
-                    index = question.answers!!.size - 1
-                    cell++
+            var index = 0
+            var size = 0;
+            question.answers?.forEachIndexed { ind, answer ->
+                index = question.answers!!.size - 1
+                cell++
 
 
                     if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
                         if (index == ind && questionpossibilities != null) {
                             excelSheet.autosize(cell)
                             if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
-                                excelRow.getCell(cell).setCellValue(questionpossibilities.annotation!![0])
+                                excelRow.getCell(cell).setCellValue(questionpossibilities.annotation?.get(0))
                             }
                         }
                     }
