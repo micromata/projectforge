@@ -89,9 +89,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     private lateinit var excelExport: ExcelExport
 
     @Autowired
-    private lateinit var exporter: ExcelExport
-
-    @Autowired
     private lateinit var pollResponseDao: PollResponseDao
 
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
@@ -215,7 +212,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         addDefaultParameterFields(dto, fieldset, isRunning = dto.state == PollDO.State.RUNNING)
 
-        val rowWidth = UILength(xs = 12, sm = 12, md = 12, lg = 12)
+        UILength(xs = 12, sm = 12, md = 12, lg = 12)
         val colWidth = UILength(xs = 12, sm = 12, md = 6, lg = 6)
 
         fieldset
@@ -445,14 +442,13 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     @PutMapping("/finish")
     fun changeStateToFinish(
-        request: HttpServletRequest, obj: PollDO,
+        request: HttpServletRequest,
         @RequestBody postData: PostData<Poll>,
     ): ResponseEntity<ResponseAction> {
         postData.data.state = PollDO.State.FINISHED
         postData.data.deadline = LocalDate.now()
         val responseEntity = super.saveOrUpdate(request, postData)
-        var emailSent: Boolean = false
-        var FUemailSent: Boolean = false
+        val fuemailSent = false
 
             if (postData.data.state == PollDO.State.FINISHED) {
 
@@ -477,7 +473,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     }
                 }
 
-                if (FUemailSent != true) {
+                if (fuemailSent != true) {
 
                     val owner = userService.getUser(postData.data.owner?.id)
                     val mailFrom = owner?.email.toString()
@@ -486,7 +482,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                     val mailContent = translateMsg("poll.mail.ended.fullAccess.content", postData.data.title, owner?.displayName)
 
                     pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent, listOf(mailAttachment))
-                    FUemailSent = true
                 }
 
                 val owner = userService.getUser(postData.data.owner?.id)
@@ -495,7 +490,6 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 val mailSubject = translateMsg("poll.mail.ended.subject", postData.data.title)
                 val mailContent = translateMsg("poll.mail.ended.content", postData.data.title, owner?.displayName)
                 pollMailService.sendMail(mailFrom, mailTo, mailSubject, mailContent)
-                emailSent = true
             }
         return responseEntity
     }
@@ -626,7 +620,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
 
-        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.TextQuestion;
+        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.TextQuestion
         val question = Question(uid = UUID.randomUUID().toString(), type = type)
         if (type == BaseType.SingleResponseQuestion) {
             question.answers = mutableListOf("", "")
@@ -687,7 +681,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val dto = postData.data
 
         val ptype = dto.prequestionType?.let { PreType.valueOf(it) } ?: PreType.Neujahrsfeier
-        val question = PreQuestion(uid = UUID.randomUUID().toString(), pType = ptype)
+        PreQuestion(uid = UUID.randomUUID().toString(), pType = ptype)
         if (ptype == PreType.Sommerfest) {
             Sommerfest.entries.forEach { entry ->
                 dto.inputFields?.add(entry.value)

@@ -192,7 +192,6 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
 
-            var index3 = 0
             if (field.type == BaseType.MultiResponseQuestion || field.type === BaseType.SingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
