@@ -183,7 +183,7 @@ class ExcelExport {
         poll.inputFields?.forEachIndexed { _, question ->
             val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
 
-            var index = 0
+            var index: Int
             question.answers?.forEachIndexed { ind, answer ->
                 index = question.answers!!.size - 1
                 cell++
@@ -206,15 +206,15 @@ class ExcelExport {
                         }
                     } else if (question.type == BaseType.SingleResponseQuestion) {
                         excelSheet.autosize(cell)
-                        if (answer is String && answer.equals(questionpossibilities?.answers?.get(0)) && ind != index) {
+                        if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
                             excelRow.getCell(cell).setCellValue("X")
                         }
                     } else {
                         if (questionpossibilities?.answers?.isNotEmpty() == true) {
                             excelSheet.autosize(cell)
                             excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
-                            if (countLines(answer.toString()) > countLines(largestAnswer)) {
-                                largestAnswer = answer.toString()
+                            if (countLines(answer) > countLines(largestAnswer)) {
+                                largestAnswer = answer
                             }
                         }
                     }
@@ -234,11 +234,6 @@ class ExcelExport {
             counterOfOverlength += pufferSplit[i].length / 20
         }
         excelRow.setHeight((14 + counterOfOverlength * 14 + counterOfBreaking * 14).toFloat())
-    }
-
-
-    private fun countWords(text: String): Int {
-        return text.split("\\s+".toRegex()).filter { it.isNotEmpty() }.size
     }
 
     private fun countLines(str: String): Int {
