@@ -188,38 +188,38 @@ class ExcelExport {
                 index = question.answers!!.size - 1
                 cell++
 
-                    if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
-                        if (index == ind && questionpossibilities != null) {
-                            excelSheet.autosize(cell)
-                            if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
-                                excelRow.getCell(cell).setCellValue(questionpossibilities.annotation?.get(0))
-                            }
+                if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+                    if (index == ind && questionpossibilities != null) {
+                        excelSheet.autosize(cell)
+                        if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
+                            excelRow.getCell(cell).setCellValue(questionpossibilities.annotation?.get(0))
                         }
                     }
+                }
 
-                    if (question.type == BaseType.MultiResponseQuestion) {
-                        questionpossibilities?.answers?.forEach {
-                            excelSheet.autosize(cell)
-                            if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
-                                excelRow.getCell(cell).setCellValue("X")
-                            }
-                        }
-                    } else if (question.type == BaseType.SingleResponseQuestion) {
+                if (question.type == BaseType.MultiResponseQuestion) {
+                    questionpossibilities?.answers?.forEach {
                         excelSheet.autosize(cell)
-                        if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
+                        if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
                             excelRow.getCell(cell).setCellValue("X")
                         }
-                    } else {
-                        if (questionpossibilities?.answers?.isNotEmpty() == true) {
-                            excelSheet.autosize(cell)
-                            excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
-                            if (countLines(answer) > countLines(largestAnswer)) {
-                                largestAnswer = answer
-                            }
+                    }
+                } else if (question.type == BaseType.SingleResponseQuestion) {
+                    excelSheet.autosize(cell)
+                    if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
+                        excelRow.getCell(cell).setCellValue("X")
+                    }
+                } else {
+                    if (questionpossibilities?.answers?.isNotEmpty() == true) {
+                        excelSheet.autosize(cell)
+                        excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
+                        if (countLines(answer) > countLines(largestAnswer)) {
+                            largestAnswer = answer
                         }
                     }
                 }
             }
+        }
 
         largestAnswer = "i"
         val puffer: String = largestAnswer
@@ -228,6 +228,7 @@ class ExcelExport {
 
         val pufferSplit: Array<String> =
             puffer.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        // check for line-breaks
         for (i in pufferSplit.indices) {
             counterOfBreaking++
             counterOfOverlength += pufferSplit[i].length / 20
@@ -262,4 +263,3 @@ class ExcelExport {
         }
     }
 }
-
