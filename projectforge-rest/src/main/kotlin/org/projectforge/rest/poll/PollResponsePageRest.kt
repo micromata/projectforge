@@ -126,34 +126,37 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
-            .add(UISpacer())
-            .add(UISpacer())
 
-        if (!pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId) {
-            val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
-            fieldSetDelegationUser.add(
-                UIInput(
-                    id = "delegationUser",
-                    label = "user",
-                    dataType = UIDataType.USER
-                )
-            )
-                .add(UISpacer())
-                .add(
-                    UIButton.createDefaultButton(
-                        id = "response-poll-button",
-                        responseAction = ResponseAction(
-                            RestResolver.getRestUrl(
-                                this::class.java,
-                                "showDelegatedUser"
-                            ),
-                            targetType = TargetType.GET
-                        ),
-                        title = "poll.selectUser"
-                    ),
-                )
-            layout.add(fieldSetDelegationUser)
-        }
+
+
+        /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
+          if (pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId && pollDao.hasFullAccess(pollData)) {
+              val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
+              fieldSetDelegationUser.add(
+                  UIInput(
+                      id = "delegationUser",
+                      label = "user",
+                      dataType = UIDataType.USER
+                  )
+              )
+                  .add(UISpacer())
+                  .add(
+                      UIButton.createDefaultButton(
+                          id = "response-poll-button",
+                          responseAction = ResponseAction(
+                              RestResolver.getRestUrl(
+                                  this::class.java,
+                                  "showDelegatedUser"
+                              ),
+                              targetType = TargetType.GET
+                          ),
+                          title = "poll.selectUser"
+                      ),
+                  )
+              layout.add(fieldSetDelegationUser)
+          }
+
+         */
 
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
@@ -183,7 +186,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                     PollPageRest.getUiElement(
                         pollDto.isFinished(),
                         "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
+                        "poll.question.TextQuestion",
                         UIDataType.STRING
                     )
                 )
@@ -211,7 +214,16 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                         )
                     }
                 }
+                col.add(
+                    UITextArea(
+                        "responses[$index].annotation[0]",
+                        label = "annotations",
+                        additionalLabel = "poll.annotations.description"
+                    )
+                )
+
             }
+
             fieldSetQuestions.add(UIRow().add(col))
             fieldset.add(fieldSetQuestions)
         }

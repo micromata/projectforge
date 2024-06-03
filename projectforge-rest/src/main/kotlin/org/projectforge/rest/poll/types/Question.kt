@@ -33,7 +33,6 @@ class Question(
     var answers: MutableList<String>? = mutableListOf(""),
     var parent: String? = null,
     var isRequired: Boolean? = false,
-    var numberOfSelect: Int? = 1,
 ) {
     fun toObject(string: String): Question {
         return ObjectMapper().readValue(string, Question::class.java)
@@ -45,5 +44,5 @@ class Question(
 }
 
 enum class BaseType {
-    TextQuestion, SingleResponseQuestion, MultiResponseQuestion,
+    TextQuestion, SingleResponseQuestion, MultiResponseQuestion
 }

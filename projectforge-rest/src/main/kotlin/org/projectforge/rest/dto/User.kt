@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.TimeNotation
 import java.util.*
 
+@Suppress("NAME_SHADOWING")
 class User(
   id: Int? = null,
   displayName: String? = null,
@@ -57,7 +58,6 @@ class User(
   var timeZone: String? = null,
   var locale: Locale? = null,
   var dateFormat: String? = null,
-  var excelDateFormat: String? = null,
   var timeNotation: TimeNotation? = null,
   var personalPhoneIdentifiers: String? = null,
   var assignedGroups: MutableList<Group>? = null,
@@ -236,6 +236,10 @@ class User(
      */
     fun restoreDisplayNames(users: List<User>?, userService: UserService) {
       users?.forEach { it.displayName = userService.getUser(it.id)?.displayName }
+    }
+
+    fun restoreEmails(users: List<User>?, userService: UserService) {
+      users?.forEach { it.email = userService.getUser(it.id)?.email }
     }
 
     /**
