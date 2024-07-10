@@ -293,6 +293,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         .add(UICol(6).add(UICustomized("email", mutableMapOf("data" to EMail(email)))))
     )
   }
+  
   private fun createAddressCol(
     row: UIRow,
     numberOfAddresses: Int,
