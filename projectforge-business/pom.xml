@@ -92,7 +92,7 @@
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
+            <version>${com.googlecode.json-simple.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>junit</groupId>
@@ -106,6 +106,12 @@
           <version>1.2.0</version>
         </dependency-->
         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjtools</artifactId>
             <version>${aspectjtools.version}</version>
@@ -115,6 +121,12 @@
             <artifactId>hibernate-search-orm</artifactId>
             <version>${hibernate-search.version}</version>
         </dependency>
+        <!-- Needed by hibernate 6.*
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>${jakarta-persistence.version}</version>
+        </dependency -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
@@ -134,7 +146,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-script-util</artifactId>
-            <version>${kotlin.version}</version>
+            <version>${kotlin-script-util.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -144,7 +156,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-slf4j</artifactId>
-            <version>${kotlin-coroutines-slf4j.version}</version>
+            <version>${kotlinx-coroutines-slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -186,7 +198,7 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
+            <artifactId>bcprov-jdk18on</artifactId>
             <version>${bouncy-castle.version}</version>
         </dependency>
         <dependency>
@@ -202,7 +214,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>${hibernate.version}</version>
+            <version>${hibernate-entitymanager.version}</version>
         </dependency>
 
         <dependency>
@@ -213,13 +225,13 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-ehcache</artifactId>
-            <version>${hibernate.version}</version>
+            <version>${hibernate-ehcache.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
         <dependency>
             <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
-            <version>3.8.1</version>
+            <version>${org.ehcache.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -291,9 +303,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>jakarta.mail</groupId>
-            <artifactId>jakarta.mail-api</artifactId>
-            <version>${jakarta.mail-api}</version>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+            <version>${javax.mail-api}</version>
         </dependency>
         <dependency>
             <groupId>org.mnode.ical4j</groupId>
@@ -482,7 +494,7 @@
         <dependency>
             <groupId>se.sawano.java</groupId>
             <artifactId>alphanumeric-comparator</artifactId>
-            <version>1.4.1</version>
+            <version>${se.sawano.alphanumeric-comperator.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.webauthn4j/webauthn4j-core -->

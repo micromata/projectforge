@@ -18,14 +18,6 @@
         </license>
     </licenses>
 
-    <properties>
-        <!-- https://dimitr.im/bundling-react-spring-boot -->
-        <!-- https://nodejs.org/dist -->
-        <node.version>v16.15.0</node.version>
-        <npm.version>8.5.4</npm.version>
-        <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
-    </properties>
-
     <build>
         <finalName>projectforge-webapp-${project.version}</finalName>
         <plugins>
@@ -78,7 +70,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>position-react-build</id>
