@@ -179,7 +179,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     if (intervalInSeconds != null) {
       // Expected type is Integer or Long.
       TypedQuery<Number> typedQuery = em.createQuery(
-              "select " + intervalInSeconds + " from TimesheetDO where task.id=:taskId group by task.id",
+              "select " + intervalInSeconds + " from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id",
               Number.class).setParameter("taskId", taskId);
       Number value = SQLHelper.ensureUniqueResult(typedQuery);
       // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
