@@ -14,7 +14,7 @@ import { AG_GRID_LOCALE_DE } from './agGridLocalization_de';
 import formatterFormat from '../../../FormatterFormat';
 import DynamicAgGridDiffCell from './DynamicAgGridDiffCell';
 
-LicenseManager.setLicenseKey('Using_this_AG_Grid_Enterprise_key_( AG-042317 )_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_( legal@ag-grid.com )___For_help_with_changing_this_key_please_contact_( info@ag-grid.com )___( Micromata GmbH )_is_granted_a_( Single Application )_Developer_License_for_the_application_( ProjectForge )_only_for_( 2 )_Front-End_JavaScript_developers___All_Front-End_JavaScript_developers_working_on_( ProjectForge )_need_to_be_licensed___( ProjectForge )_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_AG_Grid_Enterprise_versions_released_before_( 14 July 2024 )____[v2]_MTcyMDkxMTYwMDAwMA==35c3d9867cea5405b55443ab4cd8bd25');
+LicenseManager.setLicenseKey('Using_this_{AG_Grid}_Enterprise_key_{AG-059988}_in_excess_of_the_licence_granted_is_not_permitted___Please_report_misuse_to_legal@ag-grid.com___For_help_with_changing_this_key_please_contact_info@ag-grid.com___{Micromata_GmbH}_is_granted_a_{Single_Application}_Developer_License_for_the_application_{ProjectForge}_only_for_{2}_Front-End_JavaScript_developers___All_Front-End_JavaScript_developers_working_on_{ProjectForge}_need_to_be_licensed___{ProjectForge}_has_not_been_granted_a_Deployment_License_Add-on___This_key_works_with_{AG_Grid}_Enterprise_versions_released_before_{14_July_2025}____[v3]_[01]_MTc1MjQ0NzYwMDAwMA==2c2e5c05a1f3b34a534c11405051440a');
 
 function DynamicAgGrid(props) {
     const {
