@@ -161,7 +161,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
       if (fill == "users") {
         addUsers(sheet)
       } else if (fill == "employees") {
-        addEmployees(sheet)
+        addUsers(sheet, employees = true)
       }
     }
     val filename = result.first
@@ -233,7 +233,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     ).add(
       UIButton.createDefaultButton(
         "execute",
-        title ="plugins.merlin.templateExecutor.execute",
+        title = "plugins.merlin.templateExecutor.execute",
         responseAction = ResponseAction(
           RestResolver.getRestUrl(
             this::class.java,
@@ -340,31 +340,14 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     return "inputVariables.$variableName"
   }
 
-  private fun addUsers(sheet: ExcelSheet) {
+  private fun addUsers(sheet: ExcelSheet, employees: Boolean = false) {
     val access = UserGroupCache.getInstance().isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
         || UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
     if (!access) {
       return
     }
-    registerColumn(sheet, "username", "username")
-    registerColumn(sheet, "gender", "gender")
-    registerColumn(sheet, "nickname", "nickname")
-    registerColumn(sheet, "firstname", "firstName")
-    registerColumn(sheet, "lastname", "name")
-    registerColumn(sheet, "email", "email")
-    registerColumn(sheet, "organization", "organization")
-    sheet.reset()
-    userService.allActiveUsers.forEach { user ->
-      if (user.nickname.isNullOrBlank()) {
-        user.nickname = user.firstname
-      }
-      sheet.createRow().autoFillFromObject(user)
-    }
-  }
-
-  private fun addEmployees(sheet: ExcelSheet) {
     val hrAccess = UserGroupCache.getInstance().isUserMemberOfHRGroup(ThreadLocalUserContext.userId)
-    if (hrAccess) {
+    if (employees && hrAccess) {
       registerColumn(sheet, "staffNumber", "fibu.employee.staffNumber")
     }
     registerColumn(sheet, "username", "username")
@@ -374,41 +357,61 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     registerColumn(sheet, "lastname", "name")
     registerColumn(sheet, "email", "email")
     registerColumn(sheet, "organization", "organization")
-    if (hrAccess) {
+    if (employees && hrAccess) {
       registerColumn(sheet, "street", "fibu.employee.street")
       registerColumn(sheet, "zipCode", "fibu.employee.zipCode")
       registerColumn(sheet, "city", "fibu.employee.city")
       registerColumn(sheet, "country", "fibu.employee.country")
     }
     sheet.reset()
-    employeeService.findAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
-      val row = sheet.createRow()
-      sheet.reset()
-      employee.user?.let { user ->
+    if (employees) {
+      // Add employees
+      employeeService.findAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
+        val row = sheet.createRow()
+        sheet.reset()
+        employee.user?.let { user ->
+          if (user.nickname.isNullOrBlank()) {
+            user.nickname = user.firstname
+          }
+          row.autoFillFromObject(employee.user, "staffNumber", "street", "zipCode", "city", "country")
+        }
+        if (hrAccess) {
+          row.getCell("staffNumber")?.setCellValue(employee.staffNumber)
+          row.getCell("street")?.setCellValue(employee.street)
+          row.getCell("zipCode")?.setCellValue(employee.zipCode)
+          row.getCell("city")?.setCellValue(employee.city)
+          row.getCell("country")?.setCellValue(employee.country)
+        }
+      }
+    } else {
+      // Add users
+      userService.allActiveUsers.forEach { user ->
         if (user.nickname.isNullOrBlank()) {
           user.nickname = user.firstname
         }
-        row.autoFillFromObject(employee.user, "staffNumber", "street", "zipCode", "city", "country")
-      }
-      if (hrAccess) {
-        row.getCell("staffNumber")?.setCellValue(employee.staffNumber)
-        row.getCell("street")?.setCellValue(employee.street)
-        row.getCell("zipCode")?.setCellValue(employee.zipCode)
-        row.getCell("city")?.setCellValue(employee.city)
-        row.getCell("country")?.setCellValue(employee.country)
+        sheet.createRow().autoFillFromObject(user)
       }
     }
   }
 
-  private fun registerColumn(sheet: ExcelSheet, columnHead: String, i18nKey: String) {
+  private fun registerColumn(sheet: ExcelSheet, columnHead: String, i18nKey: String, vararg aliases: String) {
     val headRow = sheet.headRow!!
     val translation = translate(i18nKey)
     val colDef = sheet.getColumnDef(columnHead) ?: sheet.getColumnDef(translation)
-    if (colDef?.found() != true) {
-      sheet.registerColumn(columnHead, translation)
+    if (colDef == null) {
+      sheet.registerColumn(columnHead, translation, *aliases)
       headRow.createCell().setCellValue(translation)
-    } else {
-      colDef.columnAliases = arrayOf(columnHead, translation)
-    }
+    } else
+      if (!colDef.found()) {
+        // Column not found, but already registered with another name.
+        val setOfAliases = colDef.columnAliases.toMutableSet()
+        setOfAliases.add(colDef.columnHeadname ?: "<unknown>") // Add the old name.
+        setOfAliases.add(translation)
+        colDef.columnAliases = setOfAliases.toTypedArray()
+        colDef.columnHeadname = columnHead // The new name.
+        headRow.createCell().setCellValue(translation)
+      } else {
+        colDef.columnAliases = arrayOf(columnHead, translation)
+      }
   }
 }
