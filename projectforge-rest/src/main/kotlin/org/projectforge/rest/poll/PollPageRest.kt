@@ -377,7 +377,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         }
 
 
-        val content = "Liebe Teilnehmerinnen und Teilnehmer\n" +
+        val content = "Liebe Teilnehmer:innen\n" +
                 "Wir möchten Ihnen mitteilen, dass eine Umfrage erstellt wurde mit dem Titel \"{0}\", und Sie wurden herzlichst eingeladen bei dieser Abzustimmen.\n" +
                 "\n" +
                 "Die Umfrage zu welcher sie Eingeladen worden endet am {4} eine Kurze Beschreibung um was es geht gibt es hier nochmal '{3}'\n" +
