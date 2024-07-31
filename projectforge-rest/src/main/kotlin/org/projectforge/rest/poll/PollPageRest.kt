@@ -387,7 +387,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "{1}"
         dto.customemailcontent = content
 
-        val subject = "Sie wurden zu einer Umfrage eingeladen mit dem Titel \"{0}\" eingeladen.</p>"
+        val subject = "Sie wurden zu einer Umfrage eingeladen mit dem Titel '{0}' eingeladen."
         dto.customemailsubject = subject
 
         addQuestionFieldset(layout, dto, fieldset)
@@ -502,6 +502,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         if (obj.attendeeIds.isNullOrEmpty() || obj.attendeeIds.equals("[]")) {
             throw AccessException("poll.error.oneAttendeRequired")
         }
+
+        postData.data.customemailcontent = postData.data.customemailcontent?.replace("\n", "<br>")
 
         super.onBeforeSaveOrUpdate(request, obj,postData)
 
