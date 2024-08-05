@@ -33,95 +33,123 @@ import java.time.LocalDate
 import java.time.Month
 
 class InvoiceServiceTest : AbstractTestBase() {
-    @Autowired
-    private lateinit var invoiceService: InvoiceService
+  @Autowired
+  private lateinit var invoiceService: InvoiceService
 
-    @Test
-    fun invoiceFilenameEmptyTest() {
-        val data = RechnungDO()
-        val filename = invoiceService.getInvoiceFilename(data)
-        Assertions.assertNotNull(filename)
-        Assertions.assertTrue(filename.length < 256)
-        Assertions.assertEquals("_" + today().isoString + ".docx", filename)
-    }
+  @Test
+  fun invoiceFilenameEmptyTest() {
+    val data = RechnungDO()
+    val filename = invoiceService.getInvoiceFilename(data)
+    Assertions.assertNotNull(filename)
+    Assertions.assertTrue(filename.length < 256)
+    Assertions.assertEquals("_" + today().isoString + ".docx", filename)
+  }
 
-    @Test
-    fun invoiceFilenameStandardTest() {
-        val data = RechnungDO()
-        data.nummer = 12345
-        val kunde = KundeDO()
-        kunde.name = "Kunde"
-        data.kunde = kunde
-        val projekt = ProjektDO()
-        projekt.name = "Projekt"
-        data.projekt = projekt
-        data.betreff = "Betreff"
-        val date = LocalDate.of(2017, Month.AUGUST, 4)
-        data.datum = date
-        val filename = invoiceService.getInvoiceFilename(data)
-        Assertions.assertNotNull(filename)
-        Assertions.assertTrue(filename.length < 256)
-        Assertions.assertEquals("12345_Kunde_Projekt_Betreff_2017-08-04.docx", filename)
-    }
+  @Test
+  fun invoiceFilenameStandardTest() {
+    val data = RechnungDO()
+    data.nummer = 12345
+    val kunde = KundeDO()
+    kunde.name = "Kunde"
+    data.kunde = kunde
+    val projekt = ProjektDO()
+    projekt.name = "Projekt"
+    data.projekt = projekt
+    data.betreff = "Betreff"
+    val date = LocalDate.of(2017, Month.AUGUST, 4)
+    data.datum = date
+    val filename = invoiceService.getInvoiceFilename(data)
+    Assertions.assertNotNull(filename)
+    Assertions.assertTrue(filename.length < 256)
+    Assertions.assertEquals("12345_Kunde_Projekt_Betreff_2017-08-04.docx", filename)
+  }
 
-    @Test
-    fun invoiceFilenameSpecialCharacterTest() {
-        val data = RechnungDO()
-        data.nummer = 12345
-        val kunde = KundeDO()
-        kunde.name = "Kunde & Kunde"
-        data.kunde = kunde
-        val projekt = ProjektDO()
-        projekt.name = "Projekt-Titel"
-        data.projekt = projekt
-        data.betreff = "Betreff/Änderung?"
-        val date = LocalDate.of(2017, Month.AUGUST, 4)
-        data.datum = date
-        logon(TEST_USER)
-        val filename = invoiceService.getInvoiceFilename(data)
-        Assertions.assertNotNull(filename)
-        Assertions.assertTrue(filename.length < 256)
-        Assertions.assertEquals("12345_Kunde_Kunde_Projekt-Titel_Betreff_Aenderung_2017-08-04.docx", filename)
-    }
+  @Test
+  fun invoiceFilenameSpecialCharacterTest() {
+    val data = RechnungDO()
+    data.nummer = 12345
+    val kunde = KundeDO()
+    kunde.name = "Kunde & Kunde"
+    data.kunde = kunde
+    val projekt = ProjektDO()
+    projekt.name = "Projekt-Titel"
+    data.projekt = projekt
+    data.betreff = "Betreff/Änderung?"
+    val date = LocalDate.of(2017, Month.AUGUST, 4)
+    data.datum = date
+    logon(TEST_USER)
+    val filename = invoiceService.getInvoiceFilename(data)
+    Assertions.assertNotNull(filename)
+    Assertions.assertTrue(filename.length < 256)
+    Assertions.assertEquals("12345_Kunde_Kunde_Projekt-Titel_Betreff_Aenderung_2017-08-04.docx", filename)
+  }
 
-    @Test
-    fun invoiceFilenameTooLongTest() {
-        val data = RechnungDO()
-        data.nummer = 12345
-        val kunde = KundeDO()
-        kunde.name = "Kunde König"
-        data.kunde = kunde
-        val projekt = ProjektDO()
-        projekt.name = "Projekt: $§webapp"
-        data.projekt = projekt
-        val character = "abc"
-        for (i in 1..84) {
-            data.betreff = (if (data.betreff != null) data.betreff else "") + character
-        }
-        val filename = invoiceService.getInvoiceFilename(data)
-        Assertions.assertNotNull(filename)
-        Assertions.assertTrue(filename.length < 256)
-        Assertions.assertEquals("12345_Kunde_Koenig_Projekt_webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",
-                filename, "Assertions.equals is dependent from property projectforge.domain!")
+  @Test
+  fun invoiceFilenameTooLongTest() {
+    val data = RechnungDO()
+    data.nummer = 12345
+    val kunde = KundeDO()
+    kunde.name = "Kunde König"
+    data.kunde = kunde
+    val projekt = ProjektDO()
+    projekt.name = "Projekt: $§webapp"
+    data.projekt = projekt
+    val character = "abc"
+    for (i in 1..84) {
+      data.betreff = (if (data.betreff != null) data.betreff else "") + character
     }
+    val filename = invoiceService.getInvoiceFilename(data)
+    Assertions.assertNotNull(filename)
+    Assertions.assertTrue(filename.length < 256)
+    Assertions.assertEquals(
+      "12345_Kunde_Koenig_Projekt_webapp_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc....docx",
+      filename, "Assertions.equals is dependent from property projectforge.domain!"
+    )
+  }
 
-    @Test
-    fun extractSharedVatTest() {
-        Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(null)))
-        Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(null, null)))
-        Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, null, BigDecimal.TEN)))
-        Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, BigDecimal.ONE, BigDecimal.TEN)))
-        Assertions.assertEquals(BigDecimal.TEN, invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN)))
-        Assertions.assertEquals(BigDecimal.TEN, invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, BigDecimal.TEN, BigDecimal.TEN)))
-    }
+  @Test
+  fun extractSharedVatTest() {
+    Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(null)))
+    Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(null, null)))
+    Assertions.assertNull(invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, null, BigDecimal.TEN)))
+    Assertions.assertNull(
+      invoiceService.extractSharedVat(
+        createInvoice(
+          BigDecimal.TEN,
+          BigDecimal.ONE,
+          BigDecimal.TEN
+        )
+      )
+    )
+    Assertions.assertEquals(BigDecimal.TEN, invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN)))
+    Assertions.assertEquals(
+      BigDecimal.TEN,
+      invoiceService.extractSharedVat(createInvoice(BigDecimal.TEN, BigDecimal.TEN, BigDecimal.TEN))
+    )
+  }
 
-    private fun createInvoice(vararg vats: BigDecimal?): RechnungDO {
-        val invoice = RechnungDO()
-        vats.forEach { vat ->
-            val pos = RechnungsPositionDO()
-            pos.vat = vat
-            invoice.addPosition(pos)
-        }
-        return invoice
+  private fun createInvoice(vararg vats: BigDecimal?): RechnungDO {
+    val invoice = RechnungDO()
+    vats.forEach { vat ->
+      val pos = RechnungsPositionDO()
+      pos.vat = vat
+      invoice.addPosition(pos)
     }
+    return invoice
+  }
+
+  @Test
+  fun templateVariantsTest() {
+    invoiceService.getTemplateVariants(arrayOf("test.docx", "test_Englisch.docx", "test_Deutsch.docx", "test_Commerzbank_Deutsch.docx"), "test").let {
+      Assertions.assertEquals(4, it.size)
+      Assertions.assertEquals("", it[0])
+      Assertions.assertEquals("Englisch", it[1])
+      Assertions.assertEquals("Deutsch", it[2])
+      Assertions.assertEquals("Commerzbank_Deutsch", it[3])
+    }
+    invoiceService.getTemplateVariants(arrayOf("test.docx"), "test").let {
+      Assertions.assertEquals(1, it.size)
+      Assertions.assertEquals("", it[0])
+    }
+  }
 }

@@ -67,45 +67,52 @@ open class InvoiceService {
     protected open var customInvoiceTemplateName: String? = null
 
     /**
-     * InvoiceTemplate.docx, InvoiceTemplate_en.docx results in ["", "en"].
+     * InvoiceTemplate.docx, InvoiceTemplate_Deutsch.docx, InvoiceTemplate_English results in ["", "Deutsch", "English"].
      */
-    open fun getSupportedLanguages(): Array<String> {
+    open fun getTemplateVariants(): Array<String> {
         val templateName = customInvoiceTemplateName
         if (templateName.isNullOrBlank()) {
             return arrayOf("")
         }
         val resourceDir = configurationService.resourceDirName
         val baseDir = File("$resourceDir/officeTemplates")
-        val langs = mutableListOf<String>()
-        baseDir.list()?.filter { it.startsWith(templateName) }?.forEach {
-            val lang = it.removePrefix(templateName).removeSuffix(".docx")
-            if (lang.isBlank()) {
-                langs.add("")
-            } else if (lang.matches("""_[a-z]{1,3}""".toRegex())) {
-                langs.add(lang.substring(1))
-            } else {
-                log.warn("Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_en.docx'.")
-            }
-        }
-        return langs.toTypedArray()
+        return getTemplateVariants(baseDir.list(), customInvoiceTemplateName)
     }
 
-    open fun getInvoiceWordDocument(data: RechnungDO, lang: String?): ByteArrayOutputStream? {
+    internal fun getTemplateVariants(files: Array<String>?, templateName: String?): Array<String> {
+        if (templateName.isNullOrBlank()) {
+            return arrayOf("")
+        }
+        val variants = mutableListOf<String>()
+        files?.filter { it.startsWith(templateName) }?.forEach {
+            val baseFilename = it.removePrefix(templateName).removeSuffix(".docx")
+            if (baseFilename.isBlank()) {
+                variants.add("")
+            } else if (baseFilename.startsWith("")) {
+                variants.add(baseFilename.substring(1))
+            } else {
+                log.warn("Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_xxxx.docx'.")
+            }
+        }
+        return variants.toTypedArray()
+    }
+
+    open fun getInvoiceWordDocument(data: RechnungDO, variant: String?): ByteArrayOutputStream? {
         return try {
             var invoiceTemplate: Resource? = null
             val isSkonto = data.discountMaturity != null && data.discountPercent != null && data.discountZahlungsZielInTagen != null
             if (!customInvoiceTemplateName.isNullOrEmpty()) {
-                val langSuffix = if (lang.isNullOrBlank()) "" else "_$lang"
-                invoiceTemplate = configurationService.getOfficeTemplateFile("$customInvoiceTemplateName$langSuffix.docx",
+                val variantSuffix = if (variant.isNullOrBlank()) "" else "_$variant"
+                invoiceTemplate = configurationService.getOfficeTemplateFile("$customInvoiceTemplateName$variantSuffix.docx",
                     "InvoiceTemplate.docx")
             }
             val variables = Variables()
             variables.put("table", "") // Marker for finding table (should be removed).
             variables.put("Rechnungsadresse", data.customerAddress)
-            val type = if (lang.isNullOrEmpty()) {
+            val type = if (variant.isNullOrEmpty()) {
                 I18nHelper.getLocalizedMessage(data.typ?.i18nKey)
             } else {
-                val locale = Locale(lang)
+                val locale = Locale(variant)
                 I18nHelper.getLocalizedMessage(locale, data.typ?.i18nKey)
             }
             variables.put("Typ", type)

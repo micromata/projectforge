@@ -67,20 +67,20 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     } else {
       final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("fibu.rechnung.exportInvoice"));
       addContentMenuEntry(exportMenu);
-      for (String lang : invoiceService.getSupportedLanguages()) {
-        String langTitle;
-        if (StringUtils.isNotBlank(lang)) {
-          langTitle = getString("locale." + lang);
+      for (String variant : invoiceService.getTemplateVariants()) {
+        String variantTitle;
+        if (StringUtils.isNotBlank(variant)) {
+          variantTitle = variant;
         } else {
-          langTitle = getString("default");
+          variantTitle = getString("default");
         }
-        String title = getString("fibu.rechnung.exportInvoice") + " (" + langTitle + ")";
+        String title = getString("fibu.rechnung.exportInvoice") + " (" + variantTitle.replace('_', ' ') + ")";
         final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
                 ContentMenuEntryPanel.LINK_ID, form) {
           @Override
           public void onSubmit() {
             log.debug("Export invoice.");
-            ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData(), lang);
+            ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData(), variant);
             if (baos != null) {
               String filename = invoiceService.getInvoiceFilename(getData());
               DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
