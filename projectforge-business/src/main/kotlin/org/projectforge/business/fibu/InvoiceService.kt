@@ -94,7 +94,7 @@ open class InvoiceService {
                 log.warn("Language of invoice template '$it' not supported. Should be of form '$templateName.docx' or '${templateName}_xxxx.docx'.")
             }
         }
-        return variants.toTypedArray()
+        return variants.sorted().toTypedArray()
     }
 
     open fun getInvoiceWordDocument(data: RechnungDO, variant: String?): ByteArrayOutputStream? {
