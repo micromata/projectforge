@@ -142,10 +142,10 @@ open class ForecastExport { // open needed by Wicket.
   open fun export(origFilter: AuftragFilter): ByteArray? {
     val baseDateParam = origFilter.periodOfPerformanceStartDate
     val baseDate = if (baseDateParam != null) PFDay.from(baseDateParam).beginOfMonth else PFDay.now().beginOfYear
-    val prioYearBaseDate = baseDate.plusYears(-1) // One day back for getting all invoices.
-
+    val prevYearBaseDate = baseDate.plusYears(-1) // One year back for getting all invoices.
     val filter = AuftragFilter()
     filter.searchString = origFilter.searchString
+    filter.projectList = origFilter.projectList
     //filter.auftragFakturiertFilterStatus = origFilter.auftragFakturiertFilterStatus
     //filter.auftragsPositionsPaymentType = origFilter.auftragsPositionsPaymentType
     filter.periodOfPerformanceStartDate =
@@ -153,16 +153,17 @@ open class ForecastExport { // open needed by Wicket.
     filter.user = origFilter.user
     val orderList = orderBookDao.getList(filter)
     if (orderList.isNullOrEmpty()) {
+      // No orders found, so we don't need the forecast sheet.
       return null
     }
     val invoiceFilter = RechnungFilter()
     invoiceFilter.fromDate =
-      prioYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices of time period.
+      prevYearBaseDate.plusDays(-1).localDate // Go 1 day back, paranoia setting for getting all invoices for given time period.
     val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
     queryFilter.addOrder(desc("datum"))
     queryFilter.addOrder(desc("nummer"))
     val invoices = rechnungDao.internalGetList(queryFilter)
-    log.info("Exporting forecast script for date ${baseDate.isoString}")
+    log.info("Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
     val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
     ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx").use { workbook ->
@@ -183,12 +184,14 @@ open class ForecastExport { // open needed by Wicket.
           ProjectForgeGroup.FINANCE_GROUP,
           ProjectForgeGroup.CONTROLLING_GROUP
         ) &&
-        filter.searchString.isNullOrBlank()
+        filter.searchString.isNullOrBlank() &&
+        filter.projectList.isNullOrEmpty()
       ) {
         ctx.showAll = true
       }
 
       var currentRow = 9
+      var orderPositionFound = false
       for (order in orderList) {
         order.projektId?.let { projektId ->
           ctx.projectIds.add(projektId)
@@ -206,14 +209,19 @@ open class ForecastExport { // open needed by Wicket.
           for (pos in order.positionenExcludingDeleted) {
             if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
               addOrderPosition(ctx, currentRow++, order, pos)
+              orderPositionFound = true
             }
           }
         }
       }
+      if (!orderPositionFound) {
+        // No order positions found, so we don't need the forecast sheet.
+        return null
+      }
       fillInvoices(ctx)
       replaceMonthDatesInHeaderRow(forecastSheet, baseDate)
       replaceMonthDatesInHeaderRow(invoicesSheet, baseDate)
-      replaceMonthDatesInHeaderRow(invoicesPriorYearSheet, prioYearBaseDate)
+      replaceMonthDatesInHeaderRow(invoicesPriorYearSheet, prevYearBaseDate)
       forecastSheet.setAutoFilter()
       invoicesSheet.setAutoFilter()
       invoicesPriorYearSheet.setAutoFilter()
@@ -245,9 +253,8 @@ open class ForecastExport { // open needed by Wicket.
       if (invoice.status == RechnungStatus.GEPLANT || invoice.status == RechnungStatus.STORNIERT) {
         continue // Ignoriere stornierte oder geplante Rechnungen.
       }
-      for (pos in invoice.positionen ?: continue) {
-        val orderPos = pos.auftragsPosition
-        val orderPosId = orderPos?.id
+      for (pos in rechnungCache.getRechnungsPositionVOSetByRechnungId(invoice.id) ?: continue) {
+        val orderPosId = pos.auftragsPositionId
         val orderPositionFound = orderPosId != null && ctx.orderPositionMap.containsKey(orderPosId)
         // val invoiceProjektId = invoice.projektId
         // val orderProjectId = orderPos?.auftrag?.projektId // may differ from invoiceProjektId
@@ -256,17 +263,17 @@ open class ForecastExport { // open needed by Wicket.
         if (!ctx.showAll && !orderPositionFound) { // !projectFound && !orderPositionFound) {
           continue // Ignore invoices referring an order position or project which isn't part of the order list filtered by the user.
         }
-        var order = if (orderPos != null) {
-          ctx.orderMapByPositionId[orderPos.id]
+        var order = if (orderPosId != null) {
+          ctx.orderMapByPositionId[orderPosId]
         } else {
           null
         }
         if (orderPosId != null && order == null) {
-          val orderId = orderPos.auftragId ?: orderBookDao.getAuftragsPosition(orderPosId)?.auftragId
+          val orderId = pos.auftragsId ?: orderBookDao.getAuftragsPosition(orderPosId)?.auftragId
           order = orderBookDao.internalGetById(orderId)
           ctx.orderMapByPositionId[orderPosId] = order
           if (order == null) {
-            log.error("Shouldn't occur: can't determine order from order position: $orderPos")
+            log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
             continue
           }
         }
@@ -301,11 +308,11 @@ open class ForecastExport { // open needed by Wicket.
             ctx.excelDateFormat
           )
         }
-        if (order != null && orderPos != null) {
-          sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${orderPos.number}")
+        if (order != null && orderPosId != null) {
+          sheet.setStringValue(rowNumber, InvoicesCol.ORDER.header, "${order.nummer}.${pos.auftragsPositionNummer}")
         }
-        sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.netSum).cellStyle = ctx.currencyCellStyle
-        sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.netSum).cellStyle = ctx.currencyCellStyle
+        sheet.setBigDecimalValue(rowNumber, InvoicesCol.NETSUM.header, pos.nettoSumme).cellStyle = ctx.currencyCellStyle
+        sheet.setBigDecimalValue(rowNumber, firstMonthCol + monthIndex, pos.nettoSumme).cellStyle = ctx.currencyCellStyle
       }
     }
   }
@@ -482,8 +489,17 @@ open class ForecastExport { // open needed by Wicket.
           ctx.forecastSheet.setBigDecimalValue(row, firstMonthCol + indexEnd, value).cellStyle = ctx.currencyCellStyle
         }
       }
+
       else -> {
-        fillMonthColumnsDistributed(probabilityNetSumWithoutPaymentSchedule, ctx, row, order, pos, beginDistribute, toBeInvoicedSum)
+        fillMonthColumnsDistributed(
+          probabilityNetSumWithoutPaymentSchedule,
+          ctx,
+          row,
+          order,
+          pos,
+          beginDistribute,
+          toBeInvoicedSum
+        )
       }
     }
   }
@@ -551,8 +567,13 @@ open class ForecastExport { // open needed by Wicket.
   }
 
   private fun fillMonthColumnsDistributed(
-    probabilityNetSumWithoutPaymentSchedule: BigDecimal, ctx: Context, row: Int, order: AuftragDO, pos: AuftragsPositionDO,
-    beginDistribute: PFDay, toBeInvoicedSum: BigDecimal
+    probabilityNetSumWithoutPaymentSchedule: BigDecimal,
+    ctx: Context,
+    row: Int,
+    order: AuftragDO,
+    pos: AuftragsPositionDO,
+    beginDistribute: PFDay,
+    toBeInvoicedSum: BigDecimal
   ) {
     val currentMonth = getMonthIndex(ctx, ctx.thisMonth)
     val indexBegin = getMonthIndex(ctx, beginDistribute) + 1 // Will be invoiced one month later (+1).
@@ -563,14 +584,19 @@ open class ForecastExport { // open needed by Wicket.
     if (indexEnd < indexBegin) { // should not happen
       return
     }
-    val partlyNettoSum = probabilityNetSumWithoutPaymentSchedule.divide(BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()), RoundingMode.HALF_UP)
+    val partlyNettoSum = probabilityNetSumWithoutPaymentSchedule.divide(
+      BigDecimal.valueOf(indexEnd - indexBegin + 1.toLong()),
+      RoundingMode.HALF_UP
+    )
     var futureInvoicesAmountRest = toBeInvoicedSum
     MonthCol.values().forEach {
       val month = it.ordinal
       if (month in indexBegin..indexEnd) {
         val columnDef = ctx.forecastSheet.getColumnDef(it.header)
         if (month >= currentMonth) {
-          val value = if (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO) { futureInvoicesAmountRest } else {
+          val value = if (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO) {
+            futureInvoicesAmountRest
+          } else {
             partlyNettoSum
           }
           if (value.abs() > BigDecimal.ONE) { // values < 0 are possible for Abrufaufträge (Sarah fragen, 4273)

@@ -67,6 +67,8 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
    */
   var auftragsPositionsPaymentType: AuftragsPositionsPaymentType? = null
 
+  var projectList: Collection<ProjektDO>? = null
+
   @JvmOverloads
   constructor(filter: BaseSearchFilter? = null) : super(filter)
 
