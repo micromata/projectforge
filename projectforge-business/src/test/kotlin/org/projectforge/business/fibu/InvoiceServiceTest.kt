@@ -143,9 +143,9 @@ class InvoiceServiceTest : AbstractTestBase() {
     invoiceService.getTemplateVariants(arrayOf("test.docx", "test_Englisch.docx", "test_Deutsch.docx", "test_Commerzbank_Deutsch.docx"), "test").let {
       Assertions.assertEquals(4, it.size)
       Assertions.assertEquals("", it[0])
-      Assertions.assertEquals("Englisch", it[1])
+      Assertions.assertEquals("Commerzbank_Deutsch", it[1])
       Assertions.assertEquals("Deutsch", it[2])
-      Assertions.assertEquals("Commerzbank_Deutsch", it[3])
+      Assertions.assertEquals("Englisch", it[3])
     }
     invoiceService.getTemplateVariants(arrayOf("test.docx"), "test").let {
       Assertions.assertEquals(1, it.size)
