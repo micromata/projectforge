@@ -474,7 +474,7 @@ open class ForecastExport { // open needed by Wicket.
     }
     // handle diff
     when (pos.paymentType) {
-      AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill reset at end of project time
+      AuftragsPositionsPaymentType.FESTPREISPAKET -> { // fill rest at end of project time
         val indexEnd = getMonthIndex(
           ctx,
           ForecastUtils.getEndLeistungszeitraum(order, pos)
@@ -591,10 +591,11 @@ open class ForecastExport { // open needed by Wicket.
     var futureInvoicesAmountRest = toBeInvoicedSum
     MonthCol.values().forEach {
       val month = it.ordinal
-      if (month in indexBegin..indexEnd) {
+      if (month >= indexBegin) { // Start distribution from indexBegin
         val columnDef = ctx.forecastSheet.getColumnDef(it.header)
         if (month >= currentMonth) {
-          val value = if (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO) {
+          val value = if (month > indexEnd || (partlyNettoSum > futureInvoicesAmountRest && partlyNettoSum > BigDecimal.ZERO)) {
+            // If month is after indexEnd (after period of performance), total rest of sum is to be invoiced.
             futureInvoicesAmountRest
           } else {
             partlyNettoSum
