@@ -25,6 +25,8 @@ package org.projectforge.menu.builder
 
 import org.projectforge.Constants
 
+private const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV = "2FA"
+
 enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = null) {
     // Main menus in alphabetical order
     ADMINISTRATION("menu.administration"), //
@@ -78,7 +80,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     LOGOUT("menu.logout", url = "logout"), //
     MONTHLY_EMPLOYEE_REPORT("menu.monthlyEmployeeReport", "wa/monthlyEmployeeReport"), //
     MY_ACCOUNT("menu.myAccount", getReactDynamicPageUrl("myAccount")), //
-    MY_2FA("menu.2FA", getReactDynamicPageUrl(MenuItemDefId.TWO_FACTOR_AUTHENTIFICATION_SUB_URL)), //
+    MY_2FA("menu.2FA", getReactDynamicPageUrl(TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV)), //
     MY_2FA_SETUP("menu.2FASetup", getReactDynamicPageUrl("2FASetup")), //
     MY_SCRIPT_LIST("menu.myScriptList", getReactListUrl("myscript")), //
     MY_PREFERENCES("menu.myPreferences", "wa/userPrefList"), //
@@ -115,7 +117,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
         get() = name
 
     companion object {
-        const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = "2FA"
+        const val TWO_FACTOR_AUTHENTIFICATION_SUB_URL = TWO_FACTOR_AUTHENTIFICATION_SUB_URL_PRIV
     }
 }
 
