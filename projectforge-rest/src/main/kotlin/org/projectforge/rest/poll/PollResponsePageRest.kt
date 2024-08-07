@@ -181,7 +181,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
 
             val col = UICol()
 
-            if (field.type == BaseType.TextQuestion) {
+            if (field.type == BaseType.PollTextQuestion) {
                 col.add(
                     PollPageRest.getUiElement(
                         pollDto.isFinished(),
@@ -192,12 +192,12 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
 
-            if (field.type == BaseType.MultiResponseQuestion || field.type === BaseType.SingleResponseQuestion) {
+            if (field.type == BaseType.PollMultiResponseQuestion || field.type === BaseType.PollSingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
                     }
-                    if (field.type == BaseType.MultiResponseQuestion) {
+                    if (field.type == BaseType.PollMultiResponseQuestion) {
                         col.add(
                             UICheckbox(
                                 "responses[$index].answers[$index2]",

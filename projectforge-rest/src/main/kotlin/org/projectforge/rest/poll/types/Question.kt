@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 class Question(
     val uid: String? = null,
     val question: String? = "",
-    val type: BaseType? = BaseType.TextQuestion,
+    val type: BaseType? = BaseType.PollTextQuestion,
     var answers: MutableList<String>? = mutableListOf(""),
     var parent: String? = null,
     var isRequired: Boolean? = false,
@@ -45,5 +45,5 @@ class Question(
 }
 
 enum class BaseType {
-    TextQuestion, SingleResponseQuestion, MultiResponseQuestion,
+    PollTextQuestion, PollSingleResponseQuestion, PollMultiResponseQuestion,
 }
