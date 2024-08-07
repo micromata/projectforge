@@ -236,6 +236,17 @@ class PFDay(val date: LocalDate) : IPFDate<PFDay> {
     val utilDateUTC: Date
         get() = java.sql.Date.valueOf(date)
 
+    override fun hashCode(): Int {
+        return localDate.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is PFDay) {
+            return false
+        }
+        return localDate == other.localDate
+    }
+
     private var _sqlDate: java.sql.Date? = null
 
     /**
