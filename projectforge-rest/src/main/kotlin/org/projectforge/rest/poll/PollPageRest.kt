@@ -622,11 +622,11 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     ): ResponseEntity<ResponseAction> {
         val dto = postData.data
 
-        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.TextQuestion
+        val type = dto.questionType?.let { BaseType.valueOf(it) } ?: BaseType.PollTextQuestion
         val question = Question(uid = UUID.randomUUID().toString(), type = type)
-        if (type == BaseType.SingleResponseQuestion) {
+        if (type == BaseType.PollSingleResponseQuestion) {
             question.answers = mutableListOf("", "")
-        } else if (type == BaseType.MultiResponseQuestion) {
+        } else if (type == BaseType.PollMultiResponseQuestion) {
             question.answers = mutableListOf("", "", "")
         }
 
@@ -719,7 +719,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 )
             )
 
-            if (field.type == BaseType.SingleResponseQuestion || field.type == BaseType.MultiResponseQuestion) {
+            if (field.type == BaseType.PollSingleResponseQuestion || field.type == BaseType.PollMultiResponseQuestion) {
                 field.answers?.forEachIndexed { answerIndex, _ ->
                     questionFieldset.add(
                         generateSingleAndMultiResponseAnswer(

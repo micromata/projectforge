@@ -140,7 +140,7 @@ class ExcelExport {
         var merge = 1
         poll.inputFields?.forEach { question ->
             val answers = question.answers
-            if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+            if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
                 if (!question.answers!!.contains("Anmerkung")) {
                     val ind = question.answers!!.size
                     question.answers!!.add(ind,"Anmerkung")
@@ -188,7 +188,7 @@ class ExcelExport {
                 index = question.answers!!.size - 1
                 cell++
 
-                if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+                if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
                     if (index == ind && questionpossibilities != null) {
                         excelSheet.autosize(cell)
                         if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
@@ -197,14 +197,14 @@ class ExcelExport {
                     }
                 }
 
-                if (question.type == BaseType.MultiResponseQuestion) {
+                if (question.type == BaseType.PollMultiResponseQuestion) {
                     questionpossibilities?.answers?.forEach {
                         excelSheet.autosize(cell)
                         if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
                             excelRow.getCell(cell).setCellValue("X")
                         }
                     }
-                } else if (question.type == BaseType.SingleResponseQuestion) {
+                } else if (question.type == BaseType.PollSingleResponseQuestion) {
                     excelSheet.autosize(cell)
                     if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
                         excelRow.getCell(cell).setCellValue("X")
