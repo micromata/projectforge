@@ -129,13 +129,13 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
       val now = LocalDate.now()
       employees = employees.filter { employee ->
         val user = employee.user
-        // Show also deleted users if austrittsdatum not long ago
         if (employee.austrittsDatum == null && (user == null || user.deactivated || user.isDeleted)) {
           false
-        } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
-          false
+        // } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
+        //  false
         } else {
-          employee.austrittsDatum == null || !now.isAfter(employee.austrittsDatum)
+          // Show also deleted users if austrittsdatum not long ago
+          employee.austrittsDatum == null || !now.minusMonths(3).isAfter(employee.austrittsDatum)
         }
       }
     }
