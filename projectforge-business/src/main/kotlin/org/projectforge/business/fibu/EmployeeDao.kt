@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.user.UserDao
@@ -63,11 +64,13 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
   }
 
   open fun findByUserId(userId: Int?): EmployeeDO? {
-    return ensureUniqueResult(
+    val employee = ensureUniqueResult(
       em
         .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO::class.java)
         .setParameter("userId", userId)
     )
+    setEmployeeStatus(employee)
+    return employee
   }
 
   open fun getEmployeeIdByByUserId(userId: Int?): Int? {
@@ -92,12 +95,14 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     Validate.isTrue(tokenizer.countTokens() == 2)
     val lastname = tokenizer.nextToken().trim { it <= ' ' }
     val firstname = tokenizer.nextToken().trim { it <= ' ' }
-    return ensureUniqueResult(
+    val employee = ensureUniqueResult(
       em
         .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO::class.java)
         .setParameter("firstname", firstname)
         .setParameter("lastname", lastname)
     )
+    setEmployeeStatus(employee)
+    return employee
   }
 
   /**
@@ -131,15 +136,33 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         val user = employee.user
         if (employee.austrittsDatum == null && (user == null || user.deactivated || user.isDeleted)) {
           false
-        // } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
-        //  false
+          // } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
+          //  false
         } else {
           // Show also deleted users if austrittsdatum not long ago
           employee.austrittsDatum == null || !now.minusMonths(3).isAfter(employee.austrittsDatum)
         }
       }
     }
+    setEmployeeStatus(employees)
     return employees
+  }
+
+  /**
+   * Sets the (deprecated) employee status from timeableAttributes.
+   */
+  private fun setEmployeeStatus(employees: List<EmployeeDO>) {
+    for (employeeDO in employees) {
+      setEmployeeStatus(employeeDO)
+    }
+  }
+
+  open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
+    employeeDO ?: return
+    employeeDO.timeableAttributes.filter { it.groupName == InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME }
+      .sortedBy { it.startTime }.lastOrNull()?.let { timedDO ->
+        employeeDO.status = EmployeeStatus.findByi18nKey(timedDO.getAttribute("status") as String)
+    }
   }
 
   override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
@@ -149,17 +172,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     if (myFilter.isShowOnlyActiveEntries) {
       list = list.filter { it.active }
     }
-    for (employeeDO in list) {
-      for (employeeTimedDO in employeeDO!!.timeableAttributes) {
-        if (employeeTimedDO.groupName == InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME) {
-          try {
-            employeeDO.status = EmployeeStatus.findByi18nKey(employeeTimedDO.getAttribute("status") as String)
-          } catch (e: Exception) {
-            log.error("Exception while setting timeable status to deprecated status employee field. Message: " + e.message)
-          }
-        }
-      }
-    }
+    setEmployeeStatus(list)
     return list
   }
 
@@ -186,7 +199,12 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     } catch (ex: NoResultException) {
       log.warn("No employee found for staffnumber: $staffnumber")
     }
+    setEmployeeStatus(result)
     return result
+  }
+
+  override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property)
   }
 
   init {
@@ -203,5 +221,6 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     )
     private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
     private const val META_SQL = " AND e.deleted = :deleted"
+    private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("abteilung", "position")
   }
 }
