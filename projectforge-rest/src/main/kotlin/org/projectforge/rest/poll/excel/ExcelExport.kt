@@ -114,8 +114,6 @@ class ExcelExport {
                             }
                         }
                     }
-                } else {
-                    println("Keine Antworten gefunden.")
                 }
 
                 return returnByteFile(excelSheet)

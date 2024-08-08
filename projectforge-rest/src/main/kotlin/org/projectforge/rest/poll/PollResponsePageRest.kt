@@ -217,7 +217,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 col.add(
                     UITextArea(
                         "responses[$index].annotation[0]",
-                        label = "annotations",
+                        label = "poll.Annotations",
                         additionalLabel = "poll.annotations.description"
                     )
                 )
