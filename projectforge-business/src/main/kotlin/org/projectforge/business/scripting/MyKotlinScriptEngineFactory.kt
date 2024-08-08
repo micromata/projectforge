@@ -38,6 +38,7 @@ import javax.script.ScriptEngineManager
 
 private val whiteListJars = listOf(
   "de.micromata.mgc.jpa.emgr",
+  "de.micromata.genome.db.jpa",
   "merlin-core",
   "org.projectforge",
   "projectforge",
