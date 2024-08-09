@@ -7,7 +7,7 @@ permalink: /about/
 :hide-uri-scheme:
 
 ProjectForge® is a registered trademark. +
-Copyright 2001-2022© Kai Reinhard. +
+Copyright 2001-2024© Kai Reinhard. +
 All rights reserved.
 
 Kai Reinhard +

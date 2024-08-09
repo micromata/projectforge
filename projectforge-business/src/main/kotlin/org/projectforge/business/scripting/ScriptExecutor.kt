@@ -26,8 +26,10 @@ package org.projectforge.business.scripting
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.ProjectForgeVersion
+import org.projectforge.business.fibu.ForecastExport
 import org.projectforge.business.fibu.kost.reporting.ReportGeneratorList
 import org.projectforge.business.task.ScriptingTaskTree
+import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.registry.Registry
 
 private val log = KotlinLogging.logger {}
@@ -93,6 +95,7 @@ abstract class ScriptExecutor(
     variables["log"] = scriptLogger
     variables["reportList"] = ReportGeneratorList()
     variables["i18n"] = I18n()
+    variables["forecastExport"] = ApplicationContextProvider.getApplicationContext().getBean(ForecastExport::class.java)
     for (entry in Registry.getInstance().orderedList) {
       val scriptingDao = entry.scriptingDao
       if (scriptingDao != null) {

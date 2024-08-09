@@ -326,6 +326,9 @@ public class AuftragDao extends BaseDao<AuftragDO> {
           )
       );
     }
+    if (CollectionUtils.isNotEmpty(myFilter.getProjectList())) {
+      queryFilter.add(QueryFilter.isIn("projekt", myFilter.getProjectList()));
+    }
 
     createCriterionForErfassungsDatum(myFilter).ifPresent(queryFilter::add);
 
