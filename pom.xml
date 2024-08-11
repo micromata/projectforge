@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version><!-- Don't forget to modify also below in properties. -->
+        <version>3.3.2</version><!-- Don't forget to modify also below in properties. -->
     </parent>
 
     <name>ProjectForge</name>
@@ -212,86 +212,85 @@
         <downloadSources>true</downloadSources>
 
         <maven-surefire-plugin-version>3.3.1</maven-surefire-plugin-version> <!-- Check 11.08.2024 -->
-        <maven-compiler-plugin-version>3.12.1</maven-compiler-plugin-version>
+        <maven-compiler-plugin-version>3.13.0</maven-compiler-plugin-version> <!-- Check 11.08.2024 -->
 
-        <java.version>11</java.version> <!-- 08/2024: aktuell empfohlene TLS-Version ist 11 oder 17 -->
+        <java.version>17</java.version> <!-- 08/2024: aktuell empfohlene TLS-Version ist 11 oder 17 -->
 
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
         <!-- Hibernate 6.* uses jakarta.persistence instead of javax.persistence -->
-        <hibernate.version>5.6.15.Final</hibernate.version>
-        <hibernate-search.version>5.11.12.Final</hibernate-search.version>
-        <hibernate-ehcache.version>5.6.15.Final</hibernate-ehcache.version>
-        <hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version> <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-entitymanager -->
+        <hibernate.version>6.5.2.Final</hibernate.version>
+        <hibernate-search.version>5.11.12.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
+        <hibernate-ehcache.version>5.6.15.Final</hibernate-ehcache.version> <!-- Check 11.08.2024 -->
+        <hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version> <!-- Check 11.08.2024 -->
         <mgc.version>3.1.3</mgc.version>
 
         <apacheds.version>1.5.7</apacheds.version>
-        <com.google.zxing.version>3.5.3</com.google.zxing.version>
-        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <com.google.zxing.version>3.5.3</com.google.zxing.version> <!-- Check 11.08.2024 -->
+        <commons-beanutils.version>1.9.4</commons-beanutils.version> <!-- Check 11.08.2024 (outdated: 14.08.2019= -->
         <!-- commons-collections: -->
-        <commons-collections3.version>3.2.2</commons-collections3.version>
-        <commons-collections4.version>4.4</commons-collections4.version>
-        <apache-httpcomponents-client5>5.3.1</apache-httpcomponents-client5>
-        <commons-io.version>2.15.1</commons-io.version>
-        <commons-lang3.version>3.16.0</commons-lang3.version> <!-- Check 09.08.2024 -->
-        <commons-text.version>1.11.0</commons-text.version>
-        <bouncy-castle.version>1.77</bouncy-castle.version>
-        <aspectjtools.version>1.9.21.1</aspectjtools.version>
-        <dom4j.version>2.1.4</dom4j.version>
-        <flyway.version>9.22.3</flyway.version> <!-- Last check: 09.08.2024 Flyway Engine < 10.0.0 with Java 11 required -->
-        <fop.version>2.9</fop.version>
-        <groovy.version>3.0.20</groovy.version>
-        <ical4j.version>3.2.15</ical4j.version>
-        <ical4j-vcard.version>1.0.7</ical4j-vcard.version>
-        <itext.version>5.5.13.3</itext.version>
-        <jakarta.ws.rs.version>2.1.6</jakarta.ws.rs.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
-        <!-- For hibernate 6.* jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>  https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
-        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
-        <javax.jsp-api.version>2.3.3</javax.jsp-api.version>
-        <javax.mail-api>1.6.2</javax.mail-api>
-        <jersey.version>2.41</jersey.version> <!-- 3.x uses jakarta.servlet instead of javax.servlet! -->
-        <jfreechart.version>1.5.4</jfreechart.version>
+        <commons-collections4.version>4.4</commons-collections4.version> <!-- Check 11.08.2024 -->
+        <apache-httpcomponents-client5>5.3.1</apache-httpcomponents-client5> <!-- Check 11.08.2024 -->
+        <commons-io.version>2.16.1</commons-io.version> <!-- Check 11.08.2024 -->
+        <commons-lang3.version>3.16.0</commons-lang3.version> <!-- Check 11.08.2024 -->
+        <commons-text.version>1.12.0</commons-text.version> <!-- Check 11.08.2024 -->
+        <bouncy-castle.version>1.78</bouncy-castle.version> <!-- Check 11.08.2024: bcprov-jdk18on -->
+        <aspectjtools.version>1.9.22.1</aspectjtools.version> <!-- Check 11.08.2024 -->
+        <dom4j.version>2.1.4</dom4j.version> <!-- Check 11.08.2024 -->
+        <flyway.version>10.17.0</flyway.version> <!-- Last check: 11.08.2024 Flyway Engine -->
+        <fop.version>2.9</fop.version> <!-- Check 11.08.2024 -->
+        <groovy.version>4.0.22</groovy.version> <!-- Check 11.08.2024: moved to org.apache.groovy -->
+        <ical4j.version>3.2.19</ical4j.version> <!-- Check 11.08.2024 -->
+        <ical4j-vcard.version>1.0.7</ical4j-vcard.version> <!-- Check 11.08.2024 -->
+        <itext.version>5.5.13.4</itext.version> <!-- Check 11.08.2024 -->
+        <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version> <!-- Check 11.08.2024 -->
+        <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version> <!-- Check 11.08.2024 -->
+        <jakarta.mail-api>2.1.3</jakarta.mail-api> <!-- Check 11.08.2024 -->
+        <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
+        <jakarta.servlet.jsp-api.version>4.0.0</jakarta.servlet.jsp-api.version> <!-- https://mvnrepository.com/artifact/jakarta.servlet.jsp/jakarta.servlet.jsp-api -->
+        <jersey.version>3.1.8</jersey.version>  <!-- Check 11.08.2024 -->
+        <jfreechart.version>1.5.5</jfreechart.version>  <!-- Check 11.08.2024 -->
         <!-- log4j-over-slf4j: -->
-        <jlf4j.version>2.0.12</jlf4j.version> <!-- should be the same as used in spring boot started. -->
+        <slf4j.version>2.0.16</slf4j.version> <!-- should be the same as used in spring boot started. -->
         <jackson.version>2.17.2</jackson.version> <!-- Check: 09.08.2024-->
         <jackson-core.version>2.17.2</jackson-core.version> <!-- Check: 09.08.2024-->
-        <joda-time.version>2.12.7</joda-time.version>
-        <!-- junit.jupiter.version>5.10.3</junit.jupiter.version--> <!-- Check 11.08.2024 -->
+        <joda-time.version>2.12.7</joda-time.version> <!-- Check: 09.08.2024-->
+        <junit.jupiter.version>5.10.3</junit.jupiter.version> <!-- Check 11.08.2024 -->
         <junit-platform-launcher.version>1.10.3</junit-platform-launcher.version>
-        <kotlin.version>1.9.22</kotlin.version>
+        <kotlin.version>1.9.25</kotlin.version>
         <kotlin-script-util.version>1.8.22</kotlin-script-util.version> <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-script-util -->
         <kotlin-logging.version>3.0.5</kotlin-logging.version>
-        <kotlinx-coroutines-slf4j.version>1.8.0</kotlinx-coroutines-slf4j.version>
+        <kotlinx-coroutines-slf4j.version>1.8.1</kotlinx-coroutines-slf4j.version> <!-- Check 11.08.2024 -->
         <micromata.merlin-core.version>1.1.16</micromata.merlin-core.version>
-        <mockito.version>5.10.0</mockito.version>
-        <mockito.kotlin.version>5.2.1</mockito.kotlin.version>
+        <mockito.version>5.12.0</mockito.version> <!-- Check 11.08.2024 -->
+        <mockito.kotlin.version>5.4.0</mockito.kotlin.version> <!-- Check 11.08.2024 -->
         <mpxj.version>4.3.0</mpxj.version> <!-- https://mvnrepository.com/artifact/net.sourceforge/mpxj -->
         <org.reflections.version>0.10.2</org.reflections.version>
-        <poi.version>5.2.2</poi.version>
-        <rhino.version>1.7.14</rhino.version> <!-- https://mvnrepository.com/artifact/org.mozilla/rhino -->
+        <poi.version>5.3.0</poi.version>
+        <rhino.version>1.7.15</rhino.version> <!-- pf-wicket: https://mvnrepository.com/artifact/org.mozilla/rhino -->
         <springfox-swagger.version>3.0.0</springfox-swagger.version>
         <!-- Spring version 6 (boot 3) needs migration javax.servlet -> jakarta.servlet-->
-        <spring.version>5.3.32</spring.version> <!-- Should match spring boot's parent pom -->
-        <spring.boot.version>2.7.18</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
-        <webauthn4j.version>0.22.1.RELEASE</webauthn4j.version>
+        <spring.version>6.1.11</spring.version> <!-- Should match spring boot's parent pom -->
+        <spring.boot.version>3.3.2</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+        <webauthn4j.version>0.25.0.RELEASE</webauthn4j.version> <!-- Check 11.08.2024 -->
         <xmlgraphics-commons.version>2.9</xmlgraphics-commons.version> <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/xmlgraphics-commons -->
         <xmlgraphics-batik-codec.version>1.17</xmlgraphics-batik-codec.version> <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
         <xstream.version>1.4.20</xstream.version> <!-- https://mvnrepository.com/artifact/com.thoughtworks.xstream/xstream -->
 
         <!-- Jaxb -->
-        <com.sun.xml.bind.jaxb.version>4.0.4</com.sun.xml.bind.jaxb.version>
-        <jakarta.xml.bind-api.version>4.0.1</jakarta.xml.bind-api.version>
+        <com.sun.xml.bind.jaxb.version>4.0.5</com.sun.xml.bind.jaxb.version>
+        <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
 
-        <postgresql.version>42.7.2</postgresql.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <hsqldb.version>2.7.2</hsqldb.version> <!-- https://mvnrepository.com/artifact/org.hsqldb/hsqldb -->
+        <postgresql.version>42.7.3</postgresql.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <hsqldb.version>2.7.3</hsqldb.version> <!-- https://mvnrepository.com/artifact/org.hsqldb/hsqldb -->
 
         <!-- TEST -->
         <org.mockserver.version>5.15.0</org.mockserver.version> <!-- https://mvnrepository.com/artifact/org.mock-server/mockserver-core -->
 
         <!-- Business -->
         <com.googlecode.json-simple.version>1.1.1</com.googlecode.json-simple.version> <!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
-        <org.ehcache.version>3.10.8</org.ehcache.version>
-        <se.sawano.alphanumeric-comperator.version>1.4.1</se.sawano.alphanumeric-comperator.version> <!-- https://mvnrepository.com/artifact/se.sawano.java/alphanumeric-comparator -->
+        <org.ehcache.version>3.10.8</org.ehcache.version> <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
+        <se.sawano.alphanumeric-comperator.version>1.4.1</se.sawano.alphanumeric-comperator.version> <!-- 2014!!! https://mvnrepository.com/artifact/se.sawano.java/alphanumeric-comparator -->
 
         <!-- Application -->
         <com.googlecode.lanterna.version>3.1.2</com.googlecode.lanterna.version> <!-- https://mvnrepository.com/artifact/com.googlecode.lanterna/lanterna -->
@@ -299,10 +298,10 @@
         <!-- CAlDAV -->
         <!-- common -->
         <!-- jcr -->
-        <jackrabbit-oak.version>1.44.0</jackrabbit-oak.version>
+        <jackrabbit-oak.version>1.66.0</jackrabbit-oak.version> <!-- https://mvnrepository.com/artifact/org.apache.jackrabbit/oak-jackrabbit-api -->
         <javax.jcr.version>2.0</javax.jcr.version> <!-- https://mvnrepository.com/artifact/javax.jcr/jcr -->
-        <com.google.guava.version>33.0.0-jre</com.google.guava.version> <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-        <io.dropwizard.metrics-core.version>4.2.25</io.dropwizard.metrics-core.version> <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
+        <com.google.guava.version>33.2.1-jre</com.google.guava.version> <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <io.dropwizard.metrics-core.version>4.2.26</io.dropwizard.metrics-core.version> <!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
         <net.lingala.zip4j.version>2.11.5</net.lingala.zip4j.version> <!-- https://mvnrepository.com/artifact/net.lingala.zip4j/zip4j -->
 
         <!-- model -->
@@ -313,12 +312,12 @@
              https://nodejs.org/dist -->
         <node.version>v16.15.0</node.version>
         <npm.version>8.5.4</npm.version>
-        <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
+        <frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version> <!-- https://mvnrepository.com/artifact/com.github.eirslett/frontend-maven-plugin -->
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version> <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
 
         <!-- wicket -->
-        <wicket.version>9.18.0</wicket.version> <!-- Check: 09.08.2024 (10.1.0 is newer, but uses Jakarta) -->
-        <wicket-stuff.version>9.18.0</wicket-stuff.version> <!-- ^^^^^^ -->
+        <wicket.version>10.1.0</wicket.version> <!-- Check: 09.08.2024 (10.1.0 is newer, but uses Jakarta) -->
+        <wicket-stuff.version>10.1.1</wicket-stuff.version> <!-- ^^^^^^ -->
     </properties>
 
     <dependencies>
@@ -332,7 +331,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>${jlf4j.version}</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.microutils</groupId>
