@@ -186,7 +186,7 @@ class ToStringUtil {
                 register(module, TaskDO::class.java, TaskSerializer(), objClass, ignoreEmbeddedSerializers)
             }
             mapper.registerModule(module)
-            mapper.registerModule(KotlinModule())
+            mapper.registerModule(KotlinModule.Builder().build())
             mapperMap[key] = mapper
             return mapper
         }

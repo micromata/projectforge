@@ -28,13 +28,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebResponse.CacheScope;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.DynamicImageResource;
-import org.apache.wicket.util.time.Duration;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.projectforge.export.JFreeChartImageType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 
 public class JFreeChartImage extends Image
 {
@@ -93,7 +93,7 @@ public class JFreeChartImage extends Image
         super.configureResponse(response, attributes);
 
         // if (isCacheable() == false) {
-        response.setCacheDuration(Duration.NONE);
+        response.setCacheDuration(Duration.ofMillis(0));
         response.setCacheScope(CacheScope.PRIVATE);
         // }
       }

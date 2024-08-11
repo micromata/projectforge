@@ -39,14 +39,11 @@ import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import java.io.File
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.io.path.Path
-import kotlin.io.path.name
-import kotlin.streams.toList
 
 
 private val log = KotlinLogging.logger {}
@@ -73,13 +70,15 @@ internal class I18nKeysSourceAnalyzer {
   fun run(createTmpFile: Boolean = false): Map<String, I18nKeyUsageEntry> {
     log.info("Create file with all detected i18n keys: ${getJsonFile(createTmpFile).absolutePath}")
     reflections = Reflections("org.projectforge", Scanners.values())
-    val srcMainDirs = Files.walk(basePath, 4) // plugins has depth 4
-      .filter { Files.isDirectory(it) && it.name == "main" && it.parent?.name == "src" }.toList()
-    srcMainDirs.forEach { main ->
-      val resourcesDir = Files.walk(main, 1) // src/main/resourcres/***I18n*.properties
-        .filter { Files.isDirectory(it) && it.name == "resources" }.toList()
+
+    val srcMainDirs = basePath?.toFile()?.walk()?.maxDepth(4)
+      ?.filter { file -> file.isDirectory() && file.name == "main" && file.parentFile?.name == "src" }
+    srcMainDirs?.forEach { main ->
+      val resourcesDir = main.walk().maxDepth(1) // src/main/resources/ ***I18n*.properties
+        .filter { file -> file.isDirectory() && file.name == "resources" }.toList()
+      println("$resourcesDir")
       if (resourcesDir.isNotEmpty()) {
-        val propertiesFiles = listFiles(resourcesDir[0], "properties")
+        val propertiesFiles = listFiles(resourcesDir.first(), "properties")
         propertiesFiles.filter { it.name.endsWith("_en.properties") }.forEach {
           resourceBundleNames.add(it.name.removeSuffix("_en.properties"))
         }
@@ -102,7 +101,7 @@ internal class I18nKeysSourceAnalyzer {
         ensureI18nKeyUsage(key).translationDE = bundle.getString(key)
       }
     }
-    srcMainDirs.forEach { path ->
+    srcMainDirs?.forEach { path ->
       parseJava(path)
       parseKotlin(path)
       parseWicketHtml(path)
@@ -143,7 +142,7 @@ internal class I18nKeysSourceAnalyzer {
     get() = I18nKeysUsage.getOrderedEntries(i18nKeyMap.values)
 
   @Throws(IOException::class)
-  private fun parseWicketHtml(path: Path) {
+  private fun parseWicketHtml(path: File) {
     val files = listFiles(path, "html")
     for (file in files) {
       val content = getContent(file)
@@ -152,7 +151,7 @@ internal class I18nKeysSourceAnalyzer {
   }
 
   @Throws(IOException::class)
-  private fun parseHtmlMailTemplates(path: Path) {
+  private fun parseHtmlMailTemplates(path: File) {
     val files = listFiles(path, "html")
     for (file in files) {
       val content = getContent(file)
@@ -226,7 +225,7 @@ internal class I18nKeysSourceAnalyzer {
   }
 
   @Throws(IOException::class)
-  private fun parseJava(path: Path) {
+  private fun parseJava(path: File) {
     val files = listFiles(path, "java")
     for (file in files) {
       val content = getContent(file)
@@ -307,7 +306,7 @@ internal class I18nKeysSourceAnalyzer {
   }
 
   @Throws(IOException::class)
-  private fun parseKotlin(path: Path) {
+  private fun parseKotlin(path: File) {
     val files = listFiles(path, "kt")
     for (file in files) {
       val content = getContent(file)
@@ -355,8 +354,8 @@ internal class I18nKeysSourceAnalyzer {
     return info
   }
 
-  private fun listFiles(path: Path, suffix: String): Collection<File> {
-    return FileUtils.listFiles(path.toFile(), arrayOf(suffix), true)
+  private fun listFiles(path: File, suffix: String): Collection<File> {
+    return FileUtils.listFiles(path, arrayOf(suffix), true)
   }
 
   @Throws(IOException::class)
@@ -389,9 +388,13 @@ internal class I18nKeysSourceAnalyzer {
         if (field == null) {
           var path = Paths.get(System.getProperty("user.dir"))
           for (i in 0..10) { // Paranoia for avoiding endless loops
-            val applicationDir = Files.walk(path, 1).toList().find { it.name == "projectforge-application" }
+
+            val applicationDir = path.toFile().walk().maxDepth(1)
+              .find { file -> file.name == "projectforge-application" }
+
+            // val applicationDir = Files.walk(path, 1).toList().find { it.name == "projectforge-application" }
             if (applicationDir != null) {
-              field = applicationDir.parent
+              field = applicationDir.parentFile.toPath()
               log.info { "Using source directory '${field?.toAbsolutePath()}'." }
               return field
             }

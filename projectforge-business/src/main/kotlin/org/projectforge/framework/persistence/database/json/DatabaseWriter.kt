@@ -110,7 +110,7 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         module.addSerializer(Timestamp::class.java, TimestampSerializer(UtilDateFormat.ISO_DATE_TIME_MILLIS))
         module.addSerializer(java.sql.Date::class.java, ToStringUtil.SqlDateSerializer())
         mapper.registerModule(module)
-        mapper.registerModule(KotlinModule())
+        mapper.registerModule(KotlinModule.Builder().build())
         objectMapper = mapper
         return mapper
     }

@@ -27,10 +27,11 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.request.http.WebResponse.CacheScope;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.DynamicImageResource;
-import org.apache.wicket.util.time.Duration;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.w3c.dom.Document;
+
+import java.time.Duration;
 
 public class BatikImage extends Image
 {
@@ -75,7 +76,7 @@ public class BatikImage extends Image
         super.configureResponse(response, attributes);
 
         // if (isCacheable() == false) {
-        response.setCacheDuration(Duration.NONE);
+        response.setCacheDuration(Duration.ofMillis(0));
         response.setCacheScope(CacheScope.PRIVATE);
         // }
       }

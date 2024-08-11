@@ -51,8 +51,8 @@ object JsonUtils {
   private val objectMapperIgnoreUnknownProps: ObjectMapper = ObjectMapper()
 
   init {
-    objectMapper.registerModule(KotlinModule())
-    objectMapperIgnoreNullableProps.registerModule(KotlinModule())
+    objectMapper.registerModule(KotlinModule.Builder().build())
+    objectMapperIgnoreNullableProps.registerModule(KotlinModule.Builder().build())
     val module = SimpleModule()
     initializeMapper(module)
     objectMapper.registerModule(module)
