@@ -23,7 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.lang.Args;
 
@@ -43,16 +42,18 @@ public class LambdaModel
   /**
    * Usage: LambdaModel.of(foo::getBar)
    */
-  public static <T> IModel<T> of(final Supplier<T> getter)
-  {
+  public static <T> IModel<T> of(final Supplier<T> getter) {
     Args.notNull(getter, "getter");
 
-    return new AbstractReadOnlyModel<T>()
-    {
+    return new IModel<>() {
       @Override
-      public T getObject()
-      {
+      public T getObject() {
         return getter.get();
+      }
+
+      @Override
+      public void detach() {
+        // Optional: Implement detach logic here if necessary
       }
     };
   }

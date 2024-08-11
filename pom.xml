@@ -211,10 +211,10 @@
 
         <downloadSources>true</downloadSources>
 
-        <maven-surefire-plugin-version>3.2.5</maven-surefire-plugin-version>
+        <maven-surefire-plugin-version>3.3.1</maven-surefire-plugin-version> <!-- Check 11.08.2024 -->
         <maven-compiler-plugin-version>3.12.1</maven-compiler-plugin-version>
 
-        <java.version>17</java.version> <!-- 1.8,1.9,1.10,11,12,13 -->
+        <java.version>11</java.version> <!-- 08/2024: aktuell empfohlene TLS-Version ist 11 oder 17 -->
 
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
@@ -233,12 +233,12 @@
         <commons-collections4.version>4.4</commons-collections4.version>
         <apache-httpcomponents-client5>5.3.1</apache-httpcomponents-client5>
         <commons-io.version>2.15.1</commons-io.version>
-        <commons-lang.version>3.14.0</commons-lang.version>
+        <commons-lang3.version>3.16.0</commons-lang3.version> <!-- Check 09.08.2024 -->
         <commons-text.version>1.11.0</commons-text.version>
         <bouncy-castle.version>1.77</bouncy-castle.version>
         <aspectjtools.version>1.9.21.1</aspectjtools.version>
         <dom4j.version>2.1.4</dom4j.version>
-        <flyway.version>10.8.1</flyway.version> <!-- 7.7.3 doesn't support PostgreSQL 9.4 -->
+        <flyway.version>9.22.3</flyway.version> <!-- Last check: 09.08.2024 Flyway Engine < 10.0.0 with Java 11 required -->
         <fop.version>2.9</fop.version>
         <groovy.version>3.0.20</groovy.version>
         <ical4j.version>3.2.15</ical4j.version>
@@ -253,17 +253,17 @@
         <jfreechart.version>1.5.4</jfreechart.version>
         <!-- log4j-over-slf4j: -->
         <jlf4j.version>2.0.12</jlf4j.version> <!-- should be the same as used in spring boot started. -->
-        <jackson.version>2.16.1</jackson.version>
-        <jackson-core.version>2.16.1</jackson-core.version>
+        <jackson.version>2.17.2</jackson.version> <!-- Check: 09.08.2024-->
+        <jackson-core.version>2.17.2</jackson-core.version> <!-- Check: 09.08.2024-->
         <joda-time.version>2.12.7</joda-time.version>
-        <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <junit-platform-launcher.version>1.10.2</junit-platform-launcher.version>
+        <!-- junit.jupiter.version>5.10.3</junit.jupiter.version--> <!-- Check 11.08.2024 -->
+        <junit-platform-launcher.version>1.10.3</junit-platform-launcher.version>
         <kotlin.version>1.9.22</kotlin.version>
         <kotlin-script-util.version>1.8.22</kotlin-script-util.version> <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-script-util -->
         <kotlin-logging.version>3.0.5</kotlin-logging.version>
         <kotlinx-coroutines-slf4j.version>1.8.0</kotlinx-coroutines-slf4j.version>
         <micromata.merlin-core.version>1.1.16</micromata.merlin-core.version>
-        <mockito.version>5.10.0</mockito.version> <!-- 4.5.0 uses newer byte-buddy not compatible to hibernate. -->
+        <mockito.version>5.10.0</mockito.version>
         <mockito.kotlin.version>5.2.1</mockito.kotlin.version>
         <mpxj.version>4.3.0</mpxj.version> <!-- https://mvnrepository.com/artifact/net.sourceforge/mpxj -->
         <org.reflections.version>0.10.2</org.reflections.version>
@@ -317,8 +317,8 @@
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version> <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
 
         <!-- wicket -->
-        <wicket.version>8.15.0</wicket.version>
-        <wicket-stuff.version>8.15.0</wicket-stuff.version>
+        <wicket.version>9.18.0</wicket.version> <!-- Check: 09.08.2024 (10.1.0 is newer, but uses Jakarta) -->
+        <wicket-stuff.version>9.18.0</wicket-stuff.version> <!-- ^^^^^^ -->
     </properties>
 
     <dependencies>
@@ -377,20 +377,17 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

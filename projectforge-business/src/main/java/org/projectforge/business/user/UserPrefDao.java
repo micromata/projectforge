@@ -682,7 +682,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     module.addDeserializer(java.sql.Date.class, new SqlDateDeserializer());
 
     mapper.registerModule(module);
-    mapper.registerModule(new KotlinModule());
+    mapper.registerModule(new KotlinModule.Builder().build());
     objectMapper = mapper;
     return mapper;
   }
