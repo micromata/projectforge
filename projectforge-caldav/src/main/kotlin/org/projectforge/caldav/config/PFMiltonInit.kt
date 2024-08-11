@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.File
-import javax.servlet.FilterRegistration
-import javax.servlet.ServletContext
+import jakarta.servlet.FilterRegistration
+import jakarta.servlet.ServletContext
 
 /**
  * -Dloader.path=${HOME}/ProjectForge/resources/milton

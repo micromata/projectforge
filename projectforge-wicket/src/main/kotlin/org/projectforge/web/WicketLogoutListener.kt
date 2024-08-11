@@ -26,8 +26,8 @@ package org.projectforge.web
 import mu.KotlinLogging
 import org.projectforge.login.LogoutListener
 import org.projectforge.web.session.MySession
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 

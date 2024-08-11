@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Open needed by Wicket's SpringBean.

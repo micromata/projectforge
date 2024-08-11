@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import java.io.Serializable
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Supports multi selection and updates of list pages.

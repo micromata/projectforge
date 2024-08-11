@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.StringUtils
 import java.nio.charset.StandardCharsets
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

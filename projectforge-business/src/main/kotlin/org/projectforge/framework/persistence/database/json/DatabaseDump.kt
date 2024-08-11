@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.io.OutputStream
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * WIP: Trying to export and import whole database as json (for db migration and for creating test data).

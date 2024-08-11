@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.dto.BaseDTO
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout

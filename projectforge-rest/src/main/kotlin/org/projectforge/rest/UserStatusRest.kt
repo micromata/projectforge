@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.text.DecimalFormatSymbols
 import java.time.DayOfWeek
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * This rest service should be available without login (public).

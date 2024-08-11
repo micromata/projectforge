@@ -38,11 +38,11 @@ import org.springframework.http.ResponseEntity
 import java.io.InputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import javax.servlet.Filter
-import javax.servlet.FilterRegistration
-import javax.servlet.ServletContext
-import javax.servlet.ServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterRegistration
+import jakarta.servlet.ServletContext
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 

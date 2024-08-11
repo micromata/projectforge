@@ -34,7 +34,7 @@ import org.projectforge.rest.core.aggrid.SortModelEntry
 import org.projectforge.rest.multiselect.MultiSelectionSupport
 import java.io.Serializable
 import java.text.DecimalFormatSymbols
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import kotlin.reflect.KProperty
 
 /**

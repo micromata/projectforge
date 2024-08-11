@@ -45,7 +45,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
 import java.util.*
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import javax.net.ssl.*
 
 private val log = KotlinLogging.logger {}

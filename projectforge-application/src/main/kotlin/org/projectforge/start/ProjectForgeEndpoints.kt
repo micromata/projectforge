@@ -45,7 +45,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.reflect.Modifier
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

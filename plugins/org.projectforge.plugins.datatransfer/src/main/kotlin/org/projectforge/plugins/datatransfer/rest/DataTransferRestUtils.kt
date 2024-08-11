@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.plugins.datatransfer.DataTransferAreaDO
 import org.projectforge.plugins.datatransfer.DataTransferAuditDao
 import org.projectforge.rest.AttachmentsRestUtils
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 object DataTransferRestUtils {
   /**

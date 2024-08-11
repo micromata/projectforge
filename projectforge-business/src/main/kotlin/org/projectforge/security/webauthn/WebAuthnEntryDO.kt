@@ -112,7 +112,7 @@ open class WebAuthnEntryDO {
     get() {
       serializedAttestationStatement ?: return null
       val envelope = cborConverter.readValue(
-        asByteArray(serializedAttestationStatement),
+        asByteArray(serializedAttestationStatement)!!,
         WebAuthnStorage.AttestationStatementEnvelope::class.java
       )
       return envelope?.attestationStatement
@@ -133,7 +133,7 @@ open class WebAuthnEntryDO {
       return attestedCredentialDataConverter.convert(
         asByteArray(
           serializedAttestedCredentialData
-        )
+        )!!
       )
     }
 

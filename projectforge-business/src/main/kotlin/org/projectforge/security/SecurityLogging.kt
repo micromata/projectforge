@@ -25,7 +25,7 @@ package org.projectforge.security
 
 import mu.KotlinLogging
 import org.projectforge.login.LoginService
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

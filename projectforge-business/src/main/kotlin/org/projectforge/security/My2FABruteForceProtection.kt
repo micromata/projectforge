@@ -38,7 +38,7 @@ import org.projectforge.security.My2FABruteForceProtection.Companion.MAX_RETRIES
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

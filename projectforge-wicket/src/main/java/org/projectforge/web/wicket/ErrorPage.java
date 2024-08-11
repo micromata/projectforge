@@ -44,7 +44,7 @@ import org.projectforge.mail.SendMail;
 import org.projectforge.web.SendFeedback;
 import org.projectforge.web.SendFeedbackData;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.net.ConnectException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
