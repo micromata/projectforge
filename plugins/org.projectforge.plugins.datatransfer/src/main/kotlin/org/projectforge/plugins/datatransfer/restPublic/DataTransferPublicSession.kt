@@ -34,7 +34,7 @@ import org.projectforge.plugins.datatransfer.DataTransferAreaDao
 import org.projectforge.rest.config.RestUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

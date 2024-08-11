@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

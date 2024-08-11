@@ -41,7 +41,7 @@ import org.projectforge.rest.scripting.ScriptExecutePageRest
 import org.projectforge.rest.scripting.ScriptPagesRest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 import kotlin.reflect.KFunction
 
 private val log = KotlinLogging.logger {}

@@ -35,7 +35,7 @@ import org.projectforge.ui.ResponseAction
 import org.projectforge.ui.ValidationError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

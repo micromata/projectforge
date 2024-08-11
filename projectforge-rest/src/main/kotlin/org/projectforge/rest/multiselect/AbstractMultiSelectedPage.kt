@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}

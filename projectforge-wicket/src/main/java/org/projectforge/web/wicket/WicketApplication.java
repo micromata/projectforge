@@ -337,7 +337,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
     getStoreSettings().setMaxSizePerSession(Bytes.kilobytes(100));
     log.info("Using file storage directory for page store: " + WebApplication.get().getServletContext()
-        .getAttribute("javax.servlet.context.tempdir"));
+        .getAttribute("jakarta.servlet.context.tempdir"));
   }
 
   private void mountPageWithPageParameterAwareness(final String path, final Class<? extends WebPage> pageClass) {

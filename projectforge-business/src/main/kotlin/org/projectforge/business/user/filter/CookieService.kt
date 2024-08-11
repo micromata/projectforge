@@ -36,9 +36,9 @@ import org.projectforge.security.SecurityLogging.logSecurityWarn
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.web.ServerProperties
 import org.springframework.stereotype.Service
-import javax.servlet.http.Cookie
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 

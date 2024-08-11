@@ -27,9 +27,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
-import javax.mail.Message;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
+import jakarta.mail.Message;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

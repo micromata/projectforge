@@ -32,7 +32,7 @@ import org.projectforge.framework.utils.Crypt
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

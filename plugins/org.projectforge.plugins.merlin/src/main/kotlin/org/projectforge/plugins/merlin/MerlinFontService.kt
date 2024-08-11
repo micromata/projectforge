@@ -29,7 +29,7 @@ import org.projectforge.business.configuration.ConfigurationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 
 private val log = KotlinLogging.logger {}

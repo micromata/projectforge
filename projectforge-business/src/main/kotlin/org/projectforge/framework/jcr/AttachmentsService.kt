@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import java.io.InputStream
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

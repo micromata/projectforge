@@ -28,7 +28,7 @@ import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.PageContext;
 
 @Service
 public class PriorityFormatter

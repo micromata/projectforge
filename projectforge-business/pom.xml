@@ -502,6 +502,13 @@
             <artifactId>webauthn4j-core</artifactId>
             <version>${webauthn4j.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.webauthn4j/webauthn4j-spring-security-core -->
+        <dependency>
+            <groupId>com.webauthn4j</groupId>
+            <artifactId>webauthn4j-spring-security-core</artifactId>
+            <version>${webauthn4j-spring-security-core.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.google.code.gson</groupId>

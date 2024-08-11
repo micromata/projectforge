@@ -26,7 +26,7 @@ package org.projectforge.rest.core
 import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.rest.utils.RequestLog
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

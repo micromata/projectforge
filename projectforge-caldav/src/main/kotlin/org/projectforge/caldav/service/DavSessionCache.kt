@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.core.AbstractSessionCache
 import org.springframework.stereotype.Service
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

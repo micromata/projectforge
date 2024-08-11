@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

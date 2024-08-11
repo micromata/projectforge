@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 

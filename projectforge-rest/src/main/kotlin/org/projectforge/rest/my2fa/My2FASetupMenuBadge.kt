@@ -30,7 +30,7 @@ import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.security.My2FAService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * Menu badge is 1 or empty, depends on whether the user has setup all 2FAs or not.

@@ -36,7 +36,7 @@ import org.projectforge.mail.SendMail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.lang.management.ManagementFactory
-import javax.annotation.PreDestroy
+import jakarta.annotation.PreDestroy
 import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger {}

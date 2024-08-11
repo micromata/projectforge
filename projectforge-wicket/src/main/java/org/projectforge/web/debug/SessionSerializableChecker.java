@@ -30,9 +30,9 @@ import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.WicketApplication;
 
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionAttributeListener;
-import javax.servlet.http.HttpSessionBindingEvent;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionAttributeListener;
+import jakarta.servlet.http.HttpSessionBindingEvent;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -52,7 +52,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SessionSerializableChecker.class);
 
   /**
-   * @see javax.servlet.http.HttpSessionAttributeListener#attributeAdded(javax.servlet.http.HttpSessionBindingEvent)
+   * @see jakarta.servlet.http.HttpSessionAttributeListener#attributeAdded(jakarta.servlet.http.HttpSessionBindingEvent)
    */
   @Override
   public void attributeAdded(final HttpSessionBindingEvent evt)
@@ -63,7 +63,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   }
 
   /**
-   * @see javax.servlet.http.HttpSessionAttributeListener#attributeRemoved(javax.servlet.http.HttpSessionBindingEvent)
+   * @see jakarta.servlet.http.HttpSessionAttributeListener#attributeRemoved(jakarta.servlet.http.HttpSessionBindingEvent)
    */
   @Override
   public void attributeRemoved(final HttpSessionBindingEvent evt)
@@ -71,7 +71,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   }
 
   /**
-   * @see javax.servlet.http.HttpSessionAttributeListener#attributeReplaced(javax.servlet.http.HttpSessionBindingEvent)
+   * @see jakarta.servlet.http.HttpSessionAttributeListener#attributeReplaced(jakarta.servlet.http.HttpSessionBindingEvent)
    */
   @Override
   public void attributeReplaced(final HttpSessionBindingEvent evt)

@@ -44,7 +44,7 @@ import org.springframework.stereotype.Controller
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

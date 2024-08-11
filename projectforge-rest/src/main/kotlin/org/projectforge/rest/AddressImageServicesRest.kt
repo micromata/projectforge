@@ -41,8 +41,8 @@ import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 
 private val log = KotlinLogging.logger {}

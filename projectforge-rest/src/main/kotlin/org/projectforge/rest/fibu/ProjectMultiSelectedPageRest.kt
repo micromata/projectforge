@@ -42,8 +42,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.io.Serializable
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 /**
  * Mass update after selection.

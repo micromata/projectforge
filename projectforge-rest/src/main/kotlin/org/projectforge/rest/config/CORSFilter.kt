@@ -25,9 +25,9 @@ package org.projectforge.rest.config
 
 import kotlin.Throws
 import java.io.IOException
-import javax.servlet.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.*
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * CrossOrigin filter in development mode (for npm/yarn web development).

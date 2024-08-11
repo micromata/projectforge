@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.login.LoginService
 import org.projectforge.model.rest.RestPaths
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

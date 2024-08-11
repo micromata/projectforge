@@ -40,7 +40,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.security.SecureRandom
 import java.util.*
-import javax.annotation.PreDestroy
+import jakarta.annotation.PreDestroy
 import javax.jcr.Binary
 import javax.jcr.Node
 import javax.jcr.Repository

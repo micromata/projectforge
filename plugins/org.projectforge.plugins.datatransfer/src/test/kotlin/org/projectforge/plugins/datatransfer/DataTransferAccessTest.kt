@@ -31,8 +31,8 @@ import org.projectforge.jcr.FileObject
 import org.projectforge.plugins.datatransfer.rest.DataTransferPageRest
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletResponse
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletResponse
 
 
 class DataTransferAccessTest : AbstractTestBase() {

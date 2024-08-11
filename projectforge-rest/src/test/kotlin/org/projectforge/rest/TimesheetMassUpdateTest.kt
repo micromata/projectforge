@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.time.Month
 import java.util.*
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 class TimesheetMassUpdateTest : AbstractTestBase() {
   // private static final Logger log = Logger.getLogger(TaskTest.class);

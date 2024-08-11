@@ -52,8 +52,8 @@ import org.springframework.stereotype.Repository
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import java.util.*
-import javax.annotation.PostConstruct
-import javax.servlet.http.HttpServletRequest
+import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 

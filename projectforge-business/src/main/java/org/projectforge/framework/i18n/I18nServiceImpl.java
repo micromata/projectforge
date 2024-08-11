@@ -29,7 +29,7 @@ import org.projectforge.business.user.UserLocale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
