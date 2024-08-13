@@ -46,6 +46,8 @@ internal class ObjectIdRegistry {
             list = mutableListOf()
             writtenObjects.put(obj::class.java, list)
         }
-        list.add(obj.id)
+        obj.id?.let {
+            list.add(it)
+        }
     }
 }

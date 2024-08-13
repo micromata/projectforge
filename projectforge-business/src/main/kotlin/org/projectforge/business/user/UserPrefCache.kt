@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPrefDO

@@ -24,13 +24,13 @@
 package org.projectforge.framework.persistence.database.json
 
 import org.hibernate.SessionFactory
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.InputStream
 import java.io.OutputStream
 import jakarta.annotation.PostConstruct
+import jakarta.persistence.EntityManagerFactory
 
 /**
  * WIP: Trying to export and import whole database as json (for db migration and for creating test data).
@@ -42,10 +42,7 @@ class DatabaseDump {
     private val log = LoggerFactory.getLogger(DatabaseDump::class.java)
 
     @Autowired
-    private lateinit var emf: PfEmgrFactory
-
-    @Autowired
-    private lateinit var sessionFactory: SessionFactory
+    private lateinit var emgrFactory: EntityManagerFactory
 
     @PostConstruct
     fun init() {
@@ -55,10 +52,10 @@ class DatabaseDump {
      * @param out
      */
     fun dump(out: OutputStream) {
-        DatabaseWriter(emf, sessionFactory).dump(out)
+        DatabaseWriter(emgrFactory).dump(out)
     }
 
     fun restore(inputStream: InputStream) {
-        DatabaseWriter(emf, sessionFactory).restore(inputStream)
+        DatabaseWriter(emgrFactory).restore(inputStream)
     }
 }
