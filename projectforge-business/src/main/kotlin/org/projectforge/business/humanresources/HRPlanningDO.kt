@@ -25,7 +25,6 @@ package org.projectforge.business.humanresources
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
@@ -39,6 +38,10 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  *
@@ -58,7 +61,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      * The employee assigned to this planned week.
      */
     @PropertyInfo(i18nKey = "timesheet.user")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
     open var user: PFUserDO? = null
@@ -67,7 +70,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      * @return The first day of the week.
      */
     @PropertyInfo(i18nKey = "calendar.year")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "week", nullable = false)
     open var week: LocalDate? = null
 
@@ -75,7 +78,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      * Get the entries for this planned week.
      */
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-    @get:ContainedIn
+    // @get:ContainedIn
     @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
     open var entries: MutableList<HRPlanningEntryDO>? = null
 

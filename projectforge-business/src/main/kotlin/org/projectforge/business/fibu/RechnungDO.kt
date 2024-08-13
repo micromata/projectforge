@@ -27,13 +27,15 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.hibernate.annotations.ListIndexBase
-import org.hibernate.search.annotations.*
-import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * Geplante und gestellte Rechnungen.
@@ -64,7 +66,7 @@ import jakarta.persistence.*
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
   @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
-  @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+  @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
   @get:Column(nullable = true)
   open var nummer: Int? = null
 
@@ -72,7 +74,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
    * Rechnungsempfänger. Dieser Kunde kann vom Kunden, der mit dem Projekt verbunden ist abweichen.
    */
   @PropertyInfo(i18nKey = "fibu.kunde")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "kunde_id", nullable = true)
   open var kunde: KundeDO? = null
@@ -81,50 +83,50 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
    * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.
    */
   @PropertyInfo(i18nKey = "fibu.kunde.text")
-  @Field
+  @FullTextField
   @get:Column(name = "kunde_text")
   open var kundeText: String? = null
 
   @PropertyInfo(i18nKey = "fibu.projekt")
-  @IndexedEmbedded(depth = 2)
+  @IndexedEmbedded(includeDepth = 2)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "projekt_id", nullable = true)
   open var projekt: ProjektDO? = null
 
   @PropertyInfo(i18nKey = "fibu.rechnung.status")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @get:Enumerated(EnumType.STRING)
   @get:Column(length = 30)
   open var status: RechnungStatus? = null
 
   @PropertyInfo(i18nKey = "fibu.rechnung.typ")
-  @Field
+  @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(length = 40)
   open var typ: RechnungTyp? = null
 
   @PropertyInfo(i18nKey = "fibu.customerref1")
-  @Field
+  @FullTextField
   @get:Column(name = "customerref1")
   open var customerref1: String? = null
 
   @PropertyInfo(i18nKey = "fibu.attachment")
-  @Field
+  @FullTextField
   @get:Column(name = "attachment")
   open var attachment: String? = null
 
   @PropertyInfo(i18nKey = "fibu.customer.address")
-  @Field
+  @FullTextField
   @get:Column(name = "customeraddress")
   open var customerAddress: String? = null
 
   @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @get:Column(name = "period_of_performance_begin")
   open var periodOfPerformanceBegin: LocalDate? = null
 
   @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @get:Column(name = "period_of_performance_end")
   open var periodOfPerformanceEnd: LocalDate? = null
 
@@ -153,7 +155,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   @JsonManagedReference
-  @IndexedEmbedded(depth = 3)
+  @IndexedEmbedded(includeDepth = = 3)
   @get:OneToMany(
     cascade = [CascadeType.MERGE],
     fetch = FetchType.EAGER,

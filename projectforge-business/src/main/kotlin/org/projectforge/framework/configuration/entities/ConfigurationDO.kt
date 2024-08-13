@@ -23,8 +23,7 @@
 
 package org.projectforge.framework.configuration.entities
 
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -32,6 +31,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * For configuration entries persisted in the data base. Please access the configuration parameters via
@@ -51,14 +51,14 @@ open class ConfigurationDO : DefaultBaseDO {
     /**
      * Key under which the configuration value is stored in the database.
      */
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     open var parameter: String? = null
 
     /**
      * If entry is not from type STRING then a RuntimeException will be thrown.
      */
-    @Field
+    @FullTextField
     @get:Column(length = PARAM_LENGTH)
     open var stringValue: String? = null
         get() {

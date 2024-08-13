@@ -20,63 +20,68 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.teamcal.admin.model
 
-import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.bridge.TwoWayStringBridge
+import mu.KotlinLogging
+import org.hibernate.search.engine.backend.document.DocumentElement
+import org.hibernate.search.engine.backend.document.IndexFieldReference
+import org.hibernate.search.mapper.pojo.bridge.TypeBridge
+import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
+import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
+import org.projectforge.business.common.BaseUserGroupRightsDO
+import org.projectforge.business.user.GroupsComparator
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UsersComparator
+import org.projectforge.common.DatabaseDialect
 import org.projectforge.common.StringHelper
 import org.projectforge.database.DatabaseSupport
-import org.slf4j.Logger
+import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.LoggerFactory
 import java.util.*
 
-/**
- * Users and groups bridge for hibernate search.
- *
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-class HibernateSearchUsersGroupsBridge : TwoWayStringBridge {
-    private val groupsComparator: GroupsComparator = GroupsComparator()
+private val log = KotlinLogging.logger {}
 
-    private val usersComparator: UsersComparator = UsersComparator()
+class HibernateSearchUsersGroupsBridge : TypeBridge<BaseUserGroupRightsDO> {
 
-    /**
-     * Get all names of groups and users and creates an index containing all user and group names separated by '|'. <br></br>
-     */
-    override fun objectToString(`object`: Any): String {
-        if (`object` is String) return `object`
-        val userGroupCache: UserGroupCache = UserGroupCache.getInstance()
-        val doObject: BaseUserGroupRightsDO = `object` as BaseUserGroupRightsDO
+    private val groupsComparator = GroupsComparator()
+    private val usersComparator = UsersComparator()
+
+    override fun write(
+        target: DocumentElement,
+        bridgedElement: BaseUserGroupRightsDO,
+        context: TypeBridgeWriteContext
+    ) {
+        val userGroupCache = UserGroupCache.getInstance()
         val sb = StringBuilder()
-        // query information in Bridge results in a deadlock in HSQLDB
-        if (DatabaseSupport.getInstance().dialect != DatabaseDialect.HSQL) {
-            appendGroups(getSortedGroups(userGroupCache, doObject.fullAccessGroupIds), sb)
-            appendGroups(getSortedGroups(userGroupCache, doObject.readonlyAccessGroupIds), sb)
-            appendGroups(getSortedGroups(userGroupCache, doObject.minimalAccessGroupIds), sb)
-            appendUsers(getSortedUsers(userGroupCache, doObject.fullAccessUserIds), sb)
-            appendUsers(getSortedUsers(userGroupCache, doObject.readonlyAccessUserIds), sb)
-            appendUsers(getSortedUsers(userGroupCache, doObject.minimalAccessUserIds), sb)
+
+        if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
+            appendGroups(getSortedGroups(userGroupCache, bridgedElement.fullAccessGroupIds), sb)
+            appendGroups(getSortedGroups(userGroupCache, bridgedElement.readonlyAccessGroupIds), sb)
+            appendGroups(getSortedGroups(userGroupCache, bridgedElement.minimalAccessGroupIds), sb)
+            appendUsers(getSortedUsers(userGroupCache, bridgedElement.fullAccessUserIds), sb)
+            appendUsers(getSortedUsers(userGroupCache, bridgedElement.readonlyAccessUserIds), sb)
+            appendUsers(getSortedUsers(userGroupCache, bridgedElement.minimalAccessUserIds), sb)
         }
 
         if (log.isDebugEnabled) {
             log.debug(sb.toString())
         }
-        return sb.toString()
+        target.addValue("usersgroups", sb.toString())
     }
 
-    override fun stringToObject(stringValue: String?): Any? {
-        // Not supported.
-        return null
-    }
-
-    private fun getSortedGroups(userGroupCache: UserGroupCache, groupIds: String): Collection<GroupDO>? {
-        if (StringUtils.isEmpty(groupIds)) {
+    private fun getSortedGroups(
+        userGroupCache: UserGroupCache,
+        groupIds: String?
+    ): Collection<GroupDO>? {
+        if (groupIds.isNullOrEmpty()) {
             return null
         }
-        val sortedGroups: MutableCollection<GroupDO> = TreeSet<GroupDO>(groupsComparator)
+        val sortedGroups: MutableCollection<GroupDO> = TreeSet(groupsComparator)
         val ids = StringHelper.splitToInts(groupIds, ",", false)
         for (id in ids) {
-            val group: GroupDO = userGroupCache.getGroup(id)
+            val group = userGroupCache.getGroup(id)
             if (group != null) {
                 sortedGroups.add(group)
             } else {
@@ -86,43 +91,31 @@ class HibernateSearchUsersGroupsBridge : TwoWayStringBridge {
         return sortedGroups
     }
 
-    private fun getSortedUsers(userGroupCache: UserGroupCache, userIds: String): Collection<PFUserDO>? {
-        if (StringUtils.isEmpty(userIds)) {
+    private fun getSortedUsers(
+        userGroupCache: UserGroupCache,
+        userIds: String?
+    ): Collection<PFUserDO>? {
+        if (userIds.isNullOrEmpty()) {
             return null
         }
-        val sortedUsers: MutableCollection<PFUserDO> = TreeSet<PFUserDO>(usersComparator)
+        val sortedUsers: MutableCollection<PFUserDO> = TreeSet(usersComparator)
         val ids = StringHelper.splitToInts(userIds, ",", false)
         for (id in ids) {
-            val user: PFUserDO = userGroupCache.getUser(id)
+            val user = userGroupCache.getUser(id)
             if (user != null) {
                 sortedUsers.add(user)
             } else {
-                log.warn("Group with id '$id' not found in UserGroupCache. groupIds string was: $userIds")
+                log.warn("User with id '$id' not found in UserGroupCache. userIds string was: $userIds")
             }
         }
         return sortedUsers
     }
 
     private fun appendGroups(groups: Collection<GroupDO>?, sb: StringBuilder) {
-        if (groups == null) {
-            return
-        }
-        for (group in groups) {
-            sb.append(group.name).append("|")
-        }
+        groups?.forEach { group -> sb.append(group.name).append("|") }
     }
 
     private fun appendUsers(users: Collection<PFUserDO>?, sb: StringBuilder) {
-        if (users == null) {
-            return
-        }
-        for (user in users) {
-            sb.append(user.getFullname()).append(user.username).append("|")
-        }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory
-            .getLogger(HibernateSearchUsersGroupsBridge::class.java)
+        users?.forEach { user -> sb.append(user.getFullname()).append(user.username).append("|") }
     }
 }

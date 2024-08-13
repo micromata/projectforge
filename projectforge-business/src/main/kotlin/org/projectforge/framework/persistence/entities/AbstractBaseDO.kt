@@ -78,14 +78,14 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
     override fun recalculate() {
     }
 
-    override fun getTransientAttribute(key: String?): Any? {
+    override fun getTransientAttribute(key: String): Any? {
         if (attributeMap == null) {
             return null
         }
         return attributeMap!![key]
     }
 
-    override fun removeTransientAttribute(key: String?): Any? {
+    override fun removeTransientAttribute(key: String): Any? {
         val obj = getTransientAttribute(key)
         if (obj != null) {
             attributeMap!!.remove(key)
@@ -93,7 +93,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
         return obj
     }
 
-    override fun setTransientAttribute(key: String?, value: Any?) {
+    override fun setTransientAttribute(key: String, value: Any?) {
         if (attributeMap == null) {
             attributeMap = HashMap()
         }

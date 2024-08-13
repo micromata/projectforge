@@ -26,9 +26,8 @@ package org.projectforge.framework.access
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.hibernate.Hibernate
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.BaseDO
@@ -38,6 +37,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -53,13 +53,13 @@ import jakarta.persistence.*
                 query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"))
 open class GroupTaskAccessDO : DefaultBaseDO() {
 
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(cascade = [CascadeType.MERGE])
     @get:JoinColumn(name = "group_id")
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "task")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(cascade = [CascadeType.MERGE], targetEntity = TaskDO::class)
     @get:JoinColumn(name = "task_id")
     open var task: TaskDO? = null
@@ -73,7 +73,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     open var isRecursive = true
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(name = "description", length = 4000)
     open var description: String? = null
 

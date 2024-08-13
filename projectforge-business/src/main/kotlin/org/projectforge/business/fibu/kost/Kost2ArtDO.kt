@@ -25,9 +25,7 @@ package org.projectforge.business.fibu.kost
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
-import org.hibernate.search.annotations.Analyzer
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
@@ -37,6 +35,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import net.sf.ehcache.ElementIdHelper.setId
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * Die letzten beiden Ziffern (Endziffern) eines Kostenträgers repräsentieren die Kostenart. Anhand der Endziffer kann
@@ -59,12 +58,12 @@ class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IM
     override var id: Int? = null
 
     @PropertyInfo(i18nKey = "name")
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     var name: String? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 5000)
     var description: String? = null
 

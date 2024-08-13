@@ -26,7 +26,7 @@ package org.projectforge.plugins.merlin
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.Constants
@@ -49,7 +49,7 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   open var name: String? = null
 
   @PropertyInfo(i18nKey = "description")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var description: String? = null
 
@@ -113,13 +113,13 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
    * Names of attachments for displaying purposes only.
    */
   @JsonIgnore
-  @Field
+  @FullTextField
   @field:NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
-  @Field
+  @FullTextField
   @field:NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null

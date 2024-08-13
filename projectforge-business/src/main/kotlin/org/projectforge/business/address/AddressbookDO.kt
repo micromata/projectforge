@@ -24,10 +24,8 @@
 package org.projectforge.business.address
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
@@ -36,13 +34,18 @@ import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 
 /**
  * @author Florian Blumenstein
  */
 @Entity
 @Indexed
-@ClassBridge(name = "usersgroups", impl = HibernateSearchUsersGroupsBridge::class)
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+//ClassBridge(name = "usersgroups", impl = ::class)
 @Table(name = "T_ADDRESSBOOK")
 open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
 
@@ -51,19 +54,19 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
         get() = "$title"
 
     @PropertyInfo(i18nKey = "addressbook.title")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "addressbook.owner")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     override var owner: PFUserDO? = null
 
 
     @PropertyInfo(i18nKey = "addressbook.description")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 

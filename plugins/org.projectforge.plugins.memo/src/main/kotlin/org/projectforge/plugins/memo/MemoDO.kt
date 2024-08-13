@@ -24,7 +24,7 @@
 package org.projectforge.plugins.memo
 
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
@@ -49,7 +49,7 @@ open class MemoDO : AbstractBaseDO<Int>() {
     private var id: Int? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.subject")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
@@ -59,7 +59,7 @@ open class MemoDO : AbstractBaseDO<Int>() {
     open var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.memo")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var memo: String? = null
 

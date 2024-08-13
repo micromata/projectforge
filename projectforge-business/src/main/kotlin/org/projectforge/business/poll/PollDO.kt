@@ -23,7 +23,7 @@
 
 package org.projectforge.business.poll
 
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.common.StringHelper

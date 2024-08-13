@@ -26,9 +26,8 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
@@ -46,6 +45,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import java.io.Serializable
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
@@ -72,12 +72,12 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
     var user: PFUserDO? = null
 
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     var name: String? = null
 

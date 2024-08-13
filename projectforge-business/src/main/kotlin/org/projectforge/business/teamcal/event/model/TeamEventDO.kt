@@ -30,7 +30,6 @@ import net.fortuna.ical4j.model.Recur
 import net.fortuna.ical4j.model.WeekDay
 import net.fortuna.ical4j.model.property.RRule
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
 import org.projectforge.Constants
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -49,6 +48,10 @@ import org.projectforge.framework.time.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 private val log = KotlinLogging.logger {}
 
@@ -101,12 +104,12 @@ private val log = KotlinLogging.logger {}
 )
 open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_SUBJECT)
   override var subject: String? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_SUBJECT)
   override var location: String? = null
 
@@ -115,18 +118,18 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   override var allDay: Boolean = false
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   @get:Column(name = "start_date")
   override var startDate: Date? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   @get:Column(name = "end_date")
   override var endDate: Date? = null
 
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
   //@field:NoHistory
   @get:Column(name = "last_email")
@@ -136,7 +139,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   open var dtStamp: Date? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "calendar_fk", nullable = false)
   open var calendar: TeamCalDO? = null
@@ -191,7 +194,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   open var recurrenceUntil: Date? = null
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   override var note: String? = null
 

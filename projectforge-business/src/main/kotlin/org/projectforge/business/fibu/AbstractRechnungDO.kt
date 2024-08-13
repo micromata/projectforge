@@ -25,9 +25,9 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.common.anots.PropertyInfo
@@ -42,27 +42,27 @@ import java.time.LocalDate
 @MappedSuperclass
 abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @PropertyInfo(i18nKey = "fibu.rechnung.datum")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var betreff: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.besonderheiten")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var besonderheiten: String? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var faelligkeit: LocalDate? = null
 
@@ -71,7 +71,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
      * werden.
      */
     @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Transient
     open var zahlungsZielInTagen: Int? = null
 
@@ -83,7 +83,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     open var discountZahlungsZielInTagen: Int? = null
 
     @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "bezahl_datum")
     open var bezahlDatum: LocalDate? = null
 
@@ -99,7 +99,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
      * the account number assigned to the ProjektDO if set or KundeDO is used instead (default).
      */
     @PropertyInfo(i18nKey = "fibu.konto")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
     open var konto: KontoDO? = null

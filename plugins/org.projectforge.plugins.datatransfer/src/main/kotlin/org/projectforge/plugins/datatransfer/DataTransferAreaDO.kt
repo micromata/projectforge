@@ -26,7 +26,7 @@ package org.projectforge.plugins.datatransfer
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
@@ -59,7 +59,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   private var id: Int? = null
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.areaName")
-  @Field
+  @FullTextField
   @get:Column(length = 100, name = "area_name", nullable = false)
   open var areaName: String? = null
 
@@ -88,7 +88,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
   open var accessUserIds: String? = null
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.description", tooltip = "plugins.datatransfer.description.info")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var description: String? = null
 
@@ -156,13 +156,13 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
     get() = (maxUploadSizeKB ?: DataTransferAreaDao.MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB) * 2048L
 
   @JsonIgnore
-  @Field
+  @FullTextField
   @field:NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
-  @Field
+  @FullTextField
   @field:NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null

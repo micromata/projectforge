@@ -146,13 +146,13 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         }
         var isSearchField = false
         if (accessible.isAnnotationPresent(org.hibernate.search.annotations.Field::class.java)) {
-            // @Field(index = Index.YES /*TOKENIZED*/),
+            // @FullTextField(index = Index.YES /*TOKENIZED*/),
             info.add(accessible.getAnnotation(org.hibernate.search.annotations.Field::class.java))
             isSearchField = true
         } else if (accessible.isAnnotationPresent(org.hibernate.search.annotations.Fields::class.java)) {
-            // @Fields( {
-            // @Field(index = Index.YES /*TOKENIZED*/),
-            // @Field(name = "name_forsort", index = Index.YES, analyze = Analyze.NO /*UN_TOKENIZED*/)
+            // @FullTextFields( {
+            // @FullTextField(index = Index.YES /*TOKENIZED*/),
+            // @FullTextField(name = "name_forsort", index = Index.YES, analyze = Analyze.NO /*UN_TOKENIZED*/)
             // } )
             val annFields = accessible.getAnnotation(org.hibernate.search.annotations.Fields::class.java)
             annFields?.value?.forEach {

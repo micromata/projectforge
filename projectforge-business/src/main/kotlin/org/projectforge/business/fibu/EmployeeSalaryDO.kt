@@ -23,10 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -34,6 +32,8 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.
@@ -54,7 +54,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      */
     // TODO: Support this type on the edit page
     @PropertyInfo(i18nKey = "fibu.employee")
-    @IndexedEmbedded(depth = 2)
+    @IndexedEmbedded(includeDepth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
@@ -63,7 +63,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      * @return Abrechnungsjahr.
      */
     @PropertyInfo(i18nKey = "calendar.year")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var year: Int? = null
 
@@ -72,7 +72,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
      * @return Abrechnungsmonat.
      */
     @PropertyInfo(i18nKey = "calendar.month")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var month: Int? = null
         set(value) {
@@ -87,7 +87,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     open var bruttoMitAgAnteil: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.COMMENT_LENGTH)
     open var comment: String? = null
 

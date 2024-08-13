@@ -26,8 +26,8 @@ package org.projectforge.plugins.banking
 import org.apache.commons.codec.digest.DigestUtils
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -64,12 +64,12 @@ open class BankAccountBalanceDO : DefaultBaseDO() {
   open var amount: BigDecimal? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.date")
-  @Field(analyze = Analyze.NO)
+  @FullTextField(analyze = Analyze.NO)
   @get:Column(name = "date_col")
   open var date: LocalDate? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var comment: String? = null
 

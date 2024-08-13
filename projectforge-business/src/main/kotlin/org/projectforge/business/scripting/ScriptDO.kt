@@ -24,9 +24,9 @@
 package org.projectforge.business.scripting
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import groovy.transform.Field
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
@@ -34,6 +34,9 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * Scripts can be stored and executed by authorized users.
@@ -57,7 +60,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   }
 
   @PropertyInfo(i18nKey = "scripting.script.name")
-  @Field
+  @FullTextField
   @get:Column(length = 255, nullable = false)
   open var name: String? = null // 255 not null
 
@@ -70,7 +73,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
    * If set, the script will be executed by [executableByUsers] or [executableByGroups] with full rights of this executeAsUser!!!
    */
   @PropertyInfo(i18nKey = "scripting.script.executeAsUser", tooltip = "scripting.script.executeAsUser.info")
-  @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
+  @IndexedEmbedded(includeDepth = 1, includeEmbeddedObjectId = true)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "execute_as_user_id", nullable = true)
   open var executeAsUser: PFUserDO? = null
@@ -92,7 +95,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var executableByUserIds: String? = null
 
   @PropertyInfo(i18nKey = "description", tooltip = "scripting.script.description.tooltip")
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   open var description: String? = null
 
@@ -124,12 +127,12 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var file: ByteArray? = null
 
   @PropertyInfo(i18nKey = "file", tooltip = "scripting.script.editForm.file.tooltip")
-  @Field
+  @FullTextField
   @get:Column(name = "file_name", length = 255)
   open var filename: String? = null
 
   @PropertyInfo(i18nKey = "scripting.script.parameterName")
-  @get:Field
+  @FullTextField
   @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
   open var parameter1Name: String? = null
 
@@ -139,7 +142,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var parameter1Type: ScriptParameterType? = null
 
   @PropertyInfo(i18nKey = "scripting.script.parameterName")
-  @get:Field
+  @FullTextField
   @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
   open var parameter2Name: String? = null
 
@@ -149,7 +152,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var parameter2Type: ScriptParameterType? = null
 
   @PropertyInfo(i18nKey = "scripting.script.parameterName")
-  @get:Field
+  @FullTextField
   @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
   open var parameter3Name: String? = null
 
@@ -159,7 +162,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var parameter3Type: ScriptParameterType? = null
 
   @PropertyInfo(i18nKey = "scripting.script.parameterName")
-  @get:Field
+  @FullTextField
   @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
   open var parameter4Name: String? = null
 
@@ -169,7 +172,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var parameter4Type: ScriptParameterType? = null
 
   @PropertyInfo(i18nKey = "scripting.script.parameterName")
-  @get:Field
+  @FullTextField
   @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
   open var parameter5Name: String? = null
 
@@ -179,7 +182,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   open var parameter5Type: ScriptParameterType? = null
 
   @PropertyInfo(i18nKey = "scripting.script.parameterName")
-  @get:Field
+  @FullTextField
   @get:Column(length = PARAMETER_NAME_MAX_LENGTH)
   open var parameter6Name: String? = null
 
@@ -190,7 +193,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
   open var scriptAsString: String?
     @Transient
-    @Field(index = Index.YES, store = Store.NO)
+    @GenericField // was: @FullTextField(index = Index.YES, store = Store.NO)
     get() = convert(script)
     set(script) {
       this.script = convert(script)
@@ -233,13 +236,13 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   }
 
   @JsonIgnore
-  @Field
+  @FullTextField
   //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
-  @Field
+  @FullTextField
   //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null

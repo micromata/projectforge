@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu.kost
 
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -35,6 +34,10 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * Repräsentiert einen importierten Datev-Buchungssatz. Die Buchungssätze bilden die Grundlage für
@@ -53,7 +56,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      *
      * @return
      */
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var year: Int? = null
 
@@ -63,7 +66,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
      *
      * @return
      */
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var month: Int? = null
         set(value) {
@@ -71,7 +74,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         }
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.satznr")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var satznr: Int? = null
 
@@ -83,7 +86,7 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         }
 
     @PropertyInfo(i18nKey = "finance.accountingRecord.dc")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 7, nullable = false)
     open var sh: SHType? = null
@@ -92,52 +95,52 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     open var isIgnore = false
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.konto")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "konto_id", nullable = false)
     open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.gegenKonto")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
     open var gegenKonto: KontoDO? = null
 
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
 
     /** Je nach Buchungssatz: Belegnummer / Referenznummer / Rechnungsnummer.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.beleg")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var beleg: String? = null
 
     /** Der Buchungstext.  */
     @PropertyInfo(i18nKey = "fibu.buchungssatz.text")
-    @Field
+    @FullTextField
     @get:Column(length = 255, name = "buchungstext")
     open var text: String? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.menge")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var menge: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kost1")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost1_id", nullable = false)
     open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
-    @IndexedEmbedded(depth = 3)
+    @IndexedEmbedded(includeDepth = 3)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kost2_id", nullable = false)
     open var kost2: Kost2DO? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var comment: String? = null
 

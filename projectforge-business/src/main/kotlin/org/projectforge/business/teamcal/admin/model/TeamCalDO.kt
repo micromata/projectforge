@@ -28,13 +28,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -59,18 +60,18 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     }
 
     @PropertyInfo(i18nKey = "plugins.teamcal.title")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.owner")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     override var owner: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "plugins.teamcal.description")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 

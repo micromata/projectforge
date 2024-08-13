@@ -26,7 +26,7 @@ package org.projectforge.business.teamcal.event.model
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.mail.MailAttachment
 import jakarta.persistence.Column

@@ -21,27 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.entities
+package org.projectforge.business.teamcal.admin.model
 
-import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO
-import org.projectforge.framework.time.PFDay
-import java.time.LocalDate
-import jakarta.persistence.Transient
+import org.hibernate.search.mapper.pojo.bridge.TypeBridge
+import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
+import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
+import org.projectforge.business.common.BaseUserGroupRightsDO
+import java.util.*
 
-/**
- * Should be used, because in ProjectForge TimeableBaseDO is used with startTime with day or month precision. So the callers should
- * use startDay instead of startTime.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-@Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-abstract class PFTimeableBaseDO<Self : TimeableBaseDO<Self, Int>> : TimeableBaseDO<Self, Int>() {
-    /**
-     * For working with local dates. This converts startTime from and to localDate. This should be used instead of startTime.
-     */
-    @get:Transient
-    var startDay: LocalDate?
-        get() = PFDay.fromOrNullUTC(startTime)?.localDate
-        set(value) {
-            startTime = PFDay.fromOrNull(value)?.utilDateUTC
-        }
+class HibernateSearchUsersGroupsTypeBinder : TypeBinder {
+    override fun bind(context: TypeBindingContext) {
+        context.dependencies().useRootOnly()
+
+        val bridge: TypeBridge<BaseUserGroupRightsDO> = HibernateSearchUsersGroupsBridge()
+        context.bridge(BaseUserGroupRightsDO::class.java, bridge)
+    }
 }

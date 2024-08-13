@@ -43,37 +43,37 @@ import jakarta.persistence.*
 open class LicenseDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "organization")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var organization: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.product")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var product: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.version")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var version: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.updateFromVersion")
-    @Field
+    @FullTextField
     @get:Column(name = "update_from_version", length = 1000)
     open var updateFromVersion: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.licenseHolder")
-    @Field
+    @FullTextField
     @get:Column(length = 10000, name = "license_holder")
     open var licenseHolder: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.key")
-    @Field
+    @FullTextField
     @get:Column(length = 10000)
     open var key: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses")
-    @Field
+    @FullTextField
     @get:Column(name = "number_of_licenses")
     open var numberOfLicenses: Int? = null
 
@@ -85,16 +85,16 @@ open class LicenseDO : DefaultBaseDO() {
     open var ownerIds: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.device")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var device: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
-    @Field(analyze = Analyze.NO)
+    @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var status: LicenseStatus? = null
@@ -113,7 +113,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Type(type = "binary")
     open var file1: ByteArray? = null
 
-    @Field
+    @FullTextField
     @get:Column(name = "file_name1", length = 255)
     open var filename1: String? = null
 
@@ -123,7 +123,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Type(type = "binary")
     open var file2: ByteArray? = null
 
-    @Field
+    @FullTextField
     @get:Column(name = "file_name2", length = 255)
     open var filename2: String? = null
 

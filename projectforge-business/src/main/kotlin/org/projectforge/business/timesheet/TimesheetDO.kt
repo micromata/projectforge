@@ -25,7 +25,6 @@ package org.projectforge.business.timesheet
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
@@ -35,6 +34,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.*
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  *
@@ -75,14 +78,14 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
   @PropertyInfo(i18nKey = "task")
   @UserPrefParameter(i18nKey = "task", orderString = "2")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "task_id", nullable = false)
   open var task: TaskDO? = null
 
   @PropertyInfo(i18nKey = "user")
   @UserPrefParameter(i18nKey = "user", orderString = "1")
-  @IndexedEmbedded(depth = 1, includeEmbeddedObjectId = true)
+  @IndexedEmbedded(includeDepth = 1, includeEmbeddedObjectId = true)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id", nullable = false)
   open var user: PFUserDO? = null
@@ -91,20 +94,20 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
   open var timeZone: String? = null
 
   @PropertyInfo(i18nKey = "timesheet.startTime")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was: @FullTextField(analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   @get:Column(name = "start_time", nullable = false)
   open var startTime: Date? = null
 
   @PropertyInfo(i18nKey = "timesheet.stopTime")
-  @Field(analyze = Analyze.NO)
+  @GenericField // was:  @FullTextField(analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   @get:Column(name = "stop_time", nullable = false)
   open var stopTime: Date? = null
 
   @PropertyInfo(i18nKey = "timesheet.location")
   @UserPrefParameter(i18nKey = "timesheet.location")
-  @Field
+  @FullTextField
   @get:Column(length = 100)
   open var location: String? = null
 
@@ -112,7 +115,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
    * Free multi purpose field.
    */
   @PropertyInfo(i18nKey = "timesheet.reference")
-  @Field
+  @FullTextField
   @get:Column(length = 1000)
   open var reference: String? = null
 
@@ -120,19 +123,19 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
    *
    */
   @PropertyInfo(i18nKey = "timesheet.tag")
-  @Field
+  @FullTextField
   @get:Column(length = 1000)
   open var tag: String? = null
 
   @PropertyInfo(i18nKey = "timesheet.description")
   @UserPrefParameter(i18nKey = "description", multiline = true)
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   open var description: String? = null
 
   @PropertyInfo(i18nKey = "fibu.kost2")
   @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
-  @IndexedEmbedded(depth = 2)
+  @IndexedEmbedded(includeDepth = 2)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "kost2_id", nullable = true)
   open var kost2: Kost2DO? = null

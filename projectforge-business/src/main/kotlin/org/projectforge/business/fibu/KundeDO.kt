@@ -26,9 +26,8 @@ package org.projectforge.business.fibu
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
-import org.hibernate.search.annotations.Analyzer
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.IManualIndex
@@ -69,7 +68,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
 
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     open var name: String? = null
 
@@ -79,23 +78,23 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
      * @return
      */
     @PropertyInfo(i18nKey = "fibu.kunde.identifier")
-    @Field
+    @FullTextField
     @get:Column(length = 20)
     open var identifier: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde.division")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var division: String? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var status: KundeStatus? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 

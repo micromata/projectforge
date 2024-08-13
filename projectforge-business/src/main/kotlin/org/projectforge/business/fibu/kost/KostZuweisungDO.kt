@@ -27,9 +27,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.Constants
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
@@ -41,6 +40,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.CurrencyHelper
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * Rechnungen (Ein- und Ausgang) sowie Gehaltssonderzahlungen werden auf Kost1 und Kost2 aufgeteilt. Einer Rechnung
@@ -91,18 +91,18 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
   open var netto: BigDecimal? = null
 
   @PropertyInfo(i18nKey = "fibu.kost1")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "kost1_fk", nullable = false)
   open var kost1: Kost1DO? = null
 
   @PropertyInfo(i18nKey = "fibu.kost2")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "kost2_fk", nullable = false)
   open var kost2: Kost2DO? = null
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "rechnungs_pos_fk", nullable = true)
   @JsonBackReference
@@ -114,7 +114,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       field = rechnungsPosition
     }
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "eingangsrechnungs_pos_fk", nullable = true)
   @JsonBackReference
@@ -133,7 +133,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       eingangsrechnungsPosition = position as EingangsrechnungsPositionDO
   }
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "employee_salary_fk", nullable = true)
   open var employeeSalary: EmployeeSalaryDO? = null
@@ -144,7 +144,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       field = employeeSalary
     }
 
-  @Field
+  @FullTextField
   @get:Column(length = Constants.COMMENT_LENGTH)
   open var comment: String? = null
 

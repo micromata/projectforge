@@ -25,10 +25,8 @@ package org.projectforge.business.fibu.kost
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
@@ -36,6 +34,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 @Entity
 @Indexed
@@ -70,7 +69,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
         get() = KostFormatter.format(this)
 
     @PropertyInfo(i18nKey = "status")
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var kostentraegerStatus: KostentraegerStatus? = null
@@ -103,7 +102,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     open var workFraction: BigDecimal? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
@@ -111,7 +110,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * Optionale Kommentare zum Kostenträger.
      */
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var comment: String? = null
 
@@ -120,7 +119,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * Ziffern identisch mit der Projektnummer.
      */
     @PropertyInfo(i18nKey = "fibu.projekt")
-    @IndexedEmbedded(depth = 2)
+    @IndexedEmbedded(includeDepth = 2)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "projekt_id")
     open var projekt: ProjektDO? = null

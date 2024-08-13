@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address
 
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.address.PersonalAddressDO.Companion.DELETE_ALL_BY_ADDRESS_ID
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER
 import org.projectforge.business.address.PersonalAddressDO.Companion.FIND_BY_OWNER_AND_ADDRESS_ID
