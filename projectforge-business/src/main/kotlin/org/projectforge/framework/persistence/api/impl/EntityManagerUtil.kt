@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.utils.SQLHelper.queryToString
 private val log = KotlinLogging.logger {}
 
 object EntityManagerUtil {
-    fun getEntityManager(entityManagerFactory: EntityManagerFactory): EntityManager {
+    private fun getEntityManager(entityManagerFactory: EntityManagerFactory): EntityManager {
         return entityManagerFactory.createEntityManager()
     }
 
@@ -43,20 +43,21 @@ object EntityManagerUtil {
         readonly: Boolean = false,
         run: (em: EntityManager) -> T
     ): T {
-        val em = entityManagerFactory.createEntityManager()
-        if (readonly) {
-            em.unwrap(Session::class.java).isDefaultReadOnly = true
-        }
-        em.transaction.begin()
-        try {
-            val ret = run(em)
-            // em.flush()
-            em.transaction.commit()
-            return ret
-        } catch (ex: Exception) {
-            em.transaction.rollback()
-            log.error(ex.message, ex)
-            throw ex
+        entityManagerFactory.createEntityManager().use { em ->
+            if (readonly) {
+                em.unwrap(Session::class.java).isDefaultReadOnly = true
+            }
+            em.transaction.begin()
+            try {
+                val ret = run(em)
+                // em.flush()
+                em.transaction.commit()
+                return ret
+            } catch (ex: Exception) {
+                em.transaction.rollback()
+                log.error(ex.message, ex)
+                throw ex
+            }
         }
     }
 
@@ -64,7 +65,12 @@ object EntityManagerUtil {
         return runInTransaction(entityManagerFactory, true, run = { em -> block(em) })
     }
 
-    fun <T> selectById(entityManagerFactory: EntityManagerFactory, entityClass: Class<T>, id: Any?, detached: Boolean = true): T? {
+    fun <T> selectById(
+        entityManagerFactory: EntityManagerFactory,
+        entityClass: Class<T>,
+        id: Any?,
+        detached: Boolean = true
+    ): T? {
         id ?: return null
         return runInReadOnlyTransaction(entityManagerFactory) { em ->
             val entity = em.find(entityClass, id)
@@ -82,26 +88,27 @@ object EntityManagerUtil {
         detached: Boolean = true,
         execute: (em: EntityManager) -> TypedQuery<T>
     ): T? {
-        val em = entityManagerFactory.createEntityManager()
-        val query = execute(em)
-        val list = query.resultList
-        if (nullAllowed && list.isNullOrEmpty())
-            return null
-        if (list.size != 1) {
-            throw InternalErrorException(
-                "Internal error: ProjectForge requires a single entry, but found ${list.size} entries: ${
-                    queryToString(
-                        query,
-                        errorMessage
-                    )
-                }"
-            )
+        entityManagerFactory.createEntityManager().use { em ->
+            val query = execute(em)
+            val list = query.resultList
+            if (nullAllowed && list.isNullOrEmpty())
+                return null
+            if (list.size != 1) {
+                throw InternalErrorException(
+                    "Internal error: ProjectForge requires a single entry, but found ${list.size} entries: ${
+                        queryToString(
+                            query,
+                            errorMessage
+                        )
+                    }"
+                )
+            }
+            val entity = list[0]
+            if (detached) {
+                em.detach(entity)
+            }
+            return entity
         }
-        val entity = list[0]
-        if (detached) {
-            em.detach(entity)
-        }
-        return entity
     }
 
 }
