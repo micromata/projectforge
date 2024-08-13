@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import jakarta.persistence.EntityManagerFactory
 import org.hibernate.Session
 import org.hibernate.SessionFactory
 import org.projectforge.ProjectForgeVersion
@@ -39,7 +40,6 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.json.TimestampSerializer
 import org.projectforge.framework.json.UtilDateFormat
 import org.projectforge.framework.json.UtilDateSerializer
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
@@ -54,8 +54,7 @@ import java.sql.Timestamp
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class DatabaseWriter(val emf: PfEmgrFactory,
-                     val sessionFactory: SessionFactory) {
+class DatabaseWriter(val emgrFactory: EntityManagerFactory) {
     private val log = LoggerFactory.getLogger(DatabaseWriter::class.java)
 
     private lateinit var writer: Writer
@@ -73,17 +72,17 @@ class DatabaseWriter(val emf: PfEmgrFactory,
         jgen.writeStringField("version", ProjectForgeVersion.VERSION_STRING)
         jgen.writeStringField("user", ThreadLocalUserContext.user!!.username)
         jgen.writeArrayFieldStart("database")
-        val session = sessionFactory.openSession()
+       /* val session = sessionFactory.openSession()
         session.use {
             dump(PFUserDO::class.java, session, jgen)
-            val entities = emf.metadataRepository.tableEntities
+            val entities = emgrFactory.metadataRepository.tableEntities
             for (entity in entities) {
                 val entityClass = entity.javaType
                 //val entitySimpleName = entityClass.simpleName
                 //val entityType = entityClass.name
                 log.info("entityClass: ${entityClass.name}")
             }
-        }
+        }*/
         jgen.writeEndArray()
         jgen.writeEndObject()
         jgen.flush()
