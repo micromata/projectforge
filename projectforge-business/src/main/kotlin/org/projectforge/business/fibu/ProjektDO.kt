@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -32,6 +31,10 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6. Ziffer).
@@ -59,7 +62,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     open var nummer: Int = 0
 
     @PropertyInfo(i18nKey = "fibu.projekt.name")
-    @Field
+    @FullTextField
     @get:Column(length = 255, nullable = false)
     open var name: String? = null
 
@@ -67,12 +70,12 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      * The identifier is used e. g. for display the project as short name in human resources planning tables.
      */
     @PropertyInfo(i18nKey = "fibu.projekt.identifier")
-    @Field
+    @FullTextField
     @get:Column(length = 20)
     open var identifier: String? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kunde_id")
     open var kunde: KundeDO? = null
@@ -82,17 +85,17 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.projekt.internKost2_4")
     @get:Column(name = "intern_kost2_4")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     open var internKost2_4: Int? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field
+    @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var status: ProjektStatus? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
@@ -102,23 +105,23 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.projekt.projektManagerGroup")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projektmanager_group_fk")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     open var projektManagerGroup: GroupDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projectManager")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projectmanager_fk")
     open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
     open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
     open var salesManager: PFUserDO? = null

@@ -23,8 +23,8 @@
 
 package org.projectforge.plugins.marketing
 
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.address.AddressDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants

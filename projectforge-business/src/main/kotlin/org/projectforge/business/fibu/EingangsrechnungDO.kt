@@ -27,15 +27,14 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.hibernate.annotations.ListIndexBase
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * Eingehende Rechnungen.
@@ -66,17 +65,17 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     get() = if (referenz.isNullOrBlank()) "$kreditor" else "$kreditor: $referenz"
 
   @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
-  @Field
+  @FullTextField
   @get:Column
   open var receiver: String? = null
 
   @PropertyInfo(i18nKey = "fibu.rechnung.iban")
-  @Field
+  @FullTextField
   @get:Column(length = 50)
   open var iban: String? = null
 
   @PropertyInfo(i18nKey = "fibu.rechnung.bic")
-  @Field
+  @FullTextField
   @get:Column(length = 11)
   open var bic: String? = null
 
@@ -86,23 +85,23 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
    * @return
    */
   @PropertyInfo(i18nKey = "fibu.common.reference")
-  @Field
+  @FullTextField
   @get:Column(length = 1000)
   open var referenz: String? = null
 
   @PropertyInfo(i18nKey = "fibu.common.creditor")
-  @Field
+  @FullTextField
   @get:Column(length = 255)
   open var kreditor: String? = null
 
   @PropertyInfo(i18nKey = "fibu.payment.type")
-  @Field(bridge = FieldBridge(impl = HibernateSearchPaymentTypeBridge::class))
+  @FullTextField(bridge = FieldBridge(impl = HibernateSearchPaymentTypeBridge::class))
   @get:Column(length = 20, name = "payment_type")
   @get:Enumerated(EnumType.STRING)
   open var paymentType: PaymentType? = null
 
   @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
-  @Field
+  @FullTextField
   @get:Column
   open var customernr: String? = null
 

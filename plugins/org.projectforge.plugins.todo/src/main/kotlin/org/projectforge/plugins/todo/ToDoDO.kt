@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
@@ -46,7 +45,7 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")
     @UserPrefParameter(i18nKey = "plugins.todo.subject")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
@@ -87,26 +86,26 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var description: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @UserPrefParameter(i18nKey = "comment", multiline = true)
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.type")
     @UserPrefParameter(i18nKey = "plugins.todo.type")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var type: ToDoType? = null
 
     @PropertyInfo(i18nKey = "plugins.todo.status")
     @UserPrefParameter(i18nKey = "plugins.todo.status")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var status: ToDoStatus? = null
@@ -118,24 +117,24 @@ open class ToDoDO : DefaultBaseDO() {
      *
      * @return true if any modification isn't seen by the assignee.
      */
-    @field:NoHistory
+    // @field:NoHistory
     @get:Column
     open var recent: Boolean = false
 
     @PropertyInfo(i18nKey = "priority")
     @UserPrefParameter(i18nKey = "priority")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "dueDate")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "due_date")
     open var dueDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "resubmissionOnDate")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column
     open var resubmission: LocalDate? = null
 

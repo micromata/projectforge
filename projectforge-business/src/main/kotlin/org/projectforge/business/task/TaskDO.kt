@@ -24,8 +24,6 @@
 package org.projectforge.business.task
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.*
-import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.common.StringHelper
@@ -40,6 +38,10 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
 import jakarta.persistence.Index
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  *
@@ -72,7 +74,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     open var parentTask: TaskDO? = null
 
     @PropertyInfo(i18nKey = "task.title")
-    @Field
+    @FullTextField
     @get:Column(length = TITLE_LENGTH, nullable = false)
     open var title: String? = null
 
@@ -87,23 +89,23 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "shortDescription")
-    @Field
+    @FullTextField
     @get:Column(name = "short_description", length = SHORT_DESCRIPTION_LENGTH)
     open var shortDescription: String? = null
 
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(name = "description", length = DESCRIPTION_LENGTH)
     open var description: String? = null
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.progress")
     @get:Column
     open var progress: Int? = null
 
-    @Field(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.maxHours")
     @get:Column(name = "max_hours")
     open var maxHours: Int? = null
@@ -112,7 +114,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * @see org.projectforge.business.gantt.GanttTask.getStartDate
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @PropertyInfo(i18nKey = "gantt.startDate")
     @get:Column(name = "start_date")
     open var startDate: LocalDate? = null
@@ -121,7 +123,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * @see org.projectforge.business.gantt.GanttTask.getEndDate
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @PropertyInfo(i18nKey = "gantt.endDate")
     @get:Column(name = "end_date")
     open var endDate: LocalDate? = null
@@ -142,12 +144,12 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * vornehmen. Auch können diese Zeitberichte nicht mehr in der Dauer geändert oder gelöscht bzw. außerhalb des Tasks
      * verschoben werden.
      */
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @PropertyInfo(i18nKey = "task.protectTimesheetsUntil")
     @get:Column(name = "protect_timesheets_until")
     open var protectTimesheetsUntil: LocalDate? = null
 
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @PropertyInfo(i18nKey = "task.assignedUser")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "responsible_user_id")
@@ -157,7 +159,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      * Reference is a free use-able field, which will be inherited to all sibling tasks. The reference is exported e. g.
      * in the time sheet MS Excel export.
      */
-    @Field
+    @FullTextField
     @PropertyInfo(i18nKey = "task.reference")
     @get:Column(length = REFERENCE_LENGTH)
     open var reference: String? = null
@@ -224,7 +226,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @Field
+    @FullTextField
     @PropertyInfo(i18nKey = "task.parentTask")
     @get:Column(name = "workpackage_code", length = 100)
     open var workpackageCode: String? = null

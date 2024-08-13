@@ -24,15 +24,14 @@
 package org.projectforge.business.fibu.kost
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.annotations.Analyze
-import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 
 @Entity
 @Indexed
@@ -51,7 +50,7 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
         get() = KostFormatter.format(this)
 
     @PropertyInfo(i18nKey = "status")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 30)
     open var kostentraegerStatus: KostentraegerStatus? = null
@@ -89,7 +88,7 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
      * @return
      */
     @PropertyInfo(i18nKey = "description")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var description: String? = null
 
@@ -105,7 +104,7 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * @see KostFormatter.getKostAsInt
      */
-    val nummer: Int?
+    val nummer: Int
         @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, endziffer)
 

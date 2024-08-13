@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
-import org.hibernate.search.annotations.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -36,6 +35,9 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * For managing libraries including lend-out functionality.
@@ -57,80 +59,80 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         get() = "$authors: $title"
 
     @PropertyInfo(i18nKey = "book.title", required = true)
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var title: String? = null
 
     @PropertyInfo(i18nKey = "book.keywords")
-    @Field
+    @FullTextField
     @get:Column(length = 1024)
     open var keywords: String? = null
 
     @PropertyInfo(i18nKey = "book.lendOutBy")
-    @IndexedEmbedded(depth = 1, includePaths = ["username", "firstname", "lastname"])
+    @IndexedEmbedded(includeDepth = 1, includePaths = ["username", "firstname", "lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:Fetch(FetchMode.SELECT)
     @get:JoinColumn(name = "lend_out_by")
     open var lendOutBy: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "date")
-    @Field(analyze = Analyze.NO)
+    @GenericField //was @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "lend_out_date")
     open var lendOutDate: LocalDate? = null
 
     @PropertyInfo(i18nKey = "book.lendOutNote")
-    @Field
+    @FullTextField
     @get:Column(name = "lend_out_comment", length = 1024)
     open var lendOutComment: String? = null
 
     @PropertyInfo(i18nKey = "book.isbn")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var isbn: String? = null
 
     @PropertyInfo(i18nKey = "book.signature")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var signature: String? = null
 
     @PropertyInfo(i18nKey = "book.publisher")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var publisher: String? = null
 
     @PropertyInfo(i18nKey = "book.editor")
-    @Field
+    @FullTextField
     @get:Column(length = 255)
     open var editor: String? = null
 
     @PropertyInfo(i18nKey = "book.yearOfPublishing")
-    @Field(index = Index.YES, store = Store.NO, name = "year")
+    @GenericField(name = "year")// was: @FullTextField(index = Index.YES, store = Store.NO, name = "year")
     @get:Column(name = "year_of_publishing", length = 4)
     open var yearOfPublishing: String? = null
 
     @PropertyInfo(i18nKey = "book.authors")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var authors: String? = null
 
     @PropertyInfo(i18nKey = "book.abstract")
-    @Field(index = Index.YES, store = Store.NO, name = "abstract")
+    @GenericField(name = "abstract") // was: @FullTextField(index = Index.YES, store = Store.NO, name = "abstract")
     @get:Column(name = "abstract_text", length = 4000)
     open var abstractText: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var comment: String? = null
 
     @PropertyInfo(i18nKey = "status")
-    @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
+    @GenericField // was: @FullTextField(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20, nullable = false)
     open var status: BookStatus? = null
 
     @PropertyInfo(i18nKey = "book.type")
-    @Field(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
+    @GenericField // was: @FullTextField(index = Index.YES, analyze = Analyze.NO, store = Store.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "book_type", length = 20, nullable = true)
     open var type: BookType? = null
@@ -168,13 +170,13 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         }
 
     @JsonIgnore
-    @Field
+    @FullTextField
     //@field:NoHistory
     @get:Column(length = 10000, name = "attachments_names")
     override var attachmentsNames: String? = null
 
     @JsonIgnore
-    @Field
+    @FullTextField
     //@field:NoHistory
     @get:Column(length = 10000, name = "attachments_ids")
     override var attachmentsIds: String? = null

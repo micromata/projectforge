@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -59,7 +58,7 @@ open class UserPasswordDO : DefaultBaseDO() {
    * Encoded password of the user (SHA-256).
    */
   @JsonIgnore
-  @field:NoHistory
+  // @field:NoHistory
   @get:Column(name="password_hash", length = 255)
   open var passwordHash: String? = null
 
@@ -67,7 +66,7 @@ open class UserPasswordDO : DefaultBaseDO() {
    * The saltString for giving salt to hashed password.
    */
   @JsonIgnore
-  @field:NoHistory
+  // @field:NoHistory
   @get:Column(name = "password_salt", length = 40)
   open var passwordSalt: String? = null
 

@@ -68,27 +68,27 @@ open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
   override var owner: PFUserDO? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.name", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE, nullable = false)
   open var name: String? = null
 
   @PropertyInfo(i18nKey = "description")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var description: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.iban", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE)
   open var iban: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.bic", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE)
   open var bic: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.bank", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE, nullable = false)
   open var bank: String? = null
 
@@ -96,7 +96,7 @@ open class BankAccountDO : BaseUserGroupRightsDO(), DisplayNameCapable {
    *
    */
   @PropertyInfo(i18nKey = "plugins.banking.account.importSettings")
-  @Field
+  @FullTextField
   @get:Column(length = 10000, name = "import_settings")
   open var importSettings: String? = null
 }

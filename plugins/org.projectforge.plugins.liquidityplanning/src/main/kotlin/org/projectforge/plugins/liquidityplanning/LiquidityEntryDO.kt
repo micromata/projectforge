@@ -58,12 +58,12 @@ open class LiquidityEntryDO : DefaultBaseDO() {
     open var paid: Boolean = false
 
     @PropertyInfo(i18nKey = "fibu.rechnung.betreff")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TITLE)
     open var subject: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 }

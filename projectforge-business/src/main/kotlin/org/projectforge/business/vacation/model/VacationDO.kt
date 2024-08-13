@@ -23,9 +23,8 @@
 
 package org.projectforge.business.vacation.model
 
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -33,6 +32,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -82,7 +82,7 @@ open class VacationDO : DefaultBaseDO() {
    * Coverage (during leave). This is the main responsible colleague for replacement.
    */
   @PropertyInfo(i18nKey = "vacation.replacement")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "replacement_id", nullable = false)
   open var replacement: EmployeeDO? = null
@@ -91,7 +91,7 @@ open class VacationDO : DefaultBaseDO() {
    * Other employees as substitutes.
    */
   @PropertyInfo(i18nKey = "vacation.replacement.others")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:Column(nullable = true) // Needed for telling MGC that this field is nullable.
   @get:ManyToMany(fetch = FetchType.EAGER)
   @get:JoinTable(
@@ -124,7 +124,7 @@ open class VacationDO : DefaultBaseDO() {
    * The manager.
    */
   @PropertyInfo(i18nKey = "vacation.manager")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "manager_id", nullable = false)
   open var manager: EmployeeDO? = null
@@ -156,7 +156,7 @@ open class VacationDO : DefaultBaseDO() {
   open var halfDayEnd: Boolean? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   open var comment: String? = null
 

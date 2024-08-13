@@ -27,8 +27,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
@@ -62,7 +62,7 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     get() = rechnung?.id
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrags_position_fk")
   open var auftragsPosition: AuftragsPositionDO? = null

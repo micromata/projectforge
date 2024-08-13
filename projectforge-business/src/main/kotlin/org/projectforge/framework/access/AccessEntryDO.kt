@@ -25,7 +25,7 @@ package org.projectforge.framework.access
 
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO

@@ -20,10 +20,14 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.business.fibu
 
-package org.projectforge.business.fibu;
+import mu.KotlinLogging
+import org.hibernate.search.engine.backend.document.DocumentElement
+import org.hibernate.search.mapper.pojo.bridge.TypeBridge
+import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
 
-import org.hibernate.search.bridge.StringBridge;
+private val log = KotlinLogging.logger {}
 
 /**
  * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
@@ -31,30 +35,23 @@ import org.hibernate.search.bridge.StringBridge;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchAuftragsPositionBridge implements StringBridge {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-          .getLogger(HibernateSearchAuftragsPositionBridge.class);
-
-  @Override
-  public String objectToString(Object object) {
-    if (object instanceof String) {
-      return object.toString();
+class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
+    override fun write(
+        target: DocumentElement,
+        bridgedElement: AuftragsPositionDO,
+        context: TypeBridgeWriteContext
+    ) {
+        val auftrag = bridgedElement.auftrag
+        val sb = StringBuilder()
+        if (auftrag?.nummer == null) {
+            log.error("AuftragDO for AuftragsPositionDO: " + bridgedElement.id + "  is null.")
+            target.addValue("position", "")
+            return
+        }
+        sb.append(auftrag.nummer).append(".").append(bridgedElement.number.toInt())
+        if (log.isDebugEnabled) {
+            log.debug(sb.toString())
+        }
+        target.addValue("position", sb.toString())
     }
-    final AuftragsPositionDO position = (AuftragsPositionDO) object;
-    if (position == null) {
-      log.error("AuftragsPositionDO object is null.");
-      return "";
-    }
-    final AuftragDO auftrag = position.getAuftrag();
-    final StringBuilder sb = new StringBuilder();
-    if (auftrag == null || auftrag.getNummer() == null) {
-      log.error("AuftragDO for AuftragsPositionDO: " + position.getId() + "  is null.");
-      return "";
-    }
-    sb.append(auftrag.getNummer()).append(".").append(position.getNumber());
-    if (log.isDebugEnabled()) {
-      log.debug(sb.toString());
-    }
-    return sb.toString();
-  }
 }

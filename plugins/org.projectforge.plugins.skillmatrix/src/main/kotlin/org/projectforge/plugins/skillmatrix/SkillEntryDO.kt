@@ -24,8 +24,8 @@
 package org.projectforge.plugins.skillmatrix
 
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
@@ -58,7 +58,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
   private var id: Int? = null
 
   @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
-  @Field
+  @FullTextField
   @get:Column(length = 255, nullable = false)
   open var skill: String? = null
 
@@ -80,7 +80,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * 1 - basic knowledge, 2 - established knowledge, 3 - expert knowledge
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.rating")
-  @Field
+  @FullTextField
   @get:Column
   open var rating: Int? = null
 
@@ -88,12 +88,12 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * 1 - interested, 2 - vested interest, 3 - going crazy
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.interest")
-  @Field
+  @FullTextField
   @get:Column
   open var interest: Int? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_COMMENT)
   open var comment: String? = null
 

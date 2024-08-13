@@ -24,7 +24,7 @@
 package org.projectforge.plugins.datatransfer
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate

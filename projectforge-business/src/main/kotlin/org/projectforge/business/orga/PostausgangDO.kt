@@ -23,11 +23,13 @@
 
 package org.projectforge.business.orga
 
-import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 
 /**
  * Posteingangsbuch
@@ -42,37 +44,37 @@ import jakarta.persistence.*
 open class PostausgangDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "date")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(nullable = false)
     open var datum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "orga.posteingang.absender")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, nullable = true)
     open var absender: String? = null
 
     @PropertyInfo(i18nKey = "orga.postausgang.empfaenger")
-    @Field
+    @FullTextField
     @get:Column(length = 1000, nullable = false)
     open var empfaenger: String? = null
 
     @PropertyInfo(i18nKey = "orga.postausgang.person")
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var person: String? = null
 
     @PropertyInfo(i18nKey = "orga.post.inhalt", required = true)
-    @Field
+    @FullTextField
     @get:Column(length = 1000)
     open var inhalt: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field
+    @FullTextField
     @get:Column(length = 4000)
     open var bemerkung: String? = null
 
     @PropertyInfo(i18nKey = "orga.post.type")
-    @Field(analyze = Analyze.NO)
+    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "post_type", length = 100, nullable = false)
     open var type: PostType? = null

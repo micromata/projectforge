@@ -26,8 +26,8 @@ package org.projectforge.plugins.banking
 import org.apache.commons.codec.digest.DigestUtils
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -64,57 +64,57 @@ open class BankAccountRecordDO : DefaultBaseDO() {
   open var amount: BigDecimal? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.date")
-  @Field(analyze = Analyze.NO)
+  @FullTextField(analyze = Analyze.NO)
   @get:Column(name = "date_col")
   open var date: LocalDate? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.valueDate")
-  @Field(analyze = Analyze.NO)
+  @FullTextField(analyze = Analyze.NO)
   @get:Column(name = "value_date")
   open var valueDate: LocalDate? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.type", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var type: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.subject")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var subject: String? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var comment: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.currency", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var currency: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.debteeId", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT, name = "debtee_id")
   open var debteeId: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.mandateReference", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT, name = "mandate_reference")
   open var mandateReference: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.customerReference", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT, name = "customer_reference")
   open var customerReference: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.collectionReference", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT, name = "collection_reference")
   open var collectionReference: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.record.info", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT)
   open var info: String? = null
 
@@ -122,17 +122,17 @@ open class BankAccountRecordDO : DefaultBaseDO() {
    * Receiver for outgoing payments and sender for incoming payments.
    */
   @PropertyInfo(i18nKey = "plugins.banking.account.record.receiverSender", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TEXT, name = "receiver_sender")
   open var receiverSender: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.iban", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE)
   open var iban: String? = null
 
   @PropertyInfo(i18nKey = "plugins.banking.account.bic", type = PropertyType.INPUT)
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE)
   open var bic: String? = null
 
@@ -143,7 +143,7 @@ open class BankAccountRecordDO : DefaultBaseDO() {
     i18nKey = "plugins.banking.account.record.checksum",
     tooltip = "plugins.banking.account.record.checksum.info"
   )
-  @Field
+  @FullTextField
   @get:Column(length = Constants.LENGTH_TITLE)
   open var checksum: String? = null
 

@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.UserException
@@ -37,6 +36,11 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
@@ -45,7 +49,8 @@ import jakarta.persistence.*
  */
 @Entity
 @Indexed
-@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
+@TypeBinding(binder = TypeBinderRef(name = "position", type = HibernateSearchAuftragsPositionTypeBinder::class))
+//@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
 @Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cacheable
 @Table(
@@ -70,7 +75,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
 
   // @JsonIgnore needed due to circular references.
   @JsonIgnore
-  @ContainedIn
+  // @ContainedIn
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_fk", nullable = false)
   open var auftrag: AuftragDO? = null
@@ -80,7 +85,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var task: TaskDO? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position.art")
-  @Field
+  @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "art", length = 30)
   open var art: AuftragsPositionsArt? = null
@@ -91,23 +96,23 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var paymentType: AuftragsPositionsPaymentType? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.position.status")
-  @Field
+  @FullTextField
   @get:Enumerated(EnumType.STRING)
   @get:Column(name = "status", length = 30)
   open var status: AuftragsPositionsStatus? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.titel")
-  @Field
+  @FullTextField
   @get:Column(name = "titel", length = 255)
   open var titel: String? = null
 
   @PropertyInfo(i18nKey = "comment")
-  @Field
+  @FullTextField
   @get:Column(length = 4000)
   open var bemerkung: String? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.nettoSumme")
-  @Field
+  @FullTextField
   @get:Column(name = "netto_summe", scale = 2, precision = 12)
   open var nettoSumme: BigDecimal? = null
 

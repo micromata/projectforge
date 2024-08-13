@@ -23,23 +23,31 @@
 
 package org.projectforge.framework.persistence.history;
 
-import org.hibernate.search.bridge.StringBridge;
+import org.hibernate.search.mapper.pojo.bridge.ValueBridge;
+import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeFromIndexedValueContext;
+import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * StringBridge for hibernate search to search in phone numbers (reduce phone number fields to digits without white spaces and non digits).
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
-public class HibernateSearchPhoneNumberBridge implements StringBridge
+public class HibernateSearchPhoneNumberBridge implements ValueBridge<Object, String>
 {
-  public String objectToString(final Object object)
-  {
-    if (object == null || !(object instanceof String)) {
+
+  @Override
+  public String toIndexedValue(Object o, ValueBridgeToIndexedValueContext valueBridgeToIndexedValueContext) {
+    return "";
+  }
+
+  @Override
+  public Object fromIndexedValue(String value, ValueBridgeFromIndexedValueContext context) {
+    if (value == null || !(value instanceof String)) {
       return "";
     }
-    final String number = (String) object;
+    final String number = (String) value;
     return number + '|' + StringHelper.removeNonDigits(number) + '|' + NumberHelper.extractPhonenumber(number);
   }
 }

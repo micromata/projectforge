@@ -25,10 +25,9 @@ package org.projectforge.business.orga
 
 import jakarta.persistence.*
 import mu.KotlinLogging
-import org.hibernate.search.annotations.Field
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
-import org.hibernate.search.annotations.Store
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -47,23 +46,23 @@ private val log = KotlinLogging.logger {}
 @AUserRightId("ORGA_VISITORBOOK")
 class VisitorbookDO : DefaultBaseDO() {
 
-    @Field
+    @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.lastname")
     @get:Column(name = "lastname", length = 30, nullable = false)
     var lastname: String? = null
 
-    @Field
+    @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.firstname")
     @get:Column(name = "firstname", length = 30, nullable = false)
     var firstname: String? = null
 
-    @Field
+    @FullTextField
     @PropertyInfo(i18nKey = "orga.visitorbook.company")
     @get:Column(name = "company")
     var company: String? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
-    @get:IndexedEmbedded(depth = 2, includePaths = ["user.firstname", "user.lastname"])
+    @get:IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
     @get:JoinTable(
         name = "T_ORGA_VISITORBOOK_EMPLOYEE",
@@ -88,7 +87,7 @@ class VisitorbookDO : DefaultBaseDO() {
     var visitortype: VisitorType? = null
 
     /*
-    @Field(store = Store.YES)
+    @FullTextField(store = Store.YES)
     //@FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()

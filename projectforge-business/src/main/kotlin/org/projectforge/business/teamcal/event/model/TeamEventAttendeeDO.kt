@@ -24,7 +24,7 @@
 package org.projectforge.business.teamcal.event.model
 
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
