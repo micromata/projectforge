@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
@@ -40,7 +40,7 @@ import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
 import java.time.DayOfWeek
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -424,7 +424,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
    */
   @Transient
   fun hasSystemAccess(): Boolean {
-    return !isDeleted && !this.deactivated
+    return !deleted && !this.deactivated
   }
 
   companion object {

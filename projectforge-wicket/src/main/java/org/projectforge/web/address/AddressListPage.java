@@ -137,8 +137,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
                                final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final PersonalAddressDO personalAddress = personalAddressMap.get(address.getId());
-        appendCssClasses(item, address.getId(), address.isDeleted());
-        if (address.isDeleted() == true) {
+        appendCssClasses(item, address.getId(), address.getDeleted());
+        if (address.getDeleted() == true) {
           // Do nothing further
         } else if (personalAddress != null && personalAddress.isFavoriteCard() == true) {
           appendCssClasses(item, RowCssClass.FAVORITE_ENTRY);

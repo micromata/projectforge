@@ -23,14 +23,14 @@
 
 package org.projectforge.business.vacation.model
 
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * You may add manual correction entries to the leave account for an employee, e. g. for special leave days or for adding
@@ -46,7 +46,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "t_employee_leave_account_entry",
-        indexes = [javax.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id")])
+        indexes = [jakarta.persistence.Index(name = "idx_fk_t_leave_account_employee_id", columnList = "employee_id")])
 @NamedQueries(NamedQuery(name = LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
         query = "from LeaveAccountEntryDO where employee.id=:employeeId and date>=:fromDate and date<=:toDate and deleted=false order by date desc"))
 open class LeaveAccountEntryDO : DefaultBaseDO() {

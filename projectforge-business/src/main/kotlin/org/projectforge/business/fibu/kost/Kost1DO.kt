@@ -23,23 +23,22 @@
 
 package org.projectforge.business.fibu.kost
 
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Indexed
 @ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
 @Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
-@WithHistory
+//@WithHistory
 @NamedQueries(
         NamedQuery(name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
                 query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"),

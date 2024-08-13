@@ -118,7 +118,7 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
         log.info("Refreshing SkillMatrixCache ...")
         val skillStatisticsMap = mutableMapOf<String, Entry>()
         skillEntryDao.internalLoadAll()
-                .filter { !it.isDeleted } // Ignore deleted skill entries.
+                .filter { !it.deleted } // Ignore deleted skill entries.
                 .sortedByDescending { it.lastUpdate } // Use skill syntax of last edited one (older ones will be normalized)
                 .forEach { skillEntry ->
                     val skillName = skillEntry.skill ?: ""

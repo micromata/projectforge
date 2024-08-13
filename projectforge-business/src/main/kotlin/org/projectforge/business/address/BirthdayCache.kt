@@ -88,7 +88,7 @@ class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
         continue
       }
       val ba = BirthdayAddress(address)
-      ba.isFavorite = favorites.contains(address.getId())
+      ba.isFavorite = favorites.contains(address.id)
       set.add(ba)
     }
     return set
@@ -102,7 +102,7 @@ class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
     val addressList = addressDao.internalGetList(filter)
     val newList = mutableListOf<BirthdayAddress>()
     addressList.forEach {
-      if (!it.isDeleted) { // deleted shouldn't occur, already filtered above.
+      if (it.deleted != true) { // deleted shouldn't occur, already filtered above.
         newList.add(BirthdayAddress(it))
       }
     }

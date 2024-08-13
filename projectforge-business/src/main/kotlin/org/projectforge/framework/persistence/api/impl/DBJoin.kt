@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.ToStringUtil
-import javax.persistence.criteria.JoinType
+import jakarta.persistence.criteria.JoinType
 
 /**
  * For preparation of Joins.

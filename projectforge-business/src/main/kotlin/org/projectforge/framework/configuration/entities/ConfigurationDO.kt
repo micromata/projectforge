@@ -23,17 +23,15 @@
 
 package org.projectforge.framework.configuration.entities
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import mu.KotlinLogging
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationType
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * For configuration entries persisted in the data base. Please access the configuration parameters via
@@ -44,7 +42,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_CONFIGURATION", uniqueConstraints = [UniqueConstraint(columnNames = ["parameter"])])
-@JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
+//@JpaXmlPersist(beforePersistListener = [ConfigurationXmlBeforePersistListener::class])
 @AUserRightId("ADMIN_CORE")
 @NamedQueries(
         NamedQuery(name = ConfigurationDO.FIND_BY_PARAMETER, query = "from ConfigurationDO where parameter = :parameter"))
@@ -254,7 +252,7 @@ open class ConfigurationDO : DefaultBaseDO {
                 stringValue: String) {
         this.id = id
         this.created = created
-        this.isDeleted = deleted
+        this.deleted = deleted
         this.lastUpdate = lastUpdate
         this.configurationType = configurationType
         this.floatValue = floatValue

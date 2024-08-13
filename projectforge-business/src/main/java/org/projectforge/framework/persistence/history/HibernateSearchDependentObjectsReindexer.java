@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.history;
 
 import org.hibernate.search.annotations.ContainedIn;
-import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -36,8 +36,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import jakarta.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.persistence.FlushModeType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

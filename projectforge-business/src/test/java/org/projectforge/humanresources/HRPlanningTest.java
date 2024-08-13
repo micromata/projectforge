@@ -184,7 +184,7 @@ public class HRPlanningTest extends AbstractTestBase {
     hrPlanningDao.update(planning);
     // Check deleted entry and re-adding it
     planning = hrPlanningDao.getById(id);
-    assertTrue(planning.getProjectEntry(projekt1).isDeleted());
+    assertTrue(planning.getProjectEntry(projekt1).getDeleted());
     entry = new HRPlanningEntryDO();
     setHours(entry, 7, 9, 11, 1, 3, 5);
     entry.setProjekt(projekt1);

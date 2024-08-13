@@ -302,7 +302,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
     for (final HRPlanningEntryDO entry : data.getEntries()) {
       ++idx;
       ++uiId;
-      if (entry.isDeleted() != showDeletedOnly) {
+      if (entry.getDeleted() != showDeletedOnly) {
         // Don't show deleted/undeleted entries.
         --uiId;
         continue;
@@ -330,12 +330,12 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
             fs, HRPlanningEntryStatus.values());
         final DropDownChoice<HRPlanningEntryStatus> statusChoice = new DropDownChoice<HRPlanningEntryStatus>(fs.getDropDownChoiceId(),
             new PropertyModel<HRPlanningEntryStatus>(entry, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
-        statusChoice.setNullValid(true).setRequired(false).setEnabled(!entry.isDeleted());
+        statusChoice.setNullValid(true).setRequired(false).setEnabled(!entry.getDeleted());
         fs.add(statusChoice);
         dependentEntryFormComponents.add(statusChoice);
         final NewProjektSelectPanel projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(),
             new PropertyModel<ProjektDO>(entry, "projekt"), parentPage, "projektId:" + idx + ":" + uiId);
-        projektSelectPanel.setRequired(false).setEnabled(!entry.isDeleted());
+        projektSelectPanel.setRequired(false).setEnabled(!entry.getDeleted());
         fs.add(projektSelectPanel);
         projektSelectPanel.init();
         dependentEntryFormComponents.add(projektSelectPanel);
@@ -346,7 +346,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
           @Override
           public final void onSubmit()
           {
-            if (entry.isDeleted() == true) {
+            if (entry.getDeleted() == true) {
               // Undelete
               entry.setDeleted(false);
             } else {
@@ -356,7 +356,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
           }
         };
         final String buttonLabel, classNames;
-        if (entry.isDeleted() == true) {
+        if (entry.getDeleted() == true) {
           buttonLabel = getString("undelete");
           classNames = SingleButtonPanel.NORMAL;
         } else {
@@ -379,7 +379,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         final LabelValueChoiceRenderer<Priority> priorityChoiceRenderer = new LabelValueChoiceRenderer<Priority>(fs, Priority.values());
         final DropDownChoice<Priority> priorityChoice = new DropDownChoice<Priority>(fs.getDropDownChoiceId(), new PropertyModel<Priority>(
             entry, "priority"), priorityChoiceRenderer.getValues(), priorityChoiceRenderer);
-        priorityChoice.setNullValid(true).setEnabled(!entry.isDeleted());
+        priorityChoice.setNullValid(true).setEnabled(!entry.getDeleted());
         fs.add(priorityChoice);
       }
       posGridBuilder.newSplitPanel(GridSize.COL50);
@@ -394,7 +394,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         probabilityChoiceRenderer.addValue(100, "100%");
         final DropDownChoice<Integer> probabilityChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(
             entry, "probability"), probabilityChoiceRenderer.getValues(), probabilityChoiceRenderer);
-        probabilityChoice.setNullValid(true).setEnabled(!entry.isDeleted());
+        probabilityChoice.setNullValid(true).setEnabled(!entry.getDeleted());
         fs.add(probabilityChoice);
       }
       posGridBuilder.newSplitPanel(GridSize.COL50);
@@ -411,7 +411,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("hr.planning.description"));
         final IModel<String> model = new PropertyModel<String>(entry, "description");
         final MaxLengthTextArea description = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, model);
-        if (entry.isDeleted() == true) {
+        if (entry.getDeleted() == true) {
           description.setEnabled(false);
         }
         fs.add(description);

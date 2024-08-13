@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.database;
 
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 
-import javax.persistence.Persistence;
+import jakarta.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,8 +49,8 @@ public class SchemaExport
   {
     Map<String, String> props = new HashMap<>();
 
-    props.put("javax.persistence.schema-generation.scripts.action", "create");
-    props.put("javax.persistence.schema-generation.scripts.create-target", filename);
+    props.put("jakarta.persistence.schema-generation.scripts.action", "create");
+    props.put("jakarta.persistence.schema-generation.scripts.create-target", filename);
     Persistence.generateSchema(PfEmgrFactory.get().getUnitName(), props);
 
   }

@@ -55,7 +55,7 @@ import java.util.List;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = TeamCalEditPage.class)
 public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDao, TeamCalDO>
@@ -74,7 +74,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
   private final boolean isAdminUser;
 
   /**
-   * 
+   *
    */
   public TeamCalListPage(final PageParameters parameters)
   {
@@ -99,7 +99,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
           final IModel<TeamCalDO> rowModel)
       {
         final TeamCalDO teamCal = rowModel.getObject();
-        appendCssClasses(item, teamCal.getId(), teamCal.isDeleted());
+        appendCssClasses(item, teamCal.getId(), teamCal.getDeleted());
       }
     };
 

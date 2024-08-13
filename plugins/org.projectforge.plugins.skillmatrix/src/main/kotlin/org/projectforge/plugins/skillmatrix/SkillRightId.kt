@@ -24,7 +24,7 @@
 package org.projectforge.plugins.skillmatrix
 
 import org.hibernate.search.annotations.ClassBridge
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.business.user.HibernateSearchUserRightIdBridge
 import org.projectforge.framework.persistence.api.IUserRightId
 

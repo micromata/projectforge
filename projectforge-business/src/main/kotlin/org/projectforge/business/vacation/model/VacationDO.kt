@@ -24,15 +24,15 @@
 package org.projectforge.business.vacation.model
 
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -44,10 +44,10 @@ import javax.persistence.*
 @Indexed
 @Table(
   name = "t_employee_vacation",
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_vacation_employee_id",
     columnList = "employee_id"
-  ), javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")]
+  ), jakarta.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id")]
 )
 @NamedQueries(
   NamedQuery(
@@ -98,9 +98,9 @@ open class VacationDO : DefaultBaseDO() {
     name = "t_employee_vacation_other_replacements",
     joinColumns = [JoinColumn(name = "vacation_id", referencedColumnName = "PK")],
     inverseJoinColumns = [JoinColumn(name = "employee_id", referencedColumnName = "PK")],
-    indexes = [javax.persistence.Index(
+    indexes = [jakarta.persistence.Index(
       name = "idx_fk_t_employee_vacation_other_replacements_vacation_id", columnList = "vacation_id",
-    ), javax.persistence.Index(
+    ), jakarta.persistence.Index(
       name = "idx_fk_t_employee_vacation_other_replacements_employee_id",
       columnList = "employee_id",
     )]
@@ -163,8 +163,8 @@ open class VacationDO : DefaultBaseDO() {
   @Transient
   fun getVacationmode(): VacationMode {
     val currentUserId = ThreadLocalUserContext.userId
-    val employeeUserId = if (employee != null && employee!!.user != null) employee!!.user!!.pk else null
-    val managerUserId = if (manager != null && manager!!.user != null) manager!!.user!!.pk else null
+    val employeeUserId = if (employee != null && employee!!.user != null) employee!!.user!!.id else null
+    val managerUserId = if (manager != null && manager!!.user != null) manager!!.user!!.id else null
     if (currentUserId == employeeUserId) {
       return VacationMode.OWN
     }

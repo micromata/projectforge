@@ -32,7 +32,7 @@ import de.micromata.mgc.jpa.hibernatesearch.api.SearchEmgrFactory;
 import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
 import org.hibernate.Session;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.util.function.Supplier;
 
 /**

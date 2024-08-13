@@ -85,11 +85,11 @@ public class AddressTest extends AbstractTestBase {
     a1 = addressDao.getById(id);
     addressDao.markAsDeleted(a1);
     a1 = addressDao.getById(id);
-    assertEquals(true, a1.isDeleted(), "Should be marked as deleted.");
+    assertEquals(true, a1.getDeleted(), "Should be marked as deleted.");
 
     addressDao.undelete(a1);
     a1 = addressDao.getById(id);
-    assertEquals(false, a1.isDeleted(), "Should be undeleted.");
+    assertEquals(false, a1.getDeleted(), "Should be undeleted.");
   }
 
   public void testDelete() {

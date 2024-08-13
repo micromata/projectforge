@@ -30,9 +30,9 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
-import javax.persistence.Column
-import javax.persistence.MappedSuperclass
-import javax.persistence.Transient
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.Transient
 
 @MappedSuperclass
 abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable, IRechnungsPosition {

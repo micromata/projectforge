@@ -25,9 +25,9 @@ package org.projectforge.business.common
 
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.Column
-import javax.persistence.MappedSuperclass
-import javax.persistence.Transient
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.Transient
 
 /**
  * Base class for objects supporting user and group specific rights. You may define single group and user ids for the

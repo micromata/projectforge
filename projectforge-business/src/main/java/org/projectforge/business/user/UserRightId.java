@@ -24,8 +24,8 @@
 package org.projectforge.business.user;
 
 import org.hibernate.search.annotations.ClassBridge;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.RightRightIdProviderService;

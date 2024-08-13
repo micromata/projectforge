@@ -69,13 +69,13 @@ public class ConfigurationDOTest extends AbstractTestBase {
             "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class)
             .getResultList();
     config = list.get(0);
-    assertEquals(true, config.isDeleted(), "Entry should be deleted.");
+    assertEquals(true, config.getDeleted(), "Entry should be deleted.");
 
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     configurationDao.internalMarkAsDeleted(config);
     configurationDao.checkAndUpdateDatabaseEntries();
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
-    assertEquals(false, config.isDeleted(), "Object should be restored.");
+    assertEquals(false, config.getDeleted(), "Object should be restored.");
   }
 
   @Test

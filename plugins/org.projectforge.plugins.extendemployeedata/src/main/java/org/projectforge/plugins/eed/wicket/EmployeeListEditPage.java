@@ -91,7 +91,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     final CellItemListener<EmployeeDO> cellItemListener = (CellItemListener<EmployeeDO>) (item, componentId,
                                                                                           rowModel) -> {
       final EmployeeDO employee = rowModel.getObject();
-      appendCssClasses(item, employee.getId(), employee.isDeleted());
+      appendCssClasses(item, employee.getId(), employee.getDeleted());
     };
 
     columns.add(new CellItemListenerPropertyColumn<>(new ResourceModel("name"),

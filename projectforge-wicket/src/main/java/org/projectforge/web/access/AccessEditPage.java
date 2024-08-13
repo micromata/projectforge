@@ -60,11 +60,11 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   protected void create()
   {
     GroupTaskAccessDO accessDaoEntry = accessDao.getEntry(getData().getTask(), getData().getGroup());
-    if(accessDaoEntry != null && accessDaoEntry.isDeleted()) {
+    if(accessDaoEntry != null && accessDaoEntry.getDeleted()) {
       getData().setId(accessDaoEntry.getId());
       super.undelete();
     }
-    else if(accessDaoEntry != null && accessDaoEntry.isDeleted() == false) {
+    else if(accessDaoEntry != null && accessDaoEntry.getDeleted() == false) {
       error(getLocalizedMessage("access.exception.standard", accessDaoEntry.getTask().getTitle(), accessDaoEntry
         .getGroup().getName()));
     }

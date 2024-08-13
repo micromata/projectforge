@@ -40,9 +40,9 @@ import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = AddressCampaignEditPage.class)
 public class AddressCampaignListPage
@@ -69,7 +69,7 @@ public class AddressCampaignListPage
           final IModel<AddressCampaignDO> rowModel)
       {
         final AddressCampaignDO campaign = rowModel.getObject();
-        appendCssClasses(item, campaign.getId(), campaign.isDeleted());
+        appendCssClasses(item, campaign.getId(), campaign.getDeleted());
       }
     };
 

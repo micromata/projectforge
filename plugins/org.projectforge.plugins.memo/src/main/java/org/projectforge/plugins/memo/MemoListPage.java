@@ -42,9 +42,9 @@ import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = MemoEditPage.class)
 public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO>
@@ -72,7 +72,7 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
           final IModel<MemoDO> rowModel)
       {
         final MemoDO memo = rowModel.getObject();
-        appendCssClasses(item, memo.getId(), memo.isDeleted());
+        appendCssClasses(item, memo.getId(), memo.getDeleted());
       }
     };
 

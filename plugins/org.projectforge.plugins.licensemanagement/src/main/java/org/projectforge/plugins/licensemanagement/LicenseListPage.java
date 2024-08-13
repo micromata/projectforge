@@ -42,9 +42,9 @@ import java.util.List;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @ListPage(editPage = LicenseEditPage.class)
 public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDao, LicenseDO>
@@ -72,7 +72,7 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
           final IModel<LicenseDO> rowModel)
       {
         final LicenseDO license = rowModel.getObject();
-        appendCssClasses(item, license.getId(), license.isDeleted());
+        appendCssClasses(item, license.getId(), license.getDeleted());
       }
     };
 

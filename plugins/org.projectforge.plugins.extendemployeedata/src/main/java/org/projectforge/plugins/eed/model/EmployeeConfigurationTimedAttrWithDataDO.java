@@ -25,7 +25,7 @@ package org.projectforge.plugins.eed.model;
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 
 @Entity

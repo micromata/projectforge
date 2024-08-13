@@ -26,8 +26,8 @@ package org.projectforge.framework.persistence.api.impl
 import org.hibernate.ScrollMode
 import org.hibernate.ScrollableResults
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import javax.persistence.EntityManager
-import javax.persistence.criteria.CriteriaQuery
+import jakarta.persistence.EntityManager
+import jakarta.persistence.criteria.CriteriaQuery
 
 
 /**

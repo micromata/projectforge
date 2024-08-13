@@ -36,10 +36,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.JoinType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -222,7 +222,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   public boolean hasUserSelectAccess(final PFUserDO user, final GroupTaskAccessDO obj, final boolean throwException) {
     Validate.notNull(obj);
     boolean result = accessChecker.isUserMemberOfAdminGroup(user);
-    if (!result && !obj.isDeleted()) {
+    if (!result && !obj.getDeleted()) {
       Validate.notNull(user);
       result = getUserGroupCache().isUserMemberOfGroup(user.getId(), obj.getGroupId());
     }

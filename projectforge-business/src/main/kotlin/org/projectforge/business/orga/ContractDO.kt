@@ -24,17 +24,16 @@
 package org.projectforge.business.orga
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.hibernate.search.bridge.builtin.IntegerBridge
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -145,23 +144,23 @@ open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
     @JsonIgnore
     @Field
-    @field:NoHistory
+    //@field:NoHistory
     @get:Column(length = 10000, name = "attachments_names")
     override var attachmentsNames: String? = null
 
     @JsonIgnore
     @Field
-    @field:NoHistory
+    //@field:NoHistory
     @get:Column(length = 10000, name = "attachments_ids")
     override var attachmentsIds: String? = null
 
     @JsonIgnore
-    @field:NoHistory
+    //@field:NoHistory
     @get:Column(length = 10000, name = "attachments_counter")
     override var attachmentsCounter: Int? = null
 
     @JsonIgnore
-    @field:NoHistory
+    //@field:NoHistory
     @get:Column(length = 10000, name = "attachments_size")
     override var attachmentsSize: Long? = null
 

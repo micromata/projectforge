@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         private val baseDao: BaseDao<O>,

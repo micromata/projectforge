@@ -34,14 +34,14 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_TODO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), javax.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
+@Table(name = "T_PLUGIN_TODO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_assignee_fk", columnList = "assignee_fk"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_reporter_fk", columnList = "reporter_fk"), jakarta.persistence.Index(name = "idx_fk_t_plugin_todo_task_id", columnList = "task_id")])
 open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.subject")

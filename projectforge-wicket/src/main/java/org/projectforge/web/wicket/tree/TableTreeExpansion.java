@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Memorizes the open state of the tree nodes.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> implements Set<T>, Serializable
 {
@@ -76,9 +76,9 @@ public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> i
   public boolean add(final T obj)
   {
     if (inverse) {
-      return ids.remove(obj.getId());
+      return ids.remove(obj.id);
     } else {
-      return ids.add(obj.getId());
+      return ids.add(obj.id);
     }
   }
 
@@ -89,9 +89,9 @@ public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> i
     final T foo = (T) o;
 
     if (inverse) {
-      return ids.add(foo.getId());
+      return ids.add(foo.id);
     } else {
-      return ids.remove(foo.getId());
+      return ids.remove(foo.id);
     }
   }
 
@@ -102,9 +102,9 @@ public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> i
     final T foo = (T) o;
 
     if (inverse) {
-      return !ids.contains(foo.getId());
+      return !ids.contains(foo.id);
     } else {
-      return ids.contains(foo.getId());
+      return ids.contains(foo.id);
     }
   }
 

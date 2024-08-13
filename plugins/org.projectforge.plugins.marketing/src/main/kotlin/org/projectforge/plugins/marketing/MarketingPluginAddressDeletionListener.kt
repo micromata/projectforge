@@ -38,7 +38,7 @@ class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCamp
     addressCampaignDao.emgrFactory.runInTrans { emgr: PfEmgr ->
       val counter = emgr.entityManager
         .createNamedQuery(AddressCampaignValueDO.DELETE_BY_ADDRESS)
-        .setParameter("addressId", address.getId())
+        .setParameter("addressId", address.id)
         .executeUpdate()
       if (counter > 0) {
         log.info("Removed #$counter address campaign value entries of deleted address: $address")

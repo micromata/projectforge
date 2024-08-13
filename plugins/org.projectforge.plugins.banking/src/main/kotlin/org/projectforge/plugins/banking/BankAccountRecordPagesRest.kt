@@ -231,7 +231,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
 
 
   private fun isDoublet(list: List<BankAccountRecordDO>, element: BankAccountRecordDO): Boolean {
-    if (element.isDeleted) {
+    if (element.deleted) {
       return false
     }
     return list.any { it.id != element.id && it.buildCheckSum() == element.buildCheckSum() }

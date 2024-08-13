@@ -41,8 +41,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -141,7 +141,7 @@ public class PersonalAddressDao {
     }
     abIdSet.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID);
     for (AddressbookDO ab : addressbookDao.internalLoadAll()) {
-      if (!ab.isDeleted() && addressbookRight.hasSelectAccess(user, ab)) {
+      if (!ab.getDeleted() && addressbookRight.hasSelectAccess(user, ab)) {
         abIdSet.add(ab.getId());
       }
     }

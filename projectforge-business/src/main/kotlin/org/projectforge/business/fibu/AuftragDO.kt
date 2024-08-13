@@ -24,8 +24,6 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
@@ -40,7 +38,7 @@ import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Repräsentiert einen Auftrag oder ein Angebot. Ein Angebot kann abgelehnt oder durch ein anderes ersetzt werden, muss
@@ -55,23 +53,23 @@ import javax.persistence.*
 @Table(
   name = "t_fibu_auftrag",
   uniqueConstraints = [UniqueConstraint(columnNames = ["nummer"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_fibu_auftrag_contact_person_fk",
     columnList = "contact_person_fk"
   ),
-    javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"),
-    javax.persistence.Index(
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"),
+    jakarta.persistence.Index(
       name = "idx_fk_t_fibu_auftrag_headofbusinessmanager_fk",
       columnList = "headofbusinessmanager_fk"
     ),
-    javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"),
-    javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"),
-    javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk")]
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"),
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"),
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk")]
 )
-@WithHistory(
+/*@WithHistory(
   noHistoryProperties = ["lastUpdate", "created"],
   nestedEntities = [AuftragsPositionDO::class, PaymentScheduleDO::class]
-)
+)*/
 @NamedQueries(
   NamedQuery(
     name = AuftragDO.SELECT_MIN_MAX_DATE,
@@ -230,7 +228,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
    * @return the XML representation of the uiStatus.
    * @see AuftragUIStatus
    */
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(name = "ui_status_as_xml", length = 10000)
   open var uiStatusAsXml: String? = null
 
@@ -280,23 +278,23 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
   @JsonIgnore
   @Field
-  @field:NoHistory
+  // @field:NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
   @Field
-  @field:NoHistory
+  // @field:NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null
 
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_counter")
   override var attachmentsCounter: Int? = null
 
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_size")
   override var attachmentsSize: Long? = null
 
@@ -423,7 +421,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
       paymentSchedules?.forEach { paymentSchedule ->
         if (paymentSchedule.valid && !paymentSchedule.vollstaendigFakturiert) {
           positionen?.find { it.number == paymentSchedule.number }?.let { pos ->
-            if (!pos.isDeleted && pos.status?.isIn(
+            if (pos.deleted != true && pos.status?.isIn(
                 AuftragsPositionsStatus.ABGESCHLOSSEN,
                 AuftragsPositionsStatus.BEAUFTRAGT,
                 AuftragsPositionsStatus.ESKALATION,
@@ -455,7 +453,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
    */
   val positionenExcludingDeleted: List<AuftragsPositionDO>
     @Transient
-    get() = positionen?.filter { !it.isDeleted } ?: emptyList()
+    get() = positionen?.filter { it.deleted != true } ?: emptyList()
 
   /**
    * Get list of PaymentScheduleDO excluding elements that are marked as deleted.
@@ -464,7 +462,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
    */
   val paymentSchedulesExcludingDeleted: List<PaymentScheduleDO>
     @Transient
-    get() = paymentSchedules?.filter { !it.isDeleted } ?: emptyList()
+    get() = paymentSchedules?.filter { it.deleted != true } ?: emptyList()
 
 
   /**
@@ -476,7 +474,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
       var result = BigDecimal.ZERO
       if (this.positionen != null) {
         for (pos in this.positionen!!) {
-          if (pos.isDeleted) {
+          if (pos.deleted == true) {
             continue
           }
           if (pos.personDays != null && pos.status != AuftragsPositionsStatus.ABGELEHNT && pos.status != AuftragsPositionsStatus.ERSETZT) {

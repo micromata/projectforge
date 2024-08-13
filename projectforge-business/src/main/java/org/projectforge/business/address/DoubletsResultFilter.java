@@ -39,7 +39,7 @@ public class DoubletsResultFilter implements CustomResultFilter<AddressDO> {
 
   @Override
   public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
-    if (element.isDeleted()) {
+    if (element.getDeleted()) {
       return false;
     }
     final String fullname = AddressDao.getNormalizedFullname(element);

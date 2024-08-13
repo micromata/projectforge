@@ -75,13 +75,13 @@ public class TeamEventDiff
     }
 
     // event is deleted, no further diff
-    if (eventNewState.isDeleted() && !eventOldState.isDeleted()) {
+    if (eventNewState.getDeleted() && !eventOldState.getDeleted()) {
       diff.type = TeamEventDiffType.DELETED;
       return diff;
     }
 
     // event is restored, no further diff
-    if (!eventNewState.isDeleted() && eventOldState.isDeleted()) {
+    if (!eventNewState.getDeleted() && eventOldState.getDeleted()) {
       diff.type = TeamEventDiffType.RESTORED;
       return diff;
     }

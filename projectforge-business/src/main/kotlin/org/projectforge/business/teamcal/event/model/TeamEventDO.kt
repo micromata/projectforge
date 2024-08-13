@@ -23,8 +23,6 @@
 
 package org.projectforge.business.teamcal.event.model
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import mu.KotlinLogging
 import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.Month
@@ -50,7 +48,7 @@ import org.projectforge.framework.time.RecurrenceFrequency
 import org.projectforge.framework.time.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 private val log = KotlinLogging.logger {}
 
@@ -82,18 +80,18 @@ private val log = KotlinLogging.logger {}
     name = "unique_t_plugin_calendar_event_uid_calendar_fk",
     columnNames = ["uid", "calendar_fk"]
   )],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_plugin_calendar_event_calendar_fk",
     columnList = "calendar_fk"
-  ), javax.persistence.Index(
+  ), jakarta.persistence.Index(
     name = "idx_plugin_team_cal_end_date",
     columnList = "calendar_fk, end_date"
-  ), javax.persistence.Index(
+  ), jakarta.persistence.Index(
     name = "idx_plugin_team_cal_start_date",
     columnList = "calendar_fk, start_date"
-  ), javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")]
+  ), jakarta.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")]
 )
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
+//@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [TeamEventAttendeeDO::class])
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 @NamedQueries(
   NamedQuery(
@@ -130,7 +128,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
   @Field(analyze = Analyze.NO)
   @DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(name = "last_email")
   open var lastEmail: Date? = null
 
@@ -253,7 +251,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_event_fk_creator")
     get() {
-      if (this.pk != null && field == null) {
+      if (this.id != null && field == null) {
         this.creator = this.calendar!!.owner
       }
       return field

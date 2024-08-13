@@ -24,17 +24,16 @@
 package org.projectforge.business.scripting
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Type
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Scripts can be stored and executed by authorized users.
@@ -101,7 +100,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
    * Please note: script is not historizable. Therefore there is now history of scripts.
    */
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Basic(fetch = FetchType.LAZY)
   @get:Type(type = "binary")
   @get:Column
@@ -111,14 +110,14 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
    * Instead of historizing the script the last version of the script after changing it will stored in this field.
    */
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Basic(fetch = FetchType.LAZY)
   @get:Column(name = "script_backup")
   @get:Type(type = "binary")
   open var scriptBackup: ByteArray? = null
 
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Basic(fetch = FetchType.LAZY)
   @get:Column
   @get:Type(type = "binary")
@@ -235,23 +234,23 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
   @JsonIgnore
   @Field
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
   @Field
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null
 
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_counter")
   override var attachmentsCounter: Int? = null
 
   @JsonIgnore
-  @field:NoHistory
+  //@field:NoHistory
   @get:Column(length = 10000, name = "attachments_size")
   override var attachmentsSize: Long? = null
 

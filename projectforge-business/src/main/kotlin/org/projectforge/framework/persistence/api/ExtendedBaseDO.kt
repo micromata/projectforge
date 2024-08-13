@@ -21,21 +21,43 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.entities;
+package org.projectforge.framework.persistence.api
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
-
-import javax.persistence.MappedSuperclass;
-import java.io.Serializable;
+import jakarta.persistence.Column
+import org.projectforge.common.anots.PropertyInfo
+import java.io.Serializable
+import java.util.*
+import jakarta.persistence.Basic
 
 /**
- * Declares lastUpdate and created as invalidHistorizableProperties.
+ * Extends BaseDO: Supports extended functionalities: deleted, created and lastUpdate.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@MappedSuperclass
-@WithHistory(noHistoryProperties = { "lastUpdate", "created" })
-public abstract class AbstractHistorizableBaseDO<I extends Serializable>extends AbstractBaseDO<I>
-{
-  private static final long serialVersionUID = -5980671510045450615L;
+interface ExtendedBaseDO<I : Serializable> : BaseDO<I> {
+    /**
+     * If any re-calculations have to be done before displaying, indexing etc. Such re-calculations are use-full for e. g.
+     * transient fields calculated from persistent fields.
+     */
+    fun recalculate()
+
+    var deleted: Boolean
+
+    var created: Date?
+
+    fun setCreated() {
+        this.created = Date()
+    }
+
+
+    /**
+     * Last update will be modified automatically for every update of the database object.
+     *
+     * @return
+     */
+    var lastUpdate: Date?
+
+    fun setLastUpdate() {
+        this.lastUpdate = Date()
+    }
 }

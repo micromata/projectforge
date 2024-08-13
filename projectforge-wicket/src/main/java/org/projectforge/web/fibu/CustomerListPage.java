@@ -76,7 +76,7 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           return;
         }
         appendCssClasses(item, kunde.getId(),
-            kunde.isDeleted() == true || kunde.getStatus().isIn(KundeStatus.ENDED) == true);
+            kunde.getDeleted() == true || kunde.getStatus().isIn(KundeStatus.ENDED) == true);
       }
     };
     columns.add(

@@ -260,7 +260,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         } else {
           highlightedRowId = null;
         }
-        appendCssClasses(item, timesheet.getId(), highlightedRowId, timesheet.isDeleted());
+        appendCssClasses(item, timesheet.getId(), highlightedRowId, timesheet.getDeleted());
       }
     };
     columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),

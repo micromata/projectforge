@@ -25,17 +25,6 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
-import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import de.micromata.genome.jpa.ComplexEntity
-import de.micromata.genome.jpa.ComplexEntityVisitor
-import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
-import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -56,7 +45,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
+import mu.KotlinLogging
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Repräsentiert einen Mitarbeiter. Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und enthält
@@ -66,14 +59,14 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
+//@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(
   name = "t_fibu_employee",
   uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_fibu_employee_kost1_id",
     columnList = "kost1_id"
-  ), javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")]
+  ), jakarta.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id")]
 )
 @AUserRightId("HR_EMPLOYEE")
 @NamedQueries(
@@ -85,9 +78,7 @@ import javax.persistence.*
   )
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableAttr<Int, EmployeeTimedDO>,
-  ComplexEntity, EntityWithConfigurableAttr, Comparable<Any>,
-  DisplayNameCapable {
+open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
   // The class must be declared as open for mocking in VacationServiceTest.
 
   override val displayName: String
@@ -147,11 +138,6 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
   @StringAlphanumericSort
   @get:Column(length = 255)
   open var staffNumber: String? = null
-
-  @Field(store = Store.YES)
-  @FieldBridge(impl = TimeableListFieldBridge::class)
-  @IndexedEmbedded(depth = 2)
-  private var timeableAttributes = mutableListOf<EmployeeTimedDO>()
 
   @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
   @Field(analyze = Analyze.NO)
@@ -230,7 +216,7 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
   val active: Boolean
     @Transient
     get() {
-      if (isDeleted) {
+      if (deleted == true) {
         return false
       }
       val now = LocalDate.now()
@@ -250,91 +236,23 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
   override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
     var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
     val src = source as EmployeeDO
-    modificationStatus = modificationStatus
-      .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
+    log.warn("*** To be implemented: EmployeeDO.copyValuesFrom for timeableAttributes")
     return modificationStatus
-  }
-
-  override fun visit(visitor: ComplexEntityVisitor) {
-    super.visit(visitor)
-    for (et in timeableAttributes) {
-      et.visit(visitor)
-    }
-  }
-
-  @Transient
-  override fun getAttrSchemaName(): String {
-    return "employee"
-  }
-
-  override fun addTimeableAttribute(row: EmployeeTimedDO) {
-    row.employee = this
-    timeableAttributes.add(row)
-  }
-
-  @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "employee")
-  // fetch mode, only returns one
-  @Fetch(FetchMode.SELECT)
-  // unfortunatelly this does work. Date is not valid for order (only integral types)
-  //  @OrderColumn(name = "startTime")
-  @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-  override fun getTimeableAttributes(): MutableList<EmployeeTimedDO> {
-    return timeableAttributes
-  }
-
-  open fun setTimeableAttributes(timeableAttributes: MutableList<EmployeeTimedDO>) {
-    this.timeableAttributes = timeableAttributes
-  }
-
-  @Transient
-  override fun getAttrEntityClass(): Class<out JpaTabAttrBaseDO<EmployeeDO, Int>> {
-    return EmployeeAttrDO::class.java
-  }
-
-  @Transient
-  override fun getAttrEntityWithDataClass(): Class<out JpaTabAttrBaseDO<EmployeeDO, Int>> {
-    return EmployeeAttrWithDataDO::class.java
-  }
-
-  @Transient
-  override fun getAttrDataEntityClass(): Class<out JpaTabAttrDataBaseDO<out JpaTabAttrBaseDO<EmployeeDO, Int>, Int>> {
-    return EmployeeAttrDataDO::class.java
-  }
-
-  override fun createAttrEntity(key: String, type: Char, value: String): JpaTabAttrBaseDO<EmployeeDO, Int> {
-    return EmployeeAttrDO(this, key, type, value)
-  }
-
-  override fun createAttrEntityWithData(key: String, type: Char, value: String): JpaTabAttrBaseDO<EmployeeDO, Int> {
-    return EmployeeAttrWithDataDO(this, key, type, value)
-  }
-
-  @OneToMany(
-    cascade = [CascadeType.ALL],
-    mappedBy = "parent",
-    targetEntity = EmployeeAttrDO::class,
-    orphanRemoval = true,
-    fetch = FetchType.EAGER
-  )
-  @MapKey(name = "propertyName")
-  @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
-  override fun getAttrs(): Map<String, JpaTabAttrBaseDO<EmployeeDO, Int>> {
-    return super.getAttrs()
   }
 
   override fun equals(other: Any?): Boolean {
     if (other !is EmployeeDO)
       return false
-    if (other.pk == null) {
+    if (other.id == null) {
       return false
     }
-    return if (this.pk == other.pk) {
+    return if (this.id == other.id) {
       true
     } else super.equals(other)
   }
 
   override fun hashCode(): Int {
-    return if (pk != null) 31 * pk.hashCode() else super.hashCode()
+    return if (id != null) 31 * id.hashCode() else super.hashCode()
   }
 
   override operator fun compareTo(other: Any): Int {

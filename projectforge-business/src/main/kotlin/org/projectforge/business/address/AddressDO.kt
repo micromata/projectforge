@@ -23,25 +23,21 @@
 
 package org.projectforge.business.address
 
-import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
+import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.*
 
 private val log = KotlinLogging.logger {}
 
@@ -50,10 +46,12 @@ private val log = KotlinLogging.logger {}
  */
 @Entity
 @Indexed
-@Table(name = "T_ADDRESS",
+@Table(
+    name = "T_ADDRESS",
     uniqueConstraints = [UniqueConstraint(name = "unique_t_address_uid", columnNames = ["uid"])],
-    indexes = [javax.persistence.Index(name = "idx_fk_t_address_uid", columnList = "uid")])
-open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
+    indexes = [jakarta.persistence.Index(name = "idx_fk_t_address_uid", columnList = "uid")]
+)
+open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     override val displayName: String
         @Transient
         get() = listOf(name, firstName, organization, city).filter { !it.isNullOrBlank() }.joinToString(", ")
@@ -291,11 +289,19 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "address.addressbooks")
     @get:ManyToMany(fetch = FetchType.LAZY)
-    @get:JoinTable(name = "t_addressbook_address",
-            joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")],
-            inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
-            indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
-                javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
+    @get:JoinTable(
+        name = "t_addressbook_address",
+        joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")],
+        inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
+        indexes = [jakarta.persistence.Index(
+            name = "idx_fk_t_addressbook_address_address_id",
+            columnList = "address_id"
+        ),
+            jakarta.persistence.Index(
+                name = "idx_fk_t_addressbook_address_addressbook_id",
+                columnList = "addressbook_id"
+            )]
+    )
     open var addressbookList: MutableSet<AddressbookDO>? = HashSet()
 
     // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
@@ -476,7 +482,13 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
      */
     @Transient
     fun hasPrivateAddress(): Boolean {
-        return StringHelper.isNotBlank(privateAddressText, privateAddressText2, privateZipCode, privateCity, privateCountry)
+        return StringHelper.isNotBlank(
+            privateAddressText,
+            privateAddressText2,
+            privateZipCode,
+            privateCity,
+            privateCountry
+        )
     }
 
     /**
@@ -508,51 +520,6 @@ open class AddressDO : DefaultBaseWithAttrDO<AddressDO>(), DisplayNameCapable {
             }
         }
         this.instantMessaging!!.add(LabelValueBean<InstantMessagingType, String>(type, value))
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.getAttrEntityClass
-     */
-    @Transient
-    override fun getAttrEntityClass(): Class<out JpaTabAttrBaseDO<AddressDO, Int>> {
-        return AddressAttrDO::class.java
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.getAttrEntityWithDataClass
-     */
-    @Transient
-    override fun getAttrEntityWithDataClass(): Class<out JpaTabAttrBaseDO<AddressDO, Int>> {
-        return AddressAttrWithDataDO::class.java
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.getAttrDataEntityClass
-     */
-    @Transient
-    override fun getAttrDataEntityClass(): Class<out JpaTabAttrDataBaseDO<out JpaTabAttrBaseDO<AddressDO, Int>, Int>> {
-        return AddressAttrDataDO::class.java
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.createAttrEntity
-     */
-    override fun createAttrEntity(key: String, type: Char, value: String): JpaTabAttrBaseDO<AddressDO, Int> {
-        return AddressAttrDO(this, key, type, value)
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO.createAttrEntityWithData
-     */
-    override fun createAttrEntityWithData(key: String, type: Char, value: String): JpaTabAttrBaseDO<AddressDO, Int> {
-        return AddressAttrWithDataDO(this, key, type, value)
-    }
-
-    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = AddressAttrDO::class, orphanRemoval = true, fetch = FetchType.LAZY)
-    @MapKey(name = "propertyName")
-    @HistoryProperty(converter = TabAttrHistoryPropertyConverter::class)
-    override fun getAttrs(): Map<String, JpaTabAttrBaseDO<AddressDO, Int>> {
-        return super.getAttrs()
     }
 
     companion object {

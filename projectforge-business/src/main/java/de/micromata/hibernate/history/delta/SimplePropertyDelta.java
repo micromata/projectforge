@@ -26,9 +26,9 @@ package de.micromata.hibernate.history.delta;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.hibernate.Session;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.ParseException;

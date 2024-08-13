@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 @Service
 class AddressService {

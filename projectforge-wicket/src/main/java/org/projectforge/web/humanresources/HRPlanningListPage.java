@@ -88,7 +88,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       public void populateItem(final Item<ICellPopulator<HRPlanningEntryDO>> item, final String componentId,
                                final IModel<HRPlanningEntryDO> rowModel) {
         final HRPlanningEntryDO entry = rowModel.getObject();
-        appendCssClasses(item, entry.getPlanningId(), entry.isDeleted());
+        appendCssClasses(item, entry.getPlanningId(), entry.getDeleted());
       }
     };
     columns

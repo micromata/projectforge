@@ -240,7 +240,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
               SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(3, redrawButtonPanel);
     }
-    if (isNew() == false && data.isDeleted() == false) {
+    if (isNew() == false && data.getDeleted() == false) {
       // Clone:
       final Button cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
       {

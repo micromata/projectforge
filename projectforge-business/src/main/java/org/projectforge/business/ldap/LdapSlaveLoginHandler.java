@@ -288,7 +288,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
                 continue;
               }
               PFUserDOConverter.copyUserFields(user, dbUser);
-              if (dbUser.isDeleted()) {
+              if (dbUser.getDeleted()) {
                 userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
@@ -318,7 +318,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
             }
             final PFUserDO user = getUser(users, dbUser.getUsername());
             if (user == null) {
-              if (!dbUser.isDeleted()) {
+              if (!dbUser.getDeleted()) {
                 // User isn't available in LDAP, therefore mark the db user as deleted.
                 userDao.internalMarkAsDeleted(dbUser);
                 ++deleted;

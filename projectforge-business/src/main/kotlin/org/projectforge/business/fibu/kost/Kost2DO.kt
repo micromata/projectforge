@@ -24,25 +24,24 @@
 package org.projectforge.business.fibu.kost
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Indexed
 @ClassBridge(name = "nummer", impl = HibernateSearchKost2Bridge::class)
 @Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id")])
-@WithHistory
+//@WithHistory
 @NamedQueries(
         NamedQuery(name = Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
                 query = "from Kost2DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and kost2Art.id=:kost2ArtId"),

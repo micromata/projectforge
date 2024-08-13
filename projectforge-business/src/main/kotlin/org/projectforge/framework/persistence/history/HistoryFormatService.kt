@@ -35,8 +35,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 import java.util.*
 import jakarta.annotation.PostConstruct
-import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 

@@ -200,7 +200,7 @@ public class TaskFilter extends BaseSearchFilter {
   }
 
   private boolean isVisibleByStatus(final TaskNode node, final TaskDO task) {
-    if (!isDeleted() && task.isDeleted()) {
+    if (!isDeleted() && task.getDeleted()) {
       return false;
     }
     if (task.getStatus() == TaskStatus.N) {

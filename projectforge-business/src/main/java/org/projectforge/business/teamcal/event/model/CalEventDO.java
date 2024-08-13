@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.event.model;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 import org.hibernate.search.annotations.*;
-import org.hibernate.search.annotations.Index;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.anots.PropertyInfo;
@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.Constants;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity

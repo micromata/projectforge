@@ -278,7 +278,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "saveAsTemplate"),
           getString("userPref.saveAsTemplate")));
     }
-    if (!isNew() && getData().getStatus() != ToDoStatus.CLOSED && !getData().isDeleted()
+    if (!isNew() && getData().getStatus() != ToDoStatus.CLOSED && !getData().getDeleted()
 /*=======
       if (configurationService.isSendMailConfigured()) {
         checkBoxButton

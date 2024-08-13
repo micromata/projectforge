@@ -190,7 +190,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     }
     if (existingPlanning != null) {
       for (HRPlanningEntryDO existingEntry : existingPlanning.getEntries()) {
-        if (!existingEntry.isDeleted() && existingEntry.getId().equals(entry.getId())) {
+        if (!existingEntry.getDeleted() && existingEntry.getId().equals(entry.getId())) {
           return !existingEntry.hasNoFieldChanges(entry);
         }
       }

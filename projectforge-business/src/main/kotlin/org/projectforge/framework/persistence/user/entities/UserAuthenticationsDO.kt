@@ -27,7 +27,7 @@ import org.projectforge.business.user.UserTokenType
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Users may have serveral authentication tokens, e. g. for CardDAV/CalDAV-Clients or other clients. ProjectForge shows the usage of this tokens and such tokens

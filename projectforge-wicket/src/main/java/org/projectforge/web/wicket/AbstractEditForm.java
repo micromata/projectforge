@@ -345,7 +345,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
           origData = getBaseDao().getById(getData().getId());
         }
         createButtonPanel.setVisible(false);
-        if (getData().isDeleted() == true) {
+        if (getData().getDeleted() == true) {
           undeleteButtonPanel.setVisible(baseDao.hasLoggedInUserUpdateAccess(origData, origData, false));
           if (undeleteButtonPanel.isVisible() == true) {
             setDefaultButton(undeleteButton);

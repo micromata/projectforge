@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.history
 import mu.KotlinLogging
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 private val log = KotlinLogging.logger {}
 

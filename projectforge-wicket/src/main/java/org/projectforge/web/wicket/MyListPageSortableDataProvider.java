@@ -84,7 +84,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
     if (this.completeList != null) {
       sortList(this.completeList);
       for (final T entry : completeList) {
-        this.idList.add(entry.getId());
+        this.idList.add(entry.id);
       }
     }
     return this;

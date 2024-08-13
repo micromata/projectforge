@@ -31,8 +31,8 @@ import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
 import de.micromata.mgc.jpa.hibernatesearch.bridges.HistoryMasterClassBridge;
 import org.hibernate.search.annotations.*;
 
-import javax.persistence.*;
-import javax.persistence.Index;
+import jakarta.persistence.*;
+import jakarta.persistence.Index;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
@@ -72,7 +72,7 @@ public class PfHistoryMasterDO extends HistoryMasterBaseDO<PfHistoryMasterDO, Lo
     return super.getEntityName();
   }
 
-  @Field(analyze = Analyze.NO, store = Store.YES, index = org.hibernate.search.annotations.Index.YES)
+  @Field(analyze = Analyze.NO, store = Store.YES, index = org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed.YES)
   @Transient
   @Override
   public Long getEntityId()
@@ -80,7 +80,7 @@ public class PfHistoryMasterDO extends HistoryMasterBaseDO<PfHistoryMasterDO, Lo
     return super.getEntityId();
   }
 
-  @Field(analyze = Analyze.NO, store = Store.NO, index = org.hibernate.search.annotations.Index.YES)
+  @Field(analyze = Analyze.NO, store = Store.NO, index = org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed.YES)
   @Transient
   @Override
   public String getModifiedBy()
@@ -103,7 +103,7 @@ public class PfHistoryMasterDO extends HistoryMasterBaseDO<PfHistoryMasterDO, Lo
    * @return
    */
   @Transient
-  @Field(analyze = Analyze.YES, store = Store.NO, index = org.hibernate.search.annotations.Index.YES)
+  @Field(analyze = Analyze.YES, store = Store.NO, index = org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed.YES)
   public String getOldValue()
   {
     return "";

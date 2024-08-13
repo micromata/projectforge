@@ -261,11 +261,11 @@ public class TeamCalCalendarForm extends CalendarForm
           final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
 
           if (dbEvent != null) {
-            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.isDeleted()) {
+            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.getDeleted()) {
               event.setId(dbEvent.getPk());
               event.setCreated(dbEvent.getCreated());
               event.setCreator(dbEvent.getCreator());
-              event.setDeleted(dbEvent.isDeleted());
+              event.setDeleted(dbEvent.getDeleted());
             } else {
               // Can't import event with existing uid in selected calendar, redirect to import page:
               redirectToImportPage(parser.getVEvents(), activeModel.getObject());

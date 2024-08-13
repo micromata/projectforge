@@ -101,7 +101,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
       plannedSecondsRestSum += entry.getTotalHours().multiply(NumberHelper.THREE_THOUSAND_SIX_HUNDRED).longValue();
     }
     if (entry.getPlanning() != null) {
-      deleted = entry.getPlanning().isDeleted();
+      deleted = entry.getPlanning().getDeleted();
     }
   }
 

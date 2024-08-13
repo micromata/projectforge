@@ -34,7 +34,7 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import java.time.LocalDate
 import java.time.Month
-import javax.persistence.criteria.JoinType
+import jakarta.persistence.criteria.JoinType
 
 private val log = KotlinLogging.logger {}
 

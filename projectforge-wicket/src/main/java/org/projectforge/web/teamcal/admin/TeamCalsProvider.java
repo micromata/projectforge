@@ -161,7 +161,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
       final Collection<TeamCalDO> allCalendars = getCalendarList();
       sortedCals = new TreeSet<TeamCalDO>(calsComparator);
       for (final TeamCalDO cal : allCalendars) {
-        if (cal.isDeleted() == false) {
+        if (cal.getDeleted() == false) {
           sortedCals.add(cal);
         }
       }

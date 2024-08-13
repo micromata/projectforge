@@ -27,13 +27,13 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
@@ -45,10 +45,10 @@ import javax.persistence.*
 @Table(
   name = "t_fibu_rechnung_position",
   uniqueConstraints = [UniqueConstraint(columnNames = ["rechnung_fk", "number"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_fibu_rechnung_position_auftrags_position_fk",
     columnList = "auftrags_position_fk"
-  ), javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk")]
+  ), jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_position_rechnung_fk", columnList = "rechnung_fk")]
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class RechnungsPositionDO : AbstractRechnungsPositionDO() {

@@ -26,13 +26,13 @@ package org.projectforge.plugins.merlin
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

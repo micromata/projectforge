@@ -27,15 +27,16 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.hibernate.search.annotations.Analyzer
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import java.math.BigDecimal
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Table
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import net.sf.ehcache.ElementIdHelper.setId
 
 /**
  * Die letzten beiden Ziffern (Endziffern) eines Kostenträgers repräsentieren die Kostenart. Anhand der Endziffer kann
@@ -53,7 +54,9 @@ class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IM
      * Zweistellige Endziffer von KOST2
      */
     @PropertyInfo(i18nKey = "fibu.kost2art.nummer")
-    private var id: Int? = null
+    @get:Id
+    @get:Column(name = "pk")
+    override var id: Int? = null
 
     @PropertyInfo(i18nKey = "name")
     @Field
@@ -84,26 +87,8 @@ class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IM
     @get:Column(name = "projekt_standard")
     var projektStandard: Boolean = false
 
-    /**
-     * Zweistellige Endziffer von KOST2
-     */
-    @Id
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    /**
-     * Muss größer als 0 und kleiner als 100 sein, sonst wird ein Validierungsfehler geworfen.
-     *
-     * @param id
-     */
-    override fun setId(id: Int?) {
-        this.id = id
-    }
-
     fun withId(id: Int?): Kost2ArtDO {
-        setId(id)
+        this.id = id
         return this
     }
 

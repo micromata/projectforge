@@ -28,8 +28,8 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
-import javax.persistence.EntityManager
-import javax.persistence.criteria.Predicate
+import jakarta.persistence.EntityManager
+import jakarta.persistence.criteria.Predicate
 
 internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
         private val baseDao: BaseDao<O>,
@@ -53,7 +53,7 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
      * predicates for criteria search.
      */
     private val predicates = mutableListOf<Predicate>()
-    private val order = mutableListOf<javax.persistence.criteria.Order>()
+    private val order = mutableListOf<jakarta.persistence.criteria.Order>()
 
     fun add(matcher: DBPredicate) {
         predicates.add(matcher.asPredicate(ctx))

@@ -23,12 +23,12 @@
 
 package org.projectforge.business.user
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
-import de.micromata.genome.jpa.DbRecord
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
+import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.IdObject
 
 /**
  * For persistency of UserPreferencesData (stores them serialized).
@@ -38,13 +38,12 @@ import javax.persistence.*
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])
-@JpaXmlPersist(beforePersistListener = [UserXmlPreferenceXmlBeforePersistListener::class])
-class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
+class UserXmlPreferencesDO : Serializable, IdObject<Int> {
 
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    var id: Int? = null
+    override var id: Int? = null
 
     /**
      * The owner of this preference.
@@ -109,15 +108,6 @@ class UserXmlPreferencesDO : Serializable, DbRecord<Int> {
     fun setVersion(): UserXmlPreferencesDO {
         this.version = CURRENT_VERSION
         return this
-    }
-
-    @Transient
-    override fun getPk(): Int? {
-        return this.id
-    }
-
-    override fun setPk(pk: Int?) {
-        this.id = pk
     }
 
     companion object {

@@ -61,7 +61,7 @@ class SkillMatrixPrivacyProtectionJob : IPrivacyProtectionJob {
     log.info("Purge skill matrix entries of leavers (deleted/deactivated users with lastUpdate < ${date.isoString}Z)...")
 
     userDao.internalLoadAll().forEach { user ->
-      if (user != null && (user.deactivated || user.isDeleted)) {
+      if (user != null && (user.deactivated || user.deleted)) {
         if (user.lastUpdate != null && user.lastUpdate < date.utilDate) {
           emgrFactory.runInTrans { emgr: PfEmgr ->
             val counter = emgr.entityManager

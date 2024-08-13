@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 import org.projectforge.framework.utils.NumberHelper;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -46,7 +46,7 @@ import java.util.Objects;
         @UniqueConstraint(columnNames = { "user_pref_fk", "parameter" })
     },
     indexes = {
-        @javax.persistence.Index(name = "idx_fk_t_user_pref_entry_user_pref_fk", columnList = "user_pref_fk")
+        @jakarta.persistence.Index(name = "idx_fk_t_user_pref_entry_user_pref_fk", columnList = "user_pref_fk")
     })
 public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
 {

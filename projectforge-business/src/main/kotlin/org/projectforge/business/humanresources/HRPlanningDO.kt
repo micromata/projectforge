@@ -25,7 +25,6 @@ package org.projectforge.business.humanresources
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.search.annotations.*
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
@@ -39,7 +38,7 @@ import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  *
@@ -47,8 +46,8 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])], indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")])
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
+@Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")])
+//@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
 @NamedQueries(
         NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
         NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
@@ -102,7 +101,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = duration.add(entry.totalHours)
                 }
             }
@@ -121,7 +120,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.unassignedHours)
                 }
             }
@@ -140,7 +139,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.mondayHours)
                 }
             }
@@ -159,7 +158,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.tuesdayHours)
                 }
             }
@@ -178,7 +177,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.wednesdayHours)
                 }
             }
@@ -197,7 +196,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.thursdayHours)
                 }
             }
@@ -216,7 +215,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.fridayHours)
                 }
             }
@@ -235,7 +234,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 return duration
             }
             for (entry in entries!!) {
-                if (!entry.isDeleted) {
+                if (!entry.deleted) {
                     duration = add(duration, entry.weekendHours)
                 }
             }
@@ -272,7 +271,7 @@ open class HRPlanningDO : DefaultBaseDO() {
                 log.error("Can't remove entry because the list of entries does not contain such an entry: $entry")
             }
         } else {
-            entry.isDeleted = true
+            entry.deleted = true
         }
     }
 
@@ -333,7 +332,7 @@ open class HRPlanningDO : DefaultBaseDO() {
             return false
         }
         for (entry in this.entries!!) {
-            if (entry.isDeleted) {
+            if (entry.deleted) {
                 return true
             }
         }

@@ -85,7 +85,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
           && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getUserId(),
           obj.getProjektManagerGroupId())) {
         if ((obj.getStatus() == null || !obj.getStatus().isIn(ProjektStatus.ENDED))
-            && !obj.isDeleted()) {
+            && !obj.getDeleted()) {
           // Ein Projektleiter sieht keine nicht aktiven oder gelöschten Projekte.
           return true;
         }

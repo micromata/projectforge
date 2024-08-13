@@ -86,7 +86,7 @@ public class EmployeeSalaryListPage
           final IModel<EmployeeSalaryDO> rowModel)
       {
         final EmployeeSalaryDO employeeSalary = rowModel.getObject();
-        appendCssClasses(item, employeeSalary.getId(), employeeSalary.isDeleted());
+        appendCssClasses(item, employeeSalary.getId(), employeeSalary.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<EmployeeSalaryDO>(getString("calendar.month"),

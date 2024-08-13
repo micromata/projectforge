@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.util.*;
 
 /**
@@ -146,7 +146,7 @@ public class KostCache extends AbstractCache {
       return set;
     }
     for (final Kost2DO kost : getKost2Map().values()) {
-      if (kost.isDeleted()) {
+      if (kost.getDeleted()) {
         continue;
       }
       if (Objects.equals(projektId, kost.getProjektId())) {
@@ -261,7 +261,7 @@ public class KostCache extends AbstractCache {
             .getResultList();
     kost2EntriesExists = false;
     for (final Kost2DO kost2 : list2) {
-      if (!kost2EntriesExists && !kost2.isDeleted()) {
+      if (!kost2EntriesExists && !kost2.getDeleted()) {
         kost2EntriesExists = true;
       }
       map2.put(kost2.getId(), kost2);

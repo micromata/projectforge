@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.history.entities;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 
 /**

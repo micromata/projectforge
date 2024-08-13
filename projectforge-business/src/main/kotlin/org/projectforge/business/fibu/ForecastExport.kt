@@ -196,12 +196,14 @@ open class ForecastExport { // open needed by Wicket.
         order.projektId?.let { projektId ->
           ctx.projectIds.add(projektId)
         }
-        ctx.orderMap[order.id] = order
+        order?.id?.let { ctx.orderMap[it] = order }
         order.positionen?.forEach { pos ->
-          ctx.orderPositionMap[pos.id] = pos // Register all order positions for invoice handling.
-          ctx.orderMapByPositionId[pos.id] = order
+          pos.id?.let {
+            ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.
+            ctx.orderMapByPositionId[it] = order
+          }
         }
-        if (order.isDeleted || order.positionenExcludingDeleted.isEmpty()) {
+        if (order.deleted || order.positionenExcludingDeleted.isEmpty()) {
           continue
         }
         orderBookDao.calculateInvoicedSum(order)

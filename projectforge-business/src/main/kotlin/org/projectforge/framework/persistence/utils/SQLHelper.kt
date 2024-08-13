@@ -29,7 +29,7 @@ import org.projectforge.framework.time.PFDateTime
 import java.time.LocalDate
 import java.time.Year
 import java.util.*
-import javax.persistence.TypedQuery
+import jakarta.persistence.TypedQuery
 
 /**
  * Some helper methods ...

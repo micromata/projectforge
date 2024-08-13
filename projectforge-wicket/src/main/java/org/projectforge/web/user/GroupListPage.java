@@ -76,7 +76,7 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
           final IModel<GroupDO> rowModel)
       {
         final GroupDO group = rowModel.getObject();
-        appendCssClasses(item, group.getId(), group.isDeleted());
+        appendCssClasses(item, group.getId(), group.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<GroupDO>(new Model<String>(getString("name")),

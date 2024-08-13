@@ -102,7 +102,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
       public void populateItem(final Item<ICellPopulator<TeamEventDO>> item, final String componentId,
                                final IModel<TeamEventDO> rowModel) {
         final TeamEventDO teamEvent = rowModel.getObject();
-        appendCssClasses(item, teamEvent.getId(), teamEvent.isDeleted());
+        appendCssClasses(item, teamEvent.getId(), teamEvent.getDeleted());
       }
     };
 

@@ -36,8 +36,8 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}
@@ -408,7 +408,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         return -1
       }
       var counter = 1
-      if (!address.isDeleted) {
+      if (!address.deleted) {
         // Boost undeleted addresses. Deleted addresses with same name (family and first) with lower score.
         counter += 1
         if (isAddressActive(address)) {
@@ -459,7 +459,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
      * Only active addresses will be pushed to Sipgate. In-active addresses will be deleted remote.
      */
     fun isAddressActive(address: AddressDO): Boolean {
-      return !address.isDeleted &&
+      return !address.deleted &&
           address.contactStatus.isIn(ContactStatus.ACTIVE) &&
           address.addressStatus.isIn(AddressStatus.UPTODATE)
     }

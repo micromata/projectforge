@@ -21,28 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu
+package org.projectforge.framework.persistence.api
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import javax.persistence.*
+import java.io.Serializable
 
-@Entity
-@Table(name = "t_fibu_employee_attrdata")
-class EmployeeAttrDataDO : JpaTabAttrDataBaseDO<EmployeeAttrDO, Int> {
-    constructor() : super()
-
-    constructor(parent: EmployeeAttrDO, value: String) : super(parent, value)
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getPk(): Int? {
-        return pk
-    }
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "parent_id", referencedColumnName = "pk")
-    override fun getParent(): EmployeeAttrDO {
-        return super.getParent()
-    }
+/**
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ */
+interface IdObject<I : Serializable?> : Serializable {
+    var id: I?
 }

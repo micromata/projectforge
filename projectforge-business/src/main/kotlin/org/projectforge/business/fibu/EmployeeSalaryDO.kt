@@ -25,15 +25,15 @@ package org.projectforge.business.fibu
 
 import org.hibernate.search.annotations.Analyze
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.

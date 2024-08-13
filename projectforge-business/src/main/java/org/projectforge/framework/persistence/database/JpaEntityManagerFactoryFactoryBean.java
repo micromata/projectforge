@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.database;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.FactoryBean;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 /**
  * 

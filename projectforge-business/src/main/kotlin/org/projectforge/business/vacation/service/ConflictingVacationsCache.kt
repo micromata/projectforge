@@ -70,10 +70,12 @@ class ConflictingVacationsCache() : AbstractCache() {
   fun updateVacation(vacationDO: VacationDO, conflict: Boolean) {
     checkRefresh()
     synchronized(allConflictingVacations) {
-      if (!conflict) {
-        allConflictingVacations.remove(vacationDO.id) // If given
-      } else {
-        allConflictingVacations.add(vacationDO.id)
+      vacationDO.id?.let { id ->
+        if (!conflict) {
+          allConflictingVacations.remove(id) // If given
+        } else {
+          allConflictingVacations.add(id)
+        }
       }
     }
     synchronized(conflictingVacationsByEmployee) {
@@ -129,7 +131,9 @@ class ConflictingVacationsCache() : AbstractCache() {
       }
       if (vacationService.checkConflict(vacation, vacationsOfReplacements)) {
         ensureEmployeeList(newConflictingVacations, vacation.employeeId).add(vacation)
-        newAllConflictingVacations.add(vacation.id)
+        vacation.id?.let {
+          newAllConflictingVacations.add(it)
+        }
       }
     }
     conflictingVacationsByEmployee = newConflictingVacations

@@ -35,7 +35,7 @@
         <system>Jenkins</system>
         <url>https://www.projectforge.org</url>
     </ciManagement>
-    <!-- Only needed e. g. for new mgc and merlin releases, they're might be available on mvnrepository one day later: -->
+    <!-- Only needed e. g. for new merlin releases, they might be available on mvnrepository one day later: -->
     <repositories>
         <repository>
             <id>oss-sonatype</id>
@@ -220,10 +220,10 @@
 
         <!-- Hibernate 6.* uses jakarta.persistence instead of javax.persistence -->
         <hibernate.version>6.5.2.Final</hibernate.version>
-        <hibernate-search.version>5.11.12.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
+        <hibernate-search.version>6.2.4.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
         <hibernate-ehcache.version>5.6.15.Final</hibernate-ehcache.version> <!-- Check 11.08.2024 -->
         <hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version> <!-- Check 11.08.2024 -->
-        <mgc.version>3.1.3</mgc.version>
+
 
         <apacheds.version>1.5.7</apacheds.version>
         <com.google.zxing.version>3.5.3</com.google.zxing.version> <!-- Check 11.08.2024 -->
@@ -407,30 +407,6 @@
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
             <version>${mockito.kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.common.test</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-codec</artifactId>
-                    <groupId>commons-codec</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
-                </exclusion>
-            </exclusions>
             <scope>test</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->

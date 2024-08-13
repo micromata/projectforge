@@ -101,9 +101,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
           // Should not occur:
           return;
         }
-        final boolean isDeleted = auftrag.isDeleted()
+        final boolean isDeleted = auftrag.getDeleted()
             || auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT);
-        appendCssClasses(item, auftrag.getId(), auftrag.isDeleted());
+        appendCssClasses(item, auftrag.getId(), auftrag.getDeleted());
         if (isDeleted) {
           // Do nothing further.
         } else if (auftrag.getToBeInvoiced()) {

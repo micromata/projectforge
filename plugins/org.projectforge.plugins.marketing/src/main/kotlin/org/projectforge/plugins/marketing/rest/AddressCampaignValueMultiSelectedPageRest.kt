@@ -160,7 +160,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         addressCampaignValue,
         update = {
           if (addressCampaignValueDO.id != null) {
-            addressCampaignValueDO.isDeleted = false
+            addressCampaignValueDO.deleted = false
             addressCampaignValueDao.update(addressCampaignValueDO)
           } else {
             addressCampaignValueDao.save(addressCampaignValueDO)

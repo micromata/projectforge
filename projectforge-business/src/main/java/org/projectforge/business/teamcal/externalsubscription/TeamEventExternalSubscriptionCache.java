@@ -146,7 +146,7 @@ public class TeamEventExternalSubscriptionCache {
       log.error("Oups, owner is null (can't update subscription): " + calendar);
       return;
     }
-    if (owner.getDeactivated() ||owner.isDeleted()) {
+    if (owner.getDeactivated() ||owner.getDeleted()) {
       // Don't update calendars of deactivated users....
       log.info("Ignoring subscriptions of deactivated/deleted owner #" + owner.getId() + " of calendar #" + calId);
       return;

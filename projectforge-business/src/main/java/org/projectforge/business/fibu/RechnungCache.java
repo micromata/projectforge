@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -95,7 +95,7 @@ public class RechnungCache extends AbstractCache {
       if (pos.getAuftragsPosition() == null || pos.getAuftragsPosition().getAuftrag() == null) {
         log.error("Assigned order position expected: " + pos);
         continue;
-      } else if (pos.isDeleted() || rechnung == null || rechnung.isDeleted()
+      } else if (pos.getDeleted() || rechnung == null || rechnung.getDeleted()
           || rechnung.getNummer() == null) {
         // Invoice position or invoice is deleted.
         continue;

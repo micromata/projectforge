@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.json.JsonUtils
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author K. Reinhard (k.reinhard@micromata.de)
@@ -40,8 +40,8 @@ import javax.persistence.*
     UniqueConstraint(name = "unique_t_sipgate_address_id", columnNames = ["address_id"]),
   ],
   indexes = [
-    javax.persistence.Index(name = "idx_fk_t_sipgate_contact_id", columnList = "sipgate_contact_id"),
-    javax.persistence.Index(name = "idx_fk_t_sipgate_address_id", columnList = "address_id"),
+    jakarta.persistence.Index(name = "idx_fk_t_sipgate_contact_id", columnList = "sipgate_contact_id"),
+    jakarta.persistence.Index(name = "idx_fk_t_sipgate_address_id", columnList = "address_id"),
   ]
 )
 @NamedQueries(

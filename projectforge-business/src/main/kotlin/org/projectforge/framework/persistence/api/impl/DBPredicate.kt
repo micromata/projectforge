@@ -28,7 +28,7 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils
 import org.slf4j.LoggerFactory
 import java.util.*
-import javax.persistence.criteria.Predicate
+import jakarta.persistence.criteria.Predicate
 
 /**
  * After querying, every result entry is matched against matchers (for fields not supported by the full text query).

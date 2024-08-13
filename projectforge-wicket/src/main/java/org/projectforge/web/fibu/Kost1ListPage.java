@@ -79,7 +79,7 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
           final IModel<Kost1DO> rowModel)
       {
         final Kost1DO kost1 = rowModel.getObject();
-        appendCssClasses(item, kost1.getId(), kost1.isDeleted());
+        appendCssClasses(item, kost1.getId(), kost1.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<Kost1DO>(new Model<String>(getString("fibu.kost1")),

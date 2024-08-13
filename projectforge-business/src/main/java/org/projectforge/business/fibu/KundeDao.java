@@ -75,7 +75,7 @@ public class KundeDao extends BaseDao<KundeDO> {
             ProjectForgeGroup.PROJECT_ASSISTANT)) {
       if (obj.getStatus() != null
               && !obj.getStatus().isIn(KundeStatus.ENDED, KundeStatus.NONACTIVE, KundeStatus.NONEXISTENT)
-              && !obj.isDeleted()) {
+              && !obj.getDeleted()) {
         // Ein Projektleiter sieht keine nicht mehr aktiven oder gelöschten Kunden.
         return true;
       }

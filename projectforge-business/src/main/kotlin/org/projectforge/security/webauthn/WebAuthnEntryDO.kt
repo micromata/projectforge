@@ -31,21 +31,21 @@ import com.webauthn4j.converter.util.ObjectConverter
 import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData
 import com.webauthn4j.data.attestation.statement.AttestationStatement
 import com.webauthn4j.util.Base64UrlUtil
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Indexed
 @Table(
   name = "T_USER_WEBAUTHN",
   uniqueConstraints = [UniqueConstraint(columnNames = ["owner_fk", "credential_id"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_user_webauthn_user",
     columnList = "owner_fk"
-  ), javax.persistence.Index(name = "t_user_webauthn_pkey", columnList = "pk")]
+  ), jakarta.persistence.Index(name = "t_user_webauthn_pkey", columnList = "pk")]
 )
 @NamedQueries(
   NamedQuery(
