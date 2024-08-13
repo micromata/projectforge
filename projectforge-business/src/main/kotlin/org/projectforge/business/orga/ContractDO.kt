@@ -45,7 +45,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 open class ContractDO : DefaultBaseDO(), AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "'C-", additionalI18nKey = "legalAffaires.contract.number", tooltip = "fibu.tooltip.nummerWirdAutomatischVergeben")
-    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "number")
     open var number: Int? = null
 

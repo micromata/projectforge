@@ -29,7 +29,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
-import org.hibernate.search.annotations.*
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.props.PropUtils
@@ -42,6 +41,7 @@ import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import jakarta.persistence.Id
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.DocumentId
 
 
 class HibernateSearchClassInfo(baseDao: BaseDao<*>) {

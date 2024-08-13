@@ -30,12 +30,15 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 
 @Entity
 @Indexed
-@ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
+@TypeBinding(binder = TypeBinderRef(name = "kost1", type = HibernateSearchKost1TypeBinder::class))
+//@ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
 @Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
 //@WithHistory
 @NamedQueries(

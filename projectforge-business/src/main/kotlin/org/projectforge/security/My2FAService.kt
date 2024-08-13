@@ -110,7 +110,7 @@ open class My2FAService {
         if (group == null) {
           log.error { "Group with name '$groupName' not foud in data base. Will be ignored for parameter projectforge.2fa.disableMail2FAForGroups=${my2FARequestConfiguration.disableEmail2FAForGroups}" }
         } else {
-          list.add(group.id)
+          list.add(group.id!!)
           foundGroupNames.add(group.name ?: "???")
         }
       }

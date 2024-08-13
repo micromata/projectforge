@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.webauthn4j.data.attestation.statement.AttestationStatement
+import org.bouncycastle.asn1.x500.style.RFC4519Style.owner
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -50,8 +51,8 @@ class WebAuthnStorage {
   }
 
   fun load(credentialId: String): WebAuthnEntryDO? {
-    val owner = ThreadLocalUserContext.user!!
-    return webAuthnEntryDao.getEntry(owner.id, credentialId)
+    val ownerId = ThreadLocalUserContext.user!!.id!!
+    return webAuthnEntryDao.getEntry(ownerId, credentialId)
   }
 
   fun loadAll(ownerId: Int? = null): List<WebAuthnEntryDO> {
@@ -63,8 +64,8 @@ class WebAuthnStorage {
   }
 
   fun updateCounter(credentialId: String, signCount: Long) {
-    val owner = ThreadLocalUserContext.user!!
-    val entry = webAuthnEntryDao.getEntry(owner.id, credentialId)
+    val ownerId = ThreadLocalUserContext.user!!.id!!
+    val entry = webAuthnEntryDao.getEntry(ownerId, credentialId)
     requireNotNull(entry) { "Can't update signCount for webauthn entry, because the entry for the owner with credential-id '$credentialId' doesn't exist." }
     entry.signCount = signCount
     webAuthnEntryDao.upsert(entry)

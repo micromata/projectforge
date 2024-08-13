@@ -21,42 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.kost;
+package org.projectforge.business.fibu.kost
 
-import org.hibernate.search.bridge.TwoWayStringBridge;
-import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
-
+import org.hibernate.search.engine.backend.document.DocumentElement
+import org.hibernate.search.mapper.pojo.bridge.TypeBridge
+import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
+import org.projectforge.business.fibu.KostFormatter
 
 /**
  * Kost2Bridge for hibernate search: Kostenträger kann à la 6.201.57 gesucht werden.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class HibernateSearchKost1Bridge implements TwoWayStringBridge {
-  private KostCache kostCache = null;
+class HibernateSearchKost1Bridge : TypeBridge<Kost1DO> {
 
-  private KostCache getKostCache() {
-    if (kostCache == null)
-      kostCache = ApplicationContextProvider.getApplicationContext().getBean(KostCache.class);
-    return kostCache;
-  }
-
-  @Override
-  public Object stringToObject(String stringValue) {
-    return getKostCache().getKost1(stringValue);
-  }
-
-  @Override
-  public String objectToString(Object object) {
-    if (object instanceof String) {
-      return (String)object;
+    override fun write(target: DocumentElement, bridgedElement: Kost1DO, context: TypeBridgeWriteContext) {
+        val sb = StringBuilder()
+        sb.append(KostFormatter.format(bridgedElement))
+        sb.append(' ')
+        sb.append(KostFormatter.format(bridgedElement, true))
+        target.addValue("kost1", sb.toString())
     }
-    final Kost1DO kost1 = (Kost1DO) object;
-    final StringBuilder buf = new StringBuilder();
-    buf.append(KostFormatter.format(kost1));
-    buf.append(' ');
-    buf.append(KostFormatter.format(kost1, true));
-    return buf.toString();
-  }
 }

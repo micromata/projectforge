@@ -47,7 +47,7 @@ open class KontoDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "$nummer - $bezeichnung"
 
     @PropertyInfo(i18nKey = "fibu.konto.nummer")
-    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column(name = "nummer", nullable = false)
     open var nummer: Int? = null
 

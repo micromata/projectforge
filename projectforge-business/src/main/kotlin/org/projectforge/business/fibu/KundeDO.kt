@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
-import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
@@ -42,7 +41,6 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KUNDE", indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id")])
-@Analyzer(impl = ClassicAnalyzer::class)
 open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
 
     override val displayName: String

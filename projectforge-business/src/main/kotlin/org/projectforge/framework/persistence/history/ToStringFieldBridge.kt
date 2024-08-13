@@ -20,27 +20,19 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
-package org.projectforge.framework.persistence.entities
 
-import jakarta.persistence.Column
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.Id
-import jakarta.persistence.MappedSuperclass
-import org.projectforge.common.anots.PropertyInfo
+package org.projectforge.framework.persistence.history
+
+import org.hibernate.search.mapper.pojo.bridge.ValueBridge
+import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * Calls just ObjectUtils.toString()
+ *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-@MappedSuperclass
-//@Analyzer(impl = ClassicAnalyzer::class)
-open class DefaultBaseDO : AbstractHistorizableBaseDO<Int>() {
-    @get:Column(name = "pk")
-    @get:GeneratedValue
-    @get:Id
-    @PropertyInfo(i18nKey = "id")
-    override var id: Int? = null
-
-    companion object {
-        private const val serialVersionUID = 659687830219996653L
+class ToStringFieldBridge : ValueBridge<String?, String> {
+    override fun toIndexedValue(value: String?, context: ValueBridgeToIndexedValueContext): String? {
+        return value
     }
 }

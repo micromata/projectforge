@@ -34,8 +34,10 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -43,7 +45,8 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
  */
 @Entity
 @Indexed
-@ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+//@ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_CALENDAR", indexes = [jakarta.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
 open class TeamCalDO() : BaseUserGroupRightsDO() {
 

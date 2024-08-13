@@ -24,35 +24,32 @@
 package org.projectforge.business.fibu
 
 import mu.KotlinLogging
-import org.hibernate.search.engine.backend.document.DocumentElement
-import org.hibernate.search.mapper.pojo.bridge.TypeBridge
-import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
+import org.hibernate.search.mapper.pojo.bridge.ValueBridge
+import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext
+import org.projectforge.business.user.UserLocale
+import org.projectforge.framework.i18n.I18nHelper
 
 private val log = KotlinLogging.logger {}
 
 /**
- * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
- * number&gt>).
+ * Bridge for hibernate search to search for payment type of incoming invoices.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
-class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
-    override fun write(
-        target: DocumentElement,
-        bridgedElement: AuftragsPositionDO,
-        context: TypeBridgeWriteContext
-    ) {
-        val auftrag = bridgedElement.auftrag
+class HibernateSearchPaymentTypeBridge : ValueBridge<PaymentType, String> {
+    override fun toIndexedValue(
+        paymentType: PaymentType?,
+        valueBridgeToIndexedValueContext: ValueBridgeToIndexedValueContext?
+    ): String {
+        paymentType ?: return ""
         val sb = StringBuilder()
-        if (auftrag?.nummer == null) {
-            log.error("AuftragDO for AuftragsPositionDO: " + bridgedElement.id + "  is null.")
-            target.addValue("position", "")
-            return
+        for (locale in UserLocale.I18NSERVICE_LANGUAGES) {
+            val localized: String = I18nHelper.getLocalizedMessage(locale, paymentType.i18nKey) ?: continue
+            sb.append("$localized ")
         }
-        sb.append(auftrag.nummer).append(".").append(bridgedElement.number.toInt())
         if (log.isDebugEnabled) {
             log.debug(sb.toString())
         }
-        target.addValue("position", sb.toString())
+        return sb.toString()
     }
 }

@@ -68,12 +68,12 @@ internal class My2FABruteForceProtection {
    */
   internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
     override fun afterSaveOrModify(changedObject: PFUserDO, operationType: OperationType) {
-      val data = protection.getData(changedObject.id) ?: return
+      val data = protection.getData(changedObject.id!!) ?: return
       if (operationType == OperationType.UPDATE && !changedObject.deactivated && data.counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
         // User is probably changed from deactivated to activated again (by an admin user).
         // Reset the number of failed OTP retries for the user.
         log.info { "User '${changedObject.username} was modified, so reset the brute force protection for OTPs." }
-        protection.registerOTPSuccess(changedObject.id)
+        protection.registerOTPSuccess(changedObject.id!!)
       }
     }
   }
