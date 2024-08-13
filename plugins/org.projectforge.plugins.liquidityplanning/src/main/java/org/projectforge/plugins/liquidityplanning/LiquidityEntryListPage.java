@@ -95,8 +95,8 @@ public class LiquidityEntryListPage
       public void populateItem(final Item<ICellPopulator<LiquidityEntryDO>> item, final String componentId,
                                final IModel<LiquidityEntryDO> rowModel) {
         final LiquidityEntryDO liquidityEntry = rowModel.getObject();
-        appendCssClasses(item, liquidityEntry.getId(), liquidityEntry.isDeleted());
-        if (liquidityEntry.isDeleted()) {
+        appendCssClasses(item, liquidityEntry.getId(), liquidityEntry.getDeleted());
+        if (liquidityEntry.getDeleted()) {
           // Do nothing further
         } else {
           if (!liquidityEntry.getPaid()) {

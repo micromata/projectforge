@@ -24,12 +24,12 @@
 package org.projectforge.plugins.memo
 
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * This data object is the Java representation of a data-base entry of a memo.<br></br>
@@ -42,7 +42,7 @@ import javax.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MEMO", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
+@Table(name = "T_PLUGIN_MEMO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
 open class MemoDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "id")

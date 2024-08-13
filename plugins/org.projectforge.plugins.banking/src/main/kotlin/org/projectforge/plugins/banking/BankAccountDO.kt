@@ -32,10 +32,10 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
-import javax.persistence.Transient
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
+import jakarta.persistence.Transient
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

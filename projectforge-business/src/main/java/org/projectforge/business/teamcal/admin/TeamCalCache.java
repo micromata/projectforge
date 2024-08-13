@@ -78,7 +78,7 @@ public class TeamCalCache extends AbstractCache
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final TeamCalDO cal : calendarMap.values()) {
-      if (teamCalRight.hasSelectAccess(loggedInUser, cal) && !cal.isDeleted()) {
+      if (teamCalRight.hasSelectAccess(loggedInUser, cal) && !cal.getDeleted()) {
         set.add(cal);
       }
     }
@@ -96,7 +96,7 @@ public class TeamCalCache extends AbstractCache
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
     for (final TeamCalDO cal : calendarMap.values()) {
-      if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) && !cal.isDeleted()) {
+      if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) && !cal.getDeleted()) {
         set.add(cal);
       }
     }

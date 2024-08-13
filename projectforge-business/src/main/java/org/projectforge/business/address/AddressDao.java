@@ -43,9 +43,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import jakarta.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.DateFormat;
@@ -265,7 +265,7 @@ public class AddressDao extends BaseDao<AddressDO> {
         addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
       }
       for (AddressbookDO ab : addressbookDao.internalLoadAll()) {
-        if (!ab.isDeleted() && addressbookRight.hasSelectAccess(ThreadLocalUserContext.getUser(), ab)) {
+        if (!ab.getDeleted() && addressbookRight.hasSelectAccess(ThreadLocalUserContext.getUser(), ab)) {
           abIdList.add(ab.getId());
         }
       }

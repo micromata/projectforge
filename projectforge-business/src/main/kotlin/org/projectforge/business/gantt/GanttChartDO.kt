@@ -24,13 +24,13 @@
 package org.projectforge.business.gantt
 
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -40,7 +40,10 @@ import javax.persistence.*
 @Table(name = "T_GANTT_CHART", indexes = [Index(name = "idx_fk_t_gantt_chart_owner_fk", columnList = "owner_fk"), Index(name = "idx_fk_t_gantt_chart_task_fk", columnList = "task_fk")])
 class GanttChartDO : AbstractBaseDO<Int>() {
 
-    private var id: Int? = null
+    @get:Id
+    @get:GeneratedValue
+    @get:Column(name = "pk")
+    override var id: Int? = null
 
     /**
      * Free usable name.
@@ -107,15 +110,4 @@ class GanttChartDO : AbstractBaseDO<Int>() {
     val ownerId: Int?
         @Transient
         get() = if (this.owner == null) null else owner!!.id
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
 }

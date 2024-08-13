@@ -97,7 +97,7 @@ constructor(
    */
   override fun isDeleted(dto: Any): Boolean {
     @Suppress("UNCHECKED_CAST")
-    return (dto as O).isDeleted
+    return (dto as O).deleted
   }
 
   /**

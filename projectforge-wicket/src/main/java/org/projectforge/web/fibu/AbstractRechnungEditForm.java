@@ -337,9 +337,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     }
 
     if (data instanceof RechnungDO) {
-      ((RechnungDO) data).getPositionen().removeIf(AbstractBaseDO::isDeleted);
+      ((RechnungDO) data).getPositionen().removeIf(AbstractBaseDO::getDeleted);
     } else {
-      ((EingangsrechnungDO) data).getPositionen().removeIf(AbstractBaseDO::isDeleted);
+      ((EingangsrechnungDO) data).getPositionen().removeIf(AbstractBaseDO::getDeleted);
     }
 
     for (final AbstractRechnungsPositionDO position : data.getAbstractPositionen()) {
@@ -607,7 +607,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
         }
       }
 
-      if (position.isDeleted()) {
+      if (position.getDeleted()) {
         positionsPanel.setVisible(false);
       }
       onRenderPosition(posGridBuilder, position);

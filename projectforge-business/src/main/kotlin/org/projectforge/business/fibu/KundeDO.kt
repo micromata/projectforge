@@ -23,17 +23,16 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.apache.lucene.analysis.standard.ClassicAnalyzer
 import org.hibernate.search.annotations.Analyzer
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
-import javax.persistence.*
 
 /**
  * Jeder Kunde bei Micromata hat eine Kundennummer. Die Kundennummer ist Bestandteil von KOST2 (2.-4. Ziffer). Aufträge
@@ -59,16 +58,14 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNam
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
-    open var nummer: Int? = null
+    override var id: Int? = null
 
-    @Transient
-    override fun getId(): Int? {
-        return nummer
-    }
-
-    override fun setId(value: Int?) {
-        nummer = value
-    }
+    @get:Transient
+    open var nummer: Int?
+        get() = id
+        set(value) {
+            id = value
+        }
 
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")

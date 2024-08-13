@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.api.impl
 
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.slf4j.LoggerFactory
-import javax.persistence.criteria.*
+import jakarta.persistence.criteria.*
 
 
 /**

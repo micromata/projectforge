@@ -110,7 +110,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
       } else if (oldToDo.getStatus() != getData().getStatus()) {
         // Status was changed.
         sendNotification = true;
-      } else if (oldToDo.isDeleted() != getData().isDeleted()) {
+      } else if (oldToDo.getDeleted() != getData().getDeleted()) {
         // Deletion status was changed.
         sendNotification = true;
       }

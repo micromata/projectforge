@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.persistence.NoResultException
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -32,15 +33,13 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants
-import org.projectforge.framework.persistence.jpa.PfEmgr
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.NoResultException
 
 /**
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
@@ -49,178 +48,181 @@ import javax.persistence.NoResultException
  */
 @Repository
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
-  @Autowired
-  private lateinit var userDao: UserDao
+    @Autowired
+    private lateinit var userDao: UserDao
 
-  @Autowired
-  private lateinit var kost1Dao: Kost1Dao
+    @Autowired
+    private lateinit var kost1Dao: Kost1Dao
 
-  override fun getAdditionalSearchFields(): Array<String> {
-    return ADDITIONAL_SEARCH_FIELDS
-  }
-
-  override fun getDefaultSortProperties(): Array<SortProperty> {
-    return DEFAULT_SORT_PROPERTIES
-  }
-
-  open fun findByUserId(userId: Int?): EmployeeDO? {
-    val employee = ensureUniqueResult(
-      em
-        .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO::class.java)
-        .setParameter("userId", userId)
-    )
-    setEmployeeStatus(employee)
-    return employee
-  }
-
-  open fun getEmployeeIdByByUserId(userId: Int?): Int? {
-    return ensureUniqueResult(
-      em
-        .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Integer::class.java)
-        .setParameter("userId", userId)
-    )?.toInt()
-  }
-
-
-  /**
-   * If more than one employee is found, null will be returned.
-   *
-   * @param fullname Format: &lt;last name&gt;, &lt;first name&gt;
-   */
-  open fun findByName(fullname: String): EmployeeDO? {
-    val tokenizer = StringTokenizer(fullname, ",")
-    if (tokenizer.countTokens() != 2) {
-      log.error("EmployeeDao.getByName: Token '$fullname' not supported.")
+    override fun getAdditionalSearchFields(): Array<String> {
+        return ADDITIONAL_SEARCH_FIELDS
     }
-    Validate.isTrue(tokenizer.countTokens() == 2)
-    val lastname = tokenizer.nextToken().trim { it <= ' ' }
-    val firstname = tokenizer.nextToken().trim { it <= ' ' }
-    val employee = ensureUniqueResult(
-      em
-        .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO::class.java)
-        .setParameter("firstname", firstname)
-        .setParameter("lastname", lastname)
-    )
-    setEmployeeStatus(employee)
-    return employee
-  }
 
-  /**
-   * @param employee
-   * @param userId   If null, then user will be set to null;
-   * @see BaseDao.getOrLoad
-   */
-  @Deprecated("")
-  open fun setUser(employee: EmployeeDO, userId: Int?) {
-    val user = userDao.getOrLoad(userId)
-    employee.user = user
-  }
+    override fun getDefaultSortProperties(): Array<SortProperty> {
+        return DEFAULT_SORT_PROPERTIES
+    }
 
-  /**
-   * @param employee
-   * @param kost1Id  If null, then kost1 will be set to null;
-   * @see BaseDao.getOrLoad
-   */
-  @Deprecated("")
-  open fun setKost1(employee: EmployeeDO, kost1Id: Int?) {
-    val kost1 = kost1Dao.getOrLoad(kost1Id)
-    employee.kost1 = kost1
-  }
-
-  open fun internalGetEmployeeList(filter: BaseSearchFilter, showOnlyActiveEntries: Boolean = true): List<EmployeeDO> {
-    val queryFilter = QueryFilter(filter)
-    var employees = internalGetList(queryFilter)
-    if (showOnlyActiveEntries) {
-      val now = LocalDate.now()
-      employees = employees.filter { employee ->
-        val user = employee.user
-        if (employee.austrittsDatum == null && (user == null || user.deactivated || user.isDeleted)) {
-          false
-          // } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
-          //  false
-        } else {
-          // Show also deleted users if austrittsdatum not long ago
-          employee.austrittsDatum == null || !now.minusMonths(3).isAfter(employee.austrittsDatum)
+    open fun findByUserId(userId: Int?): EmployeeDO? {
+        val employee = ensureUniqueResult<EmployeeDO>(emgrFactory) { em ->
+            em
+                .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO::class.java)
+                .setParameter("userId", userId)
         }
-      }
+        setEmployeeStatus(employee)
+        return employee
     }
-    setEmployeeStatus(employees)
-    return employees
-  }
 
-  /**
-   * Sets the (deprecated) employee status from timeableAttributes.
-   */
-  private fun setEmployeeStatus(employees: List<EmployeeDO>) {
-    for (employeeDO in employees) {
-      setEmployeeStatus(employeeDO)
+    open fun getEmployeeIdByByUserId(userId: Int?): Int? {
+        userId ?: return null
+        return ensureUniqueResult(emgrFactory) { em ->
+            em
+                .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Integer::class.java)
+                .setParameter("userId", userId)
+        }?.toInt()
     }
-  }
 
-  open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
-    employeeDO ?: return
-    employeeDO.timeableAttributes.filter { it.groupName == InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME }
-      .sortedBy { it.startTime }.lastOrNull()?.let { timedDO ->
-        employeeDO.status = EmployeeStatus.findByi18nKey(timedDO.getAttribute("status") as String)
+
+    /**
+     * If more than one employee is found, null will be returned.
+     *
+     * @param fullname Format: &lt;last name&gt;, &lt;first name&gt;
+     */
+    open fun findByName(fullname: String): EmployeeDO? {
+        val tokenizer = StringTokenizer(fullname, ",")
+        if (tokenizer.countTokens() != 2) {
+            log.error("EmployeeDao.getByName: Token '$fullname' not supported.")
+        }
+        Validate.isTrue(tokenizer.countTokens() == 2)
+        val lastname = tokenizer.nextToken().trim { it <= ' ' }
+        val firstname = tokenizer.nextToken().trim { it <= ' ' }
+        val employee = ensureUniqueResult<EmployeeDO>(emgrFactory) { em ->
+            em
+                .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO::class.java)
+                .setParameter("firstname", firstname)
+                .setParameter("lastname", lastname)
+        }
+        setEmployeeStatus(employee)
+        return employee
     }
-  }
 
-  override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
-    val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
-    val queryFilter = QueryFilter(myFilter)
-    var list = getList(queryFilter)
-    if (myFilter.isShowOnlyActiveEntries) {
-      list = list.filter { it.active }
+    /**
+     * @param employee
+     * @param userId   If null, then user will be set to null;
+     * @see BaseDao.getOrLoad
+     */
+    @Deprecated("")
+    open fun setUser(employee: EmployeeDO, userId: Int?) {
+        val user = userDao.getOrLoad(userId)
+        employee.user = user
     }
-    setEmployeeStatus(list)
-    return list
-  }
 
-  override fun newInstance(): EmployeeDO {
-    return EmployeeDO()
-  }
+    /**
+     * @param employee
+     * @param kost1Id  If null, then kost1 will be set to null;
+     * @see BaseDao.getOrLoad
+     */
+    @Deprecated("")
+    open fun setKost1(employee: EmployeeDO, kost1Id: Int?) {
+        val kost1 = kost1Dao.getOrLoad(kost1Id)
+        employee.kost1 = kost1
+    }
 
-  fun newEmployeeTimeAttrRow(employee: EmployeeDO): EmployeeTimedDO {
-    val nw = EmployeeTimedDO()
-    nw.employee = employee
-    employee.timeableAttributes.add(nw)
-    return nw
-  }
+    open fun internalGetEmployeeList(
+        filter: BaseSearchFilter,
+        showOnlyActiveEntries: Boolean = true
+    ): List<EmployeeDO> {
+        val queryFilter = QueryFilter(filter)
+        var employees = internalGetList(queryFilter)
+        if (showOnlyActiveEntries) {
+            val now = LocalDate.now()
+            employees = employees.filter { employee ->
+                val user = employee.user
+                if (employee.austrittsDatum == null && (user == null || user.deactivated || user.deleted)) {
+                    false
+                    // } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
+                    //  false
+                } else {
+                    // Show also deleted users if austrittsdatum not long ago
+                    employee.austrittsDatum == null || !now.minusMonths(3).isAfter(employee.austrittsDatum)
+                }
+            }
+        }
+        setEmployeeStatus(employees)
+        return employees
+    }
 
-  open fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
-    var result: EmployeeDO? = null
-    try {
-      result = emgrFactory.runRoTrans { emgr: PfEmgr ->
-        val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
-        emgr.selectSingleDetached(
-          EmployeeDO::class.java, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false
+    /**
+     * Sets the (deprecated) employee status from timeableAttributes.
+     */
+    private fun setEmployeeStatus(employees: List<EmployeeDO>) {
+        for (employeeDO in employees) {
+            setEmployeeStatus(employeeDO)
+        }
+    }
+
+    open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
+        employeeDO ?: return
+        log.error("***** Not yet implemented: timeable status")
+        /*employeeDO.timeableAttributes.filter { it.groupName == InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME }
+          .sortedBy { it.startTime }.lastOrNull()?.let { timedDO ->
+            employeeDO.status = EmployeeStatus.findByi18nKey(timedDO.getAttribute("status") as String)
+        }*/
+    }
+
+    override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
+        val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
+        val queryFilter = QueryFilter(myFilter)
+        var list = getList(queryFilter)
+        if (myFilter.isShowOnlyActiveEntries) {
+            list = list.filter { it.active }
+        }
+        setEmployeeStatus(list)
+        return list
+    }
+
+    override fun newInstance(): EmployeeDO {
+        return EmployeeDO()
+    }
+
+    open fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
+        var result: EmployeeDO? = null
+        try {
+            result = EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
+                val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
+                val employee = em.createQuery("$baseSQL$META_SQL", EmployeeDO::class.java)
+                    .setParameter("staffNumber", staffnumber)
+                    .singleResult
+                em.detach(employee)
+                employee
+                /*em.selectSingleDetached(
+                  EmployeeDO::class.java, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false
+                )*/
+            }
+        } catch (ex: NoResultException) {
+            log.warn("No employee found for staffnumber: $staffnumber")
+        }
+        setEmployeeStatus(result)
+        return result
+    }
+
+    override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
+        return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property)
+    }
+
+    init {
+        userRightId = USER_RIGHT_ID
+    }
+
+    companion object {
+        val USER_RIGHT_ID = UserRightId.HR_EMPLOYEE
+        private val log = LoggerFactory.getLogger(EmployeeDao::class.java)
+        private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
+            "user.firstname", "user.lastname", "user.username",
+            "user.description",
+            "user.organization"
         )
-      }
-    } catch (ex: NoResultException) {
-      log.warn("No employee found for staffnumber: $staffnumber")
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
+        private const val META_SQL = " AND e.deleted = :deleted"
+        private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("abteilung", "position")
     }
-    setEmployeeStatus(result)
-    return result
-  }
-
-  override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
-    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property)
-  }
-
-  init {
-    userRightId = USER_RIGHT_ID
-  }
-
-  companion object {
-    val USER_RIGHT_ID = UserRightId.HR_EMPLOYEE
-    private val log = LoggerFactory.getLogger(EmployeeDao::class.java)
-    private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
-      "user.firstname", "user.lastname", "user.username",
-      "user.description",
-      "user.organization"
-    )
-    private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
-    private const val META_SQL = " AND e.deleted = :deleted"
-    private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("abteilung", "position")
-  }
 }

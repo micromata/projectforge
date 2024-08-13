@@ -96,7 +96,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
           // Should not occur:
           return;
         }
-        appendCssClasses(item, projekt.getId(), projekt.isDeleted());
+        appendCssClasses(item, projekt.getId(), projekt.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("fibu.projekt.nummer")),

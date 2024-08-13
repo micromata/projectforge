@@ -48,8 +48,8 @@ import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.Tuple;
-import javax.persistence.criteria.JoinType;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.criteria.JoinType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;

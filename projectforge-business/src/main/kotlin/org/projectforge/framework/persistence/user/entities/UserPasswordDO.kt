@@ -28,7 +28,7 @@ import de.micromata.genome.db.jpa.history.api.NoHistory
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 private val log = KotlinLogging.logger {}
 

@@ -29,11 +29,11 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.LeaveAccountEntryDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import org.springframework.stereotype.Repository
@@ -52,18 +52,21 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     }
 
     // Open needed or proxying.
-    open fun getList(employeeId: Int, year: Int): List<LeaveAccountEntryDO>? {
+    open fun getList(employeeId: Int?, year: Int): List<LeaveAccountEntryDO>? {
         val beginOfYear = LocalDate.of(year, Month.JANUARY, 1)
         val endOfYear = PFDayUtils.getEndOfYear(beginOfYear)
         return getList(employeeId, beginOfYear, endOfYear)
     }
 
     // Open needed or proxying.
-    open fun getList(employeeId: Int, periodBegin: LocalDate, periodEnd: LocalDate): List<LeaveAccountEntryDO>? {
-        return em.createNamedQuery(LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD, LeaveAccountEntryDO::class.java)
+    open fun getList(employeeId: Int?, periodBegin: LocalDate, periodEnd: LocalDate): List<LeaveAccountEntryDO>? {
+        employeeId ?: return null
+        return EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
+            em.createNamedQuery(LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD, LeaveAccountEntryDO::class.java)
                 .setParameter("employeeId", employeeId)
                 .setParameter("fromDate", periodBegin)
                 .setParameter("toDate", periodEnd).resultList
+        }
     }
 
     override fun getList(queryFilter: QueryFilter, customResultFilters: List<CustomResultFilter<LeaveAccountEntryDO>>?): List<LeaveAccountEntryDO?>? {

@@ -31,9 +31,9 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import java.math.BigDecimal;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRPlanningEditTablePanel extends Panel
 {
@@ -47,7 +47,7 @@ public class HRPlanningEditTablePanel extends Panel
 
   void init(final HRPlanningEntryDO entry)
   {
-    final boolean deleted = entry.isDeleted();
+    final boolean deleted = entry.getDeleted();
     final TextField<BigDecimal> unassignedHours = new TextField<BigDecimal>("unassignedHours", new PropertyModel<BigDecimal>(entry,
         "unassignedHours"));
     add(unassignedHours.setEnabled(!deleted));

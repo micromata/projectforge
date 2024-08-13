@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 
 private val log = KotlinLogging.logger {}
 
@@ -163,7 +164,8 @@ open class UserGroupCache() : AbstractCache() {
     }
   }
 
-  fun getUsername(userId: Int): String? { // checkRefresh(); Done by getUserMap().
+  fun getUsername(userId: Int?): String? { // checkRefresh(); Done by getUserMap().
+    userId ?: return null
     val user = getUserMap()!![userId] ?: return userId.toString()
     return user.username
   }
@@ -384,7 +386,7 @@ open class UserGroupCache() : AbstractCache() {
    * Should be called after user modifications.
    */
   fun updateUser(user: PFUserDO) {
-    getUserMap()!![user.id] = user
+    user.id?.let { getUserMap()!![it] = user }
   }
 
   private fun getUserMap(): MutableMap<Int, PFUserDO?>? {
@@ -405,7 +407,9 @@ open class UserGroupCache() : AbstractCache() {
     val users = Login.getInstance().allUsers
     for (user in users) {
       user.id ?: continue // Should only occur in test cases.
-      uMap[user.id] = user
+      user.id?.let {
+        uMap[it] = user
+      }
     }
     if (users.size != uMap.size) {
       log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
@@ -425,42 +429,44 @@ open class UserGroupCache() : AbstractCache() {
     val nOrgaUsers: MutableSet<Int> = HashSet()
     val nhrUsers: MutableSet<Int> = HashSet()
     for (group in groups) {
-      gMap[group.id] = group
+      val groupId = group.id ?: continue
+      gMap[groupId] = group
       group.assignedUsers?.forEach { user ->
-        val groupIdSet = ensureAndGetUserGroupIdMap(ugIdMap, user.id)
-        groupIdSet.add(group.id)
+        val userId = user.id ?: return@forEach
+        val groupIdSet = ensureAndGetUserGroupIdMap(ugIdMap, userId)
+        groupIdSet.add(groupId)
         when {
           ProjectForgeGroup.ADMIN_GROUP.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' as administrator.")
-            nAdminUsers.add(user.id)
+            nAdminUsers.add(userId)
           }
           ProjectForgeGroup.FINANCE_GROUP.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' for finance.")
-            nFinanceUser.add(user.id)
+            nFinanceUser.add(userId)
           }
           ProjectForgeGroup.CONTROLLING_GROUP.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' for controlling.")
-            nControllingUsers.add(user.id)
+            nControllingUsers.add(userId)
           }
           ProjectForgeGroup.PROJECT_MANAGER.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' as project manager.")
-            nProjectManagers.add(user.id)
+            nProjectManagers.add(userId)
           }
           ProjectForgeGroup.PROJECT_ASSISTANT.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' as project assistant.")
-            nProjectAssistants.add(user.id)
+            nProjectAssistants.add(userId)
           }
           ProjectForgeGroup.MARKETING_GROUP.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' as marketing user.")
-            nMarketingUsers.add(user.id)
+            nMarketingUsers.add(userId)
           }
           ProjectForgeGroup.ORGA_TEAM.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' as orga user.")
-            nOrgaUsers.add(user.id)
+            nOrgaUsers.add(userId)
           }
           ProjectForgeGroup.HR_GROUP.matches(group.name) -> {
             log.debug("Adding user '" + user.username + "' as hr user.")
-            nhrUsers.add(user.id)
+            nhrUsers.add(userId)
           }
         }
       }
@@ -527,7 +533,9 @@ open class UserGroupCache() : AbstractCache() {
   @Synchronized
   fun internalSetAdminUser(adminUser: PFUserDO) {
     checkRefresh()
-    adminUsers!!.add(adminUser.id)
+    adminUser.id?.let {
+      adminUsers!!.add(it)
+    }
   }
 
   companion object {

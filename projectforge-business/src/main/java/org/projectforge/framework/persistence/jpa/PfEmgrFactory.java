@@ -35,7 +35,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +46,7 @@ import java.util.Map;
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Component
-@DependsOn("attrSchemaService")
+//@DependsOn("attrSchemaService")
 public class PfEmgrFactory extends SearchEmgrFactory<PfEmgr>
 {
   /**

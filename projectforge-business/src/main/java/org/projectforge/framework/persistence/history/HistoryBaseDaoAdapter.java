@@ -338,20 +338,20 @@ public class HistoryBaseDaoAdapter {
 
   public static void markedAsDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj) {
     //long begin = System.currentTimeMillis();
-    boolean prev = newoj.isDeleted();
-    newoj.setDeleted(true);
+    boolean prev = newoj.isDeleted;
+    newoj.isDeleted = true;
     updated(oldo, newoj);
-    newoj.setDeleted(prev);
+    newoj.isDeleted = prev;
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.markedAsDeleted took: " + (end - begin) + " ms.");
   }
 
   public static void markedAsUnDeleted(ExtendedBaseDO<?> oldo, ExtendedBaseDO<?> newoj) {
     //long begin = System.currentTimeMillis();
-    boolean prev = newoj.isDeleted();
-    newoj.setDeleted(false);
+    boolean prev = newoj.isDeleted;
+    newoj.isDeleted = false;
     updated(oldo, newoj);
-    newoj.setDeleted(prev);
+    newoj.isDeleted = prev;
     //long end = System.currentTimeMillis();
     //log.info("HistoryBaseDaoAdapter.markedAsUnDeleted took: " + (end - begin) + " ms.");
   }

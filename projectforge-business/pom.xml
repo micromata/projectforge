@@ -37,57 +37,6 @@
             <artifactId>merlin-core</artifactId>
             <version>${micromata.merlin-core.version}</version>
         </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.hibernatesearch</artifactId>
-            <version>${mgc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.xmldump</artifactId>
-            <version>${mgc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.jpa.spring</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-tx</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-orm</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.email</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -117,8 +66,8 @@
             <version>${aspectjtools.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-orm</artifactId>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-mapper-orm-jakarta</artifactId>
             <version>${hibernate-search.version}</version>
         </dependency>
         <dependency>
@@ -237,31 +186,6 @@
             <groupId>javax.cache</groupId>
             <artifactId>cache-api</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>de.micromata.mgc</groupId>
-            <artifactId>de.micromata.mgc.common</artifactId>
-            <version>${mgc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-dbcp2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
 
         <!-- DB -->
         <dependency>

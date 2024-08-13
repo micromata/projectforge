@@ -101,7 +101,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
 
   static void appendCssClasses(final Item<?> item, final TaskDO task, final Integer preselectedTaskNode)
   {
-    appendCssClasses(item, task.getId(), preselectedTaskNode, task.isDeleted());
+    appendCssClasses(item, task.getId(), preselectedTaskNode, task.getDeleted());
   }
 
   /**

@@ -26,8 +26,8 @@ package org.projectforge.business.address
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.annotations.ClassBridge
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
 import org.projectforge.common.anots.PropertyInfo
@@ -35,7 +35,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Florian Blumenstein

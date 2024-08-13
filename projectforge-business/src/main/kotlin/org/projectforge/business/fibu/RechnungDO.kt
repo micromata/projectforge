@@ -26,7 +26,6 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.*
 import org.hibernate.search.bridge.builtin.IntegerBridge
@@ -34,7 +33,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Geplante und gestellte Rechnungen.
@@ -49,14 +48,14 @@ import javax.persistence.*
 @Table(
   name = "t_fibu_rechnung",
   indexes = [
-    javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_konto_id", columnList = "konto_id"),
-    javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_kunde_id", columnList = "kunde_id"),
-    javax.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id")]
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_konto_id", columnList = "konto_id"),
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_kunde_id", columnList = "kunde_id"),
+    jakarta.persistence.Index(name = "idx_fk_t_fibu_rechnung_projekt_id", columnList = "projekt_id")]
 )
-@WithHistory(
+/*@WithHistory(
   noHistoryProperties = ["lastUpdate", "created"],
   nestedEntities = [RechnungsPositionDO::class]
-)
+)*/
 @NamedQueries(
   NamedQuery(name = RechnungDO.SELECT_MIN_MAX_DATE, query = "select min(datum), max(datum) from RechnungDO"),
   NamedQuery(name = RechnungDO.FIND_OTHER_BY_NUMMER, query = "from RechnungDO where nummer=:nummer and id!=:id")

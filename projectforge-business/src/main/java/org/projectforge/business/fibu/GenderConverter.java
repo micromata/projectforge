@@ -23,8 +23,8 @@
 
 package org.projectforge.business.fibu;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
 public class GenderConverter implements AttributeConverter<IsoGender, Integer>

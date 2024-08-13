@@ -100,7 +100,7 @@ class BankingImportJob(
           dbEntry.id = id
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
-          dbEntry.isDeleted = false
+          dbEntry.deleted = false
           val modStatus = bankAccountRecordDao.update(dbEntry)
           if (modStatus != ModificationStatus.NONE) {
             result.updated += 1
@@ -108,7 +108,7 @@ class BankingImportJob(
             result.unmodified += 1
           }
         } else {
-          if (!dbEntry.isDeleted) {
+          if (!dbEntry.deleted) {
             bankAccountRecordDao.markAsDeleted(dbEntry)
           }
           result.deleted += 1

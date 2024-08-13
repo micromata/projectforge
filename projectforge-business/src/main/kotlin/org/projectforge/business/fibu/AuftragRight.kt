@@ -100,13 +100,13 @@ class AuftragRight(accessChecker: AccessChecker?) : UserRightAccessCheck<Auftrag
         }
       } else if (oldObj != null) {
         for (number in 1..obj.positionenIncludingDeleted!!.size) {
-          val position = obj.getPosition(number.toShort())
+          val position = obj.getPosition(number.toShort()) ?: continue
           val dbPosition = oldObj.getPosition(number.toShort())
 
           // check if deleted
-          if (position!!.isDeleted) continue
+          if (position.deleted == true) continue
           if (dbPosition == null) {
-            if (position.vollstaendigFakturiert!!) {
+            if (position.vollstaendigFakturiert == true) {
               throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
             }
           } else if (position.vollstaendigFakturiert !== dbPosition.vollstaendigFakturiert) {

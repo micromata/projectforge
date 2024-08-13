@@ -26,10 +26,9 @@
 package org.projectforge.framework.persistence.user.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist
 import org.hibernate.search.annotations.Field
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
@@ -46,7 +45,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
 import java.io.Serializable
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
@@ -59,7 +58,7 @@ import javax.persistence.*
 @Table(name = "T_USER_PREF",
         uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "area", "name"])],
         indexes = [Index(name = "idx_fk_t_user_pref_user_fk", columnList = "user_fk")])
-@JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
+//@JpaXmlPersist(beforePersistListener = [UserPrefXmlBeforePersistListener::class])
 @NamedQueries(
         NamedQuery(name = FIND_BY_USER_ID_AND_AREA, query = "from UserPrefDO where user.id=:userId and area=:area"),
         NamedQuery(name = FIND_BY_USER_ID, query = "from UserPrefDO where user.id=:userId"),
@@ -101,7 +100,10 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     @set:Deprecated("Use value with json serialization instead.")
     var userPrefEntries: MutableSet<UserPrefEntryDO>? = null
 
-    private var id: Int? = null
+    @get:Id
+    @get:GeneratedValue
+    @get:Column(name = "pk")
+    override var id: Int? = null
 
     /**
      * The value as string representation (e. g. json).
@@ -154,17 +156,6 @@ class UserPrefDO : AbstractBaseDO<Int>() {
             result.addAll(this.userPrefEntries!!)
             return result
         }
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
 
     @Deprecated("Use value with json serialization instead.")
     fun addUserPrefEntry(userPrefEntry: UserPrefEntryDO) {

@@ -23,14 +23,15 @@
 
 package org.projectforge.business.address
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.EntityManagerFactory
+import jakarta.persistence.PersistenceContext
 import mu.KotlinLogging
 import org.projectforge.business.image.ImageService
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -46,7 +47,7 @@ open class AddressImageDao {
     private lateinit var em: EntityManager
 
     @Autowired
-    private lateinit var emgrFactory: PfEmgrFactory
+    private lateinit var emgrFactory: EntityManagerFactory
 
     @Autowired
     private lateinit var imageService: ImageService
@@ -56,8 +57,10 @@ open class AddressImageDao {
      */
     open fun getImage(addressId: Int): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
-        return ensureUniqueResult(em.createNamedQuery(AddressImageDO.SELECT_IMAGE, ByteArray::class.java)
-                .setParameter("addressId", addressId))
+        return ensureUniqueResult(
+            em.createNamedQuery(AddressImageDO.SELECT_IMAGE, ByteArray::class.java)
+                .setParameter("addressId", addressId)
+        )
     }
 
     /**
@@ -65,8 +68,10 @@ open class AddressImageDao {
      */
     open fun getPreviewImage(addressId: Int): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
-        return ensureUniqueResult(em.createNamedQuery(AddressImageDO.SELECT_IMAGE_PREVIEW, ByteArray::class.java)
-                .setParameter("addressId", addressId))
+        return ensureUniqueResult(
+            em.createNamedQuery(AddressImageDO.SELECT_IMAGE_PREVIEW, ByteArray::class.java)
+                .setParameter("addressId", addressId)
+        )
     }
 
     /**
@@ -80,15 +85,14 @@ open class AddressImageDao {
         addressImage.address = address
         addressImage.image = image
         addressImage.imagePreview = imageService.resizeImage(image)
-        emgrFactory.runInTrans { emgr ->
+        em.transaction.begin()
+        EntityManagerUtil.runInTransaction(emgrFactory) {
             if (addressImage.id != null) {
                 // Update
-                emgr.merge(addressImage)
-                emgr.flush()
+                em.merge(addressImage)
             } else {
                 // Insert
-                emgr.persist(addressImage)
-                emgr.flush()
+                em.persist(addressImage)
             }
         }
         log.info("New image for address ${address.id} (${address.fullName}) saved.")
@@ -102,10 +106,10 @@ open class AddressImageDao {
         val address = addressDao.getById(addressId)
         addressDao.internalModifyImageData(address, false)
         addressDao.update(address) // Throws an exception if the logged-in user has now access.
-        return emgrFactory.runInTrans { emgr ->
-            val addressImage = emgr.find(AddressImageDO::class.java, address.id)
+        return EntityManagerUtil.runInTransaction(emgrFactory) {
+            val addressImage = em.find(AddressImageDO::class.java, address.id)
             if (addressImage != null) {
-                emgr.deleteAttached(addressImage)
+                em.remove(addressImage)
                 log.info("Image for address ${address.id} (${address.fullName}) deleted.")
                 true
             } else {
@@ -114,12 +118,15 @@ open class AddressImageDao {
         }
     }
 
-    private fun get(addressId: Int): AddressImageDO? {
+    private fun get(addressId: Int?): AddressImageDO? {
         val address = addressDao.getById(addressId) ?: return null // For access checking!
         try {
-            return ensureUniqueResult(em.createQuery(
-                    "from ${AddressImageDO::class.java.name} t where t.address = :address", AddressImageDO::class.java)
-                    .setParameter("address", address))
+            return ensureUniqueResult(
+                em.createQuery(
+                    "from ${AddressImageDO::class.java.name} t where t.address = :address", AddressImageDO::class.java
+                )
+                    .setParameter("address", address)
+            )
         } catch (ex: Exception) {
             log.error(ex.message, ex)
             return null

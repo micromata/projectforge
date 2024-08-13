@@ -107,7 +107,7 @@ public class PFUserDOConverter
     ldapUser.setOrganization(user.getOrganization());
     ldapUser.setDescription(user.getDescription());
     ldapUser.setMail(user.getEmail());
-    ldapUser.setDeleted(user.isDeleted());
+    ldapUser.setDeleted(user.getDeleted());
     ldapUser.setDeactivated(user.getDeactivated());
     ldapUser.setMobilePhoneNumber(user.getMobilePhone());
     if (user.getDeactivated()) {

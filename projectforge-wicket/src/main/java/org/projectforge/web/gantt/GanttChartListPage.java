@@ -73,7 +73,7 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
           final IModel<GanttChartDO> rowModel)
       {
         final GanttChartDO ganttChart = rowModel.getObject();
-        appendCssClasses(item, ganttChart.getId(), ganttChart.isDeleted());
+        appendCssClasses(item, ganttChart.getId(), ganttChart.getDeleted());
       }
     };
     columns.add(

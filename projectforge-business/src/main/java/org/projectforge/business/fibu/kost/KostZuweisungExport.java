@@ -263,7 +263,7 @@ public class KostZuweisungExport {
       mapping.add(AccountsCol.DATE_OF_LAST_MODIFICATION, konto.getLastUpdate());
       mapping.add(AccountsCol.DATE_OF_CREATION, konto.getCreated());
       String status = "";
-      if (konto.isDeleted()) {
+      if (konto.getDeleted()) {
         status = ThreadLocalUserContext.getLocalizedString("deleted");
       } else if (konto.getStatus() != null) {
         status = ThreadLocalUserContext.getLocalizedString(konto.getStatus().getI18nKey());

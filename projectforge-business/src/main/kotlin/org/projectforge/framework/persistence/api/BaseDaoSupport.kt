@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api
 
-import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO
 import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
@@ -193,8 +192,8 @@ object BaseDaoSupport {
         baseDao.copyValues(obj, dbObj) // If user has made additional changes.
         dbObj.setDeleted(true)
         dbObj.setLastUpdate()
-        obj.isDeleted = true                     // For callee having same object.
-        obj.setLastUpdate(dbObj.getLastUpdate()) // For callee having same object.
+        obj.deleted = true                     // For callee having same object.
+          obj.lastUpdate = dbObj.getLastUpdate() // For callee having same object.
         em.merge(dbObj) //
         em.flush()
         baseDao.flushSearchSession(em)
@@ -219,8 +218,8 @@ object BaseDaoSupport {
         baseDao.copyValues(obj, dbObj) // If user has made additional changes.
         dbObj.isDeleted = false
         dbObj.setLastUpdate()
-        obj.isDeleted = false                   // For callee having same object.
-        obj.setLastUpdate(dbObj.getLastUpdate()) // For callee having same object.
+        obj.deleted = false                   // For callee having same object.
+          obj.lastUpdate = dbObj.getLastUpdate() // For callee having same object.
         em.merge(dbObj)
         em.flush()
         baseDao.flushSearchSession(em)

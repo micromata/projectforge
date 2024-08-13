@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.marketing
 
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.address.AddressDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * A marketing campaign.

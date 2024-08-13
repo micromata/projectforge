@@ -361,8 +361,9 @@ open class AttachmentsService {
     allowDuplicateFiles: Boolean = false,
   )
       : Attachment {
-    accessChecker.checkUploadAccess(ThreadLocalUserContext.user, path = path, id = obj.id, subPath = subPath)
-    val attachments = getAttachments(path, obj.id, null, subPath)
+    val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
+    accessChecker.checkUploadAccess(ThreadLocalUserContext.user, path = path, id = objId, subPath = subPath)
+    val attachments = getAttachments(path, objId, null, subPath)
     if (!allowDuplicateFiles) {
       attachments?.forEach { attachment ->
         if (attachment.name == fileInfo.fileName) {
@@ -372,7 +373,7 @@ open class AttachmentsService {
       }
     }
     val attachment =
-      addAttachment(path, obj.id, fileInfo, inputStream, false, accessChecker, subPath, password, userString, obj)
+      addAttachment(path, objId, fileInfo, inputStream, false, accessChecker, subPath, password, userString, obj)
     updateAttachmentsInfo(
       path,
       baseDao,
@@ -427,10 +428,11 @@ open class AttachmentsService {
     userString: String? = null,
   )
       : Boolean {
+    val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
     accessChecker.checkDeleteAccess(
       ThreadLocalUserContext.user,
       path = path,
-      id = obj.id,
+      id = objId,
       fileId = fileId,
       subPath = subPath
     )
@@ -452,7 +454,8 @@ open class AttachmentsService {
     encryptionInProgress: Boolean? = null,
     )
       : Boolean {
-    val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId, encryptionInProgress = encryptionInProgress)
+    val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
+    val fileObject = FileObject(getPath(path, objId), subPath ?: DEFAULT_NODE, fileId = fileId, encryptionInProgress = encryptionInProgress)
     val result = repoService.deleteFile(fileObject)
     if (result) {
       updateAttachmentsInfo(
@@ -527,14 +530,15 @@ open class AttachmentsService {
     updateLastUpdateInfo: Boolean = true,
     )
       : FileObject? {
+    val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
     accessChecker.checkUpdateAccess(
       ThreadLocalUserContext.user,
       path = path,
-      id = obj.id,
+      id = objId,
       fileId = fileId,
       subPath = subPath
     )
-    val fileObject = FileObject(getPath(path, obj.id), subPath ?: DEFAULT_NODE, fileId = fileId)
+    val fileObject = FileObject(getPath(path, objId), subPath ?: DEFAULT_NODE, fileId = fileId)
     val result = repoService.changeFileInfo(
       fileObject,
       ThreadLocalUserContext.userId?.toString() ?: userString!!,
@@ -581,6 +585,7 @@ open class AttachmentsService {
      */
     userString: String? = null
   ) {
+    val objId = obj.id ?: throw IllegalArgumentException("obj.id must not be null.")
     if (obj !is AttachmentsInfo) {
       return // Nothing to do.
     }
@@ -590,7 +595,7 @@ open class AttachmentsService {
       if (subPath != null && subPath != DEFAULT_NODE) {
         log.warn("********* Support of multiple lists in attachments not yet supported by search index.")
       }
-      val attachments = getAttachments(path, obj.id, null)//, subPath)
+      val attachments = getAttachments(path, objId, null)//, subPath)
       if (attachments != null) {
         dbObj.attachmentsNames = attachments.joinToString(separator = " ") { "${it.name}" }
         dbObj.attachmentsIds = attachments.joinToString(separator = " ") { "${it.fileId}" }

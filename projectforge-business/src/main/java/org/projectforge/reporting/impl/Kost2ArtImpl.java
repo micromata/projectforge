@@ -62,9 +62,9 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
 
   public boolean isDeleted()
   {
-    return kost2ArtDO.isDeleted();
+    return kost2ArtDO.getDeleted();
   }
-  
+
   public boolean isSelected()
   {
     return selected;
@@ -79,7 +79,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
   {
     return existsAlready;
   }
-  
+
   public void setExistsAlready(boolean existsAlready)
   {
     this.existsAlready = existsAlready;
@@ -109,7 +109,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
   {
     return kost2ArtDO.getName();
   }
-  
+
   public int compareTo(Kost2ArtImpl o)
   {
     return kost2ArtDO.compareTo(o.kost2ArtDO);

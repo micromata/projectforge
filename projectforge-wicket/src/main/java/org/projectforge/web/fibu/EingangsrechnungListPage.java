@@ -122,8 +122,8 @@ public class EingangsrechnungListPage
           final IModel<EingangsrechnungDO> rowModel)
       {
         final EingangsrechnungDO eingangsrechnung = rowModel.getObject();
-        appendCssClasses(item, eingangsrechnung.getId(), eingangsrechnung.isDeleted());
-        if (eingangsrechnung.isDeleted() == true) {
+        appendCssClasses(item, eingangsrechnung.getId(), eingangsrechnung.getDeleted());
+        if (eingangsrechnung.getDeleted() == true) {
           // Do nothing further
         } else if (eingangsrechnung.isUeberfaellig() == true) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);

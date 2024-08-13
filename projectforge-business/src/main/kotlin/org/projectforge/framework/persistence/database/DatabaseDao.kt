@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.util.*
-import javax.persistence.EntityManager
-import javax.persistence.FlushModeType
-import javax.persistence.TypedQuery
+import jakarta.persistence.EntityManager
+import jakarta.persistence.FlushModeType
+import jakarta.persistence.TypedQuery
 
 /**
  * Creates index creation script and re-indexes data-base.

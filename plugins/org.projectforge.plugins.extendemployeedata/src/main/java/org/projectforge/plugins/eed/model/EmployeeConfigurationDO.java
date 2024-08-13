@@ -41,7 +41,7 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

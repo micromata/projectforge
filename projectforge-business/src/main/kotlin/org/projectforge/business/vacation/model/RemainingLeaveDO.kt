@@ -23,13 +23,13 @@
 
 package org.projectforge.business.vacation.model
 
-import org.hibernate.search.annotations.Indexed
-import org.hibernate.search.annotations.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Remaining leave entries for employees per year.
@@ -41,7 +41,7 @@ import javax.persistence.*
 @Table(
   name = "t_employee_remaining_leave",
   uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year"])],
-  indexes = [javax.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")]
+  indexes = [jakarta.persistence.Index(name = "idx_fk_t_vacation_remaining_employee_id", columnList = "employee_id")]
 )
 @NamedQueries(
   NamedQuery(

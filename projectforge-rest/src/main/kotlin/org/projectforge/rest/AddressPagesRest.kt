@@ -554,7 +554,7 @@ class AddressPagesRest
       ListAddress(
         transformFromDB(it),
         id = it.id,
-        deleted = it.isDeleted,
+        deleted = it.deleted,
         imageUrl = if (it.image == true) "address/image/${it.id}" else null,
         previewImageUrl = if (it.image == true) "address/imagePreview/${it.id}" else null
       )

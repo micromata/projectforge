@@ -117,7 +117,7 @@ public class HRViewDao implements IDao<HRViewData> {
           continue;
         }
         for (final HRPlanningEntryDO entry : planning.getEntries()) {
-          if (entry.isDeleted()) {
+          if (entry.getDeleted()) {
             continue;
           }
           final PFUserDO user = userGroupCache.getUser(planning.getUserId());

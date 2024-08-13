@@ -35,6 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import jakarta.annotation.PostConstruct
+import jakarta.persistence.EntityManagerFactory
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 
 private val log = KotlinLogging.logger {}
 
@@ -49,7 +51,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
   class CalendarEntry(var calendarId: Int? = null, var expiryDays: Int? = null)
 
   @Autowired
-  private lateinit var emgrFactory: PfEmgrFactory
+  private lateinit var emgrFactory: EntityManagerFactory
 
   @Autowired
   private lateinit var purgeCronPrivacyProtectionJob: CronPrivacyProtectionJob
@@ -96,9 +98,9 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
       } else {
         val expiryDate = PFDateTime.now().minusDays(expiryDays.toLong())
         log.info { "Purging calendar #${it.calendarId} '${calendar.title}' by deleting entries of ${it.expiryDays} or more days in the past (before ${expiryDate.isoString}Z)..." }
-        emgrFactory.runInTrans { emgr: PfEmgr ->
+        EntityManagerUtil.runInTransaction(emgrFactory) { em ->
           var counter = 0
-          val eventsToPurge = emgr.entityManager
+          val eventsToPurge = em
             .createNamedQuery(TeamEventDO.SELECT_ENTRIES_IN_THE_PAST_TO_PURGE, TeamEventDO::class.java)
             .setParameter("calendarId", calendar.id)
             .setParameter("endDate", expiryDate.utilDate)

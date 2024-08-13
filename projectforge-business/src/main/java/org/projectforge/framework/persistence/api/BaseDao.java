@@ -23,9 +23,11 @@
 
 package org.projectforge.framework.persistence.api;
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry;
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.util.runtime.ClassUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,10 +35,10 @@ import org.apache.commons.lang3.Validate;
 import org.hibernate.search.jpa.Search;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
 import org.projectforge.framework.persistence.api.impl.DBQuery;
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta;
@@ -45,7 +47,6 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HibernateSearchDependentObjectsReindexer;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
@@ -56,11 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -72,1238 +68,1236 @@ import java.util.stream.Collectors;
 public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
         implements IDao<O>, IPersistenceService<O> {
 
-  public static final String EXCEPTION_HISTORIZABLE_NOTDELETABLE = "Could not delete of Historizable objects (contact your software developer): ";
+    public static final String EXCEPTION_HISTORIZABLE_NOTDELETABLE = "Could not delete of Historizable objects (contact your software developer): ";
 
-  /**
-   * Maximum allowed mass updates within one massUpdate call.
-   */
-  public static final int MAX_MASS_UPDATE = 100;
-  public static final String MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N = "massUpdate.error.maximumNumberOfAllowedMassUpdatesExceeded";
-  private static final List<DisplayHistoryEntry> EMPTY_HISTORY_ENTRIES = new ArrayList<>();
-  private static final Logger log = LoggerFactory.getLogger(BaseDao.class);
-  /**
-   * DEBUG flag. Not sure, if always has be flushed.
-   */
-  private static final boolean LUCENE_FLUSH_ALWAYS = false;
+    /**
+     * Maximum allowed mass updates within one massUpdate call.
+     */
+    public static final int MAX_MASS_UPDATE = 100;
+    public static final String MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N = "massUpdate.error.maximumNumberOfAllowedMassUpdatesExceeded";
+    private static final List<DisplayHistoryEntry> EMPTY_HISTORY_ENTRIES = new ArrayList<>();
+    private static final Logger log = LoggerFactory.getLogger(BaseDao.class);
+    /**
+     * DEBUG flag. Not sure, if always has be flushed.
+     */
+    private static final boolean LUCENE_FLUSH_ALWAYS = false;
 
-  private final List<BaseDOChangedListener<O>> objectChangedListeners = new LinkedList<>();
+    private final List<BaseDOChangedListener<O>> objectChangedListeners = new LinkedList<>();
 
-  protected Class<O> clazz;
+    protected Class<O> clazz;
 
-  private String identifier;
+    private String identifier;
 
-  /**
-   * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
-   * or in React pages.
-   * At default it's the simple name of the DO clazz without extension "DO".
-   */
-  public String getIdentifier() {
-    if (identifier == null && clazz != null) {
-      identifier = StringUtils.uncapitalize(StringUtils.removeEnd(clazz.getSimpleName(), "DO"));
+    /**
+     * Identifier should be unique in application (including all plugins). This identifier is also used as category in rest services
+     * or in React pages.
+     * At default it's the simple name of the DO clazz without extension "DO".
+     */
+    public String getIdentifier() {
+        if (identifier == null && clazz != null) {
+            identifier = StringUtils.uncapitalize(StringUtils.removeEnd(clazz.getSimpleName(), "DO"));
+        }
+        return identifier;
     }
-    return identifier;
-  }
 
-  protected boolean logDatabaseActions = true;
+    protected boolean logDatabaseActions = true;
 
-  @Autowired
-  protected AccessChecker accessChecker;
+    @Autowired
+    protected AccessChecker accessChecker;
 
-  @Autowired
-  protected DBQuery dbQuery;
+    @Autowired
+    protected DBQuery dbQuery;
 
-  @Autowired
-  protected DatabaseDao databaseDao;
+    @Autowired
+    protected DatabaseDao databaseDao;
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  @PersistenceContext
-  protected EntityManager em;
+    private String[] searchFields;
 
-  private String[] searchFields;
+    protected IUserRightId userRightId = null;
+    /**
+     * Should the id check (on null) be avoided before save (in save method)? This is use-full if the derived dao manages
+     * the id itself (as e. g. KundeDao, Kost2ArtDao).
+     */
+    protected boolean avoidNullIdCheckBeforeSave;
+    /**
+     * Set this to true if you overload {@link #afterUpdate(ExtendedBaseDO, ExtendedBaseDO)} and you need the origin data
+     * base entry in this method.
+     */
+    protected boolean supportAfterUpdate = false;
 
-  protected IUserRightId userRightId = null;
-  /**
-   * Should the id check (on null) be avoided before save (in save method)? This is use-full if the derived dao manages
-   * the id itself (as e. g. KundeDao, Kost2ArtDao).
-   */
-  protected boolean avoidNullIdCheckBeforeSave;
-  /**
-   * Set this to true if you overload {@link #afterUpdate(ExtendedBaseDO, ExtendedBaseDO)} and you need the origin data
-   * base entry in this method.
-   */
-  protected boolean supportAfterUpdate = false;
+    /**
+     * If true, deletion of historizable objects is supported (including any history entry) due to privacy protection (e. g. addresses).
+     * Otherwise, objects may only be marked as deleted (default).
+     */
+    protected boolean forceDeletionSupport = false;
 
-  /**
-   * If true, deletion of historizable objects is supported (including any history entry) due to privacy protection (e. g. addresses).
-   * Otherwise, objects may only be marked as deleted (default).
-   */
-  protected boolean forceDeletionSupport = false;
+    @Autowired
+    protected EntityManagerFactory emgrFactory;
 
-  @Autowired
-  protected PfEmgrFactory emgrFactory;
+    @Autowired
+    private UserRightService userRights;
 
-  @Autowired
-  private UserRightService userRights;
+    @Autowired
+    private HibernateSearchDependentObjectsReindexer hibernateSearchDependentObjectsReindexer;
 
-  @Autowired
-  private HibernateSearchDependentObjectsReindexer hibernateSearchDependentObjectsReindexer;
-
-  /**
-   * The setting of the DO class is required.
-   */
-  protected BaseDao(final Class<O> clazz) {
-    this.clazz = clazz;
-  }
-
-  /**
-   * Get all declared hibernate search fields. These fields are defined over annotations in the database object class.
-   * The names are the property names or, if defined the name declared in the annotation of a field. <br/>
-   * The user can search in these fields explicit by typing e. g. authors:beck (<field>:<searchString>)
-   */
-  public synchronized String[] getSearchFields() {
-    return HibernateSearchMeta.INSTANCE.getClassInfo(this).getAllFieldNames();
-  }
-
-  /**
-   * Overwrite this method for adding search fields manually (e. g. for embedded objects). For example see TimesheetDao.
-   */
-  public String[] getAdditionalSearchFields() {
-    return null;
-  }
-
-  /**
-   * Overwrite this method for having a standard sort of result lists (supported by {@link BaseDao#getList(QueryFilter)}.
-   */
-  public SortProperty[] getDefaultSortProperties() {
-    return null;
-  }
-
-  public Class<O> getDOClass() {
-    return this.clazz;
-  }
-
-  @Override
-  public abstract O newInstance();
-
-  /**
-   * getOrLoad checks first weather the id is valid or not. Default implementation: id != 0 && id &gt; 0. Overload this,
-   * if the id of the DO can be 0 for example.
-   */
-  protected boolean isIdValid(final Integer id) {
-    return (id != null && id > 0);
-  }
-
-  /**
-   * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
-   * getSession().load();
-   */
-  public O getOrLoad(final Integer id) {
-    if (!isIdValid(id)) {
-      return null;
+    /**
+     * The setting of the DO class is required.
+     */
+    protected BaseDao(final Class<O> clazz) {
+        this.clazz = clazz;
     }
-    final O obj = internalGetById(id);
-    if (obj == null) {
-      log.error("Can't load object of type " + getDOClass().getName() + ". Object with given id #" + id + " not found.");
-      return null;
+
+    /**
+     * Get all declared hibernate search fields. These fields are defined over annotations in the database object class.
+     * The names are the property names or, if defined the name declared in the annotation of a field. <br/>
+     * The user can search in these fields explicit by typing e. g. authors:beck (<field>:<searchString>)
+     */
+    public synchronized String[] getSearchFields() {
+        return HibernateSearchMeta.INSTANCE.getClassInfo(this).getAllFieldNames();
     }
-    if (hasLoggedInUserSelectAccess(obj, false)) {
-      return obj;
+
+    /**
+     * Overwrite this method for adding search fields manually (e. g. for embedded objects). For example see TimesheetDao.
+     */
+    public String[] getAdditionalSearchFields() {
+        return null;
     }
-    return em.getReference(clazz, id);
-  }
 
-  public List<O> internalLoadAllNotDeleted() {
-    return internalLoadAll().stream().filter(o -> !o.isDeleted()).collect(Collectors.toList());
-  }
-
-  public List<O> internalLoadAll() {
-    CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<O> cq = cb.createQuery(clazz);
-    CriteriaQuery<O> query = cq.select(cq.from(clazz));
-    return em.createQuery(query).getResultList();
-  }
-
-  public List<O> internalLoad(final Collection<? extends Serializable> idList) {
-    if (idList == null) {
-      return null;
+    /**
+     * Overwrite this method for having a standard sort of result lists (supported by {@link BaseDao#getList(QueryFilter)}.
+     */
+    public SortProperty[] getDefaultSortProperties() {
+        return null;
     }
-    CriteriaQuery<O> cr = em.getCriteriaBuilder().createQuery(clazz);
-    Root<O> root = cr.from(clazz);
-    cr.select(root).where(root.get(idProperty).in(idList)).distinct(true);
-    List<O> results = em.createQuery(cr).getResultList();
-    return results;
-  }
 
-  protected String idProperty = "id";
-
-  public List<O> getListByIds(final Collection<? extends Serializable> idList) {
-    if (idList == null) {
-      return null;
+    public Class<O> getDOClass() {
+        return this.clazz;
     }
-    final List<O> list = internalLoad(idList);
-    return extractEntriesWithSelectAccess(list);
-  }
 
-  /**
-   * This method is used by the searchDao and calls {@link #getList(BaseSearchFilter)} by default.
-   *
-   * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
-   * @see #getList(BaseSearchFilter)
-   */
-  public List<O> getListForSearchDao(final BaseSearchFilter filter) {
-    return getList(filter);
-  }
+    @Override
+    public abstract O newInstance();
 
-  /**
-   * Builds query filter by simply calling constructor of QueryFilter with given search filter and calls
-   * getList(QueryFilter). Override this method for building more complex query filters.
-   *
-   * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @Override
-  public List<O> getList(final BaseSearchFilter filter) {
-    final QueryFilter queryFilter = createQueryFilter(filter);
-    return getList(queryFilter);
-  }
-
-  public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
-    return new QueryFilter(filter);
-  }
-
-  /**
-   * Gets the list filtered by the given filter.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public List<O> getList(final QueryFilter filter) throws AccessException {
-    return getList(filter, null);
-  }
-
-  /**
-   * Gets the list filtered by the given filter.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public List<O> getList(final QueryFilter filter, List<CustomResultFilter<O>> customResultFilters) throws AccessException {
-    return dbQuery.getList(this, filter, customResultFilters, true);
-  }
-
-  /**
-   * Gets the list filtered by the given filter.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public List<O> internalGetList(final QueryFilter filter) throws AccessException {
-    return dbQuery.getList(this, filter, null, false);
-  }
-
-  /**
-   * idSet.contains(entry.getId()) at default.
-   */
-  public boolean contains(final Set<Integer> idSet, final O entry) {
-    if (idSet == null) {
-      return false;
+    /**
+     * getOrLoad checks first weather the id is valid or not. Default implementation: id != 0 && id &gt; 0. Overload this,
+     * if the id of the DO can be 0 for example.
+     */
+    protected boolean isIdValid(final Integer id) {
+        return (id != null && id > 0);
     }
-    return idSet.contains(entry.getId());
-  }
 
-  /**
-   * idSet.contains(entry.getId()) at default.
-   */
-  public boolean containsLong(final Set<Long> idSet, final O entry) {
-    if (idSet == null) {
-      return false;
+    /**
+     * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
+     * getSession().load();
+     */
+    public O getOrLoad(final Integer id) {
+        if (!isIdValid(id)) {
+            return null;
+        }
+        final O obj = internalGetById(id);
+        if (obj == null) {
+            log.error("Can't load object of type " + getDOClass().getName() + ". Object with given id #" + id + " not found.");
+            return null;
+        }
+        if (hasLoggedInUserSelectAccess(obj, false)) {
+            return obj;
+        }
+        return em.getReference(clazz, id);
     }
-    return idSet.contains(entry.getId().longValue());
-  }
 
-  protected List<O> selectUnique(final List<O> list) {
-    @SuppressWarnings("unchecked") final List<O> result = (List<O>) CollectionUtils.select(list, PredicateUtils.uniquePredicate());
-    return result;
-  }
+    public List<O> internalLoadAllNotDeleted() {
+        return internalLoadAll().stream().filter(o -> !o.isDeleted).collect(Collectors.toList());
+    }
 
-  List<O> extractEntriesWithSelectAccess(final List<O> origList) {
-    final List<O> result = new ArrayList<>();
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
-    for (final O obj : origList) {
-      if (hasSelectAccess(obj, loggedInUser)) {
-        result.add(obj);
+    public List<O> internalLoadAll() {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<O> cq = cb.createQuery(clazz);
+        CriteriaQuery<O> query = cq.select(cq.from(clazz));
+        return em.createQuery(query).getResultList();
+    }
+
+    public List<O> internalLoad(final Collection<? extends Serializable> idList) {
+        if (idList == null) {
+            return null;
+        }
+        CriteriaQuery<O> cr = em.getCriteriaBuilder().createQuery(clazz);
+        Root<O> root = cr.from(clazz);
+        cr.select(root).where(root.get(idProperty).in(idList)).distinct(true);
+        List<O> results = em.createQuery(cr).getResultList();
+        return results;
+    }
+
+    protected String idProperty = "id";
+
+    public List<O> getListByIds(final Collection<? extends Serializable> idList) {
+        if (idList == null) {
+            return null;
+        }
+        final List<O> list = internalLoad(idList);
+        return extractEntriesWithSelectAccess(list);
+    }
+
+    /**
+     * This method is used by the searchDao and calls {@link #getList(BaseSearchFilter)} by default.
+     *
+     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
+     * @see #getList(BaseSearchFilter)
+     */
+    public List<O> getListForSearchDao(final BaseSearchFilter filter) {
+        return getList(filter);
+    }
+
+    /**
+     * Builds query filter by simply calling constructor of QueryFilter with given search filter and calls
+     * getList(QueryFilter). Override this method for building more complex query filters.
+     *
+     * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public List<O> getList(final BaseSearchFilter filter) {
+        final QueryFilter queryFilter = createQueryFilter(filter);
+        return getList(queryFilter);
+    }
+
+    public QueryFilter createQueryFilter(final BaseSearchFilter filter) {
+        return new QueryFilter(filter);
+    }
+
+    /**
+     * Gets the list filtered by the given filter.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<O> getList(final QueryFilter filter) throws AccessException {
+        return getList(filter, null);
+    }
+
+    /**
+     * Gets the list filtered by the given filter.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<O> getList(final QueryFilter filter, List<CustomResultFilter<O>> customResultFilters) throws AccessException {
+        return dbQuery.getList(this, filter, customResultFilters, true);
+    }
+
+    /**
+     * Gets the list filtered by the given filter.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<O> internalGetList(final QueryFilter filter) throws AccessException {
+        return dbQuery.getList(this, filter, null, false);
+    }
+
+    /**
+     * idSet.contains(entry.getId()) at default.
+     */
+    public boolean contains(final Set<Integer> idSet, final O entry) {
+        if (idSet == null) {
+            return false;
+        }
+        return idSet.contains(entry.getId());
+    }
+
+    /**
+     * idSet.contains(entry.getId()) at default.
+     */
+    public boolean containsLong(final Set<Long> idSet, final O entry) {
+        if (idSet == null) {
+            return false;
+        }
+        return idSet.contains(entry.getId().longValue());
+    }
+
+    protected List<O> selectUnique(final List<O> list) {
+        @SuppressWarnings("unchecked") final List<O> result = (List<O>) CollectionUtils.select(list, PredicateUtils.uniquePredicate());
+        return result;
+    }
+
+    List<O> extractEntriesWithSelectAccess(final List<O> origList) {
+        final List<O> result = new ArrayList<>();
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+        for (final O obj : origList) {
+            if (hasSelectAccess(obj, loggedInUser)) {
+                result.add(obj);
+                afterLoad(obj);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param obj          The object to check.
+     * @param loggedInUser The currend logged in user.
+     * @return true if loggedInUser has select access.
+     * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+     */
+    public boolean hasSelectAccess(O obj, PFUserDO loggedInUser) {
+        return hasUserSelectAccess(loggedInUser, obj, false);
+    }
+
+    /**
+     * Overwrite this method for own list sorting. This method returns only the given list.
+     */
+    public List<O> sort(final List<O> list) {
+        return list;
+    }
+
+    /**
+     * @param id primary key of the base object.
+     */
+    @Override
+    public O getById(final Serializable id) throws AccessException {
+        accessChecker.checkRestrictedUser();
+        checkLoggedInUserSelectAccess();
+        final O obj = internalGetById(id);
+        if (obj == null) {
+            return null;
+        }
+        checkLoggedInUserSelectAccess(obj);
+        return obj;
+    }
+
+    public O internalGetById(final Serializable id) {
+        if (id == null) {
+            return null;
+        }
+        O obj = SQLHelper.ensureUniqueResult(em.createQuery(
+                        "select t from " + clazz.getName() + " t where t.id = :id", clazz)
+                .setParameter("id", id));
+        if (obj == null) {
+            return null;
+        }
         afterLoad(obj);
-      }
-    }
-    return result;
-  }
-
-  /**
-   * @param obj          The object to check.
-   * @param loggedInUser The currend logged in user.
-   * @return true if loggedInUser has select access.
-   * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
-   */
-  public boolean hasSelectAccess(O obj, PFUserDO loggedInUser) {
-    return hasUserSelectAccess(loggedInUser, obj, false);
-  }
-
-  /**
-   * Overwrite this method for own list sorting. This method returns only the given list.
-   */
-  public List<O> sort(final List<O> list) {
-    return list;
-  }
-
-  /**
-   * @param id primary key of the base object.
-   */
-  @Override
-  public O getById(final Serializable id) throws AccessException {
-    accessChecker.checkRestrictedUser();
-    checkLoggedInUserSelectAccess();
-    final O obj = internalGetById(id);
-    if (obj == null) {
-      return null;
-    }
-    checkLoggedInUserSelectAccess(obj);
-    return obj;
-  }
-
-  public O internalGetById(final Serializable id) {
-    if (id == null) {
-      return null;
-    }
-    O obj = SQLHelper.ensureUniqueResult(em.createQuery(
-            "select t from " + clazz.getName() + " t where t.id = :id", clazz)
-            .setParameter("id", id));
-    if (obj == null) {
-      return null;
-    }
-    afterLoad(obj);
-    return obj;
-  }
-
-  /**
-   * Gets the history entries of the object.
-   */
-  @SuppressWarnings("rawtypes")
-  public HistoryEntry[] getHistoryEntries(final O obj) {
-    accessChecker.checkRestrictedUser();
-    checkLoggedInUserHistoryAccess(obj);
-    return internalGetHistoryEntries(obj);
-  }
-
-  @SuppressWarnings("rawtypes")
-  public HistoryEntry[] internalGetHistoryEntries(final BaseDO<?> obj) {
-    accessChecker.checkRestrictedUser();
-    return HistoryBaseDaoAdapter.getHistoryFor(obj);
-  }
-
-  /**
-   * Gets the history entries of the object in flat format.<br/>
-   * Please note: If user has no access an empty list will be returned.
-   */
-  @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final O obj) {
-    if (obj.getId() == null || !hasLoggedInUserHistoryAccess(obj, false)) {
-      return EMPTY_HISTORY_ENTRIES;
-    }
-    return internalGetDisplayHistoryEntries(obj);
-  }
-
-  protected List<DisplayHistoryEntry> internalGetDisplayHistoryEntries(final BaseDO<?> obj) {
-    accessChecker.checkRestrictedUser();
-    final HistoryEntry[] entries = internalGetHistoryEntries(obj);
-    if (entries == null) {
-      return null;
-    }
-    return convertAll(entries, em);
-  }
-
-  @SuppressWarnings("rawtypes")
-  private List<DisplayHistoryEntry> convertAll(final HistoryEntry[] entries, final EntityManager em) {
-    final List<DisplayHistoryEntry> list = new ArrayList<>();
-    for (final HistoryEntry entry : entries) {
-      final List<DisplayHistoryEntry> l = convert(entry, em);
-      list.addAll(l);
-    }
-    return list;
-  }
-
-  public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final EntityManager em) {
-    if (entry.getDiffEntries().isEmpty()) {
-      final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
-      return Collections.singletonList(se);
-    }
-    List<DisplayHistoryEntry> result = new ArrayList<>();
-    for (DiffEntry prop : entry.getDiffEntries()) {
-      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, em);
-      result.add(se);
+        return obj;
     }
 
-    return result;
-  }
-
-  /**
-   * @return the generated identifier, if save method is used, otherwise null.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public Serializable saveOrUpdate(final O obj) throws AccessException {
-    Serializable id = null;
-    if (obj.getId() != null && obj.getCreated() != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
-      update(obj);
-    } else {
-      id = save(obj);
+    /**
+     * Gets the history entries of the object.
+     */
+    @SuppressWarnings("rawtypes")
+    public HistoryEntry[] getHistoryEntries(final O obj) {
+        accessChecker.checkRestrictedUser();
+        checkLoggedInUserHistoryAccess(obj);
+        return internalGetHistoryEntries(obj);
     }
-    return id;
-  }
 
-  /**
-   * @return the generated identifier, if save method is used, otherwise null.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public Serializable internalSaveOrUpdate(final O obj) {
-    Serializable id = null;
-    if (obj.getId() != null) {
-      internalUpdate(obj);
-    } else {
-      id = internalSave(obj);
+    @SuppressWarnings("rawtypes")
+    public HistoryEntry[] internalGetHistoryEntries(final BaseDO<?> obj) {
+        accessChecker.checkRestrictedUser();
+        return HistoryBaseDaoAdapter.getHistoryFor(obj);
     }
-    return id;
-  }
 
-  /**
-   * Call save(O) for every object in the given list.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void save(final List<O> objects) throws AccessException {
-    Validate.notNull(objects);
-    for (final O obj : objects) {
-      save(obj);
+    /**
+     * Gets the history entries of the object in flat format.<br/>
+     * Please note: If user has no access an empty list will be returned.
+     */
+    @Override
+    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final O obj) {
+        if (obj.getId() == null || !hasLoggedInUserHistoryAccess(obj, false)) {
+            return EMPTY_HISTORY_ENTRIES;
+        }
+        return internalGetDisplayHistoryEntries(obj);
     }
-  }
 
-  /**
-   * @return the generated identifier.
-   */
-  @Override
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public Integer save(final O obj) throws AccessException {
-    //long begin = System.currentTimeMillis();
-    Validate.notNull(obj);
-    if (!avoidNullIdCheckBeforeSave) {
-      Validate.isTrue(obj.getId() == null);
+    protected List<DisplayHistoryEntry> internalGetDisplayHistoryEntries(final BaseDO<?> obj) {
+        accessChecker.checkRestrictedUser();
+        final HistoryEntry[] entries = internalGetHistoryEntries(obj);
+        if (entries == null) {
+            return null;
+        }
+        return convertAll(entries, em);
     }
-    accessChecker.checkRestrictedOrDemoUser();
-    beforeSaveOrModify(obj);
-    checkLoggedInUserInsertAccess(obj);
-    Integer result = internalSave(obj);
-    //long end = System.currentTimeMillis();
-    //log.info("BaseDao.save took: " + (end - begin) + " ms.");
-    return result;
-  }
 
-  @Override
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public Integer insert(O obj) throws AccessException {
-    return save(obj);
-  }
-
-  /**
-   * This method will be called after loading an object from the data base. Does nothing at default. This method is not
-   * called by internalLoadAll.
-   */
-  public void afterLoad(final O obj) {
-
-  }
-
-  /**
-   * This method will be called after inserting, updating, deleting or marking the data object as deleted. This method
-   * is for example needed for expiring the UserGroupCache after inserting or updating a user or group data object. Does
-   * nothing at default.
-   */
-  protected void afterSaveOrModify(final O obj) {
-  }
-
-  /**
-   * This method will be called after inserting. Does nothing at default.
-   *
-   * @param obj The inserted object
-   */
-  protected void afterSave(final O obj) {
-    callObjectChangedListeners(obj, OperationType.INSERT);
-  }
-
-  /**
-   * This method will be called before inserting. Does nothing at default.
-   */
-  protected void onSave(final O obj) {
-  }
-
-  /**
-   * This method will be called before inserting, updating, deleting or marking the data object as deleted. Does nothing
-   * at default.
-   */
-  protected void onSaveOrModify(final O obj) {
-  }
-
-  /**
-   * This method will be called before access check of inserting and updating the object. Does nothing
-   * at default.
-   */
-  protected void beforeSaveOrModify(final O obj) {
-  }
-
-  /**
-   * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
-   * forget to set {@link #supportAfterUpdate} to true, otherwise you won't get the origin data base object!
-   *
-   * @param obj   The modified object
-   * @param dbObj The object from data base before modification.
-   */
-  protected void afterUpdate(final O obj, final O dbObj) {
-    callObjectChangedListeners(obj, OperationType.UPDATE);
-  }
-
-  /**
-   * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
-   * forget to set {@link #supportAfterUpdate} to true, otherwise you won't get the origin data base object!
-   *
-   * @param obj        The modified object
-   * @param dbObj      The object from data base before modification.
-   * @param isModified is true if the object was changed, false if the object wasn't modified.
-   */
-  protected void afterUpdate(final O obj, final O dbObj, final boolean isModified) {
-    callObjectChangedListeners(obj, OperationType.UPDATE);
-  }
-
-  /**
-   * This method will be called before updating the data object. Will also called if in internalUpdate no modification
-   * was detected. Please note: Do not modify the object oldVersion! Does nothing at default.
-   *
-   * @param obj   The changed object.
-   * @param dbObj The current data base version of this object.
-   */
-  protected void onChange(final O obj, final O dbObj) {
-  }
-
-  /**
-   * This method will be called before deleting. Does nothing at default.
-   *
-   * @param obj The deleted object.
-   */
-  protected void onDelete(final O obj) {
-  }
-
-  /**
-   * This method will be called after deleting as well as after object is marked as deleted. Does nothing at default.
-   *
-   * @param obj The deleted object.
-   */
-  protected void afterDelete(final O obj) {
-    callObjectChangedListeners(obj, OperationType.DELETE);
-  }
-
-  /**
-   * This method will be called after undeleting. Does nothing at default.
-   *
-   * @param obj The deleted object.
-   */
-  protected void afterUndelete(final O obj) {
-    callObjectChangedListeners(obj, OperationType.UNDELETE);
-  }
-
-  protected void callObjectChangedListeners(final O obj, final OperationType operationType) {
-    for (final BaseDOChangedListener<O> objectChangedListener : objectChangedListeners) {
-      objectChangedListener.afterSaveOrModify(obj, operationType);
+    @SuppressWarnings("rawtypes")
+    private List<DisplayHistoryEntry> convertAll(final HistoryEntry[] entries, final EntityManager em) {
+        final List<DisplayHistoryEntry> list = new ArrayList<>();
+        for (final HistoryEntry entry : entries) {
+            final List<DisplayHistoryEntry> l = convert(entry, em);
+            list.addAll(l);
+        }
+        return list;
     }
-  }
 
-  /**
-   * This method is for internal use e. g. for updating objects without check access.
-   *
-   * @return the generated identifier.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public Integer internalSave(final O obj) {
-    return BaseDaoSupport.internalSave(this, obj);
-  }
+    public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final EntityManager em) {
+        if (entry.getDiffEntries().isEmpty()) {
+            final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
+            return Collections.singletonList(se);
+        }
+        List<DisplayHistoryEntry> result = new ArrayList<>();
+        for (DiffEntry prop : entry.getDiffEntries()) {
+            DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, em);
+            result.add(se);
+        }
 
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void saveOrUpdate(final Collection<O> col) {
-    for (final O obj : col) {
-      saveOrUpdate(obj);
+        return result;
     }
-  }
 
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void saveOrUpdate(final Collection<O> col, final int blockSize) {
-    final List<O> list = new ArrayList<>();
-    int counter = 0;
-    for (final O obj : col) {
-      list.add(obj);
-      if (++counter >= blockSize) {
-        counter = 0;
+    /**
+     * @return the generated identifier, if save method is used, otherwise null.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Serializable saveOrUpdate(final O obj) throws AccessException {
+        Serializable id = null;
+        if (obj.getId() != null && obj.created != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
+            update(obj);
+        } else {
+            id = save(obj);
+        }
+        return id;
+    }
+
+    /**
+     * @return the generated identifier, if save method is used, otherwise null.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Serializable internalSaveOrUpdate(final O obj) {
+        Serializable id = null;
+        if (obj.getId() != null) {
+            internalUpdate(obj);
+        } else {
+            id = internalSave(obj);
+        }
+        return id;
+    }
+
+    /**
+     * Call save(O) for every object in the given list.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void save(final List<O> objects) throws AccessException {
+        Validate.notNull(objects);
+        for (final O obj : objects) {
+            save(obj);
+        }
+    }
+
+    /**
+     * @return the generated identifier.
+     */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Integer save(final O obj) throws AccessException {
+        //long begin = System.currentTimeMillis();
+        Validate.notNull(obj);
+        if (!avoidNullIdCheckBeforeSave) {
+            Validate.isTrue(obj.getId() == null);
+        }
+        accessChecker.checkRestrictedOrDemoUser();
+        beforeSaveOrModify(obj);
+        checkLoggedInUserInsertAccess(obj);
+        Integer result = internalSave(obj);
+        //long end = System.currentTimeMillis();
+        //log.info("BaseDao.save took: " + (end - begin) + " ms.");
+        return result;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Integer insert(O obj) throws AccessException {
+        return save(obj);
+    }
+
+    /**
+     * This method will be called after loading an object from the data base. Does nothing at default. This method is not
+     * called by internalLoadAll.
+     */
+    public void afterLoad(final O obj) {
+
+    }
+
+    /**
+     * This method will be called after inserting, updating, deleting or marking the data object as deleted. This method
+     * is for example needed for expiring the UserGroupCache after inserting or updating a user or group data object. Does
+     * nothing at default.
+     */
+    protected void afterSaveOrModify(final O obj) {
+    }
+
+    /**
+     * This method will be called after inserting. Does nothing at default.
+     *
+     * @param obj The inserted object
+     */
+    protected void afterSave(final O obj) {
+        callObjectChangedListeners(obj, OperationType.INSERT);
+    }
+
+    /**
+     * This method will be called before inserting. Does nothing at default.
+     */
+    protected void onSave(final O obj) {
+    }
+
+    /**
+     * This method will be called before inserting, updating, deleting or marking the data object as deleted. Does nothing
+     * at default.
+     */
+    protected void onSaveOrModify(final O obj) {
+    }
+
+    /**
+     * This method will be called before access check of inserting and updating the object. Does nothing
+     * at default.
+     */
+    protected void beforeSaveOrModify(final O obj) {
+    }
+
+    /**
+     * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
+     * forget to set {@link #supportAfterUpdate} to true, otherwise you won't get the origin data base object!
+     *
+     * @param obj   The modified object
+     * @param dbObj The object from data base before modification.
+     */
+    protected void afterUpdate(final O obj, final O dbObj) {
+        callObjectChangedListeners(obj, OperationType.UPDATE);
+    }
+
+    /**
+     * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
+     * forget to set {@link #supportAfterUpdate} to true, otherwise you won't get the origin data base object!
+     *
+     * @param obj        The modified object
+     * @param dbObj      The object from data base before modification.
+     * @param isModified is true if the object was changed, false if the object wasn't modified.
+     */
+    protected void afterUpdate(final O obj, final O dbObj, final boolean isModified) {
+        callObjectChangedListeners(obj, OperationType.UPDATE);
+    }
+
+    /**
+     * This method will be called before updating the data object. Will also called if in internalUpdate no modification
+     * was detected. Please note: Do not modify the object oldVersion! Does nothing at default.
+     *
+     * @param obj   The changed object.
+     * @param dbObj The current data base version of this object.
+     */
+    protected void onChange(final O obj, final O dbObj) {
+    }
+
+    /**
+     * This method will be called before deleting. Does nothing at default.
+     *
+     * @param obj The deleted object.
+     */
+    protected void onDelete(final O obj) {
+    }
+
+    /**
+     * This method will be called after deleting as well as after object is marked as deleted. Does nothing at default.
+     *
+     * @param obj The deleted object.
+     */
+    protected void afterDelete(final O obj) {
+        callObjectChangedListeners(obj, OperationType.DELETE);
+    }
+
+    /**
+     * This method will be called after undeleting. Does nothing at default.
+     *
+     * @param obj The deleted object.
+     */
+    protected void afterUndelete(final O obj) {
+        callObjectChangedListeners(obj, OperationType.UNDELETE);
+    }
+
+    protected void callObjectChangedListeners(final O obj, final OperationType operationType) {
+        for (final BaseDOChangedListener<O> objectChangedListener : objectChangedListeners) {
+            objectChangedListener.afterSaveOrModify(obj, operationType);
+        }
+    }
+
+    /**
+     * This method is for internal use e. g. for updating objects without check access.
+     *
+     * @return the generated identifier.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Integer internalSave(final O obj) {
+        return BaseDaoSupport.internalSave(this, obj);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void saveOrUpdate(final Collection<O> col) {
+        for (final O obj : col) {
+            saveOrUpdate(obj);
+        }
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void saveOrUpdate(final Collection<O> col, final int blockSize) {
+        final List<O> list = new ArrayList<>();
+        int counter = 0;
+        for (final O obj : col) {
+            list.add(obj);
+            if (++counter >= blockSize) {
+                counter = 0;
+                saveOrUpdate(list);
+                list.clear();
+            }
+        }
         saveOrUpdate(list);
-        list.clear();
-      }
     }
-    saveOrUpdate(list);
-  }
 
-  /**
-   * Bulk update.
-   *
-   * @param col Entries to save or update without check access.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalSaveOrUpdate(final Collection<O> col) {
-    BaseDaoSupport.internalSaveOrUpdate(this, col);
-  }
-
-  /**
-   * Bulk update.
-   *
-   * @param col       Entries to save or update without check access.
-   * @param blockSize The block size of commit blocks.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalSaveOrUpdate(final Collection<O> col, final int blockSize) {
-    BaseDaoSupport.internalSaveOrUpdate(this, col, blockSize);
-  }
-
-  /**
-   * @return true, if modifications were done, false if no modification detected.
-   * @see #internalUpdate(ExtendedBaseDO, boolean)
-   */
-  @Override
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public ModificationStatus update(final O obj) throws AccessException {
-    Validate.notNull(obj);
-    if (obj.getId() == null) {
-      final String msg = "Could not update object unless id is not given:" + obj.toString();
-      log.error(msg);
-      throw new RuntimeException(msg);
+    /**
+     * Bulk update.
+     *
+     * @param col Entries to save or update without check access.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void internalSaveOrUpdate(final Collection<O> col) {
+        BaseDaoSupport.internalSaveOrUpdate(this, col);
     }
-    accessChecker.checkRestrictedOrDemoUser();
-    return internalUpdate(obj, true);
-  }
 
-  /**
-   * Thin wrapper for generic usage.
-   *
-   * @return true, if modifications were done, false if no modification detected.
-   * @see #internalUpdate(ExtendedBaseDO, boolean)
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public ModificationStatus updateAny(final Object obj) throws AccessException {
-    return update((O) obj);
-  }
-
-  /**
-   * Thin wrapper for generic usage.
-   *
-   * @return true, if modifications were done, false if no modification detected.
-   * @see #internalUpdate(ExtendedBaseDO, boolean)
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public ModificationStatus internalUpdateAny(final Object obj) throws AccessException {
-    return internalUpdate((O) obj);
-  }
-
-  /**
-   * This method is for internal use e. g. for updating objects without check access.
-   *
-   * @return true, if modifications were done, false if no modification detected.
-   * @see #internalUpdate(ExtendedBaseDO, boolean)
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public ModificationStatus internalUpdate(final O obj) {
-    return internalUpdate(obj, false);
-  }
-
-  /**
-   * This method is for internal use e. g. for updating objects without check access.<br/>
-   * Please note: update ignores the field deleted. Use markAsDeleted, delete and undelete methods instead.
-   *
-   * @param checkAccess If false, any access check will be ignored.
-   * @return true, if modifications were done, false if no modification detected.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public ModificationStatus internalUpdate(final O obj, final boolean checkAccess) {
-    return BaseDaoSupport.internalUpdate(this, obj, checkAccess);
-  }
-
-  /**
-   * @return If true (default if not minor Change) all dependent data-base objects will be re-indexed. For e. g.
-   * PFUserDO all time-sheets etc. of this user will be re-indexed. It's called after internalUpdate. Refer
-   * UserDao to see more.
-   * @see BaseDO#isMinorChange()
-   */
-  protected boolean wantsReindexAllDependentObjects(final O obj, final O dbObj) {
-    return !obj.isMinorChange();
-  }
-
-  /**
-   * Used by internal update if supportAfterUpdate is true for storing db object version for afterUpdate. Override this
-   * method to implement your own copy method.
-   */
-  protected O getBackupObject(final O dbObj) {
-    final O backupObj = newInstance();
-    copyValues(dbObj, backupObj);
-    return backupObj;
-  }
-
-  /**
-   * Overwrite this method if you have lazy exceptions while Hibernate-Search re-indexes. See e. g. AuftragDao.
-   */
-  protected void prepareHibernateSearch(final O obj, final OperationType operationType) {
-  }
-
-  /**
-   * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @Override
-  public void markAsDeleted(final O obj) throws AccessException {
-    Validate.notNull(obj);
-    if (obj.getId() == null) {
-      final String msg = "Could not delete object unless id is not given:" + obj.toString();
-      log.error(msg);
-      throw new RuntimeException(msg);
+    /**
+     * Bulk update.
+     *
+     * @param col       Entries to save or update without check access.
+     * @param blockSize The block size of commit blocks.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void internalSaveOrUpdate(final Collection<O> col, final int blockSize) {
+        BaseDaoSupport.internalSaveOrUpdate(this, col, blockSize);
     }
-    accessChecker.checkRestrictedOrDemoUser();
-    final O dbObj = em.find(clazz, obj.getId());
-    checkLoggedInUserDeleteAccess(obj, dbObj);
-    internalMarkAsDeleted(obj);
-  }
 
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalMarkAsDeleted(final O obj) {
-    BaseDaoSupport.internalMarkAsDeleted(this, obj);
-  }
-
-  /**
-   * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
-   * privacy protection rules.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void forceDelete(final O obj) throws AccessException {
-    Validate.notNull(obj);
-    if (obj.getId() == null) {
-      final String msg = "Could not delete object unless id is not given:" + obj.toString();
-      log.error(msg);
-      throw new RuntimeException(msg);
+    /**
+     * @return true, if modifications were done, false if no modification detected.
+     * @see #internalUpdate(ExtendedBaseDO, boolean)
+     */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ModificationStatus update(final O obj) throws AccessException {
+        Validate.notNull(obj);
+        if (obj.getId() == null) {
+            final String msg = "Could not update object unless id is not given:" + obj.toString();
+            log.error(msg);
+            throw new RuntimeException(msg);
+        }
+        accessChecker.checkRestrictedOrDemoUser();
+        return internalUpdate(obj, true);
     }
-    accessChecker.checkRestrictedOrDemoUser();
-    final O dbObj = em.find(clazz, obj.getId());
-    checkLoggedInUserDeleteAccess(obj, dbObj);
-    internalForceDelete(obj);
-  }
 
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalForceDelete(final O obj) {
-    BaseDaoSupport.internalForceDelete(this, obj);
-  }
-
-  void flushSearchSession(EntityManager em) {
-    long begin = System.currentTimeMillis();
-    if (LUCENE_FLUSH_ALWAYS) {
-      Search.getFullTextEntityManager(em).flushToIndexes();
+    /**
+     * Thin wrapper for generic usage.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see #internalUpdate(ExtendedBaseDO, boolean)
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ModificationStatus updateAny(final Object obj) throws AccessException {
+        return update((O) obj);
     }
-    long end = System.currentTimeMillis();
-    if (end - begin > 1000) {
-      log.info("BaseDao.flushSearchSession took: " + (end - begin) + " ms (> 1s).");
+
+    /**
+     * Thin wrapper for generic usage.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see #internalUpdate(ExtendedBaseDO, boolean)
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ModificationStatus internalUpdateAny(final Object obj) throws AccessException {
+        return internalUpdate((O) obj);
     }
-  }
 
-  /**
-   * Object will be deleted finally out of the data base.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @Override
-  public void delete(final O obj) throws AccessException {
-    Validate.notNull(obj);
-    accessChecker.checkRestrictedOrDemoUser();
-    internalDelete(obj);
-  }
-
-  /**
-   * Object will be deleted finally out of the data base.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalDelete(final O obj) throws AccessException {
-    Validate.notNull(obj);
-    if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
-      final String msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString();
-      log.error(msg);
-      throw new RuntimeException(msg);
+    /**
+     * This method is for internal use e. g. for updating objects without check access.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see #internalUpdate(ExtendedBaseDO, boolean)
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ModificationStatus internalUpdate(final O obj) {
+        return internalUpdate(obj, false);
     }
-    if (obj.getId() == null) {
-      final String msg = "Could not destroy object unless id is not given: " + obj.toString();
-      log.error(msg);
-      throw new RuntimeException(msg);
+
+    /**
+     * This method is for internal use e. g. for updating objects without check access.<br/>
+     * Please note: update ignores the field deleted. Use markAsDeleted, delete and undelete methods instead.
+     *
+     * @param checkAccess If false, any access check will be ignored.
+     * @return true, if modifications were done, false if no modification detected.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ModificationStatus internalUpdate(final O obj, final boolean checkAccess) {
+        return BaseDaoSupport.internalUpdate(this, obj, checkAccess);
     }
-    onDelete(obj);
-    emgrFactory.runInTrans(emgr -> {
-      EntityManager em = emgr.getEntityManager();
-      final O dbObj = em.find(clazz, obj.getId());
-      checkLoggedInUserDeleteAccess(obj, dbObj);
-      em.remove(dbObj);
-      return null;
-    });
-    if (logDatabaseActions) {
-      log.info(clazz.getSimpleName() + " deleted: " + obj.toString());
+
+    /**
+     * @return If true (default if not minor Change) all dependent data-base objects will be re-indexed. For e. g.
+     * PFUserDO all time-sheets etc. of this user will be re-indexed. It's called after internalUpdate. Refer
+     * UserDao to see more.
+     * @see BaseDO#isMinorChange()
+     */
+    protected boolean wantsReindexAllDependentObjects(final O obj, final O dbObj) {
+        return !obj.isMinorChange;
     }
-    afterSaveOrModify(obj);
-    afterDelete(obj);
-  }
 
-  /**
-   * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @Override
-  public void undelete(final O obj) throws AccessException {
-    Validate.notNull(obj);
-    if (obj.getId() == null) {
-      final String msg = "Could not undelete object unless id is not given:" + obj.toString();
-      log.error(msg);
-      throw new RuntimeException(msg);
+    /**
+     * Used by internal update if supportAfterUpdate is true for storing db object version for afterUpdate. Override this
+     * method to implement your own copy method.
+     */
+    protected O getBackupObject(final O dbObj) {
+        final O backupObj = newInstance();
+        copyValues(dbObj, backupObj);
+        return backupObj;
     }
-    accessChecker.checkRestrictedOrDemoUser();
-    checkLoggedInUserInsertAccess(obj);
-    internalUndelete(obj);
-  }
 
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void internalUndelete(final O obj) {
-    BaseDaoSupport.internalUndelete(this, obj);
-  }
-
-  /**
-   * Checks the basic select access right. Overload this method if your class supports this right.
-   */
-  public void checkLoggedInUserSelectAccess() throws AccessException {
-    if (!hasUserSelectAccess(ThreadLocalUserContext.getUser(), true)) {
-      // Should not occur!
-      log.error("Development error: Subclass should throw an exception instead of returning false.");
-      throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+    /**
+     * Overwrite this method if you have lazy exceptions while Hibernate-Search re-indexes. See e. g. AuftragDao.
+     */
+    protected void prepareHibernateSearch(final O obj, final OperationType operationType) {
     }
-  }
 
-  protected void checkLoggedInUserSelectAccess(final O obj) throws AccessException {
-    if (!hasUserSelectAccess(ThreadLocalUserContext.getUser(), obj, true)) {
-      // Should not occur!
-      log.error("Development error: Subclass should throw an exception instead of returning false.");
-      throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+    /**
+     * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public void markAsDeleted(final O obj) throws AccessException {
+        Validate.notNull(obj);
+        if (obj.getId() == null) {
+            final String msg = "Could not delete object unless id is not given:" + obj.toString();
+            log.error(msg);
+            throw new RuntimeException(msg);
+        }
+        accessChecker.checkRestrictedOrDemoUser();
+        final O dbObj = em.find(clazz, obj.getId());
+        checkLoggedInUserDeleteAccess(obj, dbObj);
+        internalMarkAsDeleted(obj);
     }
-  }
 
-  private void checkLoggedInUserHistoryAccess(final O obj) throws AccessException {
-    if (!hasHistoryAccess(ThreadLocalUserContext.getUser(), true)
-            || !hasLoggedInUserHistoryAccess(obj, true)) {
-      // Should not occur!
-      log.error("Development error: Subclass should throw an exception instead of returning false.");
-      throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void internalMarkAsDeleted(final O obj) {
+        BaseDaoSupport.internalMarkAsDeleted(this, obj);
     }
-  }
 
-  private void checkLoggedInUserInsertAccess(final O obj) throws AccessException {
-    checkInsertAccess(ThreadLocalUserContext.getUser(), obj);
-  }
-
-  protected void checkInsertAccess(final PFUserDO user, final O obj) throws AccessException {
-    if (!hasInsertAccess(user, obj, true)) {
-      // Should not occur!
-      log.error("Development error: Subclass should throw an exception instead of returning false.");
-      throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+    /**
+     * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
+     * privacy protection rules.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void forceDelete(final O obj) throws AccessException {
+        Validate.notNull(obj);
+        if (obj.getId() == null) {
+            final String msg = "Could not delete object unless id is not given:" + obj.toString();
+            log.error(msg);
+            throw new RuntimeException(msg);
+        }
+        accessChecker.checkRestrictedOrDemoUser();
+        final O dbObj = em.find(clazz, obj.getId());
+        checkLoggedInUserDeleteAccess(obj, dbObj);
+        internalForceDelete(obj);
     }
-  }
 
-  /**
-   * @param dbObj The original object (stored in the database)
-   */
-  void checkLoggedInUserUpdateAccess(final O obj, final O dbObj) throws AccessException {
-    checkUpdateAccess(ThreadLocalUserContext.getUser(), obj, dbObj);
-  }
-
-  /**
-   * @param dbObj The original object (stored in the database)
-   */
-  protected void checkUpdateAccess(final PFUserDO user, final O obj, final O dbObj) throws AccessException {
-    if (!hasUpdateAccess(user, obj, dbObj, true)) {
-      // Should not occur!
-      log.error("Development error: Subclass should throw an exception instead of returning false.");
-      throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void internalForceDelete(final O obj) {
+        BaseDaoSupport.internalForceDelete(this, obj);
     }
-  }
 
-  private void checkLoggedInUserDeleteAccess(final O obj, final O dbObj) throws AccessException {
-    if (!hasLoggedInUserDeleteAccess(obj, dbObj, true)) {
-      // Should not occur!
-      log.error("Development error: Subclass should throw an exception instead of returning false.");
-      throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+    void flushSearchSession(EntityManager em) {
+        long begin = System.currentTimeMillis();
+        if (LUCENE_FLUSH_ALWAYS) {
+            Search.getFullTextEntityManager(em).flushToIndexes();
+        }
+        long end = System.currentTimeMillis();
+        if (end - begin > 1000) {
+            log.info("BaseDao.flushSearchSession took: " + (end - begin) + " ms (> 1s).");
+        }
     }
-  }
 
-  /**
-   * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
-   *
-   * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
-   * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
-   */
-  public boolean hasLoggedInUserSelectAccess(final boolean throwException) {
-    return hasUserSelectAccess(ThreadLocalUserContext.getUser(), throwException);
-  }
-
-  /**
-   * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
-   *
-   * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
-   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
-   */
-  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
-    return hasAccess(user, null, null, OperationType.SELECT, throwException);
-  }
-
-  /**
-   * If userRightId is given then {@link AccessChecker#hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)}
-   * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
-   * given object.
-   *
-   * @param obj           The object.
-   * @param oldObj        The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
-   * @param operationType The operation type (select, insert, update or delete)
-   * @return true, if the user has the access right for the given operation type and object.
-   */
-  public boolean hasLoggedInUserAccess(final O obj, final O oldObj, final OperationType operationType,
-                                       final boolean throwException) {
-    return hasAccess(ThreadLocalUserContext.getUser(), obj, oldObj, operationType, throwException);
-  }
-
-  /**
-   * If userRightId is given then {@link AccessChecker#hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)}
-   * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
-   * given object.
-   *
-   * @param user          Check the access for the given user instead of the logged-in user.
-   * @param obj           The object.
-   * @param oldObj        The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
-   * @param operationType The operation type (select, insert, update or delete)
-   * @return true, if the user has the access right for the given operation type and object.
-   */
-  public boolean hasAccess(final PFUserDO user, final O obj, final O oldObj, final OperationType operationType,
-                           final boolean throwException) {
-    if (userRightId != null) {
-      return accessChecker.hasAccess(user, userRightId, obj, oldObj, operationType, throwException);
+    /**
+     * Object will be deleted finally out of the data base.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public void delete(final O obj) throws AccessException {
+        Validate.notNull(obj);
+        accessChecker.checkRestrictedOrDemoUser();
+        internalDelete(obj);
     }
-    throw new UnsupportedOperationException(
-            "readWriteUserRightId not given. Override this method or set readWriteUserRightId in constructor.");
-  }
 
-  /**
-   * @param obj Check access to this object.
-   * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
-   */
-  public boolean hasLoggedInUserSelectAccess(final O obj, final boolean throwException) {
-    return hasUserSelectAccess(ThreadLocalUserContext.getUser(), obj, throwException);
-  }
-
-  /**
-   * @param user Check the access for the given user instead of the logged-in user. Checks select access right by
-   *             calling hasAccess(obj, OperationType.SELECT).
-   * @param obj  Check access to this object.
-   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
-   */
-  public boolean hasUserSelectAccess(final PFUserDO user, final O obj, final boolean throwException) {
-    return hasAccess(user, obj, null, OperationType.SELECT, throwException);
-  }
-
-  /**
-   * Has the user access to the history of the given object. At default this method calls hasHistoryAccess(boolean)
-   * first and then hasSelectAccess.
-   */
-  public boolean hasLoggedInUserHistoryAccess(final O obj, final boolean throwException) {
-    return hasHistoryAccess(ThreadLocalUserContext.getUser(), obj, throwException);
-  }
-
-  /**
-   * Has the user access to the history of the given object. At default this method calls hasHistoryAccess(boolean)
-   * first and then hasSelectAccess.
-   */
-  public boolean hasHistoryAccess(final PFUserDO user, final O obj, final boolean throwException) {
-    if (!hasHistoryAccess(user, throwException)) {
-      return false;
+    /**
+     * Object will be deleted finally out of the data base.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void internalDelete(final O obj) throws AccessException {
+        Validate.notNull(obj);
+        if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
+            final String msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString();
+            log.error(msg);
+            throw new RuntimeException(msg);
+        }
+        if (obj.getId() == null) {
+            final String msg = "Could not destroy object unless id is not given: " + obj.toString();
+            log.error(msg);
+            throw new RuntimeException(msg);
+        }
+        onDelete(obj);
+        emgrFactory.runInTrans(emgr -> {
+            EntityManager em = emgr.getEntityManager();
+            final O dbObj = em.find(clazz, obj.getId());
+            checkLoggedInUserDeleteAccess(obj, dbObj);
+            em.remove(dbObj);
+            return null;
+        });
+        if (logDatabaseActions) {
+            log.info(clazz.getSimpleName() + " deleted: " + obj.toString());
+        }
+        afterSaveOrModify(obj);
+        afterDelete(obj);
     }
-    if (userRightId != null) {
-      return accessChecker.hasHistoryAccess(user, userRightId, obj, throwException);
+
+    /**
+     * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public void undelete(final O obj) throws AccessException {
+        Validate.notNull(obj);
+        if (obj.getId() == null) {
+            final String msg = "Could not undelete object unless id is not given:" + obj.toString();
+            log.error(msg);
+            throw new RuntimeException(msg);
+        }
+        accessChecker.checkRestrictedOrDemoUser();
+        checkLoggedInUserInsertAccess(obj);
+        internalUndelete(obj);
     }
-    return hasUserSelectAccess(user, obj, throwException);
-  }
 
-  /**
-   * Has the user access to the history in general of the objects. At default this method calls hasSelectAccess.
-   */
-  public boolean hasLoggedInUserHistoryAccess(final boolean throwException) {
-    return hasHistoryAccess(ThreadLocalUserContext.getUser(), throwException);
-  }
-
-  /**
-   * Has the user access to the history in general of the objects. At default this method calls hasSelectAccess.
-   */
-  public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException) {
-    if (userRightId != null) {
-      return accessChecker.hasHistoryAccess(user, userRightId, null, throwException);
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void internalUndelete(final O obj) {
+        BaseDaoSupport.internalUndelete(this, obj);
     }
-    return hasUserSelectAccess(user, throwException);
-  }
 
-  /**
-   * Checks insert access right by calling hasAccess(obj, OperationType.INSERT).
-   *
-   * @param obj Check access to this object.
-   * @see #hasInsertAccess(PFUserDO, ExtendedBaseDO, boolean)
-   */
-  @Override
-  public boolean hasLoggedInUserInsertAccess(final O obj, final boolean throwException) {
-    return hasInsertAccess(ThreadLocalUserContext.getUser(), obj, throwException);
-  }
-
-  /**
-   * Checks insert access right by calling hasAccess(obj, OperationType.INSERT).
-   *
-   * @param obj Check access to this object.
-   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
-   */
-  public boolean hasInsertAccess(final PFUserDO user, final O obj, final boolean throwException) {
-    return hasAccess(user, obj, null, OperationType.INSERT, throwException);
-  }
-
-  /**
-   * Checks write access of the readWriteUserRight. If not given, true is returned at default. This method should only
-   * be used for checking the insert access to show an insert button or not. Before inserting any object the write
-   * access is checked by has*Access(...) independent of the result of this method.
-   *
-   * @see org.projectforge.framework.persistence.api.IDao#hasInsertAccess(PFUserDO)
-   */
-  @Override
-  public boolean hasLoggedInUserInsertAccess() {
-    return hasInsertAccess(ThreadLocalUserContext.getUser());
-  }
-
-  /**
-   * Checks write access of the readWriteUserRight. If not given, true is returned at default. This method should only
-   * be used for checking the insert access to show an insert button or not. Before inserting any object the write
-   * access is checked by has*Access(...) independent of the result of this method.
-   *
-   * @see AccessChecker#hasInsertAccess(PFUserDO, IUserRightId, boolean)
-   */
-  @Override
-  public boolean hasInsertAccess(final PFUserDO user) {
-    if (userRightId != null) {
-      return accessChecker.hasInsertAccess(user, userRightId, false);
+    /**
+     * Checks the basic select access right. Overload this method if your class supports this right.
+     */
+    public void checkLoggedInUserSelectAccess() throws AccessException {
+        if (!hasUserSelectAccess(ThreadLocalUserContext.getUser(), true)) {
+            // Should not occur!
+            log.error("Development error: Subclass should throw an exception instead of returning false.");
+            throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+        }
     }
-    return true;
-  }
 
-  /**
-   * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
-   *
-   * @param dbObj The original object (stored in the database)
-   * @param obj   Check access to this object.
-   * @see #hasUpdateAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
-   */
-  @Override
-  public boolean hasLoggedInUserUpdateAccess(final O obj, final O dbObj, final boolean throwException) {
-    return hasUpdateAccess(ThreadLocalUserContext.getUser(), obj, dbObj, throwException);
-  }
-  /**
-   * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
-   *
-   * @param dbObj The original object (stored in the database)
-   * @param obj   Check access to this object.
-   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
-   */
-  public boolean hasUpdateAccess(final PFUserDO user, final O obj, final O dbObj, final boolean throwException) {
-    return hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException);
-  }
-
-  /**
-   * Checks delete access right by calling hasAccess(obj, OperationType.DELETE).
-   *
-   * @param obj   Check access to this object.
-   * @param dbObj current version of this object in the data base.
-   * @see #hasDeleteAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
-   */
-  @Override
-  public boolean hasLoggedInUserDeleteAccess(final O obj, final O dbObj, final boolean throwException) {
-    return hasDeleteAccess(ThreadLocalUserContext.getUser(), obj, dbObj, throwException);
-  }
-
-  /**
-   * Checks delete access right by calling hasAccess(obj, OperationType.DELETE).
-   *
-   * @param obj   Check access to this object.
-   * @param dbObj current version of this object in the data base.
-   * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
-   */
-  @Override
-  public boolean hasDeleteAccess(final PFUserDO user, final O obj, final O dbObj, final boolean throwException) {
-    return hasAccess(user, obj, dbObj, OperationType.DELETE, throwException);
-  }
-
-  public UserRight getUserRight() {
-    if (userRightId != null) {
-      return userRights.getRight(userRightId);
-    } else {
-      return null;
+    protected void checkLoggedInUserSelectAccess(final O obj) throws AccessException {
+        if (!hasUserSelectAccess(ThreadLocalUserContext.getUser(), obj, true)) {
+            // Should not occur!
+            log.error("Development error: Subclass should throw an exception instead of returning false.");
+            throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+        }
     }
-  }
 
-  /**
-   * Overload this method for copying field manually. Used for modifiing fields inside methods: update, markAsDeleted
-   * and undelete.
-   *
-   * @return true, if any field was modified, otherwise false.
-   * @see BaseDO#copyValuesFrom(BaseDO, String...)
-   */
-  protected ModificationStatus copyValues(final O src, final O dest, final String... ignoreFields) {
-    return dest.copyValuesFrom(src, ignoreFields);
-  }
-
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  protected void createHistoryEntry(final Object entity, final Number id, final String property,
-                                    final Class<?> valueClass,
-                                    final Object oldValue, final Object newValue) {
-
-    accessChecker.checkRestrictedOrDemoUser();
-    final PFUserDO contextUser = ThreadLocalUserContext.getUser();
-    final String userPk = contextUser != null ? contextUser.getId().toString() : null;
-    if (userPk == null) {
-      log.warn("No user found for creating history entry.");
+    private void checkLoggedInUserHistoryAccess(final O obj) throws AccessException {
+        if (!hasHistoryAccess(ThreadLocalUserContext.getUser(), true)
+                || !hasLoggedInUserHistoryAccess(obj, true)) {
+            // Should not occur!
+            log.error("Development error: Subclass should throw an exception instead of returning false.");
+            throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+        }
     }
-    HistoryBaseDaoAdapter.createHistoryEntry(entity, id, userPk, property, valueClass, oldValue, newValue);
-  }
 
-  /**
-   * SECURITY ADVICE:
-   * For security reasons every property must be enabled for autocompletion. Otherwise the user may select
-   * too much information, because only generic select access of an entity is checked. Example: The user has
-   * select access to users, therefore he may select all password fields!!!
-   * <br/>
-   * Refer implementation of ContractDao as example.
-   */
-  public boolean isAutocompletionPropertyEnabled(String property) {
-    return false;
-  }
-
-  /**
-   * SECURITY ADVICE:
-   * Only generic check access will be done. The matching entries will not be checked!
-   *
-   * @param property     Property of the data base entity.
-   * @param searchString String the user has typed in.
-   * @return All matching entries (like search) for the given property modified or updated in the last 2 years.
-   */
-  @Override
-  public List<String> getAutocompletion(final String property, final String searchString) {
-    checkLoggedInUserSelectAccess();
-    if (!isAutocompletionPropertyEnabled(property)) {
-      log.warn("Security alert: The user tried to select property '" + property + "' of entity '" + this.clazz.getName() + "'.");
-      return new ArrayList<>();
+    private void checkLoggedInUserInsertAccess(final O obj) throws AccessException {
+        checkInsertAccess(ThreadLocalUserContext.getUser(), obj);
     }
-    if (StringUtils.isBlank(searchString)) {
-      return new ArrayList<>();
+
+    protected void checkInsertAccess(final PFUserDO user, final O obj) throws AccessException {
+        if (!hasInsertAccess(user, obj, true)) {
+            // Should not occur!
+            log.error("Development error: Subclass should throw an exception instead of returning false.");
+            throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+        }
     }
-    CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<String> cr = cb.createQuery(String.class);
-    Root<O> root = cr.from(clazz);
-    Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
-    cr.select(root.get(property)).where(
-            cb.equal(root.get("deleted"), false),
-            cb.greaterThan(root.get("lastUpdate"), yearsAgo),
-            cb.like(cb.lower(root.get(property)), "%" + StringUtils.lowerCase(searchString) + "%"))
-            .orderBy(cb.asc(root.get(property)))
-            .distinct(true);
-    return em.createQuery(cr).getResultList();
-  }
 
-  /**
-   * Re-indexes the entries of the last day, 1,000 at max.
-   *
-   * @see DatabaseDao#createReindexSettings(boolean)
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @Override
-  public void rebuildDatabaseIndex4NewestEntries() {
-    final ReindexSettings settings = DatabaseDao.createReindexSettings(true);
-    databaseDao.rebuildDatabaseSearchIndices(clazz, settings);
-    databaseDao.rebuildDatabaseSearchIndices(PfHistoryMasterDO.class, settings);
-  }
+    /**
+     * @param dbObj The original object (stored in the database)
+     */
+    void checkLoggedInUserUpdateAccess(final O obj, final O dbObj) throws AccessException {
+        checkUpdateAccess(ThreadLocalUserContext.getUser(), obj, dbObj);
+    }
 
-  /**
-   * Re-indexes all entries (full re-index).
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  @Override
-  public void rebuildDatabaseIndex() {
-    final ReindexSettings settings = DatabaseDao.createReindexSettings(false);
-    emgrFactory.runInTrans(emgr -> {
-      databaseDao.rebuildDatabaseSearchIndices(clazz, settings);
-      return null;
-    });
-  }
+    /**
+     * @param dbObj The original object (stored in the database)
+     */
+    protected void checkUpdateAccess(final PFUserDO user, final O obj, final O dbObj) throws AccessException {
+        if (!hasUpdateAccess(user, obj, dbObj, true)) {
+            // Should not occur!
+            log.error("Development error: Subclass should throw an exception instead of returning false.");
+            throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+        }
+    }
 
-  /**
-   * Re-index all dependent objects manually (hibernate search). Hibernate doesn't re-index these objects, does it?
-   */
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  public void reindexDependentObjects(final O obj) {
-    hibernateSearchDependentObjectsReindexer.reindexDependents(obj);
-  }
+    private void checkLoggedInUserDeleteAccess(final O obj, final O dbObj) throws AccessException {
+        if (!hasLoggedInUserDeleteAccess(obj, dbObj, true)) {
+            // Should not occur!
+            log.error("Development error: Subclass should throw an exception instead of returning false.");
+            throw new UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM);
+        }
+    }
 
-  // TODO RK entweder so oder ueber annots.
-  // siehe org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils.getNestedHistoryEntities(Class<?>)
-  protected Class<?>[] getAdditionalHistorySearchDOs() {
-    return null;
-  }
+    /**
+     * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
+     *
+     * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
+     * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+     */
+    public boolean hasLoggedInUserSelectAccess(final boolean throwException) {
+        return hasUserSelectAccess(ThreadLocalUserContext.getUser(), throwException);
+    }
 
-  public boolean isForceDeletionSupport() {
-    return forceDeletionSupport;
-  }
+    /**
+     * Checks the basic select access right. Overwrite this method if the basic select access should be checked.
+     *
+     * @return true at default or if readWriteUserRightId is given hasReadAccess(boolean).
+     * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
+     */
+    public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
+        return hasAccess(user, null, null, OperationType.SELECT, throwException);
+    }
 
-  /**
-   * @return the UserGroupCache with groups and rights .
-   */
-  public UserGroupCache getUserGroupCache() {
-    return this.userGroupCache;
-  }
+    /**
+     * If userRightId is given then {@link AccessChecker#hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)}
+     * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
+     * given object.
+     *
+     * @param obj           The object.
+     * @param oldObj        The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
+     * @param operationType The operation type (select, insert, update or delete)
+     * @return true, if the user has the access right for the given operation type and object.
+     */
+    public boolean hasLoggedInUserAccess(final O obj, final O oldObj, final OperationType operationType,
+                                         final boolean throwException) {
+        return hasAccess(ThreadLocalUserContext.getUser(), obj, oldObj, operationType, throwException);
+    }
 
-  /**
-   * @return Wether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
-   */
-  @Override
-  public boolean isHistorizable() {
-    return HistoryBaseDaoAdapter.isHistorizable(clazz);
-  }
+    /**
+     * If userRightId is given then {@link AccessChecker#hasAccess(PFUserDO, IUserRightId, Object, Object, OperationType, boolean)}
+     * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
+     * given object.
+     *
+     * @param user          Check the access for the given user instead of the logged-in user.
+     * @param obj           The object.
+     * @param oldObj        The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
+     * @param operationType The operation type (select, insert, update or delete)
+     * @return true, if the user has the access right for the given operation type and object.
+     */
+    public boolean hasAccess(final PFUserDO user, final O obj, final O oldObj, final OperationType operationType,
+                             final boolean throwException) {
+        if (userRightId != null) {
+            return accessChecker.hasAccess(user, userRightId, obj, oldObj, operationType, throwException);
+        }
+        throw new UnsupportedOperationException(
+                "readWriteUserRightId not given. Override this method or set readWriteUserRightId in constructor.");
+    }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public Class<O> getEntityClass() {
-    return (Class<O>) ClassUtils.getGenericTypeArgument(getClass(), 0);
-  }
+    /**
+     * @param obj Check access to this object.
+     * @see #hasUserSelectAccess(PFUserDO, ExtendedBaseDO, boolean)
+     */
+    public boolean hasLoggedInUserSelectAccess(final O obj, final boolean throwException) {
+        return hasUserSelectAccess(ThreadLocalUserContext.getUser(), obj, throwException);
+    }
 
-  @Override
-  public O selectByPkDetached(Integer pk) throws AccessException {
-    // TODO RK not detached here
-    return getById(pk);
-  }
+    /**
+     * @param user Check the access for the given user instead of the logged-in user. Checks select access right by
+     *             calling hasAccess(obj, OperationType.SELECT).
+     * @param obj  Check access to this object.
+     * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
+     */
+    public boolean hasUserSelectAccess(final PFUserDO user, final O obj, final boolean throwException) {
+        return hasAccess(user, obj, null, OperationType.SELECT, throwException);
+    }
 
-  /**
-   * Register given listener. The listener is called every time an object was inserted, updated or deleted.
-   *
-   * @param objectChangedListener
-   */
-  public void register(final BaseDOChangedListener<O> objectChangedListener) {
-    log.info(this.getClass().getSimpleName() + ": Registering " + objectChangedListener.getClass().getName());
-    objectChangedListeners.add(objectChangedListener);
-  }
+    /**
+     * Has the user access to the history of the given object. At default this method calls hasHistoryAccess(boolean)
+     * first and then hasSelectAccess.
+     */
+    public boolean hasLoggedInUserHistoryAccess(final O obj, final boolean throwException) {
+        return hasHistoryAccess(ThreadLocalUserContext.getUser(), obj, throwException);
+    }
+
+    /**
+     * Has the user access to the history of the given object. At default this method calls hasHistoryAccess(boolean)
+     * first and then hasSelectAccess.
+     */
+    public boolean hasHistoryAccess(final PFUserDO user, final O obj, final boolean throwException) {
+        if (!hasHistoryAccess(user, throwException)) {
+            return false;
+        }
+        if (userRightId != null) {
+            return accessChecker.hasHistoryAccess(user, userRightId, obj, throwException);
+        }
+        return hasUserSelectAccess(user, obj, throwException);
+    }
+
+    /**
+     * Has the user access to the history in general of the objects. At default this method calls hasSelectAccess.
+     */
+    public boolean hasLoggedInUserHistoryAccess(final boolean throwException) {
+        return hasHistoryAccess(ThreadLocalUserContext.getUser(), throwException);
+    }
+
+    /**
+     * Has the user access to the history in general of the objects. At default this method calls hasSelectAccess.
+     */
+    public boolean hasHistoryAccess(final PFUserDO user, final boolean throwException) {
+        if (userRightId != null) {
+            return accessChecker.hasHistoryAccess(user, userRightId, null, throwException);
+        }
+        return hasUserSelectAccess(user, throwException);
+    }
+
+    /**
+     * Checks insert access right by calling hasAccess(obj, OperationType.INSERT).
+     *
+     * @param obj Check access to this object.
+     * @see #hasInsertAccess(PFUserDO, ExtendedBaseDO, boolean)
+     */
+    @Override
+    public boolean hasLoggedInUserInsertAccess(final O obj, final boolean throwException) {
+        return hasInsertAccess(ThreadLocalUserContext.getUser(), obj, throwException);
+    }
+
+    /**
+     * Checks insert access right by calling hasAccess(obj, OperationType.INSERT).
+     *
+     * @param obj Check access to this object.
+     * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
+     */
+    public boolean hasInsertAccess(final PFUserDO user, final O obj, final boolean throwException) {
+        return hasAccess(user, obj, null, OperationType.INSERT, throwException);
+    }
+
+    /**
+     * Checks write access of the readWriteUserRight. If not given, true is returned at default. This method should only
+     * be used for checking the insert access to show an insert button or not. Before inserting any object the write
+     * access is checked by has*Access(...) independent of the result of this method.
+     *
+     * @see org.projectforge.framework.persistence.api.IDao#hasInsertAccess(PFUserDO)
+     */
+    @Override
+    public boolean hasLoggedInUserInsertAccess() {
+        return hasInsertAccess(ThreadLocalUserContext.getUser());
+    }
+
+    /**
+     * Checks write access of the readWriteUserRight. If not given, true is returned at default. This method should only
+     * be used for checking the insert access to show an insert button or not. Before inserting any object the write
+     * access is checked by has*Access(...) independent of the result of this method.
+     *
+     * @see AccessChecker#hasInsertAccess(PFUserDO, IUserRightId, boolean)
+     */
+    @Override
+    public boolean hasInsertAccess(final PFUserDO user) {
+        if (userRightId != null) {
+            return accessChecker.hasInsertAccess(user, userRightId, false);
+        }
+        return true;
+    }
+
+    /**
+     * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
+     *
+     * @param dbObj The original object (stored in the database)
+     * @param obj   Check access to this object.
+     * @see #hasUpdateAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
+     */
+    @Override
+    public boolean hasLoggedInUserUpdateAccess(final O obj, final O dbObj, final boolean throwException) {
+        return hasUpdateAccess(ThreadLocalUserContext.getUser(), obj, dbObj, throwException);
+    }
+
+    /**
+     * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
+     *
+     * @param dbObj The original object (stored in the database)
+     * @param obj   Check access to this object.
+     * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
+     */
+    public boolean hasUpdateAccess(final PFUserDO user, final O obj, final O dbObj, final boolean throwException) {
+        return hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException);
+    }
+
+    /**
+     * Checks delete access right by calling hasAccess(obj, OperationType.DELETE).
+     *
+     * @param obj   Check access to this object.
+     * @param dbObj current version of this object in the data base.
+     * @see #hasDeleteAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, boolean)
+     */
+    @Override
+    public boolean hasLoggedInUserDeleteAccess(final O obj, final O dbObj, final boolean throwException) {
+        return hasDeleteAccess(ThreadLocalUserContext.getUser(), obj, dbObj, throwException);
+    }
+
+    /**
+     * Checks delete access right by calling hasAccess(obj, OperationType.DELETE).
+     *
+     * @param obj   Check access to this object.
+     * @param dbObj current version of this object in the data base.
+     * @see #hasAccess(PFUserDO, ExtendedBaseDO, ExtendedBaseDO, OperationType, boolean)
+     */
+    @Override
+    public boolean hasDeleteAccess(final PFUserDO user, final O obj, final O dbObj, final boolean throwException) {
+        return hasAccess(user, obj, dbObj, OperationType.DELETE, throwException);
+    }
+
+    public UserRight getUserRight() {
+        if (userRightId != null) {
+            return userRights.getRight(userRightId);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Overload this method for copying field manually. Used for modifiing fields inside methods: update, markAsDeleted
+     * and undelete.
+     *
+     * @return true, if any field was modified, otherwise false.
+     * @see BaseDO#copyValuesFrom(BaseDO, String...)
+     */
+    protected ModificationStatus copyValues(final O src, final O dest, final String... ignoreFields) {
+        return dest.copyValuesFrom(src, ignoreFields);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    protected void createHistoryEntry(final Object entity, final Number id, final String property,
+                                      final Class<?> valueClass,
+                                      final Object oldValue, final Object newValue) {
+
+        accessChecker.checkRestrictedOrDemoUser();
+        final PFUserDO contextUser = ThreadLocalUserContext.getUser();
+        final String userPk = contextUser != null ? contextUser.getId().toString() : null;
+        if (userPk == null) {
+            log.warn("No user found for creating history entry.");
+        }
+        HistoryBaseDaoAdapter.createHistoryEntry(entity, id, userPk, property, valueClass, oldValue, newValue);
+    }
+
+    /**
+     * SECURITY ADVICE:
+     * For security reasons every property must be enabled for autocompletion. Otherwise the user may select
+     * too much information, because only generic select access of an entity is checked. Example: The user has
+     * select access to users, therefore he may select all password fields!!!
+     * <br/>
+     * Refer implementation of ContractDao as example.
+     */
+    public boolean isAutocompletionPropertyEnabled(String property) {
+        return false;
+    }
+
+    /**
+     * SECURITY ADVICE:
+     * Only generic check access will be done. The matching entries will not be checked!
+     *
+     * @param property     Property of the data base entity.
+     * @param searchString String the user has typed in.
+     * @return All matching entries (like search) for the given property modified or updated in the last 2 years.
+     */
+    @Override
+    public List<String> getAutocompletion(final String property, final String searchString) {
+        checkLoggedInUserSelectAccess();
+        if (!isAutocompletionPropertyEnabled(property)) {
+            log.warn("Security alert: The user tried to select property '" + property + "' of entity '" + this.clazz.getName() + "'.");
+            return new ArrayList<>();
+        }
+        if (StringUtils.isBlank(searchString)) {
+            return new ArrayList<>();
+        }
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<String> cr = cb.createQuery(String.class);
+        Root<O> root = cr.from(clazz);
+        Date yearsAgo = PFDateTime.now().minusYears(2).getUtilDate();
+        cr.select(root.get(property)).where(
+                        cb.equal(root.get("deleted"), false),
+                        cb.greaterThan(root.get("lastUpdate"), yearsAgo),
+                        cb.like(cb.lower(root.get(property)), "%" + StringUtils.lowerCase(searchString) + "%"))
+                .orderBy(cb.asc(root.get(property)))
+                .distinct(true);
+        return em.createQuery(cr).getResultList();
+    }
+
+    /**
+     * Re-indexes the entries of the last day, 1,000 at max.
+     *
+     * @see DatabaseDao#createReindexSettings(boolean)
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public void rebuildDatabaseIndex4NewestEntries() {
+        final ReindexSettings settings = DatabaseDao.createReindexSettings(true);
+        databaseDao.rebuildDatabaseSearchIndices(clazz, settings);
+        databaseDao.rebuildDatabaseSearchIndices(PfHistoryMasterDO.class, settings);
+    }
+
+    /**
+     * Re-indexes all entries (full re-index).
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Override
+    public void rebuildDatabaseIndex() {
+        final ReindexSettings settings = DatabaseDao.createReindexSettings(false);
+        emgrFactory.runInTrans(emgr -> {
+            databaseDao.rebuildDatabaseSearchIndices(clazz, settings);
+            return null;
+        });
+    }
+
+    /**
+     * Re-index all dependent objects manually (hibernate search). Hibernate doesn't re-index these objects, does it?
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void reindexDependentObjects(final O obj) {
+        hibernateSearchDependentObjectsReindexer.reindexDependents(obj);
+    }
+
+    // TODO RK entweder so oder ueber annots.
+    // siehe org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils.getNestedHistoryEntities(Class<?>)
+    protected Class<?>[] getAdditionalHistorySearchDOs() {
+        return null;
+    }
+
+    public boolean isForceDeletionSupport() {
+        return forceDeletionSupport;
+    }
+
+    /**
+     * @return the UserGroupCache with groups and rights .
+     */
+    public UserGroupCache getUserGroupCache() {
+        return this.userGroupCache;
+    }
+
+    /**
+     * @return Wether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
+     */
+    @Override
+    public boolean isHistorizable() {
+        return HistoryBaseDaoAdapter.isHistorizable(clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Class<O> getEntityClass() {
+        return (Class<O>) ClassUtils.getGenericTypeArgument(getClass(), 0);
+    }
+
+    @Override
+    public O selectByPkDetached(Integer pk) throws AccessException {
+        // TODO RK not detached here
+        return getById(pk);
+    }
+
+    /**
+     * Register given listener. The listener is called every time an object was inserted, updated or deleted.
+     *
+     * @param objectChangedListener
+     */
+    public void register(final BaseDOChangedListener<O> objectChangedListener) {
+        log.info(this.getClass().getSimpleName() + ": Registering " + objectChangedListener.getClass().getName());
+        objectChangedListeners.add(objectChangedListener);
+    }
 }

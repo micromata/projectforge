@@ -26,17 +26,16 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.annotations.Field
 import org.hibernate.search.annotations.FieldBridge
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Eingehende Rechnungen.
@@ -52,7 +51,7 @@ import javax.persistence.*
   ]
 )
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
+//@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
 @NamedQueries(
   NamedQuery(
     name = EingangsrechnungDO.SELECT_MIN_MAX_DATE,

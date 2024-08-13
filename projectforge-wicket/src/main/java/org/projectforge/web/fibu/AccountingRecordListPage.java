@@ -72,7 +72,7 @@ public class AccountingRecordListPage
 
   /**
    * Gets the page parameters for calling the list page only for displaying accounting records of the given report.
-   * 
+   *
    * @param reportId The id of the report of the ReportStorage of ReportObjectivesPage.
    */
   public static PageParameters getPageParameters(final String reportId)
@@ -82,7 +82,7 @@ public class AccountingRecordListPage
 
   /**
    * Gets the page parameters for calling the list page only for displaying accounting records of the given report.
-   * 
+   *
    * @param reportId The id of the report of the ReportStorage of ReportObjectivesPage.
    * @param businessAssessmentRowId Display only records concerning the given row of the business assessment.
    */
@@ -138,7 +138,7 @@ public class AccountingRecordListPage
           final IModel<BuchungssatzDO> rowModel)
       {
         final BuchungssatzDO satz = rowModel.getObject();
-        appendCssClasses(item, satz.getId(), satz.isDeleted());
+        appendCssClasses(item, satz.getId(), satz.getDeleted());
       }
     };
     columns.add(

@@ -79,7 +79,7 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
           final IModel<EmployeeDO> rowModel)
       {
         final EmployeeDO employee = rowModel.getObject();
-        appendCssClasses(item, employee.getId(), employee.isDeleted());
+        appendCssClasses(item, employee.getId(), employee.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("name"),

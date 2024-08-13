@@ -346,7 +346,7 @@ public class GroupDao extends BaseDao<GroupDO> {
             ProjectForgeGroup.CONTROLLING_GROUP)) {
       return true;
     }
-    if (!obj.isDeleted()) {
+    if (!obj.getDeleted()) {
       Validate.notNull(user);
       result = getUserGroupCache().isUserMemberOfGroup(user.getId(), obj.getId());
     }

@@ -86,7 +86,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
           final IModel<Kost2DO> rowModel)
       {
         final Kost2DO kost2 = rowModel.getObject();
-        appendCssClasses(item, kost2.getId(), kost2.isDeleted());
+        appendCssClasses(item, kost2.getId(), kost2.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<Kost2DO>(new Model<String>(getString("fibu.kost2")),

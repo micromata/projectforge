@@ -168,7 +168,8 @@ open class UserAuthenticationsService {
   /**
    * @param userId If null, ThreadLocalUserContext.getUserId() is used.
    */
-  private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int) {
+  private fun registerLogAccess(request: HttpServletRequest, tokenType: UserTokenType, userId: Int?) {
+    userId ?: return
     val accessEntries = getUserAccessLogEntries(tokenType, userId) ?: return
     accessEntries.update(request)
   }

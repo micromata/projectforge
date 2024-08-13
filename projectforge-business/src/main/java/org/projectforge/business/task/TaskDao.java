@@ -43,8 +43,8 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -414,7 +414,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     // Checks if the task is orphan.
     final TaskNode parent = taskTree.getTaskNodeById(obj.getParentTaskId());
     if (parent == null) {
-      if (taskTree.isRootNode(obj) && obj.isDeleted()) {
+      if (taskTree.isRootNode(obj) && obj.getDeleted()) {
         // Oups, the user has deleted the root task!
       } else {
         throw new UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND);

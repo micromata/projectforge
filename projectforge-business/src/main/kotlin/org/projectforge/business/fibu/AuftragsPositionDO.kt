@@ -36,7 +36,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
@@ -51,10 +51,10 @@ import javax.persistence.*
 @Table(
   name = "t_fibu_auftrag_position",
   uniqueConstraints = [UniqueConstraint(columnNames = ["auftrag_fk", "number"])],
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_fibu_auftrag_position_auftrag_fk",
     columnList = "auftrag_fk"
-  ), javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk")],
+  ), jakarta.persistence.Index(name = "idx_fk_t_fibu_auftrag_position_task_fk", columnList = "task_fk")],
 )
 @NamedQueries(
   NamedQuery(name = AuftragsPositionDO.FIND_BY_ID, query = "from AuftragsPositionDO where id=:id")

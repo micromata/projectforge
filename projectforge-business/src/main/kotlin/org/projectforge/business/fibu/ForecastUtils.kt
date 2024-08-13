@@ -197,8 +197,9 @@ object ForecastUtils { // open needed by Wicket.
     fun ensureErfassungsDatum(order: AuftragDO): LocalDate? {
         if (order.erfassungsDatum != null)
             return order.erfassungsDatum
-        if (order.created != null)
-            return PFDay.from(order.created).localDate
+        order.created?.let { created ->
+            return PFDay.from(created).localDate
+        }
         if (order.angebotsDatum != null)
             return order.angebotsDatum
         return PFDay.now().localDate

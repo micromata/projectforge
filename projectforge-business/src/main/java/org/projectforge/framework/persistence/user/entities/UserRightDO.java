@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.hibernate.search.annotations.Index;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.annotations.*;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -35,7 +35,7 @@ import org.projectforge.framework.DisplayNameCapable;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -43,7 +43,7 @@ import java.util.Objects;
 @Indexed
 @Table(name = "T_USER_RIGHT",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"user_fk", "right_id"})},
-    indexes = {@javax.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk")})
+    indexes = {@jakarta.persistence.Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk")})
 @NamedQueries(
     @NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")

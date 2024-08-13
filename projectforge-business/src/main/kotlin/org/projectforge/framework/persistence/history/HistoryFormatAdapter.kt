@@ -27,7 +27,7 @@ import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 /**
  * You may register history adapters for customizing convertion of history entries.

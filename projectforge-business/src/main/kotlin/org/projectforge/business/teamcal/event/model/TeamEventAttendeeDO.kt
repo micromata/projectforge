@@ -23,13 +23,12 @@
 
 package org.projectforge.business.teamcal.event.model
 
-import de.micromata.genome.db.jpa.history.api.WithHistory
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.business.address.AddressDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -38,15 +37,15 @@ import javax.persistence.*
 @Indexed
 @Table(
   name = "T_PLUGIN_CALENDAR_EVENT_ATTENDEE",
-  indexes = [javax.persistence.Index(
+  indexes = [jakarta.persistence.Index(
     name = "idx_fk_t_plugin_calendar_event_attendee_team_event_fk",
     columnList = "team_event_fk"
-  ), javax.persistence.Index(
+  ), jakarta.persistence.Index(
     name = "idx_fk_t_plugin_calendar_event_attendee_address_id",
     columnList = "address_id"
-  ), javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id")]
+  ), jakarta.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id")]
 )
-@WithHistory(noHistoryProperties = ["loginToken"])
+//@WithHistory(noHistoryProperties = ["loginToken"])
 @NamedQueries(
   NamedQuery(
     name = TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS,
@@ -151,14 +150,14 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
     if (url != null) {
       return 31 * url!!.hashCode()
     }
-    if (address != null && address!!.pk != null) {
-      return 31 * address!!.pk.hashCode()
+    if (address != null && address!!.id != null) {
+      return 31 * address!!.id.hashCode()
     }
-    if (user != null && user!!.pk != null) {
-      return 31 * user!!.pk.hashCode()
+    if (user != null && user!!.id != null) {
+      return 31 * user!!.id.hashCode()
     }
-    return if (pk != null) {
-      31 * pk.hashCode()
+    return if (id != null) {
+      31 * id.hashCode()
     } else result
   }
 
@@ -181,10 +180,10 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
     if (this.userId != null && o!!.userId != null && this.userId == o.userId) {
       return true
     }
-    if (this.pk != null && o!!.pk != null && this.pk == o.pk) {
+    if (this.id != null && o!!.id != null && this.id == o.id) {
       return true
     }
-    return (this.url == null && o!!.url == null && this.addressId == null && o.addressId == null && this.userId == null && o.userId == null && this.pk == null && o.pk == null)
+    return (this.url == null && o!!.url == null && this.addressId == null && o.addressId == null && this.userId == null && o.userId == null && this.id == null && o.id == null)
   }
 
   override fun toString(): String {

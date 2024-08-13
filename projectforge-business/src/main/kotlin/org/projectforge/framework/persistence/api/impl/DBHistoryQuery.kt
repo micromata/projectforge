@@ -28,8 +28,8 @@ import org.hibernate.search.query.dsl.BooleanJunction
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import java.util.*
-import javax.persistence.EntityManager
-import javax.persistence.criteria.Predicate
+import jakarta.persistence.EntityManager
+import jakarta.persistence.criteria.Predicate
 
 private val log = KotlinLogging.logger {}
 

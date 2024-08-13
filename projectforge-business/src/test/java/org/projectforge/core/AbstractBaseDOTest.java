@@ -55,7 +55,7 @@ public class AbstractBaseDOTest extends AbstractTestBase {
     obj.copyValuesFrom(src);
 
     assertEquals("Test", obj.getTitle());
-    assertEquals(true, obj.isDeleted());
+    assertEquals(true, obj.getDeleted());
     assertEquals(BookStatus.MISSED, obj.getStatus());
     assertEquals(created, DateHelper.getForTestCase(obj.getCreated()));
     assertEquals(lastUpdate, DateHelper.getForTestCase(obj.getLastUpdate()));
@@ -64,7 +64,7 @@ public class AbstractBaseDOTest extends AbstractTestBase {
     src = createBookDO(19, 20, false, BookStatus.MISSED, null);
     obj.copyValuesFrom(src);
     assertEquals(null, obj.getTitle(), "Expected, that the property will be overwritten by null");
-    assertEquals(false, obj.isDeleted());
+    assertEquals(false, obj.getDeleted());
     assertEquals(BookStatus.MISSED, obj.getStatus());
     assertEquals(created, DateHelper.getForTestCase(obj.getCreated()));
     assertEquals(lastUpdate, DateHelper.getForTestCase(obj.getLastUpdate()));

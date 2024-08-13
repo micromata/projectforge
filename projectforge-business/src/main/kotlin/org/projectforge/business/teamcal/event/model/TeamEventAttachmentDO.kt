@@ -26,12 +26,12 @@ package org.projectforge.business.teamcal.event.model
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.mail.MailAttachment
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -39,7 +39,7 @@ import javax.persistence.Table
 
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2")])
+@Table(name = "T_PLUGIN_CALENDAR_EVENT_ATTACHMENT", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attachment_team_event_fk2", columnList = "team_event_fk2")])
 open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachmentDO>, MailAttachment {
 
     private var filename: String? = null

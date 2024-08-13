@@ -121,7 +121,7 @@ public class WicketTaskFormatter extends TaskFormatter
       final TaskTree taskTree = TaskTreeHelper.getTaskTree();
       task = taskTree.getTaskById(task.getId());
     }
-    if (task.isDeleted() == true) {
+    if (task.getDeleted() == true) {
       if (lineThroughDeletedTask == true) {
         buf.append("<span");
         HtmlHelper.attribute(buf, "style", "text-decoration: line-through;");

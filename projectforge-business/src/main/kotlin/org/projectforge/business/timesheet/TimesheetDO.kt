@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.*
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  *
@@ -44,10 +44,10 @@ import javax.persistence.*
 @Indexed
 @Table(
   name = "T_TIMESHEET",
-  indexes = [javax.persistence.Index(name = "idx_fk_t_timesheet_kost2_id", columnList = "kost2_id"),
-    javax.persistence.Index(name = "idx_fk_t_timesheet_task_id", columnList = "task_id"),
-    javax.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
-    javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")]
+  indexes = [jakarta.persistence.Index(name = "idx_fk_t_timesheet_kost2_id", columnList = "kost2_id"),
+    jakarta.persistence.Index(name = "idx_fk_t_timesheet_task_id", columnList = "task_id"),
+    jakarta.persistence.Index(name = "idx_fk_t_timesheet_user_id", columnList = "user_id"),
+    jakarta.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")]
 )
 @NamedQueries(
   NamedQuery(

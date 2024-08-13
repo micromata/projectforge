@@ -25,7 +25,7 @@ package org.projectforge.business.scripting
 
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 
 private val log = KotlinLogging.logger {}
 
@@ -33,69 +33,69 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
-  override fun newInstance(): ScriptDO {
-    return ScriptDO()
-  }
-
-  /**
-   * @param name of script (case insensitive)
-   */
-  open fun loadByNameOrId(name: String): ScriptDO? {
-    name.toIntOrNull()?.let { id ->
-      return internalGetById(id)
+    override fun newInstance(): ScriptDO {
+        return ScriptDO()
     }
-    val script = ensureUniqueResult(
-      em.createNamedQuery(
-        ScriptDO.SELECT_BY_NAME,
-        ScriptDO::class.java
-      )
-        .setParameter("name", "%${name.trim().lowercase()}%")
-    )
-    return script
-  }
 
-  open fun getScriptVariableNames(
-    script: ScriptDO,
-    parameters: List<ScriptParameter>,
-    additionalVariables: Map<String, Any?>,
-    myImports: List<String>? = null,
-  ): List<String> {
-    val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, myImports)
-    return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
-  }
+    /**
+     * @param name of script (case insensitive)
+     */
+    open fun loadByNameOrId(name: String): ScriptDO? {
+        name.toIntOrNull()?.let { id ->
+            return internalGetById(id)
+        }
+        val script = ensureUniqueResult(emgrFactory) { em ->
+            em.createNamedQuery(
+                ScriptDO.SELECT_BY_NAME,
+                ScriptDO::class.java
+            )
+                .setParameter("name", "%${name.trim().lowercase()}%")
+        }
+        return script
+    }
 
-  open fun getEffectiveScript(
-    script: ScriptDO,
-    parameters: List<ScriptParameter>,
-    additionalVariables: Map<String, Any?>,
-    imports: List<String>? = null,
-  ): String {
-    val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, imports)
-    return scriptExecutor.effectiveScript
-  }
+    open fun getScriptVariableNames(
+        script: ScriptDO,
+        parameters: List<ScriptParameter>,
+        additionalVariables: Map<String, Any?>,
+        myImports: List<String>? = null,
+    ): List<String> {
+        val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, myImports)
+        return scriptExecutor.allVariables.keys.filter { it.isNotBlank() }.sortedBy { it.lowercase() }
+    }
 
-  /**
-   * @param imports Additional imports (only package/class name, such as "org.projectforge.rest.scripting.ExecuteAsUser".)
-   */
-  fun execute(
-    script: ScriptDO,
-    parameters: List<ScriptParameter>,
-    additionalVariables: Map<String, Any>,
-    imports: List<String>? = null,
-  ): ScriptExecutionResult {
-    hasLoggedInUserSelectAccess(script, true)
-    val executor = createScriptExecutor(script, additionalVariables, parameters, imports)
-    return executor.execute()
-  }
+    open fun getEffectiveScript(
+        script: ScriptDO,
+        parameters: List<ScriptParameter>,
+        additionalVariables: Map<String, Any?>,
+        imports: List<String>? = null,
+    ): String {
+        val scriptExecutor = createScriptExecutor(script, additionalVariables, parameters, imports)
+        return scriptExecutor.effectiveScript
+    }
 
-  protected fun createScriptExecutor(
-    script: ScriptDO,
-    additionalVariables: Map<String, Any?>,
-    scriptParameters: List<ScriptParameter>? = null,
-    imports: List<String>? = null,
-  ): ScriptExecutor {
-    val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
-    scriptExecutor.init(script, this, additionalVariables, scriptParameters, imports)
-    return scriptExecutor
-  }
+    /**
+     * @param imports Additional imports (only package/class name, such as "org.projectforge.rest.scripting.ExecuteAsUser".)
+     */
+    fun execute(
+        script: ScriptDO,
+        parameters: List<ScriptParameter>,
+        additionalVariables: Map<String, Any>,
+        imports: List<String>? = null,
+    ): ScriptExecutionResult {
+        hasLoggedInUserSelectAccess(script, true)
+        val executor = createScriptExecutor(script, additionalVariables, parameters, imports)
+        return executor.execute()
+    }
+
+    protected fun createScriptExecutor(
+        script: ScriptDO,
+        additionalVariables: Map<String, Any?>,
+        scriptParameters: List<ScriptParameter>? = null,
+        imports: List<String>? = null,
+    ): ScriptExecutor {
+        val scriptExecutor = ScriptExecutor.createScriptExecutor(script)
+        scriptExecutor.init(script, this, additionalVariables, scriptParameters, imports)
+        return scriptExecutor
+    }
 }

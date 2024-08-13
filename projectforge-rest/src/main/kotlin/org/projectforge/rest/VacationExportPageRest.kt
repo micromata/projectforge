@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
-import java.util.*
 import jakarta.servlet.http.HttpServletRequest
 import javax.validation.Valid
 
@@ -167,7 +166,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         }
       }
     }
-    employees.removeIf { !it.active || it.user?.deactivated == true || it.user?.isDeleted == true }
+    employees.removeIf { !it.active || it.user?.deactivated == true || it.user?.deleted == true }
     var vacations = emptyList<VacationService.VacationsByEmployee>()
     val startDate = data?.startDate ?: LocalDate.now()
     val periodBegin = PFDay.from(startDate).beginOfYear

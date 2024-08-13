@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.security.TimeBased2FA
@@ -83,7 +83,8 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     return hasLoggedInUserAccess(obj.user!!.id, throwException)
   }
 
-  private fun hasLoggedInUserAccess(ownerUserId: Int, throwException: Boolean = true): Boolean {
+  private fun hasLoggedInUserAccess(ownerUserId: Int?, throwException: Boolean = true): Boolean {
+    ownerUserId ?: return false
     if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.userId) {
       return true
     }
@@ -130,12 +131,12 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         return null
       }
     }
-    val user = ensureUniqueResult(
+    val user = ensureUniqueResult(emgrFactory) { em ->
       em
         .createNamedQuery(queryName, PFUserDO::class.java)
         .setParameter("userId", userId)
         .setParameter("token", encryptToken(token))
-    )
+    }
     if (user != null && !user.hasSystemAccess()) {
       log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
       return null
@@ -158,12 +159,12 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         return null
       }
     }
-    val user = ensureUniqueResult(
+    val user = ensureUniqueResult(emgrFactory) { em ->
       em
         .createNamedQuery(queryName, PFUserDO::class.java)
         .setParameter("username", username)
         .setParameter("token", encryptToken(token))
-    )
+    }
     if (user != null && !user.hasSystemAccess()) {
       log.warn("Deleted user '${user.username}' tried to login (via token '$type').")
       return null
@@ -359,15 +360,16 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
    * @return Stored or created authentications object for given user.
    * @throws AccessException if the logged-in user neither doesn't match the given user nor is admin user.
    */
-  private fun ensureAuthentications(userId: Int, checkAccess: Boolean = true): UserAuthenticationsDO {
+  private fun ensureAuthentications(userId: Int?, checkAccess: Boolean = true): UserAuthenticationsDO {
+    userId ?: throw AccessException("User ID must not be null.")
     if (checkAccess) {
       hasLoggedInUserAccess(userId)
     }
-    var authentications = ensureUniqueResult(
+    var authentications = ensureUniqueResult(emgrFactory) { em ->
       em
         .createNamedQuery(UserAuthenticationsDO.FIND_BY_USER_ID, UserAuthenticationsDO::class.java)
         .setParameter("userId", userId)
-    )
+    }
     if (authentications == null) {
       authentications = UserAuthenticationsDO()
       setUser(authentications, userId)

@@ -85,7 +85,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
         val newList = mutableListOf<AddressbookDO>()
         val list = addressbookDao.internalLoadAll()
         list.forEach {
-            if (!it.isDeleted) {
+            if (it.deleted != true) {
                 newList.add(it)
             }
         }

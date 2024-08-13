@@ -69,7 +69,7 @@ public class KontoListPage extends AbstractListPage<KontoListForm, KontoDao, Kon
           final IModel<KontoDO> rowModel)
       {
         final KontoDO konto = rowModel.getObject();
-        appendCssClasses(item, konto.getId(), konto.isDeleted());
+        appendCssClasses(item, konto.getId(), konto.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<KontoDO>(new Model<String>(getString("fibu.konto.nummer")),

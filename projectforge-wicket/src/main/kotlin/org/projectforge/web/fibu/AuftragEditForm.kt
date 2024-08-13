@@ -746,7 +746,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
           val divPanel = removeButtonGridBuilder.panel
           val removePositionButton: Button = object : Button(SingleButtonPanel.WICKET_ID) {
             override fun onSubmit() {
-              position.isDeleted = true
+              position.deleted = true
               refreshPositions()
               paymentSchedulePanel!!.rebuildEntries()
             }
@@ -760,7 +760,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
           divPanel.add(removePositionButtonPanel)
         }
       }
-      if (position.isDeleted) {
+      if (position.deleted) {
         positionsPanel.isVisible = false
       }
     }
@@ -812,7 +812,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         }
       }
     }
-    val size = paymentSchedules?.count { !it.isDeleted } ?: 0
+    val size = paymentSchedules?.count { !it.deleted } ?: 0
     val heading = StringBuffer()
     heading.append("${escapeHtml(getString("fibu.auftrag.paymentschedule"))} ($size)")
     if (schedulesPanel.toggleStatus == ToggleStatus.OPENED) {

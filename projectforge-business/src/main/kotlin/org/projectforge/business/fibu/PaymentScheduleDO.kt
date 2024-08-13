@@ -31,7 +31,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
@@ -98,7 +98,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
    */
   val valid: Boolean
     @Transient
-    get() = !isDeleted && (amount ?: BigDecimal.ZERO) > BigDecimal.ZERO
+    get() = !deleted && (amount ?: BigDecimal.ZERO) > BigDecimal.ZERO
 
   val auftragId: Int?
     @Transient

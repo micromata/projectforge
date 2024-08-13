@@ -67,7 +67,7 @@ class SipgateSyncServiceTest {
     address1.contactStatus = ContactStatus.DEPARTED
     address1.addressStatus = AddressStatus.LEAVED
     Assertions.assertEquals(2, SipgateContactSyncService.matchScore(contact, address1))
-    address1.isDeleted = true
+    address1.deleted = true
     Assertions.assertEquals(1, SipgateContactSyncService.matchScore(contact, address1))
     val address2 = createAddress(
       name = "Reinhard",

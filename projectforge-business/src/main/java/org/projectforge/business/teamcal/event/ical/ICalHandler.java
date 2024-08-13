@@ -261,7 +261,7 @@ public class ICalHandler
       event.setLastUpdate();
       event.setCreator(eventInDB.getCreator());
 
-      final boolean isDeleted = eventInDB.isDeleted();
+      final boolean isDeleted = eventInDB.getDeleted();
       if (isDeleted) {
         // event is deleted, restore
         eventService.undelete(eventInDB);

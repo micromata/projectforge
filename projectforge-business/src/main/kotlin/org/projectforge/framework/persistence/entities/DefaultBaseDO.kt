@@ -20,49 +20,27 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.framework.persistence.entities
 
-package org.projectforge.framework.persistence.api;
-
-import de.micromata.genome.jpa.MarkDeletableRecord;
-
-import java.io.Serializable;
-import java.util.Date;
+import org.apache.lucene.analysis.standard.ClassicAnalyzer
+import org.hibernate.search.annotations.Analyzer
+import org.projectforge.common.anots.PropertyInfo
+import java.util.*
+import jakarta.persistence.*
 
 /**
- * Extends BaseDO: Supports extended functionalities: deleted, created and lastUpdate.
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public interface ExtendedBaseDO<I extends Serializable>extends BaseDO<I>, MarkDeletableRecord<I>
-{
-  /**
-   * If any re-calculations have to be done before displaying, indexing etc. Such re-calculations are use-full for e. g.
-   * transient fields calculated from persistent fields.
-   */
-  public void recalculate();
+@MappedSuperclass
+@Analyzer(impl = ClassicAnalyzer::class)
+open class DefaultBaseDO : AbstractHistorizableBaseDO<Int>() {
+    @get:Column(name = "pk")
+    @get:GeneratedValue
+    @get:Id
+    @PropertyInfo(i18nKey = "id")
+    override var id: Int? = null
 
-  @Override
-  public boolean isDeleted();
-
-  @Override
-  public void setDeleted(boolean deleted);
-
-  public Date getCreated();
-
-  public void setCreated(Date created);
-
-  public void setCreated();
-
-  /**
-   * 
-   * Last update will be modified automatically for every update of the database object.
-   * 
-   * @return
-   */
-  public Date getLastUpdate();
-
-  public void setLastUpdate(Date lastUpdate);
-
-  public void setLastUpdate();
+    companion object {
+        private const val serialVersionUID = 659687830219996653L
+    }
 }

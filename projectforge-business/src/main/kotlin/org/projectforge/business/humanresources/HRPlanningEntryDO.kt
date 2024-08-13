@@ -38,14 +38,14 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.ObjectHelper
 import java.math.BigDecimal
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING_ENTRY", indexes = [javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")])
+@Table(name = "T_HR_PLANNING_ENTRY", indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"), jakarta.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk")])
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 
@@ -281,7 +281,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
                 return false
             }
         }
-        return this.isDeleted == other.isDeleted
+        return this.deleted == other.deleted
     }
 
     override fun hashCode(): Int {

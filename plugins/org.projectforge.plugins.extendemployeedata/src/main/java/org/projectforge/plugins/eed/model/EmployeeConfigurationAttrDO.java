@@ -26,7 +26,7 @@ package org.projectforge.plugins.eed.model;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION_attr")

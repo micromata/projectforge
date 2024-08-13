@@ -116,7 +116,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
         final TimesheetDO timesheet = rowModel.getObject();
         final int rowIndex = ((Item<?>) item.findParent(Item.class)).getIndex();
         String cssClasses = null;
-        if (timesheet.isDeleted() == true) {
+        if (timesheet.getDeleted() == true) {
           cssClasses = RowCssClass.MARKED_AS_DELETED.getCssClass();
         } else if (rowIndex < TimesheetEditPage.SIZE_OF_FIRST_RECENT_BLOCK) {
           cssClasses = RowCssClass.IMPORTANT_ROW.getCssClass();

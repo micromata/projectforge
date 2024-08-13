@@ -23,6 +23,8 @@
 
 package org.projectforge.business.timesheet
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -59,7 +61,7 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 import org.projectforge.framework.persistence.utils.SQLHelper.getYears
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime.Companion.from
@@ -75,6 +77,9 @@ import java.util.*
  */
 @Repository
 open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
+  @PersistenceContext
+  private lateinit var em: EntityManager
+
   @Autowired
   private lateinit var userDao: UserDao
 
@@ -123,10 +128,10 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
    * user=?.
    */
   open fun getYears(userId: Int?): IntArray {
-    val minMaxDate = ensureUniqueResult(
+    val minMaxDate = ensureUniqueResult(emgrFactory) { em ->
       em.createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Array<Any>::class.java)
         .setParameter("userId", userId)
-    )!!
+    }!!
     return getYears(minMaxDate[0], minMaxDate[1])
   }
 
@@ -373,7 +378,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     timesheet.startTime?.let { queryFilter.add(gt("stopTime", it)) }
     if (timesheet.id != null) {
       // Update time sheet, do not compare with itself.
-      queryFilter.add(ne("id", timesheet.id))
+      queryFilter.add(ne("id", timesheet.id!!))
     }
     val list = getList(queryFilter)
     if (list != null && list.size > 0) {
@@ -562,7 +567,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     do {
       val task = node!!.task
       var errorMessage: String? = null
-      if (task.isDeleted) {
+      if (task.deleted) {
         errorMessage = "timesheet.error.taskNotBookable.taskDeleted"
       } else if (!task.status.isIn(TaskStatus.O, TaskStatus.N)) {
         errorMessage = "timesheet.error.taskNotBookable.taskNotOpened"

@@ -25,17 +25,16 @@ package org.projectforge.business.teamcal.admin.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -44,7 +43,7 @@ import javax.persistence.*
 @Entity
 @Indexed
 @ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
-@Table(name = "T_CALENDAR", indexes = [javax.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
+@Table(name = "T_CALENDAR", indexes = [jakarta.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
 open class TeamCalDO() : BaseUserGroupRightsDO() {
 
     companion object {
@@ -97,7 +96,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      * This hash value is used for detecting changes of an subscribed calendar.
      */
     @JsonIgnore
-    @field:NoHistory
+    //@field:NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
     open var externalSubscriptionHash: String? = null
 
@@ -126,7 +125,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      * any client because it may contain private data.
      */
     @JsonIgnore
-    @field:NoHistory
+    //@field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @get:Type(type = "binary")

@@ -953,7 +953,7 @@ constructor(
     if (dto is BaseDO<*>) {
       dto.id = null
       if (dto is ExtendedBaseDO<*>) {
-        dto.isDeleted = false
+        dto.deleted = false
         dto.lastUpdate = null
         dto.created = null
       }

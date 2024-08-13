@@ -25,9 +25,9 @@ package org.projectforge.framework.persistence.database
 
 import org.hibernate.*
 import org.hibernate.query.Query
-import javax.persistence.EntityManager
-import javax.persistence.LockModeType
-import javax.persistence.TypedQuery
+import jakarta.persistence.EntityManager
+import jakarta.persistence.LockModeType
+import jakarta.persistence.TypedQuery
 
 // HSQLDB: unlimited
 // PostgreSQL: 32767 (JDBC driver 9.1, Short.MAX_VALUE)

@@ -41,7 +41,7 @@ import java.io.IOException
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import javax.persistence.Id
+import jakarta.persistence.Id
 
 
 class HibernateSearchClassInfo(baseDao: BaseDao<*>) {

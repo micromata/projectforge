@@ -90,7 +90,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       accessDao.setTask(access, taskNode.getId());
       accessDao.setGroup(access, group.getId());
     } else {
-      if (access.isDeleted() == true) {
+      if (access.getDeleted() == true) {
         accessDao.undelete(access);
       }
     }

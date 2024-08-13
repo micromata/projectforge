@@ -108,8 +108,8 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
           highlightedRowId = null;
         }
         final PersonalAddressDO personalAddress = personalAddressMap.get(address.getId());
-        appendCssClasses(item, address.getId(), highlightedRowId, address.isDeleted());
-        if (address.isDeleted()) {
+        appendCssClasses(item, address.getId(), highlightedRowId, address.getDeleted());
+        if (address.getDeleted()) {
           // Do nothing further
         } else if (personalAddress != null && personalAddress.isFavoriteCard()) {
           appendCssClasses(item, RowCssClass.FAVORITE_ENTRY);

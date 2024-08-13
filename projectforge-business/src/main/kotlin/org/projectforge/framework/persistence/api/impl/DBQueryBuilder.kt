@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 private val log = KotlinLogging.logger {}
 

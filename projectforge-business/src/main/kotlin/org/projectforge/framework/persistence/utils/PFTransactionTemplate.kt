@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.utils
 
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 /**
  * Some helper methods ...

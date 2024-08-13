@@ -35,6 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
 import jakarta.annotation.PreDestroy
+import jakarta.persistence.EntityManagerFactory
+import org.projectforge.framework.cache.AbstractCache.TICKS_PER_MINUTE
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 
 private val log = KotlinLogging.logger {}
 
@@ -57,7 +62,7 @@ class UserPrefCache : AbstractCache() {
     private lateinit var userPrefDao: UserPrefDao
 
     @Autowired
-    private lateinit var emgrFactory: PfEmgrFactory
+    private lateinit var emgrFactory: EntityManagerFactory
 
     /**
      * Does nothing for demo user.
@@ -205,7 +210,7 @@ class UserPrefCache : AbstractCache() {
                 // No access.
                 return
             }
-            val user = emgrFactory.runInTrans { emgr -> emgr.selectByPk(PFUserDO::class.java, userId) }
+            val user = EntityManagerUtil.selectById(emgrFactory, PFUserDO::class.java, userId)
             if (AccessChecker.isDemoUser(user)) {
                 // Do nothing for demo user.
                 return

@@ -27,7 +27,7 @@ import de.micromata.genome.db.jpa.history.entities.HistoryAttrBaseDO;
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * JPA entity for History.

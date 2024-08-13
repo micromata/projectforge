@@ -30,9 +30,9 @@ import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Table
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 
 /**
  * Beside entries of debitors and creditors invoices additional entries (for accommodation, taxes, planned salaries,

@@ -165,7 +165,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
           configuration.internalSetConfigurationType(param.getType());
           modified = true;
         }
-        if (configuration.isDeleted()) {
+        if (configuration.getDeleted()) {
           log.info("Restore deleted configuration entry: " + param);
           configuration.setDeleted(false);
           modified = true;

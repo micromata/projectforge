@@ -37,7 +37,7 @@ import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.rest.dto.Group
 import org.projectforge.rest.dto.User
 import java.util.*
-import javax.persistence.Transient
+import jakarta.persistence.Transient
 
 class DataTransferArea(
   id: Int? = null,

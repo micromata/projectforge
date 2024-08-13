@@ -65,8 +65,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.persistence.Transient;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Transient;
 import java.io.*;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;

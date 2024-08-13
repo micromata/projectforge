@@ -67,7 +67,7 @@ class EmployeeTest : AbstractTestBase() {
         Assertions.assertTrue(employeeList.isNotEmpty())
         for (e in employeeList) {
             baseLog.info("Employee: $e")
-            if (e.isDeleted) {
+            if (e.deleted) {
                 //Undelete
                 employeeDao.internalUndelete(e)
             }
@@ -123,7 +123,7 @@ class EmployeeTest : AbstractTestBase() {
 
         //Check updates
         val updatdEmployee = employeeDao.getById(e.id)
-        Assertions.assertTrue(updatdEmployee.isDeleted)
+        Assertions.assertTrue(updatdEmployee.deleted)
         employeeDao.update(e)
     }
 

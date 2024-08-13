@@ -110,7 +110,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
     var paymentSchedulesReached = false
     order.paymentSchedules?.let { paymentSchedules ->
       for (schedule in paymentSchedules) {
-        if (!schedule.isDeleted && schedule.reached && !schedule.vollstaendigFakturiert) {
+        if (schedule.deleted != true && schedule.reached && !schedule.vollstaendigFakturiert) {
           paymentSchedulesReached = true
           break
         }

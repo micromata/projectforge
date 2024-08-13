@@ -23,7 +23,7 @@
 
 package org.projectforge.business.poll
 
-import org.hibernate.search.annotations.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
 import org.projectforge.business.poll.filter.PollAssignment
 import org.projectforge.business.poll.filter.PollState
 import org.projectforge.common.StringHelper
@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.context.annotation.DependsOn
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 
 @Entity

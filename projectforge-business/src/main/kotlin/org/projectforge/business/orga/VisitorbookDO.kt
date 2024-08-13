@@ -23,36 +23,29 @@
 
 package org.projectforge.business.orga
 
-import de.micromata.genome.db.jpa.history.api.HistoryProperty
-import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr
-import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr
-import de.micromata.genome.jpa.ComplexEntity
-import de.micromata.genome.jpa.ComplexEntityVisitor
-import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo
-import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge
-import org.hibernate.annotations.Fetch
-import org.hibernate.annotations.FetchMode
-import org.hibernate.search.annotations.*
+import jakarta.persistence.*
+import mu.KotlinLogging
+import org.hibernate.search.annotations.Field
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexeded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexededEmbedded
+import org.hibernate.search.annotations.Store
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
-import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
-import org.slf4j.LoggerFactory
 import java.io.Serializable
-import java.util.*
-import javax.persistence.*
+
+private val log = KotlinLogging.logger {}
 
 @Entity
 @Indexed
-@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "visitorbook")
+//@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "visitorbook")
 @Table(name = "t_orga_visitorbook")
 @AUserRightId("ORGA_VISITORBOOK")
-class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTimedDO>, ComplexEntity, EntityWithConfigurableAttr {
+class VisitorbookDO : DefaultBaseDO() {
 
     @Field
     @PropertyInfo(i18nKey = "orga.visitorbook.lastname")
@@ -72,9 +65,16 @@ class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTi
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
     @get:IndexedEmbedded(depth = 2, includePaths = ["user.firstname", "user.lastname"])
     @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
-    @get:JoinTable(name = "T_ORGA_VISITORBOOK_EMPLOYEE", joinColumns = [JoinColumn(name = "VISITORBOOK_ID")], inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID")], indexes = [javax.persistence.Index(name = "idx_fk_t_orga_visitorbook_employee_id", columnList = "visitorbook_id"), javax.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")])
+    @get:JoinTable(
+        name = "T_ORGA_VISITORBOOK_EMPLOYEE",
+        joinColumns = [JoinColumn(name = "VISITORBOOK_ID")],
+        inverseJoinColumns = [JoinColumn(name = "EMPLOYEE_ID")],
+        indexes = [jakarta.persistence.Index(
+            name = "idx_fk_t_orga_visitorbook_employee_id",
+            columnList = "visitorbook_id"
+        ), jakarta.persistence.Index(name = "idx_fk_t_orga_employee_employee_id", columnList = "employee_id")]
+    )
     var contactPersons: Set<EmployeeDO>? = null
-
         get() {
             if (field == null) {
                 this.contactPersons = HashSet()
@@ -87,48 +87,18 @@ class VisitorbookDO : DefaultBaseDO(), EntityWithTimeableAttr<Int, VisitorbookTi
     @get:Column(name = "visitor_type", nullable = false)
     var visitortype: VisitorType? = null
 
+    /*
     @Field(store = Store.YES)
-    @FieldBridge(impl = TimeableListFieldBridge::class)
+    //@FieldBridge(impl = TimeableListFieldBridge::class)
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
-
+*/
     override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
         var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
         val src = source as VisitorbookDO
-        modificationStatus = modificationStatus
-                .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
+        log.error("Not yet implemented: copyValuesFrom")
+        // modificationStatus = modificationStatus
+        //    .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
         return modificationStatus
     }
-
-    override fun visit(visitor: ComplexEntityVisitor) {
-        for (et in timeableAttributes) {
-            et.visit(visitor)
-        }
-    }
-
-    @Transient
-    override fun getAttrSchemaName(): String {
-        return "visitorbook"
-    }
-
-    override fun addTimeableAttribute(row: VisitorbookTimedDO) {
-        row.visitor = this
-        timeableAttributes.add(row)
-    }
-
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "visitor")
-    @Fetch(FetchMode.SELECT)
-    @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
-    override fun getTimeableAttributes(): List<VisitorbookTimedDO> {
-        return timeableAttributes
-    }
-
-    fun setTimeableAttributes(timeableAttributes: MutableList<VisitorbookTimedDO>) {
-        this.timeableAttributes = timeableAttributes
-    }
-
-    companion object {
-        private val LOG = LoggerFactory.getLogger(VisitorbookDO::class.java)
-    }
-
 }

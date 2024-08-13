@@ -39,9 +39,9 @@ import java.lang.reflect.Field
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
-import javax.persistence.Basic
-import javax.persistence.Column
-import javax.persistence.JoinColumn
+import jakarta.persistence.Basic
+import jakarta.persistence.Column
+import jakarta.persistence.JoinColumn
 
 /**
  * Registry holds properties of UIElements...

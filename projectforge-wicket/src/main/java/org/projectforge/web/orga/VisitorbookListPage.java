@@ -89,7 +89,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
                                final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitorbook = rowModel.getObject();
-        appendCssClasses(item, visitorbook.getId(), visitorbook.isDeleted());
+        appendCssClasses(item, visitorbook.getId(), visitorbook.getDeleted());
       }
     };
 

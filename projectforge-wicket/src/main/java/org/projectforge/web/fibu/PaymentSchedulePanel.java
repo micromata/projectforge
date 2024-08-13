@@ -102,7 +102,7 @@ public class PaymentSchedulePanel extends Panel {
     if (entries != null) {
       entrysRepeater.removeAll();
       for (final PaymentScheduleDO entry : entries) {
-        if (entry.isDeleted()) {
+        if (entry.getDeleted()) {
           continue;
         }
         final WebMarkupContainer item = new WebMarkupContainer(entrysRepeater.newChildId());

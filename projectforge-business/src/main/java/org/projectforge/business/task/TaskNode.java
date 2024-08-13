@@ -191,14 +191,14 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   }
 
   public boolean isDeleted() {
-    return task.isDeleted();
+    return task.getDeleted();
   }
 
   /**
    * @return True if this node is closed/deleted or any ancestor node is closed/deleted.
    */
   public boolean isFinished() {
-    if (task.isDeleted() || task.getStatus() == TaskStatus.C) {
+    if (task.getDeleted() || task.getStatus() == TaskStatus.C) {
       return true;
     }
     if (parent != null) {

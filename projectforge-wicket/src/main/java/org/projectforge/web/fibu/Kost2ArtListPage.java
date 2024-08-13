@@ -67,7 +67,7 @@ public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2Ar
           final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
-        appendCssClasses(item, kost2Art.getId(), kost2Art.isDeleted());
+        appendCssClasses(item, kost2Art.getId(), kost2Art.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.kost2art.nummer")),

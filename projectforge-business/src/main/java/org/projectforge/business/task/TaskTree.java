@@ -893,7 +893,7 @@ public class TaskTree extends AbstractCache implements Serializable {
     final List<ProjektDO> projects = projektDao.internalLoadAll();
     if (projects != null) {
       for (final ProjektDO project : projects) {
-        if (project.isDeleted() || project.getTaskId() == null) {
+        if (project.getDeleted() || project.getTaskId() == null) {
           continue;
         }
         node = taskMap.get(project.getTaskId());

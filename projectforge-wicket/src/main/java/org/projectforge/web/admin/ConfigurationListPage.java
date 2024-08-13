@@ -71,7 +71,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
           final IModel<ConfigurationDO> rowModel)
       {
         final ConfigurationDO configuration = rowModel.getObject();
-        appendCssClasses(item, configuration.getId(), configuration.isDeleted());
+        appendCssClasses(item, configuration.getId(), configuration.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<ConfigurationDO>(

@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.entities
 import de.micromata.genome.db.jpa.tabattr.entities.TimeableBaseDO
 import org.projectforge.framework.time.PFDay
 import java.time.LocalDate
-import javax.persistence.Transient
+import jakarta.persistence.Transient
 
 /**
  * Should be used, because in ProjectForge TimeableBaseDO is used with startTime with day or month precision. So the callers should

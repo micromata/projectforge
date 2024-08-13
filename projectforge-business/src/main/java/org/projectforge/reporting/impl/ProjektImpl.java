@@ -34,7 +34,7 @@ import java.util.List;
 
 /**
  * Proxy for ProjektDO;
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @see ProjektDO
  */
@@ -113,7 +113,7 @@ public class ProjektImpl implements Projekt
 
   public boolean isDeleted()
   {
-    return projekt != null ? projekt.isDeleted() : false;
+    return projekt != null ? projekt.getDeleted() : false;
   }
 
   public String getKost2ArtsAsString()
@@ -175,7 +175,7 @@ public class ProjektImpl implements Projekt
 
   /**
    * Return the kost2Arts only if set previously via setKost2Arts.
-   * 
+   *
    * @see org.projectforge.reporting.Projekt#getKost2Arts()
    * @see #setKost2Arts(int[])
    */

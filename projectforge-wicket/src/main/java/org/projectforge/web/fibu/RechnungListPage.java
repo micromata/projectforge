@@ -112,8 +112,8 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
           // Should not occur:
           return;
         }
-        appendCssClasses(item, rechnung.getId(), rechnung.isDeleted());
-        if (rechnung.isDeleted() == true) {
+        appendCssClasses(item, rechnung.getId(), rechnung.getDeleted());
+        if (rechnung.getDeleted() == true) {
           // Do nothing further
         } else if (rechnung.isUeberfaellig() == true) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);

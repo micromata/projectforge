@@ -81,7 +81,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
           final IModel<GroupTaskAccessDO> rowModel)
       {
         final GroupTaskAccessDO acces = rowModel.getObject();
-        appendCssClasses(item, acces.getId(), acces.isDeleted());
+        appendCssClasses(item, acces.getId(), acces.getDeleted());
       }
     };
     columns.add(new CellItemListenerPropertyColumn<GroupTaskAccessDO>(new Model<String>(getString("task")),

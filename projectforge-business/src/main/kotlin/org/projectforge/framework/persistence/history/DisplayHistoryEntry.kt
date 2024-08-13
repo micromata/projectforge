@@ -48,7 +48,7 @@ import java.sql.Date
 import java.sql.Timestamp
 import java.util.*
 import java.util.function.Consumer
-import javax.persistence.EntityManager
+import jakarta.persistence.EntityManager
 
 /**
  * For storing the hibernate history entries in flat format.

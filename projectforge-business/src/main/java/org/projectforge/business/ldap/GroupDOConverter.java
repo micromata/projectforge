@@ -94,7 +94,7 @@ public class GroupDOConverter
     ldapGroup.setDescription(pfGroup.getDescription());
     if (pfGroup.getAssignedUsers() != null) {
       for (final PFUserDO user : pfGroup.getAssignedUsers()) {
-        if (user.getDeactivated() || user.isDeleted()) {
+        if (user.getDeactivated() || user.getDeleted()) {
           // Do not add deleted or deactivated users.
           continue;
         }
@@ -103,7 +103,7 @@ public class GroupDOConverter
           ldapGroup.addMember(ldapUser, baseDN);
         } else {
           final PFUserDO cacheUser = userGroupCache.getUser(user.getId());
-          if (cacheUser == null || !cacheUser.isDeleted()) {
+          if (cacheUser == null || !cacheUser.getDeleted()) {
             log.warn("LDAP user with id '"
                 + user.getId()
                 + "' not found in given ldapUserMap. User will be ignored in group '"

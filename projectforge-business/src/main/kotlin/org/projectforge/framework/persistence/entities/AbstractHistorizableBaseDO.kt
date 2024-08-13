@@ -21,28 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu
+package org.projectforge.framework.persistence.entities
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO
-import javax.persistence.*
+import java.io.Serializable
+import jakarta.persistence.MappedSuperclass
 
 /**
- * @author Roger Kommer (r.kommer.extern@micromata.de)
+ * Declares lastUpdate and created as invalidHistorizableProperties.
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Entity
-@DiscriminatorValue("1")
-class EmployeeTimedAttrWithDataDO : EmployeeTimedAttrDO {
-
-    constructor() : super()
-
-    constructor(parent: EmployeeTimedDO, propertyName: String, type: Char,
-                value: String) : super(parent, propertyName, type, value)
-
-    constructor(parent: EmployeeTimedDO) : super(parent)
-
-    @OneToMany(cascade = [CascadeType.ALL], mappedBy = "parent", targetEntity = EmployeeTimedAttrDataDO::class, orphanRemoval = true, fetch = FetchType.EAGER)
-    @OrderColumn(name = "datarow")
-    override fun getData(): List<JpaTabAttrDataBaseDO<*, Int>> {
-        return super.getData()
+@MappedSuperclass //@WithHistory(noHistoryProperties = { "lastUpdate", "created" })
+abstract class AbstractHistorizableBaseDO<I : Serializable> : AbstractBaseDO<I>() {
+    companion object {
+        private const val serialVersionUID = -5980671510045450615L
     }
 }

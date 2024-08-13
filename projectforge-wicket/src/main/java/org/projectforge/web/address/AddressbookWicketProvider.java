@@ -128,7 +128,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
     final Collection<AddressbookDO> allAddressbooks = getAddressbookList();
     Collection<AddressbookDO> sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
     for (final AddressbookDO ab : allAddressbooks) {
-      if (ab.isDeleted() == false) {
+      if (ab.getDeleted() == false) {
         sortedAddressbooks.add(ab);
       }
     }

@@ -134,7 +134,7 @@ public class AddressDaoRest {
         favoritesSet = new HashSet<>();
         if (favorites != null) {
           for (final PersonalAddressDO personalAddress : favorites) {
-            if (personalAddress.isFavoriteCard() && !personalAddress.isDeleted()) {
+            if (personalAddress.isFavoriteCard() && !personalAddress.getDeleted()) {
               favoritesSet.add(personalAddress.getAddressId());
             }
           }
@@ -191,7 +191,7 @@ public class AddressDaoRest {
     boolean isNew = false;
     try {
       addressDOOrig = addressDao.findByUid(addressObject.getUid());
-    } catch (javax.persistence.NoResultException e) {
+    } catch (jakarta.persistence.NoResultException e) {
       log.info("No address with given uid found: " + uid);
       log.info("Continoue creating new address.");
     }
@@ -259,7 +259,7 @@ public class AddressDaoRest {
     AddressDO addressDOOrig = null;
     try {
       addressDOOrig = addressDao.findByUid(addressObject.getUid());
-    } catch (javax.persistence.NoResultException e) {
+    } catch (jakarta.persistence.NoResultException e) {
       log.info("No address with given uid found: " + uid);
       log.info("Serving error response.");
     }
