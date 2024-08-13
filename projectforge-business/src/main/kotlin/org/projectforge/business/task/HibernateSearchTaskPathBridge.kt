@@ -21,38 +21,35 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu
+package org.projectforge.business.task
 
-import mu.KotlinLogging
+import org.hibernate.query.sqm.tree.SqmNode.log
 import org.hibernate.search.engine.backend.document.DocumentElement
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
-
-private val log = KotlinLogging.logger {}
+import java.util.function.Consumer
 
 /**
- * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
- * number&gt>).
+ * TaskPathBridge for hibernate search to search in the parent task titles.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
-    override fun write(
-        target: DocumentElement,
-        bridgedElement: AuftragsPositionDO,
-        context: TypeBridgeWriteContext
-    ) {
-        val auftrag = bridgedElement.auftrag
-        val sb = StringBuilder()
-        if (auftrag?.nummer == null) {
-            log.error("AuftragDO for AuftragsPositionDO: " + bridgedElement.id + "  is null.")
-            target.addValue("position", "")
+class HibernateSearchTaskPathBridge : TypeBridge<TaskDO> {
+    override fun write(target: DocumentElement, bridgedElement: TaskDO, context: TypeBridgeWriteContext) {
+        val taskNode = TaskTree.getInstance().getTaskNodeById(bridgedElement.id)
+        if (taskNode == null) {
+            target.addValue("taskpath", "")
             return
         }
-        sb.append(auftrag.nummer).append(".").append(bridgedElement.number.toInt())
+        val list = taskNode.pathToRoot
+        val sb = StringBuilder()
+        sb.append(bridgedElement.id).append(": ") // Adding the id for deserialization
+        list.forEach(Consumer { node: TaskNode ->
+            sb.append(node.getTask().title).append("|")
+        })
         if (log.isDebugEnabled) {
             log.debug(sb.toString())
         }
-        target.addValue("position", sb.toString())
+        target.addValue("taskpath", sb.toString())
     }
 }

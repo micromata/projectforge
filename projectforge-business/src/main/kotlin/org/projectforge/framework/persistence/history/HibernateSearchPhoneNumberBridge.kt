@@ -21,33 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.history;
+package org.projectforge.framework.persistence.history
 
-import org.hibernate.search.mapper.pojo.bridge.ValueBridge;
-import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeFromIndexedValueContext;
-import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext;
-import org.projectforge.common.StringHelper;
-import org.projectforge.framework.utils.NumberHelper;
+import org.hibernate.search.mapper.pojo.bridge.ValueBridge
+import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext
+import org.projectforge.common.StringHelper
+import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 
 /**
  * StringBridge for hibernate search to search in phone numbers (reduce phone number fields to digits without white spaces and non digits).
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class HibernateSearchPhoneNumberBridge implements ValueBridge<Object, String>
-{
-
-  @Override
-  public String toIndexedValue(Object o, ValueBridgeToIndexedValueContext valueBridgeToIndexedValueContext) {
-    return "";
-  }
-
-  @Override
-  public Object fromIndexedValue(String value, ValueBridgeFromIndexedValueContext context) {
-    if (value == null || !(value instanceof String)) {
-      return "";
+class HibernateSearchPhoneNumberBridge : ValueBridge<String?, String> {
+    override fun toIndexedValue(
+        number: String?,
+        valueBridgeToIndexedValueContext: ValueBridgeToIndexedValueContext
+    ): String {
+        if (number == null) {
+            return ""
+        }
+        return number + '|' + StringHelper.removeNonDigits(number) + '|' + extractPhonenumber(number)
     }
-    final String number = (String) value;
-    return number + '|' + StringHelper.removeNonDigits(number) + '|' + NumberHelper.extractPhonenumber(number);
-  }
 }

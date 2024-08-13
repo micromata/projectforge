@@ -23,7 +23,10 @@
 
 package org.projectforge.business.task
 
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.gantt.GanttObjectType
 import org.projectforge.business.gantt.GanttRelationType
 import org.projectforge.common.StringHelper
@@ -36,12 +39,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
-import jakarta.persistence.*
-import jakarta.persistence.Index
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  *
@@ -49,19 +46,27 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
  */
 @Entity
 @Indexed
-@ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
-@Table(name = "T_TASK",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],
-        indexes = [
-            Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
-            Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
-            Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id")])
+@TypeBinding(binder = TypeBinderRef(name = "taskpath", type = HibernateSearchTaskPathTypeBinder::class))
+//@ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
+@Table(
+    name = "T_TASK",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],
+    indexes = [
+        Index(name = "idx_fk_t_task_gantt_predecessor_fk", columnList = "gantt_predecessor_fk"),
+        Index(name = "idx_fk_t_task_parent_task_id", columnList = "parent_task_id"),
+        Index(name = "idx_fk_t_task_responsible_user_id", columnList = "responsible_user_id")]
+)
 //@JpaXmlPersist(beforePersistListener = [TaskXmlBeforePersistListener::class])
 @NamedQueries(
-        NamedQuery(name = TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
-                query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id!=:id"),
-        NamedQuery(name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
-                query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"))
+    NamedQuery(
+        name = TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
+        query = "from TaskDO where parentTask.id=:parentTaskId and title=:title and id!=:id"
+    ),
+    NamedQuery(
+        name = TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
+        query = "from TaskDO where parentTask.id=:parentTaskId and title=:title"
+    )
+)
 open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObject
 {
     override val displayName: String
@@ -100,12 +105,12 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
 
     /** -&gt; Gantt  */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.progress")
     @get:Column
     open var progress: Int? = null
 
-    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @PropertyInfo(i18nKey = "task.maxHours")
     @get:Column(name = "max_hours")
     open var maxHours: Int? = null
@@ -259,7 +264,11 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
      */
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
     @PropertyInfo(i18nKey = "task.parentTask")
-    @get:ManyToOne(cascade = [CascadeType.PERSIST, CascadeType.MERGE], targetEntity = TaskDO::class, fetch = FetchType.LAZY)
+    @get:ManyToOne(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE],
+        targetEntity = TaskDO::class,
+        fetch = FetchType.LAZY
+    )
     @get:JoinColumn(name = "gantt_predecessor_fk")
     open var ganttPredecessor: TaskDO? = null
 

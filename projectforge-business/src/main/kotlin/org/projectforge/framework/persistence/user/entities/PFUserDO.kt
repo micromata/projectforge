@@ -26,7 +26,9 @@ package org.projectforge.framework.persistence.user.entities
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -153,7 +155,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var email: String? = null
 
     @PropertyInfo(i18nKey = "user.mobilePhone", tooltip = "user.mobilePhone.info")
-    @FieldBridge(impl = HibernateSearchPhoneNumberBridge::class)
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
     @FullTextField
     @get:Column(name = "mobile_phone", length = 255)
     open var mobilePhone: String? = null

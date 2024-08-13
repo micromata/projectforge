@@ -23,36 +23,25 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
 import org.hibernate.search.engine.backend.document.DocumentElement
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
 
-private val log = KotlinLogging.logger {}
-
 /**
- * Bridge for hibernate search to search for order positions of form ###.## (&lt;order number&gt;.&lt;position
- * number&gt>).
+ * StringBridge for hibernate search to search in kost2 part of project: "5.010.01".
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class HibernateSearchAuftragsPositionBridge : TypeBridge<AuftragsPositionDO> {
+class HibernateSearchProjectKostBridge : TypeBridge<ProjektDO> {
     override fun write(
         target: DocumentElement,
-        bridgedElement: AuftragsPositionDO,
+        bridgedElement: ProjektDO,
         context: TypeBridgeWriteContext
     ) {
-        val auftrag = bridgedElement.auftrag
         val sb = StringBuilder()
-        if (auftrag?.nummer == null) {
-            log.error("AuftragDO for AuftragsPositionDO: " + bridgedElement.id + "  is null.")
-            target.addValue("position", "")
-            return
-        }
-        sb.append(auftrag.nummer).append(".").append(bridgedElement.number.toInt())
-        if (log.isDebugEnabled) {
-            log.debug(sb.toString())
-        }
-        target.addValue("position", sb.toString())
+        sb.append(KostFormatter.format(bridgedElement))
+        sb.append(' ')
+        sb.append(KostFormatter.format(bridgedElement, true))
+        target.addValue("kost2", sb.toString())
     }
 }

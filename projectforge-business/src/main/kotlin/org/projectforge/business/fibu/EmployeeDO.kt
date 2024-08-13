@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -41,6 +42,7 @@ import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.history.ToStringFieldBridge
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
@@ -139,7 +141,6 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.employee.wochenstunden")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
-    @FieldBridge(impl = ToStringFieldBridge::class)
     @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
     open var weeklyWorkingHours: BigDecimal? = null
 

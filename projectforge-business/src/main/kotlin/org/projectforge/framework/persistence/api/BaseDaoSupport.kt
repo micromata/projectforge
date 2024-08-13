@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
+import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
@@ -30,6 +31,7 @@ import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
+import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
@@ -52,7 +54,7 @@ object BaseDaoSupport {
   @JvmStatic
   fun <O : ExtendedBaseDO<Int>> internalSave(baseDao: BaseDao<O>, obj: O): Int? {
     preInternalSave(baseDao, obj)
-    baseDao.emgrFactory.runInTrans { emgr ->
+    EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { emgr ->
       internalSave(emgr, baseDao, obj)
       null
     }
@@ -60,9 +62,8 @@ object BaseDaoSupport {
     return obj.id
   }
 
-  private fun <O : ExtendedBaseDO<Int>> internalSave(emgr: PfEmgr, baseDao: BaseDao<O>, obj: O) {
-    BaseDaoJpaAdapter.prepareInsert(emgr, obj)
-    val em = emgr.entityManager
+  private fun <O : ExtendedBaseDO<Int>> internalSave(em: EntityManager, baseDao: BaseDao<O>, obj: O) {
+    // BaseDaoJpaAdapter.prepareInsert(em, obj)
     em.persist(obj)
     if (baseDao.logDatabaseActions) {
       log.info("New ${baseDao.clazz.simpleName} added (${obj.id}): $obj")
@@ -78,7 +79,7 @@ object BaseDaoSupport {
       throw ex
     }
     baseDao.flushSearchSession(em)
-    HistoryBaseDaoAdapter.inserted(emgr, obj)
+    // HistoryBaseDaoAdapter.inserted(emgr, obj)
   }
 
   private fun <O : ExtendedBaseDO<Int>> preInternalSave(baseDao: BaseDao<O>, obj: O) {
@@ -98,7 +99,7 @@ object BaseDaoSupport {
   fun <O : ExtendedBaseDO<Int>> internalUpdate(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean): ModificationStatus? {
     preInternalUpdate(baseDao, obj, checkAccess)
     val res = ResultObject<O>()
-    baseDao.emgrFactory.runInTrans { emgr ->
+    EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { emgr ->
       internalUpdate(emgr, baseDao, obj, checkAccess, res)
     }
     postInternalUpdate<O>(baseDao, obj, res)
@@ -114,13 +115,12 @@ object BaseDaoSupport {
   }
 
   private fun <O : ExtendedBaseDO<Int>> internalUpdate(
-    emgr: PfEmgr,
+    em: EntityManager,
     baseDao: BaseDao<O>,
     obj: O,
     checkAccess: Boolean,
     res: ResultObject<O>
   ) {
-    val em = emgr.entityManager
     val dbObj = em.find(baseDao.clazz, obj.id)
     if (checkAccess) {
       baseDao.checkLoggedInUserUpdateAccess(obj, dbObj)
@@ -132,7 +132,8 @@ object BaseDaoSupport {
       res.dbObjBackup = null
     }
     res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
-    res.modStatus = HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
+    /*
+    res.modStatus = HistoryBaseDaoAdapter.wrapHistoryUpdate(em, dbObj) {
       val result = baseDao.copyValues(obj, dbObj)
       if (result != ModificationStatus.NONE) {
         BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj)
@@ -155,7 +156,7 @@ object BaseDaoSupport {
         baseDao.flushSearchSession(em)
       }
       result
-    }
+    }*/
   }
 
   private fun <O : ExtendedBaseDO<Int>> postInternalUpdate(baseDao: BaseDao<O>, obj: O, res: ResultObject<O>) {
@@ -175,18 +176,18 @@ object BaseDaoSupport {
 
   @JvmStatic
   fun <O : ExtendedBaseDO<Int>> internalMarkAsDeleted(baseDao: BaseDao<O>, obj: O) {
-    if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
+    /*if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
       log.error(
-        "Object is not historizable. Therefore marking as deleted is not supported. Please use delete instead."
+        "Object is not historizable. Therefore, marking as deleted is not supported. Please use delete instead."
       )
       throw InternalErrorException("exception.internalError")
-    }
+    }*/
     baseDao.onDelete(obj)
-    baseDao.emgrFactory.runInTrans { emgr ->
-      val em = emgr.entityManager
+    EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
       val dbObj = em.find(baseDao.clazz, obj.id)
       baseDao.onSaveOrModify(obj)
 
+      /*
       HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
         BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj)
         baseDao.copyValues(obj, dbObj) // If user has made additional changes.
@@ -198,7 +199,7 @@ object BaseDaoSupport {
         em.flush()
         baseDao.flushSearchSession(em)
         null
-      }
+      }*/
       if (baseDao.logDatabaseActions) {
         log.info("${baseDao.clazz.simpleName} marked as deleted: $dbObj")
       }
@@ -210,10 +211,9 @@ object BaseDaoSupport {
   @JvmStatic
   fun <O : ExtendedBaseDO<Int>> internalUndelete(baseDao: BaseDao<O>, obj: O) {
     baseDao.onSaveOrModify(obj)
-    val dbObj: O = baseDao.emgrFactory.runInTrans { emgr ->
-      val em = emgr.entityManager
+    EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
       val dbObj = em.find(baseDao.clazz, obj.id)
-      HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
+      /* HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
         BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj)
         baseDao.copyValues(obj, dbObj) // If user has made additional changes.
         dbObj.isDeleted = false
@@ -224,25 +224,25 @@ object BaseDaoSupport {
         em.flush()
         baseDao.flushSearchSession(em)
         null
+      }*/
+      if (baseDao.logDatabaseActions) {
+        log.info("${baseDao.clazz.simpleName} undeleted: $dbObj")
       }
       dbObj
     }
 
     baseDao.afterSaveOrModify(obj)
     baseDao.afterUndelete(obj)
-    if (baseDao.logDatabaseActions) {
-      log.info("${baseDao.clazz.simpleName} undeleted: $dbObj")
-    }
   }
 
   @JvmStatic
   fun <O : ExtendedBaseDO<Int>> internalForceDelete(baseDao: BaseDao<O>, obj: O) {
-    if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
+    /*if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
       log.error(
         "Object is not historizable. Therefore use normal delete instead."
       )
       throw InternalErrorException("exception.internalError")
-    }
+    }*/
     if (!baseDao.forceDeletionSupport) {
       val msg = "Force deletion not supported by '${baseDao.clazz.name}'. Use markAsDeleted instead for: $obj"
       log.error(msg)
@@ -256,12 +256,11 @@ object BaseDaoSupport {
     }
     baseDao.onDelete(obj)
     val userGroupCache = UserGroupCache.getInstance()
-    baseDao.emgrFactory.runInTrans { emgr ->
-      val em = emgr.entityManager
+    EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
       val dbObj = em.find(baseDao.clazz, id)
       em.remove(dbObj)
 
-      val masterClass: Class<out HistoryMasterBaseDO<*, *>?> =
+      /*val masterClass: Class<out HistoryMasterBaseDO<*, *>?> =
         PfHistoryMasterDO::class.java //HistoryServiceImpl.getHistoryMasterClass()
       emgr.selectAttached(
         masterClass,
@@ -277,7 +276,7 @@ object BaseDaoSupport {
         log.info(
           "${baseDao.clazz.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry"
         )
-      }
+      }*/
       if (baseDao.logDatabaseActions) {
         log.info("${baseDao.clazz.simpleName} (forced) deleted: $dbObj")
       }
@@ -290,16 +289,16 @@ object BaseDaoSupport {
    */
   @JvmStatic
   fun <O : ExtendedBaseDO<Int>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>) {
-    baseDao.emgrFactory.runInTrans { emgr ->
+    EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
       for (obj in col) {
         if (obj.id != null) {
           preInternalUpdate(baseDao, obj, false)
           val res = ResultObject<O>()
-          internalUpdate(emgr, baseDao, obj, false, res)
+          internalUpdate(em, baseDao, obj, false, res)
           postInternalUpdate<O>(baseDao, obj, res)
         } else {
           preInternalSave(baseDao, obj)
-          internalSave(emgr, baseDao, obj)
+          internalSave(em, baseDao, obj)
           postInternalSave(baseDao, obj)
         }
       }

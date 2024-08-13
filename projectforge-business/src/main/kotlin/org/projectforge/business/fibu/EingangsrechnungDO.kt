@@ -34,7 +34,10 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 
 /**
  * Eingehende Rechnungen.
@@ -95,7 +98,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
   open var kreditor: String? = null
 
   @PropertyInfo(i18nKey = "fibu.payment.type")
-  @FullTextField(bridge = FieldBridge(impl = HibernateSearchPaymentTypeBridge::class))
+  @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPaymentTypeBridge::class))
   @get:Column(length = 20, name = "payment_type")
   @get:Enumerated(EnumType.STRING)
   open var paymentType: PaymentType? = null

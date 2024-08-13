@@ -23,18 +23,16 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6. Ziffer).
@@ -43,11 +41,38 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
  */
 @Entity
 @Indexed
-@ClassBridge(name = "kost2", impl = HibernateSearchProjectKostBridge::class)
-@Table(name = "T_FIBU_PROJEKT", uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "kunde_id"]), UniqueConstraint(columnNames = ["nummer", "intern_kost2_4"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_konto_id", columnList = "konto_id"), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_kunde_id", columnList = "kunde_id"), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_projektmanager_group_fk", columnList = "projektmanager_group_fk"), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_projectManager_fk", columnList = "projectmanager_fk"), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_salesmanager_fk", columnList = "salesmanager_fk"), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk")])
+@TypeBinding(binder = TypeBinderRef(name = "kost2", type = HibernateSearchProjektTypeBinder::class))
+//@ClassBridge(name = "kost2", impl = HibernateSearchProjectKostBridge::class)
+@Table(
+    name = "T_FIBU_PROJEKT",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["nummer", "kunde_id"]), UniqueConstraint(columnNames = ["nummer", "intern_kost2_4"])],
+    indexes = [jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_konto_id",
+        columnList = "konto_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_kunde_id",
+        columnList = "kunde_id"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_projektmanager_group_fk",
+        columnList = "projektmanager_group_fk"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_projectManager_fk",
+        columnList = "projectmanager_fk"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_headofbusinessmanager_fk",
+        columnList = "headofbusinessmanager_fk"
+    ), jakarta.persistence.Index(
+        name = "idx_fk_t_fibu_projekt_salesmanager_fk",
+        columnList = "salesmanager_fk"
+    ), jakarta.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk")]
+)
 // @WithHistory
 @NamedQueries(
-        NamedQuery(name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"))
+    NamedQuery(
+        name = ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER,
+        query = "from ProjektDO where internKost2_4=:internKost24 and nummer=:nummer"
+    )
+)
 open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String

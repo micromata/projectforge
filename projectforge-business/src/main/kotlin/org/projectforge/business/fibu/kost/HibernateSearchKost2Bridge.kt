@@ -21,30 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.history;
+package org.projectforge.business.fibu.kost
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.StringField;
-import org.hibernate.search.bridge.FieldBridge;
-import org.hibernate.search.bridge.LuceneOptions;
-
-import java.util.Objects;
+import org.hibernate.search.engine.backend.document.DocumentElement
+import org.hibernate.search.mapper.pojo.bridge.TypeBridge
+import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
+import org.projectforge.business.fibu.KostFormatter
 
 /**
- * Calls just ObjectUtils.toString()
+ * Kost2Bridge for hibernate search: Kostenträger kann à la 6.201.57 gesucht werden.
  *
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class ToStringFieldBridge implements FieldBridge
-{
-  @Override
-  public void set(String name, Object value, Document document, LuceneOptions luceneOptions)
-  {
-    if (value == null) {
-      return;
+class HibernateSearchKost2Bridge : TypeBridge<Kost2DO> {
+
+    override fun write(target: DocumentElement, bridgedElement: Kost2DO, context: TypeBridgeWriteContext) {
+        val sb = StringBuilder()
+        sb.append(KostFormatter.format(bridgedElement))
+        sb.append(' ')
+        sb.append(KostFormatter.format(bridgedElement, true))
+        target.addValue("kost2", sb.toString())
     }
-    document.add(new StringField(name, Objects.toString(value), Store.NO));
-  }
 }

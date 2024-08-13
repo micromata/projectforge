@@ -120,6 +120,6 @@ open class WebAuthnEntryDao {
       requireNotNull(dbObj) { "Entry with id given, but doesn't exist in the data base." }
       return dbObj
     }
-    return getEntry(entry.owner!!.id, entry.credentialId!!)
+    return getEntry(entry.owner!!.id!!, entry.credentialId!!)
   }
 }

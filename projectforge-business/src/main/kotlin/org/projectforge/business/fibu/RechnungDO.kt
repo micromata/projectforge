@@ -66,7 +66,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
   @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
-  @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+  @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
   @get:Column(nullable = true)
   open var nummer: Int? = null
 
@@ -155,7 +155,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   @JsonManagedReference
-  @IndexedEmbedded(includeDepth = = 3)
+  @IndexedEmbedded(includeDepth = 3)
   @get:OneToMany(
     cascade = [CascadeType.MERGE],
     fetch = FetchType.EAGER,

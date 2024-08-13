@@ -78,7 +78,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     open var priority: Priority? = null
 
     @PropertyInfo(i18nKey = "hr.planning.probability.short")
-    @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
+    @GenericField // was: @FullTextField(analyze = Analyze.NO, bridge = FieldBridge(impl = IntegerBridge::class))
     @get:Column
     open var probability: Int? = null
 

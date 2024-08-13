@@ -21,32 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.task
 
-import org.hibernate.search.bridge.TwoWayStringBridge;
+import org.hibernate.search.mapper.pojo.bridge.TypeBridge
+import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
+import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
 
 /**
- * StringBridge for hibernate search to search in kost2 part of project: "5.010.01".
+ * TaskPathBridge for hibernate search to search in the parent task titles.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class HibernateSearchProjectKostBridge implements TwoWayStringBridge {
-  @Override
-  public String objectToString(Object object) {
-    if (object instanceof String) {
-      return (String) object;
-    }
-    final ProjektDO projekt = (ProjektDO) object;
-    final StringBuilder sb = new StringBuilder();
-    sb.append(KostFormatter.format(projekt));
-    sb.append(' ');
-    sb.append(KostFormatter.format(projekt, true));
-    return sb.toString();
-  }
+class HibernateSearchTaskPathTypeBinder : TypeBinder {
+    override fun bind(context: TypeBindingContext) {
+        context.dependencies().useRootOnly()
 
-  @Override
-  public Object stringToObject(String stringValue) {
-    // Not supported.
-    return null;
-  }
+        val bridge: TypeBridge<TaskDO> = HibernateSearchTaskPathBridge()
+        context.bridge(TaskDO::class.java, bridge)
+    }
 }

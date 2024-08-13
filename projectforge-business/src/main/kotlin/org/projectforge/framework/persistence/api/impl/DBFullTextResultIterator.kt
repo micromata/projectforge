@@ -23,11 +23,10 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.EntityManager
 import org.apache.commons.lang3.builder.CompareToBuilder
-import org.apache.lucene.analysis.standard.ClassicAnalyzer
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
-import org.apache.lucene.queryparser.classic.QueryParser
-import org.hibernate.search.jpa.FullTextEntityManager
+import org.apache.jackrabbit.oak.query.QueryParser
+import org.hibernate.search.mapper.orm.Search
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -41,7 +40,7 @@ private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
         val baseDao: BaseDao<O>,
-        private val fullTextEntityManager: FullTextEntityManager,
+        private val entityManager: EntityManager,
         private val resultMatchers: List<DBPredicate>,
         private val filter: QueryFilter,
         val sortProperties: Array<SortProperty>,
@@ -147,7 +146,15 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     }
 
     private fun nextResultBlock(): List<O> {
+        val searchSession = Search.session(entityManager)
         val fullTextQuery = if (fullTextQuery != null) {
+           /* val results: List<MyEntity> = searchSession.search(MyEntity::class.java)
+                .where { f ->
+                    f.match()
+                        .fields("fieldName") // Name des indizierten Feldes
+                        .matching("searchTerm")
+                } // Der Suchbegriff
+                .fetchHits(20) // Erhalte die ersten 20 Ergebnisse*/
             fullTextEntityManager.createFullTextQuery(fullTextQuery, baseDao.doClass)
         } else {
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
