@@ -99,7 +99,8 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * Dies sind die alten Auftragsnummern oder Kundenreferenzen.
      */
     @PropertyInfo(i18nKey = "fibu.common.customer.reference")
-    @GenericField(name = "referenz_tokenized") // was: @FullTextFields(Field(name = "referenz_tokenized"), Field(analyze = Analyze.NO))
+    @GenericField
+    @FullTextField(name = "referenz_tokenized") // was: @FullTextFields(Field(name = "referenz_tokenized"), Field(analyze = Analyze.NO))
     @get:Column(length = 255)
     open var referenz: String? = null
 
