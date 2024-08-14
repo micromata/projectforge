@@ -33,7 +33,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
 import java.util.*
 import javax.sql.DataSource
-
+    
 @Configuration
 open class JpaConfig {
     @Value("\${hibernate.show_sql}")
