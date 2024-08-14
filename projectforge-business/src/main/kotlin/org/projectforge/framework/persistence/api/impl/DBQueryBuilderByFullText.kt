@@ -23,11 +23,12 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.EntityManager
 import org.apache.commons.lang3.math.NumberUtils
-import org.hibernate.search.annotations.EncodingType
-import org.hibernate.search.jpa.Search
-import org.hibernate.search.query.dsl.BooleanJunction
-import org.hibernate.search.query.dsl.QueryBuilder
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
+import org.hibernate.search.engine.search.query.dsl.SearchQueryOptionsStep
+import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -35,35 +36,55 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
-import jakarta.persistence.EntityManager
 
+/**
+ * Query builder for full text search.
+ */
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
-        private val baseDao: BaseDao<O>,
-        private val entityManager: EntityManager,
-        /**
-         * Only for fall back to criteria search if no predicates found for full text search.
-         */
-        private val queryFilter: QueryFilter,
-        val useMultiFieldQueryParser: Boolean = false) {
+    private val baseDao: BaseDao<O>, private val entityManager: EntityManager,
+    /**
+     * Only for fall back to criteria search if no predicates found for full text search.
+     */
+    private val queryFilter: QueryFilter, val useMultiFieldQueryParser: Boolean = false
+) {
 
     private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
 
-    private var queryBuilder: QueryBuilder
-    private var boolJunction: BooleanJunction<*>
-    private val fullTextEntityManager = Search.getFullTextEntityManager(entityManager)
+    private var searchQueryOptionsStep: SearchQueryOptionsStep<*, *, *, *, *>
+    private lateinit var searchPredicateFactory: SearchPredicateFactory
+    private lateinit var boolJunction: BooleanPredicateOptionsCollector<*>
+    private val searchSession = Search.session(entityManager)
     private val sortOrders = mutableListOf<SortProperty>()
     private val multiFieldQuery = mutableListOf<String>()
     private val searchClassInfo: HibernateSearchClassInfo
 
     init {
-        queryBuilder = fullTextEntityManager.searchFactory.buildQueryBuilder().forEntity(baseDao.doClass).get()
-        boolJunction = queryBuilder.bool()
+        searchQueryOptionsStep = searchSession.search(baseDao.doClass).where { f ->
+            searchPredicateFactory = f
+            f.bool().with { b ->
+                boolJunction = b
+                //b.must(f.match().field("field1").matching("value1"))
+                //b.should(f.match().field("field2").matching("value2"))
+                //b.mustNot(f.match().field("field3").matching("value3"))
+            }
+        }
         searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
     }
 
     fun fieldSupported(field: String): Boolean {
         return searchClassInfo.containsField(field)
     }
+
+    /*
+        val query = searchSession.search(TaskDO::class.java)
+            .where { f ->
+                f.bool().with { b ->
+                    b.must(f.match().field("field1").matching("value1"))
+                    b.should(f.match().field("field2").matching("value2"))
+                    b.mustNot(f.match().field("field3").matching("value3"))
+                }
+            }
+            */
 
     /**
      * @return true, if the predicate was added to query builder, otherwise false (must be handled as result predicate instead).
@@ -88,7 +109,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+$luceneField:$valueString")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [equal] boolJunction.must(qb.keyword().onField('$luceneField').matching('$value')...)")
-                boolJunction = boolJunction.must(queryBuilder.keyword().onField(luceneField).matching(value).createQuery())
+                boolJunction.must(searchPredicateFactory.match().field(luceneField).matching(value))
             }
             return true
         }
@@ -107,7 +128,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("-$luceneField:$valueString")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [notEqual] boolJunction.must(qb.keyword().onField('$luceneField').matching('$value')...).not()")
-                boolJunction = boolJunction.must(queryBuilder.keyword().onField(luceneField).matching(value).createQuery()).not()
+                boolJunction.mustNot(searchPredicateFactory.match().field(luceneField).matching(value))
             }
             return true
         }
@@ -127,7 +148,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+$luceneField:[$fromString TO $toString]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [between] boolJunction.must(qb.range().onField('$luceneField').from('$from').to('$to')...)")
-                boolJunction = boolJunction.must(queryBuilder.range().onField(luceneField).from(from).to(to).createQuery())
+                boolJunction.must(searchPredicateFactory.range().field(luceneField).between(from, to))
             }
             return true
         }
@@ -146,7 +167,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+$luceneField:{$fromString TO *}")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [greater] boolJunction.must(qb.range().onField('$luceneField').above('$from').excludeLimit()...)")
-                boolJunction = boolJunction.must(queryBuilder.range().onField(luceneField).above(from).excludeLimit().createQuery())
+                boolJunction.must(searchPredicateFactory.range().field(luceneField).greaterThan(from))
             }
             return true
         }
@@ -165,7 +186,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+$luceneField:[$fromString TO *]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [greaterEqual] boolJunction.must(qb.range().onField('$luceneField').above('$from')...)")
-                boolJunction = boolJunction.must(queryBuilder.range().onField(luceneField).above(from).createQuery())
+                boolJunction.must(searchPredicateFactory.range().field(luceneField).atLeast(from))
             }
             return true
         }
@@ -184,7 +205,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+$luceneField:{* TO $toString}")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [less] boolJunction.must(qb.range().below('$luceneField').excludeLimit()...)")
-                boolJunction = boolJunction.must(queryBuilder.range().onField(luceneField).below(to).excludeLimit().createQuery())
+                boolJunction.must(searchPredicateFactory.range().field(luceneField).lessThan(to))
             }
             return true
         }
@@ -203,7 +224,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 multiFieldQuery.add("+$luceneField:[* TO $toString]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [lessEqual] boolJunction.must(qb.range().below('$luceneField')...)")
-                boolJunction = boolJunction.must(queryBuilder.range().onField(luceneField).below(to).createQuery())
+                boolJunction.must(searchPredicateFactory.range().field(luceneField).atMost(to))
             }
             return true
         }
@@ -215,27 +236,31 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
             is java.time.LocalDate -> {
                 localDateFormat.format(value)
             }
+
             is java.sql.Date -> {
-                if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
-                    value.time.toString()
-                } else {
-                    SimpleDateFormat("yyyyMMdd").format(value)
-                }
+                //if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
+                //    value.time.toString()
+                //} else {
+                SimpleDateFormat("yyyyMMdd").format(value)
+                //}
             }
+
             is java.sql.Timestamp -> {
-                if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
-                    value.time.toString()
-                } else {
-                    SimpleDateFormat("yyyyMMddHHmmssSSS").format(value)
-                }
+                //if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
+                //    value.time.toString()
+                //} else {
+                SimpleDateFormat("yyyyMMddHHmmssSSS").format(value)
+                //}
             }
+
             is java.util.Date -> {
-                if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
-                    (value.time / 60000).toString()
-                } else {
-                    SimpleDateFormat("yyyyMMddHHmmssSSS").format(value)
-                }
+                //if (searchClassInfo.get(field)?.getDateBridgeEncodingType() == EncodingType.NUMERIC) {
+                (value.time / 60000).toString()
+                //} else {
+                //    SimpleDateFormat("yyyyMMddHHmmssSSS").format(value)
+                //}
             }
+
             else -> "$value"
         }
     }
@@ -271,14 +296,30 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
             useMultiFieldQueryParser -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, queryFilter, sortOrders.toTypedArray(), multiFieldQuery = multiFieldQuery)
+                DBFullTextResultIterator(
+                    baseDao,
+                    searchSession,
+                    resultPredicates,
+                    queryFilter,
+                    sortOrders.toTypedArray(),
+                    multiFieldQuery = multiFieldQuery
+                )
             }
-            boolJunction.isEmpty -> { // Shouldn't occur:
+
+            !boolJunction.hasClause() -> { // Shouldn't occur:
                 // No restrictions found, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter).createResultIterator(resultPredicates)
             }
+
             else -> {
-                DBFullTextResultIterator(baseDao, fullTextEntityManager, resultPredicates, queryFilter, sortOrders.toTypedArray(), fullTextQuery = boolJunction.createQuery())
+                DBFullTextResultIterator(
+                    baseDao,
+                    searchSession,
+                    resultPredicates,
+                    queryFilter,
+                    sortOrders.toTypedArray(),
+                    searchQueryOptionsStep = searchQueryOptionsStep,
+                )
             }
         }
     }
@@ -298,22 +339,42 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
         } else {
             val context = if (value.indexOf('*') >= 0) {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching('$value')...): fields:${fields.joinToString(", ")}")
-                    queryBuilder.keyword().wildcard().onFields(*fields)
+                    if (log.isDebugEnabled) log.debug(
+                        "Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching('$value')...): fields:${
+                            fields.joinToString(
+                                ", "
+                            )
+                        }"
+                    )
+                    searchPredicateFactory.wildcard().fields(*fields)
                 } else {
                     if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching('$value')...)")
-                    queryBuilder.keyword().wildcard().onField(fields[0])
+                    searchPredicateFactory.wildcard().field(fields[0])
                 }
             } else {
                 if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onFields(*).matching('$value')...): fields:${fields.joinToString(", ")}")
-                    queryBuilder.keyword().onFields(*fields)
+                    if (log.isDebugEnabled) log.debug(
+                        "Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onFields(*).matching('$value')...): fields:${
+                            fields.joinToString(
+                                ", "
+                            )
+                        }"
+                    )
+                    searchPredicateFactory.match().fields(*fields)
                 } else {
                     if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching('$value')...)")
-                    queryBuilder.keyword().onField(fields[0])
+                    searchPredicateFactory.match().field(fields[0])
                 }
             }
-            boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.lowercase()).createQuery())
+            // boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.lowercase()).createQuery())
+            boolJunction.must { p ->
+                val step = if (fields.size > 1) {
+                    p.match().fields(*fields)
+                } else {
+                    p.match().field(fields[0])
+                }
+                step.matching(value.lowercase()).skipAnalysis()
+            }
         }
     }
 
@@ -328,18 +389,23 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
             }
         } else {
             val context = if (fields.size > 1) {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.range().onFields(*).above/below($value)...): fields:${fields.joinToString(", ")}")
-                var ctx = queryBuilder.range().onField(fields[0])
-                for (idx in 1 until fields.size - 1) {
+                if (log.isDebugEnabled) log.debug(
+                    "Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.range().onFields(*).above/below($value)...): fields:${
+                        fields.joinToString(
+                            ", "
+                        )
+                    }"
+                )
+                searchPredicateFactory.range().fields(*fields)
+                /*for (idx in 1 until fields.size - 1) {
                     ctx = ctx.andField(fields[idx])
-                }
-                ctx
+                }*/
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($value)...)")
-                queryBuilder.range().onField(fields[0])
+                searchPredicateFactory.range().field(fields[0])
             }
-            boolJunction = boolJunction.must(context.ignoreAnalyzer().below(value).createQuery())
-            boolJunction = boolJunction.must(context.ignoreAnalyzer().above(value).createQuery())
+            boolJunction.must(context.lessThan(value))
+            boolJunction.must(context.greaterThan(value))
         }
     }
 

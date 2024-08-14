@@ -23,32 +23,34 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.slf4j.LoggerFactory
-import jakarta.persistence.EntityManager
 
 private val log = KotlinLogging.logger {}
 
 class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
-        private val baseDao: BaseDao<O>,
-        private val entityManager: EntityManager,
-        private val queryFilter: QueryFilter,
-        dbFilter: DBFilter) {
+    private val baseDao: BaseDao<O>,
+    private val entityManager: EntityManager,
+    private val queryFilter: QueryFilter,
+    dbFilter: DBFilter
+) {
 
     enum class Mode {
         /**
          * Standard full text search by using full text query builder.
          */
         FULLTEXT,
+
         /**
          * At default the query builder of the full text search is used. As an alternative, the query may be
          * defined as a query string, e. g. '+name:sch* +kassel...'.
          */
         MULTI_FIELD_FULLTEXT_QUERY, // Not yet implemented
+
         /**
          * Plain criteria search without full text search.
          */
@@ -58,13 +60,19 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
     private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
         get() {
-            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria = DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
+            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria =
+                DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
             return _dbQueryBuilderByCriteria!!
         }
     private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
     private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
         get() {
-            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(baseDao, entityManager, queryFilter, useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY)
+            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(
+                baseDao,
+                entityManager,
+                queryFilter,
+                useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
+            )
             return _dbQueryBuilderByFullText!!
         }
     private val mode: Mode
@@ -89,12 +97,12 @@ class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
     init {
         val stats = dbFilter.createStatistics(baseDao)
         mode =
-                if (stats.multiFieldFullTextQueryRequired)
-                    Mode.MULTI_FIELD_FULLTEXT_QUERY
-                else if (stats.fullTextRequired)
-                    Mode.FULLTEXT
-                else
-                    Mode.CRITERIA // Criteria search (no full text search entries found).
+            if (stats.multiFieldFullTextQueryRequired)
+                Mode.MULTI_FIELD_FULLTEXT_QUERY
+            else if (stats.fullTextRequired)
+                Mode.FULLTEXT
+            else
+                Mode.CRITERIA // Criteria search (no full text search entries found).
 
         dbFilter.predicates.forEach {
             addMatcher(it)

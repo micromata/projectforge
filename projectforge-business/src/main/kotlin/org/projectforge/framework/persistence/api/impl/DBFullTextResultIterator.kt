@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import jakarta.persistence.EntityManager
 import org.apache.commons.lang3.builder.CompareToBuilder
-import org.apache.jackrabbit.oak.query.QueryParser
-import org.hibernate.search.mapper.orm.Search
+import org.hibernate.search.engine.search.common.BooleanOperator
+import org.hibernate.search.engine.search.query.dsl.SearchQueryOptionsStep
+import org.hibernate.search.mapper.orm.session.SearchSession
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
@@ -39,14 +39,17 @@ import java.text.Collator
 private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
-        val baseDao: BaseDao<O>,
-        private val entityManager: EntityManager,
-        private val resultMatchers: List<DBPredicate>,
-        private val filter: QueryFilter,
-        val sortProperties: Array<SortProperty>,
-        val fullTextQuery: org.apache.lucene.search.Query? = null, // Full text query
-        val multiFieldQuery: List<String>? = null)     // MultiField query
-    : DBResultIterator<O> {
+    val baseDao: BaseDao<O>,
+    private val searchSession: SearchSession,
+    private val resultMatchers: List<DBPredicate>,
+    private val filter: QueryFilter,
+    val sortProperties: Array<SortProperty>,
+    // MultiField query
+    val multiFieldQuery: List<String>? = null,
+    // Full text query
+    //val buildSearchQuery: ((searchQuerySelectStep: SearchQuerySelectStep<*, *, *, *, *, *>) -> SearchQuery<*>)? = null,
+    private var searchQueryOptionsStep: SearchQueryOptionsStep<*, *, *, *, *>? = null,
+) : DBResultIterator<O> {
     private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
     private var result: List<O>
     private var resultIndex = -1
@@ -60,7 +63,8 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
             log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
         }
         val fullTextSearchFields = filter.fullTextSearchFields
-        searchFields = if (fullTextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fullTextSearchFields
+        searchFields =
+            if (fullTextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fullTextSearchFields
         log.debug("Using search fields: ${searchFields.joinToString(", ")}")
         result = nextResultBlock()
     }
@@ -146,36 +150,51 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
     }
 
     private fun nextResultBlock(): List<O> {
-        val searchSession = Search.session(entityManager)
-        val fullTextQuery = if (fullTextQuery != null) {
-           /* val results: List<MyEntity> = searchSession.search(MyEntity::class.java)
-                .where { f ->
-                    f.match()
-                        .fields("fieldName") // Name des indizierten Feldes
-                        .matching("searchTerm")
-                } // Der Suchbegriff
-                .fetchHits(20) // Erhalte die ersten 20 Ergebnisse*/
-            fullTextEntityManager.createFullTextQuery(fullTextQuery, baseDao.doClass)
+        val optionsStep = if (searchQueryOptionsStep != null) {
+            searchQueryOptionsStep!!
         } else {
+            val searchQuerySelectStep = searchSession.search(baseDao.doClass)
             val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-            val parser = MultiFieldQueryParser(searchFields, ClassicAnalyzer())
-            parser.defaultOperator = QueryParser.Operator.AND
-            parser.allowLeadingWildcard = true
-            var query: org.apache.lucene.search.Query? = null
-            try {
-                query = parser.parse(queryString)
-            } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
-                val errorMsg = ("Lucene error message: '${ex.message}'  (for ${baseDao.doClass.getSimpleName()}: '$queryString').")
-                // TODO feedback
-                log.error(errorMsg)
+            searchQuerySelectStep.where { f ->
+                f.simpleQueryString()
+                    .fields(*searchFields)
+                    .matching(queryString)
+                    .defaultOperator(BooleanOperator.AND)
             }
-            fullTextEntityManager.createFullTextQuery(query, baseDao.doClass)
         }
-        fullTextQuery.firstResult = firstIndex
-        fullTextQuery.maxResults = MAX_RESULTS
+        /*
+        Alt:
 
-        firstIndex += MAX_RESULTS
-        @Suppress("UNCHECKED_CAST")
-        return fullTextQuery.resultList as List<O> // return a list of managed objects
+        val queryString = multiFieldQuery?.joinToString(" ") ?: ""
+        val parser = MultiFieldQueryParser(searchFields, ClassicAnalyzer())
+        parser.defaultOperator = QueryParser.Operator.AND
+        parser.allowLeadingWildcard = true
+        var query: org.apache.lucene.search.Query? = null
+        try {
+            query = parser.parse(queryString)
+        } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
+            val errorMsg = ("Lucene error message: '${ex.message}'  (for ${baseDao.doClass.getSimpleName()}: '$queryString').")
+            // TODO feedback
+            log.error(errorMsg)
+        }
+        fullTextEntityManager.createFullTextQuery(query, baseDao.doClass)*/
+        try {
+            val searchResult = optionsStep.toQuery().fetch(
+                firstIndex,
+                MAX_RESULTS
+            ) // fetch(offset, limit) Methode, um Abfrageoptionen wie Pagination zu setzen
+                .hits()
+            // Verarbeitung der Ergebnisse
+            firstIndex += MAX_RESULTS
+            @Suppress("UNCHECKED_CAST")
+            return searchResult as List<O>
+        } catch (ex: Exception) {
+            val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
+            log.error(errorMsg)
+            return emptyList()
+        }
+
+        // fullTextQuery.firstResult = firstIndex
+        // fullTextQuery.maxResults = MAX_RESULTS
     }
 }
