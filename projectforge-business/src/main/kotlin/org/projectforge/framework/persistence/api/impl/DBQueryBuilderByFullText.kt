@@ -404,6 +404,8 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($value)...)")
                 searchPredicateFactory.range().field(fields[0])
             }
+            // TODO: This is not working:
+            log.warn("This function park is not working, and has never been? Called for fields ${fields.joinToString()} and $value")
             boolJunction.must(context.lessThan(value))
             boolJunction.must(context.greaterThan(value))
         }
