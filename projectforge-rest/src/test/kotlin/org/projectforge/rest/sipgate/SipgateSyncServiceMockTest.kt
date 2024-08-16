@@ -33,7 +33,7 @@ import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.test.AbstractTestBase
 import jakarta.persistence.EntityManager
 
@@ -60,9 +60,9 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         return obj.id
       }
 
-      override fun internalUpdate(obj: AddressDO): ModificationStatus {
+      override fun internalUpdate(obj: AddressDO): EntityCopyStatus {
         // Nothing to do, address values are already updated.
-        return ModificationStatus.MAJOR
+        return EntityCopyStatus.MAJOR
       }
     }
     val syncService = object : SipgateContactSyncService() {

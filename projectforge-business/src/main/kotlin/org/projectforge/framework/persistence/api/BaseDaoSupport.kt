@@ -26,11 +26,9 @@ package org.projectforge.framework.persistence.api
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 private val log = KotlinLogging.logger {}
@@ -42,14 +40,14 @@ object BaseDaoSupport {
     class ResultObject<O : ExtendedBaseDO<Int>>(
         var dbObjBackup: O? = null,
         var wantsReindexAllDependentObjects: Boolean = false,
-        var modStatus: ModificationStatus? = null
+        var modStatus: EntityCopyStatus? = null
     )
 
     @JvmStatic
     fun <O : ExtendedBaseDO<Int>> internalSave(baseDao: BaseDao<O>, obj: O): Int? {
         preInternalSave(baseDao, obj)
-        EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { emgr ->
-            internalSave(emgr, baseDao, obj)
+        baseDao.persistenceService.runInTransaction { em ->
+            internalSave(em, baseDao, obj)
             null
         }
         postInternalSave(baseDao, obj)
@@ -60,7 +58,7 @@ object BaseDaoSupport {
         // BaseDaoJpaAdapter.prepareInsert(em, obj)
         em.persist(obj)
         if (baseDao.logDatabaseActions) {
-            log.info("New ${baseDao.clazz.simpleName} added (${obj.id}): $obj")
+            log.info("New ${baseDao.doClass.simpleName} added (${obj.id}): $obj")
         }
         baseDao.prepareHibernateSearch(obj, OperationType.INSERT)
         em.merge(obj)
@@ -72,7 +70,7 @@ object BaseDaoSupport {
             log.error("${ex.message} while saving object: ${ToStringUtil.toJsonString(obj)}", ex)
             throw ex
         }
-        baseDao.flushSearchSession(em)
+
         // HistoryBaseDaoAdapter.inserted(emgr, obj)
     }
 
@@ -94,11 +92,11 @@ object BaseDaoSupport {
         baseDao: BaseDao<O>,
         obj: O,
         checkAccess: Boolean
-    ): ModificationStatus? {
+    ): EntityCopyStatus? {
         preInternalUpdate(baseDao, obj, checkAccess)
         val res = ResultObject<O>()
-        EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { emgr ->
-            internalUpdate(emgr, baseDao, obj, checkAccess, res)
+        baseDao.persistenceService.runInTransaction { em ->
+            internalUpdate(em, baseDao, obj, checkAccess, res)
         }
         postInternalUpdate<O>(baseDao, obj, res)
         return res.modStatus
@@ -119,7 +117,7 @@ object BaseDaoSupport {
         checkAccess: Boolean,
         res: ResultObject<O>
     ) {
-        val dbObj = em.find(baseDao.clazz, obj.id)
+        val dbObj = em.find(baseDao.doClass, obj.id)
         if (checkAccess) {
             baseDao.checkLoggedInUserUpdateAccess(obj, dbObj)
         }
@@ -160,10 +158,10 @@ object BaseDaoSupport {
     private fun <O : ExtendedBaseDO<Int>> postInternalUpdate(baseDao: BaseDao<O>, obj: O, res: ResultObject<O>) {
         baseDao.afterSaveOrModify(obj)
         if (baseDao.supportAfterUpdate) {
-            baseDao.afterUpdate(obj, res.dbObjBackup, res.modStatus != ModificationStatus.NONE)
+            baseDao.afterUpdate(obj, res.dbObjBackup, res.modStatus != EntityCopyStatus.NONE)
             baseDao.afterUpdate(obj, res.dbObjBackup)
         } else {
-            baseDao.afterUpdate(obj, null, res.modStatus != ModificationStatus.NONE)
+            baseDao.afterUpdate(obj, null, res.modStatus != EntityCopyStatus.NONE)
             baseDao.afterUpdate(obj, null)
         }
         if (res.wantsReindexAllDependentObjects) {
@@ -181,25 +179,26 @@ object BaseDaoSupport {
           throw InternalErrorException("exception.internalError")
         }*/
         baseDao.onDelete(obj)
-        EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
-            val dbObj = em.find(baseDao.clazz, obj.id)
+        baseDao.persistenceService.runInTransaction { em ->
+            val dbObj = em.find(baseDao.doClass, obj.id)
             baseDao.onSaveOrModify(obj)
 
             /*
             HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
-              BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj)
-              baseDao.copyValues(obj, dbObj) // If user has made additional changes.
-              dbObj.setDeleted(true)
-              dbObj.setLastUpdate()
-              obj.deleted = true                     // For callee having same object.
-                obj.lastUpdate = dbObj.getLastUpdate() // For callee having same object.
-              em.merge(dbObj) //
-              em.flush()
+              BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj)*/
+            log.error("****** TODO: History stuff")
+            baseDao.copyValues(obj, dbObj) // If user has made additional changes.
+            dbObj.deleted = true
+            dbObj.setLastUpdate()
+            obj.deleted = true                     // For callee having same object.
+            obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
+            em.merge(dbObj) //
+            em.flush()/*
               baseDao.flushSearchSession(em)
               null
             }*/
             if (baseDao.logDatabaseActions) {
-                log.info("${baseDao.clazz.simpleName} marked as deleted: $dbObj")
+                log.info("${baseDao.doClass.simpleName} marked as deleted: $dbObj")
             }
         }
         baseDao.afterSaveOrModify(obj)
@@ -209,22 +208,21 @@ object BaseDaoSupport {
     @JvmStatic
     fun <O : ExtendedBaseDO<Int>> internalUndelete(baseDao: BaseDao<O>, obj: O) {
         baseDao.onSaveOrModify(obj)
-        EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
-            val dbObj = em.find(baseDao.clazz, obj.id)
+        baseDao.persistenceService.runInTransaction { em ->
+            val dbObj = em.find(baseDao.doClass, obj.id)
+            log.error("****** TODO: History stuff")
             /* HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
-              BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj)
-              baseDao.copyValues(obj, dbObj) // If user has made additional changes.
-              dbObj.isDeleted = false
-              dbObj.setLastUpdate()
-              obj.deleted = false                   // For callee having same object.
-                obj.lastUpdate = dbObj.getLastUpdate() // For callee having same object.
-              em.merge(dbObj)
-              em.flush()
-              baseDao.flushSearchSession(em)
-              null
-            }*/
+              BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj)*/
+            baseDao.copyValues(obj, dbObj) // If user has made additional changes.
+            dbObj.deleted = false
+            dbObj.setLastUpdate()
+            obj.deleted = false                   // For callee having same object.
+            obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
+            em.merge(dbObj)
+            em.flush()
+            //baseDao.flushSearchSession(em)
             if (baseDao.logDatabaseActions) {
-                log.info("${baseDao.clazz.simpleName} undeleted: $dbObj")
+                log.info("${baseDao.doClass.simpleName} undeleted: $dbObj")
             }
             dbObj
         }
@@ -241,8 +239,8 @@ object BaseDaoSupport {
           )
           throw InternalErrorException("exception.internalError")
         }*/
-        if (!baseDao.forceDeletionSupport) {
-            val msg = "Force deletion not supported by '${baseDao.clazz.name}'. Use markAsDeleted instead for: $obj"
+        if (!baseDao.isForceDeletionSupport) {
+            val msg = "Force deletion not supported by '${baseDao.doClass.name}'. Use markAsDeleted instead for: $obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
@@ -252,13 +250,14 @@ object BaseDaoSupport {
             log.error(msg)
             throw RuntimeException(msg)
         }
+        throw RuntimeException("TODO: History stuff")
+        /*
         baseDao.onDelete(obj)
         val userGroupCache = UserGroupCache.getInstance()
-        EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
-            val dbObj = em.find(baseDao.clazz, id)
+        baseDao.persistenceService.runInTransaction { em ->
+            val dbObj = em.find(baseDao.dOClass, id)
             em.remove(dbObj)
-
-            /*val masterClass: Class<out HistoryMasterBaseDO<*, *>?> =
+            val masterClass: Class<out HistoryMasterBaseDO<*, *>?> =
               PfHistoryMasterDO::class.java //HistoryServiceImpl.getHistoryMasterClass()
             emgr.selectAttached(
               masterClass,
@@ -274,12 +273,12 @@ object BaseDaoSupport {
               log.info(
                 "${baseDao.clazz.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry"
               )
-            }*/
+            }
             if (baseDao.logDatabaseActions) {
-                log.info("${baseDao.clazz.simpleName} (forced) deleted: $dbObj")
+                log.info("${baseDao.dOClass.simpleName} (forced) deleted: $dbObj")
             }
         }
-        baseDao.afterDelete(obj)
+        baseDao.afterDelete(obj)*/
     }
 
     /**
@@ -287,7 +286,7 @@ object BaseDaoSupport {
      */
     @JvmStatic
     fun <O : ExtendedBaseDO<Int>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>) {
-        EntityManagerUtil.runInTransaction(baseDao.emgrFactory) { em ->
+        baseDao.persistenceService.runInTransaction { em ->
             for (obj in col) {
                 if (obj.id != null) {
                     preInternalUpdate(baseDao, obj, false)

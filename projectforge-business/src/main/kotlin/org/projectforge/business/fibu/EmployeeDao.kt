@@ -33,8 +33,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
@@ -54,31 +52,29 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     @Autowired
     private lateinit var kost1Dao: Kost1Dao
 
-    override fun getAdditionalSearchFields(): Array<String> {
-        return ADDITIONAL_SEARCH_FIELDS
-    }
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
 
-    override fun getDefaultSortProperties(): Array<SortProperty> {
-        return DEFAULT_SORT_PROPERTIES
-    }
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
 
     open fun findByUserId(userId: Int?): EmployeeDO? {
-        val employee = ensureUniqueResult<EmployeeDO>(emgrFactory) { em ->
-            em
-                .createNamedQuery(EmployeeDO.FIND_BY_USER_ID, EmployeeDO::class.java)
-                .setParameter("userId", userId)
-        }
+        val employee = persistenceService.selectSingleResult(
+            EmployeeDO::class.java,
+            EmployeeDO.FIND_BY_USER_ID,
+            Pair("userId", userId),
+        )
         setEmployeeStatus(employee)
         return employee
     }
 
     open fun getEmployeeIdByByUserId(userId: Int?): Int? {
         userId ?: return null
-        return ensureUniqueResult(emgrFactory) { em ->
-            em
-                .createNamedQuery(EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID, Integer::class.java)
-                .setParameter("userId", userId)
-        }?.toInt()
+        return persistenceService.selectSingleResult(
+            Integer::class.java,
+            EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
+            Pair("userId", userId),
+        )?.toInt()
     }
 
 
@@ -95,12 +91,10 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         Validate.isTrue(tokenizer.countTokens() == 2)
         val lastname = tokenizer.nextToken().trim { it <= ' ' }
         val firstname = tokenizer.nextToken().trim { it <= ' ' }
-        val employee = ensureUniqueResult<EmployeeDO>(emgrFactory) { em ->
-            em
-                .createNamedQuery(EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME, EmployeeDO::class.java)
-                .setParameter("firstname", firstname)
-                .setParameter("lastname", lastname)
-        }
+        val employee = persistenceService.selectSingleResult(
+            EmployeeDO::class.java, EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME,
+            Pair("firstname", firstname), Pair("lastname", lastname)
+        )
         setEmployeeStatus(employee)
         return employee
     }
@@ -111,7 +105,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     @Deprecated("")
-    open fun setUser(employee: EmployeeDO, userId: Int?) {
+    open fun setUser(employee: EmployeeDO, userId: Int) {
         val user = userDao.getOrLoad(userId)
         employee.user = user
     }
@@ -122,7 +116,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     @Deprecated("")
-    open fun setKost1(employee: EmployeeDO, kost1Id: Int?) {
+    open fun setKost1(employee: EmployeeDO, kost1Id: Int) {
         val kost1 = kost1Dao.getOrLoad(kost1Id)
         employee.kost1 = kost1
     }
@@ -187,17 +181,11 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     open fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
         var result: EmployeeDO? = null
         try {
-            result = EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
-                val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
-                val employee = em.createQuery("$baseSQL$META_SQL", EmployeeDO::class.java)
-                    .setParameter("staffNumber", staffnumber)
-                    .singleResult
-                em.detach(employee)
-                employee
-                /*em.selectSingleDetached(
-                  EmployeeDO::class.java, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false
-                )*/
-            }
+            val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
+            persistenceService.selectSingleResult(
+                EmployeeDO::class.java,
+                "$baseSQL$META_SQL", Pair("staffNumber", staffnumber)
+            )
         } catch (ex: NoResultException) {
             log.warn("No employee found for staffnumber: $staffnumber")
         }

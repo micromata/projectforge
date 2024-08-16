@@ -510,27 +510,6 @@ open class MenuCreator {
       .add(MenuItemDef(MenuItemDefId.ACCESS_LIST)) // Visible for all.
       .add(MenuItemDef(MenuItemDefId.SYSTEM, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
 
-    if (configurationService.securityConfig.isSqlConsoleAvailable == true) {
-      // Only available in development mode or if SQL console is configured in SecurityConfig.
-      adminMenu.add(
-        MenuItemDef(
-          MenuItemDefId.SQL_CONSOLE,
-          requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
-        )
-      )
-        .add(
-          MenuItemDef(
-            MenuItemDefId.GROOVY_CONSOLE,
-            requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
-          )
-        )
-        .add(
-          MenuItemDef(
-            MenuItemDefId.LUCENE_CONSOLE,
-            requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)
-          )
-        )
-    }
     adminMenu
       .add(MenuItemDef(MenuItemDefId.ADMIN_LOG_VIEWER, requiredGroups = arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
       .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS)) // Visible for all.

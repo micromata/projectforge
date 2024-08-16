@@ -273,11 +273,11 @@ open class ForecastExport { // open needed by Wicket.
         if (orderPosId != null && order == null) {
           val orderId = pos.auftragsId ?: orderBookDao.getAuftragsPosition(orderPosId)?.auftragId
           order = orderBookDao.internalGetById(orderId)
-          ctx.orderMapByPositionId[orderPosId] = order
           if (order == null) {
             log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
             continue
           }
+          ctx.orderMapByPositionId[orderPosId] = order
         }
         var monthIndex = getMonthIndex(ctx, PFDay.fromOrNow(invoice.datum))
         if (monthIndex !in -12..11) {

@@ -35,10 +35,10 @@ open class PollResponseDao : BaseDao<PollResponseDO>(PollResponseDO::class.java)
     }
 
     override fun hasAccess(
-        user: PFUserDO?,
+        user: PFUserDO,
         obj: PollResponseDO?,
         oldObj: PollResponseDO?,
-        operationType: OperationType?,
+        operationType: OperationType,
         throwException: Boolean
     ): Boolean {
         return true

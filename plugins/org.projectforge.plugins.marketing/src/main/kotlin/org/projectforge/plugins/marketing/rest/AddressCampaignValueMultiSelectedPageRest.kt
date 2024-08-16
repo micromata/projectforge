@@ -24,7 +24,7 @@
 package org.projectforge.plugins.marketing.rest
 
 import org.projectforge.business.address.AddressDao
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.plugins.marketing.AddressCampaignValueDO
 import org.projectforge.plugins.marketing.AddressCampaignValueDao
 import org.projectforge.plugins.marketing.MarketingPlugin
@@ -164,7 +164,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
             addressCampaignValueDao.update(addressCampaignValueDO)
           } else {
             addressCampaignValueDao.save(addressCampaignValueDO)
-            ModificationStatus.MAJOR
+            EntityCopyStatus.MAJOR
           }
         },
       )

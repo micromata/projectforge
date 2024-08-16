@@ -28,7 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.ModificationStatus
 import org.projectforge.framework.utils.NumberFormatter
 
 private val log = KotlinLogging.logger {}

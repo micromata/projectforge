@@ -26,14 +26,12 @@ package org.projectforge.business.user
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
-import org.apache.commons.lang3.Validate
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.login.LoginHandler
 import org.projectforge.business.login.PasswordCheckResult
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -79,13 +77,12 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     }
 
     override fun hasAccess(
-        user: PFUserDO, obj: UserPasswordDO, oldObj: UserPasswordDO?,
+        user: PFUserDO, obj: UserPasswordDO?, oldObj: UserPasswordDO?,
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        Validate.notNull(obj)
-        Validate.notNull(obj.user)
-        return hasLoggedInUserAccess(obj.user!!.id, throwException)
+        require(obj?.user != null) { "UserPasswordDO must have a obj.user." }
+        return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
     }
 
     private fun hasLoggedInUserAccess(ownerUserId: Int?, throwException: Boolean = true): Boolean {
@@ -166,11 +163,10 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     }
 
     open fun internalGetByUserId(userId: Int): UserPasswordDO? {
-        return EntityManagerUtil.ensureUniqueResult(emgrFactory) { em ->
-            em
-                .createNamedQuery(UserPasswordDO.FIND_BY_USER_ID, UserPasswordDO::class.java)
-                .setParameter("userId", userId)
-        }
+        return persistenceService.selectSingleResult(
+            UserPasswordDO::class.java, UserPasswordDO.FIND_BY_USER_ID,
+            Pair("userId", userId),
+        )
     }
 
     open fun onPasswordChange(user: PFUserDO) {

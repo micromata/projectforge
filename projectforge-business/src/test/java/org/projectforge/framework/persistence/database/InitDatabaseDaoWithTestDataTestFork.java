@@ -39,7 +39,7 @@ import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.GroupTaskAccessDO;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;

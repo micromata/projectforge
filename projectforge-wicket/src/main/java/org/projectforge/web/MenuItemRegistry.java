@@ -111,9 +111,6 @@ public class MenuItemRegistry implements Serializable {
     //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
     register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
     register(MenuItemDefId.SYSTEM, AdminPage.class);
-    register(MenuItemDefId.SQL_CONSOLE, SqlConsolePage.class);
-    register(MenuItemDefId.GROOVY_CONSOLE, GroovyConsolePage.class);
-    register(MenuItemDefId.LUCENE_CONSOLE, LuceneConsolePage.class);
     register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
     register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
   }

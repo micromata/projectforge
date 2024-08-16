@@ -27,13 +27,15 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 
 import jakarta.persistence.*;
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
+
 import java.util.List;
 
 /**
  * Entity holds Strings longer than fits into one attribute value.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- * 
+ *
  */
 @Entity
 @DiscriminatorValue("1")

@@ -28,6 +28,6 @@ import java.io.Serializable
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-interface IdObject<I : Serializable?> : Serializable {
+interface IdObject<I : Serializable> : Serializable {
     var id: I?
 }

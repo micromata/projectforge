@@ -29,8 +29,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -65,7 +64,7 @@ public class HibernateSearchReindexer {
   private Date currentReindexRun = null;
 
   @Autowired
-  private PfEmgrFactory emf;
+  private PfPersistenceService persistenceService;
 
   public void execute() {
     log.info("Re-index job started.");
@@ -93,6 +92,7 @@ public class HibernateSearchReindexer {
 
   public String rebuildDatabaseSearchIndices(final ReindexSettings settings, final Class<?>... classes) {
     if (currentReindexRun != null) {
+      log.error("*********** Not yet migrated");
       final StringBuffer buf = new StringBuffer();
       if (classes != null && classes.length > 0) {
         boolean first = true;
@@ -116,10 +116,10 @@ public class HibernateSearchReindexer {
           }
         } else {
           // Re-index of all ProjectForge entities:
-          Set<Class<?>> clsses = emf.getSearchableEntities();
+          /*Set<Class<?>> clsses = persistenceService.getSearchableEntities();
           for (Class<?> clz : clsses) {
             reindex(clz, settings, buf);
-          }
+          }*/
         }
         return buf.toString();
       } finally {

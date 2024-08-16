@@ -44,6 +44,6 @@ public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
   }
 
   PfEmgrFactory getEmgrFactory() {
-    return emgrFactory;
+    return persistenceService;
   }
 }

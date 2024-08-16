@@ -278,7 +278,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     }
     final PFUserDO user = obj.getUser();
     if (user != null) {
-      obj.setUser(getUserGroupCache().getUser(user.getId()));
+      obj.setUser(userGroupCache.getUser(user.getId()));
     }
   }
 

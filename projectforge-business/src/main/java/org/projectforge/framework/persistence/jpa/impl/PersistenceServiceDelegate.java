@@ -27,7 +27,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.IPersistenceService;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -114,7 +114,7 @@ public abstract class PersistenceServiceDelegate<O extends ExtendedBaseDO<Intege
   }
 
   @Override
-  public ModificationStatus update(O obj) throws AccessException
+  public EntityCopyStatus update(O obj) throws AccessException
   {
     return getNested().update(obj);
   }

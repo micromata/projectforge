@@ -30,7 +30,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -208,8 +208,8 @@ public class PersonalAddressDao {
       Validate.isTrue(Objects.equals(dbObj.getAddressId(), obj.getAddressId()));
       obj.setId(dbObj.getId());
       // Copy all values of modified user to database object.
-      final ModificationStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
-      if (modified == ModificationStatus.MAJOR) {
+      final EntityCopyStatus modified = dbObj.copyValuesFrom(obj, "owner", "address", "id");
+      if (modified == EntityCopyStatus.MAJOR) {
         dbObj.setLastUpdate();
         em.merge(dbObj);
         getPersonalAddressCache().setAsExpired(dbObj.getOwnerId());

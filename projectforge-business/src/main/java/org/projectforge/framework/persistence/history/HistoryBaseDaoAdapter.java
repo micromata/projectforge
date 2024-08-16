@@ -23,8 +23,11 @@
 
 package org.projectforge.framework.persistence.history;
 
+import org.projectforge.common.mgc.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Utility to provide compat with BaseDao.
@@ -33,6 +36,21 @@ import org.slf4j.LoggerFactory;
  */
 public class HistoryBaseDaoAdapter {
     private static final Logger log = LoggerFactory.getLogger(HistoryBaseDaoAdapter.class);
+
+    public static boolean isHistorizable(Object bean) {
+        if (bean == null) {
+            return false;
+        }
+        return isHistorizable(bean.getClass());
+    }
+
+    public static boolean isHistorizable(Class<?> entityClass) {
+        List<WithHistory> whl = ClassUtils.findClassAnnotations(entityClass, WithHistory.class);
+        return whl.isEmpty() == false;
+    }
+
+
+
 /*
     private static final HistoryEntry[] HISTORY_ARR_TEMPL = new HistoryEntry[]{};
 
@@ -88,17 +106,6 @@ public class HistoryBaseDaoAdapter {
         //long end = System.currentTimeMillis();
         //log.info("HistoryBaseDaoAdapter.getSimpleHistoryEntries took: " + (end - begin) + " ms.");
         return ret;
-    }
-
-    public static boolean isHistorizable(Object bean) {
-        if (bean == null) {
-            return false;
-        }
-        return isHistorizable(bean.getClass());
-    }
-
-    public static boolean isHistorizable(Class<?> clazz) {
-        return HistoryServiceManager.get().getHistoryService().hasHistory(clazz);
     }
 
     private static String histCollectionValueToString(Class<?> valueClass, Collection<?> value) {

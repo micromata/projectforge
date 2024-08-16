@@ -43,7 +43,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,13 +72,11 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         supportAfterUpdate = true
     }
 
-    override fun getAdditionalSearchFields(): Array<String> {
-        return ADDITIONAL_SEARCH_FIELDS
-    }
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
 
-    override fun getDefaultSortProperties(): Array<SortProperty> {
-        return DEFAULT_SORT_PROPERTIES
-    }
+    override val defaultSortProperties: Array<SortProperty>
+        get() = DEFAULT_SORT_PROPERTIES
 
     override fun newInstance(): VacationDO {
         return VacationDO()
@@ -108,14 +105,23 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     override fun hasInsertAccess(user: PFUserDO, obj: VacationDO, throwException: Boolean): Boolean {
-        return hasUpdateAccess(user, obj, null, throwException)
+        return hasVacationAccess(user, obj, null, throwException)
     }
 
     override fun hasUpdateAccess(
         user: PFUserDO,
         obj: VacationDO,
-        dbObj: VacationDO?,
+        dbObj: VacationDO,
         throwException: Boolean
+    ): Boolean {
+        return hasVacationAccess(user, obj, dbObj, throwException)
+    }
+
+    private fun hasVacationAccess(
+        user: PFUserDO,
+        obj: VacationDO,
+        dbObj: VacationDO?,
+        throwException: Boolean,
     ): Boolean {
         if (hasHrRights(user)) {
             return true // HR staff member are allowed to do everything.
@@ -226,7 +232,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     override fun hasDeleteAccess(
         user: PFUserDO,
         obj: VacationDO,
-        dbObj: VacationDO?,
+        dbObj: VacationDO,
         throwException: Boolean
     ): Boolean {
         if (hasHrRights(user)) {
@@ -250,12 +256,11 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     open fun getCurrentAndFutureVacations(): List<VacationDO> {
-        return EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
-            em.createNamedQuery(VacationDO.FIND_CURRENT_AND_FUTURE, VacationDO::class.java)
-                .setParameter("endDate", LocalDate.now())
-                .setParameter("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS))
-                .resultList
-        }
+        return persistenceService.query(
+            VacationDO::class.java, VacationDO.FIND_CURRENT_AND_FUTURE,
+            Pair("endDate", LocalDate.now()),
+            Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
+        )
     }
 
     private fun isOwnEntry(loggedInUser: PFUserDO, obj: VacationDO, oldObj: VacationDO?): Boolean {
@@ -265,12 +270,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     private fun isOwnEntry(loggedInUser: PFUserDO, obj: VacationDO): Boolean {
-        var employee = obj.employee ?: return false
-        if (employee.userId == null) {
-            // Object wasn't loaded from data base:
-            employee = employeeDao.internalGetById(employee.id)
-        }
-        return employee.userId == loggedInUser.id
+        return isUserEqualsEmployee(loggedInUser, obj.employee)
     }
 
     private fun isManager(loggedInUser: PFUserDO, obj: VacationDO, oldObj: VacationDO?): Boolean {
@@ -280,29 +280,30 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     private fun isManager(loggedInUser: PFUserDO, obj: VacationDO): Boolean {
-        var manager = obj.manager ?: return false
-        if (manager.userId == null) {
-            // Object wasn't loaded from data base:
-            manager = employeeDao.internalGetById(manager.id)
-        }
-        return manager.userId == loggedInUser.id
+        return isUserEqualsEmployee(loggedInUser, obj.manager)
     }
 
     private fun isReplacement(loggedInUser: PFUserDO, obj: VacationDO): Boolean {
-        var replacement = obj.replacement ?: return false
-        if (replacement.userId == null) {
-            // Object wasn't loaded from data base:
-            replacement = employeeDao.internalGetById(replacement.id)
-        }
-        if (replacement.userId == loggedInUser.id) {
+        if (isUserEqualsEmployee(loggedInUser, obj.replacement)) {
             return true
         }
-        obj.otherReplacements?.forEach { employee ->
-            if (employee.userId == loggedInUser.id) {
+        obj.otherReplacements?.forEach { replacement ->
+            if (isUserEqualsEmployee(loggedInUser, replacement)) {
                 return true
             }
         }
         return false
+    }
+
+    private fun isUserEqualsEmployee(loggedInUser: PFUserDO, employee: EmployeeDO?): Boolean {
+        employee ?: return false
+        var empl: EmployeeDO? = employee
+        if (employee.userId == null) {
+            // Object wasn't loaded from data base:
+            empl = employeeDao.internalGetById(employee.id)
+        }
+        return empl != null && empl.userId == loggedInUser.id
+
     }
 
     private fun throwOrReturnFalse(throwException: Boolean): Boolean {
@@ -343,7 +344,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT)
     }
 
-    override fun afterUpdate(obj: VacationDO, dbObj: VacationDO) {
+    override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?) {
         super.afterUpdate(obj, dbObj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj)
     }
@@ -364,20 +365,16 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         endVacationDate: LocalDate?,
         withSpecial: Boolean
     ): List<VacationDO> {
-        return EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
-            val baseSQL =
-                "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate"
-            val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
-
-            val dbResultList = em.createQuery(sql, VacationDO::class.java)
-                .setParameter("employeeId", employeeId)
-                .setParameter("startDate", startVacationDate)
-                .setParameter("endDate", endVacationDate)
-                .setParameter("deleted", false)
-                .resultList
-            em.detach(dbResultList)
-            dbResultList
-        }
+        val baseSQL =
+            "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate"
+        val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
+        return persistenceService.query(
+            VacationDO::class.java, sql,
+            Pair("employeeId", employeeId),
+            Pair("startDate", startVacationDate),
+            Pair("endDate", endVacationDate),
+            Pair("deleted", false),
+        )
     }
 
     open fun getVacationForPeriod(
@@ -402,7 +399,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             )
         ) {
             val employeeId = myFilter.employeeId
-            EntityManagerUtil.selectById(emgrFactory, EmployeeDO::class.java, employeeId)?.let { employeeFromFilter ->
+            persistenceService.selectById(EmployeeDO::class.java, employeeId)?.let { employeeFromFilter ->
                 queryFilter.createJoin("replacement")
                 queryFilter.add(
                     or(
@@ -429,34 +426,28 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     open fun getActiveVacationForYear(employee: EmployeeDO?, year: Int, withSpecial: Boolean): List<VacationDO> {
         val startYear = LocalDate.of(year, Month.JANUARY, 1)
         val endYear = LocalDate.of(year, Month.DECEMBER, 31)
-        return EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
-            val baseSQL =
-                "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate"
-            val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
-            val dbResultList = em.createQuery(sql, VacationDO::class.java)
-                .setParameter("employee", employee)
-                .setParameter("startDate", startYear)
-                .setParameter("endDate", endYear)
-                .setParameter("deleted", false)
-                .resultList
-            em.detach(dbResultList)
-            dbResultList
-        }
+        val baseSQL =
+            "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate"
+        val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
+        return persistenceService.query(
+            VacationDO::class.java, sql,
+            Pair("employee", employee),
+            Pair("startDate", startYear),
+            Pair("endDate", endYear),
+            Pair("deleted", false),
+        )
     }
 
-    open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Int {
-        val resultList: List<VacationDO> = EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
-            val baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status"
-            val sql = baseSQL + META_SQL_WITH_SPECIAL
-            val dbResultList = em.createQuery(sql, VacationDO::class.java)
-                .setParameter("employee", employee)
-                .setParameter("status", VacationStatus.IN_PROGRESS)
-                .setParameter("deleted", false)
-                .resultList
-            em.detach(dbResultList)
-            dbResultList
-        }
-        return resultList.size
+    open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Long {
+        val baseSQL = "SELECT COUNT(v) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status"
+        val sql = baseSQL + META_SQL_WITH_SPECIAL
+        return persistenceService.selectSingleResult(
+            Long::class.java, sql,
+            Pair("employee", employee),
+            Pair("status", VacationStatus.IN_PROGRESS),
+            Pair("deleted", false),
+            nullAllowed = false,
+        ) ?: 0L
     }
 
     companion object {

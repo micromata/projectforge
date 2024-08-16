@@ -23,19 +23,14 @@
 
 package org.projectforge.plugins.eed.excelimport;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.util.bean.PrivateBeanUtils;
 import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedSheet;
-import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.utils.MyImportedElement;
-import org.projectforge.framework.persistence.utils.MyImportedElementWithAttrs;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,97 +43,91 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class EmployeeBillingExcelImporter
-{
-  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelImporter.class);
+public class EmployeeBillingExcelImporter {
+    private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelImporter.class);
 
-  private static final String NAME_OF_EXCEL_SHEET = "employees";
+    private static final String NAME_OF_EXCEL_SHEET = "employees";
 
-  private static final int ROW_INDEX_OF_COLUMN_NAMES = 0;
+    private static final int ROW_INDEX_OF_COLUMN_NAMES = 0;
 
-  private static final String[] DIFF_PROPERTIES = {};
+    private static final String[] DIFF_PROPERTIES = {};
 
-  private final EmployeeService employeeService;
+    private final EmployeeService employeeService;
 
-  private final TimeableService timeableService;
+    //private final TimeableService timeableService;
 
-  private final ImportStorage<EmployeeDO> storage;
+    private final ImportStorage<EmployeeDO> storage;
 
-  private final Date dateToSelectAttrRow;
+    private final Date dateToSelectAttrRow;
 
-  public EmployeeBillingExcelImporter(final EmployeeService employeeService,
-      final TimeableService timeableService,
-      final ImportStorage<EmployeeDO> storage, final Date dateToSelectAttrRow)
-  {
-    this.employeeService = employeeService;
-    this.timeableService = timeableService;
-    this.storage = storage;
-    this.dateToSelectAttrRow = dateToSelectAttrRow;
-  }
-
-  public List<AttrColumnDescription> doImport(final InputStream is) throws IOException
-  {
-    final ExcelImport<EmployeeBillingExcelRow> importer = new ExcelImport<>(is);
-
-    // search the sheet
-    for (short idx = 0; idx < importer.getWorkbook().getNumberOfSheets(); idx++) {
-      importer.setActiveSheet(idx);
-      final String name = importer.getWorkbook().getSheetName(idx);
-      if (NAME_OF_EXCEL_SHEET.equals(name)) {
-        importer.setActiveSheet(idx);
-        //        final HSSFSheet sheet = importer.getWorkbook().getSheetAt(idx);
-        return importEmployeeBillings(importer);
-      }
-    }
-    log.error("Oups, no sheet named '" + NAME_OF_EXCEL_SHEET + "' found.");
-    return null;
-  }
-
-  private List<AttrColumnDescription> importEmployeeBillings(final ExcelImport<EmployeeBillingExcelRow> importer)
-  {
-    final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>(new ImportStorage<>());
-    storage.addSheet(importedSheet);
-    importedSheet.setName(NAME_OF_EXCEL_SHEET);
-    importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
-    importer.setStartingRowIndex(ROW_INDEX_OF_COLUMN_NAMES + 1);
-
-    // mapping from excel column name to the bean field name
-    final Map<String, String> map = new HashMap<>();
-    map.put("Id", "id");
-    map.put(I18nHelper.getLocalizedMessage("fibu.employee.user"), "fullName");
-
-    ExtendEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
-        desc -> map.put(I18nHelper.getLocalizedMessage(desc.getI18nKey()), desc.getCombinedName()));
-    importer.setColumnMapping(map);
-
-    final List<AttrColumnDescription> attrColumnsInSheet = getAttrColumnsUsedInSheet(importer);
-
-    final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
-    int rowNum = 0;
-    for (final EmployeeBillingExcelRow row : rows) {
-      final MyImportedElement<EmployeeDO> element = convertRowToDo(importedSheet, attrColumnsInSheet, row, rowNum);
-      importedSheet.addElement(element);
+    public EmployeeBillingExcelImporter(final EmployeeService employeeService,
+                                        //final TimeableService timeableService,
+                                        final ImportStorage<EmployeeDO> storage, final Date dateToSelectAttrRow) {
+        this.employeeService = employeeService;
+        // this.timeableService = timeableService;
+        this.storage = storage;
+        this.dateToSelectAttrRow = dateToSelectAttrRow;
     }
 
-    return attrColumnsInSheet;
-  }
+    public List<AttrColumnDescription> doImport(final InputStream is) throws IOException {
+        final ExcelImport<EmployeeBillingExcelRow> importer = new ExcelImport<>(is);
 
-  private List<AttrColumnDescription> getAttrColumnsUsedInSheet(ExcelImport<EmployeeBillingExcelRow> importer)
-  {
-    final List<String> columnNames = importer.getColumnNames();
-    return ExtendEmployeeDataEnum
-        .getAllAttrColumnDescriptions()
-        .stream()
-        .filter(desc -> columnNames.contains(I18nHelper.getLocalizedMessage(desc.getI18nKey())))
-        .collect(Collectors.toList());
-  }
+        // search the sheet
+        for (short idx = 0; idx < importer.getWorkbook().getNumberOfSheets(); idx++) {
+            importer.setActiveSheet(idx);
+            final String name = importer.getWorkbook().getSheetName(idx);
+            if (NAME_OF_EXCEL_SHEET.equals(name)) {
+                importer.setActiveSheet(idx);
+                //        final HSSFSheet sheet = importer.getWorkbook().getSheetAt(idx);
+                return importEmployeeBillings(importer);
+            }
+        }
+        log.error("Oups, no sheet named '" + NAME_OF_EXCEL_SHEET + "' found.");
+        return null;
+    }
 
-  private MyImportedElement<EmployeeDO> convertRowToDo(final ImportedSheet<EmployeeDO> importedSheet,
-                                                       final List<AttrColumnDescription> attrColumnsInSheet,
-                                                       final EmployeeBillingExcelRow row,
-                                                       final int rowNum)
-  {
-    final MyImportedElement<EmployeeDO> element = new MyImportedElementWithAttrs(importedSheet, rowNum, EmployeeDO.class, attrColumnsInSheet,
+    private List<AttrColumnDescription> importEmployeeBillings(final ExcelImport<EmployeeBillingExcelRow> importer) {
+        final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>(new ImportStorage<>());
+        storage.addSheet(importedSheet);
+        importedSheet.setName(NAME_OF_EXCEL_SHEET);
+        importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
+        importer.setStartingRowIndex(ROW_INDEX_OF_COLUMN_NAMES + 1);
+
+        // mapping from excel column name to the bean field name
+        final Map<String, String> map = new HashMap<>();
+        map.put("Id", "id");
+        map.put(I18nHelper.getLocalizedMessage("fibu.employee.user"), "fullName");
+
+        ExtendEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
+                desc -> map.put(I18nHelper.getLocalizedMessage(desc.getI18nKey()), desc.getCombinedName()));
+        importer.setColumnMapping(map);
+
+        final List<AttrColumnDescription> attrColumnsInSheet = getAttrColumnsUsedInSheet(importer);
+
+        final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
+        int rowNum = 0;
+        for (final EmployeeBillingExcelRow row : rows) {
+            final MyImportedElement<EmployeeDO> element = convertRowToDo(importedSheet, attrColumnsInSheet, row, rowNum);
+            importedSheet.addElement(element);
+        }
+
+        return attrColumnsInSheet;
+    }
+
+    private List<AttrColumnDescription> getAttrColumnsUsedInSheet(ExcelImport<EmployeeBillingExcelRow> importer) {
+        final List<String> columnNames = importer.getColumnNames();
+        return ExtendEmployeeDataEnum
+                .getAllAttrColumnDescriptions()
+                .stream()
+                .filter(desc -> columnNames.contains(I18nHelper.getLocalizedMessage(desc.getI18nKey())))
+                .collect(Collectors.toList());
+    }
+
+    private MyImportedElement<EmployeeDO> convertRowToDo(final ImportedSheet<EmployeeDO> importedSheet,
+                                                         final List<AttrColumnDescription> attrColumnsInSheet,
+                                                         final EmployeeBillingExcelRow row,
+                                                         final int rowNum) {
+/*    final MyImportedElement<EmployeeDO> element = new MyImportedElementWithAttrs(importedSheet, rowNum, EmployeeDO.class, attrColumnsInSheet,
         dateToSelectAttrRow, timeableService, DIFF_PROPERTIES);
     EmployeeDO employee;
     if (row.getId() != null) {
@@ -172,5 +161,8 @@ public class EmployeeBillingExcelImporter
 
     final Object fieldValue = PrivateBeanUtils.readField(row, colDesc.getCombinedName());
     attrRow.putAttribute(colDesc.getPropertyName(), fieldValue);
-  }
+    */
+        return null;
+    }
 }
+

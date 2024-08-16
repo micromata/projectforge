@@ -154,6 +154,10 @@ open class VacationService {
     val stats = VacationStats(employee, year, baseDate)
     // Get employee from database if not initialized (user not given).
     val employeeDO = if (employee.userId == null) employeeDao.internalGetById(employee.id) else employee
+    if (employeeDO == null) {
+      log.warn("Shouldn't occur: employee not found by id #${employee.id}")
+      return stats
+    }
     stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employeeDO, year)
     stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
     // If date of joining not given, assume 1900...
@@ -338,7 +342,7 @@ open class VacationService {
     return VacationValidator.validate(this, vacation, dbVal, throwException)
   }
 
-  open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
+  open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Long {
     val employee = employeeService.getEmployeeByUserId(user.id) ?: return 0
     return vacationDao.getOpenLeaveApplicationsForEmployee(employee)
   }

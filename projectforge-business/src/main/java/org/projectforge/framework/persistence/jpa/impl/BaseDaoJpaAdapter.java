@@ -33,11 +33,10 @@ import org.projectforge.framework.ToStringUtil;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
 import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +58,7 @@ public class BaseDaoJpaAdapter {
     private static final Logger log = LoggerFactory.getLogger(BaseDaoJpaAdapter.class);
 
     @SuppressWarnings("unchecked")
-    public static ModificationStatus copyValues(BaseDO src, final BaseDO dest, final String... ignoreFields) {
+    public static EntityCopyStatus copyValues(BaseDO src, final BaseDO dest, final String... ignoreFields) {
         if (!ClassUtils.isAssignable(src.getClass(), dest.getClass())) {
             throw new RuntimeException("Try to copyValues from different BaseDO classes: this from type "
                     + dest.getClass().getName()
@@ -78,12 +77,12 @@ public class BaseDaoJpaAdapter {
         return copyDeclaredFields(src.getClass(), src, dest, ignoreFields);
     }
 
-    public static ModificationStatus copyDeclaredFields(final Class<?> srcClazz, final BaseDO<?> src,
-                                                        final BaseDO<?> dest,
-                                                        final String... ignoreFields) {
+    public static EntityCopyStatus copyDeclaredFields(final Class<?> srcClazz, final BaseDO<?> src,
+                                                      final BaseDO<?> dest,
+                                                      final String... ignoreFields) {
         final Field[] fields = srcClazz.getDeclaredFields();
         AccessibleObject.setAccessible(fields, true);
-        ModificationStatus modificationStatus = ModificationStatus.NONE;
+        EntityCopyStatus modificationStatus = EntityCopyStatus.NONE;
         for (final Field field : fields) {
             final String fieldName = field.getName();
             if ((ignoreFields != null && ArrayUtils.contains(ignoreFields, fieldName)) || !accept(field)) {
@@ -162,7 +161,7 @@ public class BaseDaoJpaAdapter {
                                     }
                                 }
                                 Validate.notNull(destEntry);
-                                final ModificationStatus st = destEntry.copyValuesFrom((BaseDO<?>) srcEntry);
+                                final EntityCopyStatus st = destEntry.copyValuesFrom((BaseDO<?>) srcEntry);
                                 modificationStatus = getModificationStatus(modificationStatus, st);
                             }
                         }
@@ -223,22 +222,22 @@ public class BaseDaoJpaAdapter {
         }
         final Class<?> superClazz = srcClazz.getSuperclass();
         if (superClazz != null) {
-            final ModificationStatus st = copyDeclaredFields(superClazz, src, dest, ignoreFields);
+            final EntityCopyStatus st = copyDeclaredFields(superClazz, src, dest, ignoreFields);
             modificationStatus = getModificationStatus(modificationStatus, st);
         }
         return modificationStatus;
     }
 
-    protected static ModificationStatus getModificationStatus(final ModificationStatus currentStatus, final BaseDO<?> src,
-                                                              final String modifiedField) {
-        PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
-        if (currentStatus == ModificationStatus.MAJOR
+    protected static EntityCopyStatus getModificationStatus(final EntityCopyStatus currentStatus, final BaseDO<?> src,
+                                                            final String modifiedField) {
+        //PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
+        if (currentStatus == EntityCopyStatus.MAJOR
                 || !(src instanceof AbstractHistorizableBaseDO)
                 /*|| (!(src instanceof HibernateProxy)
                 && !historyService.getNoHistoryProperties(emf, src.getClass()).contains(modifiedField))*/) {
-            return ModificationStatus.MAJOR;
+            return EntityCopyStatus.MAJOR;
         }
-        return ModificationStatus.MINOR;
+        return EntityCopyStatus.MINOR;
     }
 
     /**
@@ -268,8 +267,8 @@ public class BaseDaoJpaAdapter {
         return true;
     }
 
-    public static ModificationStatus getModificationStatus(final ModificationStatus currentStatus,
-                                                           final ModificationStatus status) {
+    public static EntityCopyStatus getModificationStatus(final EntityCopyStatus currentStatus,
+                                                         final EntityCopyStatus status) {
         return currentStatus.combine(status);
     }
 }

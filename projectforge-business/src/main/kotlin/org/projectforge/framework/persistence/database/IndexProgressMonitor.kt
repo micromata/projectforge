@@ -23,25 +23,31 @@
 
 package org.projectforge.framework.persistence.database
 
-import org.hibernate.search.batchindexing.impl.SimpleIndexingProgressMonitor
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.framework.utils.NumberHelper
-import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.*
 
+private val log = KotlinLogging.logger {}
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class IndexProgressMonitor(private val logPrefix: String, private val totalNumber: Long, private val synchronizedMode: Boolean = false) : SimpleIndexingProgressMonitor() {
+class IndexProgressMonitor(
+    private val logPrefix: String,
+    private val totalNumber: Long,
+    private val synchronizedMode: Boolean = false
+) : MassIndexingMonitor {
     @Volatile
     private var done: Long = 0
     private var blockCounter: Long = 0
     private var progressSteps: Long = 0
     private var lastTime = System.currentTimeMillis()
 
-    override fun documentsAdded(increment: Long) {
+    override fun documentsBuilt(increment: Long) {
         if (synchronizedMode) {
             synchronized(this) {
                 internalAdded(increment)
@@ -60,17 +66,36 @@ class IndexProgressMonitor(private val logPrefix: String, private val totalNumbe
         }
     }
 
-    override fun printStatusMessage(totalTodoCount: Long, doneCount: Long, blockCounter: Long) {
-        val format = NumberFormat.getInstance(Locale.US)
-        val percentage = BigDecimal(doneCount).multiply(NumberHelper.HUNDRED).divide(BigDecimal(totalTodoCount), 0, RoundingMode.HALF_UP)
-        val time = System.currentTimeMillis()
-        val speed = blockCounter * 1000 / (time - lastTime)
-        log.info("$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)}): ${format.format(speed)}/s")
-        lastTime = time
+    override fun documentsAdded(increment: Long) {
+        // No implementation needed for this method in this context
     }
 
-    companion object {
-        private val log = LoggerFactory.getLogger(IndexProgressMonitor::class.java)
+    override fun entitiesLoaded(increment: Long) {
+        // No implementation needed for this method in this context
+    }
+
+    override fun addToTotalCount(count: Long) {
+        // No implementation needed for this method in this context
+    }
+
+    override fun indexingCompleted() {
+        // No implementation needed for this method in this context
+    }
+
+    private fun printStatusMessage(totalTodoCount: Long, doneCount: Long, blockCounter: Long) {
+        val format = NumberFormat.getInstance(Locale.US)
+        val percentage = BigDecimal(doneCount).multiply(NumberHelper.HUNDRED)
+            .divide(BigDecimal(totalTodoCount), 0, RoundingMode.HALF_UP)
+        val time = System.currentTimeMillis()
+        val speed = blockCounter * 1000 / (time - lastTime)
+        log.info(
+            "$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)}): ${
+                format.format(
+                    speed
+                )
+            }/s"
+        )
+        lastTime = time
     }
 
     init {

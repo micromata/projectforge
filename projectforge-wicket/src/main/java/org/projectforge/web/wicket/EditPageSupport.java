@@ -31,7 +31,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ICorePersistenceService;
 import org.projectforge.framework.persistence.api.IManualIndex;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.security.My2FARequestHandler;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -146,7 +146,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
           editPage.setResponsePageAndHighlightedRow(page);
           return;
         }
-        ModificationStatus modified = ModificationStatus.NONE;
+        EntityCopyStatus modified = EntityCopyStatus.NONE;
         try {
           modified = baseDao.update(editPage.getData());
         } catch (final DataIntegrityViolationException ex) {

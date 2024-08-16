@@ -23,8 +23,6 @@
 
 package org.projectforge.business.timesheet
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -61,7 +59,6 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 import org.projectforge.framework.persistence.utils.SQLHelper.getYears
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime.Companion.from
@@ -77,9 +74,6 @@ import java.util.*
  */
 @Repository
 open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
-  @PersistenceContext
-  private lateinit var em: EntityManager
-
   @Autowired
   private lateinit var userDao: UserDao
 
@@ -119,20 +113,19 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     )
   }
 
-  override fun getAdditionalSearchFields(): Array<String> {
-    return ADDITIONAL_SEARCH_FIELDS
-  }
+  override val additionalSearchFields: Array<String>
+    get() = ADDITIONAL_SEARCH_FIELDS
 
   /**
    * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
    * user=?.
    */
   open fun getYears(userId: Int?): IntArray {
-    val minMaxDate = ensureUniqueResult(emgrFactory) { em ->
-      em.createNamedQuery(TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER, Array<Any>::class.java)
-        .setParameter("userId", userId)
-    }!!
-    return getYears(minMaxDate[0], minMaxDate[1])
+    val list = persistenceService.queryNullable(Date::class.java, TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
+      Pair("userId", userId))
+    val minDate = list[0] ?: now().year
+    val maxDate = list[1] ?: now().year
+    return getYears(minDate, maxDate)
   }
 
   /**
@@ -140,6 +133,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
    * @see BaseDao.getOrLoad
    */
   open fun setUser(sheet: TimesheetDO, userId: Int?) {
+    userId ?: return
     val user = userDao.getOrLoad(userId)
     sheet.user = user
   }
@@ -158,6 +152,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
    * @see BaseDao.getOrLoad
    */
   open fun setKost2(sheet: TimesheetDO, kost2Id: Int?) {
+    kost2Id ?: return
     val kost2 = kost2Dao.getOrLoad(kost2Id)
     sheet.kost2 = kost2
   }
@@ -412,10 +407,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
   }
 
   override fun hasAccess(
-    user: PFUserDO, obj: TimesheetDO, oldObj: TimesheetDO?,
+    user: PFUserDO, obj: TimesheetDO?, oldObj: TimesheetDO?,
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
+    require(obj != null) { "Given timesheet as obj parameter mustn't be null."}
     if (accessChecker.userEquals(user, obj.user)) {
       // Own time sheet
       if (!accessChecker.hasPermission(

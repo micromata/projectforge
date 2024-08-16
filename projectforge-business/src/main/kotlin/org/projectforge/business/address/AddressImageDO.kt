@@ -45,7 +45,7 @@ import org.projectforge.framework.persistence.api.IdObject
 )
 @Entity
 @Table(name = "T_ADDRESS_IMAGE")
-open class AddressImageDO : IdObject<Int?> {
+open class AddressImageDO : IdObject<Int> {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")

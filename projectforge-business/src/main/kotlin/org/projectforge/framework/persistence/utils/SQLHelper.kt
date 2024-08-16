@@ -77,9 +77,11 @@ object SQLHelper {
     }
 
     @JvmStatic
-    fun getYears(min: Int?, max: Int?): IntArray {
-        if (min == null || max == null) {
-            return intArrayOf(Year.now().value)
+    fun getYears(minYear: Int?, maxYear: Int?): IntArray {
+        val min = minYear ?: Year.now().value
+        val max = maxYear ?: Year.now().value
+        if (min > max || max - min > 30) {
+            throw UnsupportedOperationException("Paranoia Exception")
         }
         val res = IntArray(max - min + 1)
         var i = 0

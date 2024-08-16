@@ -621,7 +621,7 @@ open class AttachmentsService {
       baseDao.internalUpdateAny(dbObj)
     } else {
       val msg =
-        "Can't update search index of ${dbObj::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"
+        "Can't update search index of ${dbObj!!::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"
       if (SystemStatus.isDevelopmentMode()) {
         throw UnsupportedOperationException(msg)
       }

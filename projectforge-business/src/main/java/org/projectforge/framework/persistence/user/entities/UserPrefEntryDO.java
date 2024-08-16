@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.user.entities;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
 import org.projectforge.framework.utils.NumberHelper;
@@ -268,7 +268,7 @@ public class UserPrefEntryDO implements BaseDO<Integer>, Serializable
    * @see AbstractBaseDO#copyValues(BaseDO, BaseDO, String...)
    */
   @Override
-  public ModificationStatus copyValuesFrom(final BaseDO<? extends Serializable> src, final String... ignoreFields)
+  public EntityCopyStatus copyValuesFrom(final BaseDO<? extends Serializable> src, final String... ignoreFields)
   {
     return AbstractBaseDO.copyValues(src, this, ignoreFields);
   }

@@ -96,7 +96,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   public List<GroupTaskAccessDO> internalLoadAll() {
     CriteriaBuilder cb = em.getCriteriaBuilder();
     CriteriaQuery<GroupTaskAccessDO> cr = cb.createQuery(GroupTaskAccessDO.class);
-    From root = cr.from(clazz);
+    From root = cr.from(doClass);
     root.fetch("accessEntries", JoinType.LEFT);
     cr.select(root).where(
             cb.equal(root.get("deleted"), false))
@@ -195,7 +195,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
     if (myFilter.getUserId() != null) {
       final List<GroupTaskAccessDO> result = new ArrayList<>();
       for (final GroupTaskAccessDO access : list) {
-        if (getUserGroupCache().isUserMemberOfGroup(myFilter.getUserId(), access.getGroupId())) {
+        if (userGroupCache.isUserMemberOfGroup(myFilter.getUserId(), access.getGroupId())) {
           result.add(access);
         }
       }
@@ -224,7 +224,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
     boolean result = accessChecker.isUserMemberOfAdminGroup(user);
     if (!result && !obj.getDeleted()) {
       Validate.notNull(user);
-      result = getUserGroupCache().isUserMemberOfGroup(user.getId(), obj.getGroupId());
+      result = userGroupCache.isUserMemberOfGroup(user.getId(), obj.getGroupId());
     }
     if (throwException && !result) {
       throw new AccessException(AccessType.GROUP, OperationType.SELECT);

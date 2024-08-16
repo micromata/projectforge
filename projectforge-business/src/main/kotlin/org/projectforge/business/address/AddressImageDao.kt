@@ -79,6 +79,10 @@ open class AddressImageDao {
      */
     open fun saveOrUpdate(addressId: Int, image: ByteArray): Boolean {
         val address = addressDao.getById(addressId)
+        if (address == null) {
+            log.error("Can't save or update immage of address. Address #$addressId not found.")
+            return false
+        }
         addressDao.internalModifyImageData(address, true)
         addressDao.update(address) // Throws an exception if the logged-in user has now access.
         val addressImage = get(address.id) ?: AddressImageDO()
@@ -104,6 +108,10 @@ open class AddressImageDao {
      */
     open fun delete(addressId: Int): Boolean {
         val address = addressDao.getById(addressId)
+        if (address == null) {
+            log.error("Can't save or update immage of address. Address #$addressId not found.")
+            return false
+        }
         addressDao.internalModifyImageData(address, false)
         addressDao.update(address) // Throws an exception if the logged-in user has now access.
         return EntityManagerUtil.runInTransaction(emgrFactory) {
@@ -120,6 +128,10 @@ open class AddressImageDao {
 
     private fun get(addressId: Int?): AddressImageDO? {
         val address = addressDao.getById(addressId) ?: return null // For access checking!
+        if (address == null) {
+            log.error("Can't save or update immage of address. Address #$addressId not found.")
+            return null
+        }
         try {
             return ensureUniqueResult(
                 em.createQuery(

@@ -31,7 +31,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_ID
@@ -170,7 +170,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
      * excluded.
      */
     @Deprecated("Use value with json serialization instead.")
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
         val src = source as UserPrefDO
         if (src.userPrefEntries != null) {

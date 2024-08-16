@@ -28,6 +28,7 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 
 import jakarta.persistence.*;
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
 
 /**
  * JPA entity for History.

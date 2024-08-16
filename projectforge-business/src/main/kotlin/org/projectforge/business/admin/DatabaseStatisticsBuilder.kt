@@ -29,7 +29,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper

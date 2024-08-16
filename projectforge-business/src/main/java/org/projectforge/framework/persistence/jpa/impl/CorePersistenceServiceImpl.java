@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa.impl;
 
-import de.micromata.genome.jpa.EntityCopyStatus;
 import de.micromata.genome.jpa.MarkDeletableRecord;
 import de.micromata.genome.util.bean.PrivateBeanUtils;
 import de.micromata.genome.util.runtime.ClassUtils;
@@ -110,21 +109,18 @@ public class CorePersistenceServiceImpl<PK extends Serializable, ENT extends Mar
   }
 
   @Override
-  public ModificationStatus update(ENT obj,String... ignoreCopyFields) {
-    EntityCopyStatus mod = emf.runInTrans((emgr -> {
-      return emgr.update(obj.getClass(),obj.getClass(), obj, true, ignoreCopyFields);
-
+  public EntityCopyStatus update(ENT obj, String... ignoreCopyFields) {
+    return emf.runInTrans((emgr -> {
+       emgr.update(obj.getClass(),obj.getClass(), obj, true, ignoreCopyFields);
     }));
-    return ModificationStatus.fromEntityCopyStatus(mod);
   }
 
   @Override
-  public ModificationStatus update(ENT obj) throws AccessException
+  public EntityCopyStatus update(ENT obj) throws AccessException
   {
-    EntityCopyStatus mod = emf.runInTrans((emgr) -> {
+    return emf.runInTrans((emgr) -> {
       return emgr.update(obj.getClass(), obj.getClass(), obj, true);
     });
-    return ModificationStatus.fromEntityCopyStatus(mod);
   }
 
   @Override

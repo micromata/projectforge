@@ -38,7 +38,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -118,7 +118,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public ModificationStatus updateAttribute(Integer userId, Object attribute, String attributeName) {
+  public EntityCopyStatus updateAttribute(Integer userId, Object attribute, String attributeName) {
     EmployeeDO employeeDO = getEmployeeByUserId(userId);
     try {
       Class<?> type = EmployeeDO.class.getDeclaredField(attributeName).getType();

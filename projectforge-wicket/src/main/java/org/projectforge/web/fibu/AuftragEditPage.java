@@ -25,11 +25,10 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -213,12 +212,12 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   }
 
   @Override
-  public AbstractSecuredBasePage afterUpdate(final ModificationStatus modified)
+  public AbstractSecuredBasePage afterUpdate(final EntityCopyStatus modified)
   {
     if (!form.isSendEMailNotification()) {
       return null;
     }
-    if (modified == ModificationStatus.MAJOR) {
+    if (modified == EntityCopyStatus.MAJOR) {
       sendNotificationIfRequired(OperationType.UPDATE);
     }
     return null;
