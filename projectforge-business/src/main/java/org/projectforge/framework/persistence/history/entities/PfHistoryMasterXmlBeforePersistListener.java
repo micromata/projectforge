@@ -29,6 +29,7 @@ import de.micromata.genome.jpa.StdRecord;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

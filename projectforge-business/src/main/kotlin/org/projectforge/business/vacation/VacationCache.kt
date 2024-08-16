@@ -75,14 +75,13 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
       log.info("No groups given, therefore no vacation will be returned.")
       return result
     }
-    val loggedInUser = ThreadLocalUserContext.user
     for (vacation in vacations) {
       if (vacation.endDate?.isBefore(startVacationDate) == true ||
         vacation.startDate?.isAfter(endVacationDate) == true
       ) {
         continue
       }
-      if (!vacationDao.hasSelectAccess(vacation, loggedInUser)) {
+      if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
         continue
       }
       val employeeUser = userGroupCache.getUser(vacation.employee) ?: continue

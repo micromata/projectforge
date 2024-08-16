@@ -25,10 +25,12 @@ package org.projectforge.framework.persistence.user.entities;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import groovy.transform.Field;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
-import org.hibernate.search.annotations.*;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.DisplayNameCapable;
@@ -50,13 +52,13 @@ import java.util.Objects;
 public class UserRightDO extends DefaultBaseDO implements Comparable<UserRightDO>, Serializable, DisplayNameCapable {
   private static final long serialVersionUID = 6703048743393453733L;
 
-  @Field(index = Index.YES, analyze = Analyze.NO)
+  @GenericField  // was: @Field(index = Index.YES, analyze = Analyze.NO)
   private String rightIdString;
 
-  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @GenericField  // was:@Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   protected UserRightValue value;
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   protected PFUserDO user;
 
   public UserRightDO() {

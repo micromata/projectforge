@@ -34,14 +34,14 @@ import jakarta.persistence.Basic
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-interface ExtendedBaseDO<I : Serializable> : BaseDO<I> {
+interface ExtendedBaseDO<I : Serializable> : BaseDO<I>, MarkDeletableRecord<I> {
     /**
      * If any re-calculations have to be done before displaying, indexing etc. Such re-calculations are use-full for e. g.
      * transient fields calculated from persistent fields.
      */
     fun recalculate()
 
-    var deleted: Boolean
+    override var deleted: Boolean
 
     var created: Date?
 

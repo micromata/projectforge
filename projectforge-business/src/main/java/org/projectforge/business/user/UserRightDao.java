@@ -66,7 +66,7 @@ public class UserRightDao extends BaseDao<UserRightDO> {
     final List<UserRightDO> dbList = getList(user);
     // evict all entities from the session cache to avoid that the update is already done in the copy method
     dbList.forEach(em::detach);
-    final UserGroupCache userGroupCache = getUserGroupCache();
+    final UserGroupCache userGroupCache = userGroupCache;
     final Collection<GroupDO> userGroups = userGroupCache.getUserGroupDOs(user);
     for (final UserRightVO rightVO : list) {
       UserRightDO rightDO = null;
@@ -149,7 +149,7 @@ public class UserRightDao extends BaseDao<UserRightDO> {
       return list;
     }
     final List<UserRightDO> dbList = getList(user);
-    final UserGroupCache userGroupCache = getUserGroupCache();
+    final UserGroupCache userGroupCache = userGroupCache;
     final Collection<GroupDO> userGroups= userGroupCache.getUserGroupDOs(user);
     for (final UserRight right : userRightService.getOrderedRights()) {
       if (!right.isAvailable(user, userGroups)) {

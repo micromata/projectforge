@@ -32,7 +32,7 @@ import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

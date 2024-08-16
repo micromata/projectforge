@@ -69,8 +69,8 @@ open class DBQuery {
             return listOf()
         }
         if (filter.sortProperties.isNullOrEmpty()) {
-            baseDao.defaultSortProperties?.forEach {
-                filter.addOrder(it)
+            baseDao.defaultSortProperties?.forEach { sortProperty ->
+                filter.addOrder(sortProperty)
             }
         }
 
@@ -127,7 +127,7 @@ open class DBQuery {
         checkAccess: Boolean
     )
             : List<O> {
-        val loggedInUser = ThreadLocalUserContext.user
+        val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
 
         val list = mutableListOf<O>()
         var next: O? = dbResultIterator.next() ?: return list

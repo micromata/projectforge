@@ -100,7 +100,7 @@ public class AddressDao extends BaseDao<AddressDO> {
 
   public AddressDao() {
     super(AddressDO.class);
-    forceDeletionSupport = true;
+    isForceDeletionSupport = true;
   }
 
   @PostConstruct
@@ -118,7 +118,7 @@ public class AddressDao extends BaseDao<AddressDO> {
   public List<Locale> getUsedCommunicationLanguages() {
     CriteriaBuilder cb = em.getCriteriaBuilder();
     CriteriaQuery<Locale> cr = cb.createQuery(Locale.class);
-    Root<AddressDO> root = cr.from(clazz);
+    Root<AddressDO> root = cr.from(doClass);
     cr.select(root.get("communicationLanguage")).where(
             cb.equal(root.get("deleted"), false),
             cb.isNotNull(root.get("communicationLanguage")))
@@ -364,7 +364,7 @@ public class AddressDao extends BaseDao<AddressDO> {
   protected void onDelete(AddressDO obj) {
     personalAddressDao.internalDeleteAll(obj);
     teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj);
-    emgrFactory.runInTrans(emgr -> {
+    persistenceService.runInTrans(emgr -> {
       int counter = emgr.getEntityManager()
           .createNamedQuery(AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID)
           .setParameter("addressId", obj.getId())
@@ -667,7 +667,7 @@ public class AddressDao extends BaseDao<AddressDO> {
   }
 
   public AddressDO findByUid(final String uid) {
-    return emgrFactory.runRoTrans(emgr -> emgr.selectSingleAttached(AddressDO.class,
+    return persistenceService.runRoTrans(emgr -> emgr.selectSingleAttached(AddressDO.class,
             "SELECT a FROM AddressDO a WHERE a.uid = :uid", "uid", uid));
   }
 

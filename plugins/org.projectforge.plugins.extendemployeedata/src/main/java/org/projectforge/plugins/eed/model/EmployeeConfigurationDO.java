@@ -37,7 +37,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 
@@ -133,9 +133,9 @@ public class EmployeeConfigurationDO extends DefaultBaseWithAttrDO<EmployeeConfi
   }
 
   @Override
-  public ModificationStatus copyValuesFrom(final BaseDO<? extends Serializable> source, final String... ignoreFields)
+  public EntityCopyStatus copyValuesFrom(final BaseDO<? extends Serializable> source, final String... ignoreFields)
   {
-    ModificationStatus modificationStatus = super.copyValuesFrom(source, "timeableAttributes");
+    EntityCopyStatus modificationStatus = super.copyValuesFrom(source, "timeableAttributes");
     final EmployeeConfigurationDO src = (EmployeeConfigurationDO) source;
     modificationStatus = modificationStatus
         .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src));

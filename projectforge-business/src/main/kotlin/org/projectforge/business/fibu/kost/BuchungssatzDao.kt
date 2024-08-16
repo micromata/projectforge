@@ -38,50 +38,30 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
-import org.projectforge.framework.time.PFDateTime.Companion.now
+import org.projectforge.framework.persistence.utils.SQLHelper
 import org.springframework.stereotype.Repository
 
 @Repository
 open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java) {
-    override fun getAdditionalSearchFields(): Array<String> {
-        return ADDITIONAL_SEARCH_FIELDS
-    }
+
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
 
     /**
      * List of all years witch BuchungssatzDO entries: select min(year), max(year) from t_fibu_buchungssatz.
      */
     open val years: IntArray
         get() {
-            @Suppress("UNCHECKED_CAST")
-            val list = EntityManagerUtil.runInReadOnlyTransaction(emgrFactory) { em ->
-                em.createQuery("select min(year), max(year) from BuchungssatzDO t").resultList as MutableList<Array<*>?>
-            }
-            if (list.size == 0 || list[0] == null || list[0]!![0] == null) {
-                return intArrayOf(now().year)
-            }
-            val minYear = list[0]!![0] as Int
-            val maxYear = list[0]!![1] as Int
-            if (minYear > maxYear || maxYear - minYear > 30) {
-                throw UnsupportedOperationException("Paranoia Exception")
-            }
-            val res = IntArray(maxYear - minYear + 1)
-            var i = 0
-            for (year in maxYear downTo minYear) {
-                res[i++] = year
-            }
-            return res
+            val list = persistenceService.queryNullable(Int::class.java, "select min(year), max(year) from BuchungssatzDO t")
+            return SQLHelper.getYears(list[0], list[1])
         }
 
     open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {
-        return ensureUniqueResult(emgrFactory) { em ->
-            em.createNamedQuery(BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR, BuchungssatzDO::class.java)
-                .setParameter("year", year)
-                .setParameter("month", month)
-                .setParameter("satznr", satznr)
-        }
+        return persistenceService.selectSingleResult(
+            BuchungssatzDO::class.java, BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+            Pair("year", year), Pair("month", month), Pair("satznr", satznr)
+        )
     }
 
     private fun validateTimeperiod(myFilter: BuchungssatzFilter): Boolean {
@@ -238,7 +218,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
      * User must member of group finance.
      */
     open override fun hasAccess(
-        user: PFUserDO, obj: BuchungssatzDO, oldObj: BuchungssatzDO,
+        user: PFUserDO, obj: BuchungssatzDO?, oldObj: BuchungssatzDO?,
         operationType: OperationType, throwException: Boolean
     ): Boolean {
         return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP)

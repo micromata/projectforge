@@ -28,7 +28,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -115,7 +115,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
      * @param ignoreFields Does not copy these properties (by field name).
      * @return true, if any modifications are detected, otherwise false;
      */
-    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         return copyValues(src, this, *ignoreFields)
     }
 
@@ -135,7 +135,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
          * @return true, if any modifications are detected, otherwise false;
          */
         @JvmStatic
-        fun copyValues(src: BaseDO<*>, dest: BaseDO<*>, vararg ignoreFields: String?): ModificationStatus {
+        fun copyValues(src: BaseDO<*>, dest: BaseDO<*>, vararg ignoreFields: String?): EntityCopyStatus {
             if (dest is AbstractBaseDO<*> && src is AbstractBaseDO<*>) {
                 val srcObj = src
                 val destObj = dest
@@ -159,9 +159,9 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
         @JvmStatic
         @Deprecated("")
         fun getModificationStatus(
-            currentStatus: ModificationStatus,
-            status: ModificationStatus
-        ): ModificationStatus {
+            currentStatus: EntityCopyStatus,
+            status: EntityCopyStatus
+        ): EntityCopyStatus {
             return currentStatus.combine(status)
         }
 

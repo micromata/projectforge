@@ -30,7 +30,6 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.model.RemainingLeaveDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -83,11 +82,12 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
     @JvmOverloads
     open fun internalGet(employeeId: Int?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
         employeeId ?: return null
-        val result = EntityManagerUtil.ensureUniqueResult(emgrFactory) { em ->
-            em.createNamedQuery(RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR, RemainingLeaveDO::class.java)
-                .setParameter("employeeId", employeeId)
-                .setParameter("year", year)
-        } ?: return null
+        val result = persistenceService.selectSingleResult(
+            RemainingLeaveDO::class.java,
+            RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
+            Pair("employeeId", employeeId),
+            Pair("year", year),
+        ) ?: return null
         return if (!ignoreDeleted || !result.deleted)
             result
         else
@@ -95,10 +95,10 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
     }
 
     override fun hasAccess(
-        user: PFUserDO?,
+        user: PFUserDO,
         obj: RemainingLeaveDO?,
         oldObj: RemainingLeaveDO?,
-        operationType: OperationType?,
+        operationType: OperationType,
         throwException: Boolean
     ): Boolean {
         if (operationType == OperationType.SELECT) {

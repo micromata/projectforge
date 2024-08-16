@@ -219,7 +219,7 @@ public class GroupDao extends BaseDao<GroupDO> {
   public void assignGroupByIds(final PFUserDO user, final Set<Integer> groupIdsToAssign, final Set<Integer> groupIdsToUnassign, final boolean updateUserGroupCache) {
     final List<GroupDO> assignedGroups = new ArrayList<>();
     final List<GroupDO> unassignedGroups = new ArrayList<>();
-    emgrFactory.runInTrans(emgr -> {
+    persistenceService.runInTrans(emgr -> {
       PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getPk());
       if (groupIdsToAssign != null) {
         for (final Integer groupId : groupIdsToAssign) {
@@ -266,7 +266,7 @@ public class GroupDao extends BaseDao<GroupDO> {
 
     createHistoryEntry(user, unassignedGroups, assignedGroups);
     if (updateUserGroupCache) {
-      getUserGroupCache().setExpired();
+      userGroupCache.setExpired();
     }
   }
 
@@ -310,12 +310,12 @@ public class GroupDao extends BaseDao<GroupDO> {
 
   @Override
   protected void afterSaveOrModify(final GroupDO group) {
-    getUserGroupCache().setExpired();
+    userGroupCache.setExpired();
   }
 
   @Override
   protected void afterDelete(final GroupDO obj) {
-    getUserGroupCache().setExpired();
+    userGroupCache.setExpired();
   }
 
   @Override
@@ -348,7 +348,7 @@ public class GroupDao extends BaseDao<GroupDO> {
     }
     if (!obj.getDeleted()) {
       Validate.notNull(user);
-      result = getUserGroupCache().isUserMemberOfGroup(user.getId(), obj.getId());
+      result = userGroupCache.isUserMemberOfGroup(user.getId(), obj.getId());
     }
     if (result) {
       return true;

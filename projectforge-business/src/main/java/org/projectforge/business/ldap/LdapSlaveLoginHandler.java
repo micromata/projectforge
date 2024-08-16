@@ -29,7 +29,7 @@ import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -292,8 +292,8 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
                 userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
-              final ModificationStatus modificationStatus = userDao.internalUpdate(dbUser);
-              if (modificationStatus != ModificationStatus.NONE) {
+              final EntityCopyStatus modificationStatus = userDao.internalUpdate(dbUser);
+              if (modificationStatus != EntityCopyStatus.NONE) {
                 ++updated;
               } else {
                 ++unmodified;

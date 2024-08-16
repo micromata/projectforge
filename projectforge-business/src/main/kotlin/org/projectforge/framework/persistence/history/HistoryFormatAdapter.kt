@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -60,7 +59,7 @@ open class HistoryFormatAdapter(
   fun convert(item: Any, historyEntry: HistoryEntry<*>): HistoryFormatService.DisplayHistoryEntryDTO {
     var user: PFUserDO? = null
     try {
-      user = userGroupCache.getUser(historyEntry.modifiedBy.toInt())
+      user = userGroupCache.getUser(historyEntry.modifiedBy?.toInt())
     } catch (e: NumberFormatException) {
       // Ignore error.
     }

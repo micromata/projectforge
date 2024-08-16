@@ -25,7 +25,6 @@ package org.projectforge.business.scripting
 
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil.ensureUniqueResult
 
 private val log = KotlinLogging.logger {}
 
@@ -44,14 +43,11 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
         name.toIntOrNull()?.let { id ->
             return internalGetById(id)
         }
-        val script = ensureUniqueResult(emgrFactory) { em ->
-            em.createNamedQuery(
-                ScriptDO.SELECT_BY_NAME,
-                ScriptDO::class.java
-            )
-                .setParameter("name", "%${name.trim().lowercase()}%")
-        }
-        return script
+        return persistenceService.selectSingleResult(
+            ScriptDO::class.java,
+            ScriptDO.SELECT_BY_NAME,
+            Pair("name", "%${name.trim().lowercase()}%"),
+        )
     }
 
     open fun getScriptVariableNames(

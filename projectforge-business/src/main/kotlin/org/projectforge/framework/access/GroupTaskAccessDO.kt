@@ -31,7 +31,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
@@ -187,7 +187,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
      *
      * @param source
      */
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
         val src = source as GroupTaskAccessDO
         if (src.accessEntries != null) {

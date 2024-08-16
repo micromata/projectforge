@@ -121,7 +121,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
         if (projekt.getProjektManagerGroup() == null) {
           continue;
         }
-        if (!getUserGroupCache().isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId())) {
+        if (!userGroupCache.isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId())) {
           continue;
         }
       }

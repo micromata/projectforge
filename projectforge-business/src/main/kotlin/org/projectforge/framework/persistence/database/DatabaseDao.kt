@@ -23,24 +23,19 @@
 
 package org.projectforge.framework.persistence.database
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.TypedQuery
 import org.apache.commons.lang3.ClassUtils
-import org.hibernate.Hibernate
-import org.hibernate.Session
-import org.hibernate.search.Search
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.ReindexSettings
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
-import org.projectforge.framework.persistence.utils.PFTransactionTemplate.runInTrans
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+import java.lang.RuntimeException
 import java.util.*
-import jakarta.persistence.EntityManager
-import jakarta.persistence.FlushModeType
-import jakarta.persistence.TypedQuery
 
 /**
  * Creates index creation script and re-indexes data-base.
@@ -52,12 +47,14 @@ import jakarta.persistence.TypedQuery
 @Repository
 open class DatabaseDao {
     private var currentReindexRun: Date? = null
+
     @Autowired
-    private lateinit var emgrFactory: PfEmgrFactory
+    private lateinit var persistencyService: PfPersistenceService
 
     fun <T> rebuildDatabaseSearchIndices(clazz: Class<T>, settings: ReindexSettings): String {
         if (currentReindexRun != null) {
-            val otherJobStarted = DateTimeFormatter.instance().getFormattedDateTime(currentReindexRun, Locale.ENGLISH, DateHelper.UTC)
+            val otherJobStarted =
+                DateTimeFormatter.instance().getFormattedDateTime(currentReindexRun, Locale.ENGLISH, DateHelper.UTC)
             return ("Another re-index job is already running. The job was started at: $otherJobStarted (UTC)")
         }
         val buf = StringBuffer()
@@ -103,11 +100,12 @@ open class DatabaseDao {
     }
 
     private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings?) {
-        runInTrans(emgrFactory) { em: EntityManager ->
+        throw RuntimeException("Not yet implemented")
+/*        persistencyService.runInReadOnlyTransaction() { em: EntityManager ->
             val number = getRowCount(em, clazz, settings) // Get number of objects to re-index (select count(*) from).
             if (number == 0L) {
                 log.info("Reindexing [${clazz.simpleName}]: 0 entries found. Nothing to-do.")
-                return@runInTrans 0L
+                return@runInReadOnlyTransaction 0L
             }
             log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=true...")
 
@@ -123,13 +121,13 @@ open class DatabaseDao {
             //val set= mutableSetOf<Long>()
             while (true) {
                 val obj = bigResultSetHandler.next() ?: break
-               /* if (obj is PfHistoryMasterDO) {
-                    if (set.contains(obj.pk)) {
-                        log.error("Duplicate object id: ${obj.pk}")
-                    } else {
-                        set.add(obj.pk)
-                    }
-                }*/
+                /* if (obj is PfHistoryMasterDO) {
+                     if (set.contains(obj.pk)) {
+                         log.error("Duplicate object id: ${obj.pk}")
+                     } else {
+                         set.add(obj.pk)
+                     }
+                 }*/
                 if (obj is ExtendedBaseDO<*>) {
                     obj.recalculate()
                 }
@@ -150,29 +148,41 @@ open class DatabaseDao {
             val searchFactory = fullTextSession.searchFactory
             searchFactory.optimize(clazz)
             log.info("Reindexing [${clazz.simpleName}]: reindexing done.")
-            return@runInTrans index
+            return@runInReadOnlyTransaction index
         }
+        */
     }
 
     private fun <T> getRowCount(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): Long {
         val result = createQuery(entityManager, clazz, Number::class.java, settings, QueryMode.ROW_COUNT)
-                .singleResult as Long
+            .singleResult as Long
         if (settings?.lastNEntries != null) {
             return minOf(result, settings.lastNEntries.toLong())
         }
         return result
     }
 
-    private fun <T> createQuery(entityManager: EntityManager, clazz: Class<*>, resultClazz: Class<T>, settings: ReindexSettings?, queryMode: QueryMode)
+    private fun <T> createQuery(
+        entityManager: EntityManager,
+        clazz: Class<*>,
+        resultClazz: Class<T>,
+        settings: ReindexSettings?,
+        queryMode: QueryMode
+    )
             : TypedQuery<T> {
         val rowCountOnly = queryMode == QueryMode.ROW_COUNT
         val strategy = ReindexerRegistry.get(clazz)
         val idsOnly = if (queryMode == QueryMode.SELECT_IDS_ONLY) "select ${strategy.idProperty} " else ""
-        val join = if (queryMode == QueryMode.NORMAL && settings?.lastNEntries == null) strategy.join else "" // Don't join for last n entries (not supported by Hibernate).
-        val select = if (rowCountOnly) "select count(*) from ${clazz.simpleName} as t" else "${idsOnly}from ${clazz.simpleName} as t$join"
+        val join =
+            if (queryMode == QueryMode.NORMAL && settings?.lastNEntries == null) strategy.join else "" // Don't join for last n entries (not supported by Hibernate).
+        val select =
+            if (rowCountOnly) "select count(*) from ${clazz.simpleName} as t" else "${idsOnly}from ${clazz.simpleName} as t$join"
         if (settings?.fromDate != null) {
             if (strategy.modifiedAtProperty != null) {
-                val query = entityManager.createQuery("$select where t.${strategy.modifiedAtProperty} > :modifiedAt", resultClazz)
+                val query = entityManager.createQuery(
+                    "$select where t.${strategy.modifiedAtProperty} > :modifiedAt",
+                    resultClazz
+                )
                 query.setParameter("modifiedAt", settings.fromDate)
                 return query
             }
@@ -187,6 +197,7 @@ open class DatabaseDao {
 
     companion object {
         private val log = LoggerFactory.getLogger(DatabaseDao::class.java)
+
         /**
          * Since yesterday and 1,000 newest entries at maximimum.
          */

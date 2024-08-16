@@ -28,7 +28,7 @@ import jakarta.persistence.criteria.Predicate
 import mu.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -93,7 +93,7 @@ internal object DBHistoryQuery {
         clazz: Class<*>,
         searchParams: DBHistorySearchParams
     ): Set<Long> {
-        Search.session(entityManager).search(PfHistoryMasterDO::class.java).where { q ->
+        val result = Search.session(entityManager).search(PfHistoryMasterDO::class.java).where { q ->
             q.bool().with { bool ->
                 bool.must { must ->
                     must.match().field("entityName").matching(clazz.name)
@@ -131,73 +131,7 @@ internal object DBHistoryQuery {
                     }
                 }
             }
-        }.fetch(MAX_RESULT_SIZE).run {
-            if (totalHitCount > MAX_RESULT_SIZE) {
-                log.warn("Too many results for history search: $totalHitCount")
-            }
-            if (totalHitCount == 0) {
-                return emptySet()
-            }
-            return hits.map { it.id.toLong() }.toSet()
-        }
-        /*
-        boolJunction = boolJunction.must(queryBuilder.keyword().onField("entityName").matching(clazz.name).createQuery())
-        searchParams.modifiedByUserId?.let { modifiedByUserId ->
-          boolJunction = boolJunction.must(
-            queryBuilder.keyword().onField("modifiedBy").matching(modifiedByUserId.toString()).createQuery()
-          )
-        }
-        searchParams.modifiedFrom?.let { modifiedFrom ->
-          searchParams.modifiedTo?.let { modifiedTo ->
-            // Between:
-            boolJunction = boolJunction.must(
-              queryBuilder.range().onField("modifiedAt")
-                .from(modifiedFrom.utilDate)
-                .to(modifiedTo.utilDate)
-                .createQuery()
-            )
-          } ?: run {
-            boolJunction = boolJunction.must(
-              queryBuilder.range().onField("modifiedAt")
-                .above(modifiedFrom.utilDate)
-                .createQuery()
-            )
-          }
-        } ?: run {
-          searchParams.modifiedTo?.let { modifiedTo ->
-            boolJunction = boolJunction.must(
-              queryBuilder.range().onField("modifiedAt")
-                .below(modifiedTo.utilDate)
-                .createQuery()
-            )
-          }
-        }
-        val searchString = searchParams.searchHistory
-        if (!searchString.isNullOrBlank()) {
-          /*val str = HibernateSearchFilterUtils.modifySearchString(
-            searchString,
-            wildcardChar = "*",
-            andSearch = false,
-            prependWildcard = true
-          )*/
-          var str = searchString.replace('%', '*')
-          if (str.length > 1 && str[0].isLetterOrDigit()) {
-            str = "*$str"
-            if (!str.endsWith("*"))
-              str = "$str*"
-          }
-          boolJunction = boolJunction.must(
-            queryBuilder.keyword().wildcard().onField("oldValue")
-              .matching(str)
-              .createQuery()
-          )
-        }*/
-        val fullTextQuery =
-            fullTextEntityManager.createFullTextQuery(boolJunction.createQuery(), PfHistoryMasterDO::class.java)
-        fullTextQuery.maxResults = MAX_RESULT_SIZE
-        fullTextQuery.setProjection("entityId")
-        @Suppress("UNCHECKED_CAST")
-        val result = fullTextQuery.getResultList()// as List<Long> // return a list of managed objects
+        }.fetchHits(MAX_RESULT_SIZE)
 
         if (result.isNullOrEmpty()) {
             return emptySet()

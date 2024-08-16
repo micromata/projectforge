@@ -23,10 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import de.micromata.genome.db.jpa.history.api.DiffEntry
-import de.micromata.genome.db.jpa.history.api.HistProp
-import de.micromata.genome.db.jpa.history.api.HistoryEntry
-import de.micromata.genome.db.jpa.history.entities.EntityOpType
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.projectforge.business.address.AddressbookDO
@@ -37,7 +33,6 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.parseInteger
@@ -107,11 +102,11 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
     userGroupCache: UserGroupCache, entry: HistoryEntry<*>, diffEntry: DiffEntry,
     em: EntityManager
   ) : this(userGroupCache, entry) {
-    if (diffEntry.newProp != null) {
-      propertyType = diffEntry.newProp.type
+    diffEntry.newProp?.let {
+      propertyType = it.type
     }
-    if (diffEntry.oldProp != null) {
-      propertyType = diffEntry.oldProp.type
+    diffEntry.oldProp?.let {
+      propertyType = it.type
     }
     newValue = diffEntry.newValue
     oldValue = diffEntry.oldValue
@@ -201,7 +196,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
       val value = prop.value
       if (!value.isNullOrBlank() && !value.contains(",")) {
         // Single user expected.
-        val user = getUser(userGroupCache, prop.value)
+        val user = getUser(userGroupCache, prop.value ?: "###")
         if (user != null) {
           return user
         }
@@ -225,7 +220,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
 
   private fun getDBObjects(em: EntityManager, prop: HistProp): List<Any> {
     val ret: MutableList<Any> = ArrayList()
-    val emd = PfEmgrFactory.get().metadataRepository.findEntityMetadata(prop.type)
+    /*val emd = PfEmgrFactory.get().metadataRepository.findEntityMetadata(prop.type)
     if (emd == null) {
       ret.add(prop.value)
       return ret
@@ -244,7 +239,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
       } catch (ex: NumberFormatException) {
         log.warn("Cannot parse pk: $prop")
       }
-    }
+    }*/
     return ret
   }
 
@@ -286,7 +281,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
   }
 
   init {
-    timestamp = entry.modifiedAt
+    timestamp = entry.modifiedAt!!
     val str = entry.userName
     if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
       val userId = parseInteger(entry.userName)
@@ -296,7 +291,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
     }
     // entry.getClassName();
     // entry.getComment();
-    entryType = entry.entityOpType
+    entryType = entry.entityOpType!!
     // entry.getEntityId();
   }
 

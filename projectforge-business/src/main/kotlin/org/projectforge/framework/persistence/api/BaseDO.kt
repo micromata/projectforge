@@ -29,7 +29,7 @@ import java.io.Serializable
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 interface BaseDO<I : Serializable>
-    : IdObject<I?> {
+    : IdObject<I> {
 
     /**
      * Can be used for marking changes in a data object as minor changes. This means for example, that after minor changes
@@ -59,12 +59,12 @@ interface BaseDO<I : Serializable>
      * @param src
      * @return true, if any modifications are detected, otherwise false;
      */
-    fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus
+    fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus
 
     fun copyFrom(
-        iface: Class<out BaseDO<I>?>?, orig: BaseDO<I>,
+        iface: Class<out BaseDO<I>>?, orig: BaseDO<I>,
         vararg ignoreCopyFields: String
-    ): ModificationStatus {
+    ): EntityCopyStatus {
         val mds = copyValuesFrom(orig, *ignoreCopyFields)
         return mds
     }

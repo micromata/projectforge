@@ -24,34 +24,29 @@
 package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import org.hibernate.search.annotations.*
-import org.hibernate.search.bridge.builtin.NumberBridge
-import kotlin.reflect.full.isSubclassOf
+import org.hibernate.search.mapper.pojo.bridge.ValueBridge
+import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     @JsonIgnore
     private var annotations: MutableList<Annotation>? = null
     var idProperty: Boolean = false
         internal set
+
     @JsonIgnore
-    var dateBridgeAnn: DateBridge? = null
-        internal set
-    @JsonIgnore
-    var fieldBridgeAnn: FieldBridge? = null
+    var valueBridgeAnn: ValueBridge<*, *>? = null
         internal set(value) {
             field = value
+            /* // Check property type instead of bridge impl.
             if (value?.impl?.isSubclassOf(NumberBridge::class) == true) {
                 numberBridge = true
-            }
+            }*/
         }
     var numberBridge: Boolean = false
         internal set
     var luceneField: String = javaProp
         internal set
-
-    fun getDateBridgeEncodingType(): EncodingType? {
-        return dateBridgeAnn?.encoding
-    }
 
     fun add(annotation: Annotation?) {
         if (annotation == null) {
@@ -61,7 +56,7 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
             annotations = mutableListOf()
         }
         annotations!!.add(annotation)
-        if (annotation is Field && annotation.name.isNotBlank()) {
+        if (annotation is FullTextField && annotation.name.isNotBlank()) {
             luceneField = annotation.name
         }
     }
@@ -89,6 +84,6 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     }
 
     fun isClassBridge(): Boolean {
-        return ClassBridge::class.java.isAssignableFrom(type)
+        return TypeBinder::class.java.isAssignableFrom(type)
     }
 }

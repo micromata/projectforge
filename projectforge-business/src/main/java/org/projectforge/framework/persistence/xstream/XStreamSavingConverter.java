@@ -30,7 +30,6 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -38,7 +37,8 @@ import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.api.IManualIndex;
-import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.history.HistoryEntry;
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -47,413 +47,388 @@ import java.util.*;
 
 /**
  * Registers all read objects and saves them in the configurable order to the data base.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class XStreamSavingConverter implements Converter
-{
-  /** The logger */
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XStreamSavingConverter.class);
+public class XStreamSavingConverter implements Converter {
+    /**
+     * The logger
+     */
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XStreamSavingConverter.class);
 
-  private final ConverterLookup defaultConv;
+    private final ConverterLookup defaultConv;
 
-  private final Map<Class<?>, List<Object>> allObjects = new HashMap<>();
+    private final Map<Class<?>, List<Object>> allObjects = new HashMap<>();
 
-  private final Set<Class<?>> writtenObjectTypes = new HashSet<>();
+    private final Set<Class<?>> writtenObjectTypes = new HashSet<>();
 
-  // Objekte dürfen nur einmal geschrieben werden, daher merken, was bereits gespeichert wurde
-  private final Set<Object> writtenObjects = new HashSet<>();
+    // Objekte dürfen nur einmal geschrieben werden, daher merken, was bereits gespeichert wurde
+    private final Set<Object> writtenObjects = new HashSet<>();
 
-  // Store the objects in the given order and all the other object types which are not listed here afterwards.
-  private final List<Class<?>> orderOfSaving = new ArrayList<>();
+    // Store the objects in the given order and all the other object types which are not listed here afterwards.
+    private final List<Class<?>> orderOfSaving = new ArrayList<>();
 
-  // Ignore these objects from saving because the are saved implicit by their parent objects.
-  private final Set<Class<?>> ignoreFromSaving = new HashSet<>();
+    // Ignore these objects from saving because the are saved implicit by their parent objects.
+    private final Set<Class<?>> ignoreFromSaving = new HashSet<>();
 
-  // This map contains the mapping between the id's of the given xml stream and the new id's given by Hibernate. This is needed for writing
-  // the history entries with the new id's.
-  private final Map<String, Serializable> entityMapping = new HashMap<>();
+    // This map contains the mapping between the id's of the given xml stream and the new id's given by Hibernate. This is needed for writing
+    // the history entries with the new id's.
+    private final Map<String, Serializable> entityMapping = new HashMap<>();
 
-  private final List<HistoryEntry> historyEntries = new ArrayList<>();
+    private final List<HistoryEntry> historyEntries = new ArrayList<>();
 
-  private final Map<String, Class<?>> historyClassMapping = new HashMap<>();
+    private final Map<String, Class<?>> historyClassMapping = new HashMap<>();
 
-  private Session session;
+    private Session session;
 
-  public XStreamSavingConverter() throws HibernateException
-  {
-    final XStream xstream = new XStream();
-    defaultConv = xstream.getConverterLookup();
-    // TODO HISTORY
-    //    this.ignoreFromSaving.add(PropertyDelta.class);
-    //    this.ignoreFromSaving.add(SimplePropertyDelta.class);
-    //    this.ignoreFromSaving.add(AssociationPropertyDelta.class);
-    //    this.ignoreFromSaving.add(CollectionPropertyDelta.class);
-  }
-
-  public void setSession(final Session session)
-  {
-    this.session = session;
-  }
-
-  public Map<Class<?>, List<Object>> getAllObjects()
-  {
-    return allObjects;
-  }
-
-  public List<HistoryEntry> getHistoryEntries()
-  {
-    return historyEntries;
-  }
-
-  @SuppressWarnings("rawtypes")
-  @Override
-  public boolean canConvert(final Class arg0)
-  {
-    return true;
-  }
-
-  public XStreamSavingConverter appendOrderedType(final Class<?>... types)
-  {
-    if (types != null) {
-      this.orderOfSaving.addAll(Arrays.asList(types));
+    public XStreamSavingConverter() throws HibernateException {
+        final XStream xstream = new XStream();
+        defaultConv = xstream.getConverterLookup();
+        // TODO HISTORY
+        //    this.ignoreFromSaving.add(PropertyDelta.class);
+        //    this.ignoreFromSaving.add(SimplePropertyDelta.class);
+        //    this.ignoreFromSaving.add(AssociationPropertyDelta.class);
+        //    this.ignoreFromSaving.add(CollectionPropertyDelta.class);
     }
-    return this;
-  }
 
-  public XStreamSavingConverter appendIgnoredObjects(final Class<?>... types)
-  {
-    if (types != null) {
-      this.ignoreFromSaving.addAll(Arrays.asList(types));
+    public void setSession(final Session session) {
+        this.session = session;
     }
-    return this;
-  }
 
-  public void saveObjects()
-  {
-    for (final Class<?> type : orderOfSaving) {
-      this.historyClassMapping.put(getClassname4History(type), type);
-      save(type);
+    public Map<Class<?>, List<Object>> getAllObjects() {
+        return allObjects;
     }
-    for (final Map.Entry<Class<?>, List<Object>> entry : allObjects.entrySet()) {
-      if (entry.getKey().equals(PfHistoryMasterDO.class)) {
-        continue;
-      }
-      final Class<?> type = entry.getKey();
-      this.historyClassMapping.put(getClassname4History(type), type);
-      save(type);
-    }
-    for (final Class<?> type : ignoreFromSaving) {
-      this.historyClassMapping.put(getClassname4History(type), type);
-    }
-    save(PfHistoryMasterDO.class);
-  }
 
-  /**
-   * Will be called directly before an object will be saved.
-   * 
-   * @param obj
-   * @return id of the inserted objects if saved manually inside this method or null if the object has to be saved by
-   *         save method (default).
-   */
-  public Serializable onBeforeSave(final Session session, final Object obj)
-  {
-    if (obj instanceof PfHistoryMasterDO) {
-      final PfHistoryMasterDO entry = (PfHistoryMasterDO) obj;
-      final Long origEntityId = entry.getEntityId();
-      final String entityClassname = entry.getEntityName();
-      final Serializable newId = getNewId(entityClassname, origEntityId);
-      // TODO HISTORY
-      //      final List<PropertyDelta> delta = entry.getDelta();
-      Serializable id = null;
-      if (newId != null) {
-        // No public access, so try this:
-        invokeHistorySetter(entry, "setEntityId", Integer.class, newId);
-      } else {
-        log.error("Can't find mapping of old entity id. This results in a corrupted history: " + entry);
-      }
-      invokeHistorySetter(entry, "setDelta", List.class, null);
-      id = save(entry);
-      final List<PropertyDelta> list = new ArrayList<>();
-      invokeHistorySetter(entry, "setDelta", List.class, list);
-      // TODO HISTORY
-      //      for (final PropertyDelta deltaEntry : delta) {
-      //        list.add(deltaEntry);
-      //        save(deltaEntry);
-      //      }
-      this.historyEntries.add(entry);
-      return id;
+    public List<HistoryEntry> getHistoryEntries() {
+        return historyEntries;
     }
-    return null;
-  }
 
-  /**
-   * Does nothing at default.
-   * 
-   * @param obj Please note: the id isn't yet set to this object!
-   * @param id The new id of the data-base.
-   */
-  public void onAfterSave(final Object obj, final Serializable id)
-  {
-  }
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean canConvert(final Class arg0) {
+        return true;
+    }
 
-  protected Serializable save(final BaseDO<? extends Serializable> obj,
-      final Collection<? extends BaseDO<? extends Serializable>> children)
-  {
-    final List<Serializable> oldIdList = beforeSave(children);
-    final Serializable id = save(obj);
-    afterSave(children, oldIdList);
-    return id;
-  }
+    public XStreamSavingConverter appendOrderedType(final Class<?>... types) {
+        if (types != null) {
+            this.orderOfSaving.addAll(Arrays.asList(types));
+        }
+        return this;
+    }
 
-  /**
-   * Remove the id (pk) of every children and stores it to the returned list.
-   * 
-   * @param children
-   * @return The list of (old) ids of the children.
-   */
-  protected List<Serializable> beforeSave(final Collection<? extends BaseDO<? extends Serializable>> children)
-  {
-    if (children == null || children.size() == 0) {
-      return null;
+    public XStreamSavingConverter appendIgnoredObjects(final Class<?>... types) {
+        if (types != null) {
+            this.ignoreFromSaving.addAll(Arrays.asList(types));
+        }
+        return this;
     }
-    final List<Serializable> idList = new ArrayList<>(children.size());
-    for (final BaseDO<?> child : children) {
-      idList.add(child.getId());
-      child.setId(null);
-    }
-    return idList;
-  }
 
-  /**
-   * Registers all children with their old and new id.
-   * 
-   * @param children
-   * @param oldIdList The returned list of beforeSave(...) method.
-   */
-  protected void afterSave(final Collection<? extends BaseDO<? extends Serializable>> children,
-      final List<Serializable> oldIdList)
-  {
-    if (oldIdList == null) {
-      return;
+    public void saveObjects() {
+        for (final Class<?> type : orderOfSaving) {
+            this.historyClassMapping.put(getClassname4History(type), type);
+            save(type);
+        }
+        for (final Map.Entry<Class<?>, List<Object>> entry : allObjects.entrySet()) {
+            if (entry.getKey().equals(PfHistoryMasterDO.class)) {
+                continue;
+            }
+            final Class<?> type = entry.getKey();
+            this.historyClassMapping.put(getClassname4History(type), type);
+            save(type);
+        }
+        for (final Class<?> type : ignoreFromSaving) {
+            this.historyClassMapping.put(getClassname4History(type), type);
+        }
+        save(PfHistoryMasterDO.class);
     }
-    final Iterator<Serializable> oldIdListIterator = oldIdList.iterator();
-    final Iterator<? extends BaseDO<?>> childIterator = children.iterator();
-    while (oldIdListIterator.hasNext()) {
-      final BaseDO<?> child = childIterator.next();
-      registerEntityMapping(child.getClass(), oldIdListIterator.next(), child.getId());
-    }
-  }
 
-  /**
-   * These methods are not public.
-   * 
-   * @param name
-   * @param value
-   */
-  private void invokeHistorySetter(final HistoryEntry entry, final String name, final Class<?> parameterType,
-      final Object value)
-  {
-    try {
-      final Method method = HistoryEntry.class.getDeclaredMethod(name, parameterType);
-      method.setAccessible(true);
-      method.invoke(entry, value);
-    } catch (final IllegalArgumentException | NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException ex) {
-      log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.error("Exception encountered " + ex, ex);
+    /**
+     * Will be called directly before an object will be saved.
+     *
+     * @param obj
+     * @return id of the inserted objects if saved manually inside this method or null if the object has to be saved by
+     * save method (default).
+     */
+    public Serializable onBeforeSave(final Session session, final Object obj) {
+        if (obj instanceof PfHistoryMasterDO) {
+            final PfHistoryMasterDO entry = (PfHistoryMasterDO) obj;
+            final Long origEntityId = entry.getEntityId();
+            final String entityClassname = entry.getEntityName();
+            final Serializable newId = getNewId(entityClassname, origEntityId);
+            // TODO HISTORY
+            //      final List<PropertyDelta> delta = entry.getDelta();
+            Serializable id = null;
+            if (newId != null) {
+                // No public access, so try this:
+                invokeHistorySetter(entry, "setEntityId", Integer.class, newId);
+            } else {
+                log.error("Can't find mapping of old entity id. This results in a corrupted history: " + entry);
+            }
+            invokeHistorySetter(entry, "setDelta", List.class, null);
+            id = save(entry);
+            final List<PropertyDelta> list = new ArrayList<>();
+            invokeHistorySetter(entry, "setDelta", List.class, list);
+            // TODO HISTORY
+            //      for (final PropertyDelta deltaEntry : delta) {
+            //        list.add(deltaEntry);
+            //        save(deltaEntry);
+            //      }
+            this.historyEntries.add(entry);
+            return id;
+        }
+        return null;
     }
-  }
 
-  private void save(final Class<?> type)
-  {
-    if (ignoreFromSaving.contains(type) || writtenObjectTypes.contains(type)) {
-      // Already written.
-      return;
+    /**
+     * Does nothing at default.
+     *
+     * @param obj Please note: the id isn't yet set to this object!
+     * @param id  The new id of the data-base.
+     */
+    public void onAfterSave(final Object obj, final Serializable id) {
     }
-    writtenObjectTypes.add(type);
-    // Persistente Klasse?
-    if (!HibernateUtils.isEntity(type)) {
-      return;
+
+    protected Serializable save(final BaseDO<? extends Serializable> obj,
+                                final Collection<? extends BaseDO<? extends Serializable>> children) {
+        final List<Serializable> oldIdList = beforeSave(children);
+        final Serializable id = save(obj);
+        afterSave(children, oldIdList);
+        return id;
     }
-    if (log.isDebugEnabled()) {
-      log.debug("Writing objects from type: " + type);
+
+    /**
+     * Remove the id (pk) of every children and stores it to the returned list.
+     *
+     * @param children
+     * @return The list of (old) ids of the children.
+     */
+    protected List<Serializable> beforeSave(final Collection<? extends BaseDO<? extends Serializable>> children) {
+        if (children == null || children.size() == 0) {
+            return null;
+        }
+        final List<Serializable> idList = new ArrayList<>(children.size());
+        for (final BaseDO<?> child : children) {
+            idList.add(child.getId());
+            child.setId(null);
+        }
+        return idList;
     }
-    final List<Object> list = allObjects.get(type);
-    if (list == null) {
-      return;
+
+    /**
+     * Registers all children with their old and new id.
+     *
+     * @param children
+     * @param oldIdList The returned list of beforeSave(...) method.
+     */
+    protected void afterSave(final Collection<? extends BaseDO<? extends Serializable>> children,
+                             final List<Serializable> oldIdList) {
+        if (oldIdList == null) {
+            return;
+        }
+        final Iterator<Serializable> oldIdListIterator = oldIdList.iterator();
+        final Iterator<? extends BaseDO<?>> childIterator = children.iterator();
+        while (oldIdListIterator.hasNext()) {
+            final BaseDO<?> child = childIterator.next();
+            registerEntityMapping(child.getClass(), oldIdListIterator.next(), child.getId());
+        }
     }
-    for (final Object obj : list) {
-      if (obj == null || writtenObjects.contains(obj)) {
-        // Object null or already written. Skip this item.
-        continue;
-      }
-      if (session.contains(obj)) {
-        continue;
-      }
-      try {
+
+    /**
+     * These methods are not public.
+     *
+     * @param name
+     * @param value
+     */
+    private void invokeHistorySetter(final HistoryEntry entry, final String name, final Class<?> parameterType,
+                                     final Object value) {
+        try {
+            final Method method = HistoryEntry.class.getDeclaredMethod(name, parameterType);
+            method.setAccessible(true);
+            method.invoke(entry, value);
+        } catch (final IllegalArgumentException | NoSuchMethodException | SecurityException |
+                       InvocationTargetException | IllegalAccessException ex) {
+            log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
+            log.error("Exception encountered " + ex, ex);
+        }
+    }
+
+    private void save(final Class<?> type) {
+        if (ignoreFromSaving.contains(type) || writtenObjectTypes.contains(type)) {
+            // Already written.
+            return;
+        }
+        writtenObjectTypes.add(type);
+        // Persistente Klasse?
+        if (!HibernateUtils.isEntity(type)) {
+            return;
+        }
         if (log.isDebugEnabled()) {
-          log.debug("Try to write object " + obj);
+            log.debug("Writing objects from type: " + type);
         }
-        Serializable id = onBeforeSave(session, obj);
-        if (id == null) {
-          id = save(obj);
+        final List<Object> list = allObjects.get(type);
+        if (list == null) {
+            return;
         }
-        onAfterSave(obj, id);
-        if (log.isDebugEnabled()) {
-          log.debug("wrote object " + obj + " under id " + id);
+        for (final Object obj : list) {
+            if (obj == null || writtenObjects.contains(obj)) {
+                // Object null or already written. Skip this item.
+                continue;
+            }
+            if (session.contains(obj)) {
+                continue;
+            }
+            try {
+                if (log.isDebugEnabled()) {
+                    log.debug("Try to write object " + obj);
+                }
+                Serializable id = onBeforeSave(session, obj);
+                if (id == null) {
+                    id = save(obj);
+                }
+                onAfterSave(obj, id);
+                if (log.isDebugEnabled()) {
+                    log.debug("wrote object " + obj + " under id " + id);
+                }
+            } catch (final HibernateException | NullPointerException ex) {
+                log.error("Failed to write " + obj + " ex=" + ex, ex);
+            }
         }
-      } catch (final HibernateException | NullPointerException ex) {
-        log.error("Failed to write " + obj + " ex=" + ex, ex);
-      }
     }
-  }
 
-  /**
-   * Should return the id value of the imported xml object (the origin id of the data-base the dump is from).
-   * 
-   * @param The object with the origin id.
-   * @return null if not overridden.
-   */
-  protected Serializable getOriginalIdentifierValue(final Object obj)
-  {
-    return null;
-  }
+    /**
+     * Should return the id value of the imported xml object (the origin id of the data-base the dump is from).
+     *
+     * @param obj The object with the origin id.
+     * @return null if not overridden.
+     */
+    protected Serializable getOriginalIdentifierValue(final Object obj) {
+        return null;
+    }
 
-  protected Serializable save(final Object obj)
-  {
-    final Serializable oldId = getOriginalIdentifierValue(obj);
-    final Serializable id;
-    if (!session.contains(obj)) {
-      if (obj instanceof BaseDO) {
-        if (!(obj instanceof IManualIndex)) {
-          ((BaseDO<?>) obj).setId(null);
+    protected Serializable save(final Object obj) {
+        final Serializable oldId = getOriginalIdentifierValue(obj);
+        final Serializable id;
+        if (!session.contains(obj)) {
+            if (obj instanceof BaseDO) {
+                if (!(obj instanceof IManualIndex)) {
+                    ((BaseDO<?>) obj).setId(null);
+                }
+                id = session.save(obj);
+                if (oldId != null) {
+                    registerEntityMapping(obj.getClass(), oldId, id);
+                }
+                writtenObjects.add(obj);
+            } else if (obj instanceof HistoryEntry) {
+                // HistoryEntry
+                ((HistoryEntry) obj).setPk(null);
+                id = session.save(obj);
+            } else if (obj instanceof PropertyDelta) {
+                // PropertyDelta
+                ((PropertyDelta) obj).setId(null);
+                id = session.save(obj);
+            } else if (obj instanceof UserXmlPreferencesDO) {
+                ((UserXmlPreferencesDO) obj).setId(null);
+                id = session.save(obj);
+            } else {
+                log.warn("Unknown object: " + obj);
+                id = session.save(obj);
+            }
+        } else {
+            session.saveOrUpdate(obj);
+            id = ((BaseDO<?>) obj).getId();
         }
-        id = session.save(obj);
-        if (oldId != null) {
-          registerEntityMapping(obj.getClass(), oldId, id);
+        session.flush();
+        return id;
+    }
+
+    public Class<?> getClassFromHistoryName(final String classname) {
+        return this.historyClassMapping.get(classname);
+    }
+
+    private String getClassname4History(final Class<?> cls) {
+        return cls.getName();
+    }
+
+    protected void registerEntityMapping(final Class<?> entityClass, final Serializable oldId, final Serializable newId) {
+        final Serializable registeredNewId = getNewId(entityClass, oldId);
+        if (registeredNewId != null && !registeredNewId.equals(newId)) {
+            log.error("Oups, double entity mapping found for entity '"
+                    + entityClass
+                    + "' with old id="
+                    + oldId
+                    + " . New id "
+                    + newId
+                    + " ignored, using previous stored id "
+                    + registeredNewId
+                    + " instead.");
+        } else {
+            this.entityMapping.put(getClassname4History(entityClass) + oldId, newId);
         }
-        writtenObjects.add(obj);
-      } else if (obj instanceof HistoryEntry) {
-        // HistoryEntry
-        ((HistoryEntry) obj).setPk(null);
-        id = session.save(obj);
-      } else if (obj instanceof PropertyDelta) {
-        // PropertyDelta
-        ((PropertyDelta) obj).setId(null);
-        id = session.save(obj);
-      } else if (obj instanceof UserXmlPreferencesDO) {
-        ((UserXmlPreferencesDO) obj).setId(null);
-        id = session.save(obj);
-      } else {
-        log.warn("Unknown object: " + obj);
-        id = session.save(obj);
-      }
-    } else {
-      session.saveOrUpdate(obj);
-      id = ((BaseDO<?>) obj).getId();
     }
-    session.flush();
-    return id;
-  }
 
-  public Class<?> getClassFromHistoryName(final String classname)
-  {
-    return this.historyClassMapping.get(classname);
-  }
-
-  private String getClassname4History(final Class<?> cls)
-  {
-    return cls.getName();
-  }
-
-  protected void registerEntityMapping(final Class<?> entityClass, final Serializable oldId, final Serializable newId)
-  {
-    final Serializable registeredNewId = getNewId(entityClass, oldId);
-    if (registeredNewId != null && !registeredNewId.equals(newId)) {
-      log.error("Oups, double entity mapping found for entity '"
-          + entityClass
-          + "' with old id="
-          + oldId
-          + " . New id "
-          + newId
-          + " ignored, using previous stored id "
-          + registeredNewId
-          + " instead.");
-    } else {
-      this.entityMapping.put(getClassname4History(entityClass) + oldId, newId);
+    public Integer getNewIdAsInteger(final Class<?> entityClass, final Integer oldId) {
+        final Serializable newId = getNewId(entityClass, oldId);
+        if (newId == null) {
+            log.error("Oups, can't find '" + entityClass + "' id '" + oldId + "'.");
+            return null;
+        } else if (!(newId instanceof Integer)) {
+            log.error("Oups, can't get '" + entityClass + "' id '" + oldId + "' as integer: " + newId);
+            return null;
+        }
+        return (Integer) newId;
     }
-  }
 
-  public Integer getNewIdAsInteger(final Class<?> entityClass, final Integer oldId)
-  {
-    final Serializable newId = getNewId(entityClass, oldId);
-    if (newId == null) {
-      log.error("Oups, can't find '" + entityClass + "' id '" + oldId + "'.");
-      return null;
-    } else if (!(newId instanceof Integer)) {
-      log.error("Oups, can't get '" + entityClass + "' id '" + oldId + "' as integer: " + newId);
-      return null;
+    public Serializable getNewId(final Class<?> entityClass, final Serializable oldId) {
+        return getNewId(getClassname4History(entityClass), oldId);
     }
-    return (Integer) newId;
-  }
 
-  public Serializable getNewId(final Class<?> entityClass, final Serializable oldId)
-  {
-    return getNewId(getClassname4History(entityClass), oldId);
-  }
+    protected Serializable getNewId(final String entityClassname, final Serializable oldId) {
+        return this.entityMapping.get(entityClassname + oldId);
+    }
 
-  protected Serializable getNewId(final String entityClassname, final Serializable oldId)
-  {
-    return this.entityMapping.get(entityClassname + oldId);
-  }
+    @Override
+    public void marshal(final Object arg0, final HierarchicalStreamWriter arg1, final MarshallingContext arg2) {
+        defaultConv.lookupConverterForType(arg0.getClass()).marshal(arg0, arg1, arg2);
+    }
 
-  @Override
-  public void marshal(final Object arg0, final HierarchicalStreamWriter arg1, final MarshallingContext arg2)
-  {
-    defaultConv.lookupConverterForType(arg0.getClass()).marshal(arg0, arg1, arg2);
-  }
+    @Override
+    public Object unmarshal(final HierarchicalStreamReader arg0, final UnmarshallingContext arg1) {
+        Object result;
+        Class<?> targetType = null;
+        try {
+            targetType = arg1.getRequiredType();
+            Converter conv = defaultConv.lookupConverterForType(targetType);
+            result = conv.unmarshal(arg0, arg1);
+        } catch (final Exception ex) {
+            log.warn("Ignore unknown class or property " + targetType + " " + ex.getMessage());
+            return null;
+        }
+        try {
+            if (result != null) {
+                registerObject(result);
+            }
+        } catch (final HibernateException | NullPointerException ex) {
+            log.error("Failed to write " + result + " ex=" + ex, ex);
+        }
+        return result;
+    }
 
-  @Override
-  public Object unmarshal(final HierarchicalStreamReader arg0, final UnmarshallingContext arg1)
-  {
-    Object result;
-    Class<?> targetType = null;
-    try {
-      targetType = arg1.getRequiredType();
-      Converter conv = defaultConv.lookupConverterForType(targetType);
-      result = conv.unmarshal(arg0, arg1);
-    } catch (final Exception ex) {
-      log.warn("Ignore unknown class or property " + targetType + " " + ex.getMessage());
-      return null;
+    private void registerObject(final Object obj) {
+        if (obj == null) {
+            return;
+        }
+        if (!HibernateUtils.isEntity(obj.getClass())) {
+            return;
+        }
+        if (this.ignoreFromSaving.contains(obj.getClass())) {
+            // Don't need this objects as "top level" objects in list. They're usually encapsulated.
+            return;
+        }
+        List<Object> list = this.allObjects.get(obj.getClass());
+        if (list == null) {
+            list = new ArrayList<>();
+            this.allObjects.put(obj.getClass(), list);
+        }
+        list.add(obj);
     }
-    try {
-      if (result != null) {
-        registerObject(result);
-      }
-    } catch (final HibernateException | NullPointerException ex) {
-      log.error("Failed to write " + result + " ex=" + ex, ex);
-    }
-    return result;
-  }
-
-  private void registerObject(final Object obj)
-  {
-    if (obj == null) {
-      return;
-    }
-    if (!HibernateUtils.isEntity(obj.getClass())) {
-      return;
-    }
-    if (this.ignoreFromSaving.contains(obj.getClass())) {
-      // Don't need this objects as "top level" objects in list. They're usually encapsulated.
-      return;
-    }
-    List<Object> list = this.allObjects.get(obj.getClass());
-    if (list == null) {
-      list = new ArrayList<>();
-      this.allObjects.put(obj.getClass(), list);
-    }
-    list.add(obj);
-  }
 }

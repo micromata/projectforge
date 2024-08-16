@@ -36,7 +36,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -474,7 +474,7 @@ public class UserService {
     return userDao.doesUsernameAlreadyExist(user);
   }
 
-  public ModificationStatus update(PFUserDO user) {
+  public EntityCopyStatus update(PFUserDO user) {
     return userDao.update(user);
   }
 

@@ -146,12 +146,12 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO> {
   @Override
   public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final EntityManager em) {
     if (entry.getDiffEntries().isEmpty()) {
-      final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
+      final DisplayHistoryEntry se = new DisplayHistoryEntry(userGroupCache, entry);
       return Collections.singletonList(se);
     }
     List<DisplayHistoryEntry> result = new ArrayList<>();
     for (DiffEntry prop : entry.getDiffEntries()) {
-      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, em) {
+      DisplayHistoryEntry se = new DisplayHistoryEntry(userGroupCache, entry, prop, em) {
         @Override
         protected Object getObjectValue(UserGroupCache userGroupCache, EntityManager em, HistProp prop) {
           if (prop == null) {

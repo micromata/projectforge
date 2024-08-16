@@ -27,13 +27,13 @@ import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.ICorePersistenceService;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.task.TaskTreePage;
 
 /**
  * IEditPages such as AbstractEditPage and AbstractMobileEditPage are supported by EditPageSupport.
- * 
+ *
  * @see EditPageSupport
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -42,7 +42,7 @@ public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends ICorePer
   /**
    * The flag already submitted should be set to false in onBeforeRender. It should be set to true if the user has
    * clicked a submit button. The goal is to detect multiple submits (double-click etc.),
-   * 
+   *
    * @return
    */
   public boolean isAlreadySubmitted();
@@ -88,12 +88,12 @@ public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends ICorePer
 
   /**
    * Will be called directly after storing the data object (update).
-   * 
+   *
    * @param modificationStatus MINOR or MAJOR, if the object was modified, otherwise NONE. If a not null web page is
    *          returned, then the web page will be set as response page.
    * @see BaseDao#update(ExtendedBaseDO)
    */
-  public WebPage afterUpdate(ModificationStatus modificationStatus);
+  public WebPage afterUpdate(EntityCopyStatus modificationStatus);
 
   /**
    * Will be called directly after deleting the data object (delete or update deleted=true). Any return value is not yet
@@ -118,7 +118,7 @@ public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends ICorePer
   /**
    * Sets the given page as response page. If the response page is of type AbstractListPage or TaskTreePage then the row
    * with the currently shown object is highlighted.
-   * 
+   *
    * @param page
    * @see AbstractListPage#setHighlightedRowId(java.io.Serializable)
    * @see TaskTreePage#setHighlightedRowId(Integer)
@@ -132,7 +132,7 @@ public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends ICorePer
 
   /**
    * Checks weather the id of the data object is given or not.
-   * 
+   *
    * @return true if the user wants to create a new data object or false for an already existing object.
    */
   public boolean isNew();

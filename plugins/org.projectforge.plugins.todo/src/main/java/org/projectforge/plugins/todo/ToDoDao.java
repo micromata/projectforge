@@ -227,7 +227,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
       // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
       final ToDoDO copyOfDBObj = new ToDoDO();
       copyOfDBObj.copyValuesFrom(dbObj, "deleted");
-      if (copyOfDBObj.copyValuesFrom(obj, "deleted") == ModificationStatus.MAJOR) {
+      if (copyOfDBObj.copyValuesFrom(obj, "deleted") == EntityCopyStatus.MAJOR) {
         // Modifications done:
         obj.setRecent(true);
       }

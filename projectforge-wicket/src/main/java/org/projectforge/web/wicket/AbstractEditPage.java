@@ -45,7 +45,7 @@ import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.IPersistenceService;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.time.DateFormats;
@@ -297,7 +297,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
    * @see BaseDao#update(ExtendedBaseDO)
    */
   @Override
-  public AbstractSecuredBasePage afterUpdate(final ModificationStatus modificationStatus)
+  public AbstractSecuredBasePage afterUpdate(final EntityCopyStatus modificationStatus)
   {
     // Do nothing at default.
     return null;

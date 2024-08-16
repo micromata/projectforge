@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry
-import de.micromata.genome.db.jpa.history.entities.EntityOpType
-import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.ExtendedBaseDO

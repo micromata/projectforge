@@ -252,7 +252,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
   @Override
   protected void onDelete(final AddressbookDO obj) {
     super.onDelete(obj);
-    emgrFactory.runInTrans(emgr -> {
+    persistenceService.runInTrans(emgr -> {
       List<AddressDO> addressList = emgr
               .selectAttached(AddressDO.class, "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList", "addressbook", obj);
       for (AddressDO address : addressList) {

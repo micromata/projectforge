@@ -106,11 +106,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
   public TeamEventDao() {
     super(TeamEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
-    forceDeletionSupport = true;
+    isForceDeletionSupport = true;
   }
 
   @Override
-  public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess) {
+  public EntityCopyStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess) {
     logReminderChange(obj);
     return super.internalUpdate(obj, checkAccess);
   }
@@ -503,7 +503,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     }
     checkLoggedInUserSelectAccess();
     final String s = "select distinct location from "
-        + clazz.getSimpleName()
+        + doClass.getSimpleName()
         + " t where deleted=false and t.calendar.id in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location order by t.location";
     final TypedQuery<String> query = em.createQuery(s, String.class);
     final List<Integer> calIds = new ArrayList(calendars.length);
@@ -800,7 +800,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO> {
     if (addressId == null) {
       return;
     }
-    int counter = emgrFactory.runInTrans(emgr ->
+    int counter = persistenceService.runInTrans(emgr ->
         emgr.getEntityManager()
             .createNamedQuery(TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS)
             .setParameter("addressId", addressId)

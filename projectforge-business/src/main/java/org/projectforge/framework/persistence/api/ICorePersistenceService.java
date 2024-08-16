@@ -23,21 +23,20 @@
 
 package org.projectforge.framework.persistence.api;
 
-import de.micromata.genome.jpa.MarkDeletableRecord;
-import de.micromata.genome.util.bean.PrivateBeanUtils;
+import org.projectforge.common.mgc.PrivateBeanUtils;
 import org.projectforge.framework.access.AccessException;
 
 import java.io.Serializable;
 
 /**
- * 
+ *
  * JPA Core persistence services.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  * @param <O>
  */
-public interface ICorePersistenceService<PK extends Serializable, ENT extends MarkDeletableRecord<PK>>
+public interface ICorePersistenceService<PK extends Serializable, ENT extends ExtendedBaseDO<PK>>
 {
 
   Class<ENT> getEntityClass();
@@ -50,7 +49,7 @@ public interface ICorePersistenceService<PK extends Serializable, ENT extends Ma
 
   /**
    * Inserts into db.
-   * 
+   *
    * @param obj
    * @return
    * @throws AccessException
@@ -81,7 +80,7 @@ public interface ICorePersistenceService<PK extends Serializable, ENT extends Ma
    * @return true, if modifications were done, false if no modification detected.
    * @see #internalUpdate(ExtendedBaseDO, boolean)
    */
-  ModificationStatus update(ENT obj) throws AccessException;
+  EntityCopyStatus update(ENT obj) throws AccessException;
 
   /**
    * @param obj
@@ -89,27 +88,27 @@ public interface ICorePersistenceService<PK extends Serializable, ENT extends Ma
    * @return true, if modifications were done, false if no modification detected.
    * @see #internalUpdate(ExtendedBaseDO, boolean)
    */
-  default ModificationStatus update(ENT obj, String... strings) throws AccessException {
+  default EntityCopyStatus update(ENT obj, String... strings) throws AccessException {
     return null;
   }
 
   /**
    * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
-   * 
+   *
    * @param obj
    */
   void markAsDeleted(ENT obj) throws AccessException;
 
   /**
    * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
-   * 
+   *
    * @param obj
    */
   void undelete(ENT obj) throws AccessException;
 
   /**
    * Object will be deleted finally out of the data base.
-   * 
+   *
    * @param obj
    */
   void delete(ENT obj) throws AccessException;

@@ -66,6 +66,13 @@ object ThreadLocalUserContext {
       return userContext.user
     }
 
+  /**
+   * The logged-in user. If no logged-in user exists, an exception is thrown.
+   */
+  @JvmStatic
+  val requiredLoggedInUser: PFUserDO
+    get() = userContext!!.user!!
+
   @JvmStatic
   var userContext: UserContext?
     get() = threadLocalUserContext.get()

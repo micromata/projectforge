@@ -32,9 +32,8 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
@@ -92,7 +91,7 @@ class VisitorbookDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
 */
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): ModificationStatus {
+    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
         val src = source as VisitorbookDO
         log.error("Not yet implemented: copyValuesFrom")

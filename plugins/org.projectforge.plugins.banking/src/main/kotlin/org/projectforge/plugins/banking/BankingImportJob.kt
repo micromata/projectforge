@@ -25,7 +25,7 @@ package org.projectforge.plugins.banking
 
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.ModificationStatus
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.rest.importer.AbstractImportJob
 import org.projectforge.rest.importer.ImportEntry
@@ -102,7 +102,7 @@ class BankingImportJob(
           dbEntry.checksum = dbEntry.buildCheckSum()
           dbEntry.deleted = false
           val modStatus = bankAccountRecordDao.update(dbEntry)
-          if (modStatus != ModificationStatus.NONE) {
+          if (modStatus != EntityCopyStatus.NONE) {
             result.updated += 1
           } else {
             result.unmodified += 1

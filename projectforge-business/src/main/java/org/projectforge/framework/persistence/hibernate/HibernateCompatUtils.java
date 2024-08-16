@@ -23,12 +23,11 @@
 
 package org.projectforge.framework.persistence.hibernate;
 
-import de.micromata.genome.util.bean.PrivateBeanUtils;
 import org.hibernate.*;
 import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.search.FullTextSession;
+import org.projectforge.common.mgc.PrivateBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +35,7 @@ import java.util.Collection;
 
 /**
  * Abstraction layer to wrapp Hibernate 3 to 5.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -67,7 +66,7 @@ public class HibernateCompatUtils
     return source instanceof PersistentCollection;
   }
 
-  public static void setFlushMode(FullTextSession fullTextSession, FlushMode flushMode)
+ /* public static void setFlushMode(FullTextSession fullTextSession, FlushMode flushMode)
   {
     fullTextSession.setFlushMode(flushMode);
   }
@@ -81,6 +80,6 @@ public class HibernateCompatUtils
   {
     fullTextSession.index(dbObj);
 
-  }
+  }*/
 
 }

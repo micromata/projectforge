@@ -33,7 +33,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
 import java.util.*
 import javax.sql.DataSource
-    
+
 @Configuration
 open class JpaConfig {
     @Value("\${hibernate.show_sql}")
@@ -50,12 +50,12 @@ open class JpaConfig {
 
     @Bean
     open fun entityManagerFactory(dataSource: DataSource?): LocalContainerEntityManagerFactoryBean {
-        val em = LocalContainerEntityManagerFactoryBean()
-        em.dataSource = dataSource
-        em.setPackagesToScan("org.projectforge")
+        val factoryBean = LocalContainerEntityManagerFactoryBean()
+        factoryBean.dataSource = dataSource
+        factoryBean.setPackagesToScan("org.projectforge")
 
         val vendorAdapter = HibernateJpaVendorAdapter()
-        em.jpaVendorAdapter = vendorAdapter
+        factoryBean.jpaVendorAdapter = vendorAdapter
 
         val properties = Properties()
         properties.setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto)
@@ -68,9 +68,9 @@ open class JpaConfig {
         properties["hibernate.search.default.indexBase"] = hibernateSearchDefaultIndexBase
 
         //properties.put(AvailableSettings.DATASOURCE, ds);
-        em.setJpaProperties(properties)
+        factoryBean.setJpaProperties(properties)
 
-        return em
+        return factoryBean
     }
 
     @Bean

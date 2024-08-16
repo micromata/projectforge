@@ -353,7 +353,7 @@ public class TaskDao extends BaseDao<TaskDO> {
     final Integer taskId = obj.getId() != null ? obj.getId() : obj.getParentTaskId();
     final ProjektDO projekt = taskTree.getProjekt(taskId);
     // Parent task because id of current task is null and project can't be found.
-    return projekt != null && getUserGroupCache().isUserProjectManagerOrAssistantForProject(projekt);
+    return projekt != null && userGroupCache.isUserProjectManagerOrAssistantForProject(projekt);
   }
 
   @Override
@@ -444,18 +444,18 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   @Override
-  protected ModificationStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields) {
-    ModificationStatus modified = super.copyValues(src, dest, ignoreFields);
+  protected EntityCopyStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields) {
+    EntityCopyStatus modified = super.copyValues(src, dest, ignoreFields);
     // Priority value is null-able (may be was not copied from super.copyValues):
     if (!Objects.equals(dest.getPriority(), src.getPriority())) {
       dest.setPriority(src.getPriority());
-      modified = ModificationStatus.MAJOR;
+      modified = EntityCopyStatus.MAJOR;
     }
     // User object is null-able:
     if (src.getResponsibleUser() == null) {
       if (dest.getResponsibleUser() != null) {
         dest.setResponsibleUser(src.getResponsibleUser());
-        modified = ModificationStatus.MAJOR;
+        modified = EntityCopyStatus.MAJOR;
       }
     }
     return modified;

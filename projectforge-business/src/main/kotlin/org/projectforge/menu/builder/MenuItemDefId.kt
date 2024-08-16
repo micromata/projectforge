@@ -103,9 +103,6 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     VISITORBOOK("menu.orga.visitorbook", "wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage"), //
 
     SPACE_LIST("menu.spaceList"), //
-    SQL_CONSOLE("menu.sqlConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.SqlConsolePage"), //
-    GROOVY_CONSOLE("menu.groovyConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.GroovyConsolePage"), //
-    LUCENE_CONSOLE("menu.luceneConsole", "wa/wicket/bookmarkable/org.projectforge.web.admin.LuceneConsolePage"), //
     PLUGIN_ADMIN("menu.pluginAdmin", "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage"), //
     SYSTEM("menu.system", "wa/admin"), //
     SYSTEM_STATISTICS("menu.systemStatistics", getReactDynamicPageUrl("systemStatistics"));

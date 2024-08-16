@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.MonthlyEmployeeReport;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
-import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 
@@ -53,7 +53,7 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   EmployeeDO getEmployeeByUserId(final Integer userId);
 
-  ModificationStatus updateAttribute(Integer userId, Object attribute, String attributeName);
+  EntityCopyStatus updateAttribute(Integer userId, Object attribute, String attributeName);
 
   boolean isEmployeeActive(EmployeeDO employee);
 
