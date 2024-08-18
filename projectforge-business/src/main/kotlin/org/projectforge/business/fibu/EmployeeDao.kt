@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.NoResultException
+import mu.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
@@ -33,11 +34,12 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
@@ -203,7 +205,6 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
 
     companion object {
         val USER_RIGHT_ID = UserRightId.HR_EMPLOYEE
-        private val log = LoggerFactory.getLogger(EmployeeDao::class.java)
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.firstname", "user.lastname", "user.username",
             "user.description",

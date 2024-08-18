@@ -29,7 +29,6 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 
 /**
@@ -41,7 +40,7 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KUNDE", indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id")])
-open class KundeDO : AbstractHistorizableBaseDO<Int>(), IManualIndex, DisplayNameCapable {
+open class KundeDO : AbstractHistorizableBaseDO<Int>(), DisplayNameCapable {
 
     override val displayName: String
         @Transient

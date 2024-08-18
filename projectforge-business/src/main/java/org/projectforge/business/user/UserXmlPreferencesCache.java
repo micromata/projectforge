@@ -25,7 +25,7 @@ package org.projectforge.business.user;
 
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.cache.AbstractCache;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class UserXmlPreferencesCache extends AbstractCache
   private UserXmlPreferencesDao userXmlPreferencesDao;
 
   @Autowired
-  private PfEmgrFactory emgrFactory;
+  private PfPersistenceService persistenceService;
 
   /**
    * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
@@ -171,9 +171,7 @@ public class UserXmlPreferencesCache extends AbstractCache
         // No access.
         return;
       }
-      PFUserDO user = emgrFactory.runInTrans(emgr -> {
-        return emgr.selectByPk(PFUserDO.class, userId);
-      });
+      PFUserDO user = persistenceService.selectById(PFUserDO.class, userId);
       if (AccessChecker.isDemoUser(user)) {
         // Do nothing for demo user.
         return;

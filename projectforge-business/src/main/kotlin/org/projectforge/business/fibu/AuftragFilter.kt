@@ -99,7 +99,7 @@ class AuftragFilter : BaseSearchFilter, Serializable, SearchFilterWithPeriodOfPe
 
     val filterVollstaendigFakturiert = AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus
     // special case
-    if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
+    if (HibernateUtils.databaseDialect != DatabaseDialect.HSQL &&
       !filterVollstaendigFakturiert && (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN) ||
           auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ZU_FAKTURIEREN)
     ) {

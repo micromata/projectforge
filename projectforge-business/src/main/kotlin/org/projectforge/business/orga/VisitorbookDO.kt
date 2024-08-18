@@ -91,9 +91,9 @@ class VisitorbookDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
 */
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        var modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
-        val src = source as VisitorbookDO
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
+        var modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
+        //wval src = obj as VisitorbookDO
         log.error("Not yet implemented: copyValuesFrom")
         // modificationStatus = modificationStatus
         //    .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))

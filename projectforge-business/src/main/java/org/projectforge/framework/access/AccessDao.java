@@ -96,7 +96,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   public List<GroupTaskAccessDO> internalLoadAll() {
     CriteriaBuilder cb = em.getCriteriaBuilder();
     CriteriaQuery<GroupTaskAccessDO> cr = cb.createQuery(GroupTaskAccessDO.class);
-    From root = cr.from(doClass);
+    From root = cr.from(getDoClass());
     root.fetch("accessEntries", JoinType.LEFT);
     cr.select(root).where(
             cb.equal(root.get("deleted"), false))
@@ -274,7 +274,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
    * org.projectforge.framework.access.OperationType)
    */
   @Override
-  protected void prepareHibernateSearch(final GroupTaskAccessDO obj, final OperationType operationType) {
+  public void prepareHibernateSearch(final GroupTaskAccessDO obj, final OperationType operationType) {
     final TaskDO task = obj.getTask();
     if (task != null && !Hibernate.isInitialized(task)) {
       Hibernate.initialize(obj.getTask());
@@ -287,13 +287,13 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   }
 
   @Override
-  protected void afterSaveOrModify(final GroupTaskAccessDO obj) {
+  public void afterSaveOrModify(final GroupTaskAccessDO obj) {
     super.afterSaveOrModify(obj);
     taskTree.setGroupTaskAccess(obj);
   }
 
   @Override
-  protected void afterUpdate(final GroupTaskAccessDO obj, final GroupTaskAccessDO dbObj) {
+  public void afterUpdate(final GroupTaskAccessDO obj, final GroupTaskAccessDO dbObj) {
     Validate.notNull(dbObj);
     final List<AccessEntryDO> entries = obj.getOrderedEntries();
     final StringBuilder bufNew = new StringBuilder();
@@ -334,7 +334,7 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   }
 
   @Override
-  protected GroupTaskAccessDO getBackupObject(final GroupTaskAccessDO dbObj) {
+  public GroupTaskAccessDO getBackupObject(final GroupTaskAccessDO dbObj) {
     final GroupTaskAccessDO access = new GroupTaskAccessDO();
     for (final AccessEntryDO dbEntry : dbObj.getAccessEntries()) {
       final AccessEntryDO entry = new AccessEntryDO(dbEntry.getAccessType());
@@ -348,12 +348,12 @@ public class AccessDao extends BaseDao<GroupTaskAccessDO> {
   }
 
   @Override
-  protected void afterDelete(final GroupTaskAccessDO obj) {
+  public void afterDelete(final GroupTaskAccessDO obj) {
     taskTree.removeGroupTaskAccess(obj);
   }
 
   @Override
-  protected void afterUndelete(final GroupTaskAccessDO obj) {
+  public void afterUndelete(final GroupTaskAccessDO obj) {
     taskTree.setGroupTaskAccess(obj);
   }
 

@@ -270,8 +270,8 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: PFUserDO): List<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj).toMutableList()
+    override fun getDisplayHistoryEntries(obj: PFUserDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

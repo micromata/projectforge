@@ -53,19 +53,19 @@ class RechnungCache : AbstractCache() {
 
     private var invoicePositionMapByRechnungId: Map<Int?, MutableSet<RechnungsPositionVO>>? = null
 
-    fun getRechnungsPositionVOSetByAuftragId(auftragId: Int?): Set<RechnungsPositionVO> {
+    fun getRechnungsPositionVOSetByAuftragId(auftragId: Int?): Set<RechnungsPositionVO>? {
         checkRefresh()
-        return invoicePositionMapByAuftragId!![auftragId]!!
+        return invoicePositionMapByAuftragId!![auftragId]
     }
 
-    fun getRechnungsPositionVOSetByRechnungId(rechnungId: Int?): Set<RechnungsPositionVO> {
+    fun getRechnungsPositionVOSetByRechnungId(rechnungId: Int?): Set<RechnungsPositionVO>? {
         checkRefresh()
-        return invoicePositionMapByRechnungId!![rechnungId]!!
+        return invoicePositionMapByRechnungId!![rechnungId]
     }
 
-    fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Int?): Set<RechnungsPositionVO> {
+    fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Int?): Set<RechnungsPositionVO>? {
         checkRefresh()
-        return invoicePositionMapByAuftragsPositionId!![auftragsPositionId]!!
+        return invoicePositionMapByAuftragsPositionId!![auftragsPositionId]
     }
 
     /**
@@ -80,7 +80,8 @@ class RechnungCache : AbstractCache() {
         val list: List<RechnungsPositionDO> = persistenceService.query(RechnungsPositionDO::class.java, "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null")
         for (pos in list) {
             val rechnung = pos.rechnung
-            if (pos.auftragsPosition == null || pos.auftragsPosition!!.auftrag == null) {
+            val auftragsPosition = pos.auftragsPosition
+            if (auftragsPosition == null || auftragsPosition.auftrag == null) {
                 log.error("Assigned order position expected: $pos")
                 continue
             } else if (pos.deleted || rechnung == null || rechnung.deleted
@@ -89,8 +90,7 @@ class RechnungCache : AbstractCache() {
                 // Invoice position or invoice is deleted.
                 continue
             }
-            val auftragsPosition = pos.auftragsPosition
-            val auftrag = auftragsPosition!!.auftrag
+            val auftrag = auftragsPosition.auftrag
             var setByAuftragId = mapByAuftragId[auftrag!!.id]
             if (setByAuftragId == null) {
                 setByAuftragId = TreeSet()

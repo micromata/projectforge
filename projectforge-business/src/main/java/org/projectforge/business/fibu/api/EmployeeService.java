@@ -25,10 +25,7 @@ package org.projectforge.business.fibu.api;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
-import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.MonthlyEmployeeReport;
-import org.projectforge.framework.persistence.api.IDao;
-import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
@@ -43,57 +40,55 @@ import java.util.List;
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<EmployeeDO>
-{
-  void setPfUser(EmployeeDO employee, Integer userId);
+public interface EmployeeService {
+    void setPfUser(EmployeeDO employee, Integer userId);
 
-  void setKost1(final EmployeeDO employee, final Integer kost1Id);
+    void setKost1(final EmployeeDO employee, final Integer kost1Id);
 
-  EmployeeTimedDO addNewTimeAttributeRow(final EmployeeDO employee, final String groupName);
+    // EmployeeTimedDO addNewTimeAttributeRow(final EmployeeDO employee, final String groupName);
 
-  EmployeeDO getEmployeeByUserId(final Integer userId);
+    EmployeeDO getEmployeeByUserId(final Integer userId);
 
-  EntityCopyStatus updateAttribute(Integer userId, Object attribute, String attributeName);
+    //EntityCopyStatus updateAttribute(Integer userId, Object attribute, String attributeName);
 
-  boolean isEmployeeActive(EmployeeDO employee);
+    boolean isEmployeeActive(EmployeeDO employee);
 
-  BigDecimal getMonthlySalary(EmployeeDO employee, PFDateTime selectedDate);
+    BigDecimal getMonthlySalary(EmployeeDO employee, PFDateTime selectedDate);
 
-  Collection<EmployeeDO> findAllActive(boolean checkAccess);
+    Collection<EmployeeDO> findAllActive(boolean checkAccess);
 
-  EmployeeDO getEmployeeByStaffnumber(String staffnumber);
+    EmployeeDO getEmployeeByStaffnumber(String staffnumber);
 
-  List<EmployeeDO> getAll(boolean checkAccess);
+    List<EmployeeDO> getAll(boolean checkAccess);
 
-  EmployeeStatus getEmployeeStatus(EmployeeDO employee);
+    EmployeeStatus getEmployeeStatus(EmployeeDO employee);
 
-  BigDecimal getAnnualLeaveDays(EmployeeDO employee);
+    BigDecimal getAnnualLeaveDays(EmployeeDO employee);
 
-  BigDecimal getAnnualLeaveDays(EmployeeDO employee, LocalDate validAtDate);
+    BigDecimal getAnnualLeaveDays(EmployeeDO employee, LocalDate validAtDate);
 
-  /**
-   * Don't forget to call save or update after adding a new entry.
-   * @param employee
-   * @param validfrom
-   * @param annualLeaveDays
-   */
-  EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays);
+    /**
+     * Don't forget to call save or update after adding a new entry.
+     * @param employee
+     * @param validfrom
+     * @param annualLeaveDays
+     */
+    // EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays);
 
-  /**
-   *
-   * @param year
-   * @param month 1-January, ..., 12-December
-   * @param user
-   * @return
-   */
-  MonthlyEmployeeReport getReportOfMonth(int year, Integer month, PFUserDO user);
+    /**
+     * @param year
+     * @param month 1-January, ..., 12-December
+     * @param user
+     * @return
+     */
+    MonthlyEmployeeReport getReportOfMonth(int year, Integer month, PFUserDO user);
 
-  /**
-   * Checks if the employee was full time some day at the beginning of the month or within the month.
-   *
-   * @param employee     The employee.
-   * @param selectedDate The first day of the month to check.
-   * @return The result.
-   */
-  boolean isFulltimeEmployee(EmployeeDO employee, PFDateTime selectedDate);
+    /**
+     * Checks if the employee was full time some day at the beginning of the month or within the month.
+     *
+     * @param employee     The employee.
+     * @param selectedDate The first day of the month to check.
+     * @return The result.
+     */
+    boolean isFulltimeEmployee(EmployeeDO employee, PFDateTime selectedDate);
 }

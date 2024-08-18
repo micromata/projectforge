@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -57,7 +56,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 
   /**
    * Führt toString aus und maskiert alle HTML-Sonderzeichen via StringEscapeUtils.escapeHtml().
-   * 
+   *
    * @param value Umzuwandelnder Wert.
    * @return Object.toString mit HTML-Escape-Sequenzen oder "", falls value = null.
    */
@@ -78,7 +77,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
   /**
    * <b>Beachte Sicherheitshinweis:</b> Beim Überladen bitte dynamische Inhalte immer mit escapeHtml ausgeben (Vorsicht:
    * Cross site scripting).
-   * 
+   *
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatUser(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
@@ -102,7 +101,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 
   /**
    * Localized String for action deleted (don't forget escapeHtml!).
-   * 
+   *
    * @param locale
    */
   public String getDeletedAction(final Locale locale)
@@ -112,7 +111,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 
   /**
    * Localized String for action updated (don't forget escapeHtml!).
-   * 
+   *
    * @param locale
    */
   public String getUpdatedAction(final Locale locale)
@@ -122,7 +121,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 
   /**
    * Localized String for action inserted (don't forget escapeHtml!).
-   * 
+   *
    * @param locale
    */
   public String getInsertedAction(final Locale locale)
@@ -155,7 +154,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * Sucht zuerst im ResourceBundle nach einem Eintrag class.property.xxx (z. B.
    * de.micromata.printing.vw.VWUserDO.property.commitAGBDate), dann nach common.property.xxx und falls beides nicht
    * gefunden wird der Property-Name direkt mit einem Großbuchstaben beginnen ausgegeben. (don't forget escapeHtml!)
-   * 
+   *
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatProperty(org.hibernate.Session, java.util.Locale,
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
@@ -198,10 +197,10 @@ public class DefaultHistoryFormatter implements HistoryFormatter
   /**
    * Wird von formatOldValue und formatNewValue aufgerufen. Dies kann überladen werden, wenn der alte und neue Wert
    * gleichermaßen formatiert werden sollen. Macht hier ersteinmal nichts außer ein escapeHtml(value) aufzurufen.
-   * 
+   *
    * <b>Beachte Sicherheitshinweis:</b> Beim Überladen bitte dynamische Inhalte immer mit escapeHtml ausgeben (Vorsicht:
    * Cross site scripting).
-   * 
+   *
    * @param session
    * @param className
    * @param property
@@ -215,7 +214,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 
   /**
    * (don't forget escapeHtml!)
-   * 
+   *
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatOldValue(org.hibernate.Session, java.util.Locale,
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
@@ -230,7 +229,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 
   /**
    * (don't forget escapeHtml!)
-   * 
+   *
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatNewValue(org.hibernate.Session, java.util.Locale,
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)

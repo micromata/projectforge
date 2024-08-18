@@ -27,11 +27,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.util.List;
 
-public interface IDao<O>
-{
-  public List<O> getList(final BaseSearchFilter filter);
+public interface IDao<O> {
+    public List<O> getList(final BaseSearchFilter filter);
 
-  public boolean isHistorizable();
+    public boolean isHistorizable();
 
-  public boolean hasInsertAccess(final PFUserDO user);
+    public boolean hasInsertAccess(final PFUserDO user);
 }

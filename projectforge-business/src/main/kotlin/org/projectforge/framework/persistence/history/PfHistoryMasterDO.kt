@@ -28,9 +28,6 @@ import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDO
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDataDO
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrWithDataDO
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -84,25 +81,25 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     @get:OneToMany(
         cascade = [CascadeType.ALL],
         mappedBy = "parent",
-        targetEntity = PfHistoryAttrDO::class,
+        //targetEntity = PfHistoryAttrDO::class,
         orphanRemoval = true,
         fetch = FetchType.EAGER
     )
     var attributes: MutableMap<String, Any?>? = null
 
-    @get:Transient
+   /* @get:Transient
     val attrEntityClass: Class<out Any?>
         get() = PfHistoryAttrDO::class.java
 
     @get:Transient
     val attrEntityWithDataClass: Class<out Any?>
         get() = PfHistoryAttrWithDataDO::class.java
+*/
+    //@get:Transient
+    //val attrDataEntityClass: Class<out Any?>
+        //get() = PfHistoryAttrDataDO::class.java
 
-    @get:Transient
-    val attrDataEntityClass: Class<out Any?>
-        get() = PfHistoryAttrDataDO::class.java
-
-
+/*
     fun createAttrEntity(key: String?, type: Char, value: String?): PfHistoryAttrDO {
         return PfHistoryAttrDO(this, key, type, value)
     }
@@ -114,7 +111,7 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     ): PfHistoryAttrWithDataDO {
         return PfHistoryAttrWithDataDO(this, key, type, value)
     }
-
+*/
     @get:Transient
     override val diffEntries: List<DiffEntry>?
         get() {

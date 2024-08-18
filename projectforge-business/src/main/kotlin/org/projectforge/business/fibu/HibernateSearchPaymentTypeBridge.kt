@@ -44,7 +44,7 @@ class HibernateSearchPaymentTypeBridge : ValueBridge<PaymentType, String> {
         paymentType ?: return ""
         val sb = StringBuilder()
         for (locale in UserLocale.I18NSERVICE_LANGUAGES) {
-            val localized: String = I18nHelper.getLocalizedMessage(locale, paymentType.i18nKey) ?: continue
+            val localized: String = I18nHelper.getLocalizedMessage(locale, paymentType.i18nKey)
             sb.append("$localized ")
         }
         if (log.isDebugEnabled) {

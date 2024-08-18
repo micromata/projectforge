@@ -23,9 +23,11 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
-import org.hibernate.search.annotations.*;
+import groovy.transform.Field;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.anots.PropertyInfo;
@@ -41,34 +43,32 @@ import java.util.Date;
 @Table(name = "T_CALENDAR_EVENT",
         uniqueConstraints = {@UniqueConstraint(name = "unique_t_calendar_event_uid_calendar_fk", columnNames = {"uid",
                 "calendar_fk"})})
-@WithHistory(noHistoryProperties = {"lastUpdate", "created"}, nestedEntities = {TeamEventAttendeeDO.class})
+//@WithHistory(noHistoryProperties = {"lastUpdate", "created"}, nestedEntities = {TeamEventAttendeeDO.class})
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   private TeamCalDO calendar;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")
-  @Field(index = Index.YES, analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+  @GenericField // was: @Field(index = Index.YES, analyze = Analyze.NO) @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Date startDate;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.endDate")
-  @Field(index = Index.YES, analyze = Analyze.NO)
-  @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
+  @GenericField // was: @Field(index = Index.YES, analyze = Analyze.NO) @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
   private Date endDate;
 
   private String uid;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.subject")
-  @Field(index = Index.YES, store = Store.NO)
+  @FullTextField
   private String subject;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.location")
-  @Field(index = Index.YES, store = Store.NO)
+  @FullTextField
   private String location;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.note")
-  @Field(index = Index.YES, store = Store.NO)
+  @FullTextField
   private String note;
 
   private String icsData;

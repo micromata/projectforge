@@ -23,8 +23,8 @@
 
 package org.projectforge.framework.persistence.api;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.HistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.util.List;
@@ -54,7 +54,7 @@ public class SearchResultData
 
   /**
    * All changes in history entry with resolved properties to display.
-   * 
+   *
    * @return
    */
   public List<DisplayHistoryEntry> getPropertyChanges()
@@ -64,7 +64,7 @@ public class SearchResultData
 
   /**
    * The user who has done the represented modification if available.
-   * 
+   *
    * @return
    */
   public PFUserDO getModifiedByUser()

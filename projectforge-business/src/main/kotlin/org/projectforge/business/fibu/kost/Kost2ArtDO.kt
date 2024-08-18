@@ -31,7 +31,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.IManualIndex
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import java.math.BigDecimal
 
@@ -44,7 +43,7 @@ import java.math.BigDecimal
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KOST2ART")
-class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO>, IManualIndex {
+class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO> {
 
     /**
      * Zweistellige Endziffer von KOST2

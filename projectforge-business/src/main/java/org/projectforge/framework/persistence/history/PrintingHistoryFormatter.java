@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
@@ -34,7 +33,7 @@ import java.util.Locale;
 
 /**
  * @author wolle
- * 
+ *
  */
 public class PrintingHistoryFormatter extends DefaultHistoryFormatter
 {

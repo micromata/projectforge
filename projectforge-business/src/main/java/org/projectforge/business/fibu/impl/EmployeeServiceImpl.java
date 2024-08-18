@@ -23,8 +23,6 @@
 
 package org.projectforge.business.fibu.impl;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.projectforge.business.fibu.*;
@@ -39,9 +37,7 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
-import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
@@ -65,8 +61,9 @@ import java.util.stream.Collectors;
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Service
-public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
-        implements EmployeeService {
+public class EmployeeServiceImpl implements EmployeeService {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KundeDao.class);
+
   private static final BigDecimal FULL_TIME_WEEKLY_WORKING_HOURS = new BigDecimal(40);
 
   private static final BigDecimal MONTHS_PER_YEAR = new BigDecimal(12);
@@ -81,18 +78,11 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   private EmployeeDao employeeDao;
 
   @Autowired
-  private AttrSchemaService attrSchemaService;
-
-  @Autowired
-  private TimeableService timeableService;
-
-  @Autowired
   private VacationService vacationService;
 
   @Autowired
   private TimesheetDao timesheetDao;
 
-  @Override
   public List<EmployeeDO> getList(BaseSearchFilter filter) {
     return employeeDao.getList(filter);
   }
@@ -104,43 +94,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public EmployeeTimedDO addNewTimeAttributeRow(final EmployeeDO employee, final String groupName) {
-    final EmployeeTimedDO nw = new EmployeeTimedDO();
-    nw.setEmployee(employee);
-    nw.setGroupName(groupName);
-    employee.getTimeableAttributes().add(nw);
-    return nw;
-  }
-
-  @Override
   public EmployeeDO getEmployeeByUserId(Integer userId) {
     return employeeDao.findByUserId(userId);
-  }
-
-  @Override
-  public EntityCopyStatus updateAttribute(Integer userId, Object attribute, String attributeName) {
-    EmployeeDO employeeDO = getEmployeeByUserId(userId);
-    try {
-      Class<?> type = EmployeeDO.class.getDeclaredField(attributeName).getType();
-      Method declaredMethod = EmployeeDO.class.getDeclaredMethod(
-              "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1),
-              type);
-      declaredMethod.invoke(employeeDO, type.cast(attribute));
-
-    } catch (NoSuchFieldException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-      e.printStackTrace();
-    }
-
-    ArrayList<String> attributes = new ArrayList<>();
-
-    for (Field field : EmployeeDO.class.getDeclaredFields()) {
-      attributes.add(field.getName());
-    }
-
-    attributes.removeIf((s) -> {
-      return s.equals(attributeName);
-    });
-    return update(employeeDO, attributes.toArray(new String[]{}));
   }
 
   @Override
@@ -149,54 +104,36 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     employee.setKost1(kost1);
   }
 
-  @Override
   public boolean hasLoggedInUserInsertAccess() {
     return employeeDao.hasLoggedInUserInsertAccess();
   }
 
-  @Override
   public boolean hasLoggedInUserInsertAccess(EmployeeDO obj, boolean throwException) {
     return employeeDao.hasLoggedInUserInsertAccess(obj, throwException);
   }
 
-  @Override
   public boolean hasLoggedInUserUpdateAccess(EmployeeDO obj, EmployeeDO dbObj, boolean throwException) {
     return employeeDao.hasLoggedInUserUpdateAccess(obj, dbObj, throwException);
   }
 
-  @Override
   public boolean hasLoggedInUserDeleteAccess(EmployeeDO obj, EmployeeDO dbObj, boolean throwException) {
     return employeeDao.hasLoggedInUserDeleteAccess(obj, dbObj, throwException);
   }
 
-  @Override
   public boolean hasDeleteAccess(PFUserDO user, EmployeeDO obj, EmployeeDO dbObj, boolean throwException) {
     return employeeDao.hasDeleteAccess(user, obj, dbObj, throwException);
   }
 
-  @Override
   public EmployeeDO getById(Serializable id) throws AccessException {
     return employeeDao.getById(id);
   }
 
-  @Override
   public List<String> getAutocompletion(String property, String searchString) {
     return employeeDao.getAutocompletion(property, searchString);
   }
 
-  @Override
   public List<DisplayHistoryEntry> getDisplayHistoryEntries(EmployeeDO obj) {
     return employeeDao.getDisplayHistoryEntries(obj);
-  }
-
-  @Override
-  public void rebuildDatabaseIndex4NewestEntries() {
-    employeeDao.rebuildDatabaseIndex4NewestEntries();
-  }
-
-  @Override
-  public void rebuildDatabaseIndex() {
-    employeeDao.rebuildDatabaseIndex();
   }
 
   @Override
@@ -211,7 +148,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, PFDateTime selectedDate) {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getUtilDate());
+    log.error("****** Not yet migrated.");
+/*    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getUtilDate());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 
@@ -223,7 +161,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
               .divide(MONTHS_PER_YEAR, BigDecimal.ROUND_HALF_UP)
               .divide(FULL_TIME_WEEKLY_WORKING_HOURS, BigDecimal.ROUND_HALF_UP);
     }
-
+*/
     return null;
   }
 
@@ -252,11 +190,13 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
   @Override
   public EmployeeStatus getEmployeeStatus(final EmployeeDO employee) {
+    log.error("****** Not yet migrated.");
+/*
     final EmployeeTimedDO attrRow = timeableService
             .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
     if (attrRow != null && !StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))) {
       return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
-    }
+    }*/
     return null;
   }
 
@@ -270,6 +210,9 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
       return null;
     }
+    log.error("****** Not yet migrated.");
+    return BigDecimal.ZERO;
+/*
     Date date = PFDateTime.from(validAtDate).getUtilDate(); // not null
     final EmployeeTimedDO attrRow = timeableService
             .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME, date);
@@ -279,21 +222,21 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
         return NumberUtils.createBigDecimal(str);
       }
     }
-    return BigDecimal.ZERO;
+    return BigDecimal.ZERO;*/
   }
 
   /**
    * @param employee
    * @param validfrom       The day of year is ignored. The year is important and used.
    * @param annualLeaveDays
-   */
+   *//*
   @Override
   public EmployeeTimedDO addNewAnnualLeaveDays(final EmployeeDO employee, final LocalDate validfrom, final BigDecimal annualLeaveDays) {
     final EmployeeTimedDO newAttrRow = addNewTimeAttributeRow(employee, InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_GROUP_NAME);
     newAttrRow.setStartTime(PFDay.from(validfrom).getUtilDate());
     newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_ANNUAL_LEAVEDAYS_PROP_NAME, annualLeaveDays);
     return newAttrRow;
-  }
+  }*/
 
   @Override
   public MonthlyEmployeeReport getReportOfMonth(final int year, final Integer month, final PFUserDO user) {
@@ -320,7 +263,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     final Date startOfMonth = selectedDate.getUtilDate();
     final PFDateTime dt = selectedDate.plusMonths(1).minusDays(1);
     final Date endOfMonth = dt.getUtilDate();
+    log.error("****** Not yet migrated.");
+    return true;
 
+/*
     final List<EmployeeTimedDO> attrRows = timeableService
             .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
 
@@ -336,6 +282,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
             .map(row -> row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))
             .filter(Objects::nonNull)
             .anyMatch(s -> EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(s) || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(s));
+            */
   }
 
 }

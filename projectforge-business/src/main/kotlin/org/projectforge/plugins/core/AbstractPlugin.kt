@@ -33,7 +33,6 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.database.DatabaseService
-import org.projectforge.framework.persistence.xstream.XStreamSavingConverter
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.registry.Registry
@@ -250,17 +249,6 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
   }
 
   open fun handleFavoriteMenu(menu: Menu, allMenuItems: List<MenuItem>) {
-  }
-
-  @Deprecated("")
-  fun onBeforeRestore(xstreamSavingConverter: XStreamSavingConverter, obj: Any) {
-  }
-
-  @Deprecated("")
-  fun onAfterRestore(
-    xstreamSavingConverter: XStreamSavingConverter, obj: Any,
-    newId: Serializable?
-  ) {
   }
 
   companion object {

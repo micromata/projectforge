@@ -92,7 +92,7 @@ open class AccountingRecord(
   companion object {
     fun groupByProject(records: List<AccountingRecord>, von: PFDay, bis: PFDay): Map<Int, AccountingRecord> {
       return records.filter { it.date in von..bis }.groupingBy { it.projectId }
-        .aggregateTo(mutableMapOf()) { key, accumulator: AccountingRecord?, element, first ->
+        .aggregateTo(mutableMapOf()) { _, accumulator: AccountingRecord?, element, first ->
           if (first) // first element
             AccountingRecord(element).add(element)
           else
@@ -102,7 +102,7 @@ open class AccountingRecord(
 
     fun groupByMonth(records: List<AccountingRecord>): Map<AccountingRecordMonthKey, AccountingRecord> {
       return records.groupingBy { it.toKey() }
-        .aggregateTo(mutableMapOf()) { key, accumulator: AccountingRecord?, element, first ->
+        .aggregateTo(mutableMapOf()) { _, accumulator: AccountingRecord?, element, first ->
           if (first) // first element
             AccountingRecord(element).add(element)
           else
@@ -148,7 +148,7 @@ open class AccountingRecord(
       return AccountingRecord(
         PFDay.fromOrNow(invoice.datum),
         businessUnit = businessUnit,
-        customer = invoice.projekt?.kunde?.name ?: invoice.kundeAsString ?: "---",
+        customer = invoice.projekt?.kunde?.name ?: invoice.kundeAsString,
         customerGroup = customerGroup,
         project = invoice.projekt?.name ?: "???",
         projectId = invoice.projekt!!.id!!,

@@ -105,7 +105,7 @@ open class DBQuery {
                 if (end - begin > 2000) {
                     // Show only slow requests.
                     log.info(
-                        "BaseDao.getList for entity class: " + baseDao.entityClass.simpleName + " took: " + (end - begin) + " ms (>2s)."
+                        "BaseDao.getList for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)."
                     )
                 }
                 list

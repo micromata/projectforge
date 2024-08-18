@@ -23,17 +23,34 @@
 
 package org.projectforge.framework.persistence.jpa
 
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
 open class PfPersistenceService {
-    private lateinit var entityManagerFactory: EntityManagerFactory
+    companion object {
+        @JvmStatic
+        lateinit var instance: PfPersistenceService
+            private set
+    }
+
+    @Autowired
+    lateinit var entityManagerFactory: EntityManagerFactory
+        private set
+
+    @PostConstruct
+    private fun postConstruct() {
+        instance = this
+        HibernateUtils.internalInit(entityManagerFactory)
+    }
 
     open fun <T> runInTransaction(
         readonly: Boolean = false,
@@ -51,6 +68,7 @@ open class PfPersistenceService {
     /**
      * @see EntityManagerUtil.selectById
      */
+    @JvmOverloads
     open fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,
@@ -62,6 +80,7 @@ open class PfPersistenceService {
     /**
      * @see EntityManagerUtil.selectSingleResult
      */
+    @JvmOverloads
     fun <T> selectSingleResult(
         resultClass: Class<T>,
         sql: String,
@@ -69,6 +88,7 @@ open class PfPersistenceService {
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         detached: Boolean = true,
+        namedQuery:Boolean = false,
     ): T? {
         return EntityManagerUtil.selectSingleResult(
             entityManagerFactory,
@@ -78,12 +98,14 @@ open class PfPersistenceService {
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
             detached = detached,
+            namedQuery = namedQuery,
         )
     }
 
     /**
      * @param detached If true, the result is detached if of type entity (default).
      */
+    @JvmOverloads
     open fun <T> queryNullable(
         resultClass: Class<T>,
         sql: String,
@@ -101,12 +123,52 @@ open class PfPersistenceService {
         sql: String,
         vararg keyValues: Pair<String, Any?>,
         detached: Boolean = true,
+        namedQuery: Boolean = false,
+        maxResults: Int? = null,
     ): List<T> {
-        return EntityManagerUtil.query(entityManagerFactory, resultClass, sql, *keyValues, detached = detached)
+        return EntityManagerUtil.query(
+            entityManagerFactory,
+            resultClass,
+            sql,
+            *keyValues,
+            detached = detached,
+            namedQuery = namedQuery,
+            maxResults = maxResults,
+        )
+    }
+
+    /**
+     * @param detached If true, the result is detached if of type entity (default).
+     */
+    open fun <T> namedQuery(
+        resultClass: Class<T>,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        detached: Boolean = true,
+    ): List<T> {
+        return EntityManagerUtil.query(
+            entityManagerFactory,
+            resultClass,
+            sql,
+            *keyValues,
+            detached = detached,
+            namedQuery = true
+        )
     }
 
     open fun insert(dbObj: Any) {
         EntityManagerUtil.insert(entityManagerFactory, dbObj)
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    open fun executeUpdate(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        namedQuery: Boolean = false,
+    ): Int {
+        return EntityManagerUtil.executeUpdate(entityManagerFactory, sql, *keyValues, namedQuery = namedQuery)
     }
 
     open fun delete(dbObj: Any) {
