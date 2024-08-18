@@ -49,6 +49,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.json.*;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.metamodel.HibernateMetaModel;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
@@ -337,7 +338,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     userPrefEntry.multiline = ann.multiline();
     userPrefEntry.orderString = StringUtils.isNotBlank(ann.orderString()) ? ann.orderString() : null;
     if (String.class.isAssignableFrom(field.getType())) {
-      userPrefEntry.maxLength = HibernateUtils.getPropertyLength(beanType, field.getName());
+      userPrefEntry.maxLength = HibernateMetaModel.getPropertyLength(beanType, field.getName());
     }
     userPrefEntry.type = field.getType();
   }
@@ -520,7 +521,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
   }
 
   @Override
-  protected void onSaveOrModify(UserPrefDO obj) {
+  void onSaveOrModify(UserPrefDO obj) {
     if (obj.getValueObject() == null) {
       obj.setValueString(null);
       obj.setValueTypeString(null);

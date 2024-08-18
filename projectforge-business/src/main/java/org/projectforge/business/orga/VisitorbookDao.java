@@ -23,7 +23,6 @@
 
 package org.projectforge.business.orga;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -38,8 +37,8 @@ import java.util.stream.Collectors;
 @Repository
 public class VisitorbookDao extends BaseDao<VisitorbookDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
-  @Autowired
-  private TimeableService timeableService;
+  //@Autowired
+  //private TimeableService timeableService;
 
   protected VisitorbookDao() {
     super(VisitorbookDO.class);
@@ -57,7 +56,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
 
     final QueryFilter queryFilter = createQueryFilter(myFilter);
     final List<VisitorbookDO> resultList = getList(queryFilter);
-
+/*
     final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
             .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getUTCStartTime())); // before() == false -> after or same day
 
@@ -85,7 +84,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
               .filter(beforeStopTimeOrSameDay)
               .collect(Collectors.toList());
     }
-
+*/
     // no time filter set
     return resultList;
   }

@@ -59,7 +59,7 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     // Open needed or proxying.
     open fun getList(employeeId: Int?, periodBegin: LocalDate, periodEnd: LocalDate): List<LeaveAccountEntryDO>? {
         employeeId ?: return null
-        return persistenceService.query(
+        return persistenceService.namedQuery(
             LeaveAccountEntryDO::class.java, LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,
             Pair("employeeId", employeeId),
             Pair("fromDate", periodBegin),

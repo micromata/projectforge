@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.hibernate.Session;
 
@@ -39,7 +38,7 @@ public interface HistoryFormatter extends Serializable
 {
   /**
    * Für die i18n Ausgabe wird das Resource-Bundle benötigt.
-   * 
+   *
    * @param locale Localization of the required resource bundle
    * @return
    */
@@ -49,7 +48,7 @@ public interface HistoryFormatter extends Serializable
    * Formatierung des Benutzers, der für die Änderung in der Historie hinterlegt wurde. <b>Beachte
    * Sicherheitshinweis:</b> Beim Überladen bitte dynamische Inhalte immer mit escapeHtml ausgeben (Vorsicht: Cross site
    * scripting).
-   * 
+   *
    * @param session
    * @param locale
    * @param changed
@@ -62,7 +61,7 @@ public interface HistoryFormatter extends Serializable
 
   /**
    * Formatiert den Zeitstempel, zu dem die Änderung erfolgte.
-   * 
+   *
    * @param session
    * @param locale
    * @param changed
@@ -75,7 +74,7 @@ public interface HistoryFormatter extends Serializable
 
   /**
    * Formatiert die Art der Änderung (angelegt, geändert, gelöscht).
-   * 
+   *
    * @param session
    * @param locale
    * @param changed
@@ -88,7 +87,7 @@ public interface HistoryFormatter extends Serializable
 
   /**
    * Formatiert den Feldnamen (Property) dessen Wert geändert wurde.
-   * 
+   *
    * @param session
    * @param locale
    * @param changed
@@ -103,7 +102,7 @@ public interface HistoryFormatter extends Serializable
    * Formatiert den alten Wert der Property, die durch den neuen Wert überschreiben wurde. <b>Beachte
    * Sicherheitshinweis:</b> Beim Überladen bitte dynamische Inhalte immer mit escapeHtml ausgeben (Vorsicht: Cross site
    * scripting).
-   * 
+   *
    * @param session
    * @param locale
    * @param changed
@@ -117,7 +116,7 @@ public interface HistoryFormatter extends Serializable
   /**
    * Formatiert den neuen Wert der Property, der den alten Wert überschrieben hat. <b>Beachte Sicherheitshinweis:</b>
    * Beim Überladen bitte dynamische Inhalte immer mit escapeHtml ausgeben (Vorsicht: Cross site scripting).
-   * 
+   *
    * @param session
    * @param locale
    * @param changed
@@ -130,7 +129,7 @@ public interface HistoryFormatter extends Serializable
 
   /**
    * Soll die Änderung in der Historie angezeigt werden?
-   * 
+   *
    * @param session
    * @param locale
    * @param changed

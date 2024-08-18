@@ -32,9 +32,7 @@ import groovy.text.Template;
 import groovy.text.TemplateEngine;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.projectforge.business.refactoring.RefactoringService;
 import org.projectforge.framework.access.AccessException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -45,175 +43,150 @@ import java.util.Map;
  * Executes groovy templates. For more functionality please refer GroovyEngine.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Service
-public class GroovyExecutor
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyExecutor.class);
+public class GroovyExecutor {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyExecutor.class);
 
-  @Autowired
-  private RefactoringService refService;
-
-  public ScriptExecutionResult execute(final ScriptExecutionResult result, final String script, final Map<String, Object> variables)
-  {
-    if (script == null) {
-      return result;
-    }
-    final Script groovyObject = compileGroovy(result, script, true);
-    if (groovyObject == null) {
-      return result;
-    }
-    return execute(result, groovyObject, variables);
-  }
-
-  public String executeTemplate(final String template, final Map<String, Object> variables)
-  {
-    securityChecks(template);
-    return executeTemplate(new SimpleTemplateEngine(), template, variables);
-  }
-
-  public String executeTemplate(final TemplateEngine templateEngine, final String template,
-      final Map<String, Object> variables)
-  {
-    securityChecks(template);
-    if (template == null) {
-      return null;
-    }
-    try {
-      final Template templateObject = templateEngine.createTemplate(template);
-      final Writable writable = templateObject.make(variables);
-      final StringWriter writer = new StringWriter();
-      writable.writeTo(writer);
-      writer.flush();
-      if (log.isDebugEnabled()) {
-        log.debug(writer.toString());
-      }
-      return writer.toString();
-    } catch (final CompilationFailedException | IOException | ClassNotFoundException ex) {
-      log.error(ex.getMessage() + " while executing template: " + template, ex);
-    }
-    return null;
-  }
-
-  /**
-   * @param script
-   * @param bindScriptResult If true then "scriptResult" from type GroovyResult is binded.
-   * @return
-   */
-  public Script compileGroovy(final String script, final boolean bindScriptResult)
-  {
-    return compileGroovy(null, script, bindScriptResult);
-  }
-
-  /**
-   * @param script
-   * @param bindScriptResult If true then "scriptResult" from type GroovyResult is binded.
-   * @return
-   */
-  public Script compileGroovy(final ScriptExecutionResult result, final String script, final boolean bindScriptResult)
-  {
-    securityChecks(script);
-    final GroovyClassLoader gcl = new GroovyClassLoader()
-    {
-      @SuppressWarnings("rawtypes")
-      @Override
-      public Class loadClass(String name, boolean lookupScriptFiles, boolean preferClassOverScript, boolean resolve)
-          throws ClassNotFoundException, CompilationFailedException
-      {
-        Class loadClass = null;
-        try {
-          loadClass = super.loadClass(name, lookupScriptFiles, preferClassOverScript, resolve);
-        } catch (ClassNotFoundException e) {
-          if (name.startsWith("org.projectforge")) {
-            String refClassName = null;
-            String[] nameParts = name.split("\\.");
-            refClassName = refService.getNewPackageNameForClass(nameParts[nameParts.length - 1]);
-            if (refClassName != null) {
-              loadClass = super.loadClass(refClassName, lookupScriptFiles, preferClassOverScript, resolve);
-              if (loadClass == null) {
-                log.error("Error while resolving Class: " + name);
-                throw e;
-              }
-            }
-          }
+    public ScriptExecutionResult execute(final ScriptExecutionResult result, final String script, final Map<String, Object> variables) {
+        if (script == null) {
+            return result;
         }
-        return loadClass;
-      }
-    };
+        final Script groovyObject = compileGroovy(result, script, true);
+        if (groovyObject == null) {
+            return result;
+        }
+        return execute(result, groovyObject, variables);
+    }
 
-    Class<?> groovyClass;
-    try {
-      groovyClass = gcl.parseClass(script);
-    } catch (final CompilationFailedException ex) {
-      log.info("Groovy-CompilationFailedException: " + ex.getMessage());
-      if (result != null) {
-        result.setException(ex);
-      }
-      return null;
+    public String executeTemplate(final String template, final Map<String, Object> variables) {
+        securityChecks(template);
+        return executeTemplate(new SimpleTemplateEngine(), template, variables);
     }
-    Script groovyObject;
-    try {
-      groovyObject = (Script) groovyClass.newInstance();
-    } catch (final InstantiationException | IllegalAccessException ex) {
-      log.error(ex.getMessage(), ex);
-      if (result != null) {
-        result.setException(ex);
-      }
-      return null;
-    }
-    if (bindScriptResult) {
-      final Binding binding = groovyObject.getBinding();
-      binding.setVariable("scriptResult", result);
-    }
-    return groovyObject;
-  }
 
-  public ScriptExecutionResult execute(final Script groovyScript)
-  {
-    return execute(groovyScript, null);
-  }
+    public String executeTemplate(final TemplateEngine templateEngine, final String template,
+                                  final Map<String, Object> variables) {
+        securityChecks(template);
+        if (template == null) {
+            return null;
+        }
+        try {
+            final Template templateObject = templateEngine.createTemplate(template);
+            final Writable writable = templateObject.make(variables);
+            final StringWriter writer = new StringWriter();
+            writable.writeTo(writer);
+            writer.flush();
+            if (log.isDebugEnabled()) {
+                log.debug(writer.toString());
+            }
+            return writer.toString();
+        } catch (final CompilationFailedException | IOException | ClassNotFoundException ex) {
+            log.error(ex.getMessage() + " while executing template: " + template, ex);
+        }
+        return null;
+    }
 
-  public ScriptExecutionResult execute(final Script groovyScript, final Map<String, Object> variables)
-  {
-    return execute(null, groovyScript, variables);
-  }
+    /**
+     * @param script
+     * @param bindScriptResult If true then "scriptResult" from type GroovyResult is binded.
+     * @return
+     */
+    public Script compileGroovy(final String script, final boolean bindScriptResult) {
+        return compileGroovy(null, script, bindScriptResult);
+    }
 
-  public ScriptExecutionResult execute(ScriptExecutionResult result, final Script groovyScript, final Map<String, Object> variables)
-  {
-    if (variables != null) {
-      final Binding binding = groovyScript.getBinding();
-      for (final Map.Entry<String, Object> entry : variables.entrySet()) {
-        binding.setVariable(entry.getKey(), entry.getValue());
-      }
-    }
-    if (result == null) {
-      result = new ScriptExecutionResult(new ScriptLogger());
-    }
-    Object res;
-    try {
-      res = groovyScript.run();
-    } catch (final Exception ex) {
-      log.info("Groovy-Execution-Exception: " + ex.getMessage(), ex);
-      result.setException(ex);
-      return result;
-    }
-    result.setResult(res);
-    return result;
-  }
+    /**
+     * @param script
+     * @param bindScriptResult If true then "scriptResult" from type GroovyResult is binded.
+     * @return
+     */
+    public Script compileGroovy(final ScriptExecutionResult result, final String script, final boolean bindScriptResult) {
+        securityChecks(script);
+        final GroovyClassLoader gcl = new GroovyClassLoader() {
+            @SuppressWarnings("rawtypes")
+            @Override
+            public Class loadClass(String name, boolean lookupScriptFiles, boolean preferClassOverScript, boolean resolve)
+                    throws ClassNotFoundException, CompilationFailedException {
+                Class loadClass = null;
+                try {
+                    loadClass = super.loadClass(name, lookupScriptFiles, preferClassOverScript, resolve);
+                } catch (ClassNotFoundException e) {
+                    if (name.startsWith("org.projectforge")) {
+                        log.error("Error while resolving Class: " + name);
+                    }
+                }
+                return loadClass;
+            }
+        };
 
-  /**
-   * Better than nothing...
-   *
-   * @param script
-   */
-  private void securityChecks(final String script)
-  {
-    final String[] forbiddenKeyWords = { "__baseDao", "__baseObject", "System.ex" };
-    for (final String forbiddenKeyWord : forbiddenKeyWords) {
-      if (StringUtils.contains(script, forbiddenKeyWord)) {
-        throw new AccessException("access.exception.violation", forbiddenKeyWord);
-      }
+        Class<?> groovyClass;
+        try {
+            groovyClass = gcl.parseClass(script);
+        } catch (final CompilationFailedException ex) {
+            log.info("Groovy-CompilationFailedException: " + ex.getMessage());
+            if (result != null) {
+                result.setException(ex);
+            }
+            return null;
+        }
+        Script groovyObject;
+        try {
+            groovyObject = (Script) groovyClass.newInstance();
+        } catch (final InstantiationException | IllegalAccessException ex) {
+            log.error(ex.getMessage(), ex);
+            if (result != null) {
+                result.setException(ex);
+            }
+            return null;
+        }
+        if (bindScriptResult) {
+            final Binding binding = groovyObject.getBinding();
+            binding.setVariable("scriptResult", result);
+        }
+        return groovyObject;
     }
-  }
+
+    public ScriptExecutionResult execute(final Script groovyScript) {
+        return execute(groovyScript, null);
+    }
+
+    public ScriptExecutionResult execute(final Script groovyScript, final Map<String, Object> variables) {
+        return execute(null, groovyScript, variables);
+    }
+
+    public ScriptExecutionResult execute(ScriptExecutionResult result, final Script groovyScript, final Map<String, Object> variables) {
+        if (variables != null) {
+            final Binding binding = groovyScript.getBinding();
+            for (final Map.Entry<String, Object> entry : variables.entrySet()) {
+                binding.setVariable(entry.getKey(), entry.getValue());
+            }
+        }
+        if (result == null) {
+            result = new ScriptExecutionResult(new ScriptLogger());
+        }
+        Object res;
+        try {
+            res = groovyScript.run();
+        } catch (final Exception ex) {
+            log.info("Groovy-Execution-Exception: " + ex.getMessage(), ex);
+            result.setException(ex);
+            return result;
+        }
+        result.setResult(res);
+        return result;
+    }
+
+    /**
+     * Better than nothing...
+     *
+     * @param script
+     */
+    private void securityChecks(final String script) {
+        final String[] forbiddenKeyWords = {"__baseDao", "__baseObject", "System.ex"};
+        for (final String forbiddenKeyWord : forbiddenKeyWords) {
+            if (StringUtils.contains(script, forbiddenKeyWord)) {
+                throw new AccessException("access.exception.violation", forbiddenKeyWord);
+            }
+        }
+    }
 }

@@ -60,7 +60,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO> {
    * @see Configuration#setExpired()
    */
   @Override
-  protected void afterSaveOrModify(final ConfigurationDO obj) {
+  public void afterSaveOrModify(final ConfigurationDO obj) {
     Configuration.getInstance().setExpired();
   }
 

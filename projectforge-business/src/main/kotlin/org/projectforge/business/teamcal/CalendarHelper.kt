@@ -28,7 +28,6 @@ import org.projectforge.business.timesheet.TimesheetDO
 
 object CalendarHelper {
   @JvmStatic
-  @JvmOverloads
   fun getTitle(timesheet: TimesheetDO): String {
     val kost2 = timesheet.kost2
     val task = timesheet.task

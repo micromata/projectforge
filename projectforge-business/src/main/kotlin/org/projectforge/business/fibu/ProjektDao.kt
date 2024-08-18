@@ -175,11 +175,11 @@ class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         super.onSaveOrModify(obj)
     }
 
-    override fun afterSaveOrModify(projekt: ProjektDO) {
-        if (projekt.taskId != null) {
-            taskTree!!.internalSetProject(projekt.taskId, projekt)
+    override fun afterSaveOrModify(obj: ProjektDO) {
+        if (obj.taskId != null) {
+            taskTree!!.internalSetProject(obj.taskId, obj)
         }
-        super.afterSaveOrModify(projekt)
+        super.afterSaveOrModify(obj)
     }
 
     override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?) {
@@ -196,7 +196,6 @@ class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.PM_PROJECT
-        private val log: Logger = LoggerFactory.getLogger(ProjektDao::class.java)
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "kunde.name", "kunde.division", "projektManagerGroup.name",
             "headOfBusinessManager.username", "headOfBusinessManager.firstname", "headOfBusinessManager.lastname",

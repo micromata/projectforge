@@ -331,9 +331,7 @@ abstract class ScriptExecutor(
       INCLUDE_REGEX.findAll(scriptContent).forEach { m ->
         val snippetNameOrId = m.groupValues[1]
         val id = snippetNameOrId.toIntOrNull()
-        var snippet: ScriptDO? = null
-        snippet =
-          processedScripts.find {
+        var snippet = processedScripts.find {
             (id != null && it.id == id) ||
                 it.name?.contains(
                   snippetNameOrId.trim(),

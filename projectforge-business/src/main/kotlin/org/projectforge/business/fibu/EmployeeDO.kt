@@ -229,9 +229,9 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
             return true
         }
 
-    override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
-        val modificationStatus = super.copyValuesFrom(source, "timeableAttributes")
-        val src = source as EmployeeDO
+    override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
+        val modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
+        // val src = source as EmployeeDO
         log.warn("*** To be implemented: EmployeeDO.copyValuesFrom for timeableAttributes")
         return modificationStatus
     }

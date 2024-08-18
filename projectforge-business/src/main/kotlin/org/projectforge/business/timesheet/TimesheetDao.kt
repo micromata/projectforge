@@ -252,9 +252,6 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     } else {
       internalGetList(queryFilter)
     }
-    if (result == null) {
-      return null
-    }
     if (myFilter.isOnlyBillable) {
       val list: List<TimesheetDO> = result
       result = ArrayList()

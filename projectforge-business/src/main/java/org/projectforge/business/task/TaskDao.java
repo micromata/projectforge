@@ -82,7 +82,7 @@ public class TaskDao extends BaseDao<TaskDO> {
    * Checks constraint violation.
    */
   @Override
-  protected void onSaveOrModify(final TaskDO obj) {
+  public void onSaveOrModify(final TaskDO obj) {
     synchronized (this) {
       checkConstraintVioloation(obj);
     }
@@ -272,7 +272,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   @Override
-  protected void afterSaveOrModify(final TaskDO obj) {
+  public void afterSaveOrModify(final TaskDO obj) {
     taskTree.addOrUpdateTaskNode(obj);
   }
 
@@ -444,7 +444,7 @@ public class TaskDao extends BaseDao<TaskDO> {
   }
 
   @Override
-  protected EntityCopyStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields) {
+  public EntityCopyStatus copyValues(final TaskDO src, final TaskDO dest, final String... ignoreFields) {
     EntityCopyStatus modified = super.copyValues(src, dest, ignoreFields);
     // Priority value is null-able (may be was not copied from super.copyValues):
     if (!Objects.equals(dest.getPriority(), src.getPriority())) {
@@ -482,7 +482,7 @@ public class TaskDao extends BaseDao<TaskDO> {
    * Checks only root task (can't be deleted).
    */
   @Override
-  protected void onDelete(final TaskDO obj) {
+  public void onDelete(final TaskDO obj) {
     if (taskTree.isRootNode(obj)) {
       throw new UserException("task.error.couldNotDeleteRootTask");
     }
@@ -492,7 +492,7 @@ public class TaskDao extends BaseDao<TaskDO> {
    * Re-index all dependent objects only if the title was changed.
    */
   @Override
-  protected boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj) {
+  public boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj) {
     if (!super.wantsReindexAllDependentObjects(obj, dbObj)) {
       return false;
     }

@@ -27,7 +27,6 @@ import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -47,9 +46,6 @@ public class CronReindexingHourlyJob {
 
   @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
-
-  @Autowired
-  private PfEmgrFactory emgrFactory;
 
   //@Scheduled(cron = "0 0 * * * *")
   //@Scheduled(cron = "${projectforge.cron.hourly}")

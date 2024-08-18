@@ -127,7 +127,7 @@ open class AddressImageDao {
     }
 
     private fun get(addressId: Int?): AddressImageDO? {
-        val address = addressDao.getById(addressId) ?: return null // For access checking!
+        val address = addressDao.getById(addressId)
         if (address == null) {
             log.error("Can't save or update immage of address. Address #$addressId not found.")
             return null

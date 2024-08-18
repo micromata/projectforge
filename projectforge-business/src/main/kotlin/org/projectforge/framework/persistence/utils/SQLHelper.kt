@@ -116,7 +116,7 @@ object SQLHelper {
     }
 
 
-    internal fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
+    fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
         val queryString = query.unwrap(org.hibernate.Query::class.java).getQueryString()
         val sb = StringBuilder()
         sb.append("query='$queryString', params=[") //query.getQueryString())

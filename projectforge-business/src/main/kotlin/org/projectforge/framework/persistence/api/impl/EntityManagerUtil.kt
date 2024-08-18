@@ -30,6 +30,7 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
+import org.hibernate.NonUniqueResultException
 import org.hibernate.Session
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.utils.SQLHelper.queryToString
@@ -42,20 +43,9 @@ object EntityManagerUtil {
         readonly: Boolean = false,
         run: (em: EntityManager) -> T
     ): T {
-        entityManagerFactory.createEntityManager().use { em ->
-            if (readonly) {
-                em.unwrap(Session::class.java).isDefaultReadOnly = true
-            }
-            em.transaction.begin()
-            try {
-                val ret = run(em)
-                // em.flush()
-                em.transaction.commit()
-                return ret
-            } catch (ex: Exception) {
-                em.transaction.rollback()
-                log.error(ex.message, ex)
-                throw ex
+        return entityManagerFactory.createEntityManager().use { em ->
+            runInTransactionIfNotReadonly(em, readonly = readonly) {
+                run(em)
             }
         }
     }
@@ -103,27 +93,67 @@ object EntityManagerUtil {
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         detached: Boolean = true,
+        namedQuery: Boolean = false,
     ): T? {
         entityManagerFactory.createEntityManager().use { em ->
-            val query = createQuery<T>(em, resultClass, sql, *keyValues)
-            val result = query.singleResult
-            if (result != null) {
-                if (!nullAllowed) {
-                    throw InternalErrorException(
-                        "Internal error: ProjectForge requires a single entry, but no entry found: ${
-                            queryToString(
-                                query,
-                                errorMessage
-                            )
-                        }"
-                    )
-                }
-                if (detached && em.contains(result)) {
-                    em.detach(result)
-                }
-            }
-            return result
+            return selectSingleResult(
+                em,
+                resultClass,
+                sql = sql,
+                keyValues = keyValues,
+                nullAllowed = nullAllowed,
+                errorMessage = errorMessage,
+                detached = detached,
+                namedQuery = namedQuery,
+            )
         }
+    }
+
+    /**
+     * @param nullAllowed If false, an exception is thrown if no result is found.
+     * @param errorMessage If not null, this message is used in the exception.
+     * @param detached If true, the result is detached (default).
+     */
+    fun <T> selectSingleResult(
+        em: EntityManager,
+        resultClass: Class<T>,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        nullAllowed: Boolean = true,
+        errorMessage: String? = null,
+        detached: Boolean = true,
+        namedQuery: Boolean = false,
+    ): T? {
+        val query = createQuery(em, resultClass, sql, *keyValues, namedQuery = namedQuery)
+        val result = try {
+            // NoResultException – if there is no result
+            // NonUniqueResultException
+            if (nullAllowed) {
+                val list = query.resultList
+                if (list.isEmpty()) {
+                    return null
+                }
+                if (list.size > 1) {
+                    throw (NonUniqueResultException(list.size))
+                }
+                list[0]
+            } else {
+                query.singleResult
+            }
+        } catch (ex: Exception) {
+            throw InternalErrorException(
+                "${ex.message}: ${
+                    queryToString(
+                        query,
+                        errorMessage
+                    )
+                }"
+            )
+        }
+        if (detached && em.contains(result)) {
+            em.detach(result)
+        }
+        return result
     }
 
     /**
@@ -136,13 +166,15 @@ object EntityManagerUtil {
         vararg keyValues: Pair<String, Any?>,
         detached: Boolean = true,
     ): List<T?> {
-        return queryNullable(
-            entityManagerFactory.createEntityManager(),
-            resultClass,
-            sql,
-            *keyValues,
-            detached = detached,
-        )
+        entityManagerFactory.createEntityManager().use { em ->
+            return queryNullable(
+                em,
+                resultClass,
+                sql,
+                *keyValues,
+                detached = detached,
+            )
+        }
     }
 
     /**
@@ -177,14 +209,20 @@ object EntityManagerUtil {
         sql: String,
         vararg keyValues: Pair<String, Any?>,
         detached: Boolean = true,
+        namedQuery: Boolean = false,
+        maxResults: Int? = null,
     ): List<T> {
-        return query(
-            entityManagerFactory.createEntityManager(),
-            resultClass,
-            sql,
-            *keyValues,
-            detached = detached,
-        )
+        entityManagerFactory.createEntityManager().use { em ->
+            return query(
+                em,
+                resultClass = resultClass,
+                sql = sql,
+                keyValues = keyValues,
+                detached = detached,
+                namedQuery = namedQuery,
+                maxResults = maxResults,
+            )
+        }
     }
 
     /**
@@ -196,8 +234,13 @@ object EntityManagerUtil {
         sql: String,
         vararg keyValues: Pair<String, Any?>,
         detached: Boolean = true,
+        namedQuery: Boolean = false,
+        maxResults: Int? = null,
     ): List<T> {
-        val q = createQuery<T>(em, resultClass, sql, *keyValues)
+        val q = createQuery(em, resultClass, sql, *keyValues, namedQuery = namedQuery)
+        if (maxResults != null) {
+            q.maxResults = maxResults
+        }
         val ret = q.resultList
         if (detached) {
             ret.forEach { obj ->
@@ -213,13 +256,29 @@ object EntityManagerUtil {
         em: EntityManager,
         resultClass: Class<T>,
         sql: String,
-        vararg keyValues: Pair<String, Any?>
+        vararg keyValues: Pair<String, Any?>,
+        namedQuery: Boolean = false,
     ): TypedQuery<T> {
-        val query: TypedQuery<T> = em.createQuery(sql, resultClass)
+        val query: TypedQuery<T> = if (namedQuery) {
+            em.createNamedQuery(sql, resultClass)
+        } else {
+            em.createQuery(sql, resultClass)
+        }
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
         return query
+    }
+
+    fun insert(
+        entityManagerFactory: EntityManagerFactory,
+        dbObj: Any,
+    ) {
+        entityManagerFactory.createEntityManager().use { em ->
+            runInTransactionIfNotReadonly(em) {
+                insert(em, dbObj)
+            }
+        }
     }
 
     fun insert(
@@ -229,19 +288,13 @@ object EntityManagerUtil {
         em.persist(dbObj)
     }
 
-    fun insert(
+    fun delete(
         entityManagerFactory: EntityManagerFactory,
         dbObj: Any,
     ) {
         entityManagerFactory.createEntityManager().use { em ->
-            em.transaction.begin()
-            try {
-                em.persist(dbObj)
-                em.transaction.commit()
-            } catch (ex: Exception) {
-                em.transaction.rollback()
-                log.error("Error while trying to persist: ${ex.message}", ex)
-                throw ex
+            runInTransactionIfNotReadonly(em) {
+                delete(em, dbObj)
             }
         }
     }
@@ -253,19 +306,14 @@ object EntityManagerUtil {
         em.remove(dbObj)
     }
 
-    fun delete(
+    fun <T> delete(
         entityManagerFactory: EntityManagerFactory,
-        dbObj: Any,
+        entityClass: Class<T>,
+        id: Any,
     ) {
         entityManagerFactory.createEntityManager().use { em ->
-            em.transaction.begin()
-            try {
-                delete(em, dbObj)
-                em.transaction.commit()
-            } catch (ex: Exception) {
-                em.transaction.rollback()
-                log.error("Error while trying to remove: ${ex.message}", ex)
-                throw ex
+            runInTransactionIfNotReadonly(em) {
+                delete(em, entityClass, id)
             }
         }
     }
@@ -280,20 +328,14 @@ object EntityManagerUtil {
         }
     }
 
-    fun <T> delete(
+    fun <T> criteriaUpdate(
         entityManagerFactory: EntityManagerFactory,
         entityClass: Class<T>,
-        id: Any,
+        update: (cb: CriteriaBuilder, root: Root<T>, update: CriteriaUpdate<T>) -> Unit
     ) {
         entityManagerFactory.createEntityManager().use { em ->
-            em.transaction.begin()
-            try {
-                delete(em, entityClass, id)
-                em.transaction.commit()
-            } catch (ex: Exception) {
-                em.transaction.rollback()
-                log.error("Error while trying to remove: ${ex.message}", ex)
-                throw ex
+            runInTransactionIfNotReadonly(em) {
+                criteriaUpdate(em, entityClass, update)
             }
         }
     }
@@ -311,19 +353,64 @@ object EntityManagerUtil {
         em.createQuery(criteriaUpdate).executeUpdate()
     }
 
-    fun <T> criteriaUpdate(
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeUpdate(
         entityManagerFactory: EntityManagerFactory,
-        entityClass: Class<T>,
-        update: (cb: CriteriaBuilder, root: Root<T>, update: CriteriaUpdate<T>) -> Unit
-    ) {
-        entityManagerFactory.createEntityManager().use { em ->
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        namedQuery: Boolean = false,
+    ): Int {
+        return entityManagerFactory.createEntityManager().use { em ->
+            runInTransactionIfNotReadonly(em) {
+                executeUpdate(em, sql, *keyValues, namedQuery = namedQuery)
+            }
+        }
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeUpdate(
+        em: EntityManager,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        namedQuery: Boolean = false,
+    ): Int {
+        val query = if (namedQuery) {
+            em.createNamedQuery(sql)
+        } else {
+            em.createQuery(sql)
+        }
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query.executeUpdate()
+    }
+
+    /**
+     * Encapsulates the run statement in a transaction begin and commit. Rollback on error.
+     * @param readonly If true, the session will set as readonly and only the run statement will be executed.
+     */
+    private fun <T> runInTransactionIfNotReadonly(
+        em: EntityManager,
+        readonly: Boolean = false,
+        execute: (em: EntityManager) -> T,
+    ): T {
+        if (readonly) {
+            em.unwrap(Session::class.java).isDefaultReadOnly = true
+            // No transaction in readonly mode.
+            return execute(em)
+        } else {
             em.transaction.begin()
             try {
-                criteriaUpdate(em, entityClass, update)
+                val ret = execute(em)
                 em.transaction.commit()
+                return ret
             } catch (ex: Exception) {
                 em.transaction.rollback()
-                log.error("Error while trying to remove: ${ex.message}", ex)
+                log.error(ex.message, ex)
                 throw ex
             }
         }

@@ -31,6 +31,7 @@ import static java.lang.annotation.ElementType.FIELD;
 
 /**
  * Annotations for telling ProjectForge how to handle persistency.
+ * Used by BaseDaoJpaAdapter.copyDeclaredFields
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Target( { FIELD})

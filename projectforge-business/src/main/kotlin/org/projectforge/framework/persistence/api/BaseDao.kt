@@ -24,6 +24,7 @@ package org.projectforge.framework.persistence.api
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.PredicateUtils
 import org.apache.commons.lang3.StringUtils
@@ -53,14 +54,14 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.us
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.time.PFDateTime.Companion.now
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
 import java.util.*
 import java.util.stream.Collectors
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -69,7 +70,7 @@ import java.util.stream.Collectors
 abstract class BaseDao<O : ExtendedBaseDO<Int>>
 /**
  * The setting of the DO class is required.
- */ protected constructor(var doClass: Class<O>) : IDao<O>, IPersistenceService<O> {
+ */ protected constructor(var doClass: Class<O>) : IDao<O> {
     private val objectChangedListeners: MutableList<BaseDOChangedListener<O>> = LinkedList()
 
     var identifier: String? = null
@@ -92,13 +93,13 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         private set
 
     @JvmField
-    internal var logDatabaseActions: Boolean = true
+    var logDatabaseActions: Boolean = true
 
     @PersistenceContext
     protected lateinit var em: EntityManager
 
     @Autowired
-    internal lateinit var accessChecker: AccessChecker
+    lateinit var accessChecker: AccessChecker
 
     @Autowired
     protected lateinit var dbQuery: DBQuery
@@ -136,7 +137,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * base entry in this method.
      */
     @JvmField
-    internal var supportAfterUpdate: Boolean = false
+    var supportAfterUpdate: Boolean = false
 
     /**
      * If true, deletion of historizable objects is supported (including any history entry) due to privacy protection (e. g. addresses).
@@ -146,7 +147,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         protected set
 
     @Autowired
-    internal lateinit var persistenceService: PfPersistenceService
+    lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var userRights: UserRightService
@@ -166,7 +167,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
          */
         get() = null
 
-    abstract override fun newInstance(): O
+    abstract fun newInstance(): O
 
     /**
      * getOrLoad checks first weather the id is valid or not. Default implementation: id != 0 && id &gt; 0. Overload this,
@@ -336,7 +337,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     /**
      * Overwrite this method for own list sorting. This method returns only the given list.
      */
-    open fun sort(list: List<O>?): List<O>? {
+    open fun sorted(list: List<O>): List<O> {
         return list
     }
 
@@ -344,7 +345,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param id primary key of the base object.
      */
     @Throws(AccessException::class)
-    override fun getById(id: Serializable?): O? {
+    fun getById(id: Serializable?): O? {
         id ?: return null
         accessChecker.checkRestrictedUser()
         checkLoggedInUserSelectAccess()
@@ -359,7 +360,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         }
         val obj = ensureUniqueResult(
             em.createQuery(
-                "select t from " + doClass.name + " t where t.id = :id", doClass
+                "select t from ${doClass.name} t where t.id = :id", doClass
             )
                 .setParameter("id", id)
         )
@@ -389,20 +390,20 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * Gets the history entries of the object in flat format.<br></br>
      * Please note: If user has no access an empty list will be returned.
      */
-    override fun getDisplayHistoryEntries(obj: O): List<DisplayHistoryEntry> {
+    open fun getDisplayHistoryEntries(obj: O): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
-            return emptyList()
+            return mutableListOf()
         }
         return internalGetDisplayHistoryEntries(obj)
     }
 
-    protected fun internalGetDisplayHistoryEntries(obj: BaseDO<*>): List<DisplayHistoryEntry> {
+    protected fun internalGetDisplayHistoryEntries(obj: BaseDO<*>): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
         val entries = internalGetHistoryEntries(obj)
         return convertAll(entries, em)
     }
 
-    private fun convertAll(entries: Array<HistoryEntry<*>>, em: EntityManager): List<DisplayHistoryEntry> {
+    private fun convertAll(entries: Array<HistoryEntry<*>>, em: EntityManager): MutableList<DisplayHistoryEntry> {
         val list: MutableList<DisplayHistoryEntry> = ArrayList()
         for (entry in entries) {
             val l = convert(entry, em)
@@ -477,9 +478,8 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     @Throws(
         AccessException::class
     )
-    override fun save(obj: O): Int {
+    open fun save(obj: O): Int {
         //long begin = System.currentTimeMillis();
-        Validate.notNull(obj)
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
         }
@@ -496,7 +496,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     @Throws(
         AccessException::class
     )
-    override fun insert(obj: O): Int {
+    open fun insert(obj: O): Int {
         return save(obj)
     }
 
@@ -512,7 +512,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * is for example needed for expiring the UserGroupCache after inserting or updating a user or group data object. Does
      * nothing at default.
      */
-    internal open fun afterSaveOrModify(obj: O) {
+    open fun afterSaveOrModify(obj: O) {
     }
 
     /**
@@ -520,28 +520,28 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      *
      * @param obj The inserted object
      */
-    internal open fun afterSave(obj: O) {
+    open fun afterSave(obj: O) {
         callObjectChangedListeners(obj, OperationType.INSERT)
     }
 
     /**
      * This method will be called before inserting. Does nothing at default.
      */
-    internal open fun onSave(obj: O) {
+    open fun onSave(obj: O) {
     }
 
     /**
      * This method will be called before inserting, updating, deleting or marking the data object as deleted. Does nothing
      * at default.
      */
-    internal open fun onSaveOrModify(obj: O) {
+    open fun onSaveOrModify(obj: O) {
     }
 
     /**
      * This method will be called before access check of inserting and updating the object. Does nothing
      * at default.
      */
-    internal open fun beforeSaveOrModify(obj: O) {
+    open fun beforeSaveOrModify(obj: O) {
     }
 
     /**
@@ -551,7 +551,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param obj   The modified object
      * @param dbObj The object from data base before modification.
      */
-    internal open fun afterUpdate(obj: O, dbObj: O?) {
+    open fun afterUpdate(obj: O, dbObj: O?) {
         callObjectChangedListeners(obj, OperationType.UPDATE)
     }
 
@@ -563,7 +563,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param dbObj      The object from data base before modification.
      * @param isModified is true if the object was changed, false if the object wasn't modified.
      */
-    internal open fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean) {
+    open fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean) {
         callObjectChangedListeners(obj, OperationType.UPDATE)
     }
 
@@ -574,7 +574,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param obj   The changed object.
      * @param dbObj The current database version of this object.
      */
-    internal open fun onChange(obj: O, dbObj: O) {
+    open fun onChange(obj: O, dbObj: O) {
     }
 
     /**
@@ -582,7 +582,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      *
      * @param obj The deleted object.
      */
-    internal open fun onDelete(obj: O) {
+    open fun onDelete(obj: O) {
     }
 
     /**
@@ -590,7 +590,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      *
      * @param obj The deleted object.
      */
-    internal open fun afterDelete(obj: O) {
+    open fun afterDelete(obj: O) {
         callObjectChangedListeners(obj, OperationType.DELETE)
     }
 
@@ -599,11 +599,11 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      *
      * @param obj The deleted object.
      */
-    internal open fun afterUndelete(obj: O) {
+    open fun afterUndelete(obj: O) {
         callObjectChangedListeners(obj, OperationType.UNDELETE)
     }
 
-    internal fun callObjectChangedListeners(obj: O, operationType: OperationType) {
+    fun callObjectChangedListeners(obj: O, operationType: OperationType) {
         for (objectChangedListener in objectChangedListeners) {
             objectChangedListener.afterSaveOrModify(obj, operationType)
         }
@@ -670,8 +670,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     @Throws(
         AccessException::class
     )
-    override fun update(obj: O): EntityCopyStatus {
-        Validate.notNull(obj)
+    open fun update(obj: O): EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not update object unless id is not given:$obj"
             log.error(msg)
@@ -738,7 +737,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * UserDao to see more.
      * @see BaseDO.isMinorChange
      */
-    internal open fun wantsReindexAllDependentObjects(obj: O, dbObj: O): Boolean {
+    open fun wantsReindexAllDependentObjects(obj: O, dbObj: O): Boolean {
         return !obj.isMinorChange
     }
 
@@ -746,7 +745,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * Used by internal update if supportAfterUpdate is true for storing db object version for afterUpdate. Override this
      * method to implement your own copy method.
      */
-    internal open fun getBackupObject(dbObj: O): O {
+    open fun getBackupObject(dbObj: O): O {
         val backupObj = newInstance()
         copyValues(dbObj, backupObj)
         return backupObj
@@ -755,7 +754,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     /**
      * Overwrite this method if you have lazy exceptions while Hibernate-Search re-indexes. See e. g. AuftragDao.
      */
-    internal open fun prepareHibernateSearch(obj: O, operationType: OperationType) {
+    open fun prepareHibernateSearch(obj: O, operationType: OperationType) {
     }
 
     /**
@@ -765,7 +764,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     @Throws(
         AccessException::class
     )
-    override fun markAsDeleted(obj: O) {
+    open fun markAsDeleted(obj: O) {
         Validate.notNull(obj)
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
@@ -816,8 +815,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     @Throws(
         AccessException::class
     )
-    override fun delete(obj: O) {
-        Validate.notNull(obj)
+    open fun delete(obj: O) {
         accessChecker.checkRestrictedOrDemoUser()
         internalDelete(obj)
     }
@@ -866,8 +864,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     @Throws(
         AccessException::class
     )
-    override fun undelete(obj: O) {
-        Validate.notNull(obj)
+    open fun undelete(obj: O) {
         if (obj.id == null) {
             val msg = "Could not undelete object unless id is not given:$obj"
             log.error(msg)
@@ -1081,7 +1078,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param obj Check access to this object.
      * @see .hasInsertAccess
      */
-    override fun hasLoggedInUserInsertAccess(obj: O, throwException: Boolean): Boolean {
+    open fun hasLoggedInUserInsertAccess(obj: O, throwException: Boolean): Boolean {
         return hasInsertAccess(requiredLoggedInUser, obj, throwException)
     }
 
@@ -1102,7 +1099,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      *
      * @see org.projectforge.framework.persistence.api.IDao.hasInsertAccess
      */
-    override fun hasLoggedInUserInsertAccess(): Boolean {
+    open fun hasLoggedInUserInsertAccess(): Boolean {
         return hasInsertAccess(requiredLoggedInUser)
     }
 
@@ -1127,7 +1124,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param obj   Check access to this object.
      * @see .hasUpdateAccess
      */
-    override fun hasLoggedInUserUpdateAccess(obj: O, dbObj: O, throwException: Boolean): Boolean {
+    open fun hasLoggedInUserUpdateAccess(obj: O, dbObj: O, throwException: Boolean): Boolean {
         return hasUpdateAccess(requiredLoggedInUser, obj, dbObj, throwException)
     }
 
@@ -1149,7 +1146,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param dbObj current version of this object in the data base.
      * @see .hasDeleteAccess
      */
-    override fun hasLoggedInUserDeleteAccess(obj: O, dbObj: O, throwException: Boolean): Boolean {
+    open fun hasLoggedInUserDeleteAccess(obj: O, dbObj: O, throwException: Boolean): Boolean {
         return hasDeleteAccess(user!!, obj, dbObj, throwException)
     }
 
@@ -1160,7 +1157,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param dbObj current version of this object in the data base.
      * @see .hasAccess
      */
-    override fun hasDeleteAccess(user: PFUserDO, obj: O, dbObj: O, throwException: Boolean): Boolean {
+    open fun hasDeleteAccess(user: PFUserDO, obj: O, dbObj: O, throwException: Boolean): Boolean {
         return hasAccess(user, obj, dbObj, OperationType.DELETE, throwException)
     }
 
@@ -1178,7 +1175,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @return true, if any field was modified, otherwise false.
      * @see BaseDO.copyValuesFrom
      */
-    internal open fun copyValues(src: O, dest: O, vararg ignoreFields: String): EntityCopyStatus? {
+    open fun copyValues(src: O, dest: O, vararg ignoreFields: String): EntityCopyStatus? {
         return dest.copyValuesFrom(src, *ignoreFields)
     }
 
@@ -1218,7 +1215,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param searchString String the user has typed in.
      * @return All matching entries (like search) for the given property modified or updated in the last 2 years.
      */
-    override fun getAutocompletion(property: String, searchString: String): List<String> {
+    open fun getAutocompletion(property: String, searchString: String): List<String> {
         checkLoggedInUserSelectAccess()
         if (!isAutocompletionPropertyEnabled(property)) {
             log.warn("Security alert: The user tried to select property '" + property + "' of entity '" + doClass.name + "'.")
@@ -1247,7 +1244,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @see DatabaseDao.createReindexSettings
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    override fun rebuildDatabaseIndex4NewestEntries() {
+    open fun rebuildDatabaseIndex4NewestEntries() {
         val settings = createReindexSettings(true)
         databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
         databaseDao.rebuildDatabaseSearchIndices(PfHistoryMasterDO::class.java, settings)
@@ -1257,7 +1254,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * Re-indexes all entries (full re-index).
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    override fun rebuildDatabaseIndex() {
+    open fun rebuildDatabaseIndex() {
         val settings = createReindexSettings(false)
         databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
     }
@@ -1270,9 +1267,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         hibernateSearchDependentObjectsReindexer.reindexDependents(obj)
     }
 
-    protected open val additionalHistorySearchDOs: Array<Class<*>?>?
-        // TODO RK entweder so oder ueber annots.
-        get() = null
+    protected open val additionalHistorySearchDOs: Array<Class<*>>? = null
 
     /**
      * @return Wether the data object (BaseDO) this dao is responsible for is from type Historizable or not.
@@ -1281,12 +1276,12 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         return HistoryBaseDaoAdapter.isHistorizable(doClass)
     }
 
-    override fun getEntityClass(): Class<O> {
+    open fun getEntityClass(): Class<O> {
         return ClassUtils.getGenericTypeArgument(javaClass, 0) as Class<O>
     }
 
     @Throws(AccessException::class)
-    override fun selectByPkDetached(pk: Int): O? {
+    open fun selectByPkDetached(pk: Int): O? {
         // TODO RK not detached here
         return getById(pk)
     }
@@ -1311,6 +1306,5 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         const val MAX_MASS_UPDATE: Int = 100
         const val MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N: String =
             "massUpdate.error.maximumNumberOfAllowedMassUpdatesExceeded"
-        private val log: Logger = LoggerFactory.getLogger(BaseDao::class.java)
     }
 }

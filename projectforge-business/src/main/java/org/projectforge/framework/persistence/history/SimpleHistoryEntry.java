@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.history;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.business.user.UserGroupCache;
@@ -35,9 +33,9 @@ import java.util.Date;
 
 /**
  * For storing the hibernate history entries in flat format.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class SimpleHistoryEntry
 {
@@ -129,7 +127,7 @@ public class SimpleHistoryEntry
 
   /**
    * Returns string containing all fields (except the password, via ReflectionToStringBuilder).
-   * 
+   *
    * @return
    */
   @Override

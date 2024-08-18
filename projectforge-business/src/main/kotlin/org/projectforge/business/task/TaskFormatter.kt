@@ -67,17 +67,17 @@ open class TaskFormatter : AbstractFormatter() {
       outputType: OutputType,
       abreviationLength: Int? = null,
     ): String? {
-      var taskId = taskId ?: return null
+      var currentTaskId = taskId ?: return null
       val taskTree = TaskTree.getInstance()
-      var n: TaskNode? = taskTree.getTaskNodeById(taskId) ?: return null
+      var n: TaskNode? = taskTree.getTaskNodeById(currentTaskId) ?: return null
       if (!showCurrentTask) {
         n = n?.parent
         if (n == null) {
           return null
         }
-        taskId = n.taskId
+        currentTaskId = n.taskId
       }
-      val list = taskTree.getPath(taskId, ancestorTaskId)
+      val list = taskTree.getPath(currentTaskId, ancestorTaskId)
       if (CollectionUtils.isEmpty(list)) {
         return ""
       }
