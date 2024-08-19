@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
  */
 class VacationPeriodFilter(val periodBegin: LocalDate, val periodEnd: LocalDate?) : CustomResultFilter<VacationDO> {
 
-    override fun match(list: MutableList<VacationDO>, element: VacationDO): Boolean {
+    override fun match(list: List<VacationDO>, element: VacationDO): Boolean {
         val startDate = element.startDate
         val endDate = element.endDate
         if (startDate == null || endDate == null) {

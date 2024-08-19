@@ -250,7 +250,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO> {
   }
 
   @Override
-  protected void onDelete(final AddressbookDO obj) {
+   void onDelete(final AddressbookDO obj) {
     super.onDelete(obj);
     persistenceService.runInTrans(emgr -> {
       List<AddressDO> addressList = emgr

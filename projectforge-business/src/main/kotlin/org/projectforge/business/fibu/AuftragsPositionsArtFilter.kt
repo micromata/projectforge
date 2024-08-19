@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 private val log = KotlinLogging.logger {}
 
 class AuftragsPositionsArtFilter(val values: List<AuftragsPositionsArt>) : CustomResultFilter<AuftragDO> {
-    override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
+    override fun match(list:List<AuftragDO>, element: AuftragDO): Boolean {
         if (values.isEmpty()) {
             return true
         }

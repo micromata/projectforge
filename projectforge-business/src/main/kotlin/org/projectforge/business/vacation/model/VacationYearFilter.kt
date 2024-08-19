@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
  */
 class VacationYearFilter(val year: Int) : CustomResultFilter<VacationDO> {
 
-    override fun match(list: MutableList<VacationDO>, element: VacationDO): Boolean {
+    override fun match(list: List<VacationDO>, element: VacationDO): Boolean {
         return element.startDate?.year == year || element.endDate?.year == year
     }
 }
