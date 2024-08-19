@@ -33,7 +33,7 @@ import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.Tuple;
-import java.time.LocalDate;
+
 import java.util.List;
 
 @Repository

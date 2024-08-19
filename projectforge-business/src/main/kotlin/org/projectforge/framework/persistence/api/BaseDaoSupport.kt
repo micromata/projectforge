@@ -46,8 +46,8 @@ object BaseDaoSupport {
     @JvmStatic
     fun <O : ExtendedBaseDO<Int>> internalSave(baseDao: BaseDao<O>, obj: O): Int? {
         preInternalSave(baseDao, obj)
-        baseDao.persistenceService.runInTransaction { em ->
-            internalSave(em, baseDao, obj)
+        baseDao.persistenceService.runInTransaction { context ->
+            internalSave(context.em, baseDao, obj)
             null
         }
         postInternalSave(baseDao, obj)
@@ -95,8 +95,8 @@ object BaseDaoSupport {
     ): EntityCopyStatus? {
         preInternalUpdate(baseDao, obj, checkAccess)
         val res = ResultObject<O>()
-        baseDao.persistenceService.runInTransaction { em ->
-            internalUpdate(em, baseDao, obj, checkAccess, res)
+        baseDao.persistenceService.runInTransaction { context ->
+            internalUpdate(context.em, baseDao, obj, checkAccess, res)
         }
         postInternalUpdate<O>(baseDao, obj, res)
         return res.modStatus
@@ -179,7 +179,8 @@ object BaseDaoSupport {
           throw InternalErrorException("exception.internalError")
         }*/
         baseDao.onDelete(obj)
-        baseDao.persistenceService.runInTransaction { em ->
+        baseDao.persistenceService.runInTransaction { context ->
+            val em = context.em
             val dbObj = em.find(baseDao.doClass, obj.id)
             baseDao.onSaveOrModify(obj)
 
@@ -208,7 +209,8 @@ object BaseDaoSupport {
     @JvmStatic
     fun <O : ExtendedBaseDO<Int>> internalUndelete(baseDao: BaseDao<O>, obj: O) {
         baseDao.onSaveOrModify(obj)
-        baseDao.persistenceService.runInTransaction { em ->
+        baseDao.persistenceService.runInTransaction { context ->
+            val em = context.em
             val dbObj = em.find(baseDao.doClass, obj.id)
             log.error("****** TODO: History stuff")
             /* HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
@@ -286,7 +288,8 @@ object BaseDaoSupport {
      */
     @JvmStatic
     fun <O : ExtendedBaseDO<Int>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>) {
-        baseDao.persistenceService.runInTransaction { em ->
+        baseDao.persistenceService.runInTransaction { context ->
+            val em = context.em
             for (obj in col) {
                 if (obj.id != null) {
                     preInternalUpdate(baseDao, obj, false)

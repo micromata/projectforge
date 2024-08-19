@@ -34,8 +34,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.projectforge.framework.persistence.utils.SQLHelper.getYears
+import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.math.RoundingMode
@@ -62,13 +61,12 @@ class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::clas
          * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
          */
         get() {
-            val minMaxDate = ensureUniqueResult(
-                em.createNamedQuery(
-                    EingangsrechnungDO.SELECT_MIN_MAX_DATE,
-                    Tuple::class.java
-                )
+            val minMaxDate = persistenceService.selectSingleResult(
+                Tuple::class.java,
+                EingangsrechnungDO.SELECT_MIN_MAX_DATE,
+                namedQuery = true,
             )
-            return getYears(minMaxDate!![0], minMaxDate[1])
+            return getYearsByTupleOfLocalDate(minMaxDate)
         }
 
     fun buildStatistik(list: List<EingangsrechnungDO>?): EingangsrechnungsStatistik {

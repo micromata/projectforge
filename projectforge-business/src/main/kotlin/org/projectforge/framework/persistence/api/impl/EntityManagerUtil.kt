@@ -31,10 +31,10 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
+import org.apache.commons.lang3.StringUtils
 import org.hibernate.NonUniqueResultException
 import org.hibernate.Session
 import org.projectforge.framework.i18n.InternalErrorException
-import org.projectforge.framework.persistence.utils.SQLHelper.queryToString
 
 private val log = KotlinLogging.logger {}
 
@@ -459,5 +459,27 @@ internal object EntityManagerUtil {
                 throw ex
             }
         }
+    }
+
+    fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
+        val queryString = query.unwrap(org.hibernate.Query::class.java).getQueryString()
+        val sb = StringBuilder()
+        sb.append("query='$queryString', params=[") //query.getQueryString())
+        var first = true
+        try {
+            for (param in query.parameters) { // getParameterMetadata().getNamedParameterNames()
+                if (!first)
+                    sb.append(",")
+                else
+                    first = false
+                sb.append("${param.name}=[${query.getParameterValue(param)}]")
+            }
+        } catch (ex: Exception) {
+            // Do nothing: Session/EntityManager closed.
+        }
+        sb.append("]")
+        if (StringUtils.isNotBlank(errorMessage))
+            sb.append(", msg=[$errorMessage]")
+        return sb.toString()
     }
 }
