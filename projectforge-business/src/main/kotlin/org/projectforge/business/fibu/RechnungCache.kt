@@ -22,7 +22,6 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.business.fibu
 
-import jakarta.persistence.EntityManager
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.slf4j.Logger
@@ -77,7 +76,10 @@ class RechnungCache : AbstractCache() {
         val mapByAuftragId: MutableMap<Int?, MutableSet<RechnungsPositionVO>> = HashMap()
         val mapByAuftragsPositionId: MutableMap<Int?, MutableSet<RechnungsPositionVO>> = HashMap()
         val mapByRechnungsPositionMapByRechnungId: MutableMap<Int?, MutableSet<RechnungsPositionVO>> = HashMap()
-        val list: List<RechnungsPositionDO> = persistenceService.query(RechnungsPositionDO::class.java, "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null")
+        val list: List<RechnungsPositionDO> = persistenceService.query(
+            "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
+            RechnungsPositionDO::class.java,
+        )
         for (pos in list) {
             val rechnung = pos.rechnung
             val auftragsPosition = pos.auftragsPosition

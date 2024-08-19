@@ -48,8 +48,8 @@ class PfPersistenceContext(
     ): T? {
         return EntityManagerUtil.selectSingleResult(
             em,
-            resultClass,
             sql = sql,
+            resultClass,
             keyValues = *keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
@@ -69,8 +69,8 @@ class PfPersistenceContext(
     ): List<T?> {
         return EntityManagerUtil.queryNullable(
             em,
-            resultClass,
             sql,
+            resultClass,
             *keyValues,
             attached = attached,
         )
@@ -90,8 +90,8 @@ class PfPersistenceContext(
     ): List<T> {
         return EntityManagerUtil.query(
             em,
-            resultClass,
             sql,
+            resultClass,
             *keyValues,
             attached = attached,
             namedQuery = namedQuery,
@@ -127,7 +127,13 @@ class PfPersistenceContext(
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): TypedQuery<T> {
-        return EntityManagerUtil.createQuery(em, resultClass, sql = sql, keyValues = keyValues, namedQuery = namedQuery)
+        return EntityManagerUtil.createQuery(
+            em,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
+            namedQuery = namedQuery,
+        )
     }
 
     fun insert(

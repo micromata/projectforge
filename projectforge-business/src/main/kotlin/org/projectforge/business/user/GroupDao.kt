@@ -90,8 +90,8 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         } else {
             // group already exists. Check maybe changed name:
             persistenceService.selectSingleResult(
-                GroupDO::class.java,
                 GroupDO.FIND_OTHER_GROUP_BY_NAME,
+                GroupDO::class.java,
                 Pair("name", group.name),
                 Pair("id", group.id),
                 namedQuery = true,
@@ -385,8 +385,8 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
             return null
         }
         return persistenceService.selectSingleResult(
-            GroupDO::class.java,
             GroupDO.FIND_BY_NAME,
+            GroupDO::class.java,
             Pair("name", name),
             namedQuery = true,
         )

@@ -80,8 +80,8 @@ class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         }
 
         return persistenceService.selectSingleResult(
-            CalEventDO::class.java,
             sqlQuery.toString(),
+            CalEventDO::class.java,
             *params.toTypedArray(),
             nullAllowed = false,
         )

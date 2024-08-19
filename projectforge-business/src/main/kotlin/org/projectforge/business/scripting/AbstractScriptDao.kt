@@ -44,8 +44,8 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
             return internalGetById(id)
         }
         return persistenceService.selectSingleResult(
-            ScriptDO::class.java,
             ScriptDO.SELECT_BY_NAME,
+            ScriptDO::class.java,
             Pair("name", "%${name.trim().lowercase()}%"),
         )
     }

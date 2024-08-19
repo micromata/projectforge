@@ -257,7 +257,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     open fun getCurrentAndFutureVacations(): List<VacationDO> {
         return persistenceService.query(
-            VacationDO::class.java, VacationDO.FIND_CURRENT_AND_FUTURE,
+            VacationDO.FIND_CURRENT_AND_FUTURE,
+            VacationDO::class.java,
             Pair("endDate", LocalDate.now()),
             Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
         )
@@ -369,7 +370,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate"
         val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
         return persistenceService.query(
-            VacationDO::class.java, sql,
+            sql,
+            VacationDO::class.java,
             Pair("employeeId", employeeId),
             Pair("startDate", startVacationDate),
             Pair("endDate", endVacationDate),
@@ -430,7 +432,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate"
         val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
         return persistenceService.query(
-            VacationDO::class.java, sql,
+            sql,
+            VacationDO::class.java,
             Pair("employee", employee),
             Pair("startDate", startYear),
             Pair("endDate", endYear),
@@ -442,7 +445,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         val baseSQL = "SELECT COUNT(v) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status"
         val sql = baseSQL + META_SQL_WITH_SPECIAL
         return persistenceService.selectSingleResult(
-            Long::class.java, sql,
+            sql,
+            Long::class.java,
             Pair("employee", employee),
             Pair("status", VacationStatus.IN_PROGRESS),
             Pair("deleted", false),

@@ -81,8 +81,8 @@ class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.java) {
 
     fun getEntry(param: IConfigurationParam): ConfigurationDO {
         return persistenceService.selectNamedSingleResult(
-            ConfigurationDO::class.java,
             ConfigurationDO.FIND_BY_PARAMETER,
+            ConfigurationDO::class.java,
             Pair("parameter", param.key),
             nullAllowed = false,
         )!!

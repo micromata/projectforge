@@ -118,7 +118,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             log.warn("Token for user $userId too short, aborting.")
             return null
         }
-        val queryName = when (type) {
+        val sql = when (type) {
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERID_AND_REST_CLIENT_TOKEN
@@ -129,7 +129,8 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             }
         }
         val user = persistenceService.selectSingleResult(
-            PFUserDO::class.java, queryName,
+            sql,
+            PFUserDO::class.java,
             Pair("userId", userId),
             Pair("token", encryptToken(token)),
         )
@@ -145,7 +146,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             log.warn("Token for user '$username' too short, aborting.")
             return null
         }
-        val queryName = when (type) {
+        val sql = when (type) {
             UserTokenType.CALENDAR_REST -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_CALENDAR_TOKEN
             UserTokenType.DAV_TOKEN -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_DAV_TOKEN
             UserTokenType.REST_CLIENT -> UserAuthenticationsDO.FIND_USER_BY_USERNAME_AND_REST_CLIENT_TOKEN
@@ -156,7 +157,8 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             }
         }
         val user = persistenceService.selectSingleResult(
-            PFUserDO::class.java, queryName,
+            sql,
+            PFUserDO::class.java,
             Pair("username", username),
             Pair("token", encryptToken(token)),
         )
@@ -361,7 +363,8 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             hasLoggedInUserAccess(userId)
         }
         var authentications = persistenceService.selectSingleResult(
-            UserAuthenticationsDO::class.java, UserAuthenticationsDO.FIND_BY_USER_ID,
+            UserAuthenticationsDO.FIND_BY_USER_ID,
+            UserAuthenticationsDO::class.java,
             Pair("userId", userId),
         )
         if (authentications == null) {

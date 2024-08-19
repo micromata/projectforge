@@ -361,8 +361,8 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
             return null
         }
         val obj = persistenceService.selectSingleResult(
-            doClass,
             "select t from ${doClass.name} t where t.id = :id",
+            doClass,
             Pair("id", id),
         ) ?: return null
         afterLoad(obj)

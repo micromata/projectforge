@@ -83,7 +83,7 @@ open class PersonalAddressDao {
     /**
      * @param personalAddress
      * @param ownerId         If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+
      */
     fun setOwner(personalAddress: PersonalAddressDO, ownerId: Int) {
         val user = userDao.getOrLoad(ownerId)
@@ -233,8 +233,8 @@ open class PersonalAddressDao {
     private fun getByAddressId(addressId: Int?, owner: PFUserDO?, attached: Boolean): PersonalAddressDO? {
         requireNotNull(owner?.id)
         return persistenceService.selectSingleResult(
-            PersonalAddressDO::class.java,
             PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID,
+            PersonalAddressDO::class.java,
             Pair("ownerId", owner!!.id),
             Pair("addressId", addressId),
             attached = attached,
@@ -249,8 +249,8 @@ open class PersonalAddressDao {
     fun getByAddressUid(addressUid: String): PersonalAddressDO? {
         val owner = requiredLoggedInUser
         return persistenceService.selectSingleResult(
-            PersonalAddressDO::class.java,
             PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_UID,
+            PersonalAddressDO::class.java,
             Pair("ownerId", owner.id),
             Pair("addressUid", addressUid),
             namedQuery = true,
@@ -266,8 +266,8 @@ open class PersonalAddressDao {
             val owner = requiredLoggedInUser
             val start = System.currentTimeMillis()
             val list = persistenceService.namedQuery(
-                PersonalAddressDO::class.java,
                 PersonalAddressDO.FIND_JOINED_BY_OWNER,
+                PersonalAddressDO::class.java,
                 Pair("ownerId", owner.id),
             )
             log.info("PersonalDao.getList took " + (System.currentTimeMillis() - start) + "ms for user " + owner.id + ".")
@@ -281,8 +281,8 @@ open class PersonalAddressDao {
         get() {
             val owner = requiredLoggedInUser
             return persistenceService.namedQuery(
-                Int::class.java,
                 PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
+                Int::class.java,
                 Pair("ownerId", owner.id)
             )
         }
@@ -295,8 +295,8 @@ open class PersonalAddressDao {
         get() {
             val owner = requiredLoggedInUser
             val list = persistenceService.namedQuery(
-                PersonalAddressDO::class.java,
                 PersonalAddressDO.FIND_BY_OWNER,
+                PersonalAddressDO::class.java,
                 Pair("ownerId", owner.id),
             )
             val result = mutableMapOf<Int, PersonalAddressDO>()

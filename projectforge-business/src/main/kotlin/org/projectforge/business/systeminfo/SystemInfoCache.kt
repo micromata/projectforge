@@ -29,8 +29,6 @@ import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -76,8 +74,8 @@ class SystemInfoCache : AbstractCache() {
 
     private fun hasTableEntries(entity: Class<*>): Boolean {
         return persistenceService.selectSingleResult(
+            "select count(e) from ${entity.name} e",
             Long::class.java,
-            "select count(e) from ${entity.name} e"
         )!! > 0L
     }
 

@@ -164,7 +164,8 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
 
     open fun internalGetByUserId(userId: Int): UserPasswordDO? {
         return persistenceService.selectSingleResult(
-            UserPasswordDO::class.java, UserPasswordDO.FIND_BY_USER_ID,
+            UserPasswordDO.FIND_BY_USER_ID,
+            UserPasswordDO::class.java,
             Pair("userId", userId),
         )
     }

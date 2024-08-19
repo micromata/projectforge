@@ -121,8 +121,8 @@ class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     fun getProjekt(kunde: KundeDO?, nummer: Int): ProjektDO? {
         return persistenceService.selectSingleResult(
-            ProjektDO::class.java,
             "SELECT p FROM ProjektDO p WHERE p.kunde = :kunde and p.nummer = :nummer",
+            ProjektDO::class.java,
             Pair("kunde", kunde),
             Pair("nummer", nummer)
         )
@@ -130,8 +130,8 @@ class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
 
     fun getProjekt(intern_kost2_4: Int, nummer: Int): ProjektDO? {
         return persistenceService.selectSingleResult(
-            ProjektDO::class.java,
             ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER,
+            ProjektDO::class.java,
             Pair("internKost24", intern_kost2_4),
             Pair("nummer", nummer),
             namedQuery = true,

@@ -62,8 +62,8 @@ class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::clas
          */
         get() {
             val minMaxDate = persistenceService.selectSingleResult(
-                Tuple::class.java,
                 EingangsrechnungDO.SELECT_MIN_MAX_DATE,
+                Tuple::class.java,
                 namedQuery = true,
             )
             return getYearsByTupleOfLocalDate(minMaxDate)
@@ -237,8 +237,8 @@ class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::clas
 
     fun findNewestByKreditor(kreditor: String?): EingangsrechnungDO? {
         val resultList = persistenceService.query(
-            EingangsrechnungDO::class.java,
             "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.created DESC",
+            EingangsrechnungDO::class.java,
             Pair("kreditor", kreditor),
             maxResults = 1,
         )
