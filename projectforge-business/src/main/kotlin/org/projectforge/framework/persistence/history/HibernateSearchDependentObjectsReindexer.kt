@@ -95,7 +95,8 @@ class HibernateSearchDependentObjectsReindexer {
     fun reindexDependents(obj: BaseDO<*>) {
         object : Thread() {
             override fun run() {
-                persistenceService.runInTransaction() { em ->
+                persistenceService.runInTransaction() { context ->
+                    val em = context.em
                     em.flushMode = FlushModeType.AUTO
                     val alreadyReindexed: MutableSet<String> = HashSet()
                     val entryList =

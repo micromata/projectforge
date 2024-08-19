@@ -384,7 +384,7 @@ open class ConfigurationService {
     return true
   }
 
-  open fun getDaoValue(parameter: IConfigurationParam?, configurationDO: ConfigurationDO?): Any? {
+  open fun getDaoValue(parameter: IConfigurationParam, configurationDO: ConfigurationDO?): Any? {
     return configDao.getValue(parameter, configurationDO)
   }
 
