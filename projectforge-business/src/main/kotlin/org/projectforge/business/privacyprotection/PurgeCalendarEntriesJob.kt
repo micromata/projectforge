@@ -24,13 +24,12 @@
 package org.projectforge.business.privacyprotection
 
 import jakarta.annotation.PostConstruct
-import jakarta.persistence.EntityManagerFactory
 import mu.KotlinLogging
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.event.TeamEventDao
 import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.framework.json.JsonUtils
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -49,7 +48,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
     class CalendarEntry(var calendarId: Int? = null, var expiryDays: Int? = null)
 
     @Autowired
-    private lateinit var emgrFactory: EntityManagerFactory
+    private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var purgeCronPrivacyProtectionJob: CronPrivacyProtectionJob
@@ -96,9 +95,9 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
             } else {
                 val expiryDate = PFDateTime.now().minusDays(expiryDays.toLong())
                 log.info { "Purging calendar #${it.calendarId} '${calendar.title}' by deleting entries of ${it.expiryDays} or more days in the past (before ${expiryDate.isoString}Z)..." }
-                EntityManagerUtil.runInTransaction(emgrFactory) { em ->
+                persistenceService.runInTransaction { context ->
                     var counter = 0
-                    val eventsToPurge = em
+                    val eventsToPurge = context.em
                         .createNamedQuery(TeamEventDO.SELECT_ENTRIES_IN_THE_PAST_TO_PURGE, TeamEventDO::class.java)
                         .setParameter("calendarId", calendar.id)
                         .setParameter("endDate", expiryDate.utilDate)

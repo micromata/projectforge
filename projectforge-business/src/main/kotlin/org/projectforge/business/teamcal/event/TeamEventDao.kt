@@ -211,7 +211,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             persistenceService.selectSingleResult(
                 TeamEventDO::class.java, sqlQuery.toString(),
                 *params.toTypedArray(),
-                detached = false
+                attached = true,
             )
         } catch (e: NoResultException) {
             null

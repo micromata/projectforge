@@ -2,35 +2,40 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
+import jakarta.persistence.LockModeType
 import jakarta.persistence.TypedQuery
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 
-class PfPersistenceContext(val entityManagerFactory: EntityManagerFactory, val em: EntityManager) {
+class PfPersistenceContext(
+    private val entityManagerFactory: EntityManagerFactory,
+    val em: EntityManager = entityManagerFactory.createEntityManager(),
+) : AutoCloseable {
     fun <T> runInTransaction(
         readonly: Boolean = false,
-        run: (em: EntityManager) -> T
+        run: (context: PfPersistenceContext) -> T
     ): T {
         return EntityManagerUtil.runInTransaction(entityManagerFactory, readonly = readonly, run)
     }
 
-    fun <T> runInReadOnlyTransaction(block: (em: EntityManager) -> T): T {
+    fun <T> runInReadOnlyTransaction(block: (context: PfPersistenceContext) -> T): T {
         return runInTransaction(true, block)
     }
 
     fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,
-        detached: Boolean = true,
-    ): T? {
-        return EntityManagerUtil.selectById(em, entityClass, id = id, detached = detached)
+        attached: Boolean = false,
+        lockModeType: LockModeType? = null,
+        ): T? {
+        return EntityManagerUtil.selectById(em, entityClass, id = id, attached = attached, lockModeType = lockModeType)
     }
 
     /**
      * @param nullAllowed If false, an exception is thrown if no result is found.
      * @param errorMessage If not null, this message is used in the exception.
-     * @param detached If true, the result is detached (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> selectSingleResult(
         resultClass: Class<T>,
@@ -38,7 +43,7 @@ class PfPersistenceContext(val entityManagerFactory: EntityManagerFactory, val e
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
-        detached: Boolean = true,
+        attached: Boolean = false,
     ): T? {
         return EntityManagerUtil.selectSingleResult(
             em,
@@ -47,37 +52,37 @@ class PfPersistenceContext(val entityManagerFactory: EntityManagerFactory, val e
             keyValues = *keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
-            detached = detached
+            attached = attached
         )
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> queryNullable(
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
     ): List<T?> {
         return EntityManagerUtil.queryNullable(
             em,
             resultClass,
             sql,
             *keyValues,
-            detached = detached,
+            attached = attached,
         )
     }
 
     /**
      * No null result values are allowed.
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> query(
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
@@ -86,7 +91,7 @@ class PfPersistenceContext(val entityManagerFactory: EntityManagerFactory, val e
             resultClass,
             sql,
             *keyValues,
-            detached = detached,
+            attached = attached,
             namedQuery = namedQuery,
             maxResults = maxResults,
         )
@@ -105,6 +110,12 @@ class PfPersistenceContext(val entityManagerFactory: EntityManagerFactory, val e
         dbObj: Any,
     ) {
         return EntityManagerUtil.insert(em, dbObj)
+    }
+
+    fun update(
+        dbObj: Any,
+    ) {
+        return EntityManagerUtil.update(em, dbObj)
     }
 
     fun delete(
@@ -135,5 +146,18 @@ class PfPersistenceContext(val entityManagerFactory: EntityManagerFactory, val e
         vararg keyValues: Pair<String, Any?>,
     ): Int {
         return EntityManagerUtil.executeUpdate(em, sql, *keyValues)
+    }
+
+    /**
+     * Calls em.flush().
+     */
+    fun flush() {
+        em.flush()
+    }
+
+    override fun close() {
+        if (em.isOpen) {
+            em.close()
+        }
     }
 }

@@ -23,13 +23,9 @@
 
 package org.projectforge.business.address
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityManagerFactory
-import jakarta.persistence.PersistenceContext
 import mu.KotlinLogging
 import org.projectforge.business.image.ImageService
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -43,11 +39,8 @@ open class AddressImageDao {
     @Autowired
     private lateinit var addressDao: AddressDao
 
-    @PersistenceContext
-    private lateinit var em: EntityManager
-
     @Autowired
-    private lateinit var emgrFactory: EntityManagerFactory
+    private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var imageService: ImageService
@@ -57,9 +50,11 @@ open class AddressImageDao {
      */
     open fun getImage(addressId: Int): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
-        return ensureUniqueResult(
-            em.createNamedQuery(AddressImageDO.SELECT_IMAGE, ByteArray::class.java)
-                .setParameter("addressId", addressId)
+        return persistenceService.selectSingleResult(
+            ByteArray::class.java,
+            AddressImageDO.SELECT_IMAGE,
+            Pair("addressId", addressId),
+            namedQuery = true
         )
     }
 
@@ -68,9 +63,11 @@ open class AddressImageDao {
      */
     open fun getPreviewImage(addressId: Int): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
-        return ensureUniqueResult(
-            em.createNamedQuery(AddressImageDO.SELECT_IMAGE_PREVIEW, ByteArray::class.java)
-                .setParameter("addressId", addressId)
+        return persistenceService.selectSingleResult(
+            ByteArray::class.java,
+            AddressImageDO.SELECT_IMAGE_PREVIEW,
+            Pair("addressId", addressId),
+            namedQuery = true
         )
     }
 
@@ -85,18 +82,23 @@ open class AddressImageDao {
         }
         addressDao.internalModifyImageData(address, true)
         addressDao.update(address) // Throws an exception if the logged-in user has now access.
-        val addressImage = get(address.id) ?: AddressImageDO()
-        addressImage.address = address
-        addressImage.image = image
-        addressImage.imagePreview = imageService.resizeImage(image)
-        em.transaction.begin()
-        EntityManagerUtil.runInTransaction(emgrFactory) {
+
+        persistenceService.runInTransaction { context ->
+            val addressImage = context.selectSingleResult(
+                AddressImageDO::class.java,
+                "from ${AddressImageDO::class.java.name} t where t.address = :address",
+                Pair("address", address),
+                attached = true,
+            ) ?: AddressImageDO()
+            addressImage.address = address
+            addressImage.image = image
+            addressImage.imagePreview = imageService.resizeImage(image)
             if (addressImage.id != null) {
                 // Update
-                em.merge(addressImage)
+                context.update(addressImage)
             } else {
                 // Insert
-                em.persist(addressImage)
+                context.insert(addressImage)
             }
         }
         log.info("New image for address ${address.id} (${address.fullName}) saved.")
@@ -114,34 +116,20 @@ open class AddressImageDao {
         }
         addressDao.internalModifyImageData(address, false)
         addressDao.update(address) // Throws an exception if the logged-in user has now access.
-        return EntityManagerUtil.runInTransaction(emgrFactory) {
-            val addressImage = em.find(AddressImageDO::class.java, address.id)
-            if (addressImage != null) {
-                em.remove(addressImage)
+        var success = false
+        persistenceService.runInTransaction { context ->
+            // Should be only one image. But for safety reasons we delete all images.
+            context.query(
+                AddressImageDO::class.java,
+                "from ${AddressImageDO::class.java.name} t where t.address.id = :addressId",
+                Pair("addressId", address.id),
+                attached = true,
+            ).forEach { image ->
                 log.info("Image for address ${address.id} (${address.fullName}) deleted.")
-                true
-            } else {
-                false
+                context.delete(image)
+                success = true
             }
         }
-    }
-
-    private fun get(addressId: Int?): AddressImageDO? {
-        val address = addressDao.getById(addressId)
-        if (address == null) {
-            log.error("Can't save or update immage of address. Address #$addressId not found.")
-            return null
-        }
-        try {
-            return ensureUniqueResult(
-                em.createQuery(
-                    "from ${AddressImageDO::class.java.name} t where t.address = :address", AddressImageDO::class.java
-                )
-                    .setParameter("address", address)
-            )
-        } catch (ex: Exception) {
-            log.error(ex.message, ex)
-            return null
-        }
+        return success
     }
 }

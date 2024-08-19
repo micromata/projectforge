@@ -24,13 +24,13 @@
 package org.projectforge.framework.persistence.jpa
 
 import jakarta.annotation.PostConstruct
-import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
+import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -52,15 +52,18 @@ open class PfPersistenceService {
         HibernateUtils.internalInit(entityManagerFactory)
     }
 
+    /**
+     * @param readonly If true, no transaction is used.
+     */
     open fun <T> runInTransaction(
         readonly: Boolean = false,
-        run: (em: EntityManager) -> T
+        run: (context: PfPersistenceContext) -> T
     ): T {
         return EntityManagerUtil.runInTransaction(entityManagerFactory, readonly, run)
     }
 
-    open fun <T> runInReadOnlyTransaction(
-        block: (em: EntityManager) -> T
+    open fun <T> runReadOnly(
+        block: (context: PfPersistenceContext) -> T
     ): T {
         return runInTransaction(true, block)
     }
@@ -72,9 +75,9 @@ open class PfPersistenceService {
     open fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,
-        detached: Boolean = true
+        attached: Boolean = false
     ): T? {
-        return EntityManagerUtil.selectById(entityManagerFactory, entityClass, id, detached)
+        return EntityManagerUtil.selectById(entityManagerFactory, entityClass, id, attached = attached)
     }
 
     /**
@@ -87,8 +90,8 @@ open class PfPersistenceService {
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
-        detached: Boolean = true,
-        namedQuery:Boolean = false,
+        attached: Boolean = false,
+        namedQuery: Boolean = false,
     ): T? {
         return EntityManagerUtil.selectSingleResult(
             entityManagerFactory,
@@ -97,32 +100,32 @@ open class PfPersistenceService {
             *keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
-            detached = detached,
+            attached = attached,
             namedQuery = namedQuery,
         )
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     @JvmOverloads
     open fun <T> queryNullable(
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
     ): List<T?> {
-        return EntityManagerUtil.queryNullable(entityManagerFactory, resultClass, sql, *keyValues, detached = detached)
+        return EntityManagerUtil.queryNullable(entityManagerFactory, resultClass, sql, *keyValues, attached = attached)
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     open fun <T> query(
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
@@ -131,27 +134,27 @@ open class PfPersistenceService {
             resultClass,
             sql,
             *keyValues,
-            detached = detached,
+            attached = attached,
             namedQuery = namedQuery,
             maxResults = maxResults,
         )
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     open fun <T> namedQuery(
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
     ): List<T> {
         return EntityManagerUtil.query(
             entityManagerFactory,
             resultClass,
             sql,
             *keyValues,
-            detached = detached,
+            attached = attached,
             namedQuery = true
         )
     }

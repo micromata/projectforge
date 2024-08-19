@@ -34,7 +34,6 @@ import org.projectforge.business.task.TaskFilter
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -281,17 +280,16 @@ class UserXmlPreferencesDao {
             if (log.isDebugEnabled) {
                 log.debug("Updating user preference for user '" + userPrefs.userId + "': " + xml)
             }
-            persistenceService.runInTransaction { emgr ->
-                EntityManagerUtil.selectById(
-                    emgr,
+            persistenceService.runInTransaction { context ->
+                context.selectById(
                     UserXmlPreferencesDO::class.java,
                     userPrefsForDB.id,
-                    detached = false,
+                    attached = true,
                 )?.let { attachedEntity ->
                     attachedEntity.serializedSettings = userPrefsForDB.serializedSettings
                     attachedEntity.lastUpdate = userPrefsForDB.lastUpdate
                     attachedEntity.setVersion()
-                    emgr.flush()
+                    context.flush()
                 }
                 null
             }

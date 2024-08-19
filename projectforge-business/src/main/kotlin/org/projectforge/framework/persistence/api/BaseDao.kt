@@ -23,7 +23,6 @@
 package org.projectforge.framework.persistence.api
 
 import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.PredicateUtils
@@ -52,7 +51,6 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.annotation.Propagation
@@ -94,9 +92,6 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
 
     @JvmField
     var logDatabaseActions: Boolean = true
-
-    @PersistenceContext
-    protected lateinit var em: EntityManager
 
     @Autowired
     lateinit var accessChecker: AccessChecker
@@ -193,7 +188,9 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         if (hasLoggedInUserSelectAccess(obj, false)) {
             return obj
         }
-        return em.getReference(doClass, id)
+        return persistenceService.runReadOnly { context ->
+            context.em.getReference(doClass, id)
+        }
     }
 
     fun internalLoadAllNotDeleted(): List<O> {
@@ -201,27 +198,32 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     }
 
     open fun internalLoadAll(): List<O> {
-        val cb = em.criteriaBuilder
-        val cq = cb.createQuery(doClass)
-        val query = cq.select(cq.from(doClass))
-        return em.createQuery(query).resultList
+        return persistenceService.runReadOnly { context ->
+            val em = context.em
+            val cb = em.criteriaBuilder
+            val cq = cb.createQuery(doClass)
+            val query = cq.select(cq.from(doClass))
+            em.createQuery(query).resultList
+        }
     }
 
-    fun internalLoad(idList: Collection<Serializable?>?): List<O>? {
+    fun internalLoad(idList: Collection<Serializable>?): List<O>? {
         if (idList == null) {
             return null
         }
-        val cr = em.criteriaBuilder.createQuery(doClass)
-        val root = cr.from(doClass)
-        cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
-        val results = em.createQuery(cr).resultList
-        return results
+        return persistenceService.runReadOnly { context ->
+            val em = context.em
+            val cr = em.criteriaBuilder.createQuery(doClass)
+            val root = cr.from(doClass)
+            cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
+            em.createQuery(cr).resultList
+        }
     }
 
     @JvmField
     protected var idProperty: String = "id"
 
-    fun getListByIds(idList: Collection<Serializable?>?): List<O>? {
+    fun getListByIds(idList: Collection<Serializable>?): List<O>? {
         if (idList == null) {
             return null
         }
@@ -358,15 +360,11 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         if (id == null) {
             return null
         }
-        val obj = ensureUniqueResult(
-            em.createQuery(
-                "select t from ${doClass.name} t where t.id = :id", doClass
-            )
-                .setParameter("id", id)
-        )
-        if (obj == null) {
-            return null
-        }
+        val obj = persistenceService.selectSingleResult(
+            doClass,
+            "select t from ${doClass.name} t where t.id = :id",
+            Pair("id", id),
+        ) ?: return null
         afterLoad(obj)
         return obj
     }
@@ -400,7 +398,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
     protected fun internalGetDisplayHistoryEntries(obj: BaseDO<*>): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
         val entries = internalGetHistoryEntries(obj)
-        return convertAll(entries, em)
+        return persistenceService.runReadOnly { context -> convertAll(entries, context.em) }
     }
 
     private fun convertAll(entries: Array<HistoryEntry<*>>, em: EntityManager): MutableList<DisplayHistoryEntry> {
@@ -765,14 +763,13 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         AccessException::class
     )
     open fun markAsDeleted(obj: O) {
-        Validate.notNull(obj)
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        val dbObj = em.find(doClass, obj.id)
+        val dbObj = persistenceService.selectById(doClass, obj.id)!!
         checkLoggedInUserDeleteAccess(obj, dbObj)
         internalMarkAsDeleted(obj)
     }
@@ -791,14 +788,17 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         AccessException::class
     )
     open fun forceDelete(obj: O) {
-        Validate.notNull(obj)
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        val dbObj = em.find(doClass, obj.id)
+        val dbObj = persistenceService.selectById(doClass, obj.id)
+        if (dbObj == null) {
+            log.error("Oups, can't delete $doClass #${obj.id}, because database object doesn't exist.")
+            return
+        }
         checkLoggedInUserDeleteAccess(obj, dbObj)
         internalForceDelete(obj)
     }
@@ -841,11 +841,11 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         }
         onDelete(obj)
 
-        persistenceService.runInTransaction { em ->
-            val dbObj = em.find(doClass, obj.id)
+        persistenceService.runInTransaction { context ->
+            val dbObj = context.selectById(doClass, obj.id, attached = true)
             if (dbObj != null) {
                 checkLoggedInUserDeleteAccess(obj, dbObj)
-                em.remove(dbObj)
+                context.em.remove(dbObj)
                 if (logDatabaseActions) {
                     log.info(doClass.simpleName + " deleted: " + obj.toString())
                 }
@@ -1224,18 +1224,21 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         if (StringUtils.isBlank(searchString)) {
             return ArrayList()
         }
-        val cb = em.criteriaBuilder
-        val cr = cb.createQuery(String::class.java)
-        val root = cr.from(doClass)
-        val yearsAgo = now().minusYears(2).utilDate
-        cr.select(root.get(property)).where(
-            cb.equal(root.get<Any>("deleted"), false),
-            cb.greaterThan(root.get("lastUpdate"), yearsAgo),
-            cb.like(cb.lower(root.get(property)), "%" + StringUtils.lowerCase(searchString) + "%")
-        )
-            .orderBy(cb.asc(root.get<Any>(property)))
-            .distinct(true)
-        return em.createQuery(cr).resultList
+        return persistenceService.runReadOnly { context ->
+            val em = context.em
+            val cb = em.criteriaBuilder
+            val cr = cb.createQuery(String::class.java)
+            val root = cr.from(doClass)
+            val yearsAgo = now().minusYears(2).utilDate
+            cr.select(root.get(property)).where(
+                cb.equal(root.get<Any>("deleted"), false),
+                cb.greaterThan(root.get("lastUpdate"), yearsAgo),
+                cb.like(cb.lower(root.get(property)), "%" + StringUtils.lowerCase(searchString) + "%")
+            )
+                .orderBy(cb.asc(root.get<Any>(property)))
+                .distinct(true)
+            em.createQuery(cr).resultList
+        }
     }
 
     /**

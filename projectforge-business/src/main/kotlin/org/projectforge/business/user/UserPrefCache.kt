@@ -23,22 +23,18 @@
 
 package org.projectforge.business.user
 
+import jakarta.annotation.PreDestroy
 import mu.KotlinLogging
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
-import jakarta.annotation.PreDestroy
-import jakarta.persistence.EntityManagerFactory
-import org.projectforge.framework.cache.AbstractCache.TICKS_PER_MINUTE
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 
 private val log = KotlinLogging.logger {}
 
@@ -61,7 +57,7 @@ class UserPrefCache : AbstractCache() {
     private lateinit var userPrefDao: UserPrefDao
 
     @Autowired
-    private lateinit var emgrFactory: EntityManagerFactory
+    private lateinit var persistenceService: PfPersistenceService
 
     /**
      * Does nothing for demo user.
@@ -76,7 +72,13 @@ class UserPrefCache : AbstractCache() {
         }
         val data = ensureAndGetUserPreferencesData(uid)
         if (log.isDebugEnabled) {
-            log.debug { "Put value for area '$area' and name '$name' (persistent=$persistent): ${ToStringUtil.toJsonString(value ?: "null")}" }
+            log.debug {
+                "Put value for area '$area' and name '$name' (persistent=$persistent): ${
+                    ToStringUtil.toJsonString(
+                        value ?: "null"
+                    )
+                }"
+            }
         }
         data.putEntry(area, name, value, persistent)
         checkRefresh() // Should be called at the end of this method for considering changes inside this method.
@@ -138,8 +140,8 @@ class UserPrefCache : AbstractCache() {
 
     private fun removeEntry(userId: Int, area: String, name: String) {
         val data = getUserPreferencesData(userId)
-                ?: // Should only occur for the pseudo-first-login-user setting up the system.
-                return
+            ?: // Should only occur for the pseudo-first-login-user setting up the system.
+            return
         val cacheEntry = data.getEntry(area, name)
         if (cacheEntry == null) {
             log.info("Oups, user preferences object with area '$area' and name '$name' not cached, can't remove it!")
@@ -204,12 +206,14 @@ class UserPrefCache : AbstractCache() {
     private fun flushToDB(userId: Int?, checkAccess: Boolean) {
         if (checkAccess) {
             if (userId != ThreadLocalUserContext.userId) {
-                log.error("User '" + ThreadLocalUserContext.userId
-                        + "' has no access to write user preferences of other user '" + userId + "'.")
+                log.error(
+                    "User '" + ThreadLocalUserContext.userId
+                            + "' has no access to write user preferences of other user '" + userId + "'."
+                )
                 // No access.
                 return
             }
-            val user = EntityManagerUtil.selectById(emgrFactory, PFUserDO::class.java, userId)
+            val user = persistenceService.selectById(PFUserDO::class.java, userId)
             if (AccessChecker.isDemoUser(user)) {
                 // Do nothing for demo user.
                 return
