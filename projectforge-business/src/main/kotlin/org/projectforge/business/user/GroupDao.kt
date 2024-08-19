@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.business.user
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.login.Login
 import org.projectforge.framework.access.AccessException
@@ -32,14 +33,13 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -50,6 +50,13 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     private val userDao: UserDao? = null
 
     private val doHistoryUpdate = true
+
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
+
+    override val defaultSortProperties: Array<SortProperty>?
+        get() = DEFAULT_SORT_PROPERTIES
+
 
     // private final GroupsProvider groupsProvider = new GroupsProvider();
     init {
@@ -216,12 +223,13 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     ) {
         val assignedGroups: MutableList<GroupDO> = ArrayList()
         val unassignedGroups: MutableList<GroupDO> = ArrayList()
-        persistenceService.runInTransaction{ em ->
-            val dbUser: PFUserDO = em.selectByPkAttached(PFUserDO::class.java, user.getPk())
+        persistenceService.runInTransaction { context ->
+            val dbUser = context.selectById(PFUserDO::class.java, user.id, attached = true)
             if (groupIdsToAssign != null) {
                 for (groupId in groupIdsToAssign) {
-                    val dbGroup: GroupDO = em.selectByPkAttached(GroupDO::class.java, groupId)
-                    HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
+                    val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
+                    log.error("******* not yet migrated: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup)")
+                    /*HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
                         var assignedUsers: MutableSet<PFUserDO?>? = dbGroup.assignedUsers
                         if (assignedUsers == null) {
                             assignedUsers = HashSet()
@@ -235,35 +243,37 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                         } else {
                             log.info("User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'.")
                         }
-                        em.update(dbGroup)
+                        context.update(dbGroup)
                         null
-                    }
+                    }*/
                 }
             }
             if (groupIdsToUnassign != null) {
                 for (groupId in groupIdsToUnassign) {
-                    val dbGroup: GroupDO = em.selectByPkAttached(GroupDO::class.java, groupId)
-                    HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
-                        val assignedUsers = dbGroup.assignedUsers
-                        if (assignedUsers != null && assignedUsers.contains(dbUser)) {
-                            log.info("Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'.")
-                            assignedUsers.remove(dbUser)
-                            unassignedGroups.add(dbGroup)
-                            dbGroup.setLastUpdate() // Needed, otherwise GroupDO is not detected for hibernate history!
-                        } else {
-                            log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
-                        }
-                        em.update(dbGroup)
-                        null
-                    }
+                    val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
+                    log.error("******* not yet migrated: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup)")
+                    /*  HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
+                          val assignedUsers = dbGroup.assignedUsers
+                          if (assignedUsers != null && assignedUsers.contains(dbUser)) {
+                              log.info("Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'.")
+                              assignedUsers.remove(dbUser)
+                              unassignedGroups.add(dbGroup)
+                              dbGroup.setLastUpdate() // Needed, otherwise GroupDO is not detected for hibernate history!
+                          } else {
+                              log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
+                          }
+                          context.update(dbGroup)
+                          null
+                      }*/
                 }
             }
-            null
-        })
+//            null
+            //      })
 
-        createHistoryEntry(user, unassignedGroups, assignedGroups)
-        if (updateUserGroupCache) {
-            userGroupCache.setExpired()
+            createHistoryEntry(user, unassignedGroups, assignedGroups)
+            if (updateUserGroupCache) {
+                userGroupCache.setExpired()
+            }
         }
     }
 
@@ -288,11 +298,11 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     /**
      * Prevents changing the group name for ProjectForge groups.
      */
-    protected override fun onChange(obj: GroupDO, dbObj: GroupDO) {
+    override fun onChange(obj: GroupDO, dbObj: GroupDO) {
         for (group in ProjectForgeGroup.entries) {
             if (group.getName() == dbObj.name) {
                 // A group of ProjectForge will be changed.
-                if (group.getName() != obj) {
+                if (group.getName() != obj.name) {
                     // The group's name must be unmodified!
                     log.warn(
                         "Preventing the change of ProjectForge's group '" + group.getName() + "' in '" + obj.name + "'."
@@ -304,11 +314,11 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
     }
 
-    protected override fun afterSaveOrModify(group: GroupDO) {
+    override fun afterSaveOrModify(group: GroupDO) {
         userGroupCache.setExpired()
     }
 
-    protected override fun afterDelete(obj: GroupDO) {
+    override fun afterDelete(obj: GroupDO) {
         userGroupCache.setExpired()
     }
 
@@ -384,16 +394,12 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     }
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(GroupDao::class.java)
-
-        val additionalSearchFields: Array<String> = arrayOf(
+        private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "assignedUsers.username",
             "assignedUsers.firstname",
             "assignedUsers.lastname"
         )
-            get() = Companion.field
 
-        val defaultSortProperties: Array<SortProperty> = arrayOf(SortProperty("name"))
-            get() = Companion.field
+        private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("name"))
     }
 }

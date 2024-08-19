@@ -48,6 +48,9 @@ open class DBQuery {
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
+    @Autowired
+    private lateinit var persistenceContext: PfPersistenceContext
+
     /**
      * Gets the list filtered by the given filter.
      *
@@ -77,8 +80,8 @@ open class DBQuery {
         try {
             val begin = System.currentTimeMillis()
             val dbFilter = filter.createDBFilter()
-            return EntityManagerUtil.runInTransaction(emgrFactory) { em ->
-                val queryBuilder = DBQueryBuilder(baseDao, em, filter, dbFilter)
+            return persistenceContext.runInTransaction { context ->
+                val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
                 // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
 
                 val dbResultIterator: DBResultIterator<O>
@@ -91,7 +94,7 @@ open class DBQuery {
                 )
                 var list = createList(
                     baseDao,
-                    em,
+                    context.em,
                     dbResultIterator,
                     customResultFilters,
                     queryBuilder.resultPredicates,

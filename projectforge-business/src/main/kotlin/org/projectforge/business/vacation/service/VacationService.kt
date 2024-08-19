@@ -256,7 +256,7 @@ open class VacationService {
    * @param idList
    * @return List of vacations
    */
-  open fun getVacation(idList: List<Serializable?>?): List<VacationDO?>? {
+  open fun getVacation(idList: List<Serializable>?): List<VacationDO?>? {
     return vacationDao.internalLoad(idList)
   }
 

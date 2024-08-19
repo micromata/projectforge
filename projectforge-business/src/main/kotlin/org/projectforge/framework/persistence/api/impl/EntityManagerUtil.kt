@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory
+import jakarta.persistence.LockModeType
 import jakarta.persistence.TypedQuery
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
@@ -37,20 +38,26 @@ import org.projectforge.framework.persistence.utils.SQLHelper.queryToString
 
 private val log = KotlinLogging.logger {}
 
-object EntityManagerUtil {
+internal object EntityManagerUtil {
+    /**
+     * @param readonly If true, no transaction is used.
+     */
     fun <T> runInTransaction(
         entityManagerFactory: EntityManagerFactory,
         readonly: Boolean = false,
-        run: (em: EntityManager) -> T
+        run: (context: PfPersistenceContext) -> T
     ): T {
-        return entityManagerFactory.createEntityManager().use { em ->
-            runInTransactionIfNotReadonly(em, readonly = readonly) {
-                run(em)
+        return PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context, readonly = readonly) {
+                run(context)
             }
         }
     }
 
-    fun <T> runInReadOnlyTransaction(entityManagerFactory: EntityManagerFactory, block: (em: EntityManager) -> T): T {
+    fun <T> runReadonly(
+        entityManagerFactory: EntityManagerFactory,
+        block: (context: PfPersistenceContext) -> T
+    ): T {
         return runInTransaction(entityManagerFactory, true, block)
     }
 
@@ -58,11 +65,12 @@ object EntityManagerUtil {
         entityManagerFactory: EntityManagerFactory,
         entityClass: Class<T>,
         id: Any?,
-        detached: Boolean = true,
+        attached: Boolean = false,
+        lockModeType: LockModeType? = null,
     ): T? {
         id ?: return null
-        return runInReadOnlyTransaction(entityManagerFactory) { em ->
-            selectById(em, entityClass, id, detached)
+        return runReadonly(entityManagerFactory) { context ->
+            selectById(context.em, entityClass, id = id, attached = attached, lockModeType = lockModeType)
         }
     }
 
@@ -70,11 +78,17 @@ object EntityManagerUtil {
         em: EntityManager,
         entityClass: Class<T>,
         id: Any?,
-        detached: Boolean = true,
+        attached: Boolean = false,
+        lockModeType: LockModeType? = null,
     ): T? {
         id ?: return null
-        val entity = em.find(entityClass, id) ?: return null
-        if (detached && em.contains(entity)) {
+        val entity = if (lockModeType != null) {
+            em.find(entityClass, id, lockModeType)
+        } else {
+            em.find(entityClass, id)
+        }
+        entity ?: return null
+        if (!attached && em.contains(entity)) {
             em.detach(entity)
         }
         return entity
@@ -83,7 +97,7 @@ object EntityManagerUtil {
     /**
      * @param nullAllowed If false, an exception is thrown if no result is found.
      * @param errorMessage If not null, this message is used in the exception.
-     * @param detached If true, the result is detached (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> selectSingleResult(
         entityManagerFactory: EntityManagerFactory,
@@ -92,18 +106,18 @@ object EntityManagerUtil {
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
-        detached: Boolean = true,
+        attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
-        entityManagerFactory.createEntityManager().use { em ->
+        PfPersistenceContext(entityManagerFactory).use { context ->
             return selectSingleResult(
-                em,
+                context.em,
                 resultClass,
                 sql = sql,
                 keyValues = keyValues,
                 nullAllowed = nullAllowed,
                 errorMessage = errorMessage,
-                detached = detached,
+                attached = attached,
                 namedQuery = namedQuery,
             )
         }
@@ -112,7 +126,7 @@ object EntityManagerUtil {
     /**
      * @param nullAllowed If false, an exception is thrown if no result is found.
      * @param errorMessage If not null, this message is used in the exception.
-     * @param detached If true, the result is detached (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> selectSingleResult(
         em: EntityManager,
@@ -121,7 +135,7 @@ object EntityManagerUtil {
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
-        detached: Boolean = true,
+        attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
         val query = createQuery(em, resultClass, sql, *keyValues, namedQuery = namedQuery)
@@ -150,46 +164,46 @@ object EntityManagerUtil {
                 }"
             )
         }
-        if (detached && em.contains(result)) {
+        if (!attached && em.contains(result)) {
             em.detach(result)
         }
         return result
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> queryNullable(
         entityManagerFactory: EntityManagerFactory,
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
     ): List<T?> {
-        entityManagerFactory.createEntityManager().use { em ->
+        PfPersistenceContext(entityManagerFactory).use { context ->
             return queryNullable(
-                em,
+                context.em,
                 resultClass,
                 sql,
                 *keyValues,
-                detached = detached,
+                attached = attached,
             )
         }
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> queryNullable(
         em: EntityManager,
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
     ): List<T?> {
         val q = createQuery<T>(em, resultClass, sql, *keyValues)
         val ret = q.resultList
-        if (detached) {
+        if (!attached) {
             ret.forEach { obj ->
                 if (obj != null && em.contains(obj)) {
                     em.detach(obj)
@@ -201,24 +215,24 @@ object EntityManagerUtil {
 
     /**
      * No null result values are allowed.
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> query(
         entityManagerFactory: EntityManagerFactory,
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
-        entityManagerFactory.createEntityManager().use { em ->
+        PfPersistenceContext(entityManagerFactory).use { context ->
             return query(
-                em,
+                context.em,
                 resultClass = resultClass,
                 sql = sql,
                 keyValues = keyValues,
-                detached = detached,
+                attached = attached,
                 namedQuery = namedQuery,
                 maxResults = maxResults,
             )
@@ -226,14 +240,14 @@ object EntityManagerUtil {
     }
 
     /**
-     * @param detached If true, the result is detached if of type entity (default).
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> query(
         em: EntityManager,
         resultClass: Class<T>,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-        detached: Boolean = true,
+        attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
@@ -242,7 +256,7 @@ object EntityManagerUtil {
             q.maxResults = maxResults
         }
         val ret = q.resultList
-        if (detached) {
+        if (!attached) {
             ret.forEach { obj ->
                 if (obj != null && em.contains(obj)) {
                     em.detach(obj)
@@ -270,17 +284,23 @@ object EntityManagerUtil {
         return query
     }
 
+    /**
+     * em.persist() is used.
+     */
     fun insert(
         entityManagerFactory: EntityManagerFactory,
         dbObj: Any,
     ) {
-        entityManagerFactory.createEntityManager().use { em ->
-            runInTransactionIfNotReadonly(em) {
-                insert(em, dbObj)
+        PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                insert(context.em, dbObj)
             }
         }
     }
 
+    /**
+     * em.persist() is used.
+     */
     fun insert(
         em: EntityManager,
         dbObj: Any,
@@ -288,13 +308,37 @@ object EntityManagerUtil {
         em.persist(dbObj)
     }
 
+    /**
+     * em.merge() is used.
+     */
+    fun update(
+        entityManagerFactory: EntityManagerFactory,
+        dbObj: Any,
+    ) {
+        PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                update(context.em, dbObj)
+            }
+        }
+    }
+
+    /**
+     * em.merge() is used.
+     */
+    fun update(
+        em: EntityManager,
+        dbObj: Any,
+    ) {
+        em.merge(dbObj)
+    }
+
     fun delete(
         entityManagerFactory: EntityManagerFactory,
         dbObj: Any,
     ) {
-        entityManagerFactory.createEntityManager().use { em ->
-            runInTransactionIfNotReadonly(em) {
-                delete(em, dbObj)
+        PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                delete(context.em, dbObj)
             }
         }
     }
@@ -311,9 +355,9 @@ object EntityManagerUtil {
         entityClass: Class<T>,
         id: Any,
     ) {
-        entityManagerFactory.createEntityManager().use { em ->
-            runInTransactionIfNotReadonly(em) {
-                delete(em, entityClass, id)
+        PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                delete(context.em, entityClass, id)
             }
         }
     }
@@ -323,7 +367,7 @@ object EntityManagerUtil {
         entityClass: Class<T>,
         id: Any,
     ) {
-        selectById(em, entityClass, id, detached = false)?.let { dbObj ->
+        selectById(em, entityClass, id, attached = true)?.let { dbObj ->
             em.remove(dbObj)
         }
     }
@@ -333,9 +377,9 @@ object EntityManagerUtil {
         entityClass: Class<T>,
         update: (cb: CriteriaBuilder, root: Root<T>, update: CriteriaUpdate<T>) -> Unit
     ) {
-        entityManagerFactory.createEntityManager().use { em ->
-            runInTransactionIfNotReadonly(em) {
-                criteriaUpdate(em, entityClass, update)
+        PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                criteriaUpdate(context.em, entityClass, update)
             }
         }
     }
@@ -362,9 +406,9 @@ object EntityManagerUtil {
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): Int {
-        return entityManagerFactory.createEntityManager().use { em ->
-            runInTransactionIfNotReadonly(em) {
-                executeUpdate(em, sql, *keyValues, namedQuery = namedQuery)
+        return PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                executeUpdate(context.em, sql, *keyValues, namedQuery = namedQuery)
             }
         }
     }
@@ -394,18 +438,19 @@ object EntityManagerUtil {
      * @param readonly If true, the session will set as readonly and only the run statement will be executed.
      */
     private fun <T> runInTransactionIfNotReadonly(
-        em: EntityManager,
+        context: PfPersistenceContext,
         readonly: Boolean = false,
-        execute: (em: EntityManager) -> T,
+        execute: (context: PfPersistenceContext) -> T,
     ): T {
+        val em = context.em
         if (readonly) {
             em.unwrap(Session::class.java).isDefaultReadOnly = true
             // No transaction in readonly mode.
-            return execute(em)
+            return execute(context)
         } else {
             em.transaction.begin()
             try {
-                val ret = execute(em)
+                val ret = execute(context)
                 em.transaction.commit()
                 return ret
             } catch (ex: Exception) {

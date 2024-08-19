@@ -179,17 +179,18 @@ open class PersonalAddressDao {
      * @return true, if already existing entry was updated, otherwise false (e. g. if no entry exists for update).
      */
     private fun internalUpdate(obj: PersonalAddressDO): Boolean {
-        return persistenceService.runInTransaction { em ->
+        return persistenceService.runInTransaction { context ->
             var dbObj: PersonalAddressDO? = null
             if (obj.id != null) {
-                dbObj = em.find(
+                dbObj = context.selectById(
                     PersonalAddressDO::class.java,
                     obj.id,
-                    LockModeType.PESSIMISTIC_WRITE
+                    attached = true,
+                    lockModeType = LockModeType.PESSIMISTIC_WRITE,
                 )
             }
             if (dbObj == null) {
-                dbObj = getByAddressId(obj.addressId)
+                dbObj = getByAddressId(obj.addressId, requiredLoggedInUser, attached = true)
             }
             if (dbObj == null) {
                 return@runInTransaction false
@@ -201,7 +202,7 @@ open class PersonalAddressDao {
             val modified = dbObj.copyValuesFrom(obj, "owner", "address", "id")
             if (modified == EntityCopyStatus.MAJOR) {
                 dbObj.setLastUpdate()
-                em.merge(dbObj)
+                context.update(dbObj)
                 personalAddressCache.setAsExpired(dbObj.ownerId!!)
                 log.info("Object updated: $dbObj")
             }
@@ -222,12 +223,21 @@ open class PersonalAddressDao {
      * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
      */
     fun getByAddressId(addressId: Int?, owner: PFUserDO?): PersonalAddressDO? {
+        return getByAddressId(addressId, owner, false)
+    }
+
+    /**
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
+     * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
+     */
+    private fun getByAddressId(addressId: Int?, owner: PFUserDO?, attached: Boolean): PersonalAddressDO? {
         requireNotNull(owner?.id)
         return persistenceService.selectSingleResult(
             PersonalAddressDO::class.java,
             PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID,
             Pair("ownerId", owner!!.id),
             Pair("addressId", addressId),
+            attached = attached,
             namedQuery = true,
             errorMessage = "Multiple personal address book entries for same user (${owner.id} and same address ($addressId). Should not occur?!",
         )
