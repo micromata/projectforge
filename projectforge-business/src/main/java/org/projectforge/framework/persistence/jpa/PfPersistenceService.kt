@@ -174,6 +174,7 @@ open class PfPersistenceService {
      * Convenience call for query() with namedQuery = true.
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
+    @JvmOverloads
     open fun <T> namedQuery(
         sql: String,
         resultClass: Class<T>,

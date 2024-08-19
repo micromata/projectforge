@@ -28,6 +28,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.dom4j.Element;
+import org.jetbrains.annotations.Nullable;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.framework.access.AccessType;
@@ -117,6 +118,11 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   @Override
   public Integer getId() {
     return task.getId();
+  }
+
+  @Override
+  public void setId(@Nullable Integer integer) {
+    throw new IllegalArgumentException("TaskNode.setId not supported.");
   }
 
   /**

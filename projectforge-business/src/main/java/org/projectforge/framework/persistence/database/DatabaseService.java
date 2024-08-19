@@ -282,7 +282,7 @@ public class DatabaseService {
   }
 
   public DatabaseDialect getDialect() {
-    return HibernateUtils.getDialect();
+    return HibernateUtils.getDatabaseDialect();
   }
 
   private DatabaseSupport getDatabaseSupport() {
