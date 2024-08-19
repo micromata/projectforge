@@ -23,13 +23,11 @@
 
 package org.projectforge.framework.persistence.utils
 
-import org.apache.commons.lang3.StringUtils
-import org.projectforge.framework.i18n.InternalErrorException
+import jakarta.persistence.Tuple
 import org.projectforge.framework.time.PFDateTime
 import java.time.LocalDate
 import java.time.Year
 import java.util.*
-import jakarta.persistence.TypedQuery
 
 /**
  * Some helper methods ...
@@ -59,24 +57,6 @@ object SQLHelper {
     }
 
     @JvmStatic
-    fun getYears(min: Date?, max: Date?): IntArray {
-        if (min == null || max == null) {
-            return intArrayOf(Year.now().value)
-        }
-        val from = PFDateTime.from(min).year
-        val to= PFDateTime.from(max).year
-        return getYears(from, to)
-    }
-
-    @JvmStatic
-    fun getYears(min: LocalDate?, max: LocalDate?): IntArray {
-        if (min == null || max == null) {
-            return intArrayOf(LocalDate.now().year)
-        }
-        return getYears(min.year, max.year)
-    }
-
-    @JvmStatic
     fun getYears(minYear: Int?, maxYear: Int?): IntArray {
         val min = minYear ?: Year.now().value
         val max = maxYear ?: Year.now().value
@@ -91,50 +71,36 @@ object SQLHelper {
         return res
     }
 
-    /**
-     * Do a query.list() call and ensures that the result is either null/empty or the result list has only one element (size == 1).
-     * If multiple entries were received, an Exception will be thrown
-     * <br></br>
-     * Through this method ProjectForge ensures, that some entities are unique by their defined attributes (invoices with unique number etc.), especially
-     * if the uniquness can't be guaranteed by a data base constraint.
-     * <br></br>
-     * An internal error prevents the system on proceed with inconsistent (multiple) data entries.
-     *
-     * @param errorMessage An optional error message to display.
-     * @throws InternalErrorException if the list is not empty and has more than one elements (size > 1).
-     */
     @JvmStatic
-    @JvmOverloads
-    fun <T> ensureUniqueResult(query: TypedQuery<T>, nullAllowed: Boolean = true, errorMessage: String? = null): T? {
-        val list = query.resultList
-        if (nullAllowed && list.isNullOrEmpty())
-            return null
-        if (list.size != 1) {
-            throw InternalErrorException("Internal error: ProjectForge requires a single entry, but found ${list.size} entries: ${queryToString(query, errorMessage)}")
+    fun getYearsByTupleOfDate(minMaxDate: Tuple?): IntArray {
+        val result = if (minMaxDate == null) {
+            val year = Year.now().value
+            Pair(year, year)
+        } else {
+            Pair(PFDateTime.from(minMaxDate[0] as Date).year, PFDateTime.from(minMaxDate[1] as Date).year)
         }
-        return list[0]
+        return getYears(result.first, result.second)
     }
 
-
-    fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
-        val queryString = query.unwrap(org.hibernate.Query::class.java).getQueryString()
-        val sb = StringBuilder()
-        sb.append("query='$queryString', params=[") //query.getQueryString())
-        var first = true
-        try {
-            for (param in query.parameters) { // getParameterMetadata().getNamedParameterNames()
-                if (!first)
-                    sb.append(",")
-                else
-                    first = false
-                sb.append("${param.name}=[${query.getParameterValue(param)}]")
-            }
-        } catch (ex: Exception) {
-            // Do nothing: Session/EntityManager closed.
+    @JvmStatic
+    fun getYearsByTupleOfLocalDate(minMaxDate: Tuple?): IntArray {
+        val result = if (minMaxDate == null) {
+            val year = Year.now().value
+            Pair(year, year)
+        } else {
+            Pair((minMaxDate[0] as LocalDate).year, (minMaxDate[1] as LocalDate).year)
         }
-        sb.append("]")
-        if (StringUtils.isNotBlank(errorMessage))
-            sb.append(", msg=[$errorMessage]")
-        return sb.toString()
+        return getYears(result.first, result.second)
+    }
+
+    @JvmStatic
+    fun getYearsByTupleOfYears(minMaxDate: Tuple?): IntArray {
+        val result = if (minMaxDate == null) {
+            val year = Year.now().value
+            Pair(year, year)
+        } else {
+            Pair(minMaxDate[0] as Int, minMaxDate[1] as Int)
+        }
+        return getYears(result.first, result.second)
     }
 }

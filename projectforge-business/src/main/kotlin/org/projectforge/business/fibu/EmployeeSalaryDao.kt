@@ -32,8 +32,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.projectforge.framework.persistence.utils.SQLHelper.getYears
+import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfYears
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -59,13 +58,12 @@ class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class.java
          * List of all years with employee salaries: select min(year), max(year) from t_fibu_employee_salary.
          */
         get() {
-            val minMaxYear = ensureUniqueResult(
-                em.createNamedQuery(
-                    EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,
-                    Tuple::class.java
-                )
+            val minMaxDate = persistenceService.selectSingleResult(
+                Tuple::class.java,
+                EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,
+                namedQuery = true,
             )
-            return getYears(minMaxYear!![0] as Int, minMaxYear[1] as Int)
+            return getYearsByTupleOfYears(minMaxDate)
         }
 
     override fun getList(filter: BaseSearchFilter): List<EmployeeSalaryDO>? {
