@@ -116,10 +116,10 @@ public class SetupPage extends AbstractUnsecureBasePage {
     } else {
       try {
         ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
-            configurationDao.getApplicationContext().getResource("classpath:data/pfTestdata.sql"));
+            configurationDao.applicationContext.getResource("classpath:data/pfTestdata.sql"));
         if (databaseService.getDialect() == DatabaseDialect.PostgreSQL) {
           ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
-              configurationDao.getApplicationContext().getResource("classpath:data/pfTestdataPostgres.sql"));
+              configurationDao.applicationContext.getResource("classpath:data/pfTestdataPostgres.sql"));
         }
       } catch (Exception e) {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());

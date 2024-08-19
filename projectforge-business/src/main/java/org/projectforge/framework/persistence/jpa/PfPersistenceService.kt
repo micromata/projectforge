@@ -106,6 +106,30 @@ open class PfPersistenceService {
     }
 
     /**
+     * Convenience call for selectSingleResult() with namedQuery = true.
+     * @see EntityManagerUtil.selectSingleResult
+     */
+    @JvmOverloads
+    fun <T> selectNamedSingleResult(
+        resultClass: Class<T>,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        nullAllowed: Boolean = true,
+        errorMessage: String? = null,
+        attached: Boolean = false,
+    ): T? {
+        return selectSingleResult(
+            resultClass,
+            sql = sql,
+            keyValues = keyValues,
+            nullAllowed = nullAllowed,
+            errorMessage = errorMessage,
+            attached = attached,
+            namedQuery = true,
+        )
+    }
+
+    /**
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     @JvmOverloads
