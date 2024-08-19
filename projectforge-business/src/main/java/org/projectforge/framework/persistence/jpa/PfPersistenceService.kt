@@ -85,8 +85,8 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     fun <T> selectSingleResult(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
@@ -95,9 +95,9 @@ open class PfPersistenceService {
     ): T? {
         return EntityManagerUtil.selectSingleResult(
             entityManagerFactory,
-            resultClass,
-            sql,
-            *keyValues,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
             attached = attached,
@@ -111,16 +111,16 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     fun <T> selectNamedSingleResult(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         attached: Boolean = false,
     ): T? {
         return selectSingleResult(
-            resultClass,
             sql = sql,
+            resultClass = resultClass,
             keyValues = keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
@@ -134,20 +134,26 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     open fun <T> queryNullable(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
     ): List<T?> {
-        return EntityManagerUtil.queryNullable(entityManagerFactory, resultClass, sql, *keyValues, attached = attached)
+        return EntityManagerUtil.queryNullable(
+            entityManagerFactory,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
+            attached = attached,
+        )
     }
 
     /**
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     open fun <T> query(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         namedQuery: Boolean = false,
@@ -155,9 +161,9 @@ open class PfPersistenceService {
     ): List<T> {
         return EntityManagerUtil.query(
             entityManagerFactory,
-            resultClass,
-            sql,
-            *keyValues,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
             attached = attached,
             namedQuery = namedQuery,
             maxResults = maxResults,
@@ -169,16 +175,16 @@ open class PfPersistenceService {
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     open fun <T> namedQuery(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
         return query(
-            resultClass,
-            sql,
-            *keyValues,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
             attached = attached,
             namedQuery = true,
             maxResults = maxResults

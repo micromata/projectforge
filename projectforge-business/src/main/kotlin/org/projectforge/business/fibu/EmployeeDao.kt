@@ -62,8 +62,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
 
     open fun findByUserId(userId: Int?): EmployeeDO? {
         val employee = persistenceService.selectSingleResult(
-            EmployeeDO::class.java,
             EmployeeDO.FIND_BY_USER_ID,
+            EmployeeDO::class.java,
             Pair("userId", userId),
         )
         setEmployeeStatus(employee)
@@ -73,8 +73,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     open fun getEmployeeIdByByUserId(userId: Int?): Int? {
         userId ?: return null
         return persistenceService.selectSingleResult(
-            Integer::class.java,
             EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
+            Integer::class.java,
             Pair("userId", userId),
         )?.toInt()
     }
@@ -94,8 +94,10 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         val lastname = tokenizer.nextToken().trim { it <= ' ' }
         val firstname = tokenizer.nextToken().trim { it <= ' ' }
         val employee = persistenceService.selectSingleResult(
-            EmployeeDO::class.java, EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME,
-            Pair("firstname", firstname), Pair("lastname", lastname)
+            EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME,
+            EmployeeDO::class.java,
+            Pair("firstname", firstname),
+            Pair("lastname", lastname),
         )
         setEmployeeStatus(employee)
         return employee
@@ -185,8 +187,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         try {
             val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
             persistenceService.selectSingleResult(
+                "$baseSQL$META_SQL",
                 EmployeeDO::class.java,
-                "$baseSQL$META_SQL", Pair("staffNumber", staffnumber)
+                Pair("staffNumber", staffnumber),
             )
         } catch (ex: NoResultException) {
             log.warn("No employee found for staffnumber: $staffnumber")

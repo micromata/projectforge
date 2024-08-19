@@ -61,6 +61,9 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
     @Autowired
     private val taskTree: TaskTree? = null
 
+    override val additionalSearchFields: Array<String>
+        get() = ADDITIONAL_SEARCH_FIELDS
+
     fun getTaskTree(): TaskTree {
         return TaskTreeHelper.getTaskTree()
     }
@@ -113,8 +116,8 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
             val result = persistenceService.query(
-                Tuple::class.java,
                 "select $intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id",
+                Tuple::class.java,
             )
             // select intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id
             val list = mutableListOf<Array<Any>>()
@@ -125,8 +128,8 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
         }
 
         val result = persistenceService.query(
-            Tuple::class.java,
             "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id",
+            Tuple::class.java,
         )
         // select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
         val list = mutableListOf<Array<Any>>()
@@ -165,15 +168,16 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
         if (intervalInSeconds != null) {
             // Expected type is Integer or Long.
             val value = persistenceService.selectSingleResult(
-                Number::class.java,
                 "select $intervalInSeconds from TimesheetDO where task.id=:taskId and task.deleted=false group by task.id",
+                Number::class.java,
                 Pair("taskId", taskId),
             )
             // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
             return value?.toLong() ?: 0L
         }
-        val result = persistenceService.namedQuery(Tuple::class.java,
+        val result = persistenceService.namedQuery(
             TimesheetDO.FIND_START_STOP_BY_TASKID,
+            Tuple::class.java,
             Pair("taskId", taskId),
         )
         if (CollectionUtils.isEmpty(result)) {
@@ -237,17 +241,21 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
                 throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN)
             }
         } else {
-            val others: List<TaskDO?> = if (task.id != null) {
-                em.createNamedQuery(TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE, TaskDO::class.java)
-                    .setParameter("parentTaskId", task.parentTaskId)
-                    .setParameter("title", task.title)
-                    .setParameter("id", task.id) // Find other (different from this id).
-                    .getResultList()
+            val others = if (task.id != null) {
+                persistenceService.namedQuery(
+                    TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
+                    TaskDO::class.java,
+                    Pair("parentTaskId", task.parentTaskId),
+                    Pair("title", task.title),
+                    Pair("id", task.id),
+                )// Find other (different from this id).
             } else {
-                em.createNamedQuery(TaskDO.FIND_BY_PARENTTASKID_AND_TITLE, TaskDO::class.java)
-                    .setParameter("parentTaskId", task.parentTaskId)
-                    .setParameter("title", task.title)
-                    .getResultList()
+                persistenceService.namedQuery(
+                    TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
+                    TaskDO::class.java,
+                    Pair("parentTaskId", task.parentTaskId),
+                    Pair("title", task.title),
+                )
             }
             if (CollectionUtils.isNotEmpty(others)) {
                 throw UserException(I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS)
@@ -278,11 +286,11 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
     }
 
     override fun hasAccess(
-        user: PFUserDO, obj: TaskDO, oldObj: TaskDO?,
+        user: PFUserDO, obj: TaskDO?, oldObj: TaskDO?,
         operationType: OperationType,
         throwException: Boolean
     ): Boolean {
-        return accessChecker.hasPermission(user, obj.id, AccessType.TASKS, operationType, throwException)
+        return accessChecker.hasPermission(user, obj?.id, AccessType.TASKS, operationType, throwException)
     }
 
     override fun hasUpdateAccess(
@@ -508,10 +516,7 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
         const val I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN: String = "task.error.parentTaskNotGiven"
         const val I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS: String = "task.error.duplicateChildTasks"
         private val log: Logger = LoggerFactory.getLogger(TaskDao::class.java)
-        val additionalSearchFields: Array<String> = arrayOf(
-            "responsibleUser.username",
-            "responsibleUser.firstname", "responsibleUser.lastname"
-        )
-            get() = Companion.field
+        val ADDITIONAL_SEARCH_FIELDS =
+            arrayOf("responsibleUser.username", "responsibleUser.firstname", "responsibleUser.lastname")
     }
 }

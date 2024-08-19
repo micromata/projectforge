@@ -213,8 +213,8 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         } else {
             // user already exists. Check maybe changed username:
             persistenceService.selectSingleResult(
-                PFUserDO::class.java,
                 PFUserDO.FIND_OTHER_USER_BY_USERNAME,
+                PFUserDO::class.java,
                 Pair("username", user.username),
                 Pair("id", user.id),
                 namedQuery = true,
@@ -225,8 +225,8 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
 
     fun getInternalByName(username: String?): PFUserDO? {
         return persistenceService.selectSingleResult(
-            PFUserDO::class.java,
             PFUserDO.FIND_BY_USERNAME,
+            PFUserDO::class.java,
             Pair("username", username),
             namedQuery = true,
         )
@@ -322,8 +322,8 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
 
     fun findByUsername(username: String?): List<PFUserDO> {
         return persistenceService.namedQuery(
-            PFUserDO::class.java,
             PFUserDO.FIND_BY_USERNAME,
+            PFUserDO::class.java,
             Pair("username", username),
         )
     }

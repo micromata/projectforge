@@ -101,8 +101,8 @@ internal object EntityManagerUtil {
      */
     fun <T> selectSingleResult(
         entityManagerFactory: EntityManagerFactory,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
@@ -112,8 +112,8 @@ internal object EntityManagerUtil {
         PfPersistenceContext(entityManagerFactory).use { context ->
             return selectSingleResult(
                 context.em,
-                resultClass,
                 sql = sql,
+                resultClass = resultClass,
                 keyValues = keyValues,
                 nullAllowed = nullAllowed,
                 errorMessage = errorMessage,
@@ -130,15 +130,16 @@ internal object EntityManagerUtil {
      */
     fun <T> selectSingleResult(
         em: EntityManager,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
-        val query = createQuery(em, resultClass, sql, *keyValues, namedQuery = namedQuery)
+        val query =
+            createQuery(em, sql = sql, resultClass = resultClass, keyValues = *keyValues, namedQuery = namedQuery)
         val result = try {
             // NoResultException – if there is no result
             // NonUniqueResultException
@@ -175,17 +176,17 @@ internal object EntityManagerUtil {
      */
     fun <T> queryNullable(
         entityManagerFactory: EntityManagerFactory,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
     ): List<T?> {
         PfPersistenceContext(entityManagerFactory).use { context ->
             return queryNullable(
                 context.em,
-                resultClass,
-                sql,
-                *keyValues,
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = keyValues,
                 attached = attached,
             )
         }
@@ -196,12 +197,12 @@ internal object EntityManagerUtil {
      */
     fun <T> queryNullable(
         em: EntityManager,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
     ): List<T?> {
-        val q = createQuery<T>(em, resultClass, sql, *keyValues)
+        val q = createQuery<T>(em, sql = sql, resultClass = resultClass, keyValues = keyValues)
         val ret = q.resultList
         if (!attached) {
             ret.forEach { obj ->
@@ -219,8 +220,8 @@ internal object EntityManagerUtil {
      */
     fun <T> query(
         entityManagerFactory: EntityManagerFactory,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         namedQuery: Boolean = false,
@@ -229,8 +230,8 @@ internal object EntityManagerUtil {
         PfPersistenceContext(entityManagerFactory).use { context ->
             return query(
                 context.em,
-                resultClass = resultClass,
                 sql = sql,
+                resultClass = resultClass,
                 keyValues = keyValues,
                 attached = attached,
                 namedQuery = namedQuery,
@@ -244,14 +245,14 @@ internal object EntityManagerUtil {
      */
     fun <T> query(
         em: EntityManager,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
-        val q = createQuery(em, resultClass, sql, *keyValues, namedQuery = namedQuery)
+        val q = createQuery(em, sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery)
         if (maxResults != null) {
             q.maxResults = maxResults
         }
@@ -268,8 +269,8 @@ internal object EntityManagerUtil {
 
     fun <T> createQuery(
         em: EntityManager,
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): TypedQuery<T> {

@@ -59,14 +59,14 @@ class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class.java
          */
         get() {
             val minMaxDate = persistenceService.selectSingleResult(
-                Tuple::class.java,
                 EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,
+                Tuple::class.java,
                 namedQuery = true,
             )
             return getYearsByTupleOfYears(minMaxDate)
         }
 
-    override fun getList(filter: BaseSearchFilter): List<EmployeeSalaryDO>? {
+    override fun getList(filter: BaseSearchFilter): List<EmployeeSalaryDO> {
         val myFilter = if (filter is EmployeeSalaryFilter) {
             filter
         } else {
@@ -88,8 +88,8 @@ class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class.java
     override fun onSaveOrModify(obj: EmployeeSalaryDO) {
         if (obj.id == null) {
             val list = persistenceService.query(
-                EmployeeSalaryDO::class.java,
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",
+                EmployeeSalaryDO::class.java,
                 Pair("year", obj.year),
                 Pair("month", obj.month),
                 Pair("employeeid", obj.employeeId),
@@ -103,8 +103,8 @@ class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class.java
             }
         } else {
             val list = persistenceService.query(
-                EmployeeSalaryDO::class.java,
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid and s.id <> :id",
+                EmployeeSalaryDO::class.java,
                 Pair("year", obj.year),
                 Pair("month", obj.month),
                 Pair("employeeid", obj.employeeId),
@@ -136,9 +136,9 @@ class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class.java
 
     fun findByEmployee(employee: EmployeeDO?): List<EmployeeSalaryDO> {
         return persistenceService.query(
-            EmployeeSalaryDO::class.java,
             "from EmployeeSalaryDO sal where sal.employee = :emp",
-            Pair("emp", employee)
+            EmployeeSalaryDO::class.java,
+            Pair("emp", employee),
         )
     }
 

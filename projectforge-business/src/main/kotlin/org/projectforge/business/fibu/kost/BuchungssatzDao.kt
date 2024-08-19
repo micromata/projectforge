@@ -53,14 +53,20 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
      */
     open val years: IntArray
         get() {
-            val list = persistenceService.queryNullable(Int::class.java, "select min(year), max(year) from BuchungssatzDO t")
+            val list = persistenceService.queryNullable(
+                "select min(year), max(year) from BuchungssatzDO t",
+                Int::class.java,
+            )
             return SQLHelper.getYears(list[0], list[1])
         }
 
     open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {
         return persistenceService.selectSingleResult(
-            BuchungssatzDO::class.java, BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
-            Pair("year", year), Pair("month", month), Pair("satznr", satznr)
+            BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
+            BuchungssatzDO::class.java,
+            Pair("year", year),
+            Pair("month", month),
+            Pair("satznr", satznr),
         )
     }
 

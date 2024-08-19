@@ -111,8 +111,8 @@ class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java) {
         requireNotNull(task.id)
         requireNotNull(group.id)
         val access = persistenceService.selectNamedSingleResult(
-            GroupTaskAccessDO::class.java,
             GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
+            GroupTaskAccessDO::class.java,
             Pair("taskId", task.id),
             Pair("groupId", group.id),
         )

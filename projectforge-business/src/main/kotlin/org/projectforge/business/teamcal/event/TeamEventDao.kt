@@ -35,8 +35,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.calendar.event.model.ICalendarEvent
 import org.projectforge.business.calendar.event.model.SeriesModificationMode
-import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.EmployeeDao.Companion
 import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.admin.TeamCalCache
 import org.projectforge.business.teamcal.admin.TeamCalDao
@@ -209,7 +207,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
         return try {
             persistenceService.selectSingleResult(
-                TeamEventDO::class.java, sqlQuery.toString(),
+                sqlQuery.toString(),
+                TeamEventDO::class.java,
                 *params.toTypedArray(),
                 attached = true,
             )
@@ -499,7 +498,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             return null
         }
         checkLoggedInUserSelectAccess()
-        val s =
+        val sql =
             ("select distinct location from ${doClass.simpleName} t where deleted=false and t.calendar.id in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location order by t.location")
         val calIds = mutableListOf<Int>()
         for (i in calendars.indices) {
@@ -508,7 +507,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             }
         }
         return persistenceService.query(
-            String::class.java, s,
+            sql,
+            String::class.java,
             Pair("cals", calIds),
             Pair("lastUpdate", now().minusYears(1).utilDate),
             Pair("location", "%${searchString.lowercase()}%"),

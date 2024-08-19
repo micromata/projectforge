@@ -122,8 +122,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     open fun getYears(userId: Int?): IntArray {
         val minMaxDate = persistenceService.selectSingleResult(
-            Tuple::class.java,
             TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
+            Tuple::class.java,
             Pair("userId", userId),
             namedQuery = true,
         )
@@ -677,8 +677,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         checkLoggedInUserSelectAccess()
         val oneYearAgo = now().minusDays(365)
         return persistenceService.namedQuery(
-            String::class.java,
             TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
+            String::class.java,
             Pair("lastUpdate", oneYearAgo.utilDate),
             Pair("locationSearch", "%${searchString?.lowercase() ?: ""}%"),
             Pair("userId", ThreadLocalUserContext.userId),
@@ -691,8 +691,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     open fun getUsedReferences(taskId: Int): List<String> {
         checkLoggedInUserSelectAccess()
         return persistenceService.namedQuery(
-            String::class.java,
             TimesheetDO.SELECT_REFERENCES_BY_TASK_ID,
+            String::class.java,
             Pair("taskIds", taskTree.getAncestorAndDescendantTaskIs(taskId, true)),
         )
     }
@@ -711,8 +711,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         checkLoggedInUserSelectAccess()
         log.info("Get recent locations from the database.")
         return persistenceService.namedQuery(
-            String::class.java,
             TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
+            String::class.java,
             Pair("userId", ThreadLocalUserContext.userId),
             Pair("lastUpdate", sinceDate),
         )
