@@ -37,7 +37,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.projectforge.framework.utils.Crypt.decrypt
 import org.projectforge.framework.utils.Crypt.encrypt
 import org.slf4j.Logger
@@ -213,22 +212,23 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
             getInternalByName(user.username)
         } else {
             // user already exists. Check maybe changed username:
-            ensureUniqueResult(
-                em.createNamedQuery(
-                    PFUserDO.FIND_OTHER_USER_BY_USERNAME,
-                    PFUserDO::class.java
-                )
-                    .setParameter("username", user.username)
-                    .setParameter("id", user.id)
+            persistenceService.selectSingleResult(
+                PFUserDO::class.java,
+                PFUserDO.FIND_OTHER_USER_BY_USERNAME,
+                Pair("username", user.username),
+                Pair("id", user.id),
+                namedQuery = true,
             )
         }
         return dbUser != null
     }
 
     fun getInternalByName(username: String?): PFUserDO? {
-        return ensureUniqueResult(
-            em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO::class.java)
-                .setParameter("username", username)
+        return persistenceService.selectSingleResult(
+            PFUserDO::class.java,
+            PFUserDO.FIND_BY_USERNAME,
+            Pair("username", username),
+            namedQuery = true,
         )
     }
 
@@ -321,9 +321,11 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     fun findByUsername(username: String?): List<PFUserDO> {
-        return em.createNamedQuery(PFUserDO.FIND_BY_USERNAME, PFUserDO::class.java)
-            .setParameter("username", username)
-            .resultList
+        return persistenceService.namedQuery(
+            PFUserDO::class.java,
+            PFUserDO.FIND_BY_USERNAME,
+            Pair("username", username),
+        )
     }
 
     /**

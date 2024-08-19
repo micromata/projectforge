@@ -35,7 +35,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -90,13 +89,12 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
             getByName(group.name)
         } else {
             // group already exists. Check maybe changed name:
-            ensureUniqueResult(
-                em.createNamedQuery(
-                    GroupDO.FIND_OTHER_GROUP_BY_NAME,
-                    GroupDO::class.java
-                )
-                    .setParameter("name", group.name)
-                    .setParameter("id", group.id)
+            persistenceService.selectSingleResult(
+                GroupDO::class.java,
+                GroupDO.FIND_OTHER_GROUP_BY_NAME,
+                Pair("name", group.name),
+                Pair("id", group.id),
+                namedQuery = true,
             )
         }
         return dbGroup != null
@@ -386,10 +384,11 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (name == null) {
             return null
         }
-        return ensureUniqueResult(
-            em
-                .createNamedQuery(GroupDO.FIND_BY_NAME, GroupDO::class.java)
-                .setParameter("name", name)
+        return persistenceService.selectSingleResult(
+            GroupDO::class.java,
+            GroupDO.FIND_BY_NAME,
+            Pair("name", name),
+            namedQuery = true,
         )
     }
 

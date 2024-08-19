@@ -36,11 +36,10 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
+
+// private val log = KotlinLogging.logger {}
 
 @Repository
 class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
@@ -130,11 +129,12 @@ class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     fun getProjekt(intern_kost2_4: Int, nummer: Int): ProjektDO? {
-        return ensureUniqueResult(
-            em
-                .createNamedQuery(ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER, ProjektDO::class.java)
-                .setParameter("internKost24", intern_kost2_4)
-                .setParameter("nummer", nummer)
+        return persistenceService.selectSingleResult(
+            ProjektDO::class.java,
+            ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER,
+            Pair("internKost24", intern_kost2_4),
+            Pair("nummer", nummer),
+            namedQuery = true,
         )
     }
 

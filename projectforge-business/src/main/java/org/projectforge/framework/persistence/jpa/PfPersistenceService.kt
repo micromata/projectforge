@@ -141,6 +141,7 @@ open class PfPersistenceService {
     }
 
     /**
+     * Convenience call for query() with namedQuery = true.
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     open fun <T> namedQuery(
@@ -148,14 +149,15 @@ open class PfPersistenceService {
         sql: String,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
+        maxResults: Int? = null,
     ): List<T> {
-        return EntityManagerUtil.query(
-            entityManagerFactory,
+        return query(
             resultClass,
             sql,
             *keyValues,
             attached = attached,
-            namedQuery = true
+            namedQuery = true,
+            maxResults = maxResults
         )
     }
 
