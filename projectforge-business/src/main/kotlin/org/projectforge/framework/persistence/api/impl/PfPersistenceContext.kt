@@ -28,7 +28,7 @@ class PfPersistenceContext(
         id: Any?,
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
-        ): T? {
+    ): T? {
         return EntityManagerUtil.selectById(em, entityClass, id = id, attached = attached, lockModeType = lockModeType)
     }
 
@@ -44,6 +44,7 @@ class PfPersistenceContext(
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         attached: Boolean = false,
+        namedQuery: Boolean = false,
     ): T? {
         return EntityManagerUtil.selectSingleResult(
             em,
@@ -52,7 +53,8 @@ class PfPersistenceContext(
             keyValues = *keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
-            attached = attached
+            attached = attached,
+            namedQuery = namedQuery,
         )
     }
 
@@ -96,6 +98,28 @@ class PfPersistenceContext(
             maxResults = maxResults,
         )
     }
+
+    /**
+     * Convenience call for query() with namedQuery = true.
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
+     */
+    fun <T> namedQuery(
+        resultClass: Class<T>,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+        attached: Boolean = false,
+        maxResults: Int? = null,
+    ): List<T> {
+        return query(
+            resultClass,
+            sql,
+            *keyValues,
+            attached = attached,
+            namedQuery = true,
+            maxResults = maxResults,
+        )
+    }
+
 
     fun <T> createQuery(
         resultClass: Class<T>,

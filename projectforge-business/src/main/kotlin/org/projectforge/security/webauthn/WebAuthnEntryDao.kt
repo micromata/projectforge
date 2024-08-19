@@ -23,103 +23,125 @@
 
 package org.projectforge.security.webauthn
 
+import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.utils.SQLHelper.ensureUniqueResult
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class WebAuthnEntryDao {
+    @Autowired
+    private lateinit var persistencyService: PfPersistenceService
 
-  @PersistenceContext
-  private lateinit var em: EntityManager
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun upsert(entry: WebAuthnEntryDO) {
-    val ownerId = entry.owner?.id
-    val credentialId = entry.credentialId
-    requireNotNull(ownerId) { "Owner must be given for upsert of entry." }
-    requireNotNull(credentialId) { "Credential id must be given." }
-    require(entry.owner?.id == ThreadLocalUserContext.userId)
-    val dbObj = findExistingEntry(entry)
-    if (dbObj != null) {
-      dbObj.copyDataFrom(entry)
-      dbObj.lastUpdate = Date()
-      log.info { "Updating webauthn entry for user '${entry.owner?.username}' with credential id '${entry.credentialId}' with displayName='${entry.displayName}'." }
-      em.merge(dbObj)
-    } else {
-      entry.created = Date()
-      entry.lastUpdate = entry.created
-      log.info { "Storing new webauthn entry for user '${entry.owner?.username}' with credential id '${entry.credentialId}' with displayName='${entry.displayName}'." }
-      em.persist(entry)
+    open fun upsert(entry: WebAuthnEntryDO) {
+        val ownerId = entry.owner?.id
+        val credentialId = entry.credentialId
+        requireNotNull(ownerId) { "Owner must be given for upsert of entry." }
+        requireNotNull(credentialId) { "Credential id must be given." }
+        require(entry.owner?.id == ThreadLocalUserContext.userId)
+        persistencyService.runInTransaction { context ->
+            val em = context.em
+            val dbObj = findExistingEntry(entry, em)
+            if (dbObj != null) {
+                dbObj.copyDataFrom(entry)
+                dbObj.lastUpdate = Date()
+                log.info { "Updating webauthn entry for user '${entry.owner?.username}' with credential id '${entry.credentialId}' with displayName='${entry.displayName}'." }
+                em.merge(dbObj)
+            } else {
+                entry.created = Date()
+                entry.lastUpdate = entry.created
+                log.info { "Storing new webauthn entry for user '${entry.owner?.username}' with credential id '${entry.credentialId}' with displayName='${entry.displayName}'." }
+                em.persist(entry)
+            }
+            em.flush()
+        }
     }
-    em.flush()
-  }
 
-  open fun getEntry(ownerId: Int, credentialId: String): WebAuthnEntryDO? {
-    return ensureUniqueResult<WebAuthnEntryDO>(
-      em.createNamedQuery(WebAuthnEntryDO.FIND_BY_OWNER_AND_CREDENTIAL_ID, WebAuthnEntryDO::class.java)
-        .setParameter("ownerId", ownerId)
-        .setParameter("credentialId", credentialId)
-    )
-  }
-
-  /**
-   * Checks if the found entry is owned by the logged-in-user and throws an AccessException if not.
-   * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
-   * (security paranoia).
-   */
-  open fun getEntryById(id: Int): WebAuthnEntryDO {
-    val loggedInUser = ThreadLocalUserContext.user
-    requireNotNull(loggedInUser) { "Logged-in user is required for getting an entry by id." }
-    val result = ensureUniqueResult<WebAuthnEntryDO>(
-      em.createNamedQuery(WebAuthnEntryDO.FIND_BY_ID, WebAuthnEntryDO::class.java)
-        .setParameter("id", id)
-    )
-    if (result == null || result.owner?.id != loggedInUser.id) {
-      throw AccessException(loggedInUser, "webauthn.error.userNotOwnerOrEntryDoesnotExist")
+    open fun getEntry(ownerId: Int, credentialId: String): WebAuthnEntryDO? {
+        return persistencyService.selectSingleResult(
+            WebAuthnEntryDO::class.java,
+            WebAuthnEntryDO.FIND_BY_OWNER_AND_CREDENTIAL_ID,
+            Pair("ownerId", ownerId),
+            Pair("credentialId", credentialId),
+            namedQuery = true,
+        )
     }
-    return result
-  }
 
-  open fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {
-    if (ownerId == null) {
-      return emptyList()
+    /**
+     * Checks if the found entry is owned by the logged-in-user and throws an AccessException if not.
+     * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
+     * (security paranoia).
+     */
+    open fun getEntryById(id: Int): WebAuthnEntryDO {
+        return persistencyService.runReadOnly { context ->
+            getEntryById(persistenceContext = context, id = id)
+        }
     }
-    val loggedInUserId = ThreadLocalUserContext.userId
-    require(loggedInUserId == null || loggedInUserId == ownerId) { "Can only get WebAuthn entries for logged-in user #$loggedInUserId, not for other user #$ownerId" }
-    return em.createNamedQuery(WebAuthnEntryDO.FIND_BY_OWNER, WebAuthnEntryDO::class.java)
-      .setParameter("ownerId", ownerId)
-      .resultList
-  }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  open fun delete(entryId: Int) {
-    val entry = getEntryById(entryId)
-    val ownerId = entry?.owner?.id
-    // Don't tell the user if the WebAuthn entry of a foreign user exists (security paranoia)
-    requireNotNull(ownerId) { "Can't delete WebAuthn entry, no such entry found or logged-in-user isn't the owner." }
-    require(entry.owner?.id == ThreadLocalUserContext.userId) { "Owner is only allowed to delete own WebAuthn entries." }
-    em.remove(entry)
-    em.flush()
-  }
-
-
-  private fun findExistingEntry(entry: WebAuthnEntryDO): WebAuthnEntryDO? {
-    if (entry.id != null) {
-      val dbObj = em.find(WebAuthnEntryDO::class.java, entry.id)
-      requireNotNull(dbObj) { "Entry with id given, but doesn't exist in the data base." }
-      return dbObj
+    /**
+     * Checks if the found entry is owned by the logged-in-user and throws an AccessException if not.
+     * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
+     * (security paranoia).
+     */
+    private fun getEntryById(persistenceContext: PfPersistenceContext, id: Int, attached: Boolean = false): WebAuthnEntryDO {
+        val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
+        val result = persistenceContext.selectSingleResult(
+            WebAuthnEntryDO::class.java,
+            WebAuthnEntryDO.FIND_BY_ID,
+            Pair("id", id),
+            attached = attached,
+            namedQuery = true,
+        )
+        if (result == null || result.owner?.id != loggedInUser.id) {
+            throw AccessException(loggedInUser, "webauthn.error.userNotOwnerOrEntryDoesnotExist")
+        }
+        return result
     }
-    return getEntry(entry.owner!!.id!!, entry.credentialId!!)
-  }
+
+    open fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {
+        if (ownerId == null) {
+            return emptyList()
+        }
+        val loggedInUserId = ThreadLocalUserContext.userId
+        require(loggedInUserId == null || loggedInUserId == ownerId) { "Can only get WebAuthn entries for logged-in user #$loggedInUserId, not for other user #$ownerId" }
+        return persistencyService.namedQuery(
+            WebAuthnEntryDO::class.java,
+            WebAuthnEntryDO.FIND_BY_OWNER,
+            Pair("ownerId", ownerId),
+        )
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    open fun delete(entryId: Int) {
+        persistencyService.runInTransaction { context ->
+            val entry = getEntryById(context, entryId, true)
+            val ownerId = entry.owner?.id
+            // Don't tell the user if the WebAuthn entry of a foreign user exists (security paranoia)
+            requireNotNull(ownerId) { "Can't delete WebAuthn entry, no such entry found or logged-in-user isn't the owner." }
+            require(entry.owner?.id == ThreadLocalUserContext.userId) { "Owner is only allowed to delete own WebAuthn entries." }
+            val em = context.em
+            em.remove(entry)
+            em.flush()
+        }
+    }
+
+
+    private fun findExistingEntry(entry: WebAuthnEntryDO, em: EntityManager): WebAuthnEntryDO? {
+        if (entry.id != null) {
+            val dbObj = em.find(WebAuthnEntryDO::class.java, entry.id)
+            requireNotNull(dbObj) { "Entry with id given, but doesn't exist in the data base." }
+            return dbObj
+        }
+        return getEntry(entry.owner!!.id!!, entry.credentialId!!)
+    }
 }
