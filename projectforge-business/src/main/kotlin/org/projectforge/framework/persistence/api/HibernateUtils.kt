@@ -213,6 +213,7 @@ object HibernateUtils {
      * @param propertyName Java bean property name.
      * @return length if exists, otherwise null.
      */
+    @JvmStatic
     fun getPropertyLength(entity: Class<*>, propertyName: String): Int? {
         return HibernateMetaModel.getPropertyLength(entity.name, propertyName)
     }

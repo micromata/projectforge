@@ -59,6 +59,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 
 private val log = KotlinLogging.logger {}
 
@@ -207,18 +208,18 @@ class AddressPagesRest
 
   override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
     val dto = postData.data
-    val address = baseDao.getOrLoad(obj.id)
+    val address = baseDao.getOrLoad(obj.id!!)
     val personalAddress = PersonalAddressDO()
     personalAddress.address = address
     personalAddress.isFavoriteCard = dto.isFavoriteCard
-    personalAddressDao.setOwner(personalAddress, userId) // Set current logged in user as owner.
+    personalAddressDao.setOwner(personalAddress, requiredLoggedInUserId) // Set current logged in user as owner.
     personalAddressDao.saveOrUpdate(personalAddress)
 
     val session = request.getSession(false)
     val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
     if (bytes != null && bytes is ByteArray) {
       // The user uploaded an image, so
-      addressImageDao.saveOrUpdate(obj.id, bytes)
+      addressImageDao.saveOrUpdate(obj.id!!, bytes)
       ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     }
   }
@@ -553,7 +554,7 @@ class AddressPagesRest
     val newList = resultSet.resultSet.map {
       ListAddress(
         transformFromDB(it),
-        id = it.id,
+        id = it.id!!,
         deleted = it.deleted,
         imageUrl = if (it.image == true) "address/image/${it.id}" else null,
         previewImageUrl = if (it.image == true) "address/imagePreview/${it.id}" else null

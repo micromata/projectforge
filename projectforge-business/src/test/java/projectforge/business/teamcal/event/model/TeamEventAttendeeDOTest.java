@@ -41,7 +41,7 @@ public class TeamEventAttendeeDOTest
   public void testEqualsHashCode()
   {
     AddressDO exampleAddress = new AddressDO();
-    exampleAddress.setPk(4712);
+    exampleAddress.setId(4712);
 
     TeamEventAttendeeDO first = new TeamEventAttendeeDO();
     TeamEventAttendeeDO second = new TeamEventAttendeeDO();
@@ -55,10 +55,10 @@ public class TeamEventAttendeeDOTest
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
 
-    first.setPk(4711);
+    first.setId(4711);
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
-    second.setPk(4711);
+    second.setId(4711);
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
 
@@ -67,7 +67,7 @@ public class TeamEventAttendeeDOTest
     //Equals/HashCode contract is broken
     assertFalse(first.hashCode() == second.hashCode());
 
-    first.setPk(null);
+    first.setId(null);
     first.setAddress(exampleAddress);
     assertNotEquals(first, second);
     assertFalse(first.hashCode() == second.hashCode());
@@ -88,12 +88,12 @@ public class TeamEventAttendeeDOTest
     TeamEventAttendeeDO second = new TeamEventAttendeeDO();
     testSet.remove(second);
     assertTrue(testSet.isEmpty());
-    first.setPk(4711);
+    first.setId(4711);
     testSet.add(first);
-    second.setPk(4711);
+    second.setId(4711);
     testSet.remove(second);
     assertTrue(testSet.isEmpty());
-    first.setPk(null);
+    first.setId(null);
     first.setUrl("test@test.de");
     testSet.add(first);
     second.setUrl("test@test.de");

@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.database;
 
-import de.micromata.genome.jpa.ConstraintPersistenceException;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
@@ -56,9 +55,6 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
 
   @Autowired
   private DatabaseService databaseService;
-
-  @Autowired
-  private PfJpaXmlDumpService pfJpaXmlDumpService;
 
   @Autowired
   private AccessDao accessDao;
@@ -94,7 +90,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
     userService.encryptAndSavePassword(admin, testPassword);
-    pfJpaXmlDumpService.createTestDatabase();
+    //pfJpaXmlDumpService.createTestDatabase();
     admin = databaseService.updateAdminUser(admin, null);
     databaseService.afterCreatedTestDb(true);
     final PFUserDO initialAdminUser = userService.authenticateUser("myadmin", testPassword);
@@ -147,11 +143,11 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     boolean exception = false;
     admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     try {
-      pfJpaXmlDumpService.createTestDatabase();
+      //pfJpaXmlDumpService.createTestDatabase();
       databaseService.updateAdminUser(admin, null);
       databaseService.afterCreatedTestDb(false);
       fail("AccessException expected.");
-    } catch (final AccessException | ConstraintPersistenceException ex) {
+    } catch (final AccessException ex) {//|| ConstraintPersistenceException ex) {
       exception = true;
       // Everything fine.
     }
@@ -161,11 +157,11 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     log.error("****> Next exception and error message are OK (part of the test).");
     exception = false;
     try {
-      pfJpaXmlDumpService.createTestDatabase();
+      //pfJpaXmlDumpService.createTestDatabase();
       databaseService.updateAdminUser(admin, null);
       databaseService.afterCreatedTestDb(true);
       fail("AccessException expected.");
-    } catch (AccessException | ConstraintPersistenceException ex) {
+    } catch (AccessException ex) {//|| ConstraintPersistenceException ex) {
       exception = true;
       // Everything fine.
     }

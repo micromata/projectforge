@@ -408,6 +408,7 @@ class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             "projekt.kunde.name", "positionen.auftragsPosition.auftrag.nummer"
         )
 
+        @JvmStatic
         fun getNettoSumme(col: Collection<RechnungsPositionVO>?): BigDecimal {
             var nettoSumme = BigDecimal.ZERO
             if (col != null && col.size > 0) {

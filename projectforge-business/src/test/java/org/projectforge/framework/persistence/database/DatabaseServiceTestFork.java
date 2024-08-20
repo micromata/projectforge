@@ -43,9 +43,6 @@ public class DatabaseServiceTestFork extends AbstractTestBase
   private DatabaseService databaseService;
 
   @Autowired
-  private PfJpaXmlDumpService pfJpaXmlDumpService;
-
-  @Autowired
   private UserGroupCache userGroupCache;
 
   @Override
@@ -64,7 +61,7 @@ public class DatabaseServiceTestFork extends AbstractTestBase
     admin.setId(1);
     userService.encryptAndSavePassword(admin, DEFAULT_ADMIN_PASSWORD);
     ThreadLocalUserContext.setUser(admin);
-    pfJpaXmlDumpService.createTestDatabase();
+    //pfJpaXmlDumpService.createTestDatabase();
     databaseService.updateAdminUser(admin, null);
     databaseService.afterCreatedTestDb(true);
     final PFUserDO user = userService.authenticateUser(DatabaseService.DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD);

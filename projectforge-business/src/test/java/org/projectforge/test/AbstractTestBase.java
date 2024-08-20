@@ -51,6 +51,7 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.EntityOpType;
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner;
+import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -189,6 +190,9 @@ public abstract class AbstractTestBase {
 
     @Autowired
     private UserGroupCache userGroupCache;
+
+    @Autowired
+    protected PfPersistenceService persistenceService;
 
     private static boolean pluginsInitialized = false;
 
@@ -346,7 +350,7 @@ public abstract class AbstractTestBase {
     }
 
     protected void clearDatabase() {
-        emf.getJpaSchemaService().clearDatabase();
+        DatabaseHelper.clearDatabase(em);
         userGroupCache.setExpired();
         initTestDB.clearUsers();
     }
@@ -436,7 +440,7 @@ public abstract class AbstractTestBase {
         assertEquals(taskId, ex.getTaskId());
     }
 
-    @SuppressWarnings("rawtypes")
+/*    @SuppressWarnings("rawtypes")
     protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
                                       final EntityOpType type) {
         assertHistoryEntry(entry, entityId, user, type, null, null, null, null);
@@ -454,7 +458,7 @@ public abstract class AbstractTestBase {
         if (propertyName != null) {
             fail("TODO HISTORY History not yet implemented");
         }
-    }
+    }*/
 
     public static void assertBigDecimal(final int v1, final BigDecimal v2) {
         assertBigDecimal(new BigDecimal(v1), v2);
