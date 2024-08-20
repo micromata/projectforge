@@ -112,6 +112,9 @@ open class EmployeeDO : DefaultBaseWithAttrDO<EmployeeDO>(), EntityWithTimeableA
   @get:JoinColumn(name = "kost1_id", nullable = true)
   open var kost1: Kost1DO? = null
 
+  /**
+   * Field will be overwritten by timeableAttribute.
+   */
   @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
   @PropertyInfo(i18nKey = "status")
   @Field

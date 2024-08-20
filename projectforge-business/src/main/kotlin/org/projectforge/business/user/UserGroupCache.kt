@@ -368,6 +368,12 @@ open class UserGroupCache() : AbstractCache() {
     return employeeMap[userId]?.id
   }
 
+  fun getEmployeeByUser(userId: Int?): EmployeeDO? {
+    userId ?: return null
+    checkRefresh()
+    return employeeMap[userId]
+  }
+
   fun getUser(employeeDO: EmployeeDO?): PFUserDO? {
     employeeDO ?: return null
     val userId = employeeMap.values.find { it.id == employeeDO.id }?.userId
@@ -464,6 +470,7 @@ open class UserGroupCache() : AbstractCache() {
     val nEmployeeMap = mutableMapOf<Int?, EmployeeDO>()
     employeeDao.internalLoadAll().forEach { employeeDO ->
       nEmployeeMap[employeeDO.userId] = employeeDO
+      employeeDao.setEmployeeStatus(employeeDO)
     }
     employeeMap = nEmployeeMap
     adminUsers = nAdminUsers

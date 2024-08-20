@@ -33,7 +33,6 @@ import org.projectforge.rest.dto.Employee
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDate
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -92,9 +91,6 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
     override val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
 
     override fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): MutableList<EmployeeDO> {
-        val list = baseDao.internalGetEmployeeList(filter, showOnlyActiveEntries = true).toMutableList()
-        val today = LocalDate.now()
-        list.removeIf { it.austrittsDatum?.isBefore(today) == true || it.isDeleted } // Remove deactivated users when returning all. Show deactivated users only if search string is given.
-        return list
+        return baseDao.internalGetEmployeeList(filter, showOnlyActiveEntries = true).toMutableList()
     }
 }

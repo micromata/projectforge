@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.util.Collection;
@@ -66,9 +67,7 @@ public class ProjectUtils {
   public static Collection<ProjektDO> getProjectsOfManager(final PFUserDO user) {
     final Collection<ProjektDO> result = new LinkedList<>();
     final ProjektFilter filter = new ProjektFilter();
-    if (projektDao == null) {
-      projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
-    }
+    ensureProjectDao();
     final List<ProjektDO> projects = projektDao.getList(filter);
     if (CollectionUtils.isEmpty(projects)) {
       return result;
@@ -86,5 +85,18 @@ public class ProjectUtils {
       result.add(project);
     }
     return result;
+  }
+
+  public static Collection<ProjektDO> getAllProjects() {
+    final BaseSearchFilter filter = new BaseSearchFilter();
+    filter.setDeleted(false);
+    ensureProjectDao();
+    return projektDao.getList(filter);
+  }
+
+  private static void ensureProjectDao() {
+    if (projektDao == null) {
+      projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
+    }
   }
 }

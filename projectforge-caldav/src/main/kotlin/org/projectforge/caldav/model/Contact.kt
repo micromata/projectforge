@@ -53,4 +53,8 @@ class Contact() {
     var modifiedDate: Date? = null
     var vcardData: ByteArray? = null
     var addressBook: AddressBook? = null
+
+    override fun toString(): String {
+        return "Contact(id=$id, name=$name, modifiedDate=$modifiedDate, vcardData-size=${vcardData?.size}, addressBook=${addressBook?.name})"
+    }
 }

@@ -31,10 +31,12 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -67,6 +69,9 @@ public class TeamEventExternalSubscriptionCache {
 
   @Autowired
   private UserRightService userRights;
+
+  @Autowired
+  private UserGroupCache userGroupCache;
 
   // @PostConstruct doesn't work (it will be called to early before TenantRegistryMap is ready).
   private synchronized void init() {
@@ -134,6 +139,16 @@ public class TeamEventExternalSubscriptionCache {
     final Integer calId = calendar.getId();
     if (calId == null) {
       log.error("Oups, calId is null (can't update subscription): " + calendar);
+      return;
+    }
+    final PFUserDO owner = userGroupCache.getUser(calendar.getOwnerId());
+    if (owner == null) {
+      log.error("Oups, owner is null (can't update subscription): " + calendar);
+      return;
+    }
+    if (owner.getDeactivated() ||owner.isDeleted()) {
+      // Don't update calendars of deactivated users....
+      log.info("Ignoring subscriptions of deactivated/deleted owner #" + owner.getId() + " of calendar #" + calId);
       return;
     }
     TeamEventSubscription teamEventSubscription = subscriptions.get(calId);
