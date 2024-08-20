@@ -23,6 +23,7 @@
 
 package org.projectforge.business.book;
 
+import kotlin.Pair;
 import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
@@ -71,20 +72,22 @@ public class BookDao extends BaseDao<BookDO> {
     BookDO other = null;
     if (id == null) {
       // New book
-      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(BookDO.FIND_BY_SIGNATURE, BookDO.class)
-          .setParameter("signature", signature));
+      other = persistenceService.selectNamedSingleResult(
+              BookDO.FIND_BY_SIGNATURE,
+                      BookDO.class,
+          new Pair<>("signature", signature));
     } else {
       // Book already exists. Check maybe changed signature:
-      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(BookDO.FIND_OTHER_BY_SIGNATURE, BookDO.class)
-          .setParameter("signature", signature)
-          .setParameter("id", id));
+      other = persistenceService.selectNamedSingleResult(
+              BookDO.FIND_OTHER_BY_SIGNATURE,
+                      BookDO.class,
+           new Pair<>("signature", signature),
+              new Pair<>("id", id));
+
     }
     return other != null;
   }
 
-  /**
-   * @see BaseDao#getOrLoad(Integer)
-   */
   public void setLendOutBy(final BookDO book, final Integer lendOutById) {
     final PFUserDO user = userDao.getOrLoad(lendOutById);
     book.setLendOutBy(user);

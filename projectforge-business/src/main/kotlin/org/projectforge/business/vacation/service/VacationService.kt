@@ -342,7 +342,7 @@ open class VacationService {
     return VacationValidator.validate(this, vacation, dbVal, throwException)
   }
 
-  open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Long {
+  open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
     val employee = employeeService.getEmployeeByUserId(user.id) ?: return 0
     return vacationDao.getOpenLeaveApplicationsForEmployee(employee)
   }

@@ -55,8 +55,10 @@ public class PosteingangDao extends BaseDao<PosteingangDO> {
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
    */
   public int[] getYears() {
-    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(PosteingangDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
+    final Tuple minMaxDate = persistenceService.selectNamedSingleResult(
+            PosteingangDO.SELECT_MIN_MAX_DATE,
+            Tuple.class);
+    return SQLHelper.getYearsByTupleOfLocalDate(minMaxDate);
   }
 
   @Override

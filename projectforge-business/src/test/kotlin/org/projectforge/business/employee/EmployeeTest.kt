@@ -23,10 +23,7 @@
 
 package org.projectforge.business.employee
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.GenderConverter
@@ -91,7 +88,7 @@ class EmployeeTest : AbstractTestBase() {
 
         //Check updates
         val updatdEmployee = employeeDao.getById(e.id)
-        Assertions.assertEquals(updatdEmployee.birthday, e.birthday)
+        Assertions.assertEquals(updatdEmployee!!.birthday, e.birthday)
 
         // test history
         val updatedHistoryEntries = employeeDao.getDisplayHistoryEntries(e)
@@ -103,7 +100,7 @@ class EmployeeTest : AbstractTestBase() {
 
         //Check updates
         val updatdEmployeeRemove = employeeDao.getById(e.id)
-        Assertions.assertNull(updatdEmployeeRemove.birthday)
+        Assertions.assertNull(updatdEmployeeRemove!!.birthday)
 
         // test history
         val updatedHistoryRemoveEntries = employeeDao.getDisplayHistoryEntries(e)
@@ -123,7 +120,7 @@ class EmployeeTest : AbstractTestBase() {
 
         //Check updates
         val updatdEmployee = employeeDao.getById(e.id)
-        Assertions.assertTrue(updatdEmployee.deleted)
+        Assertions.assertTrue(updatdEmployee!!.deleted)
         employeeDao.update(e)
     }
 
@@ -294,7 +291,8 @@ class EmployeeTest : AbstractTestBase() {
             }
             val employee = EmployeeDO()
             employee.user = user
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
+            fail { "employeeService.addNewAnnualLeaveDays not implemented." }
+            // employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             employeeDao.internalSave(employee)
             test.logon(loggedInUser)
             return employee

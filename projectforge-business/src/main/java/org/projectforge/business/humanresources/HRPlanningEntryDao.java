@@ -193,13 +193,13 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
    * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
    */
   @Override
-  protected void onSaveOrModify(final HRPlanningEntryDO obj) {
+  public void onSaveOrModify(final HRPlanningEntryDO obj) {
     throw new UnsupportedOperationException(
             "Please do not save or HRPlanningEntryDO directly, save or update HRPlanningDO instead.");
   }
 
   @Override
-  protected void prepareHibernateSearch(final HRPlanningEntryDO obj, final OperationType operationType) {
+  public void prepareHibernateSearch(final HRPlanningEntryDO obj, final OperationType operationType) {
     projektDao.initializeProjektManagerGroup(obj.getProjekt());
   }
 

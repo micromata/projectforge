@@ -96,8 +96,8 @@ open class WebAuthnEntryDao {
     private fun getEntryById(persistenceContext: PfPersistenceContext, id: Int, attached: Boolean = false): WebAuthnEntryDO {
         val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
         val result = persistenceContext.selectSingleResult(
-            WebAuthnEntryDO::class.java,
             WebAuthnEntryDO.FIND_BY_ID,
+            WebAuthnEntryDO::class.java,
             Pair("id", id),
             attached = attached,
             namedQuery = true,

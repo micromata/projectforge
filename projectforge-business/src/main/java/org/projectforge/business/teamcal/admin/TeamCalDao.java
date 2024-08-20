@@ -148,7 +148,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
   }
 
   @Override
-  protected void onSaveOrModify(TeamCalDO obj) {
+  public void onSaveOrModify(TeamCalDO obj) {
     super.onSaveOrModify(obj);
     Integer interval = obj.getExternalSubscriptionUpdateInterval();
     if (interval != null && interval < SubscriptionUpdateInterval.FIFTEEN_MINUTES.getInterval()) {
@@ -299,13 +299,13 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void afterSaveOrModify(final TeamCalDO obj) {
+  public void afterSaveOrModify(final TeamCalDO obj) {
     super.afterSaveOrModify(obj);
     teamCalCache.setExpired();
   }
 
   @Override
-  protected void afterSave(final TeamCalDO obj) {
+  public void afterSave(final TeamCalDO obj) {
     super.afterSave(obj);
     if (obj.getExternalSubscription()) {
       getTeamEventExternalSubscriptionCache().updateCache(obj);
@@ -313,7 +313,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
   }
 
   @Override
-  protected void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj) {
+  public void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj) {
     super.afterUpdate(obj, dbObj);
     if (obj != null
             && dbObj != null

@@ -226,7 +226,7 @@ public class TeamEventServiceImpl implements TeamEventService {
           found = true;
 
           // update values
-          attendee.setPk(attendeeOld.getPk());
+          attendee.setId(attendeeOld.getId());
           attendee.setComment(attendeeOld.getComment());
           attendee.setCommentOfAttendee(attendeeOld.getCommentOfAttendee());
           attendee.setLoginToken(attendeeOld.getLoginToken());

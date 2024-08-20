@@ -700,14 +700,7 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             }
         }
         // val list: List<Int?> = em.createQuery("select max(t.nummer) from AuftragDO t").getResultList()
-        val maxNumber = persistenceService.selectSingleResult(
-            "select max(t.nummer) from AuftragDO t",
-            Int::class.java,
-        ) ?: run {
-            log.info("First entry of AuftragDO")
-            START_NUMBER
-        }
-        return maxNumber + 1
+        return persistenceService.getNextNumber("AuftragDO", "nummer", START_NUMBER)
     }
 
     /**

@@ -206,7 +206,7 @@ public class ProjectForgeApp {
     //    HibernateUtils.setConfiguration(hibernateConfiguration);
 
     if (DatabaseSupport.getInstance() == null) {
-      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
+      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDatabaseDialect()));
     }
 
     SystemInfoCache.internalInitialize(systemInfoCache);

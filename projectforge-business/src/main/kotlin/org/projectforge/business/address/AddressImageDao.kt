@@ -85,8 +85,8 @@ open class AddressImageDao {
 
         persistenceService.runInTransaction { context ->
             val addressImage = context.selectSingleResult(
-                AddressImageDO::class.java,
                 "from ${AddressImageDO::class.java.name} t where t.address = :address",
+                AddressImageDO::class.java,
                 Pair("address", address),
                 attached = true,
             ) ?: AddressImageDO()
@@ -120,8 +120,8 @@ open class AddressImageDao {
         persistenceService.runInTransaction { context ->
             // Should be only one image. But for safety reasons we delete all images.
             context.query(
-                AddressImageDO::class.java,
                 "from ${AddressImageDO::class.java.name} t where t.address.id = :addressId",
+                AddressImageDO::class.java,
                 Pair("addressId", address.id),
                 attached = true,
             ).forEach { image ->

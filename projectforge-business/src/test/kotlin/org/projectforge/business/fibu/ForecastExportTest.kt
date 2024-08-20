@@ -96,7 +96,7 @@ class ForecastExportTest : AbstractTestBase() {
         //order1.addPaymentSchedule()
         addPosition(order, 1, posStatus, monthlyAmount * (1 + periodStart.monthsBetween(periodEnd)), AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
         val id = auftragDao.save(order)
-        order = auftragDao.getById(id)
+        order = auftragDao.getById(id)!!
         val pos1_1 = order.getPosition(1)!!
         invoiceMonth.forEach {
             val invoice1 = createInvoice(it)

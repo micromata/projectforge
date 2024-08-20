@@ -133,11 +133,11 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
   private void setValue(final UserPrefEntryDO param, final Object value)
   {
     userPrefDao.setValueObject(param, value);
-    final List<UserPrefEntryDO> dependents = getData().getDependentUserPrefEntries(param.getParameter());
+    final List<UserPrefEntryDO> dependents = getData().getDependentUserPrefEntries(param.parameter);
     if (dependents != null) {
       for (final UserPrefEntryDO entry : dependents) {
-        if (Kost2DO.class.isAssignableFrom(entry.getType()) == true) {
-          final Kost2DropDownChoice choice = (Kost2DropDownChoice) form.dependentsMap.get(entry.getParameter());
+        if (Kost2DO.class.isAssignableFrom(entry.type) == true) {
+          final Kost2DropDownChoice choice = (Kost2DropDownChoice) form.dependentsMap.get(entry.parameter);
           choice.setTaskId((Integer) value);
         }
       }

@@ -347,7 +347,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @param id primary key of the base object.
      */
     @Throws(AccessException::class)
-    fun getById(id: Serializable?): O? {
+    open fun getById(id: Serializable?): O? {
         id ?: return null
         accessChecker.checkRestrictedUser()
         checkLoggedInUserSelectAccess()
