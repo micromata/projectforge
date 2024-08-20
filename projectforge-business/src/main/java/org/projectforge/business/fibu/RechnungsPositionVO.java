@@ -54,6 +54,8 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   private short auftragsPositionNummer;
 
+  private Integer auftragsPositionId;
+
   private final BigDecimal netSum;
 
   public RechnungsPositionVO(final RechnungsPositionDO rechnungsPosition)
@@ -73,6 +75,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
         this.auftragsId = auftrag.getId();
       }
       this.auftragsPositionNummer = auftragsPosition.getNumber();
+      this.auftragsPositionId = auftragsPosition.getId();
     }
   }
 
@@ -125,6 +128,10 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
   public short getAuftragsPositionNummer()
   {
     return auftragsPositionNummer;
+  }
+
+  public Integer getAuftragsPositionId() {
+    return auftragsPositionId;
   }
 
   @Override
