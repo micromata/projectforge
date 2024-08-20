@@ -39,8 +39,8 @@ public class ImportTestDataTest extends AbstractTestBase {
   @Autowired
   private InitTestDB initTestDB;
 
-  @Autowired
-  private PfJpaXmlDumpService jpaXmlDumpService;
+  //@Autowired
+  //private PfJpaXmlDumpService jpaXmlDumpService;
 
   @Override
   protected void beforeAll() {
@@ -63,7 +63,7 @@ public class ImportTestDataTest extends AbstractTestBase {
     clearDatabase();
     PFUserDO admin = initTestDB.addUser(AbstractTestBase.ADMIN);
     databaseService.insertGlobalAddressbook(admin);
-    jpaXmlDumpService.createTestDatabase();
+    //jpaXmlDumpService.createTestDatabase();
   }
 
 }

@@ -51,7 +51,8 @@ public class EmployeeServiceTest extends AbstractTestBase
     employeeDO.setAccountHolder("Horst Mustermann");
     employeeDO.setAbteilung("Finance");
     employeeDO.setUser(pfUserDO);
-    Integer id = employeeService.save(employeeDO);
+    fail("TODO: Implement employeeService.save");
+/*    Integer id = employeeService.save(employeeDO);
     assertTrue(id != null && id > 0);
     employeeService.delete(employeeDO);
     EmployeeDO employeeDO1 = null;
@@ -63,7 +64,7 @@ public class EmployeeServiceTest extends AbstractTestBase
     }
 
     assertEquals(1, exceptionList.size());
-    assertNull(employeeDO1);
+    assertNull(employeeDO1);*/
   }
 
   @Test
@@ -76,9 +77,9 @@ public class EmployeeServiceTest extends AbstractTestBase
     String abteilung = "Test";
     employeeDO.setAbteilung(abteilung);
     employeeDO.setUser(pfUserDO);
-    employeeService.save(employeeDO);
+//    employeeService.save(employeeDO);
     String expectedNewAccountHolder = "Firstname Lastname";
-    employeeService.updateAttribute(pfUserDO.getId(), expectedNewAccountHolder, "accountHolder");
+  //  employeeService.updateAttribute(pfUserDO.getId(), expectedNewAccountHolder, "accountHolder");
     EmployeeDO employeeByUserId = employeeService.getEmployeeByUserId(pfUserDO.getId());
     assertEquals(employeeByUserId.getAbteilung(), abteilung);
     assertEquals(employeeByUserId.getAccountHolder(), expectedNewAccountHolder);

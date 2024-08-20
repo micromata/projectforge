@@ -127,6 +127,15 @@ object ThreadLocalUserContext {
     }
 
   /**
+   * @return The user id of the ThreadLocal user if exists.
+   * @see .getUser
+   */
+  @JvmStatic
+  val requiredLoggedInUserId: Int
+    get() = requiredLoggedInUser.id!!
+
+
+  /**
    * For non logged-in users and public pages, the locale could be set.
    * @return The locale of ThreadLocalLocale or null, if not given.
    */

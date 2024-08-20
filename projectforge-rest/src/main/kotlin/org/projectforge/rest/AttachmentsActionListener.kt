@@ -133,7 +133,7 @@ open class AttachmentsActionListener(
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?,
   ): Any {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId) ?: emptyList()
+    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId) ?: emptyList()
     return AttachmentsServicesRest.ResponseData(list)
   }
 

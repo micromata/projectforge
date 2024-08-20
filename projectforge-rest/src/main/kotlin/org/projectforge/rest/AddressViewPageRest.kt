@@ -252,7 +252,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
         return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
       }
       personalAddress.address = address
-      personalAddressDao.setOwner(personalAddress, owner.id) // Set current logged in user as owner.
+      personalAddressDao.setOwner(personalAddress, owner.id!!) // Set current logged in user as owner.
       personalAddress.isFavoriteCard = true
       personalAddressDao.saveOrUpdate(personalAddress)
     } else if (favorite != personalAddress.isFavorite) {

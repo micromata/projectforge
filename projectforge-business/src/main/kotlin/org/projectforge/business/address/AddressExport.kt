@@ -117,7 +117,7 @@ open class AddressExport {
    */
   open fun export(
     origList: List<AddressDO>,
-    personalAddressMap: Map<Int?, PersonalAddressDO?>,
+    personalAddressMap: Map<Int, PersonalAddressDO>,
     vararg params: Any
   ): ByteArray? {
     log.info("Exporting address list.")

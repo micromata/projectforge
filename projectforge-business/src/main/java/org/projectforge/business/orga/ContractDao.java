@@ -26,7 +26,6 @@ package org.projectforge.business.orga;
 import jakarta.persistence.Tuple;
 import kotlin.Pair;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.MessageParam;
 import org.projectforge.common.i18n.MessageParamType;
@@ -133,16 +132,7 @@ public class ContractDao extends BaseDao<ContractDO> {
                 return orig.getNumber();
             }
         }
-        final List<Integer> list = persistenceService.query(
-                "select max(t.number) from ContractDO t",
-                Integer.class);
-        Validate.notNull(list);
-        if (list.size() == 0 || list.get(0) == null) {
-            log.info("First entry of ContractDO");
-            return START_NUMBER;
-        }
-        final Integer number = list.get(0);
-        return number + 1;
+        return persistenceService.getNextNumber("ContractDO", "number", START_NUMBER);
     }
 
     @Override

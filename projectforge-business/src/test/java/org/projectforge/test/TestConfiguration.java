@@ -23,17 +23,9 @@
 
 package org.projectforge.test;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
-import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
-import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -53,7 +45,7 @@ import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 @Configuration
-@ComponentScan(value = {"org.projectforge", "de.micromata.mgc.jpa.spring"},
+@ComponentScan(value = {"org.projectforge"},
         excludeFilters = {@ComponentScan.Filter(type = FilterType.ASPECTJ,
                 pattern = "org.projectforge.framework.configuration.PFSpringConfiguration"),
                 @ComponentScan.Filter(type = FilterType.ASPECTJ,
@@ -80,36 +72,11 @@ public class TestConfiguration {
   @Value("${projectforge.base.dir}")
   private String applicationDir;
 
-  @Autowired
-  private SpringEmgrFilterBean springEmgrFilterBean;
-
-  @Autowired
-  private PfEmgrFactory pfEmgrFactory;
-
   @PostConstruct
   private void postConstruct() {
     if (DatabaseSupport.getInstance() == null) {
-      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
+      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDatabaseDialect()));
     }
-  }
-
-  /**
-   * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
-   * sessionFactory.getCurrentSession();.
-   *
-   * @return
-   */
-  @Primary
-  @Bean
-  public EntityManagerFactory entityManagerFactory()
-  {
-    return pfEmgrFactory.getEntityManagerFactory();
-  }
-
-  @Bean
-  public EntityManager entityManager()
-  {
-    return entityManagerFactory().createEntityManager();
   }
 
   @Bean
@@ -147,6 +114,7 @@ public class TestConfiguration {
     return new RestTemplate();
   }
 
+  /*
   @Bean(name = "attrSchemaService")
   public AttrSchemaServiceSpringBeanImpl attrSchemaService() {
     AttrSchemaServiceSpringBeanImpl ret = AttrSchemaServiceSpringBeanImpl.get();
@@ -158,7 +126,7 @@ public class TestConfiguration {
   public TimeableService timeableService() {
     return new TimeableServiceImpl();
   }
-
+*/
   /**
    * This is a workaround because we are using spring unit tests and not spring boot unit tests.
    * Without this, the spring context within our unit tests does not know this spring boot configuration bean.
@@ -167,7 +135,7 @@ public class TestConfiguration {
   public ServerProperties serverProperties() {
     return new ServerProperties();
   }
-
+/*
   @PostConstruct
   public void initEmgrFactory() {
     springEmgrFilterBean.registerEmgrFilter(pfEmgrFactory);
@@ -179,6 +147,6 @@ public class TestConfiguration {
       }
 
     });
-  }
+  }*/
 
 }
