@@ -441,17 +441,17 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         )
     }
 
-    open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Long {
+    open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Int {
         val baseSQL = "SELECT COUNT(v) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status"
         val sql = baseSQL + META_SQL_WITH_SPECIAL
         return persistenceService.selectSingleResult(
             sql,
-            Long::class.java,
+            Int::class.java,
             Pair("employee", employee),
             Pair("status", VacationStatus.IN_PROGRESS),
             Pair("deleted", false),
             nullAllowed = false,
-        ) ?: 0L
+        ) ?: 0
     }
 
     companion object {

@@ -23,25 +23,15 @@
 
 package org.projectforge.core;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
-import org.junit.jupiter.api.Assertions;
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Set;
-
-public class AbstractHistorizableBaseDOTest extends AbstractTestBase
-{
-  @Autowired
-  private PfEmgrFactory emf;
-
-  @Test
-  public void testNonHistorizableProperties()
-  {
+public class AbstractHistorizableBaseDOTest extends AbstractTestBase {
+    @Test
+    public void testNonHistorizableProperties() {
+        Assert.fail("HistoryServiceManager not yet implemented");
+    /*
     final TaskDO task = new TaskDO();
     Set<String> set = HistoryServiceManager.get().getHistoryService().getNoHistoryProperties(emf,
         task.getClass());
@@ -57,6 +47,6 @@ public class AbstractHistorizableBaseDOTest extends AbstractTestBase
     Assertions.assertEquals(7, set.size());
     //    not, because ransient Assertions.assertTrue(set.contains("uiStatus"));
     Assertions.assertTrue(set.contains("uiStatusAsXml"));
-    Assertions.assertFalse(set.contains("subject"));
-  }
+    Assertions.assertFalse(set.contains("subject"));*/
+    }
 }

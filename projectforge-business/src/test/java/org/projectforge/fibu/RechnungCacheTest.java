@@ -86,7 +86,7 @@ public class RechnungCacheTest extends AbstractTestBase {
     rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnungDao.save(rechnung2);
 
-    Set<RechnungsPositionVO> set = rechnungDao.getRechnungCache().getRechnungsPositionVOSetByAuftragId(auftrag.getId());
+    Set<RechnungsPositionVO> set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
     assertEquals(3, set.size(), "3 invoice positions expected.");
     final Iterator<RechnungsPositionVO> it = set.iterator();
     RechnungsPositionVO posVO = it.next(); // Positions are ordered.
@@ -97,12 +97,12 @@ public class RechnungCacheTest extends AbstractTestBase {
     assertEquals("2.1", posVO.getText());
     assertEquals(0, new BigDecimal("700").compareTo(RechnungDao.getNettoSumme(set)));
 
-    set = rechnungDao.getRechnungCache()
+    set = rechnungDao.rechnungCache
             .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 1).getId());
     assertEquals( 2, set.size(),"2 invoice positions expected.");
     assertEquals(0, new BigDecimal("500").compareTo(RechnungDao.getNettoSumme(set)));
 
-    set = rechnungDao.getRechnungCache()
+    set = rechnungDao.rechnungCache
             .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 2).getId());
     assertEquals( 1, set.size(),"1 invoice positions expected.");
     assertEquals(0, new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)));
@@ -110,7 +110,7 @@ public class RechnungCacheTest extends AbstractTestBase {
     final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
     rechnung.getPositionen().get(0).setAuftragsPosition(null);
     rechnungDao.update(rechnung);
-    set = rechnungDao.getRechnungCache().getRechnungsPositionVOSetByAuftragId(auftrag.getId());
+    set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
     assertEquals( 2, set.size(),"2 invoice positions expected.");
     assertEquals(0, new BigDecimal("300").compareTo(RechnungDao.getNettoSumme(set)));
   }

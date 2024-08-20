@@ -23,67 +23,61 @@
 
 package org.projectforge.business.fibu;
 
+import kotlin.Pair;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class KontoDao extends BaseDao<KontoDO>
-{
-  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_ACCOUNTS;
+public class KontoDao extends BaseDao<KontoDO> {
+    public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_ACCOUNTS;
 
-  @Autowired
-  KontoCache kontoCache;
+    @Autowired
+    KontoCache kontoCache;
 
-  public KontoDao()
-  {
-    super(KontoDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
-
-  @Override
-  protected void afterSaveOrModify(final KontoDO obj)
-  {
-    getKontoCache().refresh();
-  }
-
-  @SuppressWarnings("unchecked")
-  public KontoDO getKonto(final Integer kontonummer)
-  {
-    if (kontonummer == null) {
-      return null;
+    public KontoDao() {
+        super(KontoDO.class);
+        userRightId = USER_RIGHT_ID;
     }
-    return SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(KontoDO.FIND_BY_NUMMER, KontoDO.class)
-            .setParameter("nummer", kontonummer));
-  }
 
-  @Override
-  public KontoDO newInstance()
-  {
-    return new KontoDO();
-  }
-
-  /**
-   * @return the kontoCache
-   */
-  public KontoCache getKontoCache()
-  {
-    return kontoCache;
-  }
-
-  @Override
-  protected void onSaveOrModify(final KontoDO obj)
-  {
-    if (obj.getNummer() != null && obj.getNummer() > 0) {
-      KontoDO existingAccount = getKonto(obj.getNummer());
-      //Insert case
-      if (existingAccount != null && (obj.getId() == null || !obj.getId().equals(existingAccount.getId()))) {
-        throw new UserException("fibu.konto.validate.duplicate");
-      }
+    @Override
+    public void afterSaveOrModify(final KontoDO obj) {
+        getKontoCache().refresh();
     }
-  }
+
+    @SuppressWarnings("unchecked")
+    public KontoDO getKonto(final Integer kontonummer) {
+        if (kontonummer == null) {
+            return null;
+        }
+        return persistenceService.selectNamedSingleResult(
+                KontoDO.FIND_BY_NUMMER,
+                KontoDO.class,
+                new Pair<>("nummer", kontonummer));
+    }
+
+    @Override
+    public KontoDO newInstance() {
+        return new KontoDO();
+    }
+
+    /**
+     * @return the kontoCache
+     */
+    public KontoCache getKontoCache() {
+        return kontoCache;
+    }
+
+    @Override
+    public void onSaveOrModify(final KontoDO obj) {
+        if (obj.getNummer() != null && obj.getNummer() > 0) {
+            KontoDO existingAccount = getKonto(obj.getNummer());
+            //Insert case
+            if (existingAccount != null && (obj.getId() == null || !obj.getId().equals(existingAccount.getId()))) {
+                throw new UserException("fibu.konto.validate.duplicate");
+            }
+        }
+    }
 }

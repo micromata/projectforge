@@ -49,7 +49,7 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO>
   }
 
   @Override
-  protected void afterSaveOrModify(final Kost2ArtDO obj)
+  public void afterSaveOrModify(final Kost2ArtDO obj)
   {
     super.afterSaveOrModify(obj);
     kostCache.updateKost2Arts();

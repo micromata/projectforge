@@ -152,8 +152,8 @@ public class UserPrefTest extends AbstractTestBase {
 
   private void addEntry(UserPrefDO userPref, String parameter, String value) {
     UserPrefEntryDO entry = new UserPrefEntryDO();
-    entry.setParameter(parameter);
-    entry.setValue(value);
+    entry.parameter = parameter;
+    entry.value = value;
     userPref.addUserPrefEntry(entry);
   }
 
@@ -196,11 +196,11 @@ public class UserPrefTest extends AbstractTestBase {
       UserPrefEntryDO entry = it.next();
       assertUserPrefEntry(entry, "user", PFUserDO.class, user2.getId().toString(), "user", null, "1");
       userPrefDao.updateParameterValueObject(entry);
-      assertEquals(user2.getId(), ((PFUserDO) entry.getValueAsObject()).getId());
+      assertEquals(user2.getId(), ((PFUserDO) entry.valueAsObject).getId());
       entry = it.next();
       assertUserPrefEntry(entry, "task", TaskDO.class, task.getId().toString(), "task", null, "2");
       userPrefDao.updateParameterValueObject(entry);
-      assertEquals(task.getId(), ((TaskDO) entry.getValueAsObject()).getId());
+      assertEquals(task.getId(), ((TaskDO) entry.valueAsObject).getId());
       entry = it.next();
       assertUserPrefEntry(entry, "kost2", Kost2DO.class, null, "fibu.kost2", null, "3");
       entry = it.next();
@@ -215,27 +215,27 @@ public class UserPrefTest extends AbstractTestBase {
     assertNull(timesheet.getKost2Id());
     assertEquals("Micromata", timesheet.getLocation());
     assertEquals("Wrote a test case...", timesheet.getDescription());
-    userPref.getUserPrefEntry("location").setValue("At home");
+    userPref.getUserPrefEntry("location").value = "At home";
     userPrefDao.update(userPref);
     String[] names = userPrefDao.getPrefNames(UserPrefArea.TIMESHEET_TEMPLATE);
     assertEquals(1, names.length);
     assertEquals("test", names[0]);
     List<UserPrefEntryDO> dependents = userPref
-            .getDependentUserPrefEntries(userPref.getUserPrefEntry("user").getParameter());
+            .getDependentUserPrefEntries(userPref.getUserPrefEntry("user").parameter);
     assertNull(dependents);
-    dependents = userPref.getDependentUserPrefEntries(userPref.getUserPrefEntry("task").getParameter());
+    dependents = userPref.getDependentUserPrefEntries(userPref.getUserPrefEntry("task").parameter);
     assertEquals(1, dependents.size());
-    assertEquals("kost2", dependents.get(0).getParameter());
+    assertEquals("kost2", dependents.get(0).parameter);
   }
 
   private void assertUserPrefEntry(final UserPrefEntryDO userPrefEntry, final String parameter, final Class<?> type,
                                    final String valueAsString, final String i18nKey, final Integer maxLength, final String orderString) {
-    assertEquals(parameter, userPrefEntry.getParameter());
-    assertEquals(type, userPrefEntry.getType());
-    assertEquals(i18nKey, userPrefEntry.getI18nKey());
-    assertEquals(maxLength, userPrefEntry.getMaxLength());
-    assertEquals(orderString, userPrefEntry.getOrderString());
-    assertEquals(valueAsString, userPrefEntry.getValue());
+    assertEquals(parameter, userPrefEntry.parameter);
+    assertEquals(type, userPrefEntry.type);
+    assertEquals(i18nKey, userPrefEntry.i18nKey);
+    assertEquals(maxLength, userPrefEntry.maxLength);
+    assertEquals(orderString, userPrefEntry.orderString);
+    assertEquals(valueAsString, userPrefEntry.value);
   }
 
   private TimesheetDO createTimesheet(final PFUserDO user, final TaskDO task, final String location,

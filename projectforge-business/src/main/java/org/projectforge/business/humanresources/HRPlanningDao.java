@@ -23,6 +23,7 @@
 
 package org.projectforge.business.humanresources;
 
+import kotlin.Pair;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -32,9 +33,9 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -42,7 +43,6 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
@@ -58,273 +58,277 @@ import java.util.List;
  */
 @Repository
 public class HRPlanningDao extends BaseDao<HRPlanningDO> {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
+    public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
 
-  private static final Logger log = LoggerFactory.getLogger(HRPlanningDao.class);
+    private static final Logger log = LoggerFactory.getLogger(HRPlanningDao.class);
 
-  private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{HRPlanningEntryDO.class};
+    private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{HRPlanningEntryDO.class};
 
-  @Autowired
-  private ProjektDao projektDao;
+    @Autowired
+    private ProjektDao projektDao;
 
-  @Autowired
-  private UserDao userDao;
+    @Autowired
+    private UserDao userDao;
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  @Autowired
-  private AccessChecker accessChecker;
+    @Autowired
+    private AccessChecker accessChecker;
 
-  protected HRPlanningDao() {
-    super(HRPlanningDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
-
-  @Override
-  public String[] getAdditionalSearchFields() {
-    return new String[]{"entries.projekt.name", "entries.projekt.kunde.name", "user.username", "user.firstname",
-            "user.lastname"};
-  }
-
-  /**
-   * @param sheet
-   * @param projektId If null, then projekt will be set to null;
-   */
-  public void setProjekt(final HRPlanningEntryDO sheet, final Integer projektId) {
-    final ProjektDO projekt = projektDao.getOrLoad(projektId);
-    sheet.setProjekt(projekt);
-  }
-
-  /**
-   * @param sheet
-   * @param userId If null, then user will be set to null;
-   * @see BaseDao#getOrLoad(Integer)
-   */
-  public void setUser(final HRPlanningDO sheet, final Integer userId) {
-    final PFUserDO user = userDao.getOrLoad(userId);
-    sheet.setUser(user);
-  }
-
-  /**
-   * Does an entry with the same user and week of year already exist?
-   *
-   * @param planning
-   * @return If week or user id is not given, return false.
-   */
-  public boolean doesEntryAlreadyExist(final HRPlanningDO planning) {
-    Validate.notNull(planning);
-    return doesEntryAlreadyExist(planning.getId(), planning.getUserId(), planning.getWeek());
-  }
-
-  /**
-   * Does an entry with the same user and week of year already exist?
-   *
-   * @param planningId Id of the current planning or null if new.
-   * @param userId
-   * @param week
-   * @return If week or user id is not given, return false.
-   */
-  public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final LocalDate week) {
-    if (week == null || userId == null) {
-      return false;
+    protected HRPlanningDao() {
+        super(HRPlanningDO.class);
+        userRightId = USER_RIGHT_ID;
     }
-    final HRPlanningDO other;
-    if (planningId == null) {
-      // New entry
-      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
-              .setParameter("userId", userId)
-              .setParameter("week", week));
-    } else {
-      // Entry already exists. Check collision:
-      other = SQLHelper.ensureUniqueResult(em.createNamedQuery(HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, HRPlanningDO.class)
-              .setParameter("userId", userId)
-              .setParameter("week", week)
-              .setParameter("id", planningId));
-    }
-    return other != null;
-  }
 
-  public HRPlanningDO getEntry(final PFUserDO user, final LocalDate week) {
-    return getEntry(user.getId(), week);
-  }
+    @Override
+    public String[] getAdditionalSearchFields() {
+        return new String[]{"entries.projekt.name", "entries.projekt.kunde.name", "user.username", "user.firstname",
+                "user.lastname"};
+    }
 
-  public HRPlanningDO getEntry(final Integer userId, final LocalDate week) {
-    PFDay day = PFDay.from(week);
-    if (!day.isBeginOfWeek()) {
-      log.error("Date is not begin of week, try to change date: " + day.getIsoString());
-      day = day.getBeginOfWeek();
+    /**
+     * @param sheet
+     * @param projektId If null, then projekt will be set to null;
+     */
+    public void setProjekt(final HRPlanningEntryDO sheet, final Integer projektId) {
+        final ProjektDO projekt = projektDao.getOrLoad(projektId);
+        sheet.setProjekt(projekt);
     }
-    final HRPlanningDO planning = SQLHelper.ensureUniqueResult(em
-            .createNamedQuery(HRPlanningDO.FIND_BY_USER_AND_WEEK, HRPlanningDO.class)
-            .setParameter("userId", userId)
-            .setParameter("week", day.getLocalDate()));
-    if (planning == null) {
-      return null;
-    }
-    if (accessChecker.hasLoggedInUserSelectAccess(userRightId, planning, false)) {
-      return planning;
-    } else {
-      return null;
-    }
-  }
 
-  @Override
-  public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
-    final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
-    if (myFilter.getStopDay() != null) {
-      PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopDay()).getEndOfDay();
-      myFilter.setStopDay(dateTime.getLocalDate());
+    /**
+     * @param sheet
+     * @param userId If null, then user will be set to null;
+     */
+    public void setUser(final HRPlanningDO sheet, final Integer userId) {
+        final PFUserDO user = userDao.getOrLoad(userId);
+        sheet.setUser(user);
     }
-    final QueryFilter queryFilter = buildQueryFilter(myFilter);
-    final List<HRPlanningDO> result = getList(queryFilter);
-    if (result == null) {
-      return null;
-    }
-    return result;
-  }
 
-  private boolean entryHasUpdates(final HRPlanningEntryDO entry, final HRPlanningDO existingPlanning) {
-    if (entry.getId() == null) {
-      return true;
+    /**
+     * Does an entry with the same user and week of year already exist?
+     *
+     * @param planning
+     * @return If week or user id is not given, return false.
+     */
+    public boolean doesEntryAlreadyExist(final HRPlanningDO planning) {
+        Validate.notNull(planning);
+        return doesEntryAlreadyExist(planning.getId(), planning.getUserId(), planning.getWeek());
     }
-    if (existingPlanning != null) {
-      for (HRPlanningEntryDO existingEntry : existingPlanning.getEntries()) {
-        if (!existingEntry.getDeleted() && existingEntry.getId().equals(entry.getId())) {
-          return !existingEntry.hasNoFieldChanges(entry);
+
+    /**
+     * Does an entry with the same user and week of year already exist?
+     *
+     * @param planningId Id of the current planning or null if new.
+     * @param userId
+     * @param week
+     * @return If week or user id is not given, return false.
+     */
+    public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final LocalDate week) {
+        if (week == null || userId == null) {
+            return false;
         }
-      }
-    }
-    return false;
-  }
-
-  public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
-    final QueryFilter queryFilter = new QueryFilter(filter);
-    if (filter.getUserId() != null) {
-      final PFUserDO user = new PFUserDO();
-      user.setId(filter.getUserId());
-      queryFilter.add(QueryFilter.eq("user", user));
-    }
-    if (filter.getStartDay() != null && filter.getStopDay() != null) {
-      queryFilter.add(QueryFilter.between("week", filter.getStartDay(), filter.getStopDay()));
-    } else if (filter.getStartDay() != null) {
-      queryFilter.add(QueryFilter.ge("week", filter.getStartDay()));
-    } else if (filter.getStopDay() != null) {
-      queryFilter.add(QueryFilter.le("week", filter.getStopDay()));
-    }
-    if (filter.getProjektId() != null) {
-      queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));
-    }
-    queryFilter.addOrder(SortProperty.desc("week"));
-    if (log.isDebugEnabled()) {
-      log.debug(ToStringBuilder.reflectionToString(filter));
-    }
-    return queryFilter;
-  }
-
-  /**
-   * <ul>
-   * <li>Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.</li>
-   * <li>Check deleted entries and re-adds them instead of inserting a new entry, if exist.</li>
-   * <ul>
-   */
-  @Override
-  protected void onSaveOrModify(final HRPlanningDO obj) {
-    PFDay day = PFDay.from(obj.getWeek());
-    if (!day.isBeginOfWeek()) {
-      log.error("Date is not begin of week, try to change date: " + day.getIsoString());
-      day = day.getBeginOfWeek();
-      obj.setWeek(day.getDate());
-    }
-
-    if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {
-      HRPlanningDO existingPlanning = null;
-      if (obj.getId() != null) {
-        existingPlanning = internalGetById(obj.getId());
-      }
-      for (HRPlanningEntryDO entry : obj.getEntries()) {
-        ProjektDO projekt = entry.getProjekt();
-        if (entryHasUpdates(entry, existingPlanning) && projekt != null) {
-          boolean userHasRightForProject = false;
-          Integer userId = ThreadLocalUserContext.getUser().getId();
-          Integer headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
-          Integer projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
-          Integer salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
-          if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
-            userHasRightForProject = true;
-          }
-
-          if (projekt.getProjektManagerGroup() != null
-                  && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId())) {
-            userHasRightForProject = true;
-          }
-          if (!userHasRightForProject) {
-            throw new UserException("hr.planning.entry.error.noRightForProject", projekt.getName());
-          }
+        final HRPlanningDO other;
+        if (planningId == null) {
+            // New entry
+            other = persistenceService.selectNamedSingleResult(
+                    HRPlanningDO.FIND_BY_USER_AND_WEEK,
+                    HRPlanningDO.class,
+                    new Pair<>("userId", userId),
+                    new Pair<>("week", week));
+        } else {
+            // Entry already exists. Check collision:
+            other = persistenceService.selectNamedSingleResult(
+                    HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK,
+                    HRPlanningDO.class,
+                    new Pair<>("userId", userId),
+                    new Pair<>("week", week),
+                    new Pair<>("id", planningId));
         }
-      }
+        return other != null;
     }
 
-    super.onSaveOrModify(obj);
-  }
-
-  @Override
-  protected void prepareHibernateSearch(final HRPlanningDO obj, final OperationType operationType) {
-    final List<HRPlanningEntryDO> entries = obj.getEntries();
-    if (entries != null) {
-      for (final HRPlanningEntryDO entry : entries) {
-        projektDao.initializeProjektManagerGroup(entry.getProjekt());
-      }
+    public HRPlanningDO getEntry(final PFUserDO user, final LocalDate week) {
+        return getEntry(user.getId(), week);
     }
-    final PFUserDO user = obj.getUser();
-    if (user != null) {
-      obj.setUser(userGroupCache.getUser(user.getId()));
-    }
-  }
 
-  @Override
-  public HRPlanningDO newInstance() {
-    return new HRPlanningDO();
-  }
-
-  /**
-   * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
-   */
-  @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
-    final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
-    if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
-      return list;
+    public HRPlanningDO getEntry(final Integer userId, final LocalDate week) {
+        PFDay day = PFDay.from(week);
+        if (!day.isBeginOfWeek()) {
+            log.error("Date is not begin of week, try to change date: " + day.getIsoString());
+            day = day.getBeginOfWeek();
+        }
+        final HRPlanningDO planning = persistenceService.selectNamedSingleResult(
+                HRPlanningDO.FIND_BY_USER_AND_WEEK,
+                HRPlanningDO.class,
+                new Pair<>("userId", userId),
+                new Pair<>("week", day.getLocalDate()));
+        if (planning == null) {
+            return null;
+        }
+        if (accessChecker.hasLoggedInUserSelectAccess(userRightId, planning, false)) {
+            return planning;
+        } else {
+            return null;
+        }
     }
-    if (CollectionUtils.isNotEmpty(obj.getEntries())) {
-      for (final HRPlanningEntryDO position : obj.getEntries()) {
-        final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
-        for (final DisplayHistoryEntry entry : entries) {
-          final String propertyName = entry.getPropertyName();
-          if (propertyName != null) {
-            if (position.getProjekt() != null) {
-              entry.setPropertyName(position.getProjektName() + ":" + entry.getPropertyName()); // Prepend name of project
-            } else {
-              entry.setPropertyName(position.getStatus() + ":" + entry.getPropertyName()); // Prepend status
+
+    @Override
+    public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
+        final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
+        if (myFilter.getStopDay() != null) {
+            PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopDay()).getEndOfDay();
+            myFilter.setStopDay(dateTime.getLocalDate());
+        }
+        final QueryFilter queryFilter = buildQueryFilter(myFilter);
+        final List<HRPlanningDO> result = getList(queryFilter);
+        if (result == null) {
+            return null;
+        }
+        return result;
+    }
+
+    private boolean entryHasUpdates(final HRPlanningEntryDO entry, final HRPlanningDO existingPlanning) {
+        if (entry.getId() == null) {
+            return true;
+        }
+        if (existingPlanning != null) {
+            for (HRPlanningEntryDO existingEntry : existingPlanning.getEntries()) {
+                if (!existingEntry.getDeleted() && existingEntry.getId().equals(entry.getId())) {
+                    return !existingEntry.hasNoFieldChanges(entry);
+                }
             }
-          } else {
-            if (position.getProjekt() != null) {
-              entry.setPropertyName(position.getProjektName());
-            } else {
-              entry.setPropertyName(String.valueOf(position.getStatus()));
-            }
-          }
         }
-        list.addAll(entries);
-      }
+        return false;
     }
-    list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
-    return list;
-  }
 
-  @Override
-  protected Class<?>[] getAdditionalHistorySearchDOs() {
-    return ADDITIONAL_SEARCH_DOS;
-  }
+    public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
+        final QueryFilter queryFilter = new QueryFilter(filter);
+        if (filter.getUserId() != null) {
+            final PFUserDO user = new PFUserDO();
+            user.setId(filter.getUserId());
+            queryFilter.add(QueryFilter.eq("user", user));
+        }
+        if (filter.getStartDay() != null && filter.getStopDay() != null) {
+            queryFilter.add(QueryFilter.between("week", filter.getStartDay(), filter.getStopDay()));
+        } else if (filter.getStartDay() != null) {
+            queryFilter.add(QueryFilter.ge("week", filter.getStartDay()));
+        } else if (filter.getStopDay() != null) {
+            queryFilter.add(QueryFilter.le("week", filter.getStopDay()));
+        }
+        if (filter.getProjektId() != null) {
+            queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));
+        }
+        queryFilter.addOrder(SortProperty.desc("week"));
+        if (log.isDebugEnabled()) {
+            log.debug(ToStringBuilder.reflectionToString(filter));
+        }
+        return queryFilter;
+    }
+
+    /**
+     * <ul>
+     * <li>Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.</li>
+     * <li>Check deleted entries and re-adds them instead of inserting a new entry, if exist.</li>
+     * <ul>
+     */
+    @Override
+    public void onSaveOrModify(final HRPlanningDO obj) {
+        PFDay day = PFDay.from(obj.getWeek());
+        if (!day.isBeginOfWeek()) {
+            log.error("Date is not begin of week, try to change date: " + day.getIsoString());
+            day = day.getBeginOfWeek();
+            obj.setWeek(day.getDate());
+        }
+
+        if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {
+            HRPlanningDO existingPlanning = null;
+            if (obj.getId() != null) {
+                existingPlanning = internalGetById(obj.getId());
+            }
+            for (HRPlanningEntryDO entry : obj.getEntries()) {
+                ProjektDO projekt = entry.getProjekt();
+                if (entryHasUpdates(entry, existingPlanning) && projekt != null) {
+                    boolean userHasRightForProject = false;
+                    Integer userId = ThreadLocalUserContext.getUser().getId();
+                    Integer headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
+                    Integer projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
+                    Integer salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
+                    if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
+                        userHasRightForProject = true;
+                    }
+
+                    if (projekt.getProjektManagerGroup() != null
+                            && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId())) {
+                        userHasRightForProject = true;
+                    }
+                    if (!userHasRightForProject) {
+                        throw new UserException("hr.planning.entry.error.noRightForProject", projekt.getName());
+                    }
+                }
+            }
+        }
+
+        super.onSaveOrModify(obj);
+    }
+
+    @Override
+    public void prepareHibernateSearch(final HRPlanningDO obj, final OperationType operationType) {
+        final List<HRPlanningEntryDO> entries = obj.getEntries();
+        if (entries != null) {
+            for (final HRPlanningEntryDO entry : entries) {
+                projektDao.initializeProjektManagerGroup(entry.getProjekt());
+            }
+        }
+        final PFUserDO user = obj.getUser();
+        if (user != null) {
+            obj.setUser(userGroupCache.getUser(user.getId()));
+        }
+    }
+
+    @Override
+    public HRPlanningDO newInstance() {
+        return new HRPlanningDO();
+    }
+
+    /**
+     * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
+     */
+    @Override
+    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
+        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
+        if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
+            return list;
+        }
+        if (CollectionUtils.isNotEmpty(obj.getEntries())) {
+            for (final HRPlanningEntryDO position : obj.getEntries()) {
+                final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
+                for (final DisplayHistoryEntry entry : entries) {
+                    final String propertyName = entry.getPropertyName();
+                    if (propertyName != null) {
+                        if (position.getProjekt() != null) {
+                            entry.setPropertyName(position.getProjektName() + ":" + entry.getPropertyName()); // Prepend name of project
+                        } else {
+                            entry.setPropertyName(position.getStatus() + ":" + entry.getPropertyName()); // Prepend status
+                        }
+                    } else {
+                        if (position.getProjekt() != null) {
+                            entry.setPropertyName(position.getProjektName());
+                        } else {
+                            entry.setPropertyName(String.valueOf(position.getStatus()));
+                        }
+                    }
+                }
+                list.addAll(entries);
+            }
+        }
+        list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
+        return list;
+    }
+
+    @Override
+    protected Class<?>[] getAdditionalHistorySearchDOs() {
+        return ADDITIONAL_SEARCH_DOS;
+    }
 
 }

@@ -99,7 +99,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
   }
 
   @Override
-  protected void onSaveOrModify(final GanttChartDO obj) {
+  public void onSaveOrModify(final GanttChartDO obj) {
     final String styleAsXml = XmlObjectWriter.writeAsXml(obj.getStyle());
     obj.setStyleAsXml(styleAsXml);
     final String settingsAsXml = XmlObjectWriter.writeAsXml(obj.getSettings());

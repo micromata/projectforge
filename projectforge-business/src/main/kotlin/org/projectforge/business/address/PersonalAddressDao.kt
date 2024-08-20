@@ -310,7 +310,7 @@ open class PersonalAddressDao {
             return result
         }
 
-    val myAddresses: List<AddressDO?>
+    val myAddresses: List<AddressDO>
         /**
          * @return the list of all address entries for the context user (isFavorite() must be true).
          * @see PersonalAddressDO.isFavorite
@@ -318,10 +318,10 @@ open class PersonalAddressDao {
         get() {
             requiredLoggedInUser
             val list = list
-            val result: MutableList<AddressDO?> = ArrayList()
+            val result = mutableListOf<AddressDO>()
             for (entry in list) {
                 if (entry.isFavorite && checkAccess(entry, false)) {
-                    result.add(entry.address)
+                    entry.address?.let { address -> result.add(address) }
                 }
             }
             return result

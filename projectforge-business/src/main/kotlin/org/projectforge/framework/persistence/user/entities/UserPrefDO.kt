@@ -173,17 +173,21 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     override fun copyValuesFrom(source: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(source, *ignoreFields)
         val src = source as UserPrefDO
-        if (src.userPrefEntries != null) {
-            for (srcEntry in src.userPrefEntries!!) {
-                val destEntry = ensureAndGetAccessEntry(srcEntry.parameter)
-                val st = destEntry.copyValuesFrom(srcEntry)
-                modificationStatus = getModificationStatus(modificationStatus, st)
+       src.userPrefEntries?.let { srcUserPrefEntries ->
+            for (srcEntry in srcUserPrefEntries) {
+                srcEntry.parameter?.let { param ->
+                    val destEntry = ensureAndGetAccessEntry(param)
+                    val st = destEntry.copyValuesFrom(srcEntry)
+                    modificationStatus = getModificationStatus(modificationStatus, st)
+                }
             }
             val iterator = userPrefEntries!!.iterator()
             while (iterator.hasNext()) {
                 val destEntry = iterator.next()
-                if (src.getUserPrefEntry(destEntry.parameter) == null) {
-                    iterator.remove()
+                destEntry.parameter?.let { param ->
+                    if (src.getUserPrefEntry(param) == null) {
+                        iterator.remove()
+                    }
                 }
             }
         }

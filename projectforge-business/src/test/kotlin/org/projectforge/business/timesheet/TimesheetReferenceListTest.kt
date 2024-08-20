@@ -69,7 +69,7 @@ class TimesheetReferenceListTest : AbstractTestBase() {
   }
 
   private fun getTaskId(name: String): Int {
-    return initTestDB.getTask("$prefix.$name").id
+    return initTestDB.getTask("$prefix.$name").id!!
   }
 
   private fun createTimesheet(

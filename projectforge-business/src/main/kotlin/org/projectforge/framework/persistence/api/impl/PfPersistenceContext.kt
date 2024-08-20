@@ -38,8 +38,8 @@ class PfPersistenceContext(
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> selectSingleResult(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
@@ -49,8 +49,8 @@ class PfPersistenceContext(
         return EntityManagerUtil.selectSingleResult(
             em,
             sql = sql,
-            resultClass,
-            keyValues = *keyValues,
+            resultClass = resultClass,
+            keyValues = keyValues,
             nullAllowed = nullAllowed,
             errorMessage = errorMessage,
             attached = attached,
@@ -62,16 +62,16 @@ class PfPersistenceContext(
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> queryNullable(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
     ): List<T?> {
         return EntityManagerUtil.queryNullable(
             em,
-            sql,
-            resultClass,
-            *keyValues,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
             attached = attached,
         )
     }
@@ -81,8 +81,8 @@ class PfPersistenceContext(
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> query(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         namedQuery: Boolean = false,
@@ -90,9 +90,9 @@ class PfPersistenceContext(
     ): List<T> {
         return EntityManagerUtil.query(
             em,
-            sql,
-            resultClass,
-            *keyValues,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
             attached = attached,
             namedQuery = namedQuery,
             maxResults = maxResults,
@@ -104,16 +104,16 @@ class PfPersistenceContext(
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     fun <T> namedQuery(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
         return query(
-            resultClass,
-            sql,
-            *keyValues,
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
             attached = attached,
             namedQuery = true,
             maxResults = maxResults,
@@ -122,8 +122,8 @@ class PfPersistenceContext(
 
 
     fun <T> createQuery(
-        resultClass: Class<T>,
         sql: String,
+        resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): TypedQuery<T> {

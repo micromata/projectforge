@@ -28,11 +28,14 @@ import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
 import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
+private val log = KotlinLogging.logger {}
 
 @Service
 open class PfPersistenceService {
@@ -56,8 +59,7 @@ open class PfPersistenceService {
      * @param readonly If true, no transaction is used.
      */
     open fun <T> runInTransaction(
-        readonly: Boolean = false,
-        run: (context: PfPersistenceContext) -> T
+        readonly: Boolean = false, run: (context: PfPersistenceContext) -> T
     ): T {
         return EntityManagerUtil.runInTransaction(entityManagerFactory, readonly, run)
     }
@@ -73,9 +75,7 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     open fun <T> selectById(
-        entityClass: Class<T>,
-        id: Any?,
-        attached: Boolean = false
+        entityClass: Class<T>, id: Any?, attached: Boolean = false
     ): T? {
         return EntityManagerUtil.selectById(entityManagerFactory, entityClass, id, attached = attached)
     }
@@ -151,6 +151,7 @@ open class PfPersistenceService {
     /**
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
+    @JvmOverloads
     open fun <T> query(
         sql: String,
         resultClass: Class<T>,
@@ -207,6 +208,16 @@ open class PfPersistenceService {
         return EntityManagerUtil.executeUpdate(entityManagerFactory, sql, *keyValues, namedQuery = namedQuery)
     }
 
+    /**
+     * Convenience call for executeUpdate() with namedQuery = true.
+     */
+    open fun executeNamedUpdate(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        return executeUpdate(sql, *keyValues, namedQuery = true)
+    }
+
     open fun delete(dbObj: Any) {
         EntityManagerUtil.delete(entityManagerFactory, dbObj)
     }
@@ -216,9 +227,32 @@ open class PfPersistenceService {
     }
 
     open fun <T> criteriaUpdate(
-        entityClass: Class<T>,
-        update: (cb: CriteriaBuilder, root: Root<T>, criteriaUpdate: CriteriaUpdate<T>) -> Unit
+        entityClass: Class<T>, update: (cb: CriteriaBuilder, root: Root<T>, criteriaUpdate: CriteriaUpdate<T>) -> Unit
     ) {
         EntityManagerUtil.criteriaUpdate(entityManagerFactory, entityClass, update)
+    }
+
+    open fun <T> getReference(
+        entityClass: Class<T>, id: Any
+    ): T {
+        return EntityManagerUtil.getReference(entityManagerFactory, entityClass, id)
+    }
+
+    /**
+     * Gets the next number for a new entity. The next number is the maximum number of the attribute + 1.
+     * @param table The name of the table (e. g. RechnungDO).
+     * @param attribute The name of the attribute (e. g. rechnungsnummer).
+     * @param startNumber The number to start with if no entry is found.
+     */
+    open fun getNextNumber(table: String, attribute: String, startNumber: Int = 0): Int {
+        val maxNumber = selectSingleResult(
+            "select max(t.$attribute) from $table t",
+            Int::class.java,
+        ) ?: run {
+            log.info("First entry of $table")
+            startNumber
+        }
+        return maxNumber + 1
+
     }
 }

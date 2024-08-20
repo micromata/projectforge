@@ -434,6 +434,17 @@ internal object EntityManagerUtil {
         return query.executeUpdate()
     }
 
+    fun <T> getReference(
+        entityManagerFactory: EntityManagerFactory,
+        entityClass: Class<T>,
+        id: Any): T {
+        return PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                context.em.getReference(entityClass, id)
+            }
+        }
+    }
+
     /**
      * Encapsulates the run statement in a transaction begin and commit. Rollback on error.
      * @param readonly If true, the session will set as readonly and only the run statement will be executed.

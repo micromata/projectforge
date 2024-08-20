@@ -20,23 +20,14 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+package org.projectforge.business.address
 
-package org.projectforge.business.address;
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
-import org.jetbrains.annotations.NotNull;
-import org.projectforge.framework.persistence.api.impl.CustomResultFilter;
+class FavoritesResultFilter(personalAddressDao: PersonalAddressDao) : CustomResultFilter<AddressDO> {
+    var favoriteAddressIds: List<Int?> = personalAddressDao.favoriteAddressIdList
 
-import java.util.List;
-
-public class FavoritesResultFilter implements CustomResultFilter<AddressDO> {
-  List<Integer> favoriteAddressIds;
-
-  public FavoritesResultFilter(PersonalAddressDao personalAddressDao) {
-    favoriteAddressIds = personalAddressDao.getFavoriteAddressIdList();
-  }
-
-  @Override
-  public boolean match(@NotNull List<AddressDO> list, @NotNull AddressDO element) {
-    return favoriteAddressIds.contains(element.getId());
-  }
+    override fun match(list: List<AddressDO>, element: AddressDO): Boolean {
+        return favoriteAddressIds.contains(element.id)
+    }
 }

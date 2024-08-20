@@ -124,7 +124,7 @@ public class UserXmlPreferencesMigrationDao {
       return buf.toString();
     }
     migrate(userPrefs);
-    final Object data = userXmlPreferencesDao.deserialize(null, userPrefs, true);
+    final Object data = userXmlPreferencesDao.deserialize(userId, userPrefs, true);
     buf.append("version ");
     buf.append(userPrefs.getVersion());
     if (data != null || "<null/>" .equals(userPrefs.getSerializedSettings())) {

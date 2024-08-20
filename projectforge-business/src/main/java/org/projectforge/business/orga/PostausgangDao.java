@@ -23,6 +23,7 @@
 
 package org.projectforge.business.orga;
 
+import jakarta.persistence.Tuple;
 import org.apache.commons.lang3.ArrayUtils;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -32,50 +33,51 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Repository;
 
-import jakarta.persistence.Tuple;
 import java.util.List;
 
 @Repository
 public class PostausgangDao extends BaseDao<PostausgangDO> {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_OUTGOING_MAIL;
-  private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "absender", "inhalt"};
+    public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_OUTGOING_MAIL;
+    private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "absender", "inhalt"};
 
-  protected PostausgangDao() {
-    super(PostausgangDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
-
-  @Override
-  public boolean isAutocompletionPropertyEnabled(String property) {
-    return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
-  }
-
-  /**
-   * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   */
-  public int[] getYears() {
-    final Tuple minMaxDate = SQLHelper.ensureUniqueResult(em.createNamedQuery(PostausgangDO.SELECT_MIN_MAX_DATE, Tuple.class));
-    return SQLHelper.getYears(minMaxDate.get(0), minMaxDate.get(1));
-  }
-
-  @Override
-  public List<PostausgangDO> getList(final BaseSearchFilter filter) {
-    final PostFilter myFilter;
-    if (filter instanceof PostFilter) {
-      myFilter = (PostFilter) filter;
-    } else {
-      myFilter = new PostFilter(filter);
+    protected PostausgangDao() {
+        super(PostausgangDO.class);
+        userRightId = USER_RIGHT_ID;
     }
-    final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
-    queryFilter.addOrder(SortProperty.desc("datum"));
-    queryFilter.addOrder(SortProperty.asc("empfaenger"));
-    final List<PostausgangDO> list = getList(queryFilter);
-    return list;
-  }
 
-  @Override
-  public PostausgangDO newInstance() {
-    return new PostausgangDO();
-  }
+    @Override
+    public boolean isAutocompletionPropertyEnabled(String property) {
+        return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property);
+    }
+
+    /**
+     * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
+     */
+    public int[] getYears() {
+        final Tuple minMaxDate = persistenceService.selectNamedSingleResult(
+                PostausgangDO.SELECT_MIN_MAX_DATE,
+                Tuple.class);
+        return SQLHelper.getYearsByTupleOfLocalDate(minMaxDate);
+    }
+
+    @Override
+    public List<PostausgangDO> getList(final BaseSearchFilter filter) {
+        final PostFilter myFilter;
+        if (filter instanceof PostFilter) {
+            myFilter = (PostFilter) filter;
+        } else {
+            myFilter = new PostFilter(filter);
+        }
+        final QueryFilter queryFilter = new QueryFilter(filter);
+        queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
+        queryFilter.addOrder(SortProperty.desc("datum"));
+        queryFilter.addOrder(SortProperty.asc("empfaenger"));
+        final List<PostausgangDO> list = getList(queryFilter);
+        return list;
+    }
+
+    @Override
+    public PostausgangDO newInstance() {
+        return new PostausgangDO();
+    }
 }
