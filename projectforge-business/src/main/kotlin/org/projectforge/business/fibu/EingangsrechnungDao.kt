@@ -119,7 +119,7 @@ class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::clas
         RechnungDao.writeUiStatusToXml(rechnung)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<EingangsrechnungDO>? {
+    override fun getList(filter: BaseSearchFilter): List<EingangsrechnungDO> {
         val myFilter = if (filter is EingangsrechnungListFilter) {
             filter
         } else {

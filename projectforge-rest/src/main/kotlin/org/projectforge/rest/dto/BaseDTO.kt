@@ -140,7 +140,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                   val srcValue = srcField.get(src)
                   if (srcValue != null) {
                     val instance = destType.getDeclaredConstructor().newInstance()
-                    (instance as BaseDO<*>).id = (srcValue as BaseDTO<*>).id
+                    (instance as BaseDO<Int>).id = (srcValue as BaseDTO<*>).id
                     destField.isAccessible = true
                     destField.set(dest, instance)
                   }

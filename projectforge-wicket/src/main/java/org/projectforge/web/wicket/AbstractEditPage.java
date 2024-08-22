@@ -23,7 +23,6 @@
 
 package org.projectforge.web.wicket;
 
-import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -44,7 +43,6 @@ import org.projectforge.business.user.UserFormatter;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
@@ -55,15 +53,18 @@ import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.flowlayout.DiffTextPanel;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F extends AbstractEditForm<O, ?>, D extends IPersistenceService<O>>
+public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F extends AbstractEditForm<O, ?>, D extends BaseDao<O>>
     extends
     AbstractSecuredPage implements IEditPage<O, D>
 {
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(AbstractEditPage.class);
+
   private static final long serialVersionUID = 8283877351980165438L;
 
   public static final String PARAMETER_KEY_ID = "id";
@@ -110,7 +111,8 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
     buf.append("function showDeleteQuestionDialog() {\n").append("  return window.confirm('");
 
     //    boolean entWithHistory = HistoryServiceManager.get().getHistoryService().hasHistory(data.getClass());
-    boolean entWithHistory = HistoryServiceManager.get().getHistoryService().hasHistory(getBaseDao().getEntityClass());
+    log.error("********* HistoryServiceManger to use");
+    boolean entWithHistory = false;// HistoryServiceManager.get().getHistoryService().hasHistory(getBaseDao().getEntityClass());
     showHistory = entWithHistory;
     if (entWithHistory == true) {
       buf.append(getString("question.markAsDeletedQuestion"));

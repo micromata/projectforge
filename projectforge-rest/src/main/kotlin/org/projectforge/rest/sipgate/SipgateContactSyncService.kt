@@ -378,7 +378,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
               contact.id?.let { contactId ->
                 val matchScore = matchScore(contact, matchAddress)
                 if (matchScore >= 1) {
-                  matchScores.add(MatchScore(contactId, matchAddress.id, matchScore))
+                  matchScores.add(MatchScore(contactId, matchAddress.id!!, matchScore))
                 }
               }
             }
@@ -750,7 +750,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         log.info { "Deleting syncDO (because contact id '${syncDO.sipgateContactId}' doesn't exist anymore." }
         deleteIt = true
       }
-      if (!deleteIt && syncContext.addressList.none { it.pk == syncDO.address?.id }) {
+      if (!deleteIt && syncContext.addressList.none { it.id == syncDO.address?.id }) {
         log.info { "Deleting syncDO (because address id '${syncDO.address?.id}' doesn't exist anymore." }
         deleteIt = true
       }

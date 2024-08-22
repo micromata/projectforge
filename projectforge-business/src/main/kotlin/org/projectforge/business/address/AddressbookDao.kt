@@ -70,7 +70,7 @@ class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return AddressbookDO()
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressbookDO>? {
+    override fun getList(filter: BaseSearchFilter): List<AddressbookDO> {
         val myFilter = if (filter is AddressbookFilter) filter
         else {
             AddressbookFilter(filter)

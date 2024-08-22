@@ -103,7 +103,7 @@ class TaskServicesRest {
     val statusAsString: String? = status?.i18nKey?.let {  translate(it) }
 
     constructor(node: TaskNode) : this(
-      id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
+      id = node.task.id!!, title = node.task.title, shortDescription = node.task.shortDescription,
       protectTimesheetsUntil = PFDay.fromOrNull(node.task.protectTimesheetsUntil), reference = node.task.reference,
       priority = node.task.priority, status = node.task.status, responsibleUser = node.task.responsibleUser
     )
@@ -139,7 +139,7 @@ class TaskServicesRest {
       val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
       val pathArray = mutableListOf<Task>()
       pathToRoot?.forEach {
-        val ancestor = Task(id = it.task.id, title = it.task.title)
+        val ancestor = Task(id = it.task.id!!, title = it.task.title)
         pathArray.add(ancestor)
       }
       task.path = pathArray
@@ -151,7 +151,7 @@ class TaskServicesRest {
       if (!kost2DOList.isNullOrEmpty()) {
         if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
            val kost2List: List<Kost2> = kost2DOList.map {
-            Kost2((it as Kost2DO).id, KostFormatter.format(it, 80))
+            Kost2((it as Kost2DO).id!!, KostFormatter.format(it, 80))
           }
           task.kost2List = kost2List
         }

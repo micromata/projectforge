@@ -105,7 +105,7 @@ class VacationPagesRest :
     if (vacationDao.hasHrRights(ThreadLocalUserContext.user)) {
       val employeeId = NumberHelper.parseInteger(request?.getParameter("employee"))
       if (employeeId != null) {
-        employeeDO = employeeService.getById(employeeId)
+        employeeDO = employeeDao.getById(employeeId)
       } else {
         employeeDO = vacation.employee
       }
@@ -125,7 +125,7 @@ class VacationPagesRest :
     employeeDO?.id ?: return null
     val employee = Employee()
     employeeDO.id?.let {
-      employee.copyFromMinimal(employeeDao.internalGetById(it))
+      employee.copyFromMinimal(employeeDao.internalGetById(it)!!)
     }
     return employee
   }

@@ -275,7 +275,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
       calendars.add(0, dto.calendar)
     }
     val calendarSelectValues = calendars.map {
-      UISelectValue<Int>(it.id, it.title!!)
+      UISelectValue<Int>(it.id!!, it.title!!)
     }
     val subject = UIInput("subject", lc)
     subject.focus = true

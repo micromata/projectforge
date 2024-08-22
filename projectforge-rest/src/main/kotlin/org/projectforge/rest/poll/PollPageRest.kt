@@ -586,7 +586,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     fun export(@RequestParam("id") id: String): ResponseEntity<Resource>? {
         val poll = Poll()
         val pollDo = pollDao.getById(id.toInt())
-        poll.copyFrom(pollDo)
+        poll.copyFrom(pollDo!!)
         User.restoreDisplayNames(poll.attendees, userService)
         val bytes: ByteArray? = excelExport
             .getExcel(poll)

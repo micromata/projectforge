@@ -125,7 +125,7 @@ class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         return getActiveKost2(projekt.nummernkreis, projekt.bereich!!, projekt.teilbereich)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<Kost2DO>? {
+    override fun getList(filter: BaseSearchFilter): List<Kost2DO> {
         val myFilter = if (filter is KostFilter) {
             filter
         } else {

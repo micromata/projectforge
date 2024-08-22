@@ -26,7 +26,6 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
-import org.projectforge.framework.persistence.api.ICorePersistenceService;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.task.TaskTreePage;
@@ -37,7 +36,7 @@ import org.projectforge.web.task.TaskTreePage;
  * @see EditPageSupport
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends ICorePersistenceService<Integer, O>>
+public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends BaseDao<O>>
 {
   /**
    * The flag already submitted should be set to false in onBeforeRender. It should be set to true if the user has

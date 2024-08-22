@@ -26,7 +26,7 @@ package org.projectforge.business.address
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 class ImagesResultFilter : CustomResultFilter<AddressDO> {
-    override fun match(list: List<AddressDO>, element: AddressDO): Boolean {
+    override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
         return element.image == true
     }
 }

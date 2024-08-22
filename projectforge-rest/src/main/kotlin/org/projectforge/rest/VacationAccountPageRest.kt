@@ -140,8 +140,7 @@ class VacationAccountPageRest {
       // For non HR users, only the user himself is assumed.
       ThreadLocalUserContext.userContext!!.employeeId;
     }
-    val employee = employeeDao.internalGetById(employeeId)
-
+    val employee = employeeDao.internalGetById(employeeId)!!
     val statistics = mutableMapOf<String, Any>()
     val currentStats = vacationService.getVacationStats(employee, Year.now().value)
     val prevStats = vacationService.getVacationStats(employee, Year.now().value - 1)
@@ -267,7 +266,7 @@ class VacationAccountPageRest {
       log.warn { "User has now HR vacation access. Recalculating of remaining leaves ignored." }
       return ResponseAction(targetType = TargetType.NOTHING)
     }
-    val employeeId = postData.data.employee!!.id
+    val employeeId = postData.data.employee!!.id!!
 
     remainingLeaveDao.internalMarkAsDeleted(employeeId, Year.now().value)
 

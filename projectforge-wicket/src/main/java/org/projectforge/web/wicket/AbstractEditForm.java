@@ -29,7 +29,7 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
 import org.projectforge.common.i18n.UserException;
-import org.projectforge.framework.persistence.api.IPersistenceService;
+import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -315,9 +315,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   }
 
   @SuppressWarnings("unchecked")
-  protected IPersistenceService<O> getBaseDao()
+  protected BaseDao<O> getBaseDao()
   {
-    return (IPersistenceService<O>) parentPage.getBaseDao();
+    return (BaseDao<O>) parentPage.getBaseDao();
   }
 
   /**
@@ -327,7 +327,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   protected void updateButtonVisibility()
   {
     try {
-      final IPersistenceService<O> baseDao = getBaseDao();
+      final BaseDao<O> baseDao = getBaseDao();
       if (isNew() == true) {
         updateButtonPanel.setVisible(false);
         updateAndNextButtonPanel.setVisible(false);

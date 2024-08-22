@@ -71,13 +71,13 @@ class CalEventsProvider() {
         eventDO = CalEventDO() //(it as TeamRecurrenceEvent).master
         recurrentEvent = true
       }
-      val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
+      val recurrentDate = if (recurrentEvent) "?recurrentDate=${it!!.startDate!!.time / 1000}" else ""
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
       val allDay = eventDO.allDay
       val style = styleMap.get(eventDO.calendar.id) ?: CalendarStyle()
       val dbId: Int?
       val uid: String?
-      if (eventDO.id > 0) {
+      if (eventDO.id!! > 0) {
         dbId = eventDO.id
         uid = null
       } else {
@@ -87,7 +87,7 @@ class CalEventsProvider() {
       val event = FullCalendarEvent.createEvent(
         id = dbId,
         category = FullCalendarEvent.Category.CAL_EVENT,
-        title = it.subject,
+        title = it!!.subject,
         calendarSettings = calendarSettings,
         start = it.startDate!!,
         end = it.endDate!!,

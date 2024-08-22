@@ -149,7 +149,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         return super.getList(filter, filters)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressDO>? {
+    override fun getList(filter: BaseSearchFilter): List<AddressDO> {
         val myFilter = if (filter is AddressFilter) {
             filter
         } else {

@@ -122,7 +122,7 @@ class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java) {
         return access
     }
 
-    override fun getList(filter: BaseSearchFilter): List<GroupTaskAccessDO>? {
+    override fun getList(filter: BaseSearchFilter): List<GroupTaskAccessDO> {
         val myFilter = if (filter is AccessFilter) {
             filter
         } else {

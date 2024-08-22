@@ -87,7 +87,7 @@ class SipgateClient {
 
   internal lateinit var webClient: WebClient
 
-  class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
+  class HttpException(val httpStatus: Any, message: String) : RuntimeException(message)
 
   @PostConstruct
   private fun postConstruct() {
