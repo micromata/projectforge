@@ -52,9 +52,6 @@ public class EmployeeSalaryImportService
   @Autowired
   private EmployeeSalaryService employeeSalaryService;
 
-  @Autowired
-  private EmployeeConfigurationService employeeConfigService;
-
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryImportService.class);
 
   public ImportStorage<EmployeeSalaryDO> importData(final InputStream is, final String filename, final Date dateToSelectAttrRow) throws IOException
@@ -62,7 +59,7 @@ public class EmployeeSalaryImportService
     //checkLoggeinUserRight(accessChecker);
     final ImportStorage<EmployeeSalaryDO> storage = new ImportStorage<>();
     storage.setFilename(filename);
-    final EmployeeSalaryExcelImporter importer = new EmployeeSalaryExcelImporter(employeeService, employeeSalaryService, employeeConfigService, storage,
+    final EmployeeSalaryExcelImporter importer = new EmployeeSalaryExcelImporter(employeeService, employeeSalaryService, storage,
         dateToSelectAttrRow);
     try {
       importer.doImport(is);

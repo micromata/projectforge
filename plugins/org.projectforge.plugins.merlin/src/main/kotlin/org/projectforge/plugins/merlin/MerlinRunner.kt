@@ -183,7 +183,7 @@ open class MerlinRunner {
       )
       if (merlinHandler.dataTransferPluginAvailable()) {
         val receiver = ThreadLocalUserContext.user!!
-        val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.id)
+        val personalBox = dataTransferAreaDao.ensurePersonalBox(receiver.id!!)
         val personalBoxFilename = "${DateHelper.getFilenameFormatTimestamp(ThreadLocalUserContext.timeZone).format(Date())}_${runner.zipFilename}"
         personalBox?.let {
           val description = translate("plugins.merlin.template.dataTransferUsage.resultZip")

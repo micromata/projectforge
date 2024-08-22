@@ -76,10 +76,12 @@ open class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBala
 
   @Transactional(propagation = Propagation.NOT_SUPPORTED)
   open fun getByTimePeriod(accountId: Int): List<BankAccountBalanceDO> {
-    val account = bankAccountDao.getById(accountId) // For access checking
+    val account = bankAccountDao.getById(accountId)!! // For access checking
     log.info("Getting Balances of account '${account.name}', IBAN=${account.iban}")
-    return em.createNamedQuery(BankAccountBalanceDO.FIND_BY_BANK_ACCOUNT, BankAccountBalanceDO::class.java)
-      .setParameter("bankAccountId", accountId)
-      .resultList
+    return persistenceService.namedQuery(
+      BankAccountBalanceDO.FIND_BY_BANK_ACCOUNT,
+      BankAccountBalanceDO::class.java,
+      Pair("bankAccountId", accountId),
+    )
   }
 }

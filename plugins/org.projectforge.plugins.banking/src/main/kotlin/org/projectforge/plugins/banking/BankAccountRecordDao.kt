@@ -45,50 +45,52 @@ private val log = KotlinLogging.logger {}
  */
 @Repository
 open class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecordDO::class.java) {
-  @Autowired
-  private lateinit var bankAccountDao: BankAccountDao
+    @Autowired
+    private lateinit var bankAccountDao: BankAccountDao
 
-  override fun hasAccess(
-    user: PFUserDO,
-    obj: BankAccountRecordDO?,
-    oldObj: BankAccountRecordDO?,
-    operationType: OperationType,
-    throwException: Boolean
-  ): Boolean {
-    val bankAccount = obj?.bankAccount
-    if (obj != null && bankAccount == null) {
-      return BaseDaoSupport.returnFalseOrThrowException(
-        throwException,
-        user,
-        operationType,
-        msg = "Bank account not given.",
-      )
+    override fun hasAccess(
+        user: PFUserDO,
+        obj: BankAccountRecordDO?,
+        oldObj: BankAccountRecordDO?,
+        operationType: OperationType,
+        throwException: Boolean
+    ): Boolean {
+        val bankAccount = obj?.bankAccount
+        if (obj != null && bankAccount == null) {
+            return BaseDaoSupport.returnFalseOrThrowException(
+                throwException,
+                user,
+                operationType,
+                msg = "Bank account not given.",
+            )
+        }
+        if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)) {
+            // Double check, user isn't member of financial staff.
+            return BaseDaoSupport.returnFalseOrThrowException(
+                throwException,
+                user,
+                operationType,
+                msg = "User not member of financial staff.",
+            )
+        }
+        val oldBankAccount = oldObj?.bankAccount
+        return bankAccountDao.hasAccess(user, bankAccount, oldBankAccount, operationType, throwException)
     }
-    if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)) {
-      // Double check, user isn't member of financial staff.
-      return BaseDaoSupport.returnFalseOrThrowException(
-        throwException,
-        user,
-        operationType,
-        msg = "User not member of financial staff.",
-      )
+
+    override fun newInstance(): BankAccountRecordDO {
+        return BankAccountRecordDO()
     }
-    val oldBankAccount = oldObj?.bankAccount
-    return bankAccountDao.hasAccess(user, bankAccount, oldBankAccount, operationType, throwException)
-  }
 
-  override fun newInstance(): BankAccountRecordDO {
-    return BankAccountRecordDO()
-  }
-
-  @Transactional(propagation = Propagation.NOT_SUPPORTED)
-  open fun getByTimePeriod(accountId: Int, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
-    val account = bankAccountDao.getById(accountId) // For access checking
-    log.info("Getting records of account '${account.name}', IBAN=${account.iban}: $from until $until")
-    return em.createNamedQuery(BankAccountRecordDO.FIND_BY_TIME_PERIOD, BankAccountRecordDO::class.java)
-      .setParameter("bankAccountId", accountId)
-      .setParameter("from", from)
-      .setParameter("until", until)
-      .resultList
-  }
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    open fun getByTimePeriod(accountId: Int, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
+        val account = bankAccountDao.getById(accountId)!! // For access checking
+        log.info("Getting records of account '${account.name}', IBAN=${account.iban}: $from until $until")
+        return persistenceService.namedQuery(
+            BankAccountRecordDO.FIND_BY_TIME_PERIOD,
+            BankAccountRecordDO::class.java,
+            Pair("bankAccountId", accountId),
+            Pair("from", from),
+            Pair("until", until),
+        )
+    }
 }

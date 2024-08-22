@@ -41,10 +41,10 @@ import org.springframework.stereotype.Repository
 open class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
 
   override fun hasAccess(
-    user: PFUserDO?,
+    user: PFUserDO,
     obj: BankAccountDO?,
     oldObj: BankAccountDO?,
-    operationType: OperationType?,
+    operationType: OperationType,
     throwException: Boolean
   ): Boolean {
     if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {

@@ -38,23 +38,24 @@ import java.util.*
 @Repository
 open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class.java) {
 
-  override fun hasUserSelectAccess(user: PFUserDO?, throwException: Boolean): Boolean {
+  override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
     return true // Select access in general for all registered users
   }
 
   override fun hasAccess(
     user: PFUserDO,
-    obj: MerlinTemplateDO,
+    obj: MerlinTemplateDO?,
     oldObj: MerlinTemplateDO?,
     operationType: OperationType,
     throwException: Boolean
   ): Boolean {
+    obj ?: return false
     val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
     if (adminIds.contains(user.id)) {
       return true
     }
     if (operationType == OperationType.SELECT) {
-      em.detach(obj)
+      //em.detach(obj)
       // Select access also for those users:
       StringHelper.splitToIntegers(obj.accessUserIds, ",")?.let {
         if (it.contains(user.id)) {
@@ -73,9 +74,8 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
     return false
   }
 
-  override fun getDefaultSortProperties(): Array<SortProperty> {
-    return arrayOf(SortProperty.desc("lastUpdate"))
-  }
+  override val defaultSortProperties: Array<SortProperty>?
+    get() = arrayOf(SortProperty.desc("lastUpdate"))
 
   override fun newInstance(): MerlinTemplateDO {
     return MerlinTemplateDO()

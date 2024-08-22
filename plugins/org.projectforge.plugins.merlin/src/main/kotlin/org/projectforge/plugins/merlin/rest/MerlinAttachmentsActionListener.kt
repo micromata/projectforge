@@ -73,7 +73,7 @@ class MerlinAttachmentsActionListener(
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId)
     list?.forEach { element ->
       // If docx/xlsx is uploaded, backup all previous existing docx/xlsx.
       if (element.fileExtension == attachment.fileExtension && element.fileId != attachment.fileId) {
@@ -102,7 +102,7 @@ class MerlinAttachmentsActionListener(
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
   ): ResponseEntity<*> {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id, attachmentsAccessChecker, listId)
+    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId)
     return createResponseEntity(obj, list, TargetType.CLOSE_MODAL)
   }
 

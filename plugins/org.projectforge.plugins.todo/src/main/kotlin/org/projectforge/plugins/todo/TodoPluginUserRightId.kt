@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.plugins.todo
 
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef

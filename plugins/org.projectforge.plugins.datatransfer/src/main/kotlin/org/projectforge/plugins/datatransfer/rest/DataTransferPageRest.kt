@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.*
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 /**
  * Page of data transfer area with attachments list (including upload/download and editing).
@@ -312,7 +312,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     val dbObj =
-      dataTransferAreaDao.internalGetById(id) // Get entry including external access settings (see DataTransferDao#hasAccess).
+      dataTransferAreaDao.internalGetById(id)!! // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
@@ -343,7 +343,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   }
 
   private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
-    val dbObj = dataTransferAreaDao.getById(id)
+    val dbObj = dataTransferAreaDao.getById(id)!!
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
     if (hasEditAccess(dto, dbObj)) {
       dto.externalPassword = dbObj.externalPassword

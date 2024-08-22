@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.merlin.excel.importer.ImportedElement;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -38,8 +37,6 @@ import java.util.Date;
 class EmployeeSalaryImportStoragePanel extends AbstractImportStoragePanel<EmployeeSalaryImportPage>
 {
   @SpringBean
-  private TimeableService timeableService;
-
   private Date dateToSelectAttrRow;
 
   EmployeeSalaryImportStoragePanel(final String id, final EmployeeSalaryImportPage parentPage,
