@@ -36,7 +36,7 @@ class ScriptFileAccessor(
   private val scriptDO: ScriptDO,
 ) {
   val attachments =
-    attachmentsService.getAttachments(scriptPagesRest.jcrPath!!, scriptDO.id, scriptPagesRest.attachmentsAccessChecker)
+    attachmentsService.getAttachments(scriptPagesRest.jcrPath!!, scriptDO.id!!, scriptPagesRest.attachmentsAccessChecker)
 
   /**
    * Backward compability.
@@ -68,7 +68,7 @@ class ScriptFileAccessor(
     }
     val istream = attachmentsService.getAttachmentInputStream(
       scriptPagesRest.jcrPath!!,
-      scriptDO.id,
+      scriptDO.id!!,
       fileId,
       scriptPagesRest.attachmentsAccessChecker
     )?.second

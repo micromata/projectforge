@@ -85,7 +85,7 @@ class DvelopClient {
 
   internal lateinit var webClient: WebClient
 
-  class HttpException(val httpStatus: HttpStatus, message: String) : RuntimeException(message)
+  class HttpException(val httpStatus: Any, message: String) : RuntimeException(message)
 
   class Session(val authSessionId: String, val expires: Date?)
 

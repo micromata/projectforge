@@ -394,10 +394,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     var ts = dbList.find { it.description == "TS#1" }!!
     assertSheet(ts, ts1, "Task not changed due to protectionUntil")
     assertKost2(ts, 5, 53, 2, 0) // Kost2 unmodified.
-    ts = timesheetDao.getById(ts2.id)
+    ts = timesheetDao.getById(ts2.id)!!
     Assertions.assertEquals(getTask(prefix + "1.1").id, ts.taskId) // Not moved.
     assertKost2(ts, 5, 53, 1, 0) // Kost2 unmodified.
-    ts = timesheetDao.getById(ts3.id)
+    ts = timesheetDao.getById(ts3.id)!!
     Assertions.assertEquals(getTask(prefix + "1.2").id, ts.taskId) // Not moved.
     assertKost2(ts, 5, 53, 1, 1) // Kost2 unmodified.
   }
@@ -483,8 +483,8 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
       Assertions.assertNotNull(kost2)
       ts.kost2 = kost2
     }
-    val id: Serializable = timesheetDao.internalSave(ts)
-    return timesheetDao.getById(id)
+    val id: Serializable = timesheetDao.internalSave(ts)!!
+    return timesheetDao.getById(id)!!
   }
 
   private fun setTimeperiod(
@@ -525,16 +525,16 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     }
     val massUpdateContext = object: MassUpdateContext<TimesheetDO>(massUpdateData) {
       override fun getId(obj: TimesheetDO): Int {
-        return obj.id
+        return obj.id!!
       }
     }
-    val selectedIds = list.map { it.id }
+    val selectedIds = list.map { it.id!! }
     val request = Mockito.mock(HttpServletRequest::class.java)
     timesheetMultiSelectedPageRest.massUpdate(request, selectedIds, massUpdateContext)?.let {
       throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
     }
 
     val dbList = timesheetDao.getListByIds(selectedIds)
-    return dbList
+    return dbList!!
   }
 }

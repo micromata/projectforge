@@ -64,7 +64,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
           var state = stateMap[user.id]
           if (state == null) {
             state = my2FAService.userConfigured2FA
-            stateMap[user.id] = state
+            stateMap[user.id!!] = state
           }
           return if (state) {
             null // State is OK (everything is configured)

@@ -46,7 +46,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
         val credentials = authenticationPublicServicesRest.getAuthenticationCredentials(q)
         assertEquals(user.username, credentials.username)
         assertEquals(user.id, credentials.uid)
-        val token = userAuthenticationsDao.getToken(user.id, UserTokenType.REST_CLIENT)
+        val token = userAuthenticationsDao.getToken(user.id!!, UserTokenType.REST_CLIENT)
         assertEquals(token, credentials.authenticationToken)
         assertEquals("http://localhost:8080", credentials.url)
 

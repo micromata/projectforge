@@ -206,7 +206,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       val day = PFDay.fromOrNull(it.startTime)
       Timesheet4ListExport(
         timesheet,
-        id = it.id,
+        id = it.id!!,
         weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
         dayName = day?.dayOfWeekAsShortString ?: "??",
         timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
@@ -419,7 +419,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       ts.counter = counter++
       ts
     }
-    return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists)
+    return RecentTimesheets(timesheets, SystemInfoCache.instance().isCost2EntriesExists())
   }
 
   @PostMapping("selectRecent")

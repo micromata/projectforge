@@ -62,7 +62,7 @@ class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         this.supportAfterUpdate = true
     }
 
-    override fun getList(filter: BaseSearchFilter): List<GroupDO>? {
+    override fun getList(filter: BaseSearchFilter): List<GroupDO> {
         val myFilter = if (filter is GroupFilter) {
             filter
         } else {

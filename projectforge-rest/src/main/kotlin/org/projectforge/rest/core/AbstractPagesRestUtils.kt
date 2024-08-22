@@ -72,7 +72,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
   MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
   pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
-  return baseDao.getList(queryFilter, customResultFilters)
+  return baseDao.getList(queryFilter, customResultFilters).toMutableList()
 }
 
 fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>

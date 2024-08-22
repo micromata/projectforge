@@ -309,10 +309,11 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
+        val poll = pollDao.internalGetById(pollId)
         val attendees = listOfNotNull(
-            pollDao.internalGetById(pollId).attendeeIds,
-            pollDao.internalGetById(pollId).fullAccessUserIds,
-            pollDao.internalGetById(pollId).owner?.id
+            poll!!.attendeeIds,
+            poll.fullAccessUserIds,
+            poll.owner?.id
         )
         val joinedAttendeeIds = attendees.joinToString(", ")
         if (questionOwnerId == ThreadLocalUserContext.userId) {

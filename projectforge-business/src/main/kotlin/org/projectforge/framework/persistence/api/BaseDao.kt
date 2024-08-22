@@ -248,7 +248,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    override fun getList(filter: BaseSearchFilter): List<O>? {
+    override fun getList(filter: BaseSearchFilter): List<O> {
         val queryFilter = createQueryFilter(filter)
         return getList(queryFilter)
     }

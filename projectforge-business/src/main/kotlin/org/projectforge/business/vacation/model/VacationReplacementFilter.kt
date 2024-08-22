@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
  */
 class VacationReplacementFilter(val employeeId: Int) : CustomResultFilter<VacationDO> {
 
-  override fun match(list: List<VacationDO>, element: VacationDO): Boolean {
+  override fun match(list: MutableList<VacationDO>, element: VacationDO): Boolean {
     if (element.replacement?.id == employeeId) {
       return true
     }

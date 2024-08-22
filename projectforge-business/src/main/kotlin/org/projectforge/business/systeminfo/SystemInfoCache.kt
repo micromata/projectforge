@@ -86,8 +86,8 @@ class SystemInfoCache : AbstractCache() {
          * @return
          */
         @JvmStatic
-        fun instance(): SystemInfoCache? {
-            return instance
+        fun instance(): SystemInfoCache {
+            return instance!!
         }
 
         private var instance: SystemInfoCache? = null

@@ -31,5 +31,5 @@ interface CustomResultFilter<O> {
      * @param list result list of already written elements.
      * @param element The current processed element to check.
      */
-    fun match(list: List<O>, element: O): Boolean
+    fun match(list: MutableList<O>, element: O): Boolean
 }

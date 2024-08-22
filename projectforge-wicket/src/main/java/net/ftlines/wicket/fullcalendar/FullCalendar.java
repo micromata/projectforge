@@ -40,12 +40,13 @@ import org.apache.wicket.IRequestListener;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.collections.MicroMap;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.template.PackageTextTemplate;
 import org.apache.wicket.util.template.TextTemplate;
 import org.projectforge.framework.ToStringUtil;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class FullCalendar extends AbstractFullCalendar implements IRequestListener {
@@ -116,7 +117,9 @@ public class FullCalendar extends AbstractFullCalendar implements IRequestListen
       source.setEventsModel(new IModel<String>() {
         @Override
         public String getObject() {
-          return EVENTS.asString(new MicroMap<String, String>("url", getEvents.getUrl(source)));
+          Map<String, String> microMap = new HashMap<>();
+          microMap.put("url", getEvents.getUrl(source));
+          return EVENTS.asString(microMap);
         }
       });
     }

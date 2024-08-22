@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.calendar
 
+import jakarta.ws.rs.BadRequestException
 import org.projectforge.Constants
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.calendar.CalendarView
@@ -52,7 +53,6 @@ import org.springframework.web.bind.annotation.*
 import java.net.URLEncoder
 import java.time.LocalDate
 import java.util.*
-import javax.ws.rs.BadRequestException
 
 // private val log = KotlinLogging.logger {}
 

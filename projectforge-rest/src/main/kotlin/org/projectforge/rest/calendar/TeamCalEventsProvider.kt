@@ -91,7 +91,7 @@ open class TeamCalEventsProvider() {
       val style = styleMap.get(eventDO.calendarId)
       val dbId: Int?
       val uid: String?
-      if (eventDO.id > 0) {
+      if (eventDO.id!! > 0) {
         dbId = eventDO.id
         uid = null
       } else {

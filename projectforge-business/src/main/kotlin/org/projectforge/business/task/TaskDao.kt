@@ -194,7 +194,7 @@ class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: BaseSearchFilter): List<TaskDO>? {
+    override fun getList(filter: BaseSearchFilter): List<TaskDO> {
         val myFilter = if (filter is TaskFilter) {
             filter
         } else {

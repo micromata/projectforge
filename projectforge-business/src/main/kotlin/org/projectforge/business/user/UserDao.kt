@@ -73,7 +73,7 @@ class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return QueryFilter(filter)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<PFUserDO>? {
+    override fun getList(filter: BaseSearchFilter): List<PFUserDO> {
         val myFilter = if (filter is PFUserFilter) {
             filter
         } else {

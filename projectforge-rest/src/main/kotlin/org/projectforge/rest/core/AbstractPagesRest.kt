@@ -63,6 +63,7 @@ import org.springframework.web.bind.annotation.*
 import java.io.Serializable
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
+import org.jetbrains.kotlin.util.collectionUtils.listOfNonEmptyScopes
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}
@@ -834,6 +835,7 @@ constructor(
     @RequestParam("search") searchString: String?
   )
       : List<String> {
+    searchString ?: return emptyList()
     return baseDao.getAutocompletion(property, searchString)
   }
 
@@ -1267,7 +1269,9 @@ constructor(
     jcrPath = if (identifier != null) {
       getJcrPath(identifier)
     } else {
-      getJcrPath(baseDao.identifier)
+      baseDao.identifier?.let {
+        getJcrPath(it)
+      }
     }
     this.attachmentsAccessChecker =
       attachmentsAccessChecker ?: AttachmentsDaoAccessChecker(

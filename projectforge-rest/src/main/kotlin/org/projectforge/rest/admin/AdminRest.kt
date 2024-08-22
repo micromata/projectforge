@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController
 class AdminRest() {
     @Autowired
     private lateinit var accessChecker: AccessChecker
+
     @Autowired
     private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
 
@@ -53,7 +54,7 @@ class AdminRest() {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val userPref = UserXmlPreferencesDO()
         userPref.serializedSettings = serializedSettings
-        val result = userXmlPreferencesDao.deserialize(ThreadLocalUserContext.userId, userPref, true)
+        val result = userXmlPreferencesDao.deserialize(ThreadLocalUserContext.requiredLoggedInUserId, userPref, true)
         return JsonUtils.toJson(result)
     }
 }
@@ -62,8 +63,9 @@ class AdminRest() {
  * Small helper class to show compressed user settings as xml. Later, a post method on the admin pages would be nice.
  */
 fun main() {
-    val str = "!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAE9H4sIAAAAAAAAAN2XUWuDMBDH3/sppHuuxtOLBlKhFPq2p32CTJO2m1VJfOm3X7JOtsEoCKELvt15F8OP/10u4b0+xoPu32Q9KmvLWEszxrVoZdcIHe+/jJfx2spnMVSrKOLGOSaqW2HMdt2eu3fZbE7CnDYXMaxdik2S3aivN9t6526sUsgJZoQnzpkCc/afFtllr8d93/a6ehJN\n" +
-            "U0rKk+nDd4qaUii1cfU7zpP5G/PkB9NffAVACplfPkLUXTil1GPggAEr0DdcSQgJhM8WJ1C/fIfd7gCBFOcnX+mXjxEp2X39HsiHLPWsnwqnOC2cZ/GCar4Sizxd7mRALLIcPQuolMBgBHSjHRZcoI7Pu36hHJ0Ume/uC2o0FGA7cLmnC0OG4Fm/f7h38uT2sKhW837kniUfuFG8ncgMAAA="
+    val str =
+        "!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAE9H4sIAAAAAAAAAN2XUWuDMBDH3/sppHuuxtOLBlKhFPq2p32CTJO2m1VJfOm3X7JOtsEoCKELvt15F8OP/10u4b0+xoPu32Q9KmvLWEszxrVoZdcIHe+/jJfx2spnMVSrKOLGOSaqW2HMdt2eu3fZbE7CnDYXMaxdik2S3aivN9t6526sUsgJZoQnzpkCc/afFtllr8d93/a6ehJN\n" +
+                "U0rKk+nDd4qaUii1cfU7zpP5G/PkB9NffAVACplfPkLUXTil1GPggAEr0DdcSQgJhM8WJ1C/fIfd7gCBFOcnX+mXjxEp2X39HsiHLPWsnwqnOC2cZ/GCar4Sizxd7mRALLIcPQuolMBgBHSjHRZcoI7Pu36hHJ0Ume/uC2o0FGA7cLmnC0OG4Fm/f7h38uT2sKhW837kniUfuFG8ncgMAAA="
     val xml = GZIPHelper.uncompress(str)
     println("Length of str: ${str.length}, length of xml: ${xml.length}")
     println(xml)

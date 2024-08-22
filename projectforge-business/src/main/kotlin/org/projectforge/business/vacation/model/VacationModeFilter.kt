@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 class VacationModeFilter(val values: List<VacationMode>) : CustomResultFilter<VacationDO> {
 
-    override fun match(list: List<VacationDO>, element: VacationDO): Boolean {
+    override fun match(list: MutableList<VacationDO>, element: VacationDO): Boolean {
         return values.contains(element.getVacationmode())
     }
 }

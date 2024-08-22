@@ -29,8 +29,6 @@ import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.api.ICorePersistenceService;
-import org.projectforge.framework.persistence.api.IManualIndex;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.security.My2FARequestHandler;
@@ -38,7 +36,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.Serializable;
 
-public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICorePersistenceService<Integer, O>, P extends WebPage & IEditPage<O, D>>
+public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDao<O>, P extends WebPage & IEditPage<O, D>>
     implements Serializable {
   private static final long serialVersionUID = 5504452697069803264L;
 
@@ -83,7 +81,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
         log.info("Double click detection in " + editPage.getClass() + " create method. Do nothing.");
       } else {
         editPage.setAlreadySubmitted(true);
-        if (editPage.getData().getId() != null && editPage.getData() instanceof IManualIndex == false) {
+        if (editPage.getData().getId() != null) { // && editPage.getData() instanceof IManualIndex == false) {
           // User has used the back button?
           log.info("User has used the back button in "
               + editPage.getClass()

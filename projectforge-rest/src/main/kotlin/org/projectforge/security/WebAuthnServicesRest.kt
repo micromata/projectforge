@@ -189,7 +189,7 @@ class WebAuthnServicesRest {
       require(!username.isNullOrBlank())
       val userDisplayName = user.userDisplayName
       require(!userDisplayName.isNullOrBlank())
-      val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id).array()
+      val userIdByteArray = ByteBuffer.allocate(Integer.BYTES).putInt(user.id!!).array()
       return WebAuthnUser(userIdByteArray, username, userDisplayName)
     }
 

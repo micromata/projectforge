@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilter<PollDO> {
 
-    override fun match(list: List<PollDO>, element: PollDO): Boolean {
+    override fun match(list: MutableList<PollDO>, element: PollDO): Boolean {
         var foundUser: PFUserDO? = null
         if (!element.fullAccessGroupIds.isNullOrEmpty()) {
             val groupIds = element.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()

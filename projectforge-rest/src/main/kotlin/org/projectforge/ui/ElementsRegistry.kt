@@ -23,15 +23,12 @@
 
 package org.projectforge.ui
 
-import de.micromata.genome.jpa.metainf.ColumnMetadata
-import de.micromata.genome.jpa.metainf.ColumnMetadataBean
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.common.props.PropertyType
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.BeanUtils
@@ -42,6 +39,11 @@ import java.util.*
 import jakarta.persistence.Basic
 import jakarta.persistence.Column
 import jakarta.persistence.JoinColumn
+import mu.KotlinLogging
+import org.projectforge.framework.persistence.jpa.ColumnMetaData
+import org.projectforge.framework.persistence.jpa.EntityMetaDataRegistry
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Registry holds properties of UIElements...
@@ -49,7 +51,6 @@ import jakarta.persistence.JoinColumn
  * of an [UIInput].
  */
 object ElementsRegistry {
-  private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
   fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
     return registryMap[clazz]
@@ -158,7 +159,7 @@ object ElementsRegistry {
   internal fun getElementInfo(lc: LayoutContext?, property: String): ElementInfo? {
     lc ?: return null
     val parts = property.split('.')
-    if (!parts.isNullOrEmpty()) {
+    if (parts.isNotEmpty()) {
       val listElementInfo = lc.getListElementInfo(parts[0])
       if (listElementInfo != null) {
         // property starts with list element name, therefore try to find the property of this list element
@@ -218,8 +219,8 @@ object ElementsRegistry {
     }
     val colinfo = getColumnMetadata(clazz, property)
     if (colinfo != null) {
-      elementInfo.maxLength = colinfo.maxLength
-      if ((!(colinfo.isNullable) || propertyInfo.required)) {
+      elementInfo.maxLength = colinfo.length
+      if ((!(colinfo.nullable) || propertyInfo.required)) {
         if (elementInfo.propertyClass != Boolean::class.java && elementInfo.propertyClass != java.lang.Boolean::class.java) {
           elementInfo.required = true
         }
@@ -267,27 +268,10 @@ object ElementsRegistry {
    * @param property
    * @return null if not found,
    */
-  private fun getColumnMetadata(entity: Class<*>?, property: String): ColumnMetadata? {
+  private fun getColumnMetadata(entity: Class<*>?, property: String): ColumnMetaData? {
     if (entity == null)
       return null
-    val persistentClass = PfEmgrFactory.get().metadataRepository.findEntityMetadata(entity) ?: return null
-    val columnMetaData = persistentClass.columns[property] ?: return null
-    if (!columnMetaData.isNullable) {
-      val joinColumnAnn = columnMetaData.findAnnoation(JoinColumn::class.java)
-      if (joinColumnAnn != null) {
-        // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always returned as false:
-        (columnMetaData as ColumnMetadataBean).isNullable = joinColumnAnn.nullable
-      }
-      val basicAnn = columnMetaData.findAnnoation(Basic::class.java)
-      if (basicAnn != null) {
-        val columnAnn = columnMetaData.findAnnoation(Column::class.java)
-        if (columnAnn == null) {
-          // Fix for error in method findEntityMetadata: For @Basic without @Column nullable is always returned as false:
-          (columnMetaData as ColumnMetadataBean).isNullable = true // nullable is true, if @Column is not given (JPA).
-        }
-      }
-    }
-    return columnMetaData
+    return EntityMetaDataRegistry.getColumnMetaData(entity, property)
   }
 
   private fun getNullIfEmpty(value: String?): String? {

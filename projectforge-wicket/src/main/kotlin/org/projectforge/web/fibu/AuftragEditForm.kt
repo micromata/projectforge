@@ -443,7 +443,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
             "<a href=\"${
               RestResolver.getRestUrl(
                 AttachmentsServicesRest::class.java,
-                AttachmentsServicesRest.getDownloadUrl(it, category = auftragPagesRest.category, id = data!!.id, listId = "attachments")
+                AttachmentsServicesRest.getDownloadUrl(it, category = auftragPagesRest.category, id = data!!.id!!, listId = "attachments")
               )
             }\">${URLHelper.encode(it.name)} (${it.sizeHumanReadable})</a>"
           }
@@ -705,7 +705,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         ) {
           override fun selectTask(task: TaskDO) {
             super.selectTask(task)
-            parentPage!!.baseDao.setTask(position, task.id)
+            parentPage!!.baseDao.setTask(position, task.id!!)
           }
         }
         fs.add(taskSelectPanel)

@@ -115,7 +115,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     validateCsrfToken(request, postData)?.let { return it }
     val data = postData.data
     check(ThreadLocalUserContext.userId == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
-    val user = userDao.internalGetById(data.userId)
+    val user = userDao.internalGetById(data.userId)!!
     user.firstname = data.firstname ?: user.firstname
     user.lastname = data.lastname ?: user.lastname
     user.locale = data.locale ?: user.locale
@@ -131,15 +131,6 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
       val employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.userId)
       check(employeeDO?.userId == data.userId) { "Oups, MyAccountEditPage is called with another employee than the logged in employee!" }
       val userId = data.userId
-      employeeService.updateAttribute(userId, employee.iban, "iban")
-      employeeService.updateAttribute(userId, employee.bic, "bic")
-      employeeService.updateAttribute(userId, employee.accountHolder, "accountHolder")
-      employeeService.updateAttribute(userId, employee.street, "street")
-      employeeService.updateAttribute(userId, employee.state, "state")
-      employeeService.updateAttribute(userId, employee.city, "city")
-      employeeService.updateAttribute(userId, employee.zipCode, "zipCode")
-      employeeService.updateAttribute(userId, employee.country, "country")
-      employeeService.updateAttribute(userId, employee.birthday, "birthday")
     }
     return ResponseEntity(ResponseAction("/${Constants.REACT_APP_PATH}calendar"), HttpStatus.OK)
   }
@@ -147,7 +138,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest): FormLayoutData {
     val userId = ThreadLocalUserContext.userId!!
-    val user = userDao.getById(userId)
+    val user = userDao.getById(userId)!!
     val data = MyAccountData(userId, user.username, user.firstname, user.lastname, user.mobilePhone)
 
     val layout = UILayout("user.myAccount.title.edit")

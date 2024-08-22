@@ -137,9 +137,6 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 "from AuftragsPositionDO a where a.task.id is not null and a.deleted = false",
                 AuftragsPositionDO::class.java,
             )
-            if (list == null) {
-                return result
-            }
             for (pos in list) {
                 if (pos.taskId == null) {
                     log.error(
@@ -277,7 +274,7 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         filter.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ZU_FAKTURIEREN
         try {
             val list = getList(filter, false)
-            toBeInvoicedCounter = list.size ?: 0
+            toBeInvoicedCounter = list.size
             return toBeInvoicedCounter!!
         } catch (ex: Exception) {
             log.error("Exception occured while getting number of closed and not invoiced orders: " + ex.message, ex)
@@ -286,7 +283,7 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AuftragDO>? {
+    override fun getList(filter: BaseSearchFilter): List<AuftragDO> {
         return getList(filter, true)
     }
 
@@ -420,7 +417,7 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             list
         ) { `object`: AuftragDO? ->
             artFilter.match(
-                list,
+                list.toMutableList(),
                 `object`!!
             )
         }
@@ -435,7 +432,7 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             list
         ) { `object`: AuftragDO? ->
             statusFilter.match(
-                list,
+                list.toMutableList(),
                 `object`!!
             )
         }
@@ -450,7 +447,7 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             list
         ) { `object`: AuftragDO? ->
             paymentTypeFilter.match(
-                list,
+                list.toMutableList(),
                 `object`!!
             )
         }
@@ -523,9 +520,6 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
     fun validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(auftrag: AuftragDO) {
         val paymentSchedules = auftrag.paymentSchedulesExcludingDeleted
-            ?: // if there are no payment schedules, there are no dates which are not within the period of performance
-            return
-
         val positionsWithDatesNotWithinPop: MutableList<Short> = ArrayList()
         for (pos in auftrag.positionenExcludingDeleted) {
             val periodOfPerformanceBegin =
@@ -583,8 +577,6 @@ class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
     fun validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(auftrag: AuftragDO) {
         val paymentSchedules = auftrag.paymentSchedulesExcludingDeleted
-            ?: // if there are no payment schedules, there are no amounts which can be greater -> validation OK
-            return
 
         for (pos in auftrag.positionenExcludingDeleted) {
             /*val sumOfAmountsForCurrentPosition = paymentSchedules.stream()

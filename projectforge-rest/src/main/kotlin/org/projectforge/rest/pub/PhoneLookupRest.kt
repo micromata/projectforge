@@ -71,7 +71,7 @@ class PhoneLookupRest {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
-        val result = addressDao.internalPhoneLookUp(number)
+        val result = addressDao.internalPhoneLookUp(number!!)
         if (result != null) {
             return ResponseEntity.ok()
                     .contentType(MediaType("text", "plain", StandardCharsets.UTF_8))

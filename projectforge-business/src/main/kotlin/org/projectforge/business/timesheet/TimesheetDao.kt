@@ -225,11 +225,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * Gets the list filtered by the given filter.
      */
     @Throws(AccessException::class)
-    override fun getList(filter: BaseSearchFilter): List<TimesheetDO>? {
+    override fun getList(filter: BaseSearchFilter): List<TimesheetDO> {
         return internalGetList(filter, true)
     }
 
-    open fun internalGetList(filter: BaseSearchFilter?, checkAccess: Boolean): List<TimesheetDO>? {
+    open fun internalGetList(filter: BaseSearchFilter?, checkAccess: Boolean): List<TimesheetDO> {
         val myFilter = if (filter is TimesheetFilter) {
             filter
         } else {

@@ -27,7 +27,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 class FavoritesResultFilter(personalAddressDao: PersonalAddressDao) : CustomResultFilter<AddressDO> {
     var favoriteAddressIds: List<Int?> = personalAddressDao.favoriteAddressIdList
 
-    override fun match(list: List<AddressDO>, element: AddressDO): Boolean {
+    override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
         return favoriteAddressIds.contains(element.id)
     }
 }

@@ -43,7 +43,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    fun getList(user: PFUserDO?): List<UserRightDO?>? {
+    fun getList(user: PFUserDO?): List<UserRightDO> {
         val filter = UserRightFilter()
         filter.user = user
         return getList(filter)
@@ -165,7 +165,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         return list
     }
 
-    override fun getList(filter: BaseSearchFilter): List<UserRightDO>? {
+    override fun getList(filter: BaseSearchFilter): List<UserRightDO> {
         val queryFilter = QueryFilter(filter)
         val myFilter = filter as UserRightFilter
         if (myFilter.user != null) {

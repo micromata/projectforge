@@ -57,7 +57,7 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
       override fun internalSave(obj: AddressDO): Int {
         obj.id = ++addressCounter
         addressList.add(obj)
-        return obj.id
+        return obj.id!!
       }
 
       override fun internalUpdate(obj: AddressDO): EntityCopyStatus {

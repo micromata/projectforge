@@ -23,10 +23,8 @@
 
 package org.projectforge.rest.orga
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookDao
-import org.projectforge.business.orga.VisitorbookTimedDO
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
@@ -41,8 +39,8 @@ import jakarta.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/visitorBook")
 class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, VisitorbookDao>(VisitorbookDao::class.java, "orga.visitorbook.title") {
 
-    @Autowired
-    private val timeableService: TimeableService? = null
+    //@Autowired
+    //private val timeableService: TimeableService? = null
 
     override fun transformForDB(dto: Visitorbook): VisitorbookDO {
         val visitorbookDO = VisitorbookDO()
@@ -54,13 +52,14 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         val visitorbook = Visitorbook()
         visitorbook.copyFrom(obj)
 
+        /*
         val timeableAttributes = timeableService!!.getTimeableAttrRowsForGroupName<Int, VisitorbookTimedDO>(obj, "timeofvisit")
         if (timeableAttributes != null && timeableAttributes.size > 0) {
             val sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes)
             val newestEntry = sortedList[0]
             visitorbook.arrive = if (newestEntry.getAttribute("arrive") != null) newestEntry.getAttribute("arrive", String::class.java) else ""
             visitorbook.depart = if (newestEntry.getAttribute("depart") != null) newestEntry.getAttribute("depart", String::class.java) else ""
-        }
+        }*/
 
         return visitorbook
     }

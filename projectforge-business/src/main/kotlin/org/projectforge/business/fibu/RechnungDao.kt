@@ -254,7 +254,7 @@ class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return rechnung
     }
 
-    override fun getList(filter: BaseSearchFilter): List<RechnungDO>? {
+    override fun getList(filter: BaseSearchFilter): List<RechnungDO> {
         val myFilter = if (filter is RechnungListFilter) {
             filter
         } else {

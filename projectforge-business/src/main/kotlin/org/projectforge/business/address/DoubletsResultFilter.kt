@@ -31,7 +31,7 @@ class DoubletsResultFilter : CustomResultFilter<AddressDO> {
     val all: MutableList<AddressDO> = ArrayList() // Already processed addresses to add doublets.
     val addedDoublets: MutableSet<Int?> = HashSet()
 
-    override fun match(list: List<AddressDO>, element: AddressDO): Boolean {
+    override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
         if (element.deleted) {
             return false
         }
@@ -42,9 +42,9 @@ class DoubletsResultFilter : CustomResultFilter<AddressDO> {
                 if (addedDoublets.contains(adr.id)) {
                     continue  // Already added.
                 } else if (doubletFullnames.contains(getNormalizedFullname(adr))) {
-                    throw UnsupportedOperationException("Doublet found: $element and $adr")
-                    // list.add(adr) // TODO: Add doublet to list, if necessary (to be checked).
-                    //addedDoublets.add(adr.id) // Mark this address as already added.
+                    //throw UnsupportedOperationException("Doublet found: $element and $adr")
+                    list.add(adr) // TODO: Add doublet to list, if necessary (to be checked).
+                    addedDoublets.add(adr.id) // Mark this address as already added.
                 }
             }
             return true

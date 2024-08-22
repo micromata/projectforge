@@ -220,7 +220,7 @@ class CalendarSubscriptionServiceRest {
           vacations.forEach { vacation ->
             val title = "${translate("vacation")}: ${vacation.employee?.user?.getFullname()}"
             if (!vacationEvents.contains(vacation.id) && vacation.startDate != null && vacation.endDate != null) {
-              vacationEvents.add(vacation.id)
+              vacationEvents.add(vacation.id!!)
               // Event doesn't yet exist:
               generator.addEvent(
                 PFDay.from(vacation.startDate!!).utilDate,
