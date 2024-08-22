@@ -326,7 +326,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 
     if (getData() != null && getData().getId() != null) {
       //Clone Object to evaluate the sendMail()
-      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk()).clone();
+      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getId()).clone();
       this.isNew = false;
     } else {
       this.isNew = true;
@@ -398,7 +398,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       teamEventService.assignAttendees(newEvent, toAssign, null);
       teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
     } else {
-      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
+      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getId());
       teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
           form.assignAttendeesListHelper.getItemsToUnassign());
       teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
@@ -427,7 +427,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       if (attendee.getAddress() != null) {
         this.form.attendeeWicketProvider.initSortedAttendees();
         this.form.attendeeWicketProvider.getSortedAttendees().forEach(sortedAttendee -> {
-          if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+          if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getId().equals(attendee.getAddress().getId())) {
             sortedAttendee.setId(this.form.attendeeWicketProvider.getAndDecreaseInternalNewAttendeeSequence());
             this.form.assignAttendeesListHelper.assignItem(sortedAttendee);
           }

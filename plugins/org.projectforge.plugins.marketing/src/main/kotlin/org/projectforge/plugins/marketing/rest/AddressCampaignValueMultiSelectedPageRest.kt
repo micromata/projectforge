@@ -132,11 +132,11 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
       )
     }
-    addressDao.getListByIds(selectedIds).forEach { address ->
+    addressDao.getListByIds(selectedIds)?.forEach { address ->
       var addressCampaignValueDO = addressCampaignValueDao.get(address.id, addressCampaignDO.id)
       if (addressCampaignValueDO == null) {
         addressCampaignValueDO = AddressCampaignValueDO()
-        addressCampaignValueDao.setAddress(addressCampaignValueDO, address.id)
+        addressCampaignValueDao.setAddress(addressCampaignValueDO, address.id!!)
         addressCampaignValueDO.addressCampaign = addressCampaignDO
       }
       val addressCampaignValue = AddressCampaignValue()

@@ -27,14 +27,14 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = EmployeeListPage.class)
-public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditForm, EmployeeService>
+public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditForm, EmployeeDao>
     implements ISelectCallerPage
 {
   private static final long serialVersionUID = -3899191243765232906L;
@@ -42,7 +42,7 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeEditPage.class);
 
   @SpringBean
-  private EmployeeService employeeService;
+  private EmployeeDao employeeDao;
 
   public EmployeeEditPage(final PageParameters parameters)
   {
@@ -66,7 +66,7 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
       } else {
         id = (Integer) selectedValue;
       }
-      employeeService.setPfUser(getData(), id);
+      employeeDao.setUser(getData(), id);
     } else if ("kost1Id".equals(property) == true) {
       final Integer id;
       if (selectedValue instanceof String) {
@@ -99,9 +99,9 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
   }
 
   @Override
-  protected EmployeeService getBaseDao()
+  protected EmployeeDao getBaseDao()
   {
-    return employeeService;
+    return employeeDao;
   }
 
   @Override

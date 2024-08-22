@@ -57,7 +57,7 @@ public abstract class AbstractViewPage extends AbstractSecuredPage
   {
     super.onInitialize();
     currentUser = ThreadLocalUserContext.getUser();
-    currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
+    currentEmployee = employeeService.getEmployeeByUserId(currentUser.getId());
   }
 
   @Override

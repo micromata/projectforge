@@ -76,9 +76,9 @@ public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> i
   public boolean add(final T obj)
   {
     if (inverse) {
-      return ids.remove(obj.id);
+      return ids.remove(obj.getId());
     } else {
-      return ids.add(obj.id);
+      return ids.add(obj.getId());
     }
   }
 
@@ -89,9 +89,9 @@ public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> i
     final T foo = (T) o;
 
     if (inverse) {
-      return ids.add(foo.id);
+      return ids.add(foo.getId());
     } else {
-      return ids.remove(foo.id);
+      return ids.remove(foo.getId());
     }
   }
 
@@ -102,9 +102,9 @@ public class TableTreeExpansion<I extends Serializable, T extends IdObject<I>> i
     final T foo = (T) o;
 
     if (inverse) {
-      return !ids.contains(foo.id);
+      return !ids.contains(foo.getId());
     } else {
-      return ids.contains(foo.id);
+      return ids.contains(foo.getId());
     }
   }
 

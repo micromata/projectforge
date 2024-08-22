@@ -130,7 +130,7 @@ class AddressCampaignValuePagesRest :
   fun processList(request: HttpServletRequest, list: List<AddressCampaignValue>): Boolean {
     val addressCampaign = getAddressCampaign(request) ?: return false
     val addressCampaignValueMap = getAddressCampaignValueMap(addressCampaign.id)
-    val personalAddressMap = personalAddressDao.getPersonalAddressByAddressId()
+    val personalAddressMap = personalAddressDao.personalAddressByAddressId
     list.forEach { entry ->
       fillValues(entry, addressCampaignValueMap, personalAddressMap)
     }

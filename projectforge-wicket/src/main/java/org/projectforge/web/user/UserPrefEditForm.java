@@ -229,100 +229,100 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
     if (data.getUserPrefEntries() != null) {
       for (final UserPrefEntryDO param : data.getSortedUserPrefEntries()) {
         final FieldsetPanel fs = gridBuilder
-            .newFieldset(param.i18nKey != null ? getString(param.i18nKey) : param.parameter)
+            .newFieldset(param.getI18nKey() != null ? getString(param.getI18nKey()) : param.getParameter())
             .suppressLabelForWarning();
-        if (StringUtils.isNotEmpty(param.tooltipI18nKey) == true) {
-          fs.addHelpIcon(getString(param.tooltipI18nKey));
+        if (StringUtils.isNotEmpty(param.getTooltipI18nKey()) == true) {
+          fs.addHelpIcon(getString(param.getTooltipI18nKey()));
         }
         parentPage.userPrefDao.updateParameterValueObject(param);
-        if (PFUserDO.class.isAssignableFrom(param.type) == true) {
+        if (PFUserDO.class.isAssignableFrom(param.getType()) == true) {
           final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
               new UserPrefPropertyModel<PFUserDO>(userPrefDao,
                   param, "valueAsObject"),
-              parentPage, param.parameter);
+              parentPage, param.getParameter());
           if (data.getAreaObject() == UserPrefArea.USER_FAVORITE) {
             userSelectPanel.setShowFavorites(false);
           }
           fs.add(userSelectPanel);
           userSelectPanel.init();
-        } else if (TaskDO.class.isAssignableFrom(param.type) == true) {
+        } else if (TaskDO.class.isAssignableFrom(param.getType()) == true) {
           final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs,
               new UserPrefPropertyModel<TaskDO>(userPrefDao, param,
                   "valueAsObject"),
-              parentPage, param.parameter);
+              parentPage, param.getParameter());
           if (data.getAreaObject() == UserPrefArea.TASK_FAVORITE) {
             taskSelectPanel.setShowFavorites(false);
           }
           fs.add(taskSelectPanel);
           taskSelectPanel.init();
-        } else if (GroupDO.class.isAssignableFrom(param.type) == true) {
+        } else if (GroupDO.class.isAssignableFrom(param.getType()) == true) {
           final NewGroupSelectPanel groupSelectPanel = new NewGroupSelectPanel(fs.newChildId(),
               new UserPrefPropertyModel<GroupDO>(
                   userPrefDao, param, "valueAsObject"),
-              parentPage, param.parameter);
+              parentPage, param.getParameter());
           fs.add(groupSelectPanel);
           groupSelectPanel.init();
-        } else if (Kost2DO.class.isAssignableFrom(param.type) == true) {
-          final UserPrefEntryDO taskParam = data.getUserPrefEntry(param.dependsOn);
+        } else if (Kost2DO.class.isAssignableFrom(param.getType()) == true) {
+          final UserPrefEntryDO taskParam = data.getUserPrefEntry(param.getDependsOn());
           Integer taskId = null;
           if (taskParam == null) {
             log.error(
                 "Annotation for Kost2DO types should have a valid dependsOn annotation. Task param not found for: "
                     + param);
           } else {
-            final TaskDO task = (TaskDO) taskParam.valueAsObject;
+            final TaskDO task = (TaskDO) taskParam.getValueAsObject();
             if (task != null) {
               taskId = task.getId();
             }
           }
           final Kost2DropDownChoice kost2DropDownChoice = new Kost2DropDownChoice(fs.getDropDownChoiceId(),
-              (Kost2DO) param.valueAsObject, taskId)
+              (Kost2DO) param.getValueAsObject(), taskId)
           {
             @Override
             protected void setKost2Id(final Integer kost2Id)
             {
-              param.value = String.valueOf(kost2Id);
+              param.setValue(String.valueOf(kost2Id));
             }
           };
           fs.add(kost2DropDownChoice);
-          dependentsMap.put(param.parameter, kost2DropDownChoice);
-        } else if (ProjektDO.class.isAssignableFrom(param.type) == true) {
+          dependentsMap.put(param.getParameter(), kost2DropDownChoice);
+        } else if (ProjektDO.class.isAssignableFrom(param.getType()) == true) {
           final NewProjektSelectPanel projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(),
               new UserPrefPropertyModel<ProjektDO>(
                   userPrefDao, param, "valueAsObject"),
-              parentPage, param.parameter);
+              parentPage, param.getParameter());
           if (data.getAreaObject() == UserPrefArea.PROJEKT_FAVORITE) {
             projektSelectPanel.setShowFavorites(false);
           }
           fs.add(projektSelectPanel);
           projektSelectPanel.init();
-        } else if (KundeDO.class.isAssignableFrom(param.type) == true) {
+        } else if (KundeDO.class.isAssignableFrom(param.getType()) == true) {
           final NewCustomerSelectPanel kundeSelectPanel = new NewCustomerSelectPanel(fs.newChildId(),
               new UserPrefPropertyModel<KundeDO>(
                   userPrefDao, param, "valueAsObject"),
-              null, parentPage, param.parameter);
+              null, parentPage, param.getParameter());
           if (data.getAreaObject() == UserPrefArea.KUNDE_FAVORITE) {
             kundeSelectPanel.setShowFavorites(false);
           }
           fs.add(kundeSelectPanel);
           kundeSelectPanel.init();
         } else if (param.isMultiline() == true) {
-          int maxLength = param.maxLength;
+          int maxLength = param.getMaxLength();
           if (maxLength <= 0 || UserPrefEntryDO.MAX_STRING_VALUE_LENGTH < maxLength) {
             maxLength = UserPrefEntryDO.MAX_STRING_VALUE_LENGTH;
           }
           fs.add(new TextAreaPanel(fs.newChildId(), new MaxLengthTextArea(TextAreaPanel.WICKET_ID,
               new PropertyModel<String>(param, "value"), maxLength)));
-        } else if (I18nEnum.class.isAssignableFrom(param.type) == true) {
+        } else if (I18nEnum.class.isAssignableFrom(param.getType()) == true) {
           final LabelValueChoiceRenderer<I18nEnum> choiceRenderer = new LabelValueChoiceRenderer<I18nEnum>(this,
-              (I18nEnum[]) param.type.getEnumConstants());
+              (I18nEnum[]) param.getType().getEnumConstants());
           final DropDownChoice<I18nEnum> choice = new DropDownChoice<I18nEnum>(fs.getDropDownChoiceId(),
               new UserPrefPropertyModel<I18nEnum>(userPrefDao, param, "valueAsObject"), choiceRenderer.getValues(),
               choiceRenderer);
           choice.setNullValid(true);
           fs.add(choice);
         } else {
-          Integer maxLength = param.maxLength;
+          Integer maxLength = param.getMaxLength();
           if (maxLength == null || maxLength <= 0 || UserPrefEntryDO.MAX_STRING_VALUE_LENGTH < maxLength) {
             maxLength = UserPrefEntryDO.MAX_STRING_VALUE_LENGTH;
           }

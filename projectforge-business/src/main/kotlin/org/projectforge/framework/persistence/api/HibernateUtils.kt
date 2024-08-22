@@ -240,6 +240,7 @@ object HibernateUtils {
      * @param propertyNames
      * @return true If at least one property was shortened.
      */
+    @JvmStatic
     fun shortenProperties(clazz: Class<*>, `object`: Any, vararg propertyNames: String): Boolean {
         var result = false
         for (propertyName in propertyNames) {

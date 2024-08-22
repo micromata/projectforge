@@ -107,7 +107,7 @@ class CalendarService {
     private fun convertRestRequest(meeting: Meeting): TeamEventDO {
         val event = TeamEventDO()
         event.uid = meeting.uniqueId
-        teamEventDao.setCalendar(event, meeting.calendar.id)
+        teamEventDao.setCalendar(event, meeting.calendar.id!!)
         //event.icsData = Base64.encodeBase64String(meeting.icalData)
         event.created = meeting.createDate
         event.lastUpdate = meeting.modifiedDate

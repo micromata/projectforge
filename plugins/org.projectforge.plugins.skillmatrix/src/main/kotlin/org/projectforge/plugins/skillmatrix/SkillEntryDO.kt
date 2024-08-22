@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.hibernate.search.annotations.Field
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.common.StringHelper
@@ -32,6 +31,7 @@ import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -54,8 +54,11 @@ import jakarta.persistence.*
 )
 open class SkillEntryDO : AbstractBaseDO<Int>() {
 
+  @get:Column(name = "pk")
+  @get:GeneratedValue
+  @get:Id
   @PropertyInfo(i18nKey = "id")
-  private var id: Int? = null
+  override var id: Int? = null
 
   @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
   @FullTextField
@@ -71,7 +74,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * search field.
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_fk")
   open var owner: PFUserDO? = null
@@ -100,17 +103,6 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
   val ownerId: Int?
     @Transient
     get() = owner?.id
-
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  override fun getId(): Int? {
-    return id
-  }
-
-  override fun setId(id: Int?) {
-    this.id = id
-  }
 
   companion object {
     const val FIND_OF_OWNER = "SkillEntryDO_FindSkillsOfOwner"

@@ -25,7 +25,7 @@ package org.projectforge.web.employee;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -42,20 +42,20 @@ public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
 
   private static final long serialVersionUID = 6228672123966093257L;
 
-  private transient EmployeeService employeeService;
+  private transient EmployeeDao employeeDao;
 
   private int pageSize = 20;
 
   private boolean withOwnUser = false;
 
-  public EmployeeWicketProvider(EmployeeService employeeService)
+  public EmployeeWicketProvider(EmployeeDao employeeDao)
   {
-    this.employeeService = employeeService;
+    this.employeeDao = employeeDao;
   }
 
-  public EmployeeWicketProvider(EmployeeService employeeService, boolean withOwnUser)
+  public EmployeeWicketProvider(EmployeeDao employeeDao, boolean withOwnUser)
   {
-    this.employeeService = employeeService;
+    this.employeeDao = employeeDao;
     this.withOwnUser = withOwnUser;
   }
 
@@ -88,10 +88,10 @@ public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
     Collection<EmployeeDO> result = new ArrayList<>();
     Collection<EmployeeDO> resultList = new ArrayList<>();
     if (withOwnUser) {
-      resultList = employeeService.findAllActive(false);
+      resultList = employeeDao.findAllActive(false);
     } else {
-      resultList = employeeService.findAllActive(false).stream()
-          .filter(emp -> emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
+      resultList = employeeDao.findAllActive(false).stream()
+          .filter(emp -> emp.getUser().getId().equals(ThreadLocalUserContext.getUserId()) == false)
           .collect(Collectors.toList());
     }
     for (EmployeeDO emp : resultList) {
@@ -123,7 +123,7 @@ public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
       if (employeedId == null) {
         continue;
       }
-      EmployeeDO employee = employeeService.selectByPkDetached(employeedId);
+      EmployeeDO employee = employeeDao.selectByPkDetached(employeedId);
       if (employee != null) {
         list.add(employee);
       }

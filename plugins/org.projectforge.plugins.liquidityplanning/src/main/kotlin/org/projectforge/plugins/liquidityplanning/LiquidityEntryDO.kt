@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.liquidityplanning
 
-import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.Constants
@@ -33,6 +32,8 @@ import java.time.LocalDate
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 
 /**
  * Beside entries of debitors and creditors invoices additional entries (for accommodation, taxes, planned salaries,

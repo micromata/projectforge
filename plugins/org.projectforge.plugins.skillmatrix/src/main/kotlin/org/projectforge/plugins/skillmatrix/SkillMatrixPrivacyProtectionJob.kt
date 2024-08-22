@@ -23,16 +23,15 @@
 
 package org.projectforge.plugins.skillmatrix
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.business.privacyprotection.CronPrivacyProtectionJob
 import org.projectforge.business.privacyprotection.IPrivacyProtectionJob
 import org.projectforge.business.user.UserDao
-import org.projectforge.framework.persistence.jpa.PfEmgr
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -42,40 +41,38 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class SkillMatrixPrivacyProtectionJob : IPrivacyProtectionJob {
-  @Autowired
-  private lateinit var emgrFactory: PfEmgrFactory
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-  @Autowired
-  private lateinit var purgeCronPrivacyProtectionJob: CronPrivacyProtectionJob
+    @Autowired
+    private lateinit var purgeCronPrivacyProtectionJob: CronPrivacyProtectionJob
 
-  @Autowired
-  private lateinit var userDao: UserDao
+    @Autowired
+    private lateinit var userDao: UserDao
 
-  @PostConstruct
-  private fun postConstruct() {
-    purgeCronPrivacyProtectionJob.register(this)
-  }
-
-  override fun execute() {
-    val date = PFDateTime.now().minusMonths(3L)
-    log.info("Purge skill matrix entries of leavers (deleted/deactivated users with lastUpdate < ${date.isoString}Z)...")
-
-    userDao.internalLoadAll().forEach { user ->
-      if (user != null && (user.deactivated || user.deleted)) {
-        if (user.lastUpdate != null && user.lastUpdate < date.utilDate) {
-          emgrFactory.runInTrans { emgr: PfEmgr ->
-            val counter = emgr.entityManager
-              .createNamedQuery(SkillEntryDO.DELETE_ALL_OF_USER)
-              .setParameter("userId", user.id)
-              .executeUpdate()
-            if (counter > 0) {
-              log.info { "Deleted $counter entries of the skill matrix of user '${user.username}' with id ${user.id}." }
-            }
-            true
-          }
-        }
-      }
+    @PostConstruct
+    private fun postConstruct() {
+        purgeCronPrivacyProtectionJob.register(this)
     }
-    log.info("Purging of skill matrix entries done.")
-  }
+
+    override fun execute() {
+        val date = PFDateTime.now().minusMonths(3L)
+        log.info("Purge skill matrix entries of leavers (deleted/deactivated users with lastUpdate < ${date.isoString}Z)...")
+
+        userDao.internalLoadAll().forEach { user ->
+            if (user.deactivated || user.deleted) {
+                val lastUpdate = user.lastUpdate
+                if (lastUpdate != null && lastUpdate < date.utilDate) {
+                    val counter = persistenceService.executeNamedUpdate(
+                        SkillEntryDO.DELETE_ALL_OF_USER,
+                        Pair("userId", user.id)
+                    )
+                    if (counter > 0) {
+                        log.info { "Deleted $counter entries of the skill matrix of user '${user.username}' with id ${user.id}." }
+                    }
+                }
+            }
+        }
+        log.info("Purging of skill matrix entries done.")
+    }
 }

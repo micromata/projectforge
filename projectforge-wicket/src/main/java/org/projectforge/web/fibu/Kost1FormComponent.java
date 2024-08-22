@@ -116,7 +116,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
       @Override
       public int compare(final Kost1DO o1, final Kost1DO o2)
       {
-        return (o1.getNummer().compareTo(o2.getNummer()));
+        return Integer.compare(o1.getNummer(), o2.getNummer());
       }
     });
     return list;

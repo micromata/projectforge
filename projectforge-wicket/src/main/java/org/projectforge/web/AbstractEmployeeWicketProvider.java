@@ -24,6 +24,7 @@
 package org.projectforge.web;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -39,13 +40,13 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
 {
   protected Collection<EmployeeDO> sortedEmployees;
 
-  protected transient EmployeeService employeeService;
+  protected transient EmployeeDao employeeDao;
 
   protected int pageSize = 20;
 
-  public AbstractEmployeeWicketProvider(final EmployeeService employeeService)
+  public AbstractEmployeeWicketProvider(final EmployeeDao employeeDao)
   {
-    this.employeeService = employeeService;
+    this.employeeDao = employeeDao;
   }
 
   /**
@@ -72,7 +73,7 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
   @Override
   public String getIdValue(final EmployeeDO choice)
   {
-    return String.valueOf(choice.getPk());
+    return String.valueOf(choice.getId());
   }
 
   @Override
@@ -87,7 +88,7 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
       if (employeeId == null) {
         continue;
       }
-      EmployeeDO employee = employeeService.selectByPkDetached(employeeId);
+      EmployeeDO employee = employeeDao.selectByPkDetached(employeeId);
       if (employee != null) {
         list.add(employee);
       }

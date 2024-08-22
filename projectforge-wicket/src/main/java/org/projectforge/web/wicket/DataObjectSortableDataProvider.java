@@ -82,7 +82,7 @@ public class DataObjectSortableDataProvider<T extends IdObject<?>> extends Sorta
     if (this.completeList != null) {
       sortList(this.completeList);
       for (final T entry : completeList) {
-        this.idList.add(entry.id);
+        this.idList.add(entry.getId());
       }
     }
     return this;

@@ -23,21 +23,20 @@
 
 package org.projectforge.business.address
 
-import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
-import org.projectforge.business.common.BaseUserGroupRightsDO
-import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
-import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.Constants
-import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.util.*
 import jakarta.persistence.*
+import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.Constants
+import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.util.*
 
 /**
  * @author Florian Blumenstein

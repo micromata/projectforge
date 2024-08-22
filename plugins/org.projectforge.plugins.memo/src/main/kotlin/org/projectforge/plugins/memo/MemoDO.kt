@@ -23,13 +23,13 @@
 
 package org.projectforge.plugins.memo
 
-import org.hibernate.search.annotations.Field
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * This data object is the Java representation of a data-base entry of a memo.<br></br>
@@ -45,8 +45,11 @@ import jakarta.persistence.*
 @Table(name = "T_PLUGIN_MEMO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
 open class MemoDO : AbstractBaseDO<Int>() {
 
+    @get:Column(name = "pk")
+    @get:GeneratedValue
+    @get:Id
     @PropertyInfo(i18nKey = "id")
-    private var id: Int? = null
+    override var id: Int? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.subject")
     @FullTextField
@@ -66,15 +69,4 @@ open class MemoDO : AbstractBaseDO<Int>() {
     val ownerId: Int?
         @Transient
         get() = owner?.id
-
-    @Id
-    @GeneratedValue
-    @Column(name = "pk")
-    override fun getId(): Int? {
-        return id
-    }
-
-    override fun setId(id: Int?) {
-        this.id = id
-    }
 }

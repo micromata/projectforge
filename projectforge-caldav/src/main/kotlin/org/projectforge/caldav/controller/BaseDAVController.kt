@@ -73,7 +73,7 @@ open class BaseDAVController : BaseDAVAuthenticationController() {
     }
     log.info("Trying to get list of users. Return only logged-in one due to security reasons.")
     val user = User()
-    user.id = contextUser.id.toLong()
+    user.id = contextUser.id!!.toLong()
     user.username = contextUser.username
     return listOf(user)
   }

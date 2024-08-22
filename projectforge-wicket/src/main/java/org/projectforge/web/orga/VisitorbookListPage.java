@@ -23,7 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -38,8 +37,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookService;
-import org.projectforge.business.orga.VisitorbookTimedDO;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
@@ -64,12 +61,6 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
 
   @SpringBean
   private VisitorbookService visitorbookService;
-
-  @SpringBean
-  private GuiAttrSchemaService guiAttrSchemaService;
-
-  @SpringBean
-  private TimeableService timeableService;
 
   public VisitorbookListPage(final PageParameters parameters) {
     super(parameters, "orga.visitorbook");
@@ -106,10 +97,10 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
         final VisitorbookDO visitor = rowModel.getObject();
         if (isSelectMode() == false) {
           item.add(new ListSelectActionPanel(componentId, rowModel, VisitorbookEditPage.class, visitor.getId(),
-                  returnToPage, visitor.getPk().toString()));
+                  returnToPage, visitor.getId().toString()));
         } else {
           item.add(
-                  new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, visitor.getId(), visitor.getPk().toString()));
+                  new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, visitor.getId(), visitor.getId().toString()));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
@@ -143,6 +134,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
                                final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitor = rowModel.getObject();
         String value = "";
+        /*
         List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
         if (timeableAttributes != null && timeableAttributes.size() > 0) {
           List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
@@ -153,6 +145,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
         }
         item.add(new TextPanel(componentId, value));
         cellItemListener.populateItem(item, componentId, rowModel);
+         */
       }
     });
 
@@ -166,6 +159,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId, final IModel<VisitorbookDO> rowModel) {
         final VisitorbookDO visitor = rowModel.getObject();
         String value = "";
+        /*
         List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
         if (timeableAttributes != null && timeableAttributes.size() > 0) {
           List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
@@ -175,7 +169,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
           value = date + " " + time;
         }
         item.add(new TextPanel(componentId, value));
-        cellItemListener.populateItem(item, componentId, rowModel);
+        cellItemListener.populateItem(item, componentId, rowModel);*/
       }
     });
 
@@ -275,7 +269,8 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
 
     @Override
     public int compare(final VisitorbookDO o1, final VisitorbookDO o2) {
-      final VisitorbookTimedDO value1 = getNewestEntry(o1);
+      return o1.getId().compareTo(o2.getId());
+/*      final VisitorbookTimedDO value1 = getNewestEntry(o1);
       final VisitorbookTimedDO value2 = getNewestEntry(o2);
 
       if (value1 == null) {
@@ -311,9 +306,9 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
         return (dsc) ? -1 : 1;
       } else {
         return (dsc) ? 1 : -1;
-      }
+      }*/
     }
-
+/*
     private VisitorbookTimedDO getNewestEntry(final VisitorbookDO visitor) {
       List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
       if (timeableAttributes != null && timeableAttributes.size() > 0) {
@@ -323,7 +318,8 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
 
       return null;
     }
-
+*/
+    /*
     private Integer getTimeOf(final VisitorbookTimedDO timedDO) {
       String time1 = timedDO.getAttribute(property) != null ? timedDO.getAttribute(property, String.class) : "";
 
@@ -338,7 +334,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       } catch (NumberFormatException e) {
         return null;
       }
-    }
+    }*/
   }
 
 }

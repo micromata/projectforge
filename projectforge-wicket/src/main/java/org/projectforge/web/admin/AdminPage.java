@@ -23,8 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
-import de.micromata.genome.util.runtime.RuntimeIOException;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -45,7 +43,6 @@ import org.projectforge.framework.i18n.I18nKeysUsageInterface;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
@@ -76,9 +73,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private BookDao bookDao;
 
   @SpringBean
-  private JpaXmlDumpService jpaXmlDumpService;
-
-  @SpringBean
   private SystemService systemService;
 
   @SpringBean
@@ -95,9 +89,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private UserXmlPreferencesMigrationDao userXmlPreferencesMigrationDao;
-
-  @SpringBean
-  private PfEmgrFactory emf;
 
   @SpringBean
   private TaskTree taskTree;
@@ -405,16 +396,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void dump() {
     log.info("Administration: Database dump.");
     checkAccess();
-    String ts = DateHelper.getTimestampAsFilenameSuffix(new Date());
-    String filename = "projectforgedump_" + ts + ".xml.gz";
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    try (GZIPOutputStream gzout = new GZIPOutputStream(out)) {
-      jpaXmlDumpService.dumpToXml(emf, gzout);
-    } catch (IOException ex) {
-      throw new RuntimeIOException(ex);
-    }
-
-    DownloadUtils.setDownloadTarget(out.toByteArray(), filename);
+    throw new UnsupportedOperationException("Not yet migrated.");
   }
 
   protected void reindex() {

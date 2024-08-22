@@ -34,9 +34,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
-import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.*;
@@ -45,16 +43,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ListPage(editPage = EmployeeEditPage.class)
-public class EmployeeListPage extends AbstractListPage<EmployeeListForm, EmployeeService, EmployeeDO> implements
+public class EmployeeListPage extends AbstractListPage<EmployeeListForm, EmployeeDao, EmployeeDO> implements
     IListPageColumnsCreator<EmployeeDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
 
   @SpringBean
-  private EmployeeService employeeService;
-
-  @SpringBean
-  private GuiAttrSchemaService guiAttrSchemaService;
+  private EmployeeDao employeeDao;
 
   public EmployeeListPage(final PageParameters parameters)
   {
@@ -112,8 +107,8 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
-    columns.add(new TimedAttrColumn<>(guiAttrSchemaService, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME,
-        InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, cellItemListener));
+    //columns.add(new TimedAttrColumn<>(guiAttrSchemaService, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME,
+    //    InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, cellItemListener));
     columns
         .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable),
             "staffNumber",
@@ -174,13 +169,13 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
   }
 
   @Override
-  public EmployeeService getBaseDao()
+  public EmployeeDao getBaseDao()
   {
-    return employeeService;
+    return employeeDao;
   }
 
-  protected EmployeeService getEmployeeDao()
+  protected EmployeeDao getEmployeeDao()
   {
-    return employeeService;
+    return employeeDao;
   }
 }
