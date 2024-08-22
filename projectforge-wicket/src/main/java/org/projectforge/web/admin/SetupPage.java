@@ -23,7 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -38,9 +37,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.login.LoginService;
@@ -71,9 +68,6 @@ public class SetupPage extends AbstractUnsecureBasePage {
 
   @SpringBean
   private DatabaseInitTestDataService databaseInitTestDataService;
-
-  @SpringBean
-  private PfJpaXmlDumpService jpaXmlDumpService;
 
   @SpringBean
   private PluginAdminService pluginAdminService;
@@ -209,7 +203,8 @@ public class SetupPage extends AbstractUnsecureBasePage {
       // intialize DB schema
       this.databaseService.updateSchema();
 
-      int counter = jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
+      log.error("XmlDumpService not yet migrated!!!");
+      int counter = 0; //jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
       taskTree.setExpired();
       getUserGroupCache().setExpired();

@@ -23,18 +23,16 @@
 
 package org.projectforge.web.orga;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeComparator;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.orga.VisitorType;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookService;
-import org.projectforge.business.orga.VisitorbookTimedDO;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -59,10 +57,7 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
   private VisitorbookService visitorbookService;
 
   @SpringBean
-  private EmployeeService employeeService;
-
-  @SpringBean
-  private GuiAttrSchemaService attrSchemaService;
+  private EmployeeDao employeeDao;
 
   protected MultiChoiceListHelper<EmployeeDO> assignContactPersonsListHelper;
 
@@ -106,6 +101,7 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
       // ATTENDEE
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("orga.visitorbook.contactPerson"));
 
+      /*
       final Collection<Integer> set = visitorbookService.getAssignedContactPersonsIds(data);
       assignContactPersonsListHelper = new MultiChoiceListHelper<EmployeeDO>()
           .setComparator(new EmployeeComparator()).setFullList(
@@ -117,8 +113,8 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
             assignContactPersonsListHelper.addOriginalAssignedItem(employee).assignItem(employee);
           }
         }
-      }
-      employeeWicketProvider = new VisitorbookEmployeeWicketProvider(data, employeeService);
+      }*/
+      employeeWicketProvider = new VisitorbookEmployeeWicketProvider(data, employeeDao);
       final Select2MultiChoice<EmployeeDO> employees = new Select2MultiChoice<EmployeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<EmployeeDO>>(this.assignContactPersonsListHelper, "assignedItems"),
@@ -144,9 +140,11 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
 
     gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
     {
+      /*
       // AttrPanels
       final Function<AttrGroup, VisitorbookTimedDO> addNewEntryFunction = group -> visitorbookService.addNewTimeAttributeRow(data, group.getName());
       attrSchemaService.createTimedAttrPanels(gridBuilder.getPanel(), data, parentPage, addNewEntryFunction);
+       */
     }
 
   }

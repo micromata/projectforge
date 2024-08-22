@@ -547,9 +547,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
             ownRebuildDatabaseIndex(onlyNewest);
           } else {
             if (onlyNewest == true) {
-              ((IPersistenceService<?>) getBaseDao()).rebuildDatabaseIndex4NewestEntries();
+              ((BaseDao<?>) getBaseDao()).rebuildDatabaseIndex4NewestEntries();
             } else {
-              ((IPersistenceService<?>) getBaseDao()).rebuildDatabaseIndex();
+              ((BaseDao<?>) getBaseDao()).rebuildDatabaseIndex();
             }
           }
         }

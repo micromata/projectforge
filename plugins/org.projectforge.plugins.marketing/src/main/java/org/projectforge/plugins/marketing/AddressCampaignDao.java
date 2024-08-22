@@ -24,7 +24,6 @@
 package org.projectforge.plugins.marketing;
 
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -41,9 +40,5 @@ public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
   @Override
   public AddressCampaignDO newInstance() {
     return new AddressCampaignDO();
-  }
-
-  PfEmgrFactory getEmgrFactory() {
-    return persistenceService;
   }
 }

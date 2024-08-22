@@ -27,6 +27,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.MonthlyEmployeeReport;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
+import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 

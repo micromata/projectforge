@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo
 
-import org.hibernate.search.annotations.*
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.Priority
@@ -34,6 +33,10 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -51,7 +54,7 @@ open class ToDoDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "plugins.todo.reporter")
     @UserPrefParameter(i18nKey = "plugins.todo.reporter")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "reporter_fk")
     open var reporter: PFUserDO? = null
@@ -62,14 +65,14 @@ open class ToDoDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "plugins.todo.assignee")
     @UserPrefParameter(i18nKey = "plugins.todo.assignee")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "assignee_fk")
     open var assignee: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = true)
     open var task: TaskDO? = null
@@ -79,7 +82,7 @@ open class ToDoDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "group")
     @UserPrefParameter(i18nKey = "group")
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_id", nullable = true)
     open var group: GroupDO? = null

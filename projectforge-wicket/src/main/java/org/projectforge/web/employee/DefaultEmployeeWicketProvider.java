@@ -26,6 +26,7 @@ package org.projectforge.web.employee;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -43,8 +44,8 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
 
   private List<EmployeeStatus> employeeStatusFilter;
 
-  public DefaultEmployeeWicketProvider(EmployeeService employeeService, boolean withMyself, EmployeeStatus... employeeStatusFilter) {
-    super(employeeService);
+  public DefaultEmployeeWicketProvider(EmployeeDao employeeDao, boolean withMyself, EmployeeStatus... employeeStatusFilter) {
+    super(employeeDao);
     this.withMyself = withMyself;
     this.employeeStatusFilter = Arrays.asList(employeeStatusFilter);
   }
@@ -53,7 +54,7 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
   public void query(String term, final int page, final Response<EmployeeDO> response) {
     boolean hasMore = false;
     Collection<EmployeeDO> result = new ArrayList<>();
-    Collection<EmployeeDO> employeesWithoutLoggedInUser = employeeService.findAllActive(false);
+    Collection<EmployeeDO> employeesWithoutLoggedInUser = employeeDao.findAllActive(false);
     if (CollectionUtils.isEmpty(employeesWithoutLoggedInUser)) {
       employeesWithoutLoggedInUser = new ArrayList<>();
     } else {
@@ -63,7 +64,7 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
           // Don't add myself as employee.
           continue;
         }
-        if (CollectionUtils.isNotEmpty(employeeStatusFilter) && !employeeStatusFilter.contains(employeeService.getEmployeeStatus(emp))) {
+        if (CollectionUtils.isNotEmpty(employeeStatusFilter) && !employeeStatusFilter.contains(employeeDao.getEmployeeStatus(emp))) {
           continue;
         }
         if (StringUtils.isNotBlank(term)) {

@@ -62,12 +62,12 @@ import jakarta.persistence.*
 )
 open class AddressCampaignValueDO : DefaultBaseDO() {
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_campaign_fk", nullable = false)
   open var addressCampaign: AddressCampaignDO? = null
 
-  @IndexedEmbedded(depth = 1)
+  @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_fk", nullable = false)
   open var address: AddressDO? = null

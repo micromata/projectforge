@@ -107,9 +107,6 @@ public class TeamCalCalendarForm extends CalendarForm
     return new CalendarPageSupport(parentPage, accessChecker).setShowOptions(false).setShowTimsheetsSelectors(false);
   }
 
-  /**
-   * @see org.projectforge.web.calendar.CalendarForm#init()
-   */
   @SuppressWarnings("serial")
   @Override
   protected void init()
@@ -261,8 +258,8 @@ public class TeamCalCalendarForm extends CalendarForm
           final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
 
           if (dbEvent != null) {
-            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.getDeleted()) {
-              event.setId(dbEvent.getPk());
+            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getId()) || dbEvent.getDeleted()) {
+              event.setId(dbEvent.getId());
               event.setCreated(dbEvent.getCreated());
               event.setCreator(dbEvent.getCreator());
               event.setDeleted(dbEvent.getDeleted());
@@ -284,7 +281,7 @@ public class TeamCalCalendarForm extends CalendarForm
 
         final Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
         event.getAttendees().forEach(attendee -> {
-          attendee.setPk(null);
+          attendee.setId(null);
           originAssignedAttendees.add(attendee);
         });
         event.setAttendees(new HashSet<>());
@@ -294,7 +291,7 @@ public class TeamCalCalendarForm extends CalendarForm
           if (attendee.getAddress() != null) {
             form.getAttendeeWicketProvider().initSortedAttendees();
             form.getAttendeeWicketProvider().getSortedAttendees().forEach(sortedAttendee -> {
-              if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+              if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getId().equals(attendee.getAddress().getId())) {
                 sortedAttendee.setId(form.getAttendeeWicketProvider().getAndDecreaseInternalNewAttendeeSequence());
                 form.getAssignAttendeesListHelper().assignItem(sortedAttendee);
               }

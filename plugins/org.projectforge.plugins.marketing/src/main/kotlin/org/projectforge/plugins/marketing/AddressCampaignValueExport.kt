@@ -45,7 +45,7 @@ open class AddressCampaignValueExport : AddressExport() {
 
   override fun export(
     origList: List<AddressDO>,
-    personalAddressMap: Map<Int?, PersonalAddressDO?>,
+    personalAddressMap: Map<Int, PersonalAddressDO>,
     vararg params: Any
   ): ByteArray? {
     log.info { "Exporting campaign '${params[1]}'..." }

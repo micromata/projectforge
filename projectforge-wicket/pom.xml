@@ -60,6 +60,11 @@
             <version>${wicket.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-tester</artifactId>
+            <version>${wicket.version}</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.servlet.jsp</groupId>
             <artifactId>jakarta.servlet.jsp-api</artifactId>
             <version>${jakarta.servlet.jsp-api.version}</version>

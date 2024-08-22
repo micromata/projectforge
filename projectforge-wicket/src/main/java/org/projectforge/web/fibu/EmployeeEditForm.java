@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -33,11 +32,9 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.IsoGender;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
@@ -65,9 +62,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
   @SpringBean
   private EmployeeService employeeService;
-
-  @SpringBean
-  private GuiAttrSchemaService attrSchemaService;
 
   @SpringBean
   private AccessChecker accessChecker;
@@ -300,12 +294,12 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     createBankingDetails(gridBuilder, data);
 
     gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
-    {
+ /*   {
       // AttrPanels
       final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService
           .addNewTimeAttributeRow(data, group.getName());
       attrSchemaService.createAttrPanels(tabPanel, data, parentPage, addNewEntryFunction);
-    }
+    }*/
 
     gridBuilder.newSplitPanel(GridSize.COL100, true).newSubSplitPanel(GridSize.COL100);
     {

@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -59,6 +60,26 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
 
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
+
+    open fun findAllActive(checkAccess: Boolean): List<EmployeeDO> {
+        val result = internalGetEmployeeList(EmployeeFilter(), true)
+        if (checkAccess) {
+            return result.filter { hasSelectAccess(it, ThreadLocalUserContext.requiredLoggedInUser) }
+        } else {
+            return result
+        }
+    }
+
+    open fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
+        log.error("****** Not yet migrated.")
+        /*
+    final EmployeeTimedDO attrRow = timeableService
+            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
+    if (attrRow != null && !StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))) {
+      return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
+    }*/
+        return null
+    }
 
     open fun findByUserId(userId: Int?): EmployeeDO? {
         val employee = persistenceService.selectSingleResult(

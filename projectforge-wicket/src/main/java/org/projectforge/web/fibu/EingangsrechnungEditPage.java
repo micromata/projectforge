@@ -80,7 +80,7 @@ public class EingangsrechnungEditPage
     this.form.getFeedbackMessages().clear();
     final EingangsrechnungDO invoice = this.getData();
 
-    final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
+    final String filename = String.format("transfer-%s-%s.xml", invoice.getId(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
     try {
       SEPATransferResult result = this.SEPATransferGenerator.format(this.getData());
 

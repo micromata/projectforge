@@ -104,12 +104,12 @@ class VCardService {
         postalAddress.country = addressDO.postalCountry
         addressDO.birthday?.let { birthday ->
             // PartialDate is not supported in V3.0, using java.util.Date:
-            vcard.birthday = Birthday(PFDay.from(birthday).utilDateUTC)
+            vcard.birthday = Birthday(birthday)
         }
         vcard.addUrl(addressDO.website)
         vcard.addNote(addressDO.comment)
         if (addressDO.image == true) {
-            val photo = Photo(addressImageDao.getImage(addressDO.id), ImageType.JPEG)
+            val photo = Photo(addressImageDao.getImage(addressDO.id!!), ImageType.JPEG)
             vcard.addPhoto(photo)
         }
         return vcard

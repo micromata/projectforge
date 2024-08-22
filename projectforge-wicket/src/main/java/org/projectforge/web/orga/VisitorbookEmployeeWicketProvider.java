@@ -24,7 +24,7 @@
 package org.projectforge.web.orga;
 
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
 import org.wicketstuff.select2.Response;
@@ -34,65 +34,61 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VisitorbookEmployeeWicketProvider.class);
+public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VisitorbookEmployeeWicketProvider.class);
 
-  private static final long serialVersionUID = 6228672635966093257L;
+    private static final long serialVersionUID = 6228672635966093257L;
 
-  final private VisitorbookDO visitorbook;
+    final private VisitorbookDO visitorbook;
 
-  public VisitorbookEmployeeWicketProvider(VisitorbookDO visitorbook, EmployeeService employeeService)
-  {
-    super(employeeService);
-    this.visitorbook = visitorbook;
-  }
+    public VisitorbookEmployeeWicketProvider(VisitorbookDO visitorbook, EmployeeDao employeeDao) {
+        super(employeeDao);
+        this.visitorbook = visitorbook;
+    }
 
-  public void initSortedEmployees()
-  {
-    if (sortedEmployees == null) {
-      sortedEmployees = employeeService.findAllActive(false);
-      Set<EmployeeDO> assignedEmployees = visitorbook.getContactPersons();
-      List<EmployeeDO> removeEmployeeList = new ArrayList<>();
-      if (assignedEmployees != null) {
-        for (EmployeeDO contactPerson : sortedEmployees) {
-          for (EmployeeDO alreadyAssignedEmployee : assignedEmployees) {
-            if (contactPerson.equals(alreadyAssignedEmployee)) {
-              removeEmployeeList.add(contactPerson);
+    public void initSortedEmployees() {
+        if (sortedEmployees == null) {
+            sortedEmployees = employeeDao.findAllActive(false);
+            Set<EmployeeDO> assignedEmployees = visitorbook.getContactPersons();
+            List<EmployeeDO> removeEmployeeList = new ArrayList<>();
+            if (assignedEmployees != null) {
+                for (EmployeeDO contactPerson : sortedEmployees) {
+                    for (EmployeeDO alreadyAssignedEmployee : assignedEmployees) {
+                        if (contactPerson.equals(alreadyAssignedEmployee)) {
+                            removeEmployeeList.add(contactPerson);
+                        }
+                    }
+                }
+                sortedEmployees.removeAll(removeEmployeeList);
             }
-          }
         }
-        sortedEmployees.removeAll(removeEmployeeList);
-      }
     }
-  }
 
-  @Override
-  public void query(String term, final int page, final Response<EmployeeDO> response)
-  {
-    initSortedEmployees();
-    final List<EmployeeDO> result = new ArrayList<>();
-    term = term != null ? term.toLowerCase() : "";
-    String[] splitTerm = term.split(" ");
+    @Override
+    public void query(String term, final int page, final Response<EmployeeDO> response) {
+        initSortedEmployees();
+        final List<EmployeeDO> result = new ArrayList<>();
+        term = term != null ? term.toLowerCase() : "";
+        String[] splitTerm = term.split(" ");
 
-    final int offset = page * pageSize;
+        final int offset = page * pageSize;
 
-    int matched = 0;
-    boolean hasMore = false;
-    for (final EmployeeDO employee : sortedEmployees) {
-      if (result.size() == pageSize) {
-        hasMore = true;
-        break;
-      }
-      if (Stream.of(splitTerm).allMatch(streamTerm -> employee.getUser().getFullname().toLowerCase().contains(streamTerm))) {
-        matched++;
-        if (matched > offset) {
-          result.add(employee);
+        int matched = 0;
+        boolean hasMore = false;
+        for (final EmployeeDO employee : sortedEmployees) {
+            if (result.size() == pageSize) {
+                hasMore = true;
+                break;
+            }
+            if (Stream.of(splitTerm).allMatch(streamTerm -> employee.getUser().getFullname().toLowerCase().contains(streamTerm))) {
+                matched++;
+                if (matched > offset) {
+                    result.add(employee);
+                }
+            }
         }
-      }
+        response.addAll(result);
+        response.setHasMore(hasMore);
     }
-    response.addAll(result);
-    response.setHasMore(hasMore);
-  }
 
 }

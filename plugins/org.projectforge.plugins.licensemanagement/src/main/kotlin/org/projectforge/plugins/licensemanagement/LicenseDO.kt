@@ -23,22 +23,28 @@
 
 package org.projectforge.plugins.licensemanagement
 
-import de.micromata.genome.db.jpa.history.api.NoHistory
 import org.hibernate.annotations.Type
-import org.hibernate.search.annotations.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
-@ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+//@ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
 @Table(name = "T_PLUGIN_LM_LICENSE")
 open class LicenseDO : DefaultBaseDO() {
 
@@ -94,7 +100,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
-    @FullTextField(analyze = Analyze.NO)
+    @GenericField
     @get:Enumerated(EnumType.STRING)
     @get:Column(length = 20)
     open var status: LicenseStatus? = null

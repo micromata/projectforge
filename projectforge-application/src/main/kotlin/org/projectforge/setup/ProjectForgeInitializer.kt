@@ -30,7 +30,6 @@ import org.projectforge.common.CanonicalFileUtils
 import org.projectforge.common.EmphasizedLogSupport
 import org.projectforge.common.StringModifier
 import org.projectforge.framework.configuration.ConfigXml
-import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.plugins.core.PluginAdminService
 import org.projectforge.start.ProjectForgeApplication
@@ -103,18 +102,18 @@ object ProjectForgeInitializer {
         result
       }
     )
-    counter = ensureConfigFile(
+    ensureConfigFile(
       applicationHomeDir,
       ConfigXml.CLASSPATH_INITIAL_CONFIG_XML_FILE, ConfigXml.CONFIG_XML_FILE, counter, emphasizedLog
     )
-    @Suppress("UNUSED_VALUE")
+/*    @Suppress("UNUSED_VALUE")
     counter = ensureConfigFile(
       applicationHomeDir,
       AttrSchemaServiceSpringBeanImpl.CLASSPATH_INITIAL_ATTR_SCHEMA_CONFIG_FILE,
       AttrSchemaServiceSpringBeanImpl.ATTR_SCHEMA_CONFIG_FILE,
       counter,
       emphasizedLog
-    )
+    )*/
     emphasizedLog.logEnd()
     if (!setupData.startServer) {
       giveUpAndSystemExit("Initialization of ProjectForge's home directory done. Autostart wasn't selected. Please restart the server manually.")

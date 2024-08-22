@@ -410,7 +410,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
         return list
     }
 
-    fun convert(entry: HistoryEntry<*>, em: EntityManager): List<DisplayHistoryEntry> {
+    open fun convert(entry: HistoryEntry<*>, em: EntityManager): List<DisplayHistoryEntry> {
         if (entry.diffEntries.isNullOrEmpty()) {
             val se = DisplayHistoryEntry(userGroupCache, entry)
             return listOf(se)

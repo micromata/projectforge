@@ -24,9 +24,9 @@
 package org.projectforge.caldav.config
 
 import mu.KotlinLogging
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.web.servlet.HandlerInterceptor
 
 private val METHODS = arrayOf("OPTIONS", "PROPPATCH", "REPORT", "PUT")
 
@@ -35,7 +35,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Enables http methods, required by DAV functionality such as "PROPFIND" etc.
  */
-class DAVMethodsInterceptor : HandlerInterceptorAdapter() {
+class DAVMethodsInterceptor : HandlerInterceptor {
   /**
    * Needed to add support for DAV methods, such as "PROPFIND" etc. Otherwise Spring reject such http methods.
    */

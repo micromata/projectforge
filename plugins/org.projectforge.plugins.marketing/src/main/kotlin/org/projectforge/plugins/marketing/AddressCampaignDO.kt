@@ -24,7 +24,6 @@
 package org.projectforge.plugins.marketing
 
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.annotations.Field
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
@@ -33,6 +32,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import jakarta.persistence.Transient
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 
 /**
  * A marketing campaign for addresses (eg. mailings).

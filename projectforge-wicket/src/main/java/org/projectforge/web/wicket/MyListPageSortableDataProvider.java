@@ -33,7 +33,6 @@ import org.apache.wicket.model.Model;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.utils.MyBeanComparator;
-import org.projectforge.web.common.timeattr.AttrComperator;
 
 import java.io.Serializable;
 import java.util.*;
@@ -84,15 +83,12 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
     if (this.completeList != null) {
       sortList(this.completeList);
       for (final T entry : completeList) {
-        this.idList.add(entry.id);
+        this.idList.add(entry.getId());
       }
     }
     return this;
   }
 
-  /**
-   * @see org.apache.wicket.markup.repeater.data.IDataProvider#iterator(int, int)
-   */
   @SuppressWarnings("unchecked")
   @Override
   public Iterator<T> iterator(final long first, final long count)
@@ -154,10 +150,6 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
   {
     final String sortProperty = sortParam != null ? sortParam.getProperty() : null;
     final boolean ascending = sortParam != null ? sortParam.isAscending() : true;
-
-    if (sortProperty != null && sortProperty.startsWith("attr:")) {
-      return (Comparator<T>) new AttrComperator(sortProperty, ascending);
-    }
 
     final String secondSortProperty = secondSortParam != null ? secondSortParam.getProperty() : null;
     final boolean secondAscending = secondSortParam != null ? secondSortParam.isAscending() : true;
