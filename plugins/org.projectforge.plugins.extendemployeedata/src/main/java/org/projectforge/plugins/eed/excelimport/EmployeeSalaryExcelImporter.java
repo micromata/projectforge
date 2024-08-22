@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.eed.excelimport;
 
-import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedElement;
 import de.micromata.merlin.excel.importer.ImportedSheet;
@@ -38,8 +37,6 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.utils.MyImportedElement;
 import org.projectforge.framework.time.PFDateTime;
-import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +54,6 @@ public class EmployeeSalaryExcelImporter
 
   private static final String[] DIFF_PROPERTIES = { "bruttoMitAgAnteil", "comment" };
 
-  private final EmployeeConfigurationService emplConfigService;
-
   private final EmployeeService employeeService;
 
   private final EmployeeSalaryService employeeSalaryService;
@@ -68,13 +63,11 @@ public class EmployeeSalaryExcelImporter
   private final Date dateToSelectAttrRow;
 
   public EmployeeSalaryExcelImporter(final EmployeeService employeeService, final EmployeeSalaryService employeeSalaryService,
-      final EmployeeConfigurationService employeeConfigurationService,
       final ImportStorage<EmployeeSalaryDO> storage,
       final Date dateToSelectAttrRow)
   {
     this.employeeService = employeeService;
     this.employeeSalaryService = employeeSalaryService;
-    this.emplConfigService = employeeConfigurationService;
     this.storage = storage;
     this.dateToSelectAttrRow = dateToSelectAttrRow;
   }
@@ -95,6 +88,7 @@ public class EmployeeSalaryExcelImporter
     importer.setStartingRowIndex(ROW_INDEX_OF_COLUMN_NAMES + 1);
 
     final List<String> columnNames = new ArrayList<>();
+    /*
     EmployeeConfigurationDO emplConfigDO = emplConfigService.getSingleEmployeeConfigurationDO();
     Map<String, JpaTabAttrBaseDO<EmployeeConfigurationDO, Integer>> attrs = emplConfigDO.getAttrs();
     String staffNrColumnName = attrs.get(EmployeeConfigurationService.STAFFNR_COLUMN_NAME_ATTR) != null ?
@@ -120,10 +114,11 @@ public class EmployeeSalaryExcelImporter
         map.put(remarkColumnName, "remark");
       }
     }
+     */
     if (!importer.getColumnNames().containsAll(columnNames)) {
       throw new UserException("plugins.eed.salaryimport.validation.columndefinitionnotfound", columnNames.get(0), columnNames.get(1));
     }
-    importer.setColumnMapping(map);
+   // importer.setColumnMapping(map);
 
     final EmployeeSalaryExcelRow[] rows = importer.convertToRows(EmployeeSalaryExcelRow.class);
     for (final EmployeeSalaryExcelRow row : rows) {

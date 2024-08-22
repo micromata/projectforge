@@ -76,7 +76,7 @@ class DataTransferTestService {
   }
 
   internal fun createPersonalBox(user: PFUserDO): DataTransferAreaDO {
-    return dataTransferAreaDao.ensurePersonalBox(user.id)!!
+    return dataTransferAreaDao.ensurePersonalBox(user.id!!)!!
   }
 
   internal fun createArea(

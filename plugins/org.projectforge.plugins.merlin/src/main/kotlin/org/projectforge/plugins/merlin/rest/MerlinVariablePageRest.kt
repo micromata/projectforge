@@ -40,7 +40,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import jakarta.servlet.http.HttpServletRequest
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 /**
  * Modal dialog showing details of an attachment with the functionality to download, modify and delete it.

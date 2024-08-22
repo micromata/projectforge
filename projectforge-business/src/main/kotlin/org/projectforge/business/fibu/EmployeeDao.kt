@@ -24,10 +24,12 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.NoResultException
+import jakarta.persistence.Tuple
 import mu.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
+import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
 import org.projectforge.framework.persistence.api.BaseDao
@@ -35,6 +37,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -207,7 +210,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         var result: EmployeeDO? = null
         try {
             val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
-            persistenceService.selectSingleResult(
+            result = persistenceService.selectSingleResult(
                 "$baseSQL$META_SQL",
                 EmployeeDO::class.java,
                 Pair("staffNumber", staffnumber),

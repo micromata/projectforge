@@ -24,8 +24,6 @@
 package org.projectforge.plugins.merlin
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import de.micromata.genome.db.jpa.history.api.NoHistory
-import org.hibernate.search.annotations.Field
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
@@ -33,6 +31,8 @@ import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -41,8 +41,11 @@ import jakarta.persistence.*
 @Indexed
 @Table(name = "t_plugin_merlin_template")
 open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+  @get:Id
+  @get:GeneratedValue
+  @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
-  private var id: Int? = null
+  override var id: Int? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.name")
   @get:Column(length = 100, nullable = false)
@@ -138,15 +141,4 @@ open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
   @JsonIgnore
   @get:Column(length = 10000, name = "attachments_last_user_action")
   override var attachmentsLastUserAction: String? = null
-
-  @Id
-  @GeneratedValue
-  @Column(name = "pk")
-  override fun getId(): Int? {
-    return id
-  }
-
-  override fun setId(id: Int?) {
-    this.id = id
-  }
 }

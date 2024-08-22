@@ -21,25 +21,24 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.plugins.eed.service;
+package org.projectforge.plugins.eed.service
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.framework.time.PFDateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.stereotype.Service
+import java.time.Year
 
 @Service
-public class EEDHelper
-{
-  public static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+open class EEDHelper {
+    companion object {
+        @JvmField
+        val MONTH_INTEGERS: List<Int> = mutableListOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+    }
 
-  @Autowired
-  private TimeableService timeableService;
+    fun getDropDownYears(): List<Int> {
+        val currentYear = Year.now().value
+        return listOf(currentYear, currentYear - 1, currentYear - 2)
+    }
+
+    /*
 
   @Autowired
   private EmployeeDao employeeDao;
@@ -61,4 +60,5 @@ public class EEDHelper
         .collect(Collectors.toList());
   }
 
+   */
 }
