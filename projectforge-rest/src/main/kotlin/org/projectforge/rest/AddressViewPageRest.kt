@@ -327,7 +327,6 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     @JvmStatic
     @JvmOverloads
     fun getPageUrl(id: Int?, returnToCaller: String? = null, absolute: Boolean = true): String {
-      returnToCaller
       return PagesResolver.getDynamicPageUrl(
         AddressViewPageRest::class.java,
         id = id,

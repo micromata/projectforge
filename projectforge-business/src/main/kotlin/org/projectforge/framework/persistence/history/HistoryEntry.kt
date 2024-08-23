@@ -47,14 +47,6 @@ interface HistoryEntry<I : Serializable> : IdObject<I> {
      */
     val modifiedBy: String?
 
-    val userName: String?
-        /**
-         * alias to getModifiedBy.
-         *
-         * @return the user which modified the entry
-         */
-        get() = modifiedBy
-
     /**
      * Gets the diff entries.
      *

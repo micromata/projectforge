@@ -60,12 +60,12 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
         criteria: CriteriaQuery<O>,
         val resultPredicates: List<DBPredicate>)
     : DBResultIterator<O> {
-    private val scrollableResults: ScrollableResults
+    private val scrollableResults: ScrollableResults<O>
 
     init {
         val query = entityManager.createQuery(criteria)
         val hquery = query.unwrap(org.hibernate.query.Query::class.java)
-        scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY)
+        scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<O>
     }
 
     override fun next(): O? {
@@ -73,7 +73,7 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
             return null
         }
         @Suppress("UNCHECKED_CAST")
-        return scrollableResults.get(0) as O
+        return scrollableResults.first() as O
     }
 
     override fun sort(list: List<O>): List<O> {

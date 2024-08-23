@@ -56,7 +56,7 @@ class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, idsQuer
     private var currentObjectsBlock: List<T>? = null
     private var currentObjectsBlockIterator: Iterator<T>? = null
     private var offset = 0
-    private val scrollableResults: ScrollableResults
+    private val scrollableResults: ScrollableResults<T>
 
     init {
         select = "select distinct t from ${clazz.simpleName} as t${strategy.join} where t.${strategy.idProperty} in :ids"
@@ -67,6 +67,7 @@ class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, idsQuer
                 .setFetchSize(BLOCK_SIZE)
                 .setReadOnly(true)
                 .scroll(ScrollMode.FORWARD_ONLY)
+        as ScrollableResults<T>
         readNextBlock()
     }
 
@@ -100,7 +101,7 @@ class BigResultSetHandler<T>(val em: EntityManager, val clazz: Class<T>, idsQuer
         val ids = mutableListOf<Number>()
         var counter = 0
         while (counter++ < BLOCK_SIZE && scrollableResults.next()) {
-            ids.add(scrollableResults[0] as Number)
+            ids.add(scrollableResults.get() as Number)
         }
         if (ids.size > 0) {
             if (sessionClearCounter-- <= 0) {

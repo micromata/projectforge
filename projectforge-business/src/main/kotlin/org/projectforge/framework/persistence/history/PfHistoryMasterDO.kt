@@ -40,10 +40,10 @@ private val log = KotlinLogging.logger {}
 @Entity
 @Table(
     name = "t_pf_history",
-    indexes = [Index(
-        name = "ix_pf_history_ent",
-        columnList = "ENTITY_ID,ENTITY_NAME"
-    ), Index(name = "ix_pf_history_mod", columnList = "MODIFIEDAT")]
+    //indexes = [Index(
+    //    name = "ix_pf_history_ent",
+    //    columnList = "ENTITY_ID,ENTITY_NAME"
+    //), Index(name = "ix_pf_history_mod", columnList = "MODIFIEDAT")]
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
@@ -77,14 +77,15 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     @get:FullTextField
     var oldValue: String? = null // was @get:Field(analyze = Analyze.YES, store = Store.NO, index = Indexed.YES)
 
-    @get:MapKey(name = "propertyName")
+    /*@get:MapKey(name = "propertyName")
     @get:OneToMany(
         cascade = [CascadeType.ALL],
         mappedBy = "parent",
         //targetEntity = PfHistoryAttrDO::class,
         orphanRemoval = true,
         fetch = FetchType.EAGER
-    )
+    )*/
+    @get:Transient
     var attributes: MutableMap<String, Any?>? = null
 
    /* @get:Transient

@@ -32,7 +32,7 @@ import org.hibernate.metadata.ClassMetadata;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)
- * 
+ *
  */
 public class AssociationPropertyDelta extends PropertyDelta
 {
@@ -47,18 +47,18 @@ public class AssociationPropertyDelta extends PropertyDelta
   {
     this.propertyName = propertyName;
     this.propertyType = ClassUtils.getShortClassName(propertyType);
-    ClassMetadata classMetadata = factory.getClassMetadata(propertyType);
+    /*ClassMetadata classMetadata = factory.getClassMetadata(propertyType);
     if (classMetadata != null) {
       this.oldValue = oldId == null ? null : ConvertUtils.convert(classMetadata.getIdentifier(oldId/*
                                                                                                     * , EntityMode.POJO
-                                                                                                    */));
+                                                                                                    * /));
       this.newValue = newId == null ? null : ConvertUtils.convert(classMetadata.getIdentifier(newId/*
                                                                                                     * , EntityMode.POJO
-                                                                                                    */));
-    } else {
+                                                                                                    * /));
+    } else {*/
       this.newValue = ConvertUtils.convert(newId);
       this.oldValue = ConvertUtils.convert(oldId);
-    }
+  //  }
   }
 
   @Override

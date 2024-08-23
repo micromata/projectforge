@@ -70,7 +70,7 @@ object HibernateUtils {
         metamodel = sessionFactory.metamodel as MetamodelImplementor
         HibernateMetaModel.internalInit(sessionFactory, metamodel)
         val dialect = sessionFactory.jdbcServices.dialect
-        if (dialect is org.hibernate.dialect.PostgreSQL81Dialect) {
+        if (dialect is org.hibernate.dialect.PostgreSQLDialect) {
             databaseDialect = DatabaseDialect.PostgreSQL;
         } else if (dialect is HSQLDialect) {
             databaseDialect = DatabaseDialect.HSQL;

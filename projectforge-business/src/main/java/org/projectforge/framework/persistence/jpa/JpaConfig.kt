@@ -23,12 +23,10 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import jakarta.persistence.EntityManagerFactory
 import org.hibernate.cfg.AvailableSettings
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.orm.jpa.JpaTransactionManager
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
 import java.util.*
@@ -45,8 +43,8 @@ open class JpaConfig {
     @Value("\${hibernate.hbm2ddl.auto}")
     private val hibernateHbm2ddlAuto: String? = null
 
-    @Value("\${hibernate.search.default.indexBase}")
-    private val hibernateSearchDefaultIndexBase: String? = null
+    @Value("\${hibernate.search.directory.root}")
+    private val hibernateSearchDirectoryRoot: String? = null
 
     @Bean
     open fun entityManagerFactory(dataSource: DataSource?): LocalContainerEntityManagerFactoryBean {
@@ -65,18 +63,21 @@ open class JpaConfig {
         properties[AvailableSettings.HBM2DDL_AUTO] = hibernateHbm2ddlAuto
         properties[AvailableSettings.ENABLE_LAZY_LOAD_NO_TRANS] = true
         properties[AvailableSettings.AUTOCOMMIT] = false
-        properties["hibernate.search.default.indexBase"] = hibernateSearchDefaultIndexBase
 
+        properties["hibernate.search.backend.directory.root"] = hibernateSearchDirectoryRoot
+        //properties["hibernate.search.backends.lucene.directory.type"] = "local-directory"
+        //properties["hibernate.search.backend.type"] = "lucene"
         //properties.put(AvailableSettings.DATASOURCE, ds);
         factoryBean.setJpaProperties(properties)
 
         return factoryBean
     }
 
+    /*
     @Bean
     open fun transactionManager(entityManagerFactory: EntityManagerFactory?): JpaTransactionManager {
         val transactionManager = JpaTransactionManager()
         transactionManager.entityManagerFactory = entityManagerFactory
         return transactionManager
-    }
+    }*/
 }

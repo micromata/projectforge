@@ -219,9 +219,8 @@
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
         <!-- Hibernate 6.* uses jakarta.persistence instead of javax.persistence -->
-        <hibernate.version>6.5.2.Final</hibernate.version>
-        <hibernate-search.version>6.2.4.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
-        <hibernate-ehcache.version>5.6.15.Final</hibernate-ehcache.version> <!-- Check 11.08.2024 -->
+        <hibernate.version>6.6.0.Final</hibernate.version>
+        <hibernate-search.version>7.2.0.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
         <hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version> <!-- Check 11.08.2024 -->
 
 
@@ -318,9 +317,20 @@
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version> <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
 
         <!-- wicket -->
-        <wicket.version>10.1.0</wicket.version> <!-- Check: 09.08.2024 (10.1.0 is newer, but uses Jakarta) -->
+        <wicket.version>10.1.0</wicket.version> <!-- Check: 09.08.2024 -->
         <wicket-stuff.version>10.1.1</wicket-stuff.version> <!-- ^^^^^^ -->
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.hibernate.search</groupId>
+                <artifactId>hibernate-search-bom</artifactId>
+                <version>${hibernate-search.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Needed for spring.datasource.dbcp2.* properties -->
@@ -457,7 +467,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.6</version>
+                <version>0.8.12</version>
                 <configuration>
                     <!-- The destination file for the code coverage report has to be set
                       to the same value in the parent pom and in each module pom. Then JaCoCo will

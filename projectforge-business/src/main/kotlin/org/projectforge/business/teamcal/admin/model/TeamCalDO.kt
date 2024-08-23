@@ -34,10 +34,12 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.type.SqlTypes
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -132,7 +134,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
     //@field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
-    @get:Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     open var externalSubscriptionCalendarBinary: ByteArray? = null
 
     /**

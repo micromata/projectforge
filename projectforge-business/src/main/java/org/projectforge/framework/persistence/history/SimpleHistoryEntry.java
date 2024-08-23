@@ -56,7 +56,7 @@ public class SimpleHistoryEntry
   public SimpleHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry)
   {
     this.timestamp = entry.getModifiedAt();
-    final Integer userId = NumberHelper.parseInteger(entry.getUserName());
+    final Integer userId = NumberHelper.parseInteger(entry.getModifiedBy());
     if (userId != null) {
       this.user = userGroupCache.getUser(userId);
     }

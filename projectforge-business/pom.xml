@@ -67,8 +67,11 @@
         </dependency>
         <dependency>
             <groupId>org.hibernate.search</groupId>
-            <artifactId>hibernate-search-mapper-orm-jakarta</artifactId>
-            <version>${hibernate-search.version}</version>
+            <artifactId>hibernate-search-mapper-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-backend-lucene</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.persistence</groupId>
@@ -154,28 +157,22 @@
             <artifactId>httpclient5</artifactId>
             <version>${apache-httpcomponents-client5}</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
             <version>${hibernate-entitymanager.version}</version>
-        </dependency>
-
-        <dependency>
+        </dependency-->
+        <!--dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jcache</artifactId>
             <version>${hibernate.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
-            <version>${hibernate-ehcache.version}</version>
-        </dependency>
+        </dependency-->
         <!-- https://mvnrepository.com/artifact/org.ehcache/ehcache -->
-        <dependency>
+        <!--dependency>
             <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
             <version>${org.ehcache.version}</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
@@ -561,7 +558,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
                 <version>0.15.3</version>
@@ -579,6 +576,27 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>xjc</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sources>
+                        <source>src/main/resources/misc/pain.001.003.03.xsd</source>
+                    </sources>
+                    <outputDirectory>${basedir}/target/generated-sources/xjc</outputDirectory>
+                    <clearOutputDir>false</clearOutputDir>
+                    <packageName>org.projectforge.generated</packageName>
+                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>

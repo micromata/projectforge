@@ -410,7 +410,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      * @param obj
      */
     override fun afterSaveOrModify(obj: AddressDO) {
-        birthdayCache!!.setExpired()
+        birthdayCache.setExpired()
     }
 
     /**
@@ -422,12 +422,12 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      * @return The entries are ordered by date of year and name.
      */
     fun getBirthdays(fromDate: Date, toDate: Date, all: Boolean): Set<BirthdayAddress> {
-        return birthdayCache!!.getBirthdays(fromDate, toDate, all, personalAddressDao!!.favoriteAddressIdList)
+        return birthdayCache.getBirthdays(fromDate, toDate, all, personalAddressDao.favoriteAddressIdList)
     }
 
     val favoriteVCards: List<PersonalAddressDO>
         get() {
-            val list = personalAddressDao!!.list
+            val list = personalAddressDao.list
             val result: MutableList<PersonalAddressDO> = ArrayList()
             if (CollectionUtils.isNotEmpty(list)) {
                 for (entry in list) {
@@ -564,8 +564,6 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (isGiven(a.title)) {
             if (space) {
                 buf.append(' ')
-            } else {
-                space = true
             }
             buf.append(a.title)
         }
@@ -676,18 +674,18 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         // Use internal get list method for avoiding access checking (no user is logged-in):
         val resultList = internalGetList(queryFilter)
         val buf = StringBuffer()
-        if (resultList != null && resultList.size >= 1) {
+        if (resultList.isNotEmpty()) {
             var result = resultList[0]
             if (resultList.size > 1) {
                 // More than one result, therefore find the newest one:
                 buf.append("+") // Mark that more than one entry does exist.
                 for (matchingUser in resultList) {
-                    if (matchingUser.lastUpdate!!.after(result!!.lastUpdate)) {
+                    if (matchingUser.lastUpdate!!.after(result.lastUpdate)) {
                         result = matchingUser
                     }
                 }
             }
-            val fullname = result!!.fullName
+            val fullname = result.fullName
             val organization = result.organization
             StringHelper.listToString(buf, "; ", fullname, organization)
             return buf.toString()

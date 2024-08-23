@@ -282,9 +282,9 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
 
   init {
     timestamp = entry.modifiedAt!!
-    val str = entry.userName
+    val str = entry.modifiedBy
     if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
-      val userId = parseInteger(entry.userName)
+      val userId = parseInteger(entry.modifiedBy)
       if (userId != null) {
         user = userGroupCache.getUser(userId)
       }
