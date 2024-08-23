@@ -474,7 +474,7 @@ internal object EntityManagerUtil {
     }
 
     fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
-        val queryString = query.unwrap(org.hibernate.Query::class.java).getQueryString()
+        val queryString = query.unwrap(org.hibernate.query.Query::class.java).getQueryString()
         val sb = StringBuilder()
         sb.append("query='$queryString', params=[") //query.getQueryString())
         var first = true

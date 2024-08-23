@@ -34,9 +34,11 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.type.SqlTypes
 
 /**
  * Scripts can be stored and executed by authorized users.
@@ -105,7 +107,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   @JsonIgnore
   //@field:NoHistory
   @get:Basic(fetch = FetchType.LAZY)
-  @get:Type(type = "binary")
+  @JdbcTypeCode(SqlTypes.BLOB)
   @get:Column
   open var script: ByteArray? = null
 
@@ -116,14 +118,14 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
   //@field:NoHistory
   @get:Basic(fetch = FetchType.LAZY)
   @get:Column(name = "script_backup")
-  @get:Type(type = "binary")
+  @JdbcTypeCode(SqlTypes.BLOB)
   open var scriptBackup: ByteArray? = null
 
   @JsonIgnore
   //@field:NoHistory
   @get:Basic(fetch = FetchType.LAZY)
   @get:Column
-  @get:Type(type = "binary")
+  @JdbcTypeCode(SqlTypes.BLOB)
   open var file: ByteArray? = null
 
   @PropertyInfo(i18nKey = "file", tooltip = "scripting.script.editForm.file.tooltip")

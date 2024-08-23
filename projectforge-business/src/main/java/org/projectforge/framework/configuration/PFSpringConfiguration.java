@@ -61,9 +61,6 @@ public class PFSpringConfiguration {
     @Autowired
     private DataSource dataSource;
 
-    @Value("${hibernate.search.default.indexBase}")
-    private String hibernateIndexDir;
-
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
         return builder.build();

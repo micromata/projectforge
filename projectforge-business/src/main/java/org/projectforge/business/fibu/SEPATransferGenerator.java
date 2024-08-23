@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu;
 
+import jakarta.xml.bind.*;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.configuration.Configuration;
@@ -34,7 +35,6 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.*;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.validation.Schema;
@@ -55,298 +55,291 @@ import java.util.regex.Pattern;
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
 @Component
-public class SEPATransferGenerator
-{
-  public enum SEPATransferError
-  {
-    JAXB_CONTEXT_MISSING, NO_INPUT, SUM, BANK_TRANSFER, BIC, IBAN, RECEIVER, REFERENCE, INVOICE_OR_DEBITOR_NOTEXISTING
-  }
-
-  final private static String PAIN_001_003_03_XSD = "misc/pain.001.003.03.xsd";
-
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SEPATransferGenerator.class);
-
-  private Schema painSchema;
-  private JAXBContext jaxbContext;
-  private SimpleDateFormat formatter;
-
-  private Pattern patternBic;
-  private Pattern patternIBAN;
-
-  @Value("${projectforge.fibu.sepa.defaultIBAN}")
-  private String defaultIBAN = "DE87200500001234567890";
-
-  @Value("${projectforge.fibu.sepa.defaultBIC}")
-  private String defaultBIC = "BANKDEFFXXX";
-
-  public SEPATransferGenerator()
-  {
-    this.formatter = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
-    this.painSchema = null;
-    this.jaxbContext = null;
-    this.patternBic = Pattern.compile("[A-Z]{6,6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3,3}){0,1}");
-    this.patternIBAN = Pattern.compile("[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}");
-
-    URL xsd = getClass().getClassLoader().getResource(PAIN_001_003_03_XSD);
-
-    if (xsd == null) {
-      log.error("pain.001.003.03.xsd file not found, transfer export not possible without it.");
-      return;
+public class SEPATransferGenerator {
+    public enum SEPATransferError {
+        JAXB_CONTEXT_MISSING, NO_INPUT, SUM, BANK_TRANSFER, BIC, IBAN, RECEIVER, REFERENCE, INVOICE_OR_DEBITOR_NOTEXISTING
     }
 
-    try {
-      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      painSchema = schemaFactory.newSchema(xsd);
-      jaxbContext = JAXBContext.newInstance(Document.class.getPackage().getName());
-    } catch (SAXException | JAXBException e) {
-      log.error("An error occurred while reading pain.001.003.03.xsd and creating jaxb context -> transfer export not possible.", e);
-    }
-  }
+    final private static String PAIN_001_003_03_XSD = "misc/pain.001.003.03.xsd";
 
-  /**
-   * Generates an transfer xml for the given invoice in pain.001.003.03 format.
-   *
-   * @param invoice The invoice to generate the transfer xml
-   * @return Returns a result object which contains the byte array of the xml or error codes in case of a errors.
-   */
-  public SEPATransferResult format(final EingangsrechnungDO invoice)
-  {
-    return this.format(Collections.singletonList(invoice));
-  }
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SEPATransferGenerator.class);
 
-  /**
-   * Generates an transfer xml for the given invoices in pain.001.003.03 format.
-   *
-   * @param invoices List of invoices to generate a transfer xml
-   * @return Returns a result object which contains the byte array of the xml or error codes in case of an error.
-   */
-  public SEPATransferResult format(final List<EingangsrechnungDO> invoices)
-  {
-    final SEPATransferResult result = new SEPATransferResult();
+    private Schema painSchema;
+    private JAXBContext jaxbContext;
+    private SimpleDateFormat formatter;
 
-    if (this.jaxbContext == null || invoices == null || invoices.isEmpty()) {
-      String errorPrefix = "A problem accured while exporting invoices: ";
-      String error = "";
-      // if jaxb context is missing, generation is not possible
-      if (this.jaxbContext == null) {
-        error = "Transfer export not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.";
-        log.error(errorPrefix + error);
-      }
-      if (invoices == null || invoices.isEmpty()) {
-        error = "Invoices are null or empty";
-        log.warn(errorPrefix + error);
-      }
-      throw new UserException("error", errorPrefix + error);
+    private Pattern patternBic;
+    private Pattern patternIBAN;
+
+    @Value("${projectforge.fibu.sepa.defaultIBAN}")
+    private String defaultIBAN = "DE87200500001234567890";
+
+    @Value("${projectforge.fibu.sepa.defaultBIC}")
+    private String defaultBIC = "BANKDEFFXXX";
+
+    public SEPATransferGenerator() {
+        this.formatter = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+        this.painSchema = null;
+        this.jaxbContext = null;
+        this.patternBic = Pattern.compile("[A-Z]{6,6}[A-Z2-9][A-NP-Z0-9]([A-Z0-9]{3,3}){0,1}");
+        this.patternIBAN = Pattern.compile("[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}");
+
+        URL xsd = getClass().getClassLoader().getResource(PAIN_001_003_03_XSD);
+
+        if (xsd == null) {
+            log.error("pain.001.003.03.xsd file not found, transfer export not possible without it.");
+            return;
+        }
+
+        try {
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            painSchema = schemaFactory.newSchema(xsd);
+            jaxbContext = JAXBContext.newInstance(Document.class.getPackage().getName());
+        } catch (SAXException | JAXBException e) {
+            log.error("An error occurred while reading pain.001.003.03.xsd and creating jaxb context -> transfer export not possible.", e);
+        }
     }
 
-    // Generate structure
-    GregorianCalendar gc = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    ObjectFactory factory = new ObjectFactory();
-    String msgID = String.format("transfer-%s", this.formatter.format(new Date()));
-    String debitor = Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION);
-
-    // create document
-    final Document document = factory.createDocument();
-
-    // create root element
-    final CustomerCreditTransferInitiationV03 cstmrCdtTrfInitn = factory.createCustomerCreditTransferInitiationV03();
-    document.setCstmrCdtTrfInitn(cstmrCdtTrfInitn);
-
-    // create group header
-    final GroupHeaderSCT grpHdr = factory.createGroupHeaderSCT();
-    cstmrCdtTrfInitn.setGrpHdr(grpHdr);
-
-    grpHdr.setMsgId(msgID);
-    try {
-      grpHdr.setCreDtTm(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
-    } catch (DatatypeConfigurationException e) {
-      log.error("Exception occured while setting creDtTm property.", e);
-    }
-    grpHdr.setNbOfTxs(String.valueOf(invoices.size()));
-    final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
-    grpHdr.setInitgPty(partyIdentificationSEPA1);
-    partyIdentificationSEPA1.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor));
-
-    // create payment information
-    PaymentInstructionInformationSCT pmtInf = factory.createPaymentInstructionInformationSCT();
-    cstmrCdtTrfInitn.getPmtInf().add(pmtInf);
-
-    pmtInf.setPmtInfId(msgID + "-1");
-    pmtInf.setPmtMtd(PaymentMethodSCTCode.TRF);
-    pmtInf.setBtchBookg(true);
-    pmtInf.setNbOfTxs(String.valueOf(invoices.size()));
-    // the default value for most HBCI/FinTS is 01/01/1999 or the current date
-    // pmtInf.setReqdExctnDt(XMLGregorianCalendarImpl.createDate(1999, 1, 1, 0));
-    try {
-      pmtInf.setReqdExctnDt(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
-    } catch (DatatypeConfigurationException e) {
-      log.error("Exception occured while setting reqdExctnDt property.", e);
-    }
-    // pmtInf.setChrgBr(ChargeBearerTypeSEPACode.SLEV); // TODO check if this is required
-
-    // set payment type information
-    PaymentTypeInformationSCT1 pmTpInf = factory.createPaymentTypeInformationSCT1();
-    ServiceLevelSEPA svcLvl = factory.createServiceLevelSEPA();
-    svcLvl.setCd("SEPA");
-    pmTpInf.setSvcLvl(svcLvl);
-    pmtInf.setPmtTpInf(pmTpInf);
-
-    // set debitor
-    PartyIdentificationSEPA2 dbtr = factory.createPartyIdentificationSEPA2();
-    dbtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor)); // other fields should not be used
-    pmtInf.setDbtr(dbtr);
-
-    // set debitor iban
-    CashAccountSEPA1 dbtrAcct = factory.createCashAccountSEPA1();
-    AccountIdentificationSEPA id = factory.createAccountIdentificationSEPA();
-    dbtrAcct.setId(id);
-    id.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultIBAN));
-    pmtInf.setDbtrAcct(dbtrAcct);
-
-    // set debitor bic
-    BranchAndFinancialInstitutionIdentificationSEPA3 dbtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA3();
-    FinancialInstitutionIdentificationSEPA3 finInstnId = factory.createFinancialInstitutionIdentificationSEPA3();
-    dbtrAgt.setFinInstnId(finInstnId);
-    finInstnId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultBIC));
-    pmtInf.setDbtrAgt(dbtrAgt);
-
-    // create transaction
-    BigDecimal amount = BigDecimal.ZERO;
-    int index = 0;
-    for (EingangsrechnungDO invoice : invoices) {
-      this.createTransaction(result, factory, invoice, msgID, pmtInf, ++index);
-      amount = amount.add(invoice.getGrossSumWithDiscount());
-    }
-    amount = amount.setScale(2, RoundingMode.HALF_UP);
-
-    if (!result.getErrors().isEmpty()) {
-      return result;
+    /**
+     * Generates an transfer xml for the given invoice in pain.001.003.03 format.
+     *
+     * @param invoice The invoice to generate the transfer xml
+     * @return Returns a result object which contains the byte array of the xml or error codes in case of a errors.
+     */
+    public SEPATransferResult format(final EingangsrechnungDO invoice) {
+        return this.format(Collections.singletonList(invoice));
     }
 
-    // set total amount of transfer sum
-    grpHdr.setCtrlSum(amount);
-    pmtInf.setCtrlSum(amount);
+    /**
+     * Generates an transfer xml for the given invoices in pain.001.003.03 format.
+     *
+     * @param invoices List of invoices to generate a transfer xml
+     * @return Returns a result object which contains the byte array of the xml or error codes in case of an error.
+     */
+    public SEPATransferResult format(final List<EingangsrechnungDO> invoices) {
+        final SEPATransferResult result = new SEPATransferResult();
 
-    // marshaling
-    try {
-      Marshaller marshaller = this.jaxbContext.createMarshaller();
-      marshaller.setSchema(this.painSchema);
-      marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        if (this.jaxbContext == null || invoices == null || invoices.isEmpty()) {
+            String errorPrefix = "A problem accured while exporting invoices: ";
+            String error = "";
+            // if jaxb context is missing, generation is not possible
+            if (this.jaxbContext == null) {
+                error = "Transfer export not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.";
+                log.error(errorPrefix + error);
+            }
+            if (invoices == null || invoices.isEmpty()) {
+                error = "Invoices are null or empty";
+                log.warn(errorPrefix + error);
+            }
+            throw new UserException("error", errorPrefix + error);
+        }
 
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      marshaller.marshal(factory.createDocument(document), out);
+        // Generate structure
+        GregorianCalendar gc = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+        ObjectFactory factory = new ObjectFactory();
+        String msgID = String.format("transfer-%s", this.formatter.format(new Date()));
+        String debitor = Configuration.getInstance().getStringValue(ConfigurationParam.ORGANIZATION);
 
-      result.setXml(out.toByteArray());
-      return result;
-    } catch (JAXBException e) {
-      log.error("An error occurred while marshaling the generated java transaction object. Transfer generation failed.", e);
+        // create document
+        final Document document = factory.createDocument();
 
-      //      if (e.getLinkedException() != null && e.getLinkedException().getMessage() != null) {
-      //        throw new UserException("fibu.rechnung.transferExport.error", e.getLinkedException().getMessage());
-      //      }
+        // create root element
+        final CustomerCreditTransferInitiationV03 cstmrCdtTrfInitn = factory.createCustomerCreditTransferInitiationV03();
+        document.setCstmrCdtTrfInitn(cstmrCdtTrfInitn);
 
-      return result;
+        // create group header
+        final GroupHeaderSCT grpHdr = factory.createGroupHeaderSCT();
+        cstmrCdtTrfInitn.setGrpHdr(grpHdr);
+
+        grpHdr.setMsgId(msgID);
+        try {
+            grpHdr.setCreDtTm(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
+        } catch (DatatypeConfigurationException e) {
+            log.error("Exception occured while setting creDtTm property.", e);
+        }
+        grpHdr.setNbOfTxs(String.valueOf(invoices.size()));
+        final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
+        grpHdr.setInitgPty(partyIdentificationSEPA1);
+        partyIdentificationSEPA1.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor));
+
+        // create payment information
+        PaymentInstructionInformationSCT pmtInf = factory.createPaymentInstructionInformationSCT();
+        cstmrCdtTrfInitn.getPmtInf().add(pmtInf);
+
+        pmtInf.setPmtInfId(msgID + "-1");
+        pmtInf.setPmtMtd(PaymentMethodSCTCode.TRF);
+        pmtInf.setBtchBookg(true);
+        pmtInf.setNbOfTxs(String.valueOf(invoices.size()));
+        // the default value for most HBCI/FinTS is 01/01/1999 or the current date
+        // pmtInf.setReqdExctnDt(XMLGregorianCalendarImpl.createDate(1999, 1, 1, 0));
+        try {
+            pmtInf.setReqdExctnDt(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
+        } catch (DatatypeConfigurationException e) {
+            log.error("Exception occured while setting reqdExctnDt property.", e);
+        }
+        // pmtInf.setChrgBr(ChargeBearerTypeSEPACode.SLEV); // TODO check if this is required
+
+        // set payment type information
+        PaymentTypeInformationSCT1 pmTpInf = factory.createPaymentTypeInformationSCT1();
+        ServiceLevelSEPA svcLvl = factory.createServiceLevelSEPA();
+        svcLvl.setCd("SEPA");
+        pmTpInf.setSvcLvl(svcLvl);
+        pmtInf.setPmtTpInf(pmTpInf);
+
+        // set debitor
+        PartyIdentificationSEPA2 dbtr = factory.createPartyIdentificationSEPA2();
+        dbtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(debitor)); // other fields should not be used
+        pmtInf.setDbtr(dbtr);
+
+        // set debitor iban
+        CashAccountSEPA1 dbtrAcct = factory.createCashAccountSEPA1();
+        AccountIdentificationSEPA id = factory.createAccountIdentificationSEPA();
+        dbtrAcct.setId(id);
+        id.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultIBAN));
+        pmtInf.setDbtrAcct(dbtrAcct);
+
+        // set debitor bic
+        BranchAndFinancialInstitutionIdentificationSEPA3 dbtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA3();
+        FinancialInstitutionIdentificationSEPA3 finInstnId = factory.createFinancialInstitutionIdentificationSEPA3();
+        dbtrAgt.setFinInstnId(finInstnId);
+        finInstnId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(defaultBIC));
+        pmtInf.setDbtrAgt(dbtrAgt);
+
+        // create transaction
+        BigDecimal amount = BigDecimal.ZERO;
+        int index = 0;
+        for (EingangsrechnungDO invoice : invoices) {
+            this.createTransaction(result, factory, invoice, msgID, pmtInf, ++index);
+            amount = amount.add(invoice.getGrossSumWithDiscount());
+        }
+        amount = amount.setScale(2, RoundingMode.HALF_UP);
+
+        if (!result.getErrors().isEmpty()) {
+            return result;
+        }
+
+        // set total amount of transfer sum
+        grpHdr.setCtrlSum(amount);
+        pmtInf.setCtrlSum(amount);
+
+        // marshaling
+        try {
+            Marshaller marshaller = this.jaxbContext.createMarshaller();
+            marshaller.setSchema(this.painSchema);
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            marshaller.marshal(factory.createDocument(document), out);
+
+            result.setXml(out.toByteArray());
+            return result;
+        } catch (JAXBException e) {
+            log.error("An error occurred while marshaling the generated java transaction object. Transfer generation failed.", e);
+
+            //      if (e.getLinkedException() != null && e.getLinkedException().getMessage() != null) {
+            //        throw new UserException("fibu.rechnung.transferExport.error", e.getLinkedException().getMessage());
+            //      }
+
+            return result;
+        }
     }
-  }
 
-  private void createTransaction(final SEPATransferResult result, final ObjectFactory factory, final EingangsrechnungDO invoice,
-      final String msgID, final PaymentInstructionInformationSCT pmtInf, int index)
-  {
-    // validate invoice, check field values
-    List<SEPATransferError> errors = new ArrayList<>();
-    if (invoice.getGrossSumWithDiscount() == null || invoice.getGrossSumWithDiscount().compareTo(BigDecimal.ZERO) == 0) {
-      errors.add(SEPATransferError.SUM);
-    }
-    if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
-      errors.add(SEPATransferError.BANK_TRANSFER);
-    }
-    String iban = invoice.getIban();
-    if (StringUtils.isNotBlank(iban)) {
-      iban = iban.replaceAll("\\s","").toUpperCase();
-    }
-    if(iban != null && !iban.startsWith("DE")) {
-      if (invoice.getBic() == null || !this.patternBic.matcher(invoice.getBic().toUpperCase()).matches()) {
-        errors.add(SEPATransferError.BIC);
-      }
-    }
-    if (iban == null || !this.patternIBAN.matcher(iban).matches()) {
-      errors.add(SEPATransferError.IBAN);
-    }
-    if (invoice.getReceiver() == null || invoice.getReceiver().length() < 1 || invoice.getReceiver().length() > 70) {
-      errors.add(SEPATransferError.RECEIVER);
-    }
-    if (invoice.getReferenz() == null || invoice.getReferenz().length() < 1 || invoice.getReferenz().length() > 140) {
-      errors.add(SEPATransferError.REFERENCE);
-    }
+    private void createTransaction(final SEPATransferResult result, final ObjectFactory factory, final EingangsrechnungDO invoice,
+                                   final String msgID, final PaymentInstructionInformationSCT pmtInf, int index) {
+        // validate invoice, check field values
+        List<SEPATransferError> errors = new ArrayList<>();
+        if (invoice.getGrossSumWithDiscount() == null || invoice.getGrossSumWithDiscount().compareTo(BigDecimal.ZERO) == 0) {
+            errors.add(SEPATransferError.SUM);
+        }
+        if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
+            errors.add(SEPATransferError.BANK_TRANSFER);
+        }
+        String iban = invoice.getIban();
+        if (StringUtils.isNotBlank(iban)) {
+            iban = iban.replaceAll("\\s", "").toUpperCase();
+        }
+        if (iban != null && !iban.startsWith("DE")) {
+            if (invoice.getBic() == null || !this.patternBic.matcher(invoice.getBic().toUpperCase()).matches()) {
+                errors.add(SEPATransferError.BIC);
+            }
+        }
+        if (iban == null || !this.patternIBAN.matcher(iban).matches()) {
+            errors.add(SEPATransferError.IBAN);
+        }
+        if (invoice.getReceiver() == null || invoice.getReceiver().length() < 1 || invoice.getReceiver().length() > 70) {
+            errors.add(SEPATransferError.RECEIVER);
+        }
+        if (invoice.getReferenz() == null || invoice.getReferenz().length() < 1 || invoice.getReferenz().length() > 140) {
+            errors.add(SEPATransferError.REFERENCE);
+        }
 
-    if (!errors.isEmpty()) {
-      result.getErrors().put(invoice, errors);
-      return;
-    }
+        if (!errors.isEmpty()) {
+            result.getErrors().put(invoice, errors);
+            return;
+        }
 
-    CreditTransferTransactionInformationSCT cdtTrfTxInf = factory.createCreditTransferTransactionInformationSCT();
-    pmtInf.getCdtTrfTxInf().add(cdtTrfTxInf);
+        CreditTransferTransactionInformationSCT cdtTrfTxInf = factory.createCreditTransferTransactionInformationSCT();
+        pmtInf.getCdtTrfTxInf().add(cdtTrfTxInf);
 
-    // set transaction id
-    PaymentIdentificationSEPA pmtId = factory.createPaymentIdentificationSEPA();
-    pmtId.setEndToEndId(msgID + "-1-" + index);
-    cdtTrfTxInf.setPmtId(pmtId);
+        // set transaction id
+        PaymentIdentificationSEPA pmtId = factory.createPaymentIdentificationSEPA();
+        pmtId.setEndToEndId(msgID + "-1-" + index);
+        cdtTrfTxInf.setPmtId(pmtId);
 
-    // set amount type (currency)
-    AmountTypeSEPA amt = factory.createAmountTypeSEPA();
-    ActiveOrHistoricCurrencyAndAmountSEPA instdAmt = factory.createActiveOrHistoricCurrencyAndAmountSEPA();
-    amt.setInstdAmt(instdAmt);
-    instdAmt.setCcy(ActiveOrHistoricCurrencyCodeEUR.EUR);
-    instdAmt.setValue(invoice.getGrossSumWithDiscount().setScale(2, RoundingMode.HALF_UP));
-    cdtTrfTxInf.setAmt(amt);
+        // set amount type (currency)
+        AmountTypeSEPA amt = factory.createAmountTypeSEPA();
+        ActiveOrHistoricCurrencyAndAmountSEPA instdAmt = factory.createActiveOrHistoricCurrencyAndAmountSEPA();
+        amt.setInstdAmt(instdAmt);
+        instdAmt.setCcy(ActiveOrHistoricCurrencyCodeEUR.EUR);
+        instdAmt.setValue(invoice.getGrossSumWithDiscount().setScale(2, RoundingMode.HALF_UP));
+        cdtTrfTxInf.setAmt(amt);
 
-    // set creditor
-    PartyIdentificationSEPA2 cdtr = factory.createPartyIdentificationSEPA2();
-    cdtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReceiver()));
-    cdtTrfTxInf.setCdtr(cdtr);
+        // set creditor
+        PartyIdentificationSEPA2 cdtr = factory.createPartyIdentificationSEPA2();
+        cdtr.setNm(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReceiver()));
+        cdtTrfTxInf.setCdtr(cdtr);
 
-    // set creditor iban
-    CashAccountSEPA2 cdtrAcct = factory.createCashAccountSEPA2();
-    AccountIdentificationSEPA cdtrAcctId = factory.createAccountIdentificationSEPA();
-    cdtrAcctId.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(iban));
-    cdtrAcct.setId(cdtrAcctId);
-    cdtTrfTxInf.setCdtrAcct(cdtrAcct);
+        // set creditor iban
+        CashAccountSEPA2 cdtrAcct = factory.createCashAccountSEPA2();
+        AccountIdentificationSEPA cdtrAcctId = factory.createAccountIdentificationSEPA();
+        cdtrAcctId.setIBAN(SEPATransferGeneratorUtils.eraseUnsuportedChars(iban));
+        cdtrAcct.setId(cdtrAcctId);
+        cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
-    // set creditor bic
-    if(!iban.startsWith("DE")) {
-      BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
-        .createBranchAndFinancialInstitutionIdentificationSEPA1();
-      FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
-      cdtrAgt.setFinInstnId(finInstId);
-      finInstId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getBic().toUpperCase()));
-      cdtTrfTxInf.setCdtrAgt(cdtrAgt);
-    }
+        // set creditor bic
+        if (!iban.startsWith("DE")) {
+            BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
+                    .createBranchAndFinancialInstitutionIdentificationSEPA1();
+            FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
+            cdtrAgt.setFinInstnId(finInstId);
+            finInstId.setBIC(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getBic().toUpperCase()));
+            cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+        }
 
-    // set remittance information (bemerkung/purpose)
-    RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
-    rmtInf.setUstrd(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReferenz()));
-    cdtTrfTxInf.setRmtInf(rmtInf);
-  }
-
-  public Document parse(final byte[] input)
-  {
-    if (this.jaxbContext == null) {
-      log.error("Parsing transfer not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.");
-      return null;
+        // set remittance information (bemerkung/purpose)
+        RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
+        rmtInf.setUstrd(SEPATransferGeneratorUtils.eraseUnsuportedChars(invoice.getReferenz()));
+        cdtTrfTxInf.setRmtInf(rmtInf);
     }
 
-    try {
-      Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
-      unmarshaller.setSchema(this.painSchema);
-      InputStream inStream = new ByteArrayInputStream(input);
-      JAXBElement<Document> result = (JAXBElement<Document>) unmarshaller.unmarshal(inStream);
+    public Document parse(final byte[] input) {
+        if (this.jaxbContext == null) {
+            log.error("Parsing transfer not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.");
+            return null;
+        }
 
-      return result.getValue();
-    } catch (JAXBException e) {
-      log.error("An error occurred while unmarshaling the java transaction object.", e);
+        try {
+            Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
+            unmarshaller.setSchema(this.painSchema);
+            InputStream inStream = new ByteArrayInputStream(input);
+            JAXBElement<Document> result = (JAXBElement<Document>) unmarshaller.unmarshal(inStream);
+
+            return result.getValue();
+        } catch (JAXBException e) {
+            log.error("An error occurred while unmarshaling the java transaction object.", e);
+        }
+
+        return null;
     }
-
-    return null;
-  }
 }

@@ -30,11 +30,13 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.utils.ReflectionToString
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.type.SqlTypes
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 import org.projectforge.framework.persistence.history.NoHistory
 
@@ -116,7 +118,7 @@ open class LicenseDO : DefaultBaseDO() {
     @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file1")
-    @get:Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     open var file1: ByteArray? = null
 
     @FullTextField
@@ -126,7 +128,7 @@ open class LicenseDO : DefaultBaseDO() {
     @field:NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file2")
-    @get:Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     open var file2: ByteArray? = null
 
     @FullTextField

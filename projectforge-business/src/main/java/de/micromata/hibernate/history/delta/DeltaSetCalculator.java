@@ -203,11 +203,11 @@ public class DeltaSetCalculator {
       } else if (propertyType.isArray()) {
         log.debug("Encountered property is an array type");
         delta = getArrayDelta(sf, propertyName, propertyType, oldValue, newValue, delta);
-      } else if (sf.getClassMetadata(propertyType) != null) {
+      /*} else if (sf.getClassMetadata(propertyType) != null) {
         log.debug("Encountered property is an association type");
         if (!areEqual(oldValue, newValue, sf)) {
           delta = new AssociationPropertyDelta(sf, propertyName, propertyType, oldValue, newValue);
-        }
+        }*/
       } else {
         log.debug("Property was a simple property");
         if (!areEqual(oldValue, newValue, sf)) {
@@ -229,15 +229,15 @@ public class DeltaSetCalculator {
     if (element == null) {
       return null;
     }
-    try {
+/*    try {
       ClassMetadata classMetadata = factory.getClassMetadata(element.getClass());
       if (classMetadata != null) {
-        return classMetadata.getIdentifier(element/* , EntityMode.POJO */);
+        return classMetadata.getIdentifier(element/* , EntityMode.POJO * /);
       }
     } catch (HibernateException ex) {
       log.error("Exception encountered " + ex, ex);
       return null;
-    }
+    }*/
     return element;
   }
 
@@ -301,7 +301,7 @@ public class DeltaSetCalculator {
       }
     }
 
-    if (Hibernate.isInitialized(oldCollectionValue) && Hibernate.isInitialized(newCollectionValue)) {
+   /* if (Hibernate.isInitialized(oldCollectionValue) && Hibernate.isInitialized(newCollectionValue)) {
       CollectionPropertyDelta collectionDelta = null;
       Class returnedClass = Object.class;
       try {
@@ -327,7 +327,8 @@ public class DeltaSetCalculator {
     } else {
       log.debug("One (or both) of a collection property was not previously initialized; have to skip");
     }
-    return delta;
+    return delta;*/
+    return null;
   }
 
   public static boolean areEqual(Object obj1, Object obj2, SessionFactory sf) {
@@ -360,20 +361,20 @@ public class DeltaSetCalculator {
    * @return
    */
   private static boolean areEntitiesEqual(Object obj1, Object obj2, SessionFactory sf) {
-    try {
+   /* try {
       // compare the database identifier
       ClassMetadata clazz = sf.getClassMetadata(obj1.getClass());
       if (clazz != null) {
         if (clazz.hasIdentifierProperty()) {
-          if (clazz.getIdentifier(obj1/* , EntityMode.POJO */)
-                  .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO */))) {
+          if (clazz.getIdentifier(obj1/* , EntityMode.POJO * /)
+                  .equals(clazz.getIdentifier(obj2/* , EntityMode.POJO * /))) {
             return true;
           }
         }
       }
     } catch (Exception ex) {
       log.error("Exception occured:" + ex, ex);
-    }
+    }*/
 
     return obj1.equals(obj2);
   }

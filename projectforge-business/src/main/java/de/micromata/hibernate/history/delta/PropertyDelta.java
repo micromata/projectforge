@@ -23,23 +23,22 @@
 
 package de.micromata.hibernate.history.delta;
 
+import jakarta.persistence.metamodel.EntityType;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.query.Query;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
 
 import java.util.List;
 import java.util.Map;
 
 /**
  * Legacy used for XML persistence of DB.
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -137,10 +136,19 @@ public abstract class PropertyDelta
     if (StringUtils.isBlank(id)) {
       return null;
     }
+    /*
     try {
       Query query = session.createQuery("select o from " + type + " o where o.id = :pk");
       SessionFactory factory = session.getSessionFactory();
-      Map<String, ClassMetadata> map = factory.getAllClassMetadata();
+      //Map<String, ClassMetadata> map = factory.getAllClassMetadata();
+     var metamodel = factory.getMetamodel();
+      // Iteriere über alle Entitäten im Metamodel
+      for (EntityType<?> entityType : metamodel.getEntities()) {
+        if (entityType.getName().endsWith(type)) {
+          EntityDomainType<?> entityDomainType = (EntityDomainType<?>) entityType;
+          Class<?> pkType = entityDomainType.getIdType().getJavaType(); // entityDomainType.getIdType().getJavaType();
+             }
+
       ClassMetadata meta = null;
       for (String entry : map.keySet()) {
         if (entry.endsWith(type)) {
@@ -173,7 +181,8 @@ public abstract class PropertyDelta
       return null;
     } catch (HibernateException ex) {
       return null;
-    }
+    }*/
+    return null;
   }
 
   public abstract Object getOldObjectValue(Session session) throws HibernateException;

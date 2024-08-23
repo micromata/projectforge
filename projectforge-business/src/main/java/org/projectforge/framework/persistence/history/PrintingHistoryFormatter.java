@@ -49,18 +49,18 @@ public class PrintingHistoryFormatter extends DefaultHistoryFormatter
   public String formatUser(final Session session, final Locale locale, final Object changed,
       final HistoryEntry historyEntry, final PropertyDelta delta)
   {
-    final String[] users = StringUtils.split(historyEntry.getUserName(), ",");
+    final String[] users = StringUtils.split(historyEntry.getModifiedBy(), ",");
     if (users != null && users.length > 0) {
       try {
         final PFUserDO user = session.load(PFUserDO.class, Integer.valueOf(users[0]));
         return "<img src=\"images/user.gif\" valign=\"middle\" width=\"20\" height=\"20\" border=\"0\"  /> "
             + escapeHtml(user.getFullname());
       } catch (final HibernateException ex) {
-        log.warn("Can't load history-user " + historyEntry.getUserName());
+        log.warn("Can't load history-user " + historyEntry.getModifiedBy());
         return "unknown";
       }
     }
-    return escapeHtml(historyEntry.getUserName());
+    return escapeHtml(historyEntry.getModifiedBy());
   }
 
 }

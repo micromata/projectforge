@@ -28,15 +28,14 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Hibernate;
+import org.hibernate.collection.spi.PersistentSet;
 import org.hibernate.proxy.HibernateProxy;
 import org.projectforge.framework.ToStringUtil;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
+import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO;
-import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.time.PFDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +123,7 @@ public class BaseDaoJpaAdapter {
                             destColl = new HashSet<>();
                         } else if (srcColl instanceof List) {
                             destColl = new ArrayList<>();
-                        } else if (HibernateCompatUtils.isPersistenceSet(srcColl)) {
+                        } else if (srcColl instanceof PersistentSet) {
                             destColl = new HashSet<>();
                         } else {
                             log.error("Unsupported collection type: " + srcColl.getClass().getName());

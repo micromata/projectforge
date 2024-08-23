@@ -85,7 +85,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
   public String formatUser(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
-    return escapeHtml(historyEntry.getUserName());
+    return escapeHtml(historyEntry.getModifiedBy());
   }
 
   /**

@@ -32,6 +32,8 @@ import org.projectforge.mail.MailAttachment
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -57,7 +59,7 @@ open class TeamEventAttachmentDO : DefaultBaseDO(), Comparable<TeamEventAttachme
     }
 
     @Column
-    @Type(type = "binary")
+    @JdbcTypeCode(SqlTypes.BLOB)
     override fun getContent(): ByteArray? {
         return content
     }

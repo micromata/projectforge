@@ -101,8 +101,8 @@ public class DatabaseService {
   @Autowired
   private AddressbookDao addressbookDao;
 
-  @Value("${hibernate.search.default.indexBase}")
-  private String hibernateIndexDir;
+  @Value("${hibernate.search.directory.root}")
+  private String hibernateSearchDirectoryRoot;
 
   @Autowired
   private DataSource dataSource;
@@ -270,7 +270,7 @@ public class DatabaseService {
     log.info("Start generating Schema...");
     Map<String, Object> props = new HashMap<>();
     props.put("hibernate.hbm2ddl.auto", "update");
-    props.put("hibernate.search.default.indexBase", hibernateIndexDir);
+    props.put("hibernate.search.backend.directory.root", hibernateSearchDirectoryRoot);
     props.put("hibernate.connection.datasource", dataSource);
     try {
       Persistence.createEntityManagerFactory("org.projectforge.webapp", props);
