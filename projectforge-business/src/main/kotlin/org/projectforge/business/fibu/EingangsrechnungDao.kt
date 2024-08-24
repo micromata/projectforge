@@ -43,7 +43,7 @@ import java.math.RoundingMode
 private val log = KotlinLogging.logger {}
 
 @Repository
-class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::class.java) {
+open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::class.java) {
     @Autowired
     private val kontoDao: KontoDao? = null
 

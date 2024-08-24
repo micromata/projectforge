@@ -55,7 +55,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 @Repository
-class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
+open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
 

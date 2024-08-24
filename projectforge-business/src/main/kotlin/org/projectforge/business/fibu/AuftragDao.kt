@@ -66,7 +66,7 @@ import java.util.*
 import java.util.stream.Collectors
 
 @Repository
-class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
+open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
 

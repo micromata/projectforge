@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 @Repository
-class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
+open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     @Autowired
     private val projektDao: ProjektDao? = null
 

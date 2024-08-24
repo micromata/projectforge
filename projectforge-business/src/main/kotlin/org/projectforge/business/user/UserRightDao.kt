@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
 @Repository
-class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::class.java) {
+open class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::class.java) {
     @Autowired
     private lateinit var userRightService: UserRightService
 

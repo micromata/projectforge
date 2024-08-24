@@ -180,6 +180,7 @@ internal object EntityManagerUtil {
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
+        lockModeType: LockModeType? = null,
     ): List<T?> {
         PfPersistenceContext(entityManagerFactory).use { context ->
             return queryNullable(
@@ -188,6 +189,7 @@ internal object EntityManagerUtil {
                 resultClass = resultClass,
                 keyValues = keyValues,
                 attached = attached,
+                lockModeType = lockModeType,
             )
         }
     }
@@ -201,8 +203,12 @@ internal object EntityManagerUtil {
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
+        lockModeType: LockModeType? = null,
     ): List<T?> {
         val q = createQuery<T>(em, sql = sql, resultClass = resultClass, keyValues = keyValues)
+        if (lockModeType != null) {
+            q.lockMode = lockModeType
+        }
         val ret = q.resultList
         if (!attached) {
             ret.forEach { obj ->
@@ -226,6 +232,7 @@ internal object EntityManagerUtil {
         attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
+        lockModeType: LockModeType? = null,
     ): List<T> {
         PfPersistenceContext(entityManagerFactory).use { context ->
             return query(
@@ -236,6 +243,7 @@ internal object EntityManagerUtil {
                 attached = attached,
                 namedQuery = namedQuery,
                 maxResults = maxResults,
+                lockModeType = lockModeType,
             )
         }
     }
@@ -251,8 +259,12 @@ internal object EntityManagerUtil {
         attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
+        lockModeType: LockModeType? = null,
     ): List<T> {
         val q = createQuery(em, sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery)
+        if (lockModeType != null) {
+            q.lockMode = lockModeType
+        }
         if (maxResults != null) {
             q.maxResults = maxResults
         }

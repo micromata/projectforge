@@ -45,7 +45,7 @@ import org.springframework.util.CollectionUtils
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCampaignValueDO::class.java) {
+open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCampaignValueDO::class.java) {
     @Autowired
     private var addressDao: AddressDao? = null
 
