@@ -25,9 +25,11 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.common.anots.PropertyInfo
@@ -71,7 +73,6 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
      * werden.
      */
     @PropertyInfo(i18nKey = "fibu.rechnung.zahlungsZiel")
-    @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Transient
     open var zahlungsZielInTagen: Int? = null
 
@@ -101,6 +102,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     @PropertyInfo(i18nKey = "fibu.konto")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "konto_id")
     open var konto: KontoDO? = null
 

@@ -48,10 +48,8 @@ import org.projectforge.framework.time.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.*
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 private val log = KotlinLogging.logger {}
 
@@ -140,6 +138,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
   @PropertyInfo(i18nKey = "plugins.teamcal.calendar")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "calendar_fk", nullable = false)
   open var calendar: TeamCalDO? = null

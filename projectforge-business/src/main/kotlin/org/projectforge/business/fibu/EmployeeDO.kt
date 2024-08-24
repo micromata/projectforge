@@ -28,10 +28,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.Constants
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.common.anots.PropertyInfo
@@ -88,6 +86,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.employee.user")
     @IndexedEmbedded(includeDepth = 1, includePaths = ["username", "firstname", "lastname", "description", "organization"])
     @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "user_id", nullable = false)
     open var user: PFUserDO? = null
 
@@ -97,6 +96,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kost1_id", nullable = true)
     open var kost1: Kost1DO? = null
 
@@ -121,7 +121,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     open var eintrittsDatum: LocalDate? = null
 
     @PropertyInfo(i18nKey = "fibu.employee.austrittsdatum")
-    @FullTextField
+    @GenericField
     @get:Column(name = "austritt")
     open var austrittsDatum: LocalDate? = null
 

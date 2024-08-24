@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.task.TaskDO
@@ -41,7 +42,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  */
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(name = "kost2", type = HibernateSearchProjektTypeBinder::class))
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchProjektTypeBinder::class))
 //@ClassBridge(name = "kost2", impl = HibernateSearchProjectKostBridge::class)
 @Table(
     name = "T_FIBU_PROJEKT",
@@ -101,6 +102,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(includeDepth = 1)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "kunde_id")
     open var kunde: KundeDO? = null
@@ -131,22 +133,26 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projektmanager_group_fk")
     @IndexedEmbedded(includeDepth = 1)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     open var projektManagerGroup: GroupDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projectManager")
     @IndexedEmbedded(includeDepth = 1)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projectmanager_fk")
     open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
     @IndexedEmbedded(includeDepth = 1)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
     open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
     @IndexedEmbedded(includeDepth = 1)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "salesmanager_fk")
     open var salesManager: PFUserDO? = null
@@ -161,6 +167,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      * KundeDO is used instead (default).
      */
     @PropertyInfo(i18nKey = "fibu.konto")
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
     open var konto: KontoDO? = null

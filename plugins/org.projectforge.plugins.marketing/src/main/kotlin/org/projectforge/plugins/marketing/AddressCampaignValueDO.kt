@@ -30,6 +30,8 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * A marketing campaign.
@@ -63,11 +65,13 @@ import jakarta.persistence.*
 open class AddressCampaignValueDO : DefaultBaseDO() {
 
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_campaign_fk", nullable = false)
   open var addressCampaign: AddressCampaignDO? = null
 
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "address_fk", nullable = false)
   open var address: AddressDO? = null

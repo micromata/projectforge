@@ -37,7 +37,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBindin
 
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(name = "kost1", type = HibernateSearchKost1TypeBinder::class))
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchKost1TypeBinder::class))
 //@ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
 @Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
 //@WithHistory

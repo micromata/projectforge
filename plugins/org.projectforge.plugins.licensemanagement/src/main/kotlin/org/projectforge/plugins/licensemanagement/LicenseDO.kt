@@ -23,12 +23,6 @@
 
 package org.projectforge.plugins.licensemanagement
 
-import org.hibernate.annotations.Type
-import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.Constants
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.utils.ReflectionToString
-import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
@@ -37,15 +31,21 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 import org.hibernate.type.SqlTypes
+import org.projectforge.Constants
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.utils.ReflectionToString
+import java.time.LocalDate
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+// TODO: Migration of ClassBridge to TypeBridge.
+//@TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
 //@ClassBridge(name = "owners", impl = HibernateSearchUsersBridge::class)
 @Table(name = "T_PLUGIN_LM_LICENSE")
 open class LicenseDO : DefaultBaseDO() {
@@ -81,7 +81,6 @@ open class LicenseDO : DefaultBaseDO() {
     open var key: String? = null
 
     @PropertyInfo(i18nKey = "plugins.licensemanagement.numberOfLicenses")
-    @FullTextField
     @get:Column(name = "number_of_licenses")
     open var numberOfLicenses: Int? = null
 

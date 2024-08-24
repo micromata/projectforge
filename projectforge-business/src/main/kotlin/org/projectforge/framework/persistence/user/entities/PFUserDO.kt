@@ -156,7 +156,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "user.mobilePhone", tooltip = "user.mobilePhone.info")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
-    @FullTextField
     @get:Column(name = "mobile_phone", length = 255)
     open var mobilePhone: String? = null
 

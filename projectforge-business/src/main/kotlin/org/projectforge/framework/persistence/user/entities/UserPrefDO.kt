@@ -45,7 +45,9 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import java.io.Serializable
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
@@ -73,6 +75,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
     var user: PFUserDO? = null

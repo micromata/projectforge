@@ -38,10 +38,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  *
@@ -62,6 +60,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "timesheet.user")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
     open var user: PFUserDO? = null

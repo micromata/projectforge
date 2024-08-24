@@ -56,25 +56,25 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     override var id: Long? = null
 
     @get:Transient
-    @get:GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
+    //@GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
     override var entityName: String? = null
 
     @get:Transient
-    @get:GenericField // was @get:Field(analyze = Analyze.NO, store = Store.YES, index = Indexed.YES)
+    //@GenericField // was @get:Field(analyze = Analyze.NO, store = Store.YES, index = Indexed.YES)
     override var entityId: Long? = null
 
     @get:Transient
-    @get:GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
+    //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
     override var modifiedBy: String? = null
 
     @get:Transient
-    @get:GenericField
+    //@GenericField
     override val modifiedAt: Date? = null
 
     override var entityOpType: EntityOpType? = null
 
     @get:Transient
-    @get:FullTextField
+    //@FullTextField
     var oldValue: String? = null // was @get:Field(analyze = Analyze.YES, store = Store.NO, index = Indexed.YES)
 
     /*@get:MapKey(name = "propertyName")

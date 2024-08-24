@@ -32,7 +32,9 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -63,6 +65,7 @@ open class VacationDO : DefaultBaseDO() {
    */
   @PropertyInfo(i18nKey = "vacation.employee")
   @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "employee_id", nullable = false)
   open var employee: EmployeeDO? = null
@@ -83,6 +86,7 @@ open class VacationDO : DefaultBaseDO() {
    */
   @PropertyInfo(i18nKey = "vacation.replacement")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "replacement_id", nullable = false)
   open var replacement: EmployeeDO? = null
@@ -92,6 +96,7 @@ open class VacationDO : DefaultBaseDO() {
    */
   @PropertyInfo(i18nKey = "vacation.replacement.others")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:Column(nullable = true) // Needed for telling MGC that this field is nullable.
   @get:ManyToMany(fetch = FetchType.EAGER)
   @get:JoinTable(
@@ -125,6 +130,7 @@ open class VacationDO : DefaultBaseDO() {
    */
   @PropertyInfo(i18nKey = "vacation.manager")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "manager_id", nullable = false)
   open var manager: EmployeeDO? = null

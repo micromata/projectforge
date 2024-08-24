@@ -27,10 +27,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
@@ -91,7 +89,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * Auftragsnummer ist eindeutig und wird fortlaufend erzeugt.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.nummer")
-    @FullTextField
+    @GenericField
     @get:Column(nullable = false)
     open var nummer: Int? = null
 
@@ -121,6 +119,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "contactPerson")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
     open var contactPerson: PFUserDO? = null
 
@@ -132,6 +131,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kunde_fk", nullable = true)
     open var kunde: KundeDO? = null
 
@@ -150,6 +150,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(includeDepth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "projekt_fk", nullable = true)
     open var projekt: ProjektDO? = null
 
@@ -173,7 +174,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     open var statusBeschreibung: String? = null
 
     @PropertyInfo(i18nKey = "fibu.auftrag.angebot.datum")
-    @FullTextField
+    @GenericField
     @get:Column(name = "angebots_datum")
     open var angebotsDatum: LocalDate? = null
 
@@ -265,18 +266,21 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "fibu.projectManager")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "projectmanager_fk")
     open var projectManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.headOfBusinessManager")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "headofbusinessmanager_fk")
     open var headOfBusinessManager: PFUserDO? = null
 
     @PropertyInfo(i18nKey = "fibu.salesManager")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "salesmanager_fk")
     open var salesManager: PFUserDO? = null
 

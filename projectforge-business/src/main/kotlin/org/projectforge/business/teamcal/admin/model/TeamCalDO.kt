@@ -28,17 +28,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.hibernate.annotations.Type
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.hibernate.type.SqlTypes
 
 /**
@@ -71,6 +69,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
 
     @PropertyInfo(i18nKey = "plugins.teamcal.owner")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     override var owner: PFUserDO? = null

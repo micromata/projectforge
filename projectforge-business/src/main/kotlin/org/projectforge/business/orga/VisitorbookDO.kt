@@ -25,9 +25,11 @@ package org.projectforge.business.orga
 
 import jakarta.persistence.*
 import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.AUserRightId
@@ -61,7 +63,8 @@ class VisitorbookDO : DefaultBaseDO() {
     var company: String? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
-    @get:IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
+    @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
     @get:JoinTable(
         name = "T_ORGA_VISITORBOOK_EMPLOYEE",

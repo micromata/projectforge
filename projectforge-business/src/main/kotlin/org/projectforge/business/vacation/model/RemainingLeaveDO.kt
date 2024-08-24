@@ -30,6 +30,8 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * Remaining leave entries for employees per year.
@@ -55,6 +57,7 @@ open class RemainingLeaveDO : DefaultBaseDO() {
    */
   @PropertyInfo(i18nKey = "vacation.employee")
   @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "employee_id", nullable = false)
   open var employee: EmployeeDO? = null

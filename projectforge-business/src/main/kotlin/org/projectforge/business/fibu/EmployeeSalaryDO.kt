@@ -23,8 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
@@ -32,8 +30,8 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.
@@ -56,6 +54,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "fibu.employee")
     @IndexedEmbedded(includeDepth = 2)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
 

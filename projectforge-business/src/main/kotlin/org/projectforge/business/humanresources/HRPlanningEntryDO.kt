@@ -37,10 +37,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.ObjectHelper
 import java.math.BigDecimal
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -56,12 +54,14 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
         get() = "${projekt?.name}"
 
     @IndexedEmbedded(includeDepth = 3)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "planning_fk", nullable = false)
     open var planning: HRPlanningDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(includeDepth = 2)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "projekt_fk")
     open var projekt: ProjektDO? = null

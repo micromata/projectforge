@@ -34,10 +34,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.*
 import java.util.*
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  *
@@ -79,6 +77,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
   @PropertyInfo(i18nKey = "task")
   @UserPrefParameter(i18nKey = "task", orderString = "2")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "task_id", nullable = false)
   open var task: TaskDO? = null
@@ -86,6 +85,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
   @PropertyInfo(i18nKey = "user")
   @UserPrefParameter(i18nKey = "user", orderString = "1")
   @IndexedEmbedded(includeDepth = 1, includeEmbeddedObjectId = true)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id", nullable = false)
   open var user: PFUserDO? = null
@@ -136,6 +136,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
   @PropertyInfo(i18nKey = "fibu.kost2")
   @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
   @IndexedEmbedded(includeDepth = 2)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "kost2_id", nullable = true)
   open var kost2: Kost2DO? = null

@@ -26,18 +26,17 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import jakarta.persistence.*
 import org.hibernate.annotations.ListIndexBase
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.ValueBridgeRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
 
 /**
  * Eingehende Rechnungen.
@@ -47,124 +46,124 @@ import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumber
 @Entity
 @Indexed
 @Table(
-  name = "t_fibu_eingangsrechnung",
-  indexes = [
-    Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id")
-  ]
+    name = "t_fibu_eingangsrechnung",
+    indexes = [
+        Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id")
+    ]
 )
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 //@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [EingangsrechnungsPositionDO::class])
 @NamedQueries(
-  NamedQuery(
-    name = EingangsrechnungDO.SELECT_MIN_MAX_DATE,
-    query = "select min(datum), max(datum) from EingangsrechnungDO"
-  )
+    NamedQuery(
+        name = EingangsrechnungDO.SELECT_MIN_MAX_DATE,
+        query = "select min(datum), max(datum) from EingangsrechnungDO"
+    )
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<EingangsrechnungDO>, DisplayNameCapable {
 
-  override val displayName: String
-    @Transient
-    get() = if (referenz.isNullOrBlank()) "$kreditor" else "$kreditor: $referenz"
+    override val displayName: String
+        @Transient
+        get() = if (referenz.isNullOrBlank()) "$kreditor" else "$kreditor: $referenz"
 
-  @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
-  @FullTextField
-  @get:Column
-  open var receiver: String? = null
+    @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
+    @FullTextField
+    @get:Column
+    open var receiver: String? = null
 
-  @PropertyInfo(i18nKey = "fibu.rechnung.iban")
-  @FullTextField
-  @get:Column(length = 50)
-  open var iban: String? = null
+    @PropertyInfo(i18nKey = "fibu.rechnung.iban")
+    @FullTextField
+    @get:Column(length = 50)
+    open var iban: String? = null
 
-  @PropertyInfo(i18nKey = "fibu.rechnung.bic")
-  @FullTextField
-  @get:Column(length = 11)
-  open var bic: String? = null
+    @PropertyInfo(i18nKey = "fibu.rechnung.bic")
+    @FullTextField
+    @get:Column(length = 11)
+    open var bic: String? = null
 
-  /**
-   * Referenz / Eingangsrechnungsnummer des Kreditors.
-   *
-   * @return
-   */
-  @PropertyInfo(i18nKey = "fibu.common.reference")
-  @FullTextField
-  @get:Column(length = 1000)
-  open var referenz: String? = null
+    /**
+     * Referenz / Eingangsrechnungsnummer des Kreditors.
+     *
+     * @return
+     */
+    @PropertyInfo(i18nKey = "fibu.common.reference")
+    @FullTextField
+    @get:Column(length = 1000)
+    open var referenz: String? = null
 
-  @PropertyInfo(i18nKey = "fibu.common.creditor")
-  @FullTextField
-  @get:Column(length = 255)
-  open var kreditor: String? = null
+    @PropertyInfo(i18nKey = "fibu.common.creditor")
+    @FullTextField
+    @get:Column(length = 255)
+    open var kreditor: String? = null
 
-  @PropertyInfo(i18nKey = "fibu.payment.type")
-  @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPaymentTypeBridge::class))
-  @get:Column(length = 20, name = "payment_type")
-  @get:Enumerated(EnumType.STRING)
-  open var paymentType: PaymentType? = null
+    @PropertyInfo(i18nKey = "fibu.payment.type")
+    @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPaymentTypeBridge::class))
+    @get:Column(length = 20, name = "payment_type")
+    @get:Enumerated(EnumType.STRING)
+    open var paymentType: PaymentType? = null
 
-  @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
-  @FullTextField
-  @get:Column
-  open var customernr: String? = null
+    @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
+    @FullTextField
+    @get:Column
+    open var customernr: String? = null
 
-  val ibanFormatted: String?
-    @Transient
-    get() = IBANUtils.format(iban)
+    val ibanFormatted: String?
+        @Transient
+        get() = IBANUtils.format(iban)
 
-  @JsonManagedReference
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-  @get:OneToMany(
-    cascade = [CascadeType.ALL],
-    fetch = FetchType.LAZY,
-    mappedBy = "eingangsrechnung",
-    targetEntity = EingangsrechnungsPositionDO::class
-  )
-  @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
-  @get:ListIndexBase(1)
-  override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
+    @JsonManagedReference
+    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @get:OneToMany(
+        cascade = [CascadeType.ALL],
+        fetch = FetchType.LAZY,
+        mappedBy = "eingangsrechnung",
+        targetEntity = EingangsrechnungsPositionDO::class
+    )
+    @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
+    @get:ListIndexBase(1)
+    override var positionen: MutableList<EingangsrechnungsPositionDO>? = null
 
-  override val abstractPositionen: List<AbstractRechnungsPositionDO>?
-    @Transient
-    get() = positionen
+    override val abstractPositionen: List<AbstractRechnungsPositionDO>?
+        @Transient
+        get() = positionen
 
-  override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
-    if (this.positionen == null) {
-      positionen = mutableListOf()
+    override fun ensureAndGetPositionen(): MutableList<out AbstractRechnungsPositionDO> {
+        if (this.positionen == null) {
+            positionen = mutableListOf()
+        }
+        return positionen!!
     }
-    return positionen!!
-  }
 
-  override fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO) {
-    position as EingangsrechnungsPositionDO
-    this.positionen!!.add(position)
-    position.eingangsrechnung = this
-  }
+    override fun addPositionWithoutCheck(position: AbstractRechnungsPositionDO) {
+        position as EingangsrechnungsPositionDO
+        this.positionen!!.add(position)
+        position.eingangsrechnung = this
+    }
 
 
-  override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
-    position as EingangsrechnungsPositionDO
-    position.eingangsrechnung = this
-  }
+    override fun setAbstractRechnung(position: AbstractRechnungsPositionDO) {
+        position as EingangsrechnungsPositionDO
+        position.eingangsrechnung = this
+    }
 
-  /**
-   * (this.status == EingangsrechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
-   */
-  override val isBezahlt: Boolean
-    @Transient
-    get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-      true
-    } else this.bezahlDatum != null && this.zahlBetrag != null
+    /**
+     * (this.status == EingangsrechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
+     */
+    override val isBezahlt: Boolean
+        @Transient
+        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
+            true
+        } else this.bezahlDatum != null && this.zahlBetrag != null
 
-  override fun compareTo(other: EingangsrechnungDO): Int {
-    var cmp = compareValues(this.datum, other.datum)
-    if (cmp != 0) return cmp
-    cmp = StringComparator.compare(this.kreditor, other.kreditor)
-    if (cmp != 0) return cmp
-    return StringComparator.compare(this.referenz, other.referenz)
-  }
+    override fun compareTo(other: EingangsrechnungDO): Int {
+        var cmp = compareValues(this.datum, other.datum)
+        if (cmp != 0) return cmp
+        cmp = StringComparator.compare(this.kreditor, other.kreditor)
+        if (cmp != 0) return cmp
+        return StringComparator.compare(this.referenz, other.referenz)
+    }
 
-  companion object {
-    internal const val SELECT_MIN_MAX_DATE = "EingangsrechnungDO_SelectMinMaxDate"
-  }
+    companion object {
+        internal const val SELECT_MIN_MAX_DATE = "EingangsrechnungDO_SelectMinMaxDate"
+    }
 }

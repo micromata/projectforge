@@ -27,7 +27,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.jcr.AttachmentsInfo
@@ -35,9 +34,8 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * For managing libraries including lend-out functionality.
@@ -71,6 +69,7 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "book.lendOutBy")
     @IndexedEmbedded(includeDepth = 1, includePaths = ["username", "firstname", "lastname"])
     @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:Fetch(FetchMode.SELECT)
     @get:JoinColumn(name = "lend_out_by")
     open var lendOutBy: PFUserDO? = null

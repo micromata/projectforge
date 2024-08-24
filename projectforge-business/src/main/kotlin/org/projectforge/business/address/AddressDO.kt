@@ -116,19 +116,16 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
-    @FullTextField
     @get:Column(name = "business_phone", length = 255)
     open var businessPhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.business")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
-    @FullTextField
     @get:Column(name = "mobile_phone", length = 255)
     open var mobilePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.fax", additionalI18nKey = "address.business")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
-    @FullTextField
     @get:Column(length = 255)
     open var fax: String? = null
 
@@ -211,13 +208,11 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.private")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
-    @FullTextField
     @get:Column(name = "private_phone", length = 255)
     open var privatePhone: String? = null
 
     @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.private")
     @GenericField(valueBridge = ValueBridgeRef(type = HibernateSearchPhoneNumberBridge::class))
-    @FullTextField
     @get:Column(name = "private_mobile_phone", length = 255)
     open var privateMobilePhone: String? = null
 

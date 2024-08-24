@@ -27,13 +27,13 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
@@ -55,6 +55,8 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
   @JsonBackReference
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "rechnung_fk", nullable = false)
+  @get:AssociationInverseSide(inversePath = ObjectPath(PropertyValue(propertyName = "rechnung")))
+  @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "positionen"))])
   open var rechnung: RechnungDO? = null
 
   override val rechnungId: Int?
@@ -65,6 +67,7 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
   @IndexedEmbedded(includeDepth = 1)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrags_position_fk")
+  @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   open var auftragsPosition: AuftragsPositionDO? = null
 
   @PropertyInfo(i18nKey = "fibu.periodOfPerformance.type")
