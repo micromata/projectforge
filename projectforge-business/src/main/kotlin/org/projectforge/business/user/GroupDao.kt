@@ -90,12 +90,11 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
             getByName(group.name)
         } else {
             // group already exists. Check maybe changed name:
-            persistenceService.selectSingleResult(
+            persistenceService.selectNamedSingleResult(
                 GroupDO.FIND_OTHER_GROUP_BY_NAME,
                 GroupDO::class.java,
                 Pair("name", group.name),
                 Pair("id", group.id),
-                namedQuery = true,
             )
         }
         return dbGroup != null
@@ -385,11 +384,10 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (name == null) {
             return null
         }
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             GroupDO.FIND_BY_NAME,
             GroupDO::class.java,
             Pair("name", name),
-            namedQuery = true,
         )
     }
 

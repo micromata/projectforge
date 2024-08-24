@@ -129,12 +129,11 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     fun getProjekt(intern_kost2_4: Int, nummer: Int): ProjektDO? {
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER,
             ProjektDO::class.java,
             Pair("internKost24", intern_kost2_4),
             Pair("nummer", nummer),
-            namedQuery = true,
         )
     }
 

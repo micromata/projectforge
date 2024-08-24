@@ -23,10 +23,7 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityManagerFactory
-import jakarta.persistence.LockModeType
-import jakarta.persistence.TypedQuery
+import jakarta.persistence.*
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
@@ -35,6 +32,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.NonUniqueResultException
 import org.hibernate.Session
 import org.projectforge.framework.i18n.InternalErrorException
+import org.projectforge.framework.persistence.api.HibernateUtils
 
 private val log = KotlinLogging.logger {}
 
@@ -138,34 +136,23 @@ internal object EntityManagerUtil {
         attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
-        val query =
-            createQuery(em, sql = sql, resultClass = resultClass, keyValues = *keyValues, namedQuery = namedQuery)
         val result = try {
-            // NoResultException – if there is no result
-            // NonUniqueResultException
-            if (nullAllowed) {
-                val list = query.resultList
-                if (list.isEmpty()) {
-                    return null
-                }
-                if (list.size > 1) {
-                    throw (NonUniqueResultException(list.size))
-                }
-                list[0]
-            } else {
-                query.singleResult
+            createQuery(
+                em,
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = keyValues,
+                namedQuery = namedQuery
+            ).singleResult
+        } catch (ex: NoResultException) {
+            if (!nullAllowed) {
+                throw InternalErrorException("${ex.message}: $sql ${errorMessage ?: ""}")
             }
-        } catch (ex: Exception) {
-            throw InternalErrorException(
-                "${ex.message}: ${
-                    queryToString(
-                        query,
-                        errorMessage
-                    )
-                }"
-            )
+            return null
+        } catch (ex: NonUniqueResultException) {
+            throw InternalErrorException("${ex.message}: $sql ${errorMessage ?: ""}")
         }
-        if (!attached && em.contains(result)) {
+        if (!attached && HibernateUtils.isEntity(resultClass) && em.contains(result)) {
             em.detach(result)
         }
         return result
@@ -210,7 +197,7 @@ internal object EntityManagerUtil {
             q.lockMode = lockModeType
         }
         val ret = q.resultList
-        if (!attached) {
+        if (!attached && HibernateUtils.isEntity(resultClass)) {
             ret.forEach { obj ->
                 if (obj != null && em.contains(obj)) {
                     em.detach(obj)
@@ -269,7 +256,7 @@ internal object EntityManagerUtil {
             q.maxResults = maxResults
         }
         val ret = q.resultList
-        if (!attached) {
+        if (!attached && HibernateUtils.isEntity(resultClass)) {
             ret.forEach { obj ->
                 if (obj != null && em.contains(obj)) {
                     em.detach(obj)
@@ -449,7 +436,8 @@ internal object EntityManagerUtil {
     fun <T> getReference(
         entityManagerFactory: EntityManagerFactory,
         entityClass: Class<T>,
-        id: Any): T {
+        id: Any
+    ): T {
         return PfPersistenceContext(entityManagerFactory).use { context ->
             runInTransactionIfNotReadonly(context) {
                 context.em.getReference(entityClass, id)
@@ -486,7 +474,7 @@ internal object EntityManagerUtil {
     }
 
     fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
-        val queryString = query.unwrap(org.hibernate.query.Query::class.java).getQueryString()
+        val queryString = query.unwrap(org.hibernate.query.Query::class.java)?.getQueryString()
         val sb = StringBuilder()
         sb.append("query='$queryString', params=[") //query.getQueryString())
         var first = true

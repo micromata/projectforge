@@ -85,7 +85,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     }
 
     open fun findByUserId(userId: Int?): EmployeeDO? {
-        val employee = persistenceService.selectSingleResult(
+        val employee = persistenceService.selectNamedSingleResult(
             EmployeeDO.FIND_BY_USER_ID,
             EmployeeDO::class.java,
             Pair("userId", userId),
@@ -96,9 +96,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
 
     open fun getEmployeeIdByByUserId(userId: Int?): Int? {
         userId ?: return null
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
-            Integer::class.java,
+            java.lang.Integer::class.java,
             Pair("userId", userId),
         )?.toInt()
     }
@@ -117,7 +117,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         Validate.isTrue(tokenizer.countTokens() == 2)
         val lastname = tokenizer.nextToken().trim { it <= ' ' }
         val firstname = tokenizer.nextToken().trim { it <= ' ' }
-        val employee = persistenceService.selectSingleResult(
+        val employee = persistenceService.selectNamedSingleResult(
             EmployeeDO.FIND_BY_LASTNAME_AND_FIRST_NAME,
             EmployeeDO::class.java,
             Pair("firstname", firstname),

@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user
 
+import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -46,15 +47,17 @@ import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Repository
 import java.util.*
 
+private val log = KotlinLogging.logger {}
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
 open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     @Autowired
-    private val applicationContext: ApplicationContext? = null
+    protected open lateinit var applicationContext: ApplicationContext
 
-    private var userPasswordDao: UserPasswordDao? = null
+    protected open var userPasswordDao: UserPasswordDao? = null
 
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
@@ -212,23 +215,21 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
             getInternalByName(user.username)
         } else {
             // user already exists. Check maybe changed username:
-            persistenceService.selectSingleResult(
+            persistenceService.selectNamedSingleResult(
                 PFUserDO.FIND_OTHER_USER_BY_USERNAME,
                 PFUserDO::class.java,
                 Pair("username", user.username),
                 Pair("id", user.id),
-                namedQuery = true,
             )
         }
         return dbUser != null
     }
 
     fun getInternalByName(username: String?): PFUserDO? {
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             PFUserDO.FIND_BY_USERNAME,
             PFUserDO::class.java,
             Pair("username", username),
-            namedQuery = true,
         )
     }
 
@@ -367,7 +368,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
 
     private fun getPasswordOfUser(userId: Int): String? {
         if (userPasswordDao == null) {
-            userPasswordDao = applicationContext!!.getBean(UserPasswordDao::class.java)
+            userPasswordDao = applicationContext.getBean(UserPasswordDao::class.java)
         }
         val passwordObj = userPasswordDao!!.internalGetByUserId(userId)
         if (passwordObj == null) {
@@ -382,8 +383,6 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(UserDao::class.java)
-
         val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("firstname"), SortProperty("lastname"))
     }
 }

@@ -68,12 +68,11 @@ open class WebAuthnEntryDao {
     }
 
     open fun getEntry(ownerId: Int, credentialId: String): WebAuthnEntryDO? {
-        return persistencyService.selectSingleResult(
+        return persistencyService.selectNamedSingleResult(
             WebAuthnEntryDO.FIND_BY_OWNER_AND_CREDENTIAL_ID,
             WebAuthnEntryDO::class.java,
             Pair("ownerId", ownerId),
             Pair("credentialId", credentialId),
-            namedQuery = true,
         )
     }
 

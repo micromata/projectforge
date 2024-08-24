@@ -62,10 +62,9 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
          * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
          */
         get() {
-            val minMaxDate = persistenceService.selectSingleResult(
+            val minMaxDate = persistenceService.selectNamedSingleResult(
                 EingangsrechnungDO.SELECT_MIN_MAX_DATE,
                 Tuple::class.java,
-                namedQuery = true,
             )
             return getYearsByTupleOfLocalDate(minMaxDate)
         }

@@ -127,7 +127,7 @@ open class DBQuery {
         checkAccess: Boolean
     )
             : List<O> {
-        val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
+        val loggedInUser = ThreadLocalUserContext.user
 
         val list = mutableListOf<O>()
         var next: O? = dbResultIterator.next() ?: return list
@@ -151,7 +151,7 @@ open class DBQuery {
                 if (id != null && !ensureUniqueSet.contains(id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(id) // Mark current object as already proceeded (ensure uniqueness)
-                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser))
+                    if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser!!))
                         && baseDao.containsLong(idSet, next)
                         && match(list, customResultFilters, resultPredicates, next)
                     ) {
@@ -172,7 +172,7 @@ open class DBQuery {
                 if (id != null && !ensureUniqueSet.contains(next.id)) {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(id) // Mark current object as already proceeded (ensure uniqueness)
-                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser) && match(
+                    if (!checkAccess || baseDao.hasSelectAccess(next, loggedInUser!!) && match(
                             list,
                             customResultFilters,
                             resultPredicates,

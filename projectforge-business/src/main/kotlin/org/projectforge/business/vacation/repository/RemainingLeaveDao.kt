@@ -82,7 +82,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
     @JvmOverloads
     open fun internalGet(employeeId: Int?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
         employeeId ?: return null
-        val result = persistenceService.selectSingleResult(
+        val result = persistenceService.selectNamedSingleResult(
             RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,
             RemainingLeaveDO::class.java,
             Pair("employeeId", employeeId),
