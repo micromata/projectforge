@@ -28,9 +28,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -38,8 +36,8 @@ import org.springframework.transaction.annotation.Transactional
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
+@Service
+class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
 
     init {
         userRightId = SkillRightId.PLUGIN_SKILL_MATRIX
@@ -76,8 +74,7 @@ open class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
         return SkillEntryDO()
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    open fun getSkills(owner: PFUserDO): List<SkillEntryDO> {
+    fun getSkills(owner: PFUserDO): List<SkillEntryDO> {
         return persistenceService.namedQuery(
             SkillEntryDO.FIND_OF_OWNER,
             SkillEntryDO::class.java,

@@ -24,12 +24,12 @@
 package org.projectforge.plugins.marketing;
 
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class AddressCampaignDao extends BaseDao<AddressCampaignDO> {
 
   public AddressCampaignDao() {

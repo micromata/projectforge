@@ -43,11 +43,9 @@ import org.projectforge.framework.utils.GZIPHelper
 import org.projectforge.framework.xmlstream.XStreamHelper.createXStream
 import org.projectforge.framework.xmlstream.XStreamHelper.fromXml
 import org.projectforge.framework.xmlstream.XStreamHelper.toXml
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -58,8 +56,8 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-open class UserXmlPreferencesDao {
+@Service
+class UserXmlPreferencesDao {
     private val xstream = createXStream(
         UserXmlPreferencesMap::class.java,
         TaskFilter::class.java,
@@ -68,13 +66,13 @@ open class UserXmlPreferencesDao {
     )
 
     @Autowired
-    private val accessChecker: AccessChecker? = null
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private val userDao: UserDao? = null
+    private lateinit var userDao: UserDao
 
     @Autowired
-    private val applicationContext: ApplicationContext? = null
+    private lateinit var applicationContext: ApplicationContext
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
@@ -249,12 +247,12 @@ open class UserXmlPreferencesDao {
      */
     fun setUser(userPrefs: UserXmlPreferencesDO, userId: Int?) {
         userId ?: return
-        val user = userDao!!.getOrLoad(userId)
+        val user = userDao.getOrLoad(userId)
         userPrefs.user = user
     }
 
     fun saveOrUpdate(userId: Int, key: String?, entry: Any?, checkAccess: Boolean) {
-        if (accessChecker!!.isDemoUser(userId)) {
+        if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return
         }

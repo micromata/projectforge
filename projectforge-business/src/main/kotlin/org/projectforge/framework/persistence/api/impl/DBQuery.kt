@@ -33,13 +33,10 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 
 private val log = KotlinLogging.logger {}
 
 @Service
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 open class DBQuery {
 
     @Autowired

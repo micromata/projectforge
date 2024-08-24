@@ -35,14 +35,14 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class ContractDao extends BaseDao<ContractDO> {
     public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
     private final static int START_NUMBER = 1000;

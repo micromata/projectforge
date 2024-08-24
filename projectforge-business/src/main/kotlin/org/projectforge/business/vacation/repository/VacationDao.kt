@@ -47,7 +47,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.Month
 import java.util.stream.Collectors
@@ -57,7 +57,7 @@ import java.util.stream.Collectors
  *
  * @author Florian Blumenstein, Kai Reinhard
  */
-@Repository
+@Service
 open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
@@ -442,16 +442,14 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Int {
-        val baseSQL = "SELECT COUNT(v) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status"
-        val sql = baseSQL + META_SQL_WITH_SPECIAL
+        val sql = "SELECT COUNT(*) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status AND v.deleted = false"
         return persistenceService.selectSingleResult(
             sql,
-            Int::class.java,
+            java.lang.Long::class.java,
             Pair("employee", employee),
             Pair("status", VacationStatus.IN_PROGRESS),
-            Pair("deleted", false),
             nullAllowed = false,
-        ) ?: 0
+        )?.toInt() ?: 0
     }
 
     companion object {

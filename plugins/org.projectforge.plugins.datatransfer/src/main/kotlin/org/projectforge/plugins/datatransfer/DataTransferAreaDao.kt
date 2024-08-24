@@ -49,7 +49,7 @@ import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.core.RestResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import java.util.*
@@ -62,7 +62,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO::class.java), AttachmentsEventListener {
     @Autowired
     private lateinit var configurationChecker: ConfigurationChecker

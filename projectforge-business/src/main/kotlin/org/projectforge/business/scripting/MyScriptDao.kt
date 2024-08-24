@@ -27,13 +27,13 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
 /**
  * For non financial and controlling users.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class MyScriptDao : AbstractScriptDao() {
   /**
    * User must be member of group controlling or finance.

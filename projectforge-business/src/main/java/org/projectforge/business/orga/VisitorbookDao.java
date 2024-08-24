@@ -28,13 +28,13 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-@Repository
+@Service
 public class VisitorbookDao extends BaseDao<VisitorbookDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
   //@Autowired

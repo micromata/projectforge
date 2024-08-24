@@ -60,7 +60,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -76,7 +76,7 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @SuppressWarnings("deprecation")
-@Repository
+@Service
 public class UserPrefDao extends BaseDao<UserPrefDO> {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefDao.class);
 

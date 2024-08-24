@@ -46,7 +46,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.xmlstream.XmlObjectWriter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.io.Serializable
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -54,7 +54,7 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-@Repository
+@Service
 open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     @Autowired
     private lateinit var auftragsCache: AuftragsCache

@@ -39,7 +39,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.*
 
@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     @Autowired
     private lateinit var userDao: UserDao

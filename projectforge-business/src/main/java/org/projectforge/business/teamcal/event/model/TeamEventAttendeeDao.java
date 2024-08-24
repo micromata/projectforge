@@ -24,9 +24,9 @@
 package org.projectforge.business.teamcal.event.model;
 
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-@Repository
+@Service
 public class TeamEventAttendeeDao extends BaseDao<TeamEventAttendeeDO>
 {
   public TeamEventAttendeeDao()

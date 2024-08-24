@@ -30,7 +30,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FilenameFilter
 import java.io.IOException
@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class ScriptDao : AbstractScriptDao() {
   /**
    * Copy old script as script backup if modified.

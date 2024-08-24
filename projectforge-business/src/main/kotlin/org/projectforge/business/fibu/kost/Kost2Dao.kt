@@ -37,9 +37,9 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
-@Repository
+@Service
 open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     @Autowired
     private val projektDao: ProjektDao? = null

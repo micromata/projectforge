@@ -43,14 +43,11 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 import java.io.InputStream
 
-@Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-open class DatevImportDao {
+@Service
+class DatevImportDao {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 

@@ -40,11 +40,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.utils.Crypt.decrypt
 import org.projectforge.framework.utils.Crypt.encrypt
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -52,12 +50,12 @@ private val log = KotlinLogging.logger {}
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     @Autowired
-    protected open lateinit var applicationContext: ApplicationContext
+    private lateinit var applicationContext: ApplicationContext
 
-    protected open var userPasswordDao: UserPasswordDao? = null
+    private var userPasswordDao: UserPasswordDao? = null
 
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES

@@ -31,11 +31,11 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Repository
+@Service
 public class PostausgangDao extends BaseDao<PostausgangDO> {
     public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_OUTGOING_MAIL;
     private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"empfaenger", "person", "absender", "inhalt"};

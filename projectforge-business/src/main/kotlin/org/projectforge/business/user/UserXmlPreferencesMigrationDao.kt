@@ -30,16 +30,14 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class UserXmlPreferencesMigrationDao {
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -56,7 +54,6 @@ open class UserXmlPreferencesMigrationDao {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
     open fun migrateAllUserPrefs(): String {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val buf = StringBuilder()

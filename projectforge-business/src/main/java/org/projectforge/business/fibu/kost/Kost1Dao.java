@@ -31,11 +31,11 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Repository
+@Service
 public class Kost1Dao extends BaseDao<Kost1DO> {
     public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_COST_UNIT;
 

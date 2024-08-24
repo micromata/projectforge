@@ -38,13 +38,13 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.us
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
 
 /**
  * @author Florian blumenstein
  */
-@Repository
+@Service
 open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     @Autowired
     private val userDao: UserDao? = null

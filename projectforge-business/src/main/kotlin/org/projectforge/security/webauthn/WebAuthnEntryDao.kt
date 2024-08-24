@@ -30,20 +30,17 @@ import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-@Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-open class WebAuthnEntryDao {
+@Service
+class WebAuthnEntryDao {
     @Autowired
     private lateinit var persistencyService: PfPersistenceService
 
-    open fun upsert(entry: WebAuthnEntryDO) {
+    fun upsert(entry: WebAuthnEntryDO) {
         val ownerId = entry.owner?.id
         val credentialId = entry.credentialId
         requireNotNull(ownerId) { "Owner must be given for upsert of entry." }
@@ -67,7 +64,7 @@ open class WebAuthnEntryDao {
         }
     }
 
-    open fun getEntry(ownerId: Int, credentialId: String): WebAuthnEntryDO? {
+    fun getEntry(ownerId: Int, credentialId: String): WebAuthnEntryDO? {
         return persistencyService.selectNamedSingleResult(
             WebAuthnEntryDO.FIND_BY_OWNER_AND_CREDENTIAL_ID,
             WebAuthnEntryDO::class.java,
@@ -81,7 +78,7 @@ open class WebAuthnEntryDao {
      * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
      * (security paranoia).
      */
-    open fun getEntryById(id: Int): WebAuthnEntryDO {
+    fun getEntryById(id: Int): WebAuthnEntryDO {
         return persistencyService.runReadOnly { context ->
             getEntryById(persistenceContext = context, id = id)
         }
@@ -92,7 +89,11 @@ open class WebAuthnEntryDao {
      * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
      * (security paranoia).
      */
-    private fun getEntryById(persistenceContext: PfPersistenceContext, id: Int, attached: Boolean = false): WebAuthnEntryDO {
+    private fun getEntryById(
+        persistenceContext: PfPersistenceContext,
+        id: Int,
+        attached: Boolean = false
+    ): WebAuthnEntryDO {
         val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
         val result = persistenceContext.selectSingleResult(
             WebAuthnEntryDO.FIND_BY_ID,
@@ -107,7 +108,7 @@ open class WebAuthnEntryDao {
         return result
     }
 
-    open fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {
+    fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {
         if (ownerId == null) {
             return emptyList()
         }
@@ -120,8 +121,7 @@ open class WebAuthnEntryDao {
         )
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    open fun delete(entryId: Int) {
+    fun delete(entryId: Int) {
         persistencyService.runInTransaction { context ->
             val entry = getEntryById(context, entryId, true)
             val ownerId = entry.owner?.id

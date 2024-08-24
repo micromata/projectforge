@@ -36,7 +36,7 @@ import org.projectforge.framework.utils.Crypt
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.security.TimeBased2FA
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
  * tokens without the knowledge of this key.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthenticationsDO::class.java) {
     @Autowired
     private lateinit var userDao: UserDao
