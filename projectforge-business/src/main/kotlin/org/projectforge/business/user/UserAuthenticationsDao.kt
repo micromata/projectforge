@@ -128,7 +128,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
                 return null
             }
         }
-        val user = persistenceService.selectSingleResult(
+        val user = persistenceService.selectNamedSingleResult(
             sql,
             PFUserDO::class.java,
             Pair("userId", userId),
@@ -156,7 +156,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
                 return null
             }
         }
-        val user = persistenceService.selectSingleResult(
+        val user = persistenceService.selectNamedSingleResult(
             sql,
             PFUserDO::class.java,
             Pair("username", username),
@@ -362,7 +362,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         if (checkAccess) {
             hasLoggedInUserAccess(userId)
         }
-        var authentications = persistenceService.selectSingleResult(
+        var authentications = persistenceService.selectNamedSingleResult(
             UserAuthenticationsDO.FIND_BY_USER_ID,
             UserAuthenticationsDO::class.java,
             Pair("userId", userId),

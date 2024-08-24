@@ -24,6 +24,7 @@
 package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
@@ -48,6 +49,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Repository
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database as
@@ -306,9 +309,5 @@ open class UserXmlPreferencesDao {
         userPreferencesDO?.id?.let { id ->
             persistenceService.delete(UserXmlPreferencesDO::class.java, id)
         }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(UserXmlPreferencesDao::class.java)
     }
 }

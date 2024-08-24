@@ -88,7 +88,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
 
     private lateinit var birthdayCache: BirthdayCache
 
-    private val deletionListeners: MutableList<AddressDeletionListener> = ArrayList()
+    protected open val deletionListeners: MutableList<AddressDeletionListener> = ArrayList()
 
     init {
         isForceDeletionSupport = true

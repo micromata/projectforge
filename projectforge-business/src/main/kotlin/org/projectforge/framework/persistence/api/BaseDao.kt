@@ -70,7 +70,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
 /**
  * The setting of the DO class is required.
  */
-protected constructor(var doClass: Class<O>) : IDao<O> {
+protected constructor(open var doClass: Class<O>) : IDao<O> {
     protected open val objectChangedListeners = mutableListOf<BaseDOChangedListener<O>>()
 
     var identifier: String? = null
@@ -144,7 +144,7 @@ protected constructor(var doClass: Class<O>) : IDao<O> {
         protected set
 
     @Autowired
-    lateinit var persistenceService: PfPersistenceService
+    open lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var userRights: UserRightService
