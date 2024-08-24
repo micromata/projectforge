@@ -31,11 +31,11 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Repository
+@Service
 public class KundeDao extends BaseDao<KundeDO> {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KundeDao.class);
 

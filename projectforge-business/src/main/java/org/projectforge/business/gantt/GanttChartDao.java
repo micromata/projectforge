@@ -42,7 +42,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.xmlstream.*;
 import org.projectforge.framework.xmlstream.converter.ISOLocalDateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -56,7 +56,7 @@ import java.util.Objects;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class GanttChartDao extends BaseDao<GanttChartDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_GANTT;
 

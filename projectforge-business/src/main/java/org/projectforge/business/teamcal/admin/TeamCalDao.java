@@ -44,7 +44,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
-@Repository
+@Service
 public class TeamCalDao extends BaseDao<TeamCalDO> {
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"usersgroups", "owner.username",
           "owner.firstname",

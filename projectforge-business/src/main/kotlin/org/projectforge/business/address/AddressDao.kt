@@ -50,7 +50,7 @@ import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.io.PrintWriter
 import java.io.Writer
 import java.text.DateFormat
@@ -60,7 +60,7 @@ import java.util.*
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
         return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property)

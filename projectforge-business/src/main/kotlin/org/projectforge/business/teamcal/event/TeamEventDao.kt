@@ -72,9 +72,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDateTimeUtils.Companion.getUTCBeginOfDayTimestamp
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -83,8 +81,8 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
-@Repository
-open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
+@Service
+class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     @Autowired
     private var teamCalDao: TeamCalDao? = null
 
@@ -385,8 +383,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type [TeamEventDO],
      * calculated events of type [ICalendarEvent].
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    open fun getEventList(filter: TeamEventFilter, calculateRecurrenceEvents: Boolean): List<ICalendarEvent> {
+    fun getEventList(filter: TeamEventFilter, calculateRecurrenceEvents: Boolean): List<ICalendarEvent> {
         val result: MutableList<ICalendarEvent> = ArrayList()
         var list = getList(filter).toMutableList()
         if (CollectionUtils.isNotEmpty(list)) {

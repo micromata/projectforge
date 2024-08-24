@@ -33,7 +33,7 @@ import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.lang.RuntimeException
 import java.util.*
 
@@ -44,7 +44,7 @@ import java.util.*
  */
 // Check open connections in PostgreSQL:
 // SELECT backend_start, query_start, state_change, wait_event_type, state, query  FROM pg_stat_activity where state <> 'idle';
-@Repository
+@Service
 open class DatabaseDao {
     private var currentReindexRun: Date? = null
 

@@ -26,150 +26,156 @@ package org.projectforge.plugins.datatransfer
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.jcr.AttachmentsEventType
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
 import java.util.*
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 
 private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-open class DataTransferAuditDao {
-  @PersistenceContext
-  private lateinit var em: EntityManager
+@Service
+class DataTransferAuditDao {
+    internal lateinit var dataTransferAreaDao: DataTransferAreaDao
 
-  internal open lateinit var dataTransferAreaDao: DataTransferAreaDao
+    private lateinit var persistenceService: PfPersistenceService
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  internal open fun insert(audit: DataTransferAuditDO) {
-    if (audit.timestamp == null) {
-      // Should only be preset for test cases.
-      audit.timestamp = Date()
+    internal fun insert(audit: DataTransferAuditDO) {
+        if (audit.timestamp == null) {
+            // Should only be preset for test cases.
+            audit.timestamp = Date()
+        }
+        audit.notified = false
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            em.persist(audit)
+            em.flush()
+        }
     }
-    audit.notified = false
-    em.persist(audit)
-    em.flush()
-  }
 
-  /**
-   * Set the notificationsSent=true for the given auditEntries.
-   */
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  internal open fun removeFromQueue(auditEntries: Collection<DataTransferAuditDO>) {
-    auditEntries.chunked(50).forEach { subList ->
-      em.createNamedQuery(DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS)
-        .setParameter("idList", subList.map { it.id })
-        .executeUpdate()
-    }
-  }
-
-  open fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
-    areaId ?: return null
-    val area = dataTransferAreaDao.getById(areaId)!!
-    val loggedInUser = ThreadLocalUserContext.user
-    requireNotNull(loggedInUser)
-    if (!dataTransferAreaDao.hasAccess(loggedInUser, area,null, OperationType.SELECT, false)) {
-      // User has no select access to given area.
-      return emptyList()
-    }
-    if (area.isPersonalBox() && area.getPersonalBoxUserId() != loggedInUser.id) {
-      // It's not the logged-in user's personal box. No permission on audit entries.
-      return emptyList()
-    }
-    return internalGetEntriesByAreaId(areaId)
-  }
-
-  internal open fun internalGetEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
-    areaId ?: return null
-    return em.createNamedQuery(DataTransferAuditDO.FIND_BY_AREA_ID, DataTransferAuditDO::class.java)
-      .setParameter("areaId", areaId)
-      .resultList
-  }
-
-  /**
-   * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
-   * 10 minutes, null is returned.
-   */
-  internal open fun internalGetQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
-    areaId ?: return null
-    val resultList =
-      em.createNamedQuery(DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID, DataTransferAuditDO::class.java)
-        .setParameter("areaId", areaId)
-        .setParameter("eventTypes", downloadEventTypes)
-        .resultList
-    val tenMinutesAgo = PFDateTime.now().minus(10, ChronoUnit.MINUTES).utilDate
-    if (!resultList.isNullOrEmpty()) {
-      if (resultList.any {
-          val timestamp = it.timestamp
-          timestamp != null && timestamp > tenMinutesAgo
-        }) {
-        // Data transfer area has modifications newer than 10 minutes, wait for other actions before notification.
-        return null
-      }
-    }
-    return resultList
-  }
-
-  /**
-   * @return list of all download events (download, download multi or download all).
-   */
-  internal open fun internalGetDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
-    areaId ?: return emptyList()
-    return em.createNamedQuery(DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID, DataTransferAuditDO::class.java)
-      .setParameter("areaId", areaId)
-      .setParameter("eventTypes", downloadEventTypes)
-      .resultList
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  internal open fun deleteOldEntries(beforeDate: PFDateTime): Int {
-    val deletedAuditEntries = em.createNamedQuery(DataTransferAuditDO.DELETE_OLD_ENTRIES)
-      .setParameter("timestamp", beforeDate.utilDate)
-      .executeUpdate()
-    if (deletedAuditEntries > 0) {
-      log.info { "$deletedAuditEntries outdated audit entries deleted (before ${beforeDate.isoStringSeconds})." }
-    }
-    return deletedAuditEntries
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  open fun insertAudit(
-    eventType: AttachmentsEventType,
-    dbObj: DataTransferAreaDO,
-    byUser: PFUserDO?,
-    byExternalUser: String?,
-    file: FileInfo? = null,
-    timestamp4TestCase: PFDateTime? = null,
-  ) {
-    val audit = DataTransferAuditDO()
-    audit.areaId = dbObj.id
-    audit.eventType = eventType
-    audit.byUser = byUser
-    audit.byExternalUser = byExternalUser
-    audit.filename = file?.fileName
-    audit.description = file?.description
-    timestamp4TestCase?.let {
-      audit.timestamp = it.utilDate
-    }
-    insert(audit)
-  }
-
-  companion object {
     /**
-     * Notifications will not be sent on download event types.
+     * Set the notificationsSent=true for the given auditEntries.
      */
-    val downloadEventTypes =
-      listOf(AttachmentsEventType.DOWNLOAD, AttachmentsEventType.DOWNLOAD_MULTI, AttachmentsEventType.DOWNLOAD_ALL)
-  }
+    internal fun removeFromQueue(auditEntries: Collection<DataTransferAuditDO>) {
+        auditEntries.chunked(50).forEach { subList ->
+            persistenceService.executeNamedUpdate(
+                DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS,
+                Pair("idList", subList.map { it.id })
+            )
+        }
+    }
+
+    fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+        areaId ?: return null
+        val area = dataTransferAreaDao.getById(areaId)!!
+        val loggedInUser = ThreadLocalUserContext.user
+        requireNotNull(loggedInUser)
+        if (!dataTransferAreaDao.hasAccess(loggedInUser, area, null, OperationType.SELECT, false)) {
+            // User has no select access to given area.
+            return emptyList()
+        }
+        if (area.isPersonalBox() && area.getPersonalBoxUserId() != loggedInUser.id) {
+            // It's not the logged-in user's personal box. No permission on audit entries.
+            return emptyList()
+        }
+        return internalGetEntriesByAreaId(areaId)
+    }
+
+    internal fun internalGetEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+        areaId ?: return null
+        return persistenceService.namedQuery(
+            DataTransferAuditDO.FIND_BY_AREA_ID,
+            DataTransferAuditDO::class.java,
+            Pair("areaId", areaId),
+        )
+    }
+
+    /**
+     * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
+     * 10 minutes, null is returned.
+     */
+    internal fun internalGetQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+        areaId ?: return null
+        val resultList =
+            persistenceService.namedQuery(
+                DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
+                DataTransferAuditDO::class.java,
+                Pair("areaId", areaId),
+                Pair("eventTypes", downloadEventTypes),
+            )
+        val tenMinutesAgo = PFDateTime.now().minus(10, ChronoUnit.MINUTES).utilDate
+        if (resultList.isNotEmpty()) {
+            if (resultList.any {
+                    val timestamp = it.timestamp
+                    timestamp != null && timestamp > tenMinutesAgo
+                }) {
+                // Data transfer area has modifications newer than 10 minutes, wait for other actions before notification.
+                return null
+            }
+        }
+        return resultList
+    }
+
+    /**
+     * @return list of all download events (download, download multi or download all).
+     */
+    internal fun internalGetDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
+        areaId ?: return emptyList()
+        return persistenceService.namedQuery(
+            DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID,
+            DataTransferAuditDO::class.java,
+            Pair("areaId", areaId),
+            Pair("eventTypes", downloadEventTypes),
+        )
+    }
+
+    internal fun deleteOldEntries(beforeDate: PFDateTime): Int {
+        val deletedAuditEntries = persistenceService.executeNamedUpdate(
+            DataTransferAuditDO.DELETE_OLD_ENTRIES,
+            Pair("timestamp", beforeDate.utilDate),
+        )
+        if (deletedAuditEntries > 0) {
+            log.info { "$deletedAuditEntries outdated audit entries deleted (before ${beforeDate.isoStringSeconds})." }
+        }
+        return deletedAuditEntries
+    }
+
+    fun insertAudit(
+        eventType: AttachmentsEventType,
+        dbObj: DataTransferAreaDO,
+        byUser: PFUserDO?,
+        byExternalUser: String?,
+        file: FileInfo? = null,
+        timestamp4TestCase: PFDateTime? = null,
+    ) {
+        val audit = DataTransferAuditDO()
+        audit.areaId = dbObj.id
+        audit.eventType = eventType
+        audit.byUser = byUser
+        audit.byExternalUser = byExternalUser
+        audit.filename = file?.fileName
+        audit.description = file?.description
+        timestamp4TestCase?.let {
+            audit.timestamp = it.utilDate
+        }
+        insert(audit)
+    }
+
+    companion object {
+        /**
+         * Notifications will not be sent on download event types.
+         */
+        val downloadEventTypes =
+            listOf(
+                AttachmentsEventType.DOWNLOAD,
+                AttachmentsEventType.DOWNLOAD_MULTI,
+                AttachmentsEventType.DOWNLOAD_ALL
+            )
+    }
 }

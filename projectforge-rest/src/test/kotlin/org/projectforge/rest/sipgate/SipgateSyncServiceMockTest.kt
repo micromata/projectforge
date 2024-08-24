@@ -47,7 +47,6 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
   fun syncTest() {
     // val configurationService = Mockito.mock(ConfigurationService::class.java)
     // Configuration(configurationService)
-    val em = Mockito.mock(EntityManager::class.java)
     val addressDao = object : AddressDao() {
       val addressList = createAddressList()
       override fun internalLoadAll(): MutableList<AddressDO> {
@@ -82,7 +81,7 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         }
       }
 
-      override fun delete(entry: SipgateContactSyncDO) {
+      override fun delete(entry: SipgateContactSyncDO, em: EntityManager) {
         syncDOList.remove(entry)
       }
     }
@@ -114,7 +113,6 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         return true
       }
     }
-    syncService.em = em
     syncService.addressDao = addressDao
     syncService.sipgateContactService = contactService
     var syncContext = syncService.sync()

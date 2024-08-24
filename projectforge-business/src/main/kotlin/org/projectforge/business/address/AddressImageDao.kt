@@ -27,14 +27,14 @@ import mu.KotlinLogging
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class AddressImageDao {
     @Autowired
     private lateinit var addressDao: AddressDao

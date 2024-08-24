@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * This is the base data access object class. Most functionality such as access checking, select, insert, update, save,
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Repository;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class MemoDao extends BaseDao<MemoDO> {
   public MemoDao() {
     super(MemoDO.class);

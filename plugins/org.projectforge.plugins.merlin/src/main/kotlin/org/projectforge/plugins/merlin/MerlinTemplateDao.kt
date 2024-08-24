@@ -29,13 +29,13 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class.java) {
 
   override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {

@@ -30,13 +30,13 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import jakarta.persistence.Tuple;
 
 import java.util.List;
 
-@Repository
+@Service
 public class PosteingangDao extends BaseDao<PosteingangDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_INCOMING_MAIL;
   private static final String[] ENABLED_AUTOCOMPLETION_PROPERTIES = {"absender", "person", "inhalt"};

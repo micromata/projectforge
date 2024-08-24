@@ -23,7 +23,6 @@
 
 package org.projectforge.business.user
 
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -34,10 +33,10 @@ import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
-@Repository
-open class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::class.java) {
+@Service
+class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::class.java) {
     @Autowired
     private lateinit var userRightService: UserRightService
 

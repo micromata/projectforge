@@ -39,18 +39,15 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 import java.io.Serializable
 import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-open class PersonalAddressDao {
+@Service
+class PersonalAddressDao {
     @Autowired
     private lateinit var accessChecker: AccessChecker
 

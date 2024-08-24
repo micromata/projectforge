@@ -40,9 +40,9 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
-@Repository
+@Service
 open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java) {
 
     override val additionalSearchFields: Array<String>

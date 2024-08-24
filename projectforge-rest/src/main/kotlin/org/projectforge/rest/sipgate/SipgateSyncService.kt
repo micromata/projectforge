@@ -28,7 +28,7 @@ import org.projectforge.business.sipgate.SipgateUserDevices
 import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.json.JsonUtils
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -38,7 +38,7 @@ private val log = KotlinLogging.logger {}
  * Reads numbers, devices, users etc. from the remote Sipgate server.
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class SipgateSyncService {
   @Autowired
   internal lateinit var sipgateService: SipgateService

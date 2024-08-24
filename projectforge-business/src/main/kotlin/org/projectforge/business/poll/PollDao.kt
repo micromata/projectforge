@@ -29,9 +29,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
-@Repository
+@Service
 open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
     @Autowired

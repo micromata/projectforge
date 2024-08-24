@@ -37,14 +37,14 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     @Autowired
     private val userDao: UserDao? = null

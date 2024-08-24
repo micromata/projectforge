@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.time.PFDay;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
   public LiquidityEntryDao() {
     super(LiquidityEntryDO.class);

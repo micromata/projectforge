@@ -26,7 +26,7 @@ package org.projectforge.framework.configuration
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import org.springframework.util.unit.DataSize
 import jakarta.annotation.PostConstruct
 
@@ -38,7 +38,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class ConfigurationChecker {
   @Autowired
   private lateinit var environment: Environment

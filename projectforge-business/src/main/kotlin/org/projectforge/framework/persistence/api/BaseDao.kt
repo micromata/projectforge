@@ -54,8 +54,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.us
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
 import java.util.*
 import java.util.stream.Collectors
@@ -65,7 +63,6 @@ private val log = KotlinLogging.logger {}
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 abstract class BaseDao<O : ExtendedBaseDO<Int>>
 /**
  * The setting of the DO class is required.
@@ -249,7 +246,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     override fun getList(filter: BaseSearchFilter): List<O> {
         val queryFilter = createQueryFilter(filter)
         return getList(queryFilter)
@@ -262,7 +258,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the list filtered by the given filter.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -273,7 +268,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the list filtered by the given filter.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -284,7 +278,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the list filtered by the given filter.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -429,7 +422,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * @return the generated identifier, if save method is used, otherwise null.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -446,7 +438,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * @return the generated identifier, if save method is used, otherwise null.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalSaveOrUpdate(obj: O): Serializable? {
         var id: Serializable? = null
         if (obj.id != null) {
@@ -460,7 +451,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Call save(O) for every object in the given list.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -474,7 +464,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * @return the generated identifier.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -492,7 +481,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return result!!
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -614,19 +602,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return the generated identifier.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalSave(obj: O): Int? {
         return internalSave(this, obj)
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun saveOrUpdate(col: Collection<O>) {
         for (obj in col) {
             saveOrUpdate(obj)
         }
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun saveOrUpdate(col: Collection<O>, blockSize: Int) {
         val list: MutableList<O> = ArrayList()
         var counter = 0
@@ -646,9 +631,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param col Entries to save or update without check access.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalSaveOrUpdate(col: Collection<O>) {
-        BaseDaoSupport.internalSaveOrUpdate(this, col)
+        internalSaveOrUpdate(this, col)
     }
 
     /**
@@ -657,7 +641,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param col       Entries to save or update without check access.
      * @param blockSize The block size of commit blocks.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalSaveOrUpdate(col: Collection<O>, blockSize: Int) {
         internalSaveOrUpdate(this, col, blockSize)
     }
@@ -666,7 +649,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -686,7 +668,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -700,7 +681,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -714,7 +694,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalUpdate(obj: O): EntityCopyStatus? {
         return internalUpdate(obj, false)
     }
@@ -726,7 +705,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param checkAccess If false, any access check will be ignored.
      * @return true, if modifications were done, false if no modification detected.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalUpdate(obj: O, checkAccess: Boolean): EntityCopyStatus? {
         return internalUpdate(this, obj, checkAccess)
     }
@@ -760,7 +738,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -776,7 +753,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         internalMarkAsDeleted(obj)
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalMarkAsDeleted(obj: O) {
         internalMarkAsDeleted(this, obj)
     }
@@ -785,7 +761,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
      * privacy protection rules.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -805,7 +780,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         internalForceDelete(obj)
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalForceDelete(obj: O) {
         internalForceDelete(this, obj)
     }
@@ -813,7 +787,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Object will be deleted finally out of the data base.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -825,7 +798,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Object will be deleted finally out of the data base.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -862,7 +834,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @Throws(
         AccessException::class
     )
@@ -877,7 +848,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         internalUndelete(obj)
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun internalUndelete(obj: O) {
         internalUndelete(this, obj)
     }
@@ -1181,8 +1151,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return dest.copyValuesFrom(src, *ignoreFields)
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    open protected fun createHistoryEntry(
+    protected open fun createHistoryEntry(
         entity: Any?, id: Number?, property: String?,
         valueClass: Class<*>?,
         oldValue: Any?, newValue: Any?
@@ -1248,7 +1217,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @see DatabaseDao.createReindexSettings
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun rebuildDatabaseIndex4NewestEntries() {
         val settings = createReindexSettings(true)
         databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
@@ -1258,7 +1226,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Re-indexes all entries (full re-index).
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun rebuildDatabaseIndex() {
         val settings = createReindexSettings(false)
         databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
@@ -1267,7 +1234,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Re-index all dependent objects manually (hibernate search). Hibernate doesn't re-index these objects, does it?
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     open fun reindexDependentObjects(obj: O) {
         hibernateSearchDependentObjectsReindexer.reindexDependents(obj)
     }

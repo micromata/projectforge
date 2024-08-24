@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class KontoCache : AbstractCache() {
+open class KontoCache : AbstractCache() {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 

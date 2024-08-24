@@ -30,9 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseDaoSupport
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
@@ -43,8 +41,8 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
-open class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecordDO::class.java) {
+@Service
+class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecordDO::class.java) {
     @Autowired
     private lateinit var bankAccountDao: BankAccountDao
 
@@ -81,8 +79,7 @@ open class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecord
         return BankAccountRecordDO()
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    open fun getByTimePeriod(accountId: Int, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
+    fun getByTimePeriod(accountId: Int, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
         val account = bankAccountDao.getById(accountId)!! // For access checking
         log.info("Getting records of account '${account.name}', IBAN=${account.iban}: $from until $until")
         return persistenceService.namedQuery(

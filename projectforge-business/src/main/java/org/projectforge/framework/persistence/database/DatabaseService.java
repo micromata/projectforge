@@ -63,7 +63,6 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Service
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class DatabaseService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseService.class);
 

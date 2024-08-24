@@ -28,9 +28,9 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-@Repository
+@Service
 public class KontoDao extends BaseDao<KontoDO> {
     public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_ACCOUNTS;
 

@@ -37,11 +37,11 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 
 // private val log = KotlinLogging.logger {}
 
-@Repository
+@Service
 open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     @Autowired
     private val kundeDao: KundeDao? = null

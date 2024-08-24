@@ -35,11 +35,11 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.Month
 
-@Repository
+@Service
 open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntryDO::class.java) {
 
     override val additionalSearchFields: Array<String>

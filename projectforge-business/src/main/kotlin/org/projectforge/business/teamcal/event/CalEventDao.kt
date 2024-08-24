@@ -44,10 +44,10 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.time.PFDateTimeUtils.Companion.getUTCBeginOfDayTimestamp
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.util.*
 
-@Repository
+@Service
 open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     init {
         userRightId = UserRightId.CALENDAR_EVENT

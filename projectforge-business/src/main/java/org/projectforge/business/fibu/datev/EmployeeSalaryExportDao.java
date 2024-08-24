@@ -41,7 +41,7 @@ import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -54,7 +54,7 @@ import java.util.*;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class EmployeeSalaryExportDao {
   public static final int KONTO = 6000;
 

@@ -40,7 +40,7 @@ import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import jakarta.persistence.criteria.JoinType;
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ import java.util.Set;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
 

@@ -31,14 +31,14 @@ import org.projectforge.business.vacation.model.RemainingLeaveDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.springframework.stereotype.Repository
+import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.Year
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Repository
+@Service
 open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class.java) {
 
     /**
