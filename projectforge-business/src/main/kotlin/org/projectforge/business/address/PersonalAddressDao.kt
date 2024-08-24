@@ -66,17 +66,16 @@ open class PersonalAddressDao {
     @Autowired
     private lateinit var userRights: UserRightService
 
-    private var personalAddressCacheField: PersonalAddressCache? = null
+    private var personalAddressCache: PersonalAddressCache? = null
         get() {
             if (field == null) {
-                field = ApplicationContextProvider.getApplicationContext().getBean(
-                    PersonalAddressCache::class.java
-                )
+                ApplicationContextProvider.getApplicationContext()?.let {
+                    // ApplicationContext might be null on startup phase.
+                    field = it.getBean(PersonalAddressCache::class.java)
+                }
             }
             return field
         }
-
-    private val personalAddressCache = personalAddressCacheField!!
 
     @Transient
     private var addressbookRight: AddressbookRight? = null
@@ -150,7 +149,7 @@ open class PersonalAddressDao {
         obj.setCreated()
         obj.setLastUpdate()
         persistenceService.insert(obj)
-        personalAddressCache.setAsExpired(obj.ownerId!!)
+        personalAddressCache!!.setAsExpired(obj.ownerId!!)
         log.info("New object added (${obj.id}): $obj")
         return obj.id
     }
@@ -204,7 +203,7 @@ open class PersonalAddressDao {
             if (modified == EntityCopyStatus.MAJOR) {
                 dbObj.setLastUpdate()
                 context.update(dbObj)
-                personalAddressCache.setAsExpired(dbObj.ownerId!!)
+                personalAddressCache!!.setAsExpired(dbObj.ownerId!!)
                 log.info("Object updated: $dbObj")
             }
             true

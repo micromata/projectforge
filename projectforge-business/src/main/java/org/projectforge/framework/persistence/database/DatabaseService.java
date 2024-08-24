@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
+import jakarta.persistence.PersistenceContext;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.login.Login;
@@ -114,7 +115,7 @@ public class DatabaseService {
   @Autowired
   private AccessChecker accessChecker;
 
-  @Autowired
+  @PersistenceContext
   private EntityManager entityManager;
 
   /**
