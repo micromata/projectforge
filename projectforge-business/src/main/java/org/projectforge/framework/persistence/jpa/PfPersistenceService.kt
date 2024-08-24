@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.jpa
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
+import jakarta.persistence.LockModeType
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
@@ -159,6 +160,7 @@ open class PfPersistenceService {
         attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
+        lockModeType: LockModeType? = null,
     ): List<T> {
         return EntityManagerUtil.query(
             entityManagerFactory,
@@ -168,6 +170,7 @@ open class PfPersistenceService {
             attached = attached,
             namedQuery = namedQuery,
             maxResults = maxResults,
+            lockModeType = lockModeType,
         )
     }
 
@@ -182,6 +185,7 @@ open class PfPersistenceService {
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         maxResults: Int? = null,
+        lockModeType: LockModeType? = null,
     ): List<T> {
         return query(
             sql = sql,
@@ -189,7 +193,8 @@ open class PfPersistenceService {
             keyValues = keyValues,
             attached = attached,
             namedQuery = true,
-            maxResults = maxResults
+            maxResults = maxResults,
+            lockModeType = lockModeType,
         )
     }
 

@@ -45,7 +45,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
+open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     @Autowired
     private val userDao: UserDao? = null
 

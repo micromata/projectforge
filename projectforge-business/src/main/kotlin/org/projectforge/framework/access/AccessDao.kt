@@ -46,7 +46,7 @@ import org.springframework.stereotype.Repository
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java) {
+open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java) {
     @Autowired
     private lateinit var taskDao: TaskDao
 

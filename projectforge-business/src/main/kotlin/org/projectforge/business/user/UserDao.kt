@@ -50,7 +50,7 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
+open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     @Autowired
     private val applicationContext: ApplicationContext? = null
 

@@ -26,13 +26,10 @@ package org.projectforge.framework.persistence.api
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
-import jakarta.persistence.metamodel.EntityType
 import mu.KotlinLogging
 import org.hibernate.Hibernate
-import org.hibernate.SessionFactory
 import org.hibernate.dialect.HSQLDialect
 import org.hibernate.engine.spi.SessionFactoryImplementor
-import org.hibernate.metamodel.spi.MetamodelImplementor
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.common.BeanHelper
@@ -43,6 +40,7 @@ import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import java.io.Serializable
 
+
 private val log = KotlinLogging.logger {}
 
 /**
@@ -52,11 +50,8 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object HibernateUtils {
-    private lateinit var sessionFactory: SessionFactoryImplementor
-    private lateinit var metamodel: MetamodelImplementor
-
     // key is entity name, value is ent.
-    private val entityClassMapByName = mutableMapOf<String, EntityType<*>>()
+    //private val entityClassMapByName = mutableMapOf<String, EntityType<*>>()
 
     @JvmStatic
     lateinit var databaseDialect: DatabaseDialect
@@ -66,10 +61,11 @@ object HibernateUtils {
      * Called by [PfPersistenceService] after construction.
      */
     fun internalInit(entityManagerFactory: EntityManagerFactory) {
-        sessionFactory = entityManagerFactory.unwrap(SessionFactory::class.java) as SessionFactoryImplementor
-        metamodel = sessionFactory.metamodel as MetamodelImplementor
-        HibernateMetaModel.internalInit(sessionFactory, metamodel)
-        val dialect = sessionFactory.jdbcServices.dialect
+        val sessionFactoryImplementor = entityManagerFactory.unwrap(
+            SessionFactoryImplementor::class.java
+        )
+        val jdbcEnvironment = sessionFactoryImplementor.jdbcServices.jdbcEnvironment
+        val dialect = jdbcEnvironment.dialect
         if (dialect is org.hibernate.dialect.PostgreSQLDialect) {
             databaseDialect = DatabaseDialect.PostgreSQL;
         } else if (dialect is HSQLDialect) {
@@ -78,6 +74,7 @@ object HibernateUtils {
             log.warn("Unknown or unsupported dialect: " + dialect.javaClass.name);
             databaseDialect = DatabaseDialect.PostgreSQL;
         }
+        return
     }
 
 

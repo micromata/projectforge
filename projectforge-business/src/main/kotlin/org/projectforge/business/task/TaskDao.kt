@@ -55,7 +55,7 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
+open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
     @Autowired
     private val userDao: UserDao? = null
 

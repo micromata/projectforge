@@ -89,6 +89,7 @@ class PfPersistenceContext(
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
+        lockModeType: LockModeType? = null,
     ): List<T?> {
         return EntityManagerUtil.queryNullable(
             em,
@@ -96,6 +97,7 @@ class PfPersistenceContext(
             resultClass = resultClass,
             keyValues = keyValues,
             attached = attached,
+            lockModeType = lockModeType,
         )
     }
 
@@ -110,6 +112,7 @@ class PfPersistenceContext(
         attached: Boolean = false,
         namedQuery: Boolean = false,
         maxResults: Int? = null,
+        lockModeType: LockModeType? = null,
     ): List<T> {
         return EntityManagerUtil.query(
             em,
@@ -119,6 +122,7 @@ class PfPersistenceContext(
             attached = attached,
             namedQuery = namedQuery,
             maxResults = maxResults,
+            lockModeType = lockModeType,
         )
     }
 

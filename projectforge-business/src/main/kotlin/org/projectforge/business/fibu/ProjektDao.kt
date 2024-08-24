@@ -42,7 +42,7 @@ import org.springframework.stereotype.Repository
 // private val log = KotlinLogging.logger {}
 
 @Repository
-class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
+open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     @Autowired
     private val kundeDao: KundeDao? = null
 

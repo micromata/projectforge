@@ -48,7 +48,7 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
+open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     init {
         userRightId = UserRightId.CALENDAR_EVENT
     }

@@ -44,7 +44,7 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.java) {
+open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.java) {
     @JvmField
     @Autowired
     val applicationContext: ApplicationContext? = null

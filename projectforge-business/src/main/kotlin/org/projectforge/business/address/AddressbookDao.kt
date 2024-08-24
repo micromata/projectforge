@@ -45,7 +45,7 @@ import org.springframework.util.CollectionUtils
  * @author Florian blumenstein
  */
 @Repository
-class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
+open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     @Autowired
     private val userDao: UserDao? = null
 
