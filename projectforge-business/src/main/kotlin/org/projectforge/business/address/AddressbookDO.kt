@@ -25,11 +25,9 @@ package org.projectforge.business.address
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.Constants
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
@@ -60,6 +58,7 @@ open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "addressbook.owner")
     @IndexedEmbedded(includeDepth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "owner_fk")
     override var owner: PFUserDO? = null
 

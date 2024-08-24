@@ -24,10 +24,8 @@
 package org.projectforge.business.teamcal.event.model;
 
 import groovy.transform.Field;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.anots.PropertyInfo;
@@ -47,6 +45,7 @@ import java.util.Date;
 @AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 public class CalEventDO extends DefaultBaseDO implements ICalendarEvent {
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   private TeamCalDO calendar;
 
   @PropertyInfo(i18nKey = "plugins.teamcal.event.beginDate")

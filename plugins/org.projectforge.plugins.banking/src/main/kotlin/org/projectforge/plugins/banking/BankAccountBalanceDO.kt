@@ -24,10 +24,8 @@
 package org.projectforge.plugins.banking
 
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
@@ -52,6 +50,7 @@ import java.time.LocalDate
 open class BankAccountBalanceDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "plugins.banking.account")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "banking_account_fk", nullable = false)
     open var bankAccount: BankAccountDO? = null

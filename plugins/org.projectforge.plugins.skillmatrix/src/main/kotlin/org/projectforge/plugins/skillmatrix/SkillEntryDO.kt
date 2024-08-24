@@ -23,15 +23,14 @@
 
 package org.projectforge.plugins.skillmatrix
 
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.Constants
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -75,6 +74,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.owner")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "owner_fk")
   open var owner: PFUserDO? = null
@@ -83,7 +83,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * 1 - basic knowledge, 2 - established knowledge, 3 - expert knowledge
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.rating")
-  @FullTextField
+  @GenericField
   @get:Column
   open var rating: Int? = null
 
@@ -91,7 +91,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
    * 1 - interested, 2 - vested interest, 3 - going crazy
    */
   @PropertyInfo(i18nKey = "plugins.skillmatrix.interest")
-  @FullTextField
+  @GenericField
   @get:Column
   open var interest: Int? = null
 

@@ -30,7 +30,9 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -55,6 +57,7 @@ class GanttChartDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "task")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_fk", nullable = false)
     var task: TaskDO? = null
@@ -99,6 +102,7 @@ class GanttChartDO : AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "gantt.owner")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "owner_fk")
     var owner: PFUserDO? = null

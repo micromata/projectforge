@@ -25,8 +25,6 @@ package org.projectforge.business.fibu.kost
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
@@ -34,14 +32,14 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.HibernateSearchAuftragsPositionTypeBinder
 
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(name = "kost2", type = HibernateSearchKost2TypeBinder::class))
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchKost2TypeBinder::class))
 //@ClassBridge(name = "nummer", impl = HibernateSearchKost2Bridge::class)
 @Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id")])
 //@WithHistory
@@ -124,6 +122,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(includeDepth = 2)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "projekt_id")
     open var projekt: ProjektDO? = null

@@ -24,12 +24,12 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityManagerFactory
 import mu.KotlinLogging
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -43,13 +43,10 @@ private val log = KotlinLogging.logger {}
 open class DBQuery {
 
     @Autowired
-    private lateinit var emgrFactory: EntityManagerFactory
-
-    @Autowired
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    private lateinit var persistenceContext: PfPersistenceContext
+    private lateinit var persistenceService: PfPersistenceService
 
     /**
      * Gets the list filtered by the given filter.
@@ -80,7 +77,7 @@ open class DBQuery {
         try {
             val begin = System.currentTimeMillis()
             val dbFilter = filter.createDBFilter()
-            return persistenceContext.runInTransaction { context ->
+            return persistenceService.runInTransaction { context ->
                 val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
                 // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
 

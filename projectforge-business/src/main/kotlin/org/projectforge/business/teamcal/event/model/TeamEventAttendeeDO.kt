@@ -49,7 +49,7 @@ import jakarta.persistence.*
 @NamedQueries(
   NamedQuery(
     name = TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS,
-    query = "delete from TeamEventAttendeeDO where address_id=:addressId"
+    query = "delete from TeamEventAttendeeDO where address.id=:addressId"
   ),
 )
 open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO> {

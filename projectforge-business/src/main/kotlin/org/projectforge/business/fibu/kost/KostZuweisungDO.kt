@@ -40,7 +40,9 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.CurrencyHelper
 import java.math.BigDecimal
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * Rechnungen (Ein- und Ausgang) sowie Gehaltssonderzahlungen werden auf Kost1 und Kost2 aufgeteilt. Einer Rechnung
@@ -92,12 +94,14 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
 
   @PropertyInfo(i18nKey = "fibu.kost1")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "kost1_fk", nullable = false)
   open var kost1: Kost1DO? = null
 
   @PropertyInfo(i18nKey = "fibu.kost2")
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "kost2_fk", nullable = false)
   open var kost2: Kost2DO? = null
@@ -134,6 +138,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
   }
 
   @IndexedEmbedded(includeDepth = 1)
+  @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
   @get:JoinColumn(name = "employee_salary_fk", nullable = true)
   open var employeeSalary: EmployeeSalaryDO? = null

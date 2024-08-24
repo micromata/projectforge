@@ -220,7 +220,7 @@
 
         <!-- Hibernate 6.* uses jakarta.persistence instead of javax.persistence -->
         <hibernate.version>6.6.0.Final</hibernate.version>
-        <hibernate-search.version>7.2.0.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
+        <hibernate-search.version>7.1.1.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
         <hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version> <!-- Check 11.08.2024 -->
 
 

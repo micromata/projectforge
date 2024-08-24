@@ -31,6 +31,8 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import java.math.BigDecimal
 import java.time.LocalDate
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * You may add manual correction entries to the leave account for an employee, e. g. for special leave days or for adding
@@ -55,6 +57,7 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
      */
     @PropertyInfo(i18nKey = "fibu.employee", required = true)
     @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.EAGER)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null

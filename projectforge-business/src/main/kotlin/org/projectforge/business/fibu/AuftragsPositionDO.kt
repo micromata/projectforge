@@ -38,6 +38,7 @@ import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
@@ -49,7 +50,7 @@ import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsT
  */
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(name = "position", type = HibernateSearchAuftragsPositionTypeBinder::class))
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchAuftragsPositionTypeBinder::class))
 //@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
 @Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cacheable
@@ -112,7 +113,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var bemerkung: String? = null
 
   @PropertyInfo(i18nKey = "fibu.auftrag.nettoSumme")
-  @FullTextField
+  @GenericField
   @get:Column(name = "netto_summe", scale = 2, precision = 12)
   open var nettoSumme: BigDecimal? = null
 

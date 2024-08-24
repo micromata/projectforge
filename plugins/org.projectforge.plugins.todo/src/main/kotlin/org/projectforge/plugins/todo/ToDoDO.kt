@@ -33,10 +33,8 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.time.LocalDate
 import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -55,6 +53,7 @@ open class ToDoDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "plugins.todo.reporter")
     @UserPrefParameter(i18nKey = "plugins.todo.reporter")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "reporter_fk")
     open var reporter: PFUserDO? = null
@@ -66,6 +65,7 @@ open class ToDoDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "plugins.todo.assignee")
     @UserPrefParameter(i18nKey = "plugins.todo.assignee")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "assignee_fk")
     open var assignee: PFUserDO? = null
@@ -73,6 +73,7 @@ open class ToDoDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = true)
     open var task: TaskDO? = null
@@ -83,6 +84,7 @@ open class ToDoDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "group")
     @UserPrefParameter(i18nKey = "group")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "group_id", nullable = true)
     open var group: GroupDO? = null

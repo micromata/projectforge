@@ -25,6 +25,7 @@ package org.projectforge.business.task
 
 import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.gantt.GanttObjectType
@@ -46,7 +47,7 @@ import java.time.LocalDate
  */
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(name = "taskpath", type = HibernateSearchTaskPathTypeBinder::class))
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchTaskPathTypeBinder::class))
 //@ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
 @Table(
     name = "T_TASK",
@@ -155,6 +156,7 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     open var protectTimesheetsUntil: LocalDate? = null
 
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @PropertyInfo(i18nKey = "task.assignedUser")
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "responsible_user_id")

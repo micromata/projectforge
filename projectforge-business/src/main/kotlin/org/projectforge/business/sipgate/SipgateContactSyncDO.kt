@@ -47,11 +47,11 @@ import jakarta.persistence.*
 @NamedQueries(
   NamedQuery(
     name = SipgateContactSyncDO.FIND_BY_ADDRESS_ID,
-    query = "from SipgateContactSyncDO where address_id = :addressId"
+    query = "from SipgateContactSyncDO where address.id = :addressId"
   ),
   NamedQuery(
     name = SipgateContactSyncDO.FIND_BY_CONTACT_AND_ADDRESS_ID,
-    query = "from SipgateContactSyncDO where sipgate_contact_id = :sipgateContactId or address_id = :addressId"
+    query = "from SipgateContactSyncDO where sipgateContactId = :sipgateContactId or address.id = :addressId"
   ),
   NamedQuery(
     name = SipgateContactSyncDO.LOAD_ALL,

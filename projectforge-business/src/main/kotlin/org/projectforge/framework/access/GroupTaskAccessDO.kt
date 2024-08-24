@@ -37,7 +37,9 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
 import java.util.*
 import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -54,12 +56,14 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 open class GroupTaskAccessDO : DefaultBaseDO() {
 
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(cascade = [CascadeType.MERGE])
     @get:JoinColumn(name = "group_id")
     open var group: GroupDO? = null
 
     @PropertyInfo(i18nKey = "task")
     @IndexedEmbedded(includeDepth = 1)
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(cascade = [CascadeType.MERGE], targetEntity = TaskDO::class)
     @get:JoinColumn(name = "task_id")
     open var task: TaskDO? = null
