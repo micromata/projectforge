@@ -69,8 +69,9 @@ private val log = KotlinLogging.logger {}
 abstract class BaseDao<O : ExtendedBaseDO<Int>>
 /**
  * The setting of the DO class is required.
- */ protected constructor(var doClass: Class<O>) : IDao<O> {
-    private val objectChangedListeners: MutableList<BaseDOChangedListener<O>> = LinkedList()
+ */
+protected constructor(var doClass: Class<O>) : IDao<O> {
+    protected open val objectChangedListeners = mutableListOf<BaseDOChangedListener<O>>()
 
     var identifier: String? = null
         /**
@@ -79,7 +80,7 @@ abstract class BaseDao<O : ExtendedBaseDO<Int>>
          * At default, it's the simple name of the DO clazz without extension "DO".
          */
         get() {
-            if (field == null && doClass != null) {
+            if (field == null) {
                 field = StringUtils.uncapitalize(
                     StringUtils.removeEnd(
                         doClass.simpleName,

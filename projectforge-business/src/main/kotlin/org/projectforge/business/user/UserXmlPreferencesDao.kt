@@ -56,7 +56,7 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-class UserXmlPreferencesDao {
+open class UserXmlPreferencesDao {
     private val xstream = createXStream(
         UserXmlPreferencesMap::class.java,
         TaskFilter::class.java,
