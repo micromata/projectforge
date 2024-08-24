@@ -121,11 +121,10 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * user=?.
      */
     open fun getYears(userId: Int?): IntArray {
-        val minMaxDate = persistenceService.selectSingleResult(
+        val minMaxDate = persistenceService.selectNamedSingleResult(
             TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
             Tuple::class.java,
             Pair("userId", userId),
-            namedQuery = true,
         )
         return getYearsByTupleOfDate(minMaxDate)
     }

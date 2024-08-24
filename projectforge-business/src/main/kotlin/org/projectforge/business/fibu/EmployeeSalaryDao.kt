@@ -59,10 +59,9 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
          * List of all years with employee salaries: select min(year), max(year) from t_fibu_employee_salary.
          */
         get() {
-            val minMaxDate = persistenceService.selectSingleResult(
+            val minMaxDate = persistenceService.selectNamedSingleResult(
                 EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,
                 Tuple::class.java,
-                namedQuery = true,
             )
             return getYearsByTupleOfYears(minMaxDate)
         }

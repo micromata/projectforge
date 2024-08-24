@@ -61,7 +61,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         }
 
     open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
             BuchungssatzDO::class.java,
             Pair("year", year),

@@ -50,11 +50,10 @@ open class AddressImageDao {
      */
     open fun getImage(addressId: Int): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             AddressImageDO.SELECT_IMAGE,
             ByteArray::class.java,
             Pair("addressId", addressId),
-            namedQuery = true
         )
     }
 
@@ -63,11 +62,10 @@ open class AddressImageDao {
      */
     open fun getPreviewImage(addressId: Int): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
-        return persistenceService.selectSingleResult(
+        return persistenceService.selectNamedSingleResult(
             AddressImageDO.SELECT_IMAGE_PREVIEW,
             ByteArray::class.java,
             Pair("addressId", addressId),
-            namedQuery = true
         )
     }
 
