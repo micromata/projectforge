@@ -37,6 +37,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.admin.TaskWizardPage;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -47,9 +48,9 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 /**
  * Shows the task tree for selection.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class TaskTreePage extends AbstractSecuredPage
 {
@@ -69,9 +70,6 @@ public class TaskTreePage extends AbstractSecuredPage
 
   @SpringBean
   TaskTreeBuilder taskTreeBuilder;
-
-  @SpringBean
-  KostCache kostCache;
 
   protected ISelectCallerPage caller;
 
@@ -96,7 +94,7 @@ public class TaskTreePage extends AbstractSecuredPage
 
   /**
    * Called if the user clicks on button "tree view".
-   * 
+   *
    * @param taskTreePage
    * @param parameters
    */
@@ -182,7 +180,7 @@ public class TaskTreePage extends AbstractSecuredPage
     form.init();
     taskTreeBuilder.setSelectMode(isSelectMode())
         .setShowRootNode(isShowRootNode())
-        .setShowCost(kostCache.isKost2EntriesExists());
+        .setShowCost(WicketSupport.getKostCache().isKost2EntriesExists());
     if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
         ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
       taskTreeBuilder.setShowOrders(true);
