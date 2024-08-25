@@ -74,7 +74,8 @@ public class DatabaseSupport
   public String getIntervalInSeconds(final String fromProperty, final String toProperty)
   {
     if (dialect == DatabaseDialect.PostgreSQL) {
-      return "EXTRACT(EPOCH FROM SUM(" + toProperty + " - " + fromProperty + "))"; // Seconds since 1970
+      return "SUM(EXTRACT(EPOCH FROM " + toProperty + ") - EXTRACT(EPOCH FROM " + fromProperty + "))";
+      // return "EXTRACT(EPOCH FROM SUM(" + toProperty + " - " + fromProperty + "))"; // Seconds since 1970
     } else {
       if (!errorMessageShown) {
         errorMessageShown = true;
