@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.jcr.FileInfo
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -44,6 +45,7 @@ private val log = KotlinLogging.logger {}
 class DataTransferAuditDao {
     internal lateinit var dataTransferAreaDao: DataTransferAreaDao
 
+    @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
     internal fun insert(audit: DataTransferAuditDO) {

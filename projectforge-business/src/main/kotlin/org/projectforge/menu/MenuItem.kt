@@ -27,6 +27,7 @@ import org.projectforge.framework.i18n.autoTranslate
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
+import java.io.Serializable
 
 class MenuItem(var id: String? = null,
                var title: String? = null,
@@ -42,7 +43,7 @@ class MenuItem(var id: String? = null,
                /**
                 * If not given, the client should assume [MenuItemTargetType.REDIRECT]
                 */
-               var type: MenuItemTargetType? = null) {
+               var type: MenuItemTargetType? = null): Serializable {
     constructor(menuItemDef: MenuItemDef?) : this() {
         if (menuItemDef == null)
             return
