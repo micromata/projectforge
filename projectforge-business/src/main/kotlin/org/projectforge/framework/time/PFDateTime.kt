@@ -28,6 +28,7 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.io.Serializable
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -44,7 +45,7 @@ open class PFDateTime internal constructor(
   val dateTime: ZonedDateTime,
   val locale: Locale,
   val precision: DatePrecision?
-) : IPFDate<PFDateTime> {
+) : IPFDate<PFDateTime>, Serializable {
 
   /**
    * For parsing dates from long values: how to interpret the number?

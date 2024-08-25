@@ -82,7 +82,7 @@ private val log = KotlinLogging.logger {}
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  */
 @Service
-class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
+open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     @Autowired
     private var teamCalDao: TeamCalDao? = null
 
