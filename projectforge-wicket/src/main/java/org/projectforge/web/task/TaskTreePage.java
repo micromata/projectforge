@@ -57,16 +57,10 @@ public class TaskTreePage extends AbstractSecuredPage
   private static final long serialVersionUID = -8406452960003792763L;
 
   @SpringBean
-  private AccessChecker accessChecker;
-
-  @SpringBean
   private UserFormatter userFormatter;
 
   @SpringBean
   private PriorityFormatter priorityFormatter;
-
-  @SpringBean
-  private TaskDao taskDao;
 
   @SpringBean
   TaskTreeBuilder taskTreeBuilder;
@@ -95,7 +89,6 @@ public class TaskTreePage extends AbstractSecuredPage
   /**
    * Called if the user clicks on button "tree view".
    *
-   * @param taskTreePage
    * @param parameters
    */
   TaskTreePage(final TaskListPage taskListPage, final PageParameters parameters)
@@ -162,9 +155,9 @@ public class TaskTreePage extends AbstractSecuredPage
         protected void rebuildDatabaseIndex(final boolean onlyNewest)
         {
           if (onlyNewest == true) {
-            taskDao.rebuildDatabaseIndex4NewestEntries();
+            WicketSupport.getTaskDao().rebuildDatabaseIndex4NewestEntries();
           } else {
-            taskDao.rebuildDatabaseIndex();
+            WicketSupport.getTaskDao().rebuildDatabaseIndex();
           }
         }
 
@@ -186,7 +179,7 @@ public class TaskTreePage extends AbstractSecuredPage
       taskTreeBuilder.setShowOrders(true);
     }
     taskTreeBuilder.setCaller(caller).setSelectProperty(selectProperty);
-    form.add(taskTreeBuilder.createTree("tree", this, form.getSearchFilter(), taskDao));
+    form.add(taskTreeBuilder.createTree("tree", this, form.getSearchFilter(), WicketSupport.getTaskDao()));
 
     body.add(new Label("info", getString("task.tree.info")));
 

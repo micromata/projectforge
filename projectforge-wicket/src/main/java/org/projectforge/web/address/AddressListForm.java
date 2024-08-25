@@ -32,6 +32,7 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.address.*;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -51,12 +52,6 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
   private static final long serialVersionUID = 8124796579658957116L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressListForm.class);
-
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private AddressbookDao addressbookDao;
 
   /**
    * Used by AddressCampaignValueListForm.
@@ -148,7 +143,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
   protected void init()
   {
     super.init();
-    addFilter(parentPage, this, gridBuilder, getSearchFilter(), this.addressbookDao);
+    addFilter(parentPage, this, gridBuilder, getSearchFilter(), WicketSupport.get(AddressbookDao.class));
   }
 
   /**
@@ -202,7 +197,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
         final AddressFilter filter = new AddressFilter();
         filter.setSearchString(input);
         filter.setSearchFields("name", "firstName", "organization");
-        final List<AddressDO> list = addressDao.getList(filter);
+        final List<AddressDO> list = WicketSupport.get(AddressDao.class).getList(filter);
         return list;
       }
 

@@ -79,22 +79,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private DatabaseService databaseService;
 
   @SpringBean
-  private JCRCheckSanityJob jcrCheckSanityJob;
-
-  @SpringBean
-  private HibernateSearchReindexer hibernateSearchReindexer;
-
-  @SpringBean
   private UserXmlPreferencesCache userXmlPreferencesCache;
-
-  @SpringBean
-  private UserXmlPreferencesMigrationDao userXmlPreferencesMigrationDao;
-
-  @SpringBean
-  private TaskTree taskTree;
-
-  @SpringBean
-  PluginAdminService pluginAdminService;
 
   private final AdminForm form;
 
@@ -338,7 +323,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void checkJCRSanity() {
     log.info("Administration: JCR sanity check.");
     checkAccess();
-    JCRCheckSanityJob.CheckResult result = jcrCheckSanityJob.execute();
+    JCRCheckSanityJob.CheckResult result = WicketSupport.get(JCRCheckSanityJob.class).execute();
     final String filename = "projectforge_jcr-sanity-check" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.toText().getBytes(StandardCharsets.UTF_8), filename);
   }
@@ -403,7 +388,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     log.info("Administration: re-index.");
     checkAccess();
     final ReindexSettings settings = new ReindexSettings(form.reindexFromDate, form.reindexNewestNEntries);
-    final String tables = hibernateSearchReindexer.rebuildDatabaseSearchIndices(settings);
+    final String tables = WicketSupport.get(HibernateSearchReindexer.class).rebuildDatabaseSearchIndices(settings);
     setResponsePage(new MessagePage("administration.databaseSearchIndicesRebuild", tables));
   }
 
@@ -487,7 +472,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void updateUserPrefs() {
     checkAccess();
     log.info("Administration: updateUserPrefs");
-    final String output = userXmlPreferencesMigrationDao.migrateAllUserPrefs();
+    final String output = WicketSupport.get(UserXmlPreferencesMigrationDao.class).migrateAllUserPrefs();
     final byte[] content = output.getBytes();
     final String ts = DateHelper.getTimestampAsFilenameSuffix(new Date());
     final String filename = "projectforge_updateUserPrefs_" + ts + ".txt";

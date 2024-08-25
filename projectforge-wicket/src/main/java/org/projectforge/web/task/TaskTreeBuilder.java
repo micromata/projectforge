@@ -60,6 +60,7 @@ import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
@@ -89,9 +90,6 @@ public class TaskTreeBuilder implements Serializable
 
   private boolean selectMode, showRootNode, showCost, showOrders;
 
-  @Autowired
-  private AccessChecker accessChecker;
-
   private transient TaskTree taskTree;
 
   @Autowired
@@ -99,9 +97,6 @@ public class TaskTreeBuilder implements Serializable
 
   @Autowired
   private UserFormatter userFormatter;
-
-  @Autowired
-  private UserGroupCache userGroupCache;
 
   @Autowired
   private DateTimeFormatter dateTimeFormatter;
@@ -263,7 +258,7 @@ public class TaskTreeBuilder implements Serializable
     columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("shortDescription"), null,
         "task.shortDescription",
         cellItemListener));
-    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
+    if (WicketSupport.get(AccessChecker.class).isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
       columns.add(new LocalDatePropertyColumn<TaskNode>(parentPage.getString("task.protectTimesheetsUntil.short"), null,
           "task.protectTimesheetsUntil", cellItemListener));
     }
@@ -294,7 +289,7 @@ public class TaskTreeBuilder implements Serializable
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
-    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(userGroupCache,
+    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(UserGroupCache.getInstance(),
         parentPage.getString("task.assignedUser"),
         null, "task.responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
     columns.add(userPropertyColumn);

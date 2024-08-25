@@ -32,6 +32,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.image.ImageService;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -42,15 +43,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
   private static final long serialVersionUID = 7091721062661400435L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressEditPage.class);
-
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private PersonalAddressDao personalAddressDao;
-
-  @SpringBean
-  private ConfigurationService configurationService;
 
   @SpringBean
   private ImageService imageService;
@@ -73,7 +65,7 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
   @Override
   protected AddressDao getBaseDao()
   {
-    return addressDao;
+    return WicketSupport.get(AddressDao.class);
   }
 
   @Override

@@ -67,6 +67,7 @@ import org.projectforge.registry.Registry;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
 import org.projectforge.rest.TimesheetPagesRest;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -112,14 +113,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   @SpringBean
   private PdfRenderer pdfRenderer;
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TimesheetExport timesheetExport;
-
-  private transient TaskTree taskTree;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -384,7 +377,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   @Override
   public TimesheetDao getBaseDao() {
-    return timesheetDao;
+    return WicketSupport.get(TimesheetDao.class);
   }
 
   /**
@@ -448,7 +441,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
           .append("_");
     }
     if (filter.getTaskId() != null) {
-      final String taskTitle = taskTree.getTaskById(filter.getTaskId()).getTitle();
+      final String taskTitle = TaskTree.getInstance().getTaskById(filter.getTaskId()).getTitle();
       buf.append(FileHelper.createSafeFilename(taskTitle, 8)).append("_");
     }
     buf.append(DateHelper.getDateAsFilenameSuffix(filter.getStartTime())).append("_")
@@ -481,7 +474,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       return;
     }
     final String filename = "ProjectForge-TimesheetExport_" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".xlsx";
-    final byte[] xls = timesheetExport.export(timeSheets);
+    final byte[] xls = WicketSupport.get(TimesheetExport.class).export(timeSheets);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;
@@ -492,7 +485,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   /**
    * Avoid LazyInitializationException user.fullname.
    *
-   * @see org.projectforge.web.wicket.AbstractListPage#createSortableDataProvider(java.lang.String, boolean)
    */
   @SuppressWarnings("serial")
   @Override
@@ -520,11 +512,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
             } else if ("task.title".equals(sortProperty) == true) {
               TaskDO task = t1.getTask();
               if (task != null && Hibernate.isInitialized(task) == false) {
-                t1.setTask(taskTree.getTaskById(task.getId()));
+                t1.setTask(TaskTree.getInstance().getTaskById(task.getId()));
               }
               task = t2.getTask();
               if (task != null && Hibernate.isInitialized(task) == false) {
-                t2.setTask(taskTree.getTaskById(task.getId()));
+                t2.setTask(TaskTree.getInstance().getTaskById(task.getId()));
               }
             }
             return super.compare(t1, t2);
@@ -544,9 +536,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   }
 
   private TaskTree getTaskTree() {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTree.getInstance();
   }
 }

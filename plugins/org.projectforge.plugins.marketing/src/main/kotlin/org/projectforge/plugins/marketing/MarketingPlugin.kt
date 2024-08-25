@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.menu.builder.MenuItemDef.Companion.create
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
+import org.projectforge.web.WicketSupport
 import org.projectforge.web.plugin.PluginWicketRegistrationService
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -96,7 +97,8 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)
 
-        addressDao!!.register(MarketingPluginAddressDeletionListener(addressCampaignDao!!))
+        addressDao.register(MarketingPluginAddressDeletionListener(addressCampaignDao))
+        WicketSupport.register(AddressCampaignValueDao::class.java, addressCampaignValueDao)
     }
 
     companion object {

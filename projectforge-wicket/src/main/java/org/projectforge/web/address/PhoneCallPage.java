@@ -40,6 +40,7 @@ import org.projectforge.rest.AddressPagesRest;
 import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.rest.sipgate.SipgateDirectCallService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 import java.util.Date;
@@ -62,18 +63,6 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallPage.class);
 
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private ConfigurationService configurationService;
-
-  @SpringBean
-  private SipgateConfiguration sipgateConfiguration;
-
-  @SpringBean
-  private SipgateDirectCallService sipgateDirectCallService;
-
   private final PhoneCallForm form;
 
   String result;
@@ -92,7 +81,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   public void setAddressId(final Integer addressId) {
     if (addressId != null) {
-      final AddressDO address = addressDao.getById(addressId);
+      final AddressDO address = WicketSupport.get(AddressDao.class).getById(addressId);
       form.address = address;
     }
   }
@@ -142,6 +131,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
    * @return true, if the phone number was successfully processed.
    */
   private boolean processPhoneNumber() {
+    AddressDao addressDao = WicketSupport.get(AddressDao.class);
     final String phoneNumber = form.getPhoneNumber();
     if (StringUtils.isNotEmpty(phoneNumber) == true) {
       if (phoneNumber.startsWith("id:") == true && phoneNumber.length() > 3) {
@@ -189,6 +179,8 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     form.setPhoneNumber(phoneNumber);
   }
 
+  ConfigurationService configurationService = WicketSupport.get(ConfigurationService.class);
+
   String extractPhonenumber(final String number) {
     final String result = NumberHelper.extractPhonenumber(number,
         Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
@@ -235,6 +227,8 @@ public class PhoneCallPage extends AbstractStandardFormPage {
   }
 
   private void callNow() {
+    SipgateConfiguration sipgateConfiguration = WicketSupport.get(SipgateConfiguration.class);
+    SipgateDirectCallService sipgateDirectCallService = WicketSupport.get(SipgateDirectCallService.class);
     if (!sipgateConfiguration.isConfigured()) {
       log.error("Sipgate isn't configured. Phone calls not supported.");
       return;

@@ -42,6 +42,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.login.LoginService;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.rest.dto.Task;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
@@ -58,25 +59,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SetupPage.class);
 
   @SpringBean
-  private ConfigurationDao configurationDao;
-
-  @SpringBean
-  private HibernateSearchReindexer hibernateSearchReindexer;
-
-  @SpringBean
   private DatabaseService databaseService;
-
-  @SpringBean
-  private DatabaseInitTestDataService databaseInitTestDataService;
-
-  @SpringBean
-  private PluginAdminService pluginAdminService;
-
-  @SpringBean
-  private TaskTree taskTree;
-
-  @SpringBean
-  private UserService userService;
 
   private final SetupForm setupForm;
 
@@ -95,6 +78,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
   }
 
   protected void finishSetup() {
+    ConfigurationDao configurationDao = WicketSupport.get(ConfigurationDao.class);
     log.info("Finishing the set-up...");
     checkAccess();
     PFUserDO adminUser = setupForm.getAdminUser();
@@ -119,7 +103,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
         log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
       }
       Configuration.getInstance().forceReload();
-      databaseInitTestDataService.initAdditionalTestData();
+      WicketSupport.get(DatabaseInitTestDataService.class).initAdditionalTestData();
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
@@ -128,7 +112,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
     adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
     if (StringUtils.isNotBlank(setupForm.getPassword())) {
       char[] clearTextPassword = setupForm.getPassword().toCharArray();
-      userService.encryptAndSavePassword(adminUser, clearTextPassword);
+      WicketSupport.get(UserService.class).encryptAndSavePassword(adminUser, clearTextPassword);
     }
 
     WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
@@ -145,7 +129,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
     configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
-    pluginAdminService.afterSetup();
+    WicketSupport.get(PluginAdminService.class).afterSetup();
 
     setResponsePage(new MessagePage(message));
     log.info("Set-up finished.");
@@ -159,7 +143,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
   }
 
   private ConfigurationDO getConfigurationDO(final ConfigurationParam param) {
-    final ConfigurationDO configurationDO = configurationDao.getEntry(param);
+    final ConfigurationDO configurationDO = WicketSupport.get(ConfigurationDao.class).getEntry(param);
     if (configurationDO == null) {
       log.error("Oups, can't find configuration parameter '" + param + "'. You can re-configure it anytime later.");
     }
@@ -173,7 +157,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
     final ConfigurationDO configurationDO = getConfigurationDO(param);
     if (configurationDO != null) {
       configurationDO.setStringValue(value);
-      configurationDao.update(configurationDO);
+      WicketSupport.get(ConfigurationDao.class).update(configurationDO);
     }
   }
 
@@ -206,12 +190,12 @@ public class SetupPage extends AbstractUnsecureBasePage {
       log.error("XmlDumpService not yet migrated!!!");
       int counter = 0; //jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
-      taskTree.setExpired();
+      TaskTree.getInstance().setExpired();
       getUserGroupCache().setExpired();
       new Thread() {
         @Override
         public void run() {
-          hibernateSearchReindexer.rebuildDatabaseSearchIndices();
+          WicketSupport.get(HibernateSearchReindexer.class).rebuildDatabaseSearchIndices();
         }
       }.start();
       if (counter > 0) {

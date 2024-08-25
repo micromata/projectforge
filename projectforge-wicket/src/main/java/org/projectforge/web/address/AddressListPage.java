@@ -47,11 +47,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.*;
 import org.projectforge.business.sipgate.SipgateConfiguration;
+import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.components.ExternalLinkPanel;
@@ -88,14 +90,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
           "f.personaIngrata",
           "f.departed"});
 
-  @SpringBean
-  private AddressDao addressDao;
-
   @SpringBean(name = "addressExport")
   private AddressExport addressExport;
-
-  @SpringBean
-  private PersonalAddressDao personalAddressDao;
 
   @SpringBean
   private SipgateConfiguration sipgateConfiguration;
@@ -271,6 +267,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   @SuppressWarnings("serial")
   @Override
   protected void init() {
+    AddressDao addressDao = WicketSupport.get(AddressDao.class);
+    PersonalAddressDao personalAddressDao = WicketSupport.get(PersonalAddressDao.class);
     personalAddressMap = personalAddressDao.getPersonalAddressByAddressId();
     final List<IColumn<AddressDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "name", SortOrder.ASCENDING);
@@ -417,10 +415,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
   @Override
   public AddressDao getBaseDao() {
-    return addressDao;
-  }
-
-  protected AddressDao getAddressDao() {
-    return addressDao;
+    return WicketSupport.get(AddressDao.class);
   }
 }

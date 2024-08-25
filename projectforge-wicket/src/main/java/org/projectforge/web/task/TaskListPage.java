@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
@@ -77,12 +78,6 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   private static final long serialVersionUID = -337660148607303435L;
 
   @SpringBean
-  private TaskDao taskDao;
-
-  @SpringBean
-  private TaskTree taskTree;
-
-  @SpringBean
   private UserFormatter userFormatter;
 
   @SpringBean
@@ -90,9 +85,6 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
 
   @SpringBean
   private PriorityFormatter priorityFormatter;
-
-  @SpringBean
-  private KostCache kostCache;
 
   /**
    * Sibling page (if the user switches between tree and list view.
@@ -253,12 +245,12 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
           public void populateItem(final Item<ICellPopulator<TaskDO>> item, final String componentId,
               final IModel<TaskDO> rowModel)
           {
-            final TaskNode node = taskTree.getTaskNodeById(rowModel.getObject().getId());
-            item.add(getConsumptionBarPanel(TaskListPage.this, componentId, taskTree, isSelectMode(), node));
+            final TaskNode node = TaskTree.getInstance().getTaskNodeById(rowModel.getObject().getId());
+            item.add(getConsumptionBarPanel(TaskListPage.this, componentId, TaskTree.getInstance(), isSelectMode(), node));
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
-    if (kostCache.isKost2EntriesExists() == true) {
+    if (WicketSupport.getKostCache().isKost2EntriesExists() == true) {
       columns.add(
           new CellItemListenerPropertyColumn<TaskDO>(getString("fibu.kost2"), getSortable("kost2", sortable), "kost2",
               cellItemListener)
@@ -267,13 +259,13 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
             public void populateItem(final Item<ICellPopulator<TaskDO>> item, final String componentId,
                 final IModel<TaskDO> rowModel)
             {
-              final Label label = getKostLabel(componentId, taskTree, rowModel.getObject());
+              final Label label = getKostLabel(componentId, TaskTree.getInstance(), rowModel.getObject());
               item.add(label);
               cellItemListener.populateItem(item, componentId, rowModel);
             }
           });
     }
-    if (taskTree.hasOrderPositionsEntries() == true
+    if (TaskTree.getInstance().hasOrderPositionsEntries() == true
         && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP,
         ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
@@ -285,7 +277,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
                 final IModel<TaskDO> rowModel)
             {
               final TaskDO task = rowModel.getObject();
-              final Set<AuftragsPositionVO> orderPositions = taskTree.getOrderPositionEntries(task.getId());
+              final Set<AuftragsPositionVO> orderPositions = TaskTree.getInstance().getOrderPositionEntries(task.getId());
               if (CollectionUtils.isEmpty(orderPositions) == true) {
                 final Label label = new Label(componentId, ""); // Empty label.
                 item.add(label);
@@ -393,6 +385,6 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   @Override
   public TaskDao getBaseDao()
   {
-    return taskDao;
+    return WicketSupport.getTaskDao();
   }
 }
