@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.projectforge.rest.sipgate.SipgateDirectCallService;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketSupport;
@@ -338,6 +339,9 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     getStoreSettings().setMaxSizePerSession(Bytes.kilobytes(100));
     log.info("Using file storage directory for page store: " + WebApplication.get().getServletContext()
         .getAttribute("jakarta.servlet.context.tempdir"));
+
+    WicketSupport.register(SipgateDirectCallService.class, applicationContext.getBean(SipgateDirectCallService.class));
+
   }
 
   private void mountPageWithPageParameterAwareness(final String path, final Class<? extends WebPage> pageClass) {

@@ -40,6 +40,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.sms.SmsSenderConfig;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -54,15 +55,6 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
   private static final long serialVersionUID = -2138017238114715368L;
 
   private static final String USER_PREF_KEY_RECENTS = "messagingReceivers";
-
-  @SpringBean
-  private ConfigurationService configurationService;
-
-  @SpringBean
-  private SmsSenderConfig smsSenderConfig;
-
-  @SpringBean
-  private AddressDao addressDao;
 
   protected SendSmsData data;
 
@@ -106,7 +98,7 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
         final AddressFilter addressFilter = new AddressFilter();
         addressFilter.setSearchString(input);
         final List<String> list = new ArrayList<String>();
-        for (final AddressDO address : addressDao.getList(addressFilter)) {
+        for (final AddressDO address : WicketSupport.get(AddressDao.class).getList(addressFilter)) {
           buildAutocompleteEntry(list, address, address.getMobilePhone());
           buildAutocompleteEntry(list, address, address.getPrivateMobilePhone());
         }
@@ -126,14 +118,14 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
     fs = gridBuilder.newFieldset(getString("address.sendSms.message"));
     final MaxLengthTextArea messageTextArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID,
         new PropertyModel<String>(data, "message"),
-            smsSenderConfig.getSmsMaxMessageLength());
+            WicketSupport.get(SmsSenderConfig.class).getSmsMaxMessageLength());
     // messageTextArea.add(AttributeModifier.append("onKeyDown", "limitText(this.form.limitedtextarea,this.form.countdown,"
     // + MAX_MESSAGE_LENGTH
     // + ")"));
     // messageTextArea.add(AttributeModifier.append("onKeyUp", "limitText(this.form.limitedtextarea,this.form.countdown,"
     // + MAX_MESSAGE_LENGTH
     // + ")"));
-    messageTextArea.add(AttributeModifier.append("maxlength", smsSenderConfig.getSmsMaxMessageLength()));
+    messageTextArea.add(AttributeModifier.append("maxlength", WicketSupport.get(SmsSenderConfig.class).getSmsMaxMessageLength()));
     fs.add(messageTextArea);
     fs = gridBuilder.newFieldset("");
     final DivTextPanel charsRemaining = new DivTextPanel(fs.newChildId(), "");

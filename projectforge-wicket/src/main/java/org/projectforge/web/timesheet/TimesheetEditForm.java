@@ -57,6 +57,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskSelectPanel;
@@ -98,13 +99,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   DropDownChoicePanel<Integer> cost2ChoicePanel;
   private transient TaskTree taskTree;
   @SpringBean
-  private TimesheetDao timesheetDao;
-  @SpringBean
-  private TimesheetRecentService timesheetRecentService;
-  @SpringBean
   private UserFormatter userFormatter;
-  @SpringBean
-  private UserPrefDao userPrefDao;
   private UserPrefDO recentUserPref;
   private DropDownChoice<Integer> cost2Choice;
   private FieldsetPanel cost2ChoiceFieldset;
@@ -191,7 +186,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   @Override
   protected void init() {
     super.init();
-    timesheetPageSupport = new TimesheetPageSupport(parentPage, gridBuilder, timesheetDao, data);
+    timesheetPageSupport = new TimesheetPageSupport(parentPage, gridBuilder, WicketSupport.get(TimesheetDao.class), data);
     add(new IFormValidator() {
       @Override
       public FormComponent<?>[] getDependentFormComponents() {
@@ -372,11 +367,11 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       }));
     }
     {
-      final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(timesheetRecentService, filter);
+      final AbstractFieldsetPanel<?> fs = timesheetPageSupport.addLocation(WicketSupport.get(TimesheetRecentService.class), filter);
       locationTextField = (PFAutoCompleteMaxLengthTextField) fs.getStoreObject();
       locationTextField.withDeletableItem(true);
     }
-    final List<String> tags = timesheetDao.getTags(data.getTag());
+    final List<String> tags = WicketSupport.get(TimesheetDao.class).getTags(data.getTag());
     if (CollectionUtils.isNotEmpty(tags)) {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.tag"));
       // Tags
@@ -398,7 +393,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           new PropertyModel<>(data, "reference")) {
         @Override
         protected List<String> getChoices(final String input) {
-          return timesheetDao.getUsedReferences(data.getTaskId(), input);
+          return WicketSupport.get(TimesheetDao.class).getUsedReferences(data.getTaskId(), input);
         }
       };
       referenceTextField.withMatchContains(true).withMinChars(1).withFocus(true);
@@ -431,7 +426,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   @SuppressWarnings("serial")
   private void addTemplatesRow() {
     final FieldsetPanel templatesRow = gridBuilder.newFieldset(getString("timesheet.templates")).suppressLabelForWarning();
-    final String[] templateNames = userPrefDao.getPrefNames(UserPrefArea.TIMESHEET_TEMPLATE);
+    final String[] templateNames = WicketSupport.get(UserPrefDao.class).getPrefNames(UserPrefArea.TIMESHEET_TEMPLATE);
     if (templateNames != null && templateNames.length > 0) {
       // DropDownChoice templates
       final String label = getString("userPref.template.select");
@@ -461,7 +456,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           String newSelection = (String) this.getFormComponent().getModelObject();
           if (StringUtils.isNotEmpty(newSelection)) {
             // Fill fields with selected template values:
-            final UserPrefDO userPref = userPrefDao.getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
+            final UserPrefDO userPref = WicketSupport.get(UserPrefDao.class).getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
             if (userPref != null) {
               data.setKost2(null);
               data.setTask(null);
@@ -479,7 +474,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
                   data.setDescription(null);
                 }
               }
-              userPrefDao.fillFromUserPrefParameters(userPref, data, true);
+              WicketSupport.get(UserPrefDao.class).fillFromUserPrefParameters(userPref, data, true);
               recentUserPref = userPref;
               locationTextField.modelChanged();
               descriptionArea.modelChanged();
@@ -515,7 +510,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             new ResourceModel("timesheet.recent.select"), link));
     recentSheetsModalDialog = new TimesheetEditSelectRecentDialogPanel(parentPage.newModalDialogId(),
         getString("timesheet.recent.select"),
-        parentPage, TimesheetEditForm.this, cost2Exists, timesheetDao, getTaskTree(), userFormatter);
+        parentPage, TimesheetEditForm.this, cost2Exists, WicketSupport.get(TimesheetDao.class), getTaskTree(), userFormatter);
     parentPage.add(recentSheetsModalDialog);
     recentSheetsModalDialog.init();
   }

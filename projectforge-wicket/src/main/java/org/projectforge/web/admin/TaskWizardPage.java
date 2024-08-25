@@ -32,6 +32,7 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -45,15 +46,6 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
   boolean managerGroupCreated;
 
   private final TaskWizardForm form;
-
-  @SpringBean
-  private TaskDao taskDao;
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  private AccessDao accessDao;
 
   public TaskWizardPage(final PageParameters parameters)
   {
@@ -69,7 +61,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       log.info("create: Nothing to do.");
       return;
     }
-    final TaskNode taskNode = taskDao.getTaskTree().getTaskNodeById(form.task.getId());
+    final TaskNode taskNode = WicketSupport.getTaskDao().getTaskTree().getTaskNodeById(form.task.getId());
     createAccessRights(taskNode, form.managerGroup, true, true);
     createAccessRights(taskNode, form.team, false, true);
     setResponsePage(TaskTreePage.class);
@@ -81,9 +73,10 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
     if (taskNode == null || group == null || taskNode.getId() == null || group.getId() == null) {
       return;
     }
-    if (taskDao.getTaskTree().isRootNode(taskNode) == true) {
+    if (WicketSupport.getTaskDao().getTaskTree().isRootNode(taskNode) == true) {
       return;
     }
+    AccessDao accessDao = WicketSupport.getAccessDao();
     GroupTaskAccessDO access = accessDao.getEntry(taskNode.getTask(), group);
     if (access == null) {
       access = new GroupTaskAccessDO();
@@ -124,8 +117,9 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
   @Override
   public void select(final String property, final Object selectedValue)
   {
+    GroupDao groupDao = WicketSupport.get(GroupDao.class);
     if ("taskId".equals(property) == true) {
-      form.task = taskDao.getById((Integer) selectedValue);
+      form.task = WicketSupport.getTaskDao().getById((Integer) selectedValue);
     } else if ("managerGroupId".equals(property) == true) {
       form.managerGroup = groupDao.getById((Integer) selectedValue);
       form.groupSelectPanelManager.getTextField().modelChanged();

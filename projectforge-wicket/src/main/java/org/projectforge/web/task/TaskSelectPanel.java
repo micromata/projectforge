@@ -64,9 +64,6 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
 {
   private static final long serialVersionUID = -7231190025292695850L;
 
-  @SpringBean
-  private TaskDao taskDao;
-
   private transient TaskTree taskTree;
 
   private boolean showPath = true;

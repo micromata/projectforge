@@ -53,12 +53,6 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
   @SpringBean
   private GroupService groupService;
 
-  @SpringBean
-  private TaskTree taskTree;
-
-  @SpringBean
-  private UserGroupCache userGroupCache;
-
   @SuppressWarnings("serial")
   @Override
   protected void init()
@@ -99,7 +93,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public PFUserDO getObject()
         {
-          return userGroupCache.getUser(getSearchFilter().getUserId());
+          return UserGroupCache.getInstance().getUser(getSearchFilter().getUserId());
         }
 
         @Override
@@ -125,7 +119,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public TaskDO getObject()
         {
-          return taskTree.getTaskById(getSearchFilter().getTaskId());
+          return TaskTree.getInstance().getTaskById(getSearchFilter().getTaskId());
         }
 
         @Override
