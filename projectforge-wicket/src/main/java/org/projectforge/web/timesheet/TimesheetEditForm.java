@@ -97,7 +97,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   TextArea<String> descriptionArea;
 
   DropDownChoicePanel<Integer> cost2ChoicePanel;
-  private transient TaskTree taskTree;
+
   @SpringBean
   private UserFormatter userFormatter;
   private UserPrefDO recentUserPref;
@@ -118,7 +118,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   @SuppressWarnings("serial")
   protected static DropDownChoice<Integer> createCost2ChoiceRenderer(final String id, final TimesheetDao timesheetDao,
-                                                                     final TaskTree taskTree, final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer, final TimesheetDO data,
+                                                                     final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer, final TimesheetDO data,
                                                                      final List<Kost2DO> kost2List) {
     final DropDownChoice<Integer> choice = new DropDownChoice<>(id, new Model<Integer>() {
       @Override
@@ -287,7 +287,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           parentPage.getBaseDao(), cost2List,
           data, null);
       cost2Choice = createCost2ChoiceRenderer(cost2ChoiceFieldset.getDropDownChoiceId(), parentPage.getBaseDao(),
-          getTaskTree(),
           cost2ChoiceRenderer, data, cost2List);
       cost2ChoicePanel = cost2ChoiceFieldset.add(cost2Choice);
       dependentFormComponentsWithCost2[3] = cost2Choice;
@@ -510,7 +509,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             new ResourceModel("timesheet.recent.select"), link));
     recentSheetsModalDialog = new TimesheetEditSelectRecentDialogPanel(parentPage.newModalDialogId(),
         getString("timesheet.recent.select"),
-        parentPage, TimesheetEditForm.this, cost2Exists, WicketSupport.get(TimesheetDao.class), getTaskTree(), userFormatter);
+        parentPage, TimesheetEditForm.this, cost2Exists, userFormatter);
     parentPage.add(recentSheetsModalDialog);
     recentSheetsModalDialog.init();
   }
@@ -560,7 +559,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         node = personDaysNode;
       }
     }
-    consumptionBarPanel = TaskListPage.getConsumptionBarPanel(this.parentPage, consumptionBarId, taskTree, false, node);
+    consumptionBarPanel = TaskListPage.getConsumptionBarPanel(this.parentPage, consumptionBarId, false, node);
     consumptionBarPanel.setRenderBodyOnly(true);
     return consumptionBarPanel;
   }
@@ -601,9 +600,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   }
 
   private TaskTree getTaskTree() {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTreeHelper.getTaskTree();
   }
 }

@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.pub.LogoServiceRest;
 import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 
 import java.text.MessageFormat;
@@ -70,12 +71,6 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
   protected WebMarkupContainer body, html;
 
   protected boolean alreadySubmitted = false;
-
-  @SpringBean
-  private DomainService domainService;
-
-  @SpringBean
-  private SystemService systemService;
 
   /**
    * Constructor that is invoked when page is invoked without a session.
@@ -158,7 +153,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
   public void renderHead(final IHeaderResponse response) {
     super.renderHead(response);
     response.render(StringHeaderItem
-            .forString(WicketUtils.getCssForFavicon(getUrl(domainService.getContextPath() + "/favicon.ico"))));
+            .forString(WicketUtils.getCssForFavicon(getUrl(WicketSupport.get(DomainService.class).getContextPath() + "/favicon.ico"))));
     WicketRenderHeadUtils.renderMainCSSIncludes(response);
     //response.renderCSSReference();
     WicketRenderHeadUtils.renderMainJavaScriptIncludes(response);
@@ -207,16 +202,10 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
     return getUrl(path, true);
   }
 
-  /**
-   * @see WicketUtils#getImageUrl(org.apache.wicket.Response, String)
-   */
   public String getImageUrl(final String subpath) {
     return WicketUtils.getImageUrl(getRequestCycle(), subpath);
   }
 
-  /**
-   * @see WicketUtils#getUrl(org.apache.wicket.Response, String, boolean)
-   */
   public String getUrl(final String path, final boolean encodeUrl) {
     return WicketUtils.getUrl(getRequestCycle(), path, encodeUrl);
   }
@@ -253,9 +242,6 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
     return (WicketApplicationInterface) getApplication();
   }
 
-  /**
-   * @see StringEscapeUtils#escapeHtml(String)
-   */
   protected String escapeHtml(final String str) {
     return StringEscapeUtils.escapeHtml4(str);
   }

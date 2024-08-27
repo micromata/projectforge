@@ -30,9 +30,11 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 import org.projectforge.web.wicket.I18nParamMap;
 import org.projectforge.web.wicket.flowlayout.*;
@@ -167,7 +169,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   @Override
   protected String getUrl()
   {
-    return calendarFeedService.getUrl("&teamCals=" + teamCal.getId() + "&" + PARAM_EXPORT_REMINDER + "=" + exportReminders);
+    return WicketSupport.get(CalendarFeedService.class).getUrl("&teamCals=" + teamCal.getId() + "&" + PARAM_EXPORT_REMINDER + "=" + exportReminders);
   }
 
 }

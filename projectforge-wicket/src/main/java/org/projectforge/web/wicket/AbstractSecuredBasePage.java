@@ -34,6 +34,7 @@ import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.ChangePasswordPageRest;
 import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 
 /**
@@ -43,15 +44,6 @@ import org.projectforge.web.session.MySession;
  */
 public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
   private static final long serialVersionUID = 3225994698301133706L;
-
-  @SpringBean
-  protected transient UserXmlPreferencesCache userXmlPreferencesCache;
-
-  @SpringBean
-  protected transient AccessChecker accessChecker;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
 
   public AbstractSecuredBasePage(final PageParameters parameters) {
     super(parameters);
@@ -86,10 +78,17 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
    * @param key
    * @param value
    * @param persistent If true, the object will be persisted in the database.
-   * @see UserXmlPreferencesService#putEntry(Integer, String, Object, boolean)
    */
   public void putUserPrefEntry(final String key, final Object value, final boolean persistent) {
-    userPreferencesService.putEntry(key, value, persistent);
+    getUserPreferencesService().putEntry(key, value, persistent);
+  }
+
+  protected UserXmlPreferencesService getUserPreferencesService() {
+    return WicketSupport.get(UserXmlPreferencesService.class);
+  }
+
+  protected UserXmlPreferencesCache getUserXmlPreferencesCache() {
+    return WicketSupport.get(UserXmlPreferencesCache.class);
   }
 
   /**
@@ -101,7 +100,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
    * @see UserXmlPreferencesService#getEntry(String)
    */
   public Object getUserPrefEntry(final String key) {
-    return userPreferencesService.getEntry(key);
+    return getUserPreferencesService().getEntry(key);
   }
 
   /**
@@ -115,7 +114,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
    * @see UserXmlPreferencesService#getEntry(String)
    */
   public Object getUserPrefEntry(final Class<?> expectedType, final String key) {
-    return userPreferencesService.getEntry(expectedType, key);
+    return getUserPreferencesService().getEntry(expectedType, key);
   }
 
   /**
@@ -125,32 +124,32 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
    * @return The removed entry if found.
    */
   public Object removeUserPrefEntry(final String key) {
-    return userPreferencesService.removeEntry(key);
+    return getUserPreferencesService().removeEntry(key);
   }
 
   public Object removeUserPrefEntryIfNotExists(final String key) {
-    return userPreferencesService.removeEntryIfNotExists(key);
+    return getUserPreferencesService().removeEntryIfNotExists(key);
   }
 
   /**
    * @see UserXmlPreferencesCache#flushToDB(Integer)
    */
   public void flushUserPrefToDB() {
-    userXmlPreferencesCache.flushToDB(getUser().getId());
+    getUserXmlPreferencesCache().flushToDB(getUser().getId());
   }
 
   /**
    * Forces to flush all user preferences to database.
    */
   public void flushAllUserPrefsToDB() {
-    userXmlPreferencesCache.forceReload();
+    getUserXmlPreferencesCache().forceReload();
   }
 
   /**
    * AccessChecker instantiated by IOC.
    */
   public AccessChecker getAccessChecker() {
-    return this.accessChecker;
+    return WicketSupport.get(AccessChecker.class);
   }
 
   /**

@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 @EditPage(defaultReturnPage = TeamCalListPage.class)
 public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm, TeamCalDao>
@@ -82,7 +82,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
             };
           }, getString("plugins.teamcal.events"));
       addContentMenuEntry(menu);
-      final TeamCalRight right = new TeamCalRight(accessChecker);
+      final TeamCalRight right = new TeamCalRight();
       if (isNew() == true
           || right.hasFullAccess(getData(), getUserId()) && !getData().getExternalSubscription()) {
         menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Void>(ContentMenuEntryPanel.LINK_ID)

@@ -30,15 +30,15 @@ import org.projectforge.framework.access.AccessChecker;
 
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class LiquidityPlanningRight extends UserRightAccessCheck<LiquidityEntryDO>
 {
   private static final long serialVersionUID = -7708532860353029199L;
 
-  public LiquidityPlanningRight(AccessChecker accessChecker)
+  public LiquidityPlanningRight()
   {
-    super(accessChecker, LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING, UserRightCategory.FIBU,
+    super(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING, UserRightCategory.FIBU,
         UserRightServiceImpl.FALSE_READONLY_READWRITE);
     initializeUserGroupsRight(UserRightServiceImpl.FALSE_READONLY_READWRITE, UserRightServiceImpl.FIBU_GROUPS)
         .setReadOnlyForControlling();

@@ -27,6 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.GroupTaskAccessDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
@@ -39,9 +40,6 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   private static final long serialVersionUID = 4636922408954211544L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessEditPage.class);
-
-  @SpringBean
-  private AccessDao accessDao;
 
   public AccessEditPage(final PageParameters parameters)
   {
@@ -59,7 +57,7 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   @Override
   protected void create()
   {
-    GroupTaskAccessDO accessDaoEntry = accessDao.getEntry(getData().getTask(), getData().getGroup());
+    GroupTaskAccessDO accessDaoEntry = WicketSupport.getAccessDao().getEntry(getData().getTask(), getData().getGroup());
     if(accessDaoEntry != null && accessDaoEntry.getDeleted()) {
       getData().setId(accessDaoEntry.getId());
       super.undelete();
@@ -76,6 +74,7 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   @Override
   public void select(final String property, final Object selectedValue)
   {
+    var accessDao = WicketSupport.getAccessDao();
     if ("taskId".equals(property) == true) {
       accessDao.setTask(getData(), (Integer) selectedValue);
     } else if ("groupId".equals(property) == true) {
@@ -102,7 +101,7 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   @Override
   protected AccessDao getBaseDao()
   {
-    return accessDao;
+    return WicketSupport.getAccessDao();
   }
 
   @Override

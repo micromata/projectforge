@@ -43,22 +43,19 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
 
   private static final Logger log = LoggerFactory.getLogger(TaskTreeTable.class);
 
-  private TaskTree taskTree;
-
   private TaskNode rootNode;
 
   /** Time of last modification in milliseconds from 1970-01-01. */
   private long timeOfLastModification = 0;
 
-  public TaskTreeTable(final TaskTree taskTree)
+  public TaskTreeTable()
   {
-    this.taskTree = taskTree;
     reload();
   }
 
-  public TaskTreeTable(final TaskTree taskTree, final TaskNode rootNode)
+  public TaskTreeTable(final TaskNode rootNode)
   {
-    this(taskTree);
+    this();
     this.rootNode = rootNode;
   }
 
@@ -70,7 +67,7 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
   @Override
   public List<TaskTreeTableNode> getNodeList(TreeTableFilter<TreeTableNode> filter)
   {
-    if (timeOfLastModification < taskTree.getTimeOfLastModification()) {
+    if (timeOfLastModification < TaskTree.getInstance().getTimeOfLastModification()) {
       reload();
     }
     return super.getNodeList(filter);
@@ -81,7 +78,7 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
     TaskNode task = parent.getTaskNode();
     if (task.getChildren() != null) {
       for (TaskNode node : task.getChildren()) {
-        if (taskTree.hasSelectAccess(node) == true) {
+        if (TaskTree.getInstance().hasSelectAccess(node) == true) {
           // The logged in user has select access, so add this task node
           // to this tree table:
           TaskTreeTableNode child = new TaskTreeTableNode(parent, node);
@@ -99,7 +96,7 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
     if (rootNode != null) {
       root = new TaskTreeTableNode(null, rootNode);
     } else {
-      root = new TaskTreeTableNode(null, taskTree.getRootTaskNode());
+      root = new TaskTreeTableNode(null, TaskTree.getInstance().getRootTaskNode());
     }
     addDescendantNodes(root);
     updateOpenStatus();
@@ -108,6 +105,6 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
 
   boolean hasSelectAccess(TaskNode node)
   {
-    return taskTree.hasSelectAccess(node);
+    return TaskTree.getInstance().hasSelectAccess(node);
   }
 }

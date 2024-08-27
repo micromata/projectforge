@@ -29,6 +29,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.GroupDOConverter;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -49,12 +50,6 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
 
   private final String selectProperty;
 
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  GroupDOConverter groupDOConverter;
-
   public GroupEditPage(final PageParameters parameters)
   {
     this(parameters, null);
@@ -74,11 +69,11 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    groupDao.setAssignedUsers(getData(), form.assignUsersListHelper.getAssignedItems());
+    WicketSupport.get(GroupDao.class).setAssignedUsers(getData(), form.assignUsersListHelper.getAssignedItems());
     //groupDao.setNestedGroups(getData(), form.nestedGroupsListHelper.getAssignedItems());
 
     if (form.ldapGroupValues != null && form.ldapGroupValues.isValuesEmpty() == false) {
-      final String xml = groupDOConverter.getLdapValuesAsXml(form.ldapGroupValues);
+      final String xml = WicketSupport.get(GroupDOConverter.class).getLdapValuesAsXml(form.ldapGroupValues);
       getData().setLdapValues(xml);
     }
     return super.onSaveOrUpdate();
@@ -97,7 +92,7 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
   @Override
   protected GroupDao getBaseDao()
   {
-    return groupDao;
+    return WicketSupport.get(GroupDao.class);
   }
 
   @Override

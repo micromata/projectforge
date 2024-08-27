@@ -66,12 +66,6 @@ public class CalendarPanel extends Panel {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarPanel.class);
 
-    @SpringBean
-    protected transient AccessChecker accessChecker;
-
-    @SpringBean
-    private transient HRPlanningDao hrPlanningDao;
-
     private MyFullCalendar calendar;
 
     private BirthdayEventsProvider birthdayEventsProvider;
@@ -118,7 +112,7 @@ public class CalendarPanel extends Panel {
                         log.debug(
                                 "Selected region: " + range.getStart() + " - " + range.getEnd() + " / allDay: " + range.isAllDay());
                     }
-                    if (accessChecker.isRestrictedUser() == true) {
+                    if (WicketSupport.getAccessChecker().isRestrictedUser() == true) {
                         return;
                     }
                     final TimesheetDO timesheet = new TimesheetDO();
@@ -291,7 +285,7 @@ public class CalendarPanel extends Panel {
         config.add(eventSource);
         // HR planning:
         eventSource = new EventSource();
-        hrPlanningEventsProvider = new HRPlanningEventsProvider(filter, hrPlanningDao);
+        hrPlanningEventsProvider = new HRPlanningEventsProvider(filter, WicketSupport.get(HRPlanningDao.class));
         eventSource.setEventsProvider(hrPlanningEventsProvider);
         eventSource.setEditable(false);
         eventSource.setBackgroundColor("#0080FF");
@@ -300,7 +294,7 @@ public class CalendarPanel extends Panel {
         // Birthdays:
         eventSource = new EventSource();
         birthdayEventsProvider = new BirthdayEventsProvider(filter, WicketSupport.get(AddressDao.class),
-                accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == false);
+                WicketSupport.get(AccessChecker.class).isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == false);
         eventSource.setEventsProvider(birthdayEventsProvider);
         eventSource.setEditable(false);
         // The default color of birthdays (not favorites), should be gray, see BirthdayEventsProvider for colors of birthdays of favorites.

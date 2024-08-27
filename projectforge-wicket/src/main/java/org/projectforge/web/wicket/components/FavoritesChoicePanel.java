@@ -33,6 +33,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.user.UserPrefEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 
@@ -46,9 +47,6 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
   private static final long serialVersionUID = 4605128072052146129L;
 
   protected static final String ADD_NEW_ENTRY = "ADD_NEW_ENTRY";
-
-  @SpringBean
-  private UserPrefDao userPrefDao;
 
   protected String selected;
 
@@ -139,7 +137,7 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
 
   private LabelValueChoiceRenderer<String> createRenderer()
   {
-    final String[] entries = userPrefDao.getPrefNames(userPrefArea);
+    final String[] entries = WicketSupport.get(UserPrefDao.class).getPrefNames(userPrefArea);
     final LabelValueChoiceRenderer<String> renderer = new LabelValueChoiceRenderer<String>();
     for (final String entry : entries) {
       renderer.addValue(entry, entry);
@@ -199,6 +197,7 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
     if (StringUtils.isEmpty(selected) == true) {
       return null;
     }
+    UserPrefDao userPrefDao = WicketSupport.get(UserPrefDao.class);
     final UserPrefDO userPref = userPrefDao.getUserPref(userPrefArea, selected);
     if (userPref != null) {
       final F favorite = newFavoriteInstance(null);

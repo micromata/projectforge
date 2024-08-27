@@ -64,8 +64,6 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
 {
   private static final long serialVersionUID = -7231190025292695850L;
 
-  private transient TaskTree taskTree;
-
   private boolean showPath = true;
 
   private final WebMarkupContainer divContainer;
@@ -438,11 +436,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     return autocompleteOnlyTaskBookableForTimesheets;
   }
 
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+  private TaskTree getTaskTree() {
+    return TaskTreeHelper.getTaskTree();
   }
 }

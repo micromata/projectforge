@@ -53,12 +53,6 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
 
   private static final Logger log = LoggerFactory.getLogger(VisitorbookEditForm.class);
 
-  @SpringBean
-  private VisitorbookService visitorbookService;
-
-  @SpringBean
-  private EmployeeDao employeeDao;
-
   protected MultiChoiceListHelper<EmployeeDO> assignContactPersonsListHelper;
 
   protected VisitorbookEmployeeWicketProvider employeeWicketProvider;
@@ -114,7 +108,7 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
           }
         }
       }*/
-      employeeWicketProvider = new VisitorbookEmployeeWicketProvider(data, employeeDao);
+      employeeWicketProvider = new VisitorbookEmployeeWicketProvider(data);
       final Select2MultiChoice<EmployeeDO> employees = new Select2MultiChoice<EmployeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<EmployeeDO>>(this.assignContactPersonsListHelper, "assignedItems"),

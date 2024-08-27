@@ -46,6 +46,7 @@ import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WebConstants;
@@ -69,27 +70,6 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
   private static final long serialVersionUID = 3044732844606748738L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupEditForm.class);
-
-  @SpringBean
-  private AccessChecker accessChecker;
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  UserDao userDao;
-
-  @SpringBean
-  UserService userService;
-
-  @SpringBean
-  GroupDOConverter groupDOConverter;
-
-  @SpringBean
-  LdapPosixGroupsUtils ldapPosixGroupsUtils;
-
-  @SpringBean
-  LdapUserDao ldapUserDao;
 
   MultiChoiceListHelper<PFUserDO> assignUsersListHelper;
 
@@ -121,7 +101,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
       name.add((IValidator<String>) validatable -> {
         final String groupname = validatable.getValue();
         getData().setName(groupname);
-        if (groupDao.doesGroupnameAlreadyExist(getData()) == true) {
+        if (WicketSupport.get(GroupDao.class).doesGroupnameAlreadyExist(getData()) == true) {
           validatable.error(new ValidationError().addKey("group.error.groupnameAlreadyExists"));
         }
       });
@@ -154,7 +134,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
       // Assigned users
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("group.assignedUsers")).setLabelSide(false);
       final Set<PFUserDO> assignedUsers = getData().getAssignedUsers();
-      final UsersProvider usersProvider = new UsersProvider(userDao);
+      final UsersProvider usersProvider = new UsersProvider(WicketSupport.getUserDao());
       assignUsersListHelper = new MultiChoiceListHelper<PFUserDO>().setComparator(new UsersComparator()).setFullList(
           usersProvider.getSortedUsers());
       if (assignedUsers != null) {
@@ -174,9 +154,9 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
       fs.add(groupOwnerSelectPanel);
       groupOwnerSelectPanel.init();
     }
-    final boolean adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup();
+    final boolean adminAccess = WicketSupport.getAccessChecker().isLoggedInUserMemberOfAdminGroup();
     if (adminAccess == true && Login.getInstance().hasExternalUsermanagementSystem() == true) {
-      ldapGroupValues = groupDOConverter.readLdapGroupValues(data.getLdapValues());
+      ldapGroupValues = WicketSupport.get(GroupDOConverter.class).readLdapGroupValues(data.getLdapValues());
       if (ldapGroupValues == null) {
         ldapGroupValues = new LdapGroupValues();
       }
@@ -185,7 +165,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
     gridBuilder.newSplitPanel(GridSize.COL100);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("address.emails"));
-      DivTextPanel emails = new DivTextPanel(fs.newChildId(), userService.getUserMails(getData().getAssignedUsers()));
+      DivTextPanel emails = new DivTextPanel(fs.newChildId(), WicketSupport.get(UserService.class).getUserMails(getData().getAssignedUsers()));
       fs.add(emails);
     }
 
@@ -218,7 +198,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
     gridBuilder.newGridPanel();
     gridBuilder.newFormHeading(getString("ldap"));
     gridBuilder.newSplitPanel(GridSize.COL50);
-    final boolean posixConfigured = ldapUserDao.isPosixAccountsConfigured();
+    final boolean posixConfigured = WicketSupport.get(LdapUserDao.class).isPosixAccountsConfigured();
     if (posixConfigured == false) {
       return;
     }
@@ -263,9 +243,9 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
             gidNumberField
                 .error(getLocalizedMessage(WebConstants.I18N_KEY_FIELD_REQUIRED, getString("ldap.gidNumber")));
           } else {
-            if (ldapPosixGroupsUtils.isGivenNumberFree(data, values.getGidNumber()) == false) {
+            if (WicketSupport.get(LdapPosixGroupsUtils.class).isGivenNumberFree(data, values.getGidNumber()) == false) {
               gidNumberField.error(
-                  getLocalizedMessage("ldap.gidNumber.alreadyInUse", ldapPosixGroupsUtils.getNextFreeGidNumber()));
+                  getLocalizedMessage("ldap.gidNumber.alreadyInUse", WicketSupport.get(LdapPosixGroupsUtils.class).getNextFreeGidNumber()));
             }
           }
         }
@@ -281,7 +261,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
       @Override
       protected void onSubmit(final AjaxRequestTarget target)
       {
-        ldapPosixGroupsUtils.setDefaultValues(ldapGroupValues);
+        WicketSupport.get(LdapPosixGroupsUtils.class).setDefaultValues(ldapGroupValues);
         for (final FormComponent<?> component : dependentPosixLdapFormComponentsList) {
           component.modelChanged();
           component.setEnabled(true);

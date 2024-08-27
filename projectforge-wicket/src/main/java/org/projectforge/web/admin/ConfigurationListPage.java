@@ -37,6 +37,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 
 import java.util.ArrayList;
@@ -46,12 +47,6 @@ import java.util.List;
 public class ConfigurationListPage extends AbstractListPage<ConfigurationListForm, ConfigurationDao, ConfigurationDO>
 {
   private static final long serialVersionUID = 5745110028112481137L;
-
-  @SpringBean
-  private ConfigurationDao configurationDao;
-
-  @SpringBean
-  private TeamCalCache teamCalCache;
 
   public ConfigurationListPage(final PageParameters parameters)
   {
@@ -63,7 +58,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
   protected void init()
   {
     newItemMenuEntry.setVisible(false);
-    configurationDao.checkAndUpdateDatabaseEntries();
+    getBaseDao().checkAndUpdateDatabaseEntries();
     final List<IColumn<ConfigurationDO, String>> columns = new ArrayList<IColumn<ConfigurationDO, String>>();
     final CellItemListener<ConfigurationDO> cellItemListener = new CellItemListener<ConfigurationDO>()
     {
@@ -102,7 +97,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
         if (configuration.getValue() == null) {
           value = "";
         } else if (configuration.getConfigurationType() == ConfigurationType.CALENDAR) {
-          final TeamCalDO calendar = teamCalCache.getCalendar(configuration.getCalendarId());
+          final TeamCalDO calendar = WicketSupport.get(TeamCalCache.class).getCalendar(configuration.getCalendarId());
           if (calendar != null) {
             value = calendar.getTitle();
           } else {
@@ -140,6 +135,6 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
   @Override
   public ConfigurationDao getBaseDao()
   {
-    return configurationDao;
+    return WicketSupport.get(ConfigurationDao.class);
   }
 }

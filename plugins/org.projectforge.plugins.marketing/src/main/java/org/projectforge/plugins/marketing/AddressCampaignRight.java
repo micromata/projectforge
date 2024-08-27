@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
@@ -37,8 +38,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO> {
   private static final long serialVersionUID = 4021610615575404717L;
 
-  public AddressCampaignRight(AccessChecker accessChecker) {
-    super(accessChecker, MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN,
+  public AddressCampaignRight() {
+    super(MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN,
         UserRightCategory.PLUGINS,
         UserRightValue.TRUE);
   }
@@ -49,6 +50,7 @@ public class AddressCampaignRight extends UserRightAccessCheck<AddressCampaignDO
   @Override
   public boolean hasAccess(final PFUserDO user, final AddressCampaignDO obj, final AddressCampaignDO oldObj,
                            final OperationType operationType) {
+    var accessChecker = WicketSupport.getAccessChecker();
     return operationType == OperationType.SELECT == true || accessChecker.isUserMemberOfAdminGroup(user) ||
         accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.MARKETING_GROUP);
   }

@@ -118,14 +118,14 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_OUTGOING_MAIL, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_VISITORBOOK, FALSE_READONLY_READWRITE, ProjectForgeGroup.ORGA_TEAM);
-    addRight(new ProjektRight(accessChecker));
-    addRight(new AuftragRight(accessChecker));
-    addRight(new GanttChartRight(accessChecker));
-    addRight(new HRPlanningRight(accessChecker));
-    addRight(new TeamCalRight(accessChecker));
-    addRight(new TeamEventRight(accessChecker));
-    addRight(new CalEventRight(accessChecker));
-    addRight(new AddressbookRight(accessChecker));
+    addRight(new ProjektRight());
+    addRight(new AuftragRight());
+    addRight(new GanttChartRight());
+    addRight(new HRPlanningRight());
+    addRight(new TeamCalRight());
+    addRight(new TeamEventRight());
+    addRight(new CalEventRight());
+    addRight(new AddressbookRight());
 
     addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);
   }

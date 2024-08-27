@@ -45,22 +45,24 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.not
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.WicketSupport
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.io.*
 import java.util.*
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
+open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Serializable needed for Wicket.
     @Autowired
-    private val userDao: UserDao? = null
+    private lateinit var userDao: UserDao
 
     @Autowired
-    private val taskTree: TaskTree? = null
+    private lateinit var taskTree: TaskTree
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
@@ -105,7 +107,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     fun setResponsibleUser(task: TaskDO, responsibleUserId: Int) {
-        val user = userDao!!.getOrLoad(responsibleUserId)
+        val user = userDao.getOrLoad(responsibleUserId)
         task.responsibleUser = user
     }
 
@@ -237,7 +239,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
     fun checkConstraintVioloation(task: TaskDO) {
         if (task.parentTaskId == null) {
             // Root task or task without parent task.
-            if (!taskTree!!.isRootNode(task)) {
+            if (!taskTree.isRootNode(task)) {
                 // Task is not root task!
                 throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN)
             }
@@ -519,5 +521,20 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java) {
         private val log: Logger = LoggerFactory.getLogger(TaskDao::class.java)
         val ADDITIONAL_SEARCH_FIELDS =
             arrayOf("responsibleUser.username", "responsibleUser.firstname", "responsibleUser.lastname")
+    }
+
+    // Wicket workarround
+    @Serial
+    @Throws(ClassNotFoundException::class, IOException::class)
+    private fun readObject(aInputStream: ObjectInputStream) {
+        this.userDao = WicketSupport.get(UserDao::class.java)
+        this.taskTree = TaskTree.getInstance()
+    }
+
+    // Wicket workarround
+    @Serial
+    @Throws(IOException::class)
+    private fun writeObject(aOutputStream: ObjectOutputStream) {
+        // Do nothing.
     }
 }

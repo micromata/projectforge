@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.SearchDao;
 import org.projectforge.framework.persistence.api.SearchResultData;
 import org.projectforge.framework.persistence.database.StatisticsCache;
 import org.projectforge.framework.utils.NumberFormatter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.registry.WebRegistryEntry;
 import org.projectforge.web.wicket.*;
 
@@ -55,12 +56,6 @@ public class SearchAreaPanel extends Panel
   private static final long serialVersionUID = -4258095807245346743L;
 
   private static final int MAXIMUM_ENTRIES_WITHOUT_FILTER_SETTINGS = 10000;
-
-  @SpringBean
-  private SearchDao searchDao;
-
-  @SpringBean
-  private StatisticsCache statisticsCache;
 
   /**
    * @param page Needed, because in constructor this panel is not yet added to a page.
@@ -86,7 +81,7 @@ public class SearchAreaPanel extends Panel
     if (listPageColumnsCreator instanceof AbstractListPage) {
       ((AbstractListPage<?, ?, ?>) listPageColumnsCreator).setCalledBySearchPage(true);
     }
-    final Integer number = statisticsCache.getNumberOfEntities(webRegistryEntry.getDOClass());
+    final Integer number = WicketSupport.get(StatisticsCache.class).getNumberOfEntities(webRegistryEntry.getDOClass());
     final Class<? extends BaseSearchFilter> registeredFilterClass = webRegistryEntry.getSearchFilterClass();
     final boolean isTaskDependentFilter = registeredFilterClass != null
         && TaskDependentFilter.class.isAssignableFrom(registeredFilterClass);
@@ -110,7 +105,7 @@ public class SearchAreaPanel extends Panel
     } else {
       baseSearchFilter = filter;
     }
-    final List<SearchResultData> searchResult = searchDao.getEntries(baseSearchFilter, webRegistryEntry.getDOClass(),
+    final List<SearchResultData> searchResult = WicketSupport.get(SearchDao.class).getEntries(baseSearchFilter, webRegistryEntry.getDOClass(),
         webRegistryEntry.getDao());
     boolean hasError = false;
     if (searchResult == null) {

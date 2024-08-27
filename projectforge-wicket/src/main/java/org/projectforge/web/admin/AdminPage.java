@@ -69,18 +69,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   static final int NUMBER_OF_TEST_OBJECTS_TO_CREATE = 100;
 
-  @SpringBean
-  private BookDao bookDao;
-
-  @SpringBean
-  private SystemService systemService;
-
-  @SpringBean
-  private DatabaseService databaseService;
-
-  @SpringBean
-  private UserXmlPreferencesCache userXmlPreferencesCache;
-
   private final AdminForm form;
 
   private static IProjectForgeEndpoints projectForgeEndpoints;
@@ -315,7 +303,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void checkSystemIntegrity() {
     log.info("Administration: check integrity of tasks.");
     checkAccess();
-    final String result = systemService.checkSystemIntegrity();
+    final String result = WicketSupport.get(SystemService.class).checkSystemIntegrity();
     final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
@@ -332,8 +320,8 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void refreshCaches() {
     log.info("Administration: refresh of caches.");
     checkAccess();
-    String refreshedCaches = systemService.refreshCaches();
-    userXmlPreferencesCache.forceReload();
+    String refreshedCaches = WicketSupport.get(SystemService.class).refreshCaches();
+    WicketSupport.get(UserXmlPreferencesCache.class).forceReload();
     refreshedCaches += ", UserXmlPreferencesCache";
     setResponsePage(new MessagePage("administration.refreshCachesDone", refreshedCaches));
   }
@@ -395,7 +383,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   protected void schemaExport() {
     log.info("Administration: schema export.");
     checkAccess();
-    final String result = systemService.exportSchema();
+    final String result = WicketSupport.get(SystemService.class).exportSchema();
     final String filename = "projectforge_schema" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".sql";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
@@ -481,22 +469,22 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   protected void createMissingDatabaseIndices() {
     log.info("Administration: create missing data base indices.");
-    accessChecker.checkRestrictedOrDemoUser();
-    final int counter = databaseService.createMissingIndices();
+    getAccessChecker().checkRestrictedOrDemoUser();
+    final int counter = WicketSupport.get(DatabaseService.class).createMissingIndices();
     setResponsePage(new MessagePage("administration.missingDatabaseIndicesCreated", String.valueOf(counter)));
   }
 
   private void checkAccess() {
-    accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkIsLoggedInUserMemberOfAdminGroup();
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   public void createTestBooks() {
-    accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkIsLoggedInUserMemberOfAdminGroup();
+    getAccessChecker().checkRestrictedOrDemoUser();
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
-    while (databaseService
+    while (WicketSupport.get(DatabaseService.class)
         .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
       number++;
     }
@@ -515,7 +503,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       book.setYearOfPublishing("2001");
       list.add(book);
     }
-    bookDao.save(list);
+    WicketSupport.get(BookDao.class).save(list);
     setResponsePage(
         new MessagePage("system.admin.development.testObjectsCreated", String.valueOf(NUMBER_OF_TEST_OBJECTS_TO_CREATE),
             "BookDO"));

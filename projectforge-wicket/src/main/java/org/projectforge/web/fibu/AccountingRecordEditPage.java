@@ -29,6 +29,7 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -41,9 +42,6 @@ public class AccountingRecordEditPage
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordEditPage.class);
 
-  @SpringBean
-  private BuchungssatzDao buchungssatzDao;
-
   public AccountingRecordEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.buchungssatz");
@@ -53,8 +51,8 @@ public class AccountingRecordEditPage
 
   private void checkAccess()
   {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override
@@ -66,7 +64,7 @@ public class AccountingRecordEditPage
   @Override
   protected BuchungssatzDao getBaseDao()
   {
-    return buchungssatzDao;
+    return WicketSupport.get(BuchungssatzDao.class);
   }
 
   @Override

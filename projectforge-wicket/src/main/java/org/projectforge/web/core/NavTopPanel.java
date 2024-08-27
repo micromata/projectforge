@@ -43,6 +43,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.login.LoginService;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
@@ -53,6 +54,7 @@ import org.projectforge.rest.core.PagesResolver;
 import org.projectforge.web.WicketLoginService;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.menuconfig.MenuConfig;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.session.MySession;
@@ -77,21 +79,6 @@ public class NavTopPanel extends NavAbstractPanel {
 
   private BookmarkDialog bookmarkDialog;
 
-  @SpringBean
-  private AccessChecker accessChecker;
-
-  @SpringBean
-  private VacationService vacationService;
-
-  @SpringBean
-  private WicketLoginService loginService;
-
-  @SpringBean
-  private WicketMenuBuilder menuBuilder;
-
-  @SpringBean
-  private MenuCreator menuCreator;
-
   /**
    * Cross site request forgery token.
    */
@@ -105,7 +92,7 @@ public class NavTopPanel extends NavAbstractPanel {
   @SuppressWarnings("serial")
   public void init(final AbstractSecuredPage page) {
     getMenu();
-    favoritesMenu = menuBuilder.getFavoriteMenu();
+    favoritesMenu = WicketSupport.get(WicketMenuBuilder.class).getFavoriteMenu();
     add(new MenuConfig("menuconfig", getMenu()));
     add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
     {
@@ -128,7 +115,7 @@ public class NavTopPanel extends NavAbstractPanel {
 
       final RepeatingView pluginPersonalMenuEntriesRepeater = new RepeatingView("pluginPersonalMenuEntriesRepeater");
       add(pluginPersonalMenuEntriesRepeater);
-      if (accessChecker.isRestrictedUser() == true) {
+      if (WicketSupport.get(AccessChecker.class).isRestrictedUser() == true) {
         // Show ChangePaswordPage as my account for restricted users.
         final ExternalLink changePasswordLink = new ExternalLink("myAccountLink", PagesResolver.getDynamicPageUrl(ChangePasswordPageRest.class));
         add(changePasswordLink);
@@ -140,7 +127,7 @@ public class NavTopPanel extends NavAbstractPanel {
         final ExternalLink my2FactorAuthentificationLink = new ExternalLink("my2FactorAuthentificationLink", PagesResolver.getDynamicPageUrl(My2FASetupPageRest.class, null, null, true));
         add(my2FactorAuthentificationLink);
         addVacationViewLink();
-        for (MenuItemDef menu : menuCreator.getPersonalMenuPluginEntries()) {
+        for (MenuItemDef menu : WicketSupport.get(MenuCreator.class).getPersonalMenuPluginEntries()) {
           // Now we add a new menu area (title with sub menus):
           final WebMarkupContainer linkContainer = new WebMarkupContainer(pluginPersonalMenuEntriesRepeater.newChildId());
           pluginPersonalMenuEntriesRepeater.add(linkContainer);
@@ -157,7 +144,7 @@ public class NavTopPanel extends NavAbstractPanel {
       final Link<Void> logoutLink = new Link<Void>("logoutLink") {
         @Override
         public void onClick() {
-          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse());
+          WicketSupport.get(WicketLoginService.class).logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse());
           WicketUtils.redirectToLogin(this);
         }
       };
@@ -171,7 +158,7 @@ public class NavTopPanel extends NavAbstractPanel {
     final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/" + MenuItemDefId.VACATION_ACCOUNT.getUrl()) {
       @Override
       public boolean isVisible() {
-        return vacationService.hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
+        return WicketSupport.get(VacationService.class).hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
       }
     };
     add(vacationViewLink);

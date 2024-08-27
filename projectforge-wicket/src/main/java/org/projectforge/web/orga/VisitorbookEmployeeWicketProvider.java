@@ -27,6 +27,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
+import org.projectforge.web.WicketSupport;
 import org.wicketstuff.select2.Response;
 
 import java.util.ArrayList;
@@ -41,14 +42,14 @@ public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketPro
 
     final private VisitorbookDO visitorbook;
 
-    public VisitorbookEmployeeWicketProvider(VisitorbookDO visitorbook, EmployeeDao employeeDao) {
-        super(employeeDao);
+    public VisitorbookEmployeeWicketProvider(VisitorbookDO visitorbook) {
+        super();
         this.visitorbook = visitorbook;
     }
 
     public void initSortedEmployees() {
         if (sortedEmployees == null) {
-            sortedEmployees = employeeDao.findAllActive(false);
+            sortedEmployees = WicketSupport.get(EmployeeDao.class).findAllActive(false);
             Set<EmployeeDO> assignedEmployees = visitorbook.getContactPersons();
             List<EmployeeDO> removeEmployeeList = new ArrayList<>();
             if (assignedEmployees != null) {

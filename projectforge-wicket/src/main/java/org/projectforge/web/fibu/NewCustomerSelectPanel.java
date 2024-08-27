@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
@@ -71,12 +72,6 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
   @SpringBean
   private KundeFormatter kundeFormatter;
-
-  @SpringBean
-  private KundeDao kundeDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentCustomers;
 
@@ -111,7 +106,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "division");
         filter.setSearchString(input);
-        final List<KundeDO> list = kundeDao.getList(filter);
+        final List<KundeDO> list = WicketSupport.get(KundeDao.class).getList(filter);
         return list;
       }
 
@@ -170,7 +165,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
             final int ind = value.indexOf(" - ");
             final String idString = ind >= 0 ? value.substring(0, ind) : value;
             final Integer id = NumberHelper.parseInteger(idString);
-            final KundeDO kunde = id != null ? kundeDao.getById(id) : null;
+            final KundeDO kunde = id != null ? WicketSupport.get(KundeDao.class).getById(id) : null;
             if (kunde == null) {
               error(getString("panel.error.customernameNotFound"));
             }
@@ -315,11 +310,11 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentCustomers == null) {
-      this.recentCustomers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
+      this.recentCustomers = (RecentQueue<String>) WicketSupport.get(UserXmlPreferencesService.class).getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
     }
     if (this.recentCustomers == null) {
       this.recentCustomers = new RecentQueue<String>();
-      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
+      WicketSupport.get(UserXmlPreferencesService.class).putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
     }
     return this.recentCustomers;
   }

@@ -34,6 +34,7 @@ import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.TimesheetDisciplineChartBuilder;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.JFreeChartImage;
 
@@ -49,15 +50,11 @@ public class PersonalStatisticsPage extends AbstractSecuredPage
 
   private static final int IMAGE_HEIGHT = 400;
 
-  @SpringBean
-  private EmployeeDao employeeDao;
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
   public PersonalStatisticsPage(final PageParameters parameters)
   {
     super(parameters);
+    final EmployeeDao employeeDao = WicketSupport.get(EmployeeDao.class);
+    final TimesheetDao timesheetDao = WicketSupport.get(TimesheetDao.class);
     final Label timesheetDisciplineChartTitle = new Label("timesheetDisciplineChartTitle",
         getString("personal.statistics.timesheetDisciplineChart.title"));
     body.add(timesheetDisciplineChartTitle);

@@ -33,6 +33,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 import org.projectforge.web.wicket.WicketUtils;
 
@@ -47,12 +48,6 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
 
   public static String PARAM_KEY_TEAM_CAL_ID = "teamCalId";
 
-  @SpringBean
-  private TeamCalDao teamCalDao;
-
-  @SpringBean
-  private TeamCalImportDao teamCalImportDao;
-
   public TeamCalImportPage(final PageParameters parameters)
   {
     super(parameters);
@@ -60,7 +55,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     body.add(form);
     final Integer calId = WicketUtils.getAsInteger(parameters, PARAM_KEY_TEAM_CAL_ID);
     if (calId != null) {
-      form.calendar = teamCalDao.getById(calId);
+      form.calendar = WicketSupport.get(TeamCalDao.class).getById(calId);
     }
     form.init();
   }
@@ -68,7 +63,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
   public void setEventsToImport(final List<VEvent> events)
   {
     checkAccess();
-    final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(events);
+    final ImportStorage<TeamEventDO> storage = WicketSupport.get(TeamCalImportDao.class).importEvents(events);
     setStorage(storage);
   }
 
@@ -82,7 +77,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
         final String clientFilename = fileUpload.getClientFileName();
         final CalendarBuilder builder = new CalendarBuilder();
         final Calendar calendar = builder.build(is);
-        final ImportStorage<TeamEventDO> storage = teamCalImportDao.importEvents(calendar, clientFilename);
+        final ImportStorage<TeamEventDO> storage = WicketSupport.get(TeamCalImportDao.class).importEvents(calendar, clientFilename);
         setStorage(storage);
       } catch (final Exception ex) {
         log.error(ex.getMessage(), ex);
@@ -96,7 +91,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
 
   void reconcile()
   {
-    final String name = teamCalImportDao.getSheetName();
+    final String name = WicketSupport.get(TeamCalImportDao.class).getSheetName();
     if (getStorage() == null) {
       return;
     }
@@ -105,7 +100,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     if (sheet == null || !sheet.isReconciled()) {
       return;
     }
-    reconcile(teamCalImportDao.getSheetName());
+    reconcile(WicketSupport.get(TeamCalImportDao.class).getSheetName());
   }
 
   @Override
@@ -113,7 +108,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
   {
     checkAccess();
     final ImportedSheet<?> sheet = super.reconcile(sheetName);
-    teamCalImportDao.reconcile(getStorage(), sheet, form.getCalendarId());
+    WicketSupport.get(TeamCalImportDao.class).reconcile(getStorage(), sheet, form.getCalendarId());
     return sheet;
   }
 
@@ -122,13 +117,13 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
   {
     checkAccess();
     final ImportedSheet<?> sheet = super.commit(sheetName);
-    teamCalImportDao.commit(getStorage(), sheet, form.getCalendarId());
+    WicketSupport.get(TeamCalImportDao.class).commit(getStorage(), sheet, form.getCalendarId());
     return sheet;
   }
 
   private void checkAccess()
   {
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override

@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
+import org.projectforge.web.WicketSupport;
 import org.wicketstuff.select2.Response;
 
 import java.util.*;
@@ -44,14 +45,15 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
 
   private List<EmployeeStatus> employeeStatusFilter;
 
-  public DefaultEmployeeWicketProvider(EmployeeDao employeeDao, boolean withMyself, EmployeeStatus... employeeStatusFilter) {
-    super(employeeDao);
+  public DefaultEmployeeWicketProvider(boolean withMyself, EmployeeStatus... employeeStatusFilter) {
+    super();
     this.withMyself = withMyself;
     this.employeeStatusFilter = Arrays.asList(employeeStatusFilter);
   }
 
   @Override
   public void query(String term, final int page, final Response<EmployeeDO> response) {
+    var employeeDao =  WicketSupport.get(EmployeeDao.class);
     boolean hasMore = false;
     Collection<EmployeeDO> result = new ArrayList<>();
     Collection<EmployeeDO> employeesWithoutLoggedInUser = employeeDao.findAllActive(false);

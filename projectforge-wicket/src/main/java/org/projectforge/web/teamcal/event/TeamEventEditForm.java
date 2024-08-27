@@ -139,7 +139,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   public TeamEventEditForm(final TeamEventEditPage parentPage, final TeamEventDO data)
   {
     super(parentPage, data);
-    right = new TeamEventRight(accessChecker);
+    right = new TeamEventRight();
   }
 
   /**

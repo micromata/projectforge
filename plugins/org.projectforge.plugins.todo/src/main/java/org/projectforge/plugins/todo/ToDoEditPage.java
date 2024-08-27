@@ -71,7 +71,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   protected void onAfterRender()
   {
     super.onAfterRender();
-    if (accessChecker.isRestrictedOrDemoUser()) {
+    if (getAccessChecker().isRestrictedOrDemoUser()) {
       // Do nothing.
       return;
     }
@@ -149,9 +149,6 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
     return pref;
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   @Override
   public void select(final String property, final Object selectedValue)
   {

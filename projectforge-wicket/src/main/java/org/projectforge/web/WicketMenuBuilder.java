@@ -127,7 +127,6 @@ public class WicketMenuBuilder implements Serializable {
 
     @Serial
     private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
-        System.out.println("writeObject");
         // Do nothing.
     }
 }

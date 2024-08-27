@@ -48,6 +48,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.wicket.*;
@@ -65,10 +66,6 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
 
   private final UserFormatter userFormatter;
 
-  private final TimesheetDao timesheetDao;
-
-  private final TaskTree taskTree;
-
   private final TimesheetEditPage parentPage;
 
   private final TimesheetEditForm form;
@@ -78,8 +75,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
    * @param title
    */
   public TimesheetEditSelectRecentDialogPanel(final String id, final String title, final TimesheetEditPage parentPage,
-      final TimesheetEditForm form, final boolean showCost2Column, final TimesheetDao timesheetDao,
-      final TaskTree taskTree,
+      final TimesheetEditForm form, final boolean showCost2Column,
       final UserFormatter userFormatter)
   {
     super(id);
@@ -87,8 +83,6 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
     this.parentPage = parentPage;
     this.form = form;
     this.showCost2Column = showCost2Column;
-    this.timesheetDao = timesheetDao;
-    this.taskTree = taskTree;
     this.userFormatter = userFormatter;
     setBigWindow();
   }
@@ -168,8 +162,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(new Model<String>(getString("fibu.projekt")), null,
           "kost2.projekt.name",
           cellItemListener));
-      columns.add(new TaskPropertyColumn<TimesheetDO>(getString("task"), null, "task", cellItemListener)
-          .withTaskTree(taskTree));
+      columns.add(new TaskPropertyColumn<TimesheetDO>(getString("task"), null, "task", cellItemListener));
     } else {
       columns
           .add(new CellItemListenerPropertyColumn<TimesheetDO>(new Model<String>(getString("task")), null, "task.title",
@@ -234,6 +227,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
       public void onClick(final AjaxRequestTarget target)
       {
         if (target != null) {
+          TimesheetDao timesheetDao = WicketSupport.get(TimesheetDao.class);
           form.getData().setLocation(timesheet.getLocation());
           form.getData().setDescription(timesheet.getDescription());
           timesheetDao.setTask(form.getData(), timesheet.getTaskId());

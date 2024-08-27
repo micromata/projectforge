@@ -37,6 +37,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.ArrayList;
@@ -53,11 +54,6 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
       .getLogger(TaskSelectAutoCompleteFormComponent.class);
 
   private static final long serialVersionUID = 2278347191215880396L;
-
-  @SpringBean
-  private TaskDao taskDao;
-
-  private transient TaskTree taskTree;
 
   private TaskDO taskDo;
 
@@ -102,13 +98,13 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchFields("title", "taskpath");
     filter.setSearchString(input);
-    final List<TaskDO> list = taskDao.getList(filter);
+    final List<TaskDO> list = WicketSupport.getTaskDao().getList(filter);
     final List<TaskDO> choices = new ArrayList<TaskDO>();
     for (final TaskDO task : list) {
       if (autocompleteOnlyTaskBookableForTimesheets == false) {
         choices.add(task);
       } else {
-        final TaskNode taskNode = getTaskTree().getTaskNodeById(task.getId());
+        final TaskNode taskNode = TaskTree.getInstance().getTaskNodeById(task.getId());
         if (taskNode == null) {
           log.error("Oups, task node with id '" + task.getId() + "' not found in taskTree.");
         } else if (taskNode.isBookableForTimesheets() == true) {
@@ -147,7 +143,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
   private String createPath(final Integer taskId)
   {
     final StringBuilder builder = new StringBuilder();
-    final List<TaskNode> nodeList = getTaskTree().getPathToRoot(taskId);
+    final List<TaskNode> nodeList = TaskTree.getInstance().getPathToRoot(taskId);
     if (CollectionUtils.isEmpty(nodeList) == true) {
       return getString("task.path.rootTask");
     }
@@ -194,7 +190,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
           return null;
         }
         try {
-          final TaskDO task = getTaskTree().getTaskById(Integer.valueOf(value));
+          final TaskDO task = TaskTree.getInstance().getTaskById(Integer.valueOf(value));
           if (task == null) {
             error(getString("timesheet.error.invalidTaskId"));
             return null;
@@ -227,13 +223,5 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
   void setAutocompleteOnlyTaskBookableForTimesheets(final boolean autocompleteOnlyTaskBookableForTimesheets)
   {
     this.autocompleteOnlyTaskBookableForTimesheets = autocompleteOnlyTaskBookableForTimesheets;
-  }
-
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTree.getInstance();
-    }
-    return taskTree;
   }
 }

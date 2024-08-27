@@ -43,6 +43,7 @@ import org.projectforge.business.user.UsersComparator;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.teamcal.dialog.TeamCalICSExportDialog;
 import org.projectforge.web.user.GroupsWicketProvider;
@@ -72,18 +73,6 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEditForm.class);
 
   private static final long serialVersionUID = 1379614008604844519L;
-
-  @SpringBean
-  protected AccessChecker accessChecker;
-
-  @SpringBean
-  GroupDao groupDao;
-
-  @SpringBean
-  UserDao userDao;
-
-  @SpringBean
-  GroupService groupService;
 
   private boolean access = false;
 
@@ -118,11 +107,13 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
   protected void init()
   {
     super.init();
-
+    var accessChecker = WicketSupport.getAccessChecker();
+    var userDao = WicketSupport.getUserDao();
+    var groupService = WicketSupport.get(GroupService.class);
     gridBuilder.newSplitPanel(GridSize.COL50);
 
     // checking visibility rights
-    final TeamCalRight right = new TeamCalRight(accessChecker);
+    final TeamCalRight right = new TeamCalRight();
     if (isNew() == true || right.hasUpdateAccess(getUser(), data, data) == true) {
       access = true;
     }

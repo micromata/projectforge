@@ -71,7 +71,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         var anonymize = true
         if (editMode) {
             if (obj.id != null) {
-                val right = TeamCalRight(accessChecker)
+                val right = TeamCalRight()
                 if (right.hasUpdateAccess(ThreadLocalUserContext.user!!, obj, obj)) {
                     // User has update access right, so don't remove externalSubscriptionUrl due to privacy reasons:
                     anonymize = false

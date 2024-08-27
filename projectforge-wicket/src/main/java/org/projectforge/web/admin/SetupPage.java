@@ -58,9 +58,6 @@ public class SetupPage extends AbstractUnsecureBasePage {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SetupPage.class);
 
-  @SpringBean
-  private DatabaseService databaseService;
-
   private final SetupForm setupForm;
 
   private final SetupImportForm importForm;
@@ -79,6 +76,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
 
   protected void finishSetup() {
     ConfigurationDao configurationDao = WicketSupport.get(ConfigurationDao.class);
+    var databaseService = WicketSupport.get(DatabaseService.class);
     log.info("Finishing the set-up...");
     checkAccess();
     PFUserDO adminUser = setupForm.getAdminUser();
@@ -185,7 +183,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
       //      configurationDao.checkAndUpdateDatabaseEntries();
 
       // intialize DB schema
-      this.databaseService.updateSchema();
+      WicketSupport.get(DatabaseService.class).updateSchema();
 
       log.error("XmlDumpService not yet migrated!!!");
       int counter = 0; //jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
@@ -216,7 +214,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
   }
 
   private void checkAccess() {
-    if (databaseService.databaseTablesWithEntriesExist()) {
+    if (WicketSupport.get(DatabaseService.class).databaseTablesWithEntriesExist()) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
       ((MySession) getSession()).internalLogout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());

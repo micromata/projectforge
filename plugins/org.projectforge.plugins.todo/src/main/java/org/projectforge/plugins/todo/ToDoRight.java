@@ -31,6 +31,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 import java.util.Objects;
 
@@ -45,9 +46,9 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
 {
   private static final long serialVersionUID = -2928342166476350773L;
 
-  public ToDoRight(AccessChecker accessChecker)
+  public ToDoRight()
   {
-    super(accessChecker, TodoPluginUserRightId.PLUGIN_TODO, UserRightCategory.PLUGINS, UserRightValue.TRUE);
+    super(TodoPluginUserRightId.PLUGIN_TODO, UserRightCategory.PLUGINS, UserRightValue.TRUE);
   }
 
   /**
@@ -102,8 +103,6 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
    * If user is not reporter or assignee and task is given the access to task is assumed, meaning if the user has the
    * right to delete the tasks he is allowed to delete to-do's to.
    *
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object)
    */
   @Override
   public boolean hasDeleteAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj)
@@ -134,7 +133,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
       }
     }
     if (toDo.getTaskId() != null) {
-      return accessChecker.hasPermission(user, toDo.getTaskId(), AccessType.TASKS, operationType,
+      return WicketSupport.getAccessChecker().hasPermission(user, toDo.getTaskId(), AccessType.TASKS, operationType,
           false);
     } else {
       return false;

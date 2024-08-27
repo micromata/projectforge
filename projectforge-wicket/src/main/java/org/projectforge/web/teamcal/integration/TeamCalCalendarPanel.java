@@ -54,6 +54,7 @@ import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPanel;
 import org.projectforge.web.calendar.MyFullCalendarConfig;
 import org.projectforge.web.teamcal.dialog.RecurrenceChangeDialog;
@@ -74,12 +75,6 @@ import java.sql.Timestamp;
 public class TeamCalCalendarPanel extends CalendarPanel
 {
   private static final long serialVersionUID = 5462271308502345885L;
-
-  @SpringBean
-  private transient TeamEventDao teamEventDao;
-
-  @SpringBean
-  private transient TeamCalDao teamCalDao;
 
   private TeamCalEventProvider eventProvider;
 
@@ -126,7 +121,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
   protected void onDateRangeSelectedHook(final String selectedCalendar, final SelectedRange range,
       final CalendarResponse response)
   {
-    handleDateRangeSelection(this, getWebPage(), range, teamCalDao, selectedCalendar);
+    handleDateRangeSelection(this, getWebPage(), range, WicketSupport.get(TeamCalDao.class), selectedCalendar);
   }
 
   private void handleDateRangeSelection(final Component caller, final WebPage returnPage, final SelectedRange range,
@@ -165,9 +160,9 @@ public class TeamCalCalendarPanel extends CalendarPanel
     }
     // User clicked on teamEvent
     final TeamCalEventId id = new TeamCalEventId(event.getId(), ThreadLocalUserContext.getTimeZone());
-    final TeamEventDO teamEventDO = teamEventDao.getById(id.getDataBaseId());
+    final TeamEventDO teamEventDO = WicketSupport.get(TeamEventDao.class).getById(id.getDataBaseId());
     final ICalendarEvent teamEvent = eventProvider.getTeamEvent(id.toString());
-    if (new TeamEventRight(accessChecker).hasUpdateAccess(ThreadLocalUserContext.getUser(), teamEventDO,
+    if (new TeamEventRight().hasUpdateAccess(ThreadLocalUserContext.getUser(), teamEventDO,
         null)) {
       if (teamEventDO.hasRecurrence() == true) {
         // at this point the dbTeamEvent is already updated in time
@@ -196,17 +191,13 @@ public class TeamCalCalendarPanel extends CalendarPanel
     modifyEvent(event, newStartTime, newEndTime, dropMode, response);
   }
 
-  /**
-   * @see org.projectforge.web.calendar.CalendarPanel#onRegisterEventSourceHook(MyFullCalendarConfig, CalendarFilter,
-   * ICalendarFilter)
-   */
   @Override
   protected void onRegisterEventSourceHook(final MyFullCalendarConfig config, final ICalendarFilter filter)
   {
     if (filter instanceof TeamCalCalendarFilter) {
       // Colors are handled event based, this is just the default value
       final EventSource eventSource = new EventSource();
-      eventProvider = new TeamCalEventProvider(accessChecker, teamEventDao, (TeamCalCalendarFilter) filter);
+      eventProvider = new TeamCalEventProvider((TeamCalCalendarFilter) filter);
       eventSource.setEventsProvider(eventProvider);
       eventSource.setBackgroundColor("#1AA118");
       eventSource.setColor("#000000");
@@ -225,9 +216,6 @@ public class TeamCalCalendarPanel extends CalendarPanel
     eventProvider.resetEventCache();
   }
 
-  /**
-   * @see org.projectforge.web.calendar.CalendarPanel#onCallGetEventsHook()
-   */
   @Override
   protected void onCallGetEventsHook(final View view, final CalendarResponse response)
   {
@@ -261,6 +249,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
     if (StringUtils.startsWith(event.getId(), "-")) {
       return;
     }
+    var teamEventDao = WicketSupport.get(TeamEventDao.class);
     final TeamCalEventId id = new TeamCalEventId(event.getId(), ThreadLocalUserContext.getTimeZone());
     final ICalendarEvent teamEvent = eventProvider.getTeamEvent(id.toString());
     if (teamEvent == null) {

@@ -35,6 +35,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -46,12 +47,6 @@ import org.projectforge.web.wicket.flowlayout.*;
 public class CalendarForm extends AbstractStandardForm<ICalendarFilter, CalendarPage>
 {
   private static final long serialVersionUID = -145923669780937370L;
-
-  @SpringBean
-  protected transient UserDao userDao;
-
-  @SpringBean
-  transient AccessChecker accessChecker;
 
   protected ICalendarFilter filter;
 
@@ -65,7 +60,7 @@ public class CalendarForm extends AbstractStandardForm<ICalendarFilter, Calendar
 
   protected CalendarPageSupport createCalendarPageSupport()
   {
-    final CalendarPageSupport calendarPageSupport = new CalendarPageSupport(parentPage, accessChecker);
+    final CalendarPageSupport calendarPageSupport = new CalendarPageSupport(parentPage, WicketSupport.getAccessChecker());
     return calendarPageSupport;
   }
 

@@ -119,8 +119,8 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
 
   private void checkAccess()
   {
-    accessChecker.checkLoggedInUserRight(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE);
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkLoggedInUserRight(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE);
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override

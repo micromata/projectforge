@@ -43,6 +43,7 @@ import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.service.CalendarFeedService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
 import org.projectforge.web.teamcal.dialog.TeamCalICSExportDialog;
 import org.projectforge.web.wicket.*;
@@ -63,12 +64,6 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
 {
   private static final long serialVersionUID = 1749480610890950450L;
 
-  @SpringBean
-  private TeamCalDao teamCalDao;
-
-  @SpringBean
-  CalendarFeedService calendarFeedService;
-
   private TeamCalICSExportDialog icsExportDialog;
 
   private final boolean isAdminUser;
@@ -79,7 +74,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
   public TeamCalListPage(final PageParameters parameters)
   {
     super(parameters, "plugins.teamcal");
-    isAdminUser = accessChecker.isLoggedInUserMemberOfAdminGroup();
+    isAdminUser = getAccessChecker().isLoggedInUserMemberOfAdminGroup();
   }
 
   /**
@@ -157,7 +152,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
           final IModel<TeamCalDO> rowModel)
       {
         final TeamCalDO teamCal = rowModel.getObject();
-        final TeamCalRight right = (TeamCalRight) teamCalDao.getUserRight();
+        final TeamCalRight right = (TeamCalRight) WicketSupport.get(TeamCalDao.class).getUserRight();
         String label;
         if (right.isOwner(getUser(), teamCal) == true) {
           label = getString("plugins.teamcal.owner");
@@ -192,7 +187,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
         public void populateItem(final Item<ICellPopulator<TeamCalDO>> item, final String componentId,
             final IModel<TeamCalDO> rowModel)
         {
-          if (accessChecker.isRestrictedUser() == false) {
+          if (getAccessChecker().isRestrictedUser() == false) {
             final TeamCalDO teamCal = rowModel.getObject();
             item.add(new AjaxIconLinkPanel(componentId, IconType.SUBSCRIPTION,
                 new ResourceModel("plugins.teamcal.subscription.tooltip"))
@@ -224,7 +219,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
   @Override
   public TeamCalDao getBaseDao()
   {
-    return teamCalDao;
+    return WicketSupport.get(TeamCalDao.class);
   }
 
   /**
@@ -236,13 +231,11 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
     return new TeamCalListForm(this);
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractListPage#init()
-   */
   @SuppressWarnings("serial")
   @Override
   protected void init()
   {
+    CalendarFeedService calendarFeedService = WicketSupport.get(CalendarFeedService.class);
     final MyICSExportDialog exportDialog = new MyICSExportDialog(newModalDialogId());
     TeamCalListPage.this.add(exportDialog);
     exportDialog.init();

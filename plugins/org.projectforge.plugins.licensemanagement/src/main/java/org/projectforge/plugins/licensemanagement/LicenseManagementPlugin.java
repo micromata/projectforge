@@ -80,7 +80,7 @@ public class LicenseManagementPlugin extends AbstractPlugin {
             LicenseListPage.class);
 
     // Define the access management:
-    registerRight(new LicenseManagementRight(accessChecker));
+    registerRight(new LicenseManagementRight());
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);

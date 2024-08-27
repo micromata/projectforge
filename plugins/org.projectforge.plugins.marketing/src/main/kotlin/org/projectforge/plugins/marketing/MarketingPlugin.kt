@@ -91,8 +91,8 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         )
 
         // Define the access management:
-        registerRight(AddressCampaignRight(accessChecker))
-        registerRight(AddressCampaignValueRight(accessChecker, addressDao))
+        registerRight(AddressCampaignRight())
+        registerRight(AddressCampaignValueRight())
 
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)

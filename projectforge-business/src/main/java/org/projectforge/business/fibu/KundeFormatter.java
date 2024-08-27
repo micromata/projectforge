@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.utils.BaseFormatter;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.web.WicketSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,12 +35,9 @@ public class KundeFormatter extends BaseFormatter
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KundeFormatter.class);
 
-  @Autowired
-  private KundeDao kundeDao;
-
   /**
    * Displays customers and/or kundeText as String.
-   * 
+   *
    * @param kunde null supported.
    * @param kundeText null supported.
    * @return
@@ -63,14 +61,11 @@ public class KundeFormatter extends BaseFormatter
 
   }
 
-  /**
-   * @see #format(KundeDO, boolean, boolean)
-   */
   public String format(final Integer kundeId, final boolean showOnlyNumber)
   {
     KundeDO kunde = null;
     try {
-      kunde = kundeDao.getById(kundeId);
+      kunde = WicketSupport.get(KundeDao.class).getById(kundeId);
     } catch (AccessException ex) {
       log.info(ex.getMessage());
       return getNotVisibleString();
@@ -80,7 +75,7 @@ public class KundeFormatter extends BaseFormatter
 
   /**
    * Formats given project as string.
-   * 
+   *
    * @param kunde The kunde to show.
    * @param showOnlyNumber If true then only the kost2 number will be shown.
    * @return
@@ -92,7 +87,7 @@ public class KundeFormatter extends BaseFormatter
     }
     StringBuffer sb = new StringBuffer();
 
-    boolean hasAccess = kundeDao.hasLoggedInUserSelectAccess(false);
+    boolean hasAccess = WicketSupport.get(KundeDao.class).hasLoggedInUserSelectAccess(false);
     if (!hasAccess) {
       appendNotVisible(sb);
     } else {

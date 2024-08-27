@@ -45,6 +45,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.Kost2DropDownChoice;
 import org.projectforge.web.fibu.NewCustomerSelectPanel;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
@@ -70,9 +71,6 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
   private static final long serialVersionUID = 6647201995353615498L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditForm.class);
-
-  @SpringBean
-  private UserPrefDao userPrefDao;
 
   private boolean parameterCreated;
 
@@ -136,7 +134,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
             return;
           }
           final String value = validatable.getValue();
-          if (parentPage.userPrefDao.doesParameterNameAlreadyExist(data.getId(), data.getUser(), data.getAreaObject(),
+          if (WicketSupport.get(UserPrefDao.class).doesParameterNameAlreadyExist(data.getId(), data.getUser(), data.getAreaObject(),
               value)) {
             name.error(getString("userPref.error.nameDoesAlreadyExist"));
           }
@@ -214,6 +212,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
   @SuppressWarnings("serial")
   void createParameterRepeaterChildren()
   {
+    var userPrefDao = WicketSupport.get(UserPrefDao.class);
     if (parameterCreated == true) {
       log.error("Could not add parameters twice. Internal error. Double submit of DropDownChoice?");
       return;
@@ -224,7 +223,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
       return;
     }
     if (isNew() == true && data.getUserPrefEntries() == null) {
-      parentPage.userPrefDao.addUserPrefParameters(data, data.getAreaObject());
+      WicketSupport.get(UserPrefDao.class).addUserPrefParameters(data, data.getAreaObject());
     }
     if (data.getUserPrefEntries() != null) {
       for (final UserPrefEntryDO param : data.getSortedUserPrefEntries()) {
@@ -234,7 +233,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         if (StringUtils.isNotEmpty(param.getTooltipI18nKey()) == true) {
           fs.addHelpIcon(getString(param.getTooltipI18nKey()));
         }
-        parentPage.userPrefDao.updateParameterValueObject(param);
+        WicketSupport.get(UserPrefDao.class).updateParameterValueObject(param);
         if (PFUserDO.class.isAssignableFrom(param.getType()) == true) {
           final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
               new UserPrefPropertyModel<PFUserDO>(userPrefDao,

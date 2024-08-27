@@ -30,8 +30,10 @@ import org.springframework.stereotype.Service;
 
 import jakarta.servlet.jsp.PageContext;
 
+import java.io.Serializable;
+
 @Service
-public class PriorityFormatter
+public class PriorityFormatter implements Serializable
 {
   public String getFormattedPriority(Priority priority)
   {

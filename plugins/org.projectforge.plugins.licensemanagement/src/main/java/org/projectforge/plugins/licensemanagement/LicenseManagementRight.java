@@ -31,21 +31,22 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
  * Every user has access to own to-do's or to-do's he's assigned to. All other users have access if the to-do is
  * assigned to a task and the user has the task access.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
+ *
  */
 public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
 {
   private static final long serialVersionUID = -2928342166476350773L;
 
-  public LicenseManagementRight(AccessChecker accessChecker)
+  public LicenseManagementRight()
   {
-    super(accessChecker, LicensemanagementPluginUserRightsId.PLUGIN_LICENSE_MANAGEMENT,
+    super(LicensemanagementPluginUserRightsId.PLUGIN_LICENSE_MANAGEMENT,
         UserRightCategory.PLUGINS,
         UserRightValue.TRUE);
   }
@@ -63,7 +64,7 @@ public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
       // Visible for new objects (created by current user):
       return true;
     }
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+    if (WicketSupport.getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
       // Administrators have always access:
       return true;
     }

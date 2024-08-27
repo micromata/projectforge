@@ -62,9 +62,6 @@ public class TaskTreePage extends AbstractSecuredPage
   @SpringBean
   private PriorityFormatter priorityFormatter;
 
-  @SpringBean
-  TaskTreeBuilder taskTreeBuilder;
-
   protected ISelectCallerPage caller;
 
   protected String selectProperty;
@@ -81,7 +78,7 @@ public class TaskTreePage extends AbstractSecuredPage
     super(parameters);
     init();
     if (WicketUtils.contains(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW) == true) {
-      taskTreeBuilder
+      WicketSupport.get(TaskTreeBuilder.class)
           .setHighlightedTaskNodeId(WicketUtils.getAsInteger(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW));
     }
   }
@@ -107,13 +104,13 @@ public class TaskTreePage extends AbstractSecuredPage
 
   public void setHighlightedRowId(final Integer highlightedRowId)
   {
-    taskTreeBuilder.setHighlightedTaskNodeId(highlightedRowId);
+    WicketSupport.get(TaskTreeBuilder.class).setHighlightedTaskNodeId(highlightedRowId);
   }
 
   @SuppressWarnings("serial")
   private void init()
   {
-
+    TaskTreeBuilder taskTreeBuilder = WicketSupport.get(TaskTreeBuilder.class);
     if (isSelectMode() == false) {
       ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link")
       {
@@ -135,7 +132,7 @@ public class TaskTreePage extends AbstractSecuredPage
           UserPrefArea.TASK_FAVORITE);
       menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink, getString("favorites"));
       addContentMenuEntry(menuEntry);
-      if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+      if (getAccessChecker().isLoggedInUserMemberOfAdminGroup() == true) {
         menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link")
         {
           @Override
@@ -149,7 +146,7 @@ public class TaskTreePage extends AbstractSecuredPage
         }, getString("wizard"));
         addContentMenuEntry(menuEntry);
       }
-      new AbstractReindexTopRightMenu(contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup())
+      new AbstractReindexTopRightMenu(contentMenuBarPanel, getAccessChecker().isLoggedInUserMemberOfAdminGroup())
       {
         @Override
         protected void rebuildDatabaseIndex(final boolean onlyNewest)
@@ -174,12 +171,12 @@ public class TaskTreePage extends AbstractSecuredPage
     taskTreeBuilder.setSelectMode(isSelectMode())
         .setShowRootNode(isShowRootNode())
         .setShowCost(WicketSupport.getKostCache().isKost2EntriesExists());
-    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
+    if (getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
         ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
       taskTreeBuilder.setShowOrders(true);
     }
     taskTreeBuilder.setCaller(caller).setSelectProperty(selectProperty);
-    form.add(taskTreeBuilder.createTree("tree", this, form.getSearchFilter(), WicketSupport.getTaskDao()));
+    form.add(taskTreeBuilder.createTree("tree", this, form.getSearchFilter()));
 
     body.add(new Label("info", getString("task.tree.info")));
 
@@ -204,8 +201,8 @@ public class TaskTreePage extends AbstractSecuredPage
    */
   boolean isShowRootNode()
   {
-    return (accessChecker.isLoggedInUserMemberOfAdminGroup())
-        || accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP);
+    return (getAccessChecker().isLoggedInUserMemberOfAdminGroup())
+        || getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP);
   }
 
   /**

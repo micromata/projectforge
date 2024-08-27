@@ -38,6 +38,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookService;
 import org.projectforge.framework.time.PFDay;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
@@ -58,9 +59,6 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   private static final Logger log = LoggerFactory.getLogger(VisitorbookListPage.class);
 
   private static final long serialVersionUID = -8406451234003792763L;
-
-  @SpringBean
-  private VisitorbookService visitorbookService;
 
   public VisitorbookListPage(final PageParameters parameters) {
     super(parameters, "orga.visitorbook");
@@ -235,7 +233,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
 
   @Override
   public VisitorbookService getBaseDao() {
-    return visitorbookService;
+    return WicketSupport.get(VisitorbookService.class);
   }
 
   /**

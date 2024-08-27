@@ -40,14 +40,7 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
 {
   protected Collection<EmployeeDO> sortedEmployees;
 
-  protected transient EmployeeDao employeeDao;
-
   protected int pageSize = 20;
-
-  public AbstractEmployeeWicketProvider(final EmployeeDao employeeDao)
-  {
-    this.employeeDao = employeeDao;
-  }
 
   /**
    * @param pageSize the pageSize to set
@@ -88,7 +81,7 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
       if (employeeId == null) {
         continue;
       }
-      EmployeeDO employee = employeeDao.selectByPkDetached(employeeId);
+      EmployeeDO employee = WicketSupport.get(EmployeeDao.class).selectByPkDetached(employeeId);
       if (employee != null) {
         list.add(employee);
       }

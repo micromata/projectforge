@@ -124,7 +124,7 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
         new Model<>(getString("plugins.licensemanagement.device")), getSortable(
         "device", sortable),
         "device", cellItemListener));
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+    if (getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
       columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
           new Model<>(getString("plugins.licensemanagement.key")), getSortable(
           "key", sortable),

@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.Kost2DropDownChoice;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -49,9 +50,6 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditPage.class);
 
   public static final String PARAMETER_AREA = "area";
-
-  @SpringBean
-  UserPrefDao userPrefDao;
 
   /**
    * Creates a template of the given object for the given area.
@@ -85,6 +83,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
 
   private UserPrefDO initUserPref(final UserPrefDO userPref, final UserPrefArea area, final Object object)
   {
+    var userPrefDao = WicketSupport.get(UserPrefDao.class);
     userPref.setAreaObject(area);
     userPref.setUser(ThreadLocalUserContext.getUser());
     if (object != null) {
@@ -129,7 +128,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
 
   private void setValue(final UserPrefEntryDO param, final Object value)
   {
-    userPrefDao.setValueObject(param, value);
+    WicketSupport.get(UserPrefDao.class).setValueObject(param, value);
     final List<UserPrefEntryDO> dependents = getData().getDependentUserPrefEntries(param.getParameter());
     if (dependents != null) {
       for (final UserPrefEntryDO entry : dependents) {
@@ -152,7 +151,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
   @Override
   protected UserPrefDao getBaseDao()
   {
-    return userPrefDao;
+    return WicketSupport.get(UserPrefDao.class);
   }
 
   @Override

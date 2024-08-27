@@ -99,13 +99,12 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   /**
    * @param parentComponent Needed for call parentComponent.getString(String) for i18n.
    * @param componentId
-   * @param taskTree
    * @param selectMode
    * @param node
    * @return
    */
   public static ConsumptionBarPanel getConsumptionBarPanel(final Component parentComponent, final String componentId,
-      final TaskTree taskTree, final boolean selectMode, final TaskNode node)
+      final boolean selectMode, final TaskNode node)
   {
     Integer maxHours = null;
     Integer taskId = null;
@@ -119,10 +118,10 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     if (maxHours != null && maxHours.intValue() == 0) {
       maxDays = null;
     } else {
-      maxDays = NumberHelper.setDefaultScale(taskTree.getPersonDays(node));
+      maxDays = NumberHelper.setDefaultScale(TaskTree.getInstance().getPersonDays(node));
     }
     BigDecimal usage = (node != null)
-        ? new BigDecimal(node.getDuration(taskTree, true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
+        ? new BigDecimal(node.getDuration(TaskTree.getInstance(), true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
         BigDecimal.ROUND_HALF_UP)
         : BigDecimal.ZERO;
     usage = NumberHelper.setDefaultScale(usage);
@@ -148,9 +147,9 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     return kost2s;
   }
 
-  static Label getKostLabel(final String componentId, final TaskTree taskTree, final TaskDO task)
+  static Label getKostLabel(final String componentId, final TaskDO task)
   {
-    final List<Kost2DO> list = taskTree.getKost2List(task.getId(), false);
+    final List<Kost2DO> list = TaskTree.getInstance().getKost2List(task.getId(), false);
     final StringBuffer buf = new StringBuffer();
     String[] kost2s = null;
     if (list != null) {
@@ -246,7 +245,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
               final IModel<TaskDO> rowModel)
           {
             final TaskNode node = TaskTree.getInstance().getTaskNodeById(rowModel.getObject().getId());
-            item.add(getConsumptionBarPanel(TaskListPage.this, componentId, TaskTree.getInstance(), isSelectMode(), node));
+            item.add(getConsumptionBarPanel(TaskListPage.this, componentId, isSelectMode(), node));
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
@@ -259,14 +258,14 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
             public void populateItem(final Item<ICellPopulator<TaskDO>> item, final String componentId,
                 final IModel<TaskDO> rowModel)
             {
-              final Label label = getKostLabel(componentId, TaskTree.getInstance(), rowModel.getObject());
+              final Label label = getKostLabel(componentId,rowModel.getObject());
               item.add(label);
               cellItemListener.populateItem(item, componentId, rowModel);
             }
           });
     }
     if (TaskTree.getInstance().hasOrderPositionsEntries() == true
-        && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
+        && getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP,
         ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
       columns.add(
@@ -303,7 +302,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     columns.add(new CellItemListenerPropertyColumn<TaskDO>(getString("shortDescription"),
         getSortable("shortDescription", sortable),
         "shortDescription", cellItemListener));
-    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
+    if (getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
       columns.add(
           new LocalDatePropertyColumn(getString("task.protectTimesheetsUntil.short"), getSortable(
               "protectTimesheetsUntil", sortable), "protectTimesheetsUntil", cellItemListener));
