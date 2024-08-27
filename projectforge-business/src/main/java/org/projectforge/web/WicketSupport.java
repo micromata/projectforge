@@ -41,6 +41,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.persistence.database.DatabaseDao;
@@ -64,6 +65,14 @@ import java.util.Map;
 
 public class WicketSupport {
     private static WicketSupport instance = new WicketSupport();
+
+    public static AccessChecker getAccessChecker() {
+        return get(AccessChecker.class);
+    }
+
+    public static UserDao getUserDao() {
+        return get(UserDao.class);
+    }
 
     /**
      * Workaround for SpringBean and Kotlin Spring components issues.
@@ -154,6 +163,7 @@ public class WicketSupport {
 
     private void registerBeans(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+        // It doesn't matter if beans aren't registered. They will be registered on the fly.
         // Wicket workaround for not be able to proxy Kotlin base SpringBeans:
         registerBean(applicationContext.getBean(AccessDao.class));
         registerBean(applicationContext.getBean(AddressbookDao.class));

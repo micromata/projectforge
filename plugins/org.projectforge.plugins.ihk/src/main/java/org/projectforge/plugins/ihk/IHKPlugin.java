@@ -71,7 +71,7 @@ public class IHKPlugin extends AbstractPlugin {
             IHKPage.class);
 
     // Define the access management:
-    registerRight(new IHKRight(accessChecker));
+    registerRight(new IHKRight());
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);

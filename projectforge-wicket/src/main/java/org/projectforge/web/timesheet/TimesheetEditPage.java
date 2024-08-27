@@ -112,8 +112,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
 
   private static final long serialVersionUID = -8192471994161712577L;
 
-  private transient TaskTree taskTree;
-
   private static final TeamcalTimesheetPluginComponentHook[] HOOK_ARRAY = {new TeamcalTimesheetPluginComponentHook()};
 
   public TimesheetEditPage(final TimesheetDO timesheet) {
@@ -385,9 +383,6 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   }
 
   private TaskTree getTaskTree() {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTreeHelper.getTaskTree();
   }
 }

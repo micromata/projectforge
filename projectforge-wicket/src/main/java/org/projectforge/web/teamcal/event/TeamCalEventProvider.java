@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
 import java.util.*;
@@ -63,8 +64,6 @@ import java.util.*;
 public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 {
   private static final long serialVersionUID = -5609599079385073490L;
-
-  private final TeamEventDao teamEventDao;
 
   private int days;
 
@@ -79,15 +78,10 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   private final TeamEventRight eventRight;
 
-  private AccessChecker accessChecker;
-
-  public TeamCalEventProvider(AccessChecker accessChecker, final TeamEventDao teamEventDao,
-      final TeamCalCalendarFilter filter)
+  public TeamCalEventProvider(final TeamCalCalendarFilter filter)
   {
-    this.accessChecker = accessChecker;
     this.filter = filter;
-    this.teamEventDao = teamEventDao;
-    this.eventRight = new TeamEventRight(accessChecker);
+    this.eventRight = new TeamEventRight();
   }
 
   /**
@@ -123,13 +117,13 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     eventFilter.setStartDate(start.toDate());
     eventFilter.setEndDate(end.toDate());
     eventFilter.setUser(ThreadLocalUserContext.getUser());
-    final List<ICalendarEvent> teamEvents = teamEventDao.getEventList(eventFilter, true);
+    final List<ICalendarEvent> teamEvents = WicketSupport.get(TeamEventDao.class).getEventList(eventFilter, true);
 
     days = Days.daysBetween(start, end).getDays();
     // Week or day view:
     final boolean longFormat = days < 10;
 
-    final TeamCalRight right = new TeamCalRight(accessChecker);
+    final TeamCalRight right = new TeamCalRight();
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (CollectionUtils.isNotEmpty(teamEvents) == true) {

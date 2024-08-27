@@ -32,6 +32,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 import java.util.Objects;
 
@@ -39,11 +40,11 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
 {
   private final TeamCalRight teamCalRight;
 
-  public CalEventRight(AccessChecker accessChecker)
+  public CalEventRight()
   {
-    super(accessChecker, UserRightId.CALENDAR_EVENT, UserRightCategory.PLUGINS,
+    super( UserRightId.CALENDAR_EVENT, UserRightCategory.PLUGINS,
       UserRightValue.TRUE);
-    teamCalRight = new TeamCalRight(accessChecker);
+    teamCalRight = new TeamCalRight();
   }
 
   /**
@@ -150,7 +151,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       return true;
     }
     final Integer userId = user.getId();
-    if (teamCalRight.hasFullAccess(calendar, userId) || accessChecker.isDemoUser()) {
+    if (teamCalRight.hasFullAccess(calendar, userId) || WicketSupport.getAccessChecker().isDemoUser()) {
       return true;
     }
     return false;

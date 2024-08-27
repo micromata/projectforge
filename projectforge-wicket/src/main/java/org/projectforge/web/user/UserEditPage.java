@@ -34,6 +34,7 @@ import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.sipgate.SipgateDirectCallService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -46,15 +47,6 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
   private static final long serialVersionUID = 4636922408954211544L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserEditPage.class);
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  private UserService userService;
-
-  @SpringBean
-  private UserRightDao userRightDao;
 
   public UserEditPage(final PageParameters parameters) {
     super(parameters, "user");
@@ -85,7 +77,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
     log.info("Start afterSaveOrUpdate() in UserEditPage");
     log.info("Start assign groups");
     long start = System.currentTimeMillis();
-    groupDao.assignGroups(getData(), form.assignGroupsListHelper.getItemsToAssign(),
+    WicketSupport.get(GroupDao.class).assignGroups(getData(), form.assignGroupsListHelper.getItemsToAssign(),
         form.assignGroupsListHelper.getItemsToUnassign(), false);
     long end = System.currentTimeMillis();
     log.info("Finish assign groups. Took: " + (end - start) / 1000 + " sec.");
@@ -93,7 +85,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       log.info("Start updating user rights");
       start = System.currentTimeMillis();
       final List<UserRightVO> list = form.rightsData.getRights();
-      userRightDao.updateUserRights(getData(), list, false);
+      WicketSupport.get(UserRightDao.class).updateUserRights(getData(), list, false);
       end = System.currentTimeMillis();
       log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.");
     }
@@ -112,7 +104,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
 
   @Override
   protected UserDao getBaseDao() {
-    return userService.getUserDao();
+    return WicketSupport.get(UserDao.class);
   }
 
   @Override

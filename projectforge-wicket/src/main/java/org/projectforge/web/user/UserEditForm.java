@@ -58,6 +58,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimeNotation;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WebConstants;
@@ -77,45 +78,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   private static final long serialVersionUID = 7872294377838461659L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserEditForm.class);
-
-  @SpringBean
-  private AccessChecker accessChecker;
-
-  @SpringBean
-  private ConfigurationService configurationService;
-
-  @SpringBean
-  private SipgateConfiguration sipgateConfiguration;
-
-  @SpringBean
-  private UserRightDao userRightDao;
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  private LdapPosixAccountsUtils ldapPosixAccountsUtils;
-
-  @SpringBean
-  private LdapSambaAccountsUtils ldapSambaAccountsUtils;
-
-  @SpringBean
-  private LdapUserDao ldapUserDao;
-
-  @SpringBean
-  private LdapService ldapService;
-
-  @SpringBean
-  private GroupService groupService;
-
-  @SpringBean
-  private PasswordQualityService passwordQualityService;
-
-  @SpringBean
-  private UserService userService;
-
-  @SpringBean
-  private UserAuthenticationsService userAuthenticationsService;
 
   protected UserRightsEditData rightsData;
 
@@ -342,7 +304,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
    * @param user
    */
   public void createPhoneIds(final GridBuilder gridBuilder, final PFUserDO user) {
-    if (sipgateConfiguration.isConfigured()) {
+    if (WicketSupport.get(SipgateConfiguration.class).isConfigured()) {
       // Personal phone identifiers
       final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.personalPhoneIdentifiers"));
       MaxLengthTextField personalPhoneIdentifiers = new MaxLengthTextField(fs.getTextFieldId(),
@@ -417,6 +379,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   @Override
   protected void init() {
     super.init();
+    var userAuthenticationsService = WicketSupport.get(UserAuthenticationsService.class);
     if (isNew() == true && Login.getInstance().hasExternalUsermanagementSystem() == false) {
       getData().setLocalUser(true);
     }
@@ -424,7 +387,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     if (ldapUserValues == null) {
       ldapUserValues = new LdapUserValues();
     }
-    final boolean adminAccess = accessChecker.isLoggedInUserMemberOfAdminGroup();
+    final boolean adminAccess = WicketSupport.getAccessChecker().isLoggedInUserMemberOfAdminGroup();
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // User
@@ -453,7 +416,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     createEMail(gridBuilder, data);
     createMobilePhone(gridBuilder, data);
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.CALENDAR_REST);
-    if (configurationService.isDAVServicesAvailable()) {
+    if (WicketSupport.get(ConfigurationService.class).isDAVServicesAvailable()) {
       createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.DAV_TOKEN);
     }
     createAuthenticationToken(gridBuilder, data, userAuthenticationsService, this, UserTokenType.REST_CLIENT);
@@ -505,6 +468,10 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
 
   @SuppressWarnings("serial")
   private void addLdapStuff() {
+    var ldapUserDao = WicketSupport.get(LdapUserDao.class);
+    var ldapService = WicketSupport.get(LdapService.class);
+    var ldapPosixAccountsUtils = WicketSupport.get(LdapPosixAccountsUtils.class);
+    var ldapSambaAccountsUtils = WicketSupport.get(LdapSambaAccountsUtils.class);
     gridBuilder.newGridPanel();
     gridBuilder.newFormHeading(getString("ldap"));
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -715,6 +682,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   private Button newCreateButton(final List<FormComponent<?>> dependentPosixLdapFormComponentsList,
                                  final List<FormComponent<?>> dependentSambaLdapFormComponentsList, final boolean updatePosixAccount,
                                  final boolean updateSambaAccount) {
+    var ldapPosixAccountsUtils = WicketSupport.get(LdapPosixAccountsUtils.class);
+    var ldapSambaAccountsUtils = WicketSupport.get(LdapSambaAccountsUtils.class);
     final AjaxButton createButton = new AjaxButton(SingleButtonPanel.WICKET_ID, this) {
       @Override
       protected void onSubmit(final AjaxRequestTarget target)
@@ -811,7 +780,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         return;
       }
       if (passwordUser == null) {
-        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
+        final List<I18nKeyAndParams> errorMsgKeys = WicketSupport.get(PasswordQualityService.class).checkPasswordQuality(passwordInput.toCharArray());
         if (errorMsgKeys.isEmpty() == false) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -820,7 +789,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         } else {
           passwordUser = new PFUserDO();
           char[] pw = passwordInput.toCharArray();
-          userService.encryptAndSavePassword(passwordUser, pw);
+          WicketSupport.get(UserService.class).encryptAndSavePassword(passwordUser, pw);
           LoginHandler.clearPassword(pw);
         }
       }
@@ -830,7 +799,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = WicketSupport.get(PasswordQualityService.class).getPasswordQualityI18nKeyAndParams();
     fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
@@ -878,7 +847,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         return;
       }
 
-      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput.toCharArray());
+      final List<I18nKeyAndParams> errorMsgKeys = WicketSupport.get(PasswordQualityService.class).checkPasswordQuality(passwordInput.toCharArray());
       if (errorMsgKeys.isEmpty() == false) {
         for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
           final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -893,7 +862,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = WicketSupport.get(PasswordQualityService.class).getPasswordQualityI18nKeyAndParams();
     fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
@@ -921,7 +890,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   }
 
   private void addRights() {
-    final List<UserRightVO> userRights = userRightDao.getUserRights(data);
+    final List<UserRightVO> userRights = WicketSupport.get(UserRightDao.class).getUserRights(data);
     boolean first = true;
     boolean odd = true;
     for (final UserRightVO rightVO : userRights) {
@@ -961,6 +930,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   }
 
   private void addAssignedGroups(final boolean adminAccess) {
+    var groupService = WicketSupport.get(GroupService.class);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).setLabelSide(false);
     final Collection<Integer> set = ((UserDao) getBaseDao()).getAssignedGroups(data);
     assignGroupsListHelper = new MultiChoiceListHelper<GroupDO>().setComparator(new GroupsComparator()).setFullList(

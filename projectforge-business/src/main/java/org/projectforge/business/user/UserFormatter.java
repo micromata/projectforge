@@ -27,8 +27,10 @@ import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
+
 @Service
-public class UserFormatter
+public class UserFormatter implements Serializable
 {
 
   /**

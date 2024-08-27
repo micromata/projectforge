@@ -51,7 +51,7 @@ class SkillMatrixPlugin : AbstractPlugin(PluginAdminService.PLUGIN_SKILL_MATRIX_
         register(id, SkillEntryDao::class.java, skillEntryDao, "plugins.skillmatrix")
 
         // Define the access management:
-        registerRight(SkillRight(accessChecker))
+        registerRight(SkillRight())
 
         menuCreator.register(MenuItemDefId.PROJECT_MANAGEMENT, MenuItemDef(info.id, "plugins.skillmatrix.menu", "${Constants.REACT_APP_PATH}skillentry"));
 

@@ -29,6 +29,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.SendFeedback;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.pacman.PacmanViewPage;
 
 /**
@@ -38,9 +39,6 @@ import org.projectforge.web.pacman.PacmanViewPage;
 public class FeedbackPage extends AbstractStandardFormPage
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FeedbackPage.class);
-
-  @SpringBean
-  private SendFeedback sendFeedback;
 
   private final FeedbackForm form;
 
@@ -75,7 +73,7 @@ public class FeedbackPage extends AbstractStandardFormPage
     log.info("Send feedback.");
     boolean result = false;
     try {
-      result = sendFeedback.send(form.data);
+      result = WicketSupport.get(SendFeedback.class).send(form.data);
     } catch (final Throwable ex) {
       log.error(ex.getMessage(), ex);
       result = false;

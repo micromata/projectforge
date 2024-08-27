@@ -50,11 +50,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.fibu.AuftragsPositionVO;
-import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.task.TaskFilter;
-import org.projectforge.business.task.TaskNode;
-import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.TaskTreeHelper;
+import org.projectforge.business.task.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
@@ -80,337 +76,295 @@ import java.util.Set;
  */
 @Service
 @Scope("prototype")
-public class TaskTreeBuilder implements Serializable
-{
-  private static final long serialVersionUID = -2425308275690643856L;
+public class TaskTreeBuilder implements Serializable {
+    private static final long serialVersionUID = -2425308275690643856L;
 
-  private final Behavior theme = new WindowsTheme();
+    private final Behavior theme = new WindowsTheme();
 
-  private Integer highlightedTaskNodeId;
+    private Integer highlightedTaskNodeId;
 
-  private boolean selectMode, showRootNode, showCost, showOrders;
+    private boolean selectMode, showRootNode, showCost, showOrders;
 
-  private transient TaskTree taskTree;
+    @Autowired
+    private PriorityFormatter priorityFormatter;
 
-  @Autowired
-  private PriorityFormatter priorityFormatter;
+    @Autowired
+    private UserFormatter userFormatter;
 
-  @Autowired
-  private UserFormatter userFormatter;
+    @Autowired
+    private DateTimeFormatter dateTimeFormatter;
 
-  @Autowired
-  private DateTimeFormatter dateTimeFormatter;
+    private TableTree<TaskNode, String> tree;
 
-  private TableTree<TaskNode, String> tree;
+    private AbstractSecuredPage parentPage;
 
-  private AbstractSecuredPage parentPage;
+    private ISelectCallerPage caller;
 
-  private ISelectCallerPage caller;
+    private String selectProperty;
 
-  private String selectProperty;
+    @SuppressWarnings("serial")
+    public AbstractTree<TaskNode> createTree(final String id, final AbstractSecuredPage parentPage,
+                                             final TaskFilter taskFilter) {
+        this.parentPage = parentPage;
+        final List<IColumn<TaskNode, String>> columns = createColumns();
 
-  @SuppressWarnings("serial")
-  public AbstractTree<TaskNode> createTree(final String id, final AbstractSecuredPage parentPage,
-      final TaskFilter taskFilter, TaskDao taskDao)
-  {
-    this.parentPage = parentPage;
-    final List<IColumn<TaskNode, String>> columns = createColumns();
+        tree = new TableTree<TaskNode, String>(id, columns,
+                new TaskTreeProvider(taskFilter).setShowRootNode(showRootNode), Integer.MAX_VALUE,
+                TaskTreeExpansion.getExpansionModel()) {
+            private static final long serialVersionUID = 1L;
 
-    tree = new TableTree<TaskNode, String>(id, columns,
-        new TaskTreeProvider(taskDao, taskFilter).setShowRootNode(showRootNode), Integer.MAX_VALUE,
-        TaskTreeExpansion.getExpansionModel())
-    {
-      private static final long serialVersionUID = 1L;
+            @Override
+            protected Component newContentComponent(final String id, final IModel<TaskNode> model) {
+                return TaskTreeBuilder.this.newContentComponent(id, this, model);
+            }
 
-      @Override
-      protected Component newContentComponent(final String id, final IModel<TaskNode> model)
-      {
-        return TaskTreeBuilder.this.newContentComponent(id, this, model);
-      }
+            @Override
+            protected Item<TaskNode> newRowItem(final String id, final int index, final IModel<TaskNode> model) {
+                return new OddEvenItem<TaskNode>(id, index, model);
+            }
+        };
+        tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
+        tree.getTable().addBottomToolbar(new NoRecordsToolbar(tree.getTable()));
+        tree.add(new Behavior() {
+            @Override
+            public void onComponentTag(final Component component, final ComponentTag tag) {
+                theme.onComponentTag(component, tag);
+            }
 
-      @Override
-      protected Item<TaskNode> newRowItem(final String id, final int index, final IModel<TaskNode> model)
-      {
-        return new OddEvenItem<TaskNode>(id, index, model);
-      }
-    };
-    tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
-    tree.getTable().addBottomToolbar(new NoRecordsToolbar(tree.getTable()));
-    tree.add(new Behavior()
-    {
-      @Override
-      public void onComponentTag(final Component component, final ComponentTag tag)
-      {
-        theme.onComponentTag(component, tag);
-      }
-
-      @Override
-      public void renderHead(final Component component, final IHeaderResponse response)
-      {
-        theme.renderHead(component, response);
-      }
-    });
-    tree.getTable().add(AttributeModifier.append("class", "tableTree"));
-    return tree;
-  }
-
-  /**
-   * @return
-   */
-  @SuppressWarnings("serial")
-  private List<IColumn<TaskNode, String>> createColumns()
-  {
-    final CellItemListener<TaskNode> cellItemListener = new CellItemListener<TaskNode>()
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
-          final IModel<TaskNode> rowModel)
-      {
-        final TaskNode taskNode = rowModel.getObject();
-        TaskListPage.appendCssClasses(item, taskNode.getTask(), highlightedTaskNodeId);
-      }
-    };
-    final List<IColumn<TaskNode, String>> columns = new ArrayList<IColumn<TaskNode, String>>();
-
-    columns.add(new TreeColumn<TaskNode, String>(new ResourceModel("task"))
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<TaskNode>> cellItem, final String componentId,
-          final IModel<TaskNode> rowModel)
-      {
-        final RepeatingView view = new RepeatingView(componentId);
-        cellItem.add(view);
-        final TaskNode taskNode = rowModel.getObject();
-        //        if (selectMode == false || ((TaskEditPage) caller) != null
-        //            && parentPage.getPage().getPageId() < ((TaskEditPage) caller).getPageId()) {
-        if (selectMode == false) {
-          view.add(new ListSelectActionPanel(view.newChildId(), rowModel, TaskEditPage.class, taskNode.getId(),
-              parentPage, ""));
-        } else {
-          view.add(
-              new ListSelectActionPanel(view.newChildId(), rowModel, caller, selectProperty, taskNode.getId(), ""));
-        }
-        //AbstractListPage.addRowClick(cellItem);
-        final NodeModel<TaskNode> nodeModel = (NodeModel<TaskNode>) rowModel;
-        final Component nodeComponent = getTree().newNodeComponent(view.newChildId(), nodeModel.getWrappedModel());
-        nodeComponent.add(new NodeBorder(nodeModel.getBranches()));
-        view.add(nodeComponent);
-        cellItemListener.populateItem(cellItem, componentId, rowModel);
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("task.consumption"), null, "task",
-        cellItemListener)
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
-          final IModel<TaskNode> rowModel)
-      {
-        final TaskNode node = rowModel.getObject();
-        item.add(TaskListPage.getConsumptionBarPanel(tree, componentId, getTaskTree(), selectMode, node));
-        cellItemListener.populateItem(item, componentId, rowModel);
-      }
-    });
-    if (showCost == true) {
-      columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("fibu.kost2"), null, "task.kost2",
-          cellItemListener)
-      {
-        @Override
-        public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
-            final IModel<TaskNode> rowModel)
-        {
-          final Label label = TaskListPage.getKostLabel(componentId, getTaskTree(), rowModel.getObject().getTask());
-          item.add(label);
-          cellItemListener.populateItem(item, componentId, rowModel);
-        }
-      });
-    }
-    if (getTaskTree().hasOrderPositionsEntries() == true && showOrders == true) {
-      columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("fibu.auftrag.auftraege"), null, null,
-          cellItemListener)
-      {
-        @Override
-        public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
-            final IModel<TaskNode> rowModel)
-        {
-          final TaskNode taskNode = rowModel.getObject();
-          final Set<AuftragsPositionVO> orderPositions = getTaskTree().getOrderPositionEntries(taskNode.getId());
-          if (CollectionUtils.isEmpty(orderPositions) == true) {
-            final Label label = new Label(componentId, ""); // Empty label.
-            item.add(label);
-          } else {
-            final OrderPositionsPanel orderPositionsPanel = new OrderPositionsPanel(componentId)
-            {
-              @Override
-              protected void onBeforeRender()
-              {
-                super.onBeforeRender();
-                // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
-                // after instantiation.
-                init(orderPositions);
-              }
-            };
-            item.add(orderPositionsPanel);
-          }
-          cellItemListener.populateItem(item, componentId, rowModel);
-        }
-      });
-    }
-    columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("shortDescription"), null,
-        "task.shortDescription",
-        cellItemListener));
-    if (WicketSupport.get(AccessChecker.class).isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
-      columns.add(new LocalDatePropertyColumn<TaskNode>(parentPage.getString("task.protectTimesheetsUntil.short"), null,
-          "task.protectTimesheetsUntil", cellItemListener));
-    }
-    columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("task.reference"), null, "reference",
-        cellItemListener));
-    columns.add(
-        new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("priority"), null, "priority", cellItemListener)
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
-              final IModel<TaskNode> rowModel)
-          {
-            final Label label = TaskListPage.getPriorityLabel(componentId, priorityFormatter,
-                rowModel.getObject().getTask());
-            item.add(label);
-            cellItemListener.populateItem(item, componentId, rowModel);
-          }
+            @Override
+            public void renderHead(final Component component, final IHeaderResponse response) {
+                theme.renderHead(component, response);
+            }
         });
-    columns
-        .add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("status"), null, "status", cellItemListener)
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
-              final IModel<TaskNode> rowModel)
-          {
-            final Label label = TaskListPage.getStatusLabel(componentId, rowModel.getObject().getTask());
-            item.add(label);
-            cellItemListener.populateItem(item, componentId, rowModel);
-          }
+        tree.getTable().add(AttributeModifier.append("class", "tableTree"));
+        return tree;
+    }
+
+    /**
+     * @return
+     */
+    @SuppressWarnings("serial")
+    private List<IColumn<TaskNode, String>> createColumns() {
+        final CellItemListener<TaskNode> cellItemListener = new CellItemListener<TaskNode>() {
+            @Override
+            public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
+                                     final IModel<TaskNode> rowModel) {
+                final TaskNode taskNode = rowModel.getObject();
+                TaskListPage.appendCssClasses(item, taskNode.getTask(), highlightedTaskNodeId);
+            }
+        };
+        final List<IColumn<TaskNode, String>> columns = new ArrayList<IColumn<TaskNode, String>>();
+
+        columns.add(new TreeColumn<TaskNode, String>(new ResourceModel("task")) {
+            @Override
+            public void populateItem(final Item<ICellPopulator<TaskNode>> cellItem, final String componentId,
+                                     final IModel<TaskNode> rowModel) {
+                final RepeatingView view = new RepeatingView(componentId);
+                cellItem.add(view);
+                final TaskNode taskNode = rowModel.getObject();
+                //        if (selectMode == false || ((TaskEditPage) caller) != null
+                //            && parentPage.getPage().getPageId() < ((TaskEditPage) caller).getPageId()) {
+                if (selectMode == false) {
+                    view.add(new ListSelectActionPanel(view.newChildId(), rowModel, TaskEditPage.class, taskNode.getId(),
+                            parentPage, ""));
+                } else {
+                    view.add(
+                            new ListSelectActionPanel(view.newChildId(), rowModel, caller, selectProperty, taskNode.getId(), ""));
+                }
+                //AbstractListPage.addRowClick(cellItem);
+                final NodeModel<TaskNode> nodeModel = (NodeModel<TaskNode>) rowModel;
+                final Component nodeComponent = getTree().newNodeComponent(view.newChildId(), nodeModel.getWrappedModel());
+                nodeComponent.add(new NodeBorder(nodeModel.getBranches()));
+                view.add(nodeComponent);
+                cellItemListener.populateItem(cellItem, componentId, rowModel);
+            }
         });
-    final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(UserGroupCache.getInstance(),
-        parentPage.getString("task.assignedUser"),
-        null, "task.responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
-    columns.add(userPropertyColumn);
-    return columns;
-  }
-
-  protected void addColumn(final WebMarkupContainer parent, final Component component, final String cssStyle)
-  {
-    if (cssStyle != null) {
-      component.add(AttributeModifier.append("style", new Model<String>(cssStyle)));
+        columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("task.consumption"), null, "task",
+                cellItemListener) {
+            @Override
+            public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
+                                     final IModel<TaskNode> rowModel) {
+                final TaskNode node = rowModel.getObject();
+                item.add(TaskListPage.getConsumptionBarPanel(tree, componentId, selectMode, node));
+                cellItemListener.populateItem(item, componentId, rowModel);
+            }
+        });
+        if (showCost == true) {
+            columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("fibu.kost2"), null, "task.kost2",
+                    cellItemListener) {
+                @Override
+                public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
+                                         final IModel<TaskNode> rowModel) {
+                    final Label label = TaskListPage.getKostLabel(componentId, rowModel.getObject().getTask());
+                    item.add(label);
+                    cellItemListener.populateItem(item, componentId, rowModel);
+                }
+            });
+        }
+        if (getTaskTree().hasOrderPositionsEntries() == true && showOrders == true) {
+            columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("fibu.auftrag.auftraege"), null, null,
+                    cellItemListener) {
+                @Override
+                public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
+                                         final IModel<TaskNode> rowModel) {
+                    final TaskNode taskNode = rowModel.getObject();
+                    final Set<AuftragsPositionVO> orderPositions = getTaskTree().getOrderPositionEntries(taskNode.getId());
+                    if (CollectionUtils.isEmpty(orderPositions) == true) {
+                        final Label label = new Label(componentId, ""); // Empty label.
+                        item.add(label);
+                    } else {
+                        final OrderPositionsPanel orderPositionsPanel = new OrderPositionsPanel(componentId) {
+                            @Override
+                            protected void onBeforeRender() {
+                                super.onBeforeRender();
+                                // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
+                                // after instantiation.
+                                init(orderPositions);
+                            }
+                        };
+                        item.add(orderPositionsPanel);
+                    }
+                    cellItemListener.populateItem(item, componentId, rowModel);
+                }
+            });
+        }
+        columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("shortDescription"), null,
+                "task.shortDescription",
+                cellItemListener));
+        if (WicketSupport.get(AccessChecker.class).isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP) == true) {
+            columns.add(new LocalDatePropertyColumn<TaskNode>(parentPage.getString("task.protectTimesheetsUntil.short"), null,
+                    "task.protectTimesheetsUntil", cellItemListener));
+        }
+        columns.add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("task.reference"), null, "reference",
+                cellItemListener));
+        columns.add(
+                new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("priority"), null, "priority", cellItemListener) {
+                    @Override
+                    public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
+                                             final IModel<TaskNode> rowModel) {
+                        final Label label = TaskListPage.getPriorityLabel(componentId, priorityFormatter,
+                                rowModel.getObject().getTask());
+                        item.add(label);
+                        cellItemListener.populateItem(item, componentId, rowModel);
+                    }
+                });
+        columns
+                .add(new CellItemListenerPropertyColumn<TaskNode>(new ResourceModel("status"), null, "status", cellItemListener) {
+                    @Override
+                    public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
+                                             final IModel<TaskNode> rowModel) {
+                        final Label label = TaskListPage.getStatusLabel(componentId, rowModel.getObject().getTask());
+                        item.add(label);
+                        cellItemListener.populateItem(item, componentId, rowModel);
+                    }
+                });
+        final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(UserGroupCache.getInstance(),
+                parentPage.getString("task.assignedUser"),
+                null, "task.responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
+        columns.add(userPropertyColumn);
+        return columns;
     }
-    parent.add(component);
-  }
 
-  /**
-   * @param id
-   * @param model
-   * @return
-   */
-  @SuppressWarnings("serial")
-  protected Component newContentComponent(final String id, final TableTree<TaskNode, String> tree,
-      final IModel<TaskNode> model)
-  {
-    return new Folder<TaskNode>(id, tree, model)
-    {
-
-      @Override
-      protected IModel<?> newLabelModel(final IModel<TaskNode> model)
-      {
-        return new PropertyModel<String>(model, "task.title");
-      }
-    };
-  }
-
-  /**
-   * @param selectMode the selectMode to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setSelectMode(final boolean selectMode)
-  {
-    this.selectMode = selectMode;
-    return this;
-  }
-
-  /**
-   * @param showRootNode the showRootNode to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setShowRootNode(final boolean showRootNode)
-  {
-    this.showRootNode = showRootNode;
-    return this;
-  }
-
-  /**
-   * @param showCost the showCost to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setShowCost(final boolean showCost)
-  {
-    this.showCost = showCost;
-    return this;
-  }
-
-  /**
-   * @param showOrders the showOrders to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setShowOrders(final boolean showOrders)
-  {
-    this.showOrders = showOrders;
-    return this;
-  }
-
-  /**
-   * @param caller the caller to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setCaller(final ISelectCallerPage caller)
-  {
-    this.caller = caller;
-    return this;
-  }
-
-  /**
-   * @param selectProperty the selectProperty to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setSelectProperty(final String selectProperty)
-  {
-    this.selectProperty = selectProperty;
-    return this;
-  }
-
-  /**
-   * @param highlightedTaskNodeId the highlightedTaskNodeId to set
-   * @return this for chaining.
-   */
-  public TaskTreeBuilder setHighlightedTaskNodeId(final Integer highlightedTaskNodeId)
-  {
-    this.highlightedTaskNodeId = highlightedTaskNodeId;
-    final TaskNode node = getTaskTree().getTaskNodeById(highlightedTaskNodeId);
-    if (node == null) {
-      // Shouldn't occur.
-      return this;
+    protected void addColumn(final WebMarkupContainer parent, final Component component, final String cssStyle) {
+        if (cssStyle != null) {
+            component.add(AttributeModifier.append("style", new Model<String>(cssStyle)));
+        }
+        parent.add(component);
     }
-    // Open all ancestor nodes of the highlighted node:
-    final Set<TaskNode> set = TaskTreeExpansion.getExpansionModel().getObject();
-    TaskNode parent = node.getParent();
-    while (parent != null) {
-      set.add(parent);
-      parent = parent.getParent();
-    }
-    return this;
-  }
 
-  private TaskTree getTaskTree()
-  {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
+    /**
+     * @param id
+     * @param model
+     * @return
+     */
+    @SuppressWarnings("serial")
+    protected Component newContentComponent(final String id, final TableTree<TaskNode, String> tree,
+                                            final IModel<TaskNode> model) {
+        return new Folder<TaskNode>(id, tree, model) {
+
+            @Override
+            protected IModel<?> newLabelModel(final IModel<TaskNode> model) {
+                return new PropertyModel<String>(model, "task.title");
+            }
+        };
     }
-    return taskTree;
-  }
+
+    /**
+     * @param selectMode the selectMode to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setSelectMode(final boolean selectMode) {
+        this.selectMode = selectMode;
+        return this;
+    }
+
+    /**
+     * @param showRootNode the showRootNode to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setShowRootNode(final boolean showRootNode) {
+        this.showRootNode = showRootNode;
+        return this;
+    }
+
+    /**
+     * @param showCost the showCost to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setShowCost(final boolean showCost) {
+        this.showCost = showCost;
+        return this;
+    }
+
+    /**
+     * @param showOrders the showOrders to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setShowOrders(final boolean showOrders) {
+        this.showOrders = showOrders;
+        return this;
+    }
+
+    /**
+     * @param caller the caller to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setCaller(final ISelectCallerPage caller) {
+        this.caller = caller;
+        return this;
+    }
+
+    /**
+     * @param selectProperty the selectProperty to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setSelectProperty(final String selectProperty) {
+        this.selectProperty = selectProperty;
+        return this;
+    }
+
+    /**
+     * @param highlightedTaskNodeId the highlightedTaskNodeId to set
+     * @return this for chaining.
+     */
+    public TaskTreeBuilder setHighlightedTaskNodeId(final Integer highlightedTaskNodeId) {
+        this.highlightedTaskNodeId = highlightedTaskNodeId;
+        final TaskNode node = getTaskTree().getTaskNodeById(highlightedTaskNodeId);
+        if (node == null) {
+            // Shouldn't occur.
+            return this;
+        }
+        // Open all ancestor nodes of the highlighted node:
+        final Set<TaskNode> set = TaskTreeExpansion.getExpansionModel().getObject();
+        TaskNode parent = node.getParent();
+        while (parent != null) {
+            set.add(parent);
+            parent = parent.getParent();
+        }
+        return this;
+    }
+
+    private TaskTree getTaskTree() {
+        return TaskTreeHelper.getTaskTree();
+    }
 }

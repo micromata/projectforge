@@ -35,6 +35,7 @@ import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -64,15 +65,6 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   @SpringBean
   private ProjektFormatter projektFormatter;
 
-  @SpringBean
-  private ProjektDao projektDao;
-
-  @SpringBean
-  private KundeDao kundeDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
-
   private RecentQueue<String> recentProjects;
 
   private final PFAutoCompleteTextField<ProjektDO> projectTextField;
@@ -95,7 +87,6 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   /**
    * @param id
    * @param model
-   * @param caller
    * @param selectProperty
    */
   @SuppressWarnings("serial")
@@ -111,7 +102,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "nummer");
         filter.setSearchString(input);
-        final List<ProjektDO> list = projektDao.getList(filter);
+        final List<ProjektDO> list = WicketSupport.get(ProjektDao.class).getList(filter);
         return list;
       }
 
@@ -221,7 +212,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
-    final boolean hasSelectAccess = projektDao.hasLoggedInUserSelectAccess(false);
+    final boolean hasSelectAccess = WicketSupport.get(ProjektDao.class).hasLoggedInUserSelectAccess(false);
     if (hasSelectAccess == false) {
       selectButton.setVisible(false);
     }
@@ -313,11 +304,11 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   private RecentQueue<String> getRecentProjects()
   {
     if (this.recentProjects == null) {
-      this.recentProjects = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_PROJECTS);
+      this.recentProjects = (RecentQueue<String>) WicketSupport.get(UserXmlPreferencesService.class).getEntry(USER_PREF_KEY_RECENT_PROJECTS);
     }
     if (this.recentProjects == null) {
       this.recentProjects = new RecentQueue<String>();
-      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
+      WicketSupport.get(UserXmlPreferencesService.class).putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
     }
     return this.recentProjects;
   }
@@ -378,13 +369,13 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         return null;
       }
       if (nummernkreis.equals("4") == true) {
-        return projektDao.getProjekt(kundeId, kost2);
+        return WicketSupport.get(ProjektDao.class).getProjekt(kundeId, kost2);
       } else if (nummernkreis.equals("5") == true) {
-        final KundeDO kunde = kundeDao.getById(kundeId);
+        final KundeDO kunde = WicketSupport.get(KundeDao.class).getById(kundeId);
         if (kunde == null) {
           return null;
         }
-        return projektDao.getProjekt(kunde, kost2);
+        return WicketSupport.get(ProjektDao.class).getProjekt(kunde, kost2);
       }
     } catch (Exception e) {
       log.error("An exception accured while parsing customer id and kost2.", e);

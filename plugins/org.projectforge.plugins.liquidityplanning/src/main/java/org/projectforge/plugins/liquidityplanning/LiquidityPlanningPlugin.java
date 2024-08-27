@@ -91,7 +91,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);
 
     // Define the access management:
-    registerRight(new LiquidityPlanningRight(accessChecker));
+    registerRight(new LiquidityPlanningRight());
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);

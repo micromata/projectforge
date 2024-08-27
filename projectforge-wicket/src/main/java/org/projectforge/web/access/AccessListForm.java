@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.NewGroupSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
@@ -50,9 +51,6 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
 
   protected NewGroupSelectPanel groupSelectPanel;
 
-  @SpringBean
-  private GroupService groupService;
-
   @SuppressWarnings("serial")
   @Override
   protected void init()
@@ -67,7 +65,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
         @Override
         public GroupDO getObject()
         {
-          return groupService.getGroup(getSearchFilter().getGroupId());
+          return WicketSupport.get(GroupService.class).getGroup(getSearchFilter().getGroupId());
         }
 
         @Override

@@ -35,6 +35,7 @@ import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
@@ -58,12 +59,6 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
   private static final String USER_PREF_KEY_RECENT_GROUPS = "GroupSelectPanel:recentGroups";
 
   private boolean defaultFormProcessing = false;
-
-  @SpringBean
-  private GroupDao groupDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentGroups;
 
@@ -104,7 +99,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name");
         filter.setSearchString(input);
-        final List<GroupDO> list = groupDao.getList(filter);
+        final List<GroupDO> list = WicketSupport.get(GroupDao.class).getList(filter);
         return list;
       }
 
@@ -161,7 +156,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
               return null;
             }
             // ### FORMAT ###
-            final GroupDO group = groupDao.getByName(value);
+            final GroupDO group = WicketSupport.get(GroupDao.class).getByName(value);
             if (group == null) {
               error(getString("panel.error.groupNotFound"));
             }
@@ -255,11 +250,11 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentGroups == null) {
-      this.recentGroups = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_GROUPS);
+      this.recentGroups = (RecentQueue<String>) WicketSupport.get(UserXmlPreferencesService.class).getEntry(USER_PREF_KEY_RECENT_GROUPS);
     }
     if (this.recentGroups == null) {
       this.recentGroups = new RecentQueue<String>();
-      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
+      WicketSupport.get(UserXmlPreferencesService.class).putEntry(USER_PREF_KEY_RECENT_GROUPS, this.recentGroups, true);
     }
     return this.recentGroups;
   }

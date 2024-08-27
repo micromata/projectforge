@@ -223,7 +223,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   @Override
   public List<IColumn<TimesheetDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    return createColumns(getUserGroupCache(), returnToPage, form.getSearchFilter(), getTaskTree(),
+    return createColumns(getUserGroupCache(), returnToPage, form.getSearchFilter(),
         userFormatter,
         dateTimeFormatter);
   }
@@ -238,7 +238,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   @SuppressWarnings("serial")
   protected static final List<IColumn<TimesheetDO, String>> createColumns(
       UserGroupCache userGroupCache, final WebPage page,
-      final TimesheetFilter timesheetFilter, final TaskTree taskTree,
+      final TimesheetFilter timesheetFilter,
       final UserFormatter userFormatter,
       final HtmlDateTimeFormatter dateTimeFormatter) {
     final List<IColumn<TimesheetDO, String>> columns = new ArrayList<IColumn<TimesheetDO, String>>();
@@ -281,8 +281,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     }
     columns.add(new TaskPropertyColumn<TimesheetDO>(page.getString("task"),
         getSortable("task.title", true), "task",
-        cellItemListener)
-        .withTaskTree(taskTree));
+        cellItemListener));
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("fibu.kost2"),
           getSortable("kost2.displayName",

@@ -40,6 +40,7 @@ import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.springframework.util.CollectionUtils;
 
@@ -58,9 +59,6 @@ public class AccountingRecordListPage
   private static final String PARAM_KEY_REPORT_ID = "reportId";
 
   private static final String PARAM_KEY_BUSINESS_ASSESSMENT_ROW_ID = "businessAssessmentRowId";
-
-  @SpringBean
-  private BuchungssatzDao buchungssatzDao;
 
   protected BusinessAssessment businessAssessment;
 
@@ -84,7 +82,6 @@ public class AccountingRecordListPage
    * Gets the page parameters for calling the list page only for displaying accounting records of the given report.
    *
    * @param reportId The id of the report of the ReportStorage of ReportObjectivesPage.
-   * @param businessAssessmentRowId Display only records concerning the given row of the business assessment.
    */
   public static PageParameters getPageParameters(final String reportId, final String businessAssessmentRowNo)
   {
@@ -104,8 +101,8 @@ public class AccountingRecordListPage
 
   private void checkAccess()
   {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override
@@ -247,7 +244,7 @@ public class AccountingRecordListPage
   @Override
   public BuchungssatzDao getBaseDao()
   {
-    return buchungssatzDao;
+    return WicketSupport.get(BuchungssatzDao.class);
   }
 
   /**

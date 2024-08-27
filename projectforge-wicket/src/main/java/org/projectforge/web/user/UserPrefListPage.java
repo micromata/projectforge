@@ -37,6 +37,7 @@ import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 
 import java.util.ArrayList;
@@ -46,9 +47,6 @@ import java.util.List;
 public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPrefDao, UserPrefDO>
 {
   private static final long serialVersionUID = 6121734373079865758L;
-
-  @SpringBean
-  private UserPrefDao userPrefDao;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -125,7 +123,6 @@ public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPre
   /**
    * Gets the current areaObject and preset this areaObject for the edit page.
    *
-   * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override
   protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params)
@@ -149,6 +146,6 @@ public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPre
   @Override
   public UserPrefDao getBaseDao()
   {
-    return userPrefDao;
+    return WicketSupport.get(UserPrefDao.class);
   }
 }

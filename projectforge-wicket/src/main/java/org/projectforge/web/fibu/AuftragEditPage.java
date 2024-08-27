@@ -31,6 +31,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -47,25 +48,19 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
 
   private static final long serialVersionUID = -8192471994161712577L;
 
-  @SpringBean
-  private AuftragDao auftragDao;
-
-  @SpringBean
-  private ProjektDao projektDao;
-
   public AuftragEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.auftrag");
     init();
     if (isNew() && getData().getContactPerson() == null) {
-      auftragDao.setContactPerson(getData(), getUser().getId());
+      WicketSupport.get(AuftragDao.class).setContactPerson(getData(), getUser().getId());
     }
   }
 
   @Override
   protected AuftragDao getBaseDao()
   {
-    return auftragDao;
+    return WicketSupport.get(AuftragDao.class);
   }
 
   @Override
@@ -81,22 +76,22 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property)) {
-      auftragDao.setProjekt(getData(), (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setProjekt(getData(), (Integer) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null && getData().getProjektId() >= 0) {
-        final ProjektDO projekt = projektDao.getById(getData().getProjektId());
+        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).getById(getData().getProjektId());
         form.setKundePmHobmAndSmIfEmpty(projekt, null);
       }
     } else if ("kundeId".equals(property)) {
-      auftragDao.setKunde(getData(), (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setKunde(getData(), (Integer) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
     } else if ("contactPersonId".equals(property)) {
-      auftragDao.setContactPerson(getData(), (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setContactPerson(getData(), (Integer) selectedValue);
       setSendEMailNotification();
     } else if (property.startsWith("taskId:")) {
       final Short number = NumberHelper.parseShort(property.substring(property.indexOf(':') + 1));
       final AuftragsPositionDO pos = getData().getPosition(number);
-      auftragDao.setTask(pos, (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setTask(pos, (Integer) selectedValue);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }
@@ -104,7 +99,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
 
   private void setSendEMailNotification()
   {
-    if (accessChecker.userEqualsToContextUser(getData().getContactPerson()))
+    if (getAccessChecker().userEqualsToContextUser(getData().getContactPerson()))
       form.setSendEMailNotification(false);
     else
       form.setSendEMailNotification(true);
@@ -147,7 +142,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     if (getData().getNummer() == null) {
-      getData().setNummer(auftragDao.getNextNumber(getData()));
+      getData().setNummer(WicketSupport.get(AuftragDao.class).getNextNumber(getData()));
     }
     if (getData().getKunde() != null) {
       getData().setKundeText(null);
@@ -158,7 +153,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   protected void update() {
     AuftragDO auftrag = getData();
-    AuftragDO dbObj = auftragDao.internalGetById(auftrag.getId());
+    AuftragDO dbObj = WicketSupport.get(AuftragDao.class).internalGetById(auftrag.getId());
     if (dbObj != null) {
       // Update attachments values (if modified in the mean time. They can't be modified on this Wicket page):
       auftrag.setAttachmentsCounter(dbObj.getAttachmentsCounter());
@@ -182,8 +177,8 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
         auftrag.setErfassungsDatum(today);
         auftrag.setEntscheidungsDatum(today);
       }
-      if (auftrag.getContactPersonId() == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
-        auftragDao.setContactPerson(auftrag, getUser().getId());
+      if (auftrag.getContactPersonId() == null && getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
+        WicketSupport.get(AuftragDao.class).setContactPerson(auftrag, getUser().getId());
         form.setSendEMailNotification(false);
       }
     } else if (auftrag.getErfassungsDatum() == null) {
@@ -226,7 +221,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   private void sendNotificationIfRequired(final OperationType operationType)
   {
     final String url = getPageAsLink(WicketUtils.getEditPageParameters(getData().getId()));
-    auftragDao.sendNotificationIfRequired(getData(), operationType, url);
+    WicketSupport.get(AuftragDao.class).sendNotificationIfRequired(getData(), operationType, url);
   }
 
   @Override

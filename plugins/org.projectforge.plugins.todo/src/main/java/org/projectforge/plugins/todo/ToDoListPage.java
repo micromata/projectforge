@@ -149,8 +149,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
         cellItemListener));
     columns
         .add(new TaskPropertyColumn<>(ToDoDO.class, getSortable("task.title", sortable), "task",
-            cellItemListener)
-                .withTaskTree(taskTree));
+            cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, null, "group", cellItemListener)
     {
       @Override

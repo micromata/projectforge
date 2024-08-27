@@ -27,6 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -41,9 +42,6 @@ public class VisitorbookEditPage extends AbstractEditPage<VisitorbookDO, Visitor
   private static final long serialVersionUID = -3899191243765232906L;
 
   private static final Logger log = LoggerFactory.getLogger(VisitorbookEditPage.class);
-
-  @SpringBean
-  private VisitorbookDao visitorbookDao;
 
   public VisitorbookEditPage(final PageParameters parameters)
   {
@@ -78,7 +76,7 @@ public class VisitorbookEditPage extends AbstractEditPage<VisitorbookDO, Visitor
   @Override
   protected VisitorbookDao getBaseDao()
   {
-    return visitorbookDao;
+    return WicketSupport.get(VisitorbookDao.class);
   }
 
   @Override

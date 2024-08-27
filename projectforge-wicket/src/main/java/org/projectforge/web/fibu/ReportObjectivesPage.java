@@ -31,6 +31,7 @@ import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.time.PFDay;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 import java.io.InputStream;
@@ -42,9 +43,6 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportObjectivesPage.class);
 
   public static final String KEY_REPORT_STORAGE = "ReportObjectivesPage:storage";
-
-  @SpringBean
-  private ReportDao reportDao;
 
   private final ReportObjectivesForm form;
 
@@ -67,7 +65,7 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
       try {
         final String clientFileName = fileUpload.getClientFileName();
         final InputStream is = fileUpload.getInputStream();
-        final Report report = reportDao.createReport(is);
+        final Report report = WicketSupport.get(ReportDao.class).createReport(is);
 
         if (report == null) {
           error("An error occurred during the import (see log files for details).");
@@ -104,7 +102,7 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
       untilDay = day.getEndOfMonth();
     }
     report.setTo(untilDay.getYear(), untilDay.getMonthValue());
-    reportDao.loadReport(report);
+    WicketSupport.get(ReportDao.class).loadReport(report);
     storage.setCurrentReport(currentReportId); // Select previous current report.
   }
 
@@ -129,8 +127,8 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
 
   private void checkAccess()
   {
-    accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP);
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP);
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override

@@ -57,8 +57,6 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListForm.class);
 
-  private transient TaskTree taskTree;
-
   @SpringBean
   private DateTimeFormatter dateTimeFormatter;
 
@@ -242,9 +240,6 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   }
 
   private TaskTree getTaskTree() {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTreeHelper.getTaskTree();
   }
 }

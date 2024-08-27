@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
@@ -65,12 +66,6 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   private static final String USER_PREF_KEY_RECENT_USERS = "UserSelectPanel:recentUsers";
 
   private boolean defaultFormProcessing = false;
-
-  @SpringBean
-  private UserDao userDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentUsers;
 
@@ -100,7 +95,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("username", "firstname", "lastname", "email");
         filter.setSearchString(input);
-        final List<PFUserDO> list = userDao.getList(filter);
+        final List<PFUserDO> list = WicketSupport.getUserDao().getList(filter);
         return list;
       }
 
@@ -316,6 +311,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   @SuppressWarnings("unchecked")
   private RecentQueue<String> getRecentUsers()
   {
+    var userPreferencesService = WicketSupport.get(UserXmlPreferencesService.class);
     if (this.recentUsers == null) {
       this.recentUsers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_USERS);
     }

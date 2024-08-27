@@ -25,7 +25,9 @@ package org.projectforge.framework.i18n;
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-public abstract class AbstractFormatter
+import java.io.Serializable;
+
+public abstract class AbstractFormatter implements Serializable
 {
   public static String getI18nMessage(String i18nKey)
   {

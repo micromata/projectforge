@@ -45,8 +45,6 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
 {
   private static final long serialVersionUID = -2450673501083584299L;
 
-  private transient TaskTree taskTree;
-
   protected TaskDO task;
 
   protected GroupDO managerGroup, team;

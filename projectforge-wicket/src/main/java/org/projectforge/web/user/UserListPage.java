@@ -49,6 +49,7 @@ import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
@@ -64,21 +65,6 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
 {
   private static final long serialVersionUID = 4408701323868106520L;
 
-  @SpringBean
-  private AccessChecker accessChecker;
-
-  @SpringBean
-  private UserDao userDao;
-
-  @SpringBean
-  private UserRightService userRightService;
-
-  @SpringBean
-  private LdapUserDao ldapUserDao;
-
-  @SpringBean
-  private GroupService groupService;
-
   public UserListPage(final PageParameters parameters)
   {
     super(parameters, "user");
@@ -93,7 +79,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   @Override
   public List<IColumn<PFUserDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final boolean updateAccess = userDao.hasLoggedInUserAccess(null, null, OperationType.UPDATE, false);
+    final boolean updateAccess = WicketSupport.get(UserDao.class).hasLoggedInUserAccess(null, null, OperationType.UPDATE, false);
     final List<IColumn<PFUserDO, String>> columns = new ArrayList<IColumn<PFUserDO, String>>();
     final CellItemListener<PFUserDO> cellItemListener = new CellItemListener<PFUserDO>()
     {
@@ -188,7 +174,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
             final IModel<PFUserDO> rowModel)
         {
           final PFUserDO user = rowModel.getObject();
-          final String groups = groupService.getGroupnames(user.getId());
+          final String groups = WicketSupport.get(GroupService.class).getGroupnames(user.getId());
           final Label label = new Label(componentId, new Model<String>(groups));
           cellItem.add(label);
           cellItemListener.populateItem(cellItem, componentId, rowModel);
@@ -201,7 +187,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
             final IModel<PFUserDO> rowModel)
         {
           final PFUserDO user = rowModel.getObject();
-          final List<UserRightDO> rights = userDao.getUserRights(user.getId());
+          final List<UserRightDO> rights = WicketSupport.get(UserDao.class).getUserRights(user.getId());
           final StringBuffer buf = new StringBuffer();
           if (rights != null) {
             boolean first = true;
@@ -212,7 +198,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
                 } else {
                   buf.append(", ");
                 }
-                IUserRightId userRightId = userRightService.getRightId(right.getRightIdString());
+                IUserRightId userRightId = WicketSupport.get(UserRightService.class).getRightId(right.getRightIdString());
                 buf.append(getString(userRightId.getI18nKey()));
                 if (right.getValue() == UserRightValue.READONLY) {
                   buf.append(" (ro)");
@@ -229,7 +215,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
           cellItemListener.populateItem(cellItem, componentId, rowModel);
         }
       });
-      if (ldapUserDao.isPosixAccountsConfigured() == true) {
+      if (WicketSupport.get(LdapUserDao.class).isPosixAccountsConfigured() == true) {
         columns
             .add(new CellItemListenerPropertyColumn<PFUserDO>(getString("user.ldapValues"), "ldapValues", "ldapValues",
                 cellItemListener));
@@ -247,7 +233,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   {
     dataTable = createDataTable(createColumns(this, true), "username", SortOrder.ASCENDING);
     form.add(dataTable);
-    if (accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+    if (WicketSupport.getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
       addExcelExport(getString("user.users"), getString("user.users"));
     }
   }
@@ -261,7 +247,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   @Override
   public UserDao getBaseDao()
   {
-    return userDao;
+    return WicketSupport.get(UserDao.class);
   }
 
   /**

@@ -64,7 +64,7 @@ class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
 
     // Define the access management:
-    registerRight(MemoRight(accessChecker))
+    registerRight(MemoRight())
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME)

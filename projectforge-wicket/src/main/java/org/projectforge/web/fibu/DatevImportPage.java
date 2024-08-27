@@ -41,6 +41,7 @@ import org.projectforge.common.logging.LogSubscription;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.rest.admin.LogViewerPageRest;
 import org.projectforge.rest.core.PagesResolver;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -52,9 +53,6 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   private static final long serialVersionUID = 3158445617725488919L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportPage.class);
-
-  @SpringBean
-  private DatevImportDao datevImportDao;
 
   public DatevImportPage(final PageParameters parameters) {
     super(parameters);
@@ -76,7 +74,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importKontenplan(is, clientFileName));
+        setStorage(WicketSupport.get(DatevImportDao.class).importKontenplan(is, clientFileName));
         return null;
       });
     }
@@ -89,7 +87,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(datevImportDao.importBuchungsdaten(is, clientFileName));
+        setStorage(WicketSupport.get(DatevImportDao.class).importBuchungsdaten(is, clientFileName));
         return null;
       });
     }
@@ -99,7 +97,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   protected ImportedSheet<?> reconcile(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.reconcile(sheetName);
-    datevImportDao.reconcile(getStorage(), sheetName);
+    WicketSupport.get(DatevImportDao.class).reconcile(getStorage(), sheetName);
     return sheet;
   }
 
@@ -107,7 +105,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   protected ImportedSheet<?> commit(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.commit(sheetName);
-    datevImportDao.commit(getStorage(), sheetName);
+    WicketSupport.get(DatevImportDao.class).commit(getStorage(), sheetName);
     return sheet;
   }
 
@@ -145,8 +143,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   }
 
   private void checkAccess() {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 
   @Override

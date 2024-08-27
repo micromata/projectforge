@@ -43,8 +43,6 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
 {
   private static final long serialVersionUID = 7812878062066655023L;
 
-  private transient TaskTree taskTree;
-
   private Kost2DO kost2;
 
   private Integer taskId;
@@ -139,9 +137,6 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
 
   private TaskTree getTaskTree()
   {
-    if (taskTree == null) {
-      taskTree = TaskTreeHelper.getTaskTree();
-    }
-    return taskTree;
+    return TaskTreeHelper.getTaskTree();
   }
 }

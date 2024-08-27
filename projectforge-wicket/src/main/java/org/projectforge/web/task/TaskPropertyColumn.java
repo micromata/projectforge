@@ -42,8 +42,6 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 {
   private static final long serialVersionUID = -26352961662061891L;
 
-  private transient TaskTree taskTree;
-
   /**
    * @param clazz
    * @param sortProperty
@@ -58,7 +56,6 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   }
 
   /**
-   * @param taskFormatter
    * @param label
    * @param sortProperty
    * @param property         Should be from type TaskDO or Integer for task id.
@@ -120,22 +117,8 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
     return task;
   }
 
-  /**
-   * Fluent pattern
-   *
-   * @param taskTree
-   */
-  public TaskPropertyColumn<T> withTaskTree(final TaskTree taskTree)
-  {
-    this.taskTree = taskTree;
-    return this;
-  }
-
   private TaskTree getTaskTree()
   {
-    if (taskTree == null) {
-      taskTree = TaskTree.getInstance();
-    }
-    return taskTree;
+    return TaskTree.getInstance();
   }
 }

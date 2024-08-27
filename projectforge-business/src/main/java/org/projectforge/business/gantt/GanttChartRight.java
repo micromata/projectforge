@@ -30,6 +30,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 
 /**
  *
@@ -42,9 +43,9 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 
   private static final long serialVersionUID = -1711148447929915434L;
 
-  public GanttChartRight(AccessChecker accessChecker)
+  public GanttChartRight()
   {
-    super(accessChecker, UserRightId.PM_GANTT, UserRightCategory.PM);
+    super(UserRightId.PM_GANTT, UserRightCategory.PM);
   }
 
   /**
@@ -102,6 +103,7 @@ public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 
   private boolean hasAccess(final PFUserDO user, final GanttChartDO obj, final GanttAccess access)
   {
+    var accessChecker = WicketSupport.getAccessChecker();
     if (accessChecker.userEqualsToContextUser(obj.getOwner())) {
       // Owner has always access:
       return true;

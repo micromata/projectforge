@@ -44,9 +44,6 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
 
   private static final long serialVersionUID = -8192471994161712577L;
 
-  @SpringBean
-  private ConfigurationDao configurationDao;
-
   public ConfigurationEditPage(final PageParameters parameters)
   {
     super(parameters, "administration.configuration");
@@ -72,7 +69,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
   @Override
   protected ConfigurationDao getBaseDao()
   {
-    return configurationDao;
+    return WicketSupport.get(ConfigurationDao.class);
   }
 
   @Override

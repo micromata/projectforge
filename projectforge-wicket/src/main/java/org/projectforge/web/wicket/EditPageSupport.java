@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.security.My2FARequestHandler;
+import org.projectforge.web.WicketSupport;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.Serializable;
@@ -49,8 +50,6 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDa
   private boolean updateAndNext;
 
   private String entity;
-
-  private My2FARequestHandler my2FARequestHandler = ApplicationContextProvider.getApplicationContext().getBean(My2FARequestHandler.class);
 
   public EditPageSupport(final P editPage, final D baseDao) {
     this.editPage = editPage;
@@ -73,7 +72,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDa
     if (log.isDebugEnabled() == true) {
       log.debug("create in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
       throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
@@ -131,7 +130,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDa
     if (log.isDebugEnabled() == true) {
       log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
       throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
@@ -198,7 +197,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDa
     if (log.isDebugEnabled() == true) {
       log.debug("undelete in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
       throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
@@ -222,7 +221,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDa
     if (log.isDebugEnabled() == true) {
       log.debug("Mark object as deleted in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
       throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {
@@ -246,7 +245,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDa
     if (log.isDebugEnabled() == true) {
       log.debug("delete in " + editPage.getClass() + ": " + editPage.getData());
     }
-    if (my2FARequestHandler.twoFactorRequiredForWriteAccess(entity)) {
+    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
       throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
     }
     synchronized (editPage.getData()) {

@@ -38,6 +38,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WicketMenu;
 import org.projectforge.web.WicketMenuBuilder;
 import org.projectforge.web.WicketMenuEntry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WicketUtils;
 
 /**
@@ -51,9 +52,6 @@ public abstract class NavAbstractPanel extends Panel {
   protected WicketMenu menu;
 
   protected WicketMenu favoritesMenu;
-
-  @SpringBean
-  private WicketMenuBuilder menuBuilder;
 
   public NavAbstractPanel(final String id) {
     super(id);
@@ -108,7 +106,7 @@ public abstract class NavAbstractPanel extends Panel {
 
   public WicketMenu getMenu() {
     if (menu == null) {
-      menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
+      menu = WicketSupport.get(WicketMenuBuilder.class).getMenu(ThreadLocalUserContext.getUser());
     }
     return menu;
   }

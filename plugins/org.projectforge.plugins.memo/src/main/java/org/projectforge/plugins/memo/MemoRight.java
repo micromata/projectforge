@@ -35,16 +35,16 @@ import java.util.Objects;
 /**
  * Define the access rights. In this example every user has access to memo functionality but only read and write access
  * to own memos.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
  */
 public class MemoRight extends UserRightAccessCheck<MemoDO>
 {
   private static final long serialVersionUID = -2928342166476350773L;
 
-  public MemoRight(AccessChecker accessChecker)
+  public MemoRight()
   {
-    super(accessChecker, MemoPluginUserRightId.PLUGIN_MEMO, UserRightCategory.PLUGINS, UserRightValue.TRUE);
+    super(MemoPluginUserRightId.PLUGIN_MEMO, UserRightCategory.PLUGINS, UserRightValue.TRUE);
   }
 
   /**

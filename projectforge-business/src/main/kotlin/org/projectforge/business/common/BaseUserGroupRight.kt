@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.WicketSupport
 
 /**
  * Base class for objects supporting user and group specific rights. You may define single group and user ids for the
@@ -37,11 +38,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  * @author Kai Reinhard (k.reinhard@me.de)
  */
 abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected constructor(
-  accessChecker: AccessChecker?,
   id: IUserRightId?,
   category: UserRightCategory?,
   vararg rightValues: UserRightValue?
-) : UserRightAccessCheck<T>(accessChecker, id, category, *rightValues) {
+) : UserRightAccessCheck<T>(id, category, *rightValues) {
   /**
    * General select access.
    *
@@ -57,7 +57,7 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    */
   override fun hasSelectAccess(user: PFUserDO?, obj: T): Boolean {
     user ?: return false
-    if (isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user)) { // User has full access to his own object.
+    if (isOwner(user, obj) || WicketSupport.getAccessChecker().isUserMemberOfAdminGroup(user)) { // User has full access to his own object.
       return true
     }
     val userId = user.id
@@ -80,7 +80,7 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    * @see UserRightAccessCheck.hasInsertAccess
    */
   override fun hasInsertAccess(user: PFUserDO, obj: T): Boolean {
-    return isOwner(user, obj) || accessChecker.isUserMemberOfAdminGroup(user)
+    return isOwner(user, obj) || WicketSupport.getAccessChecker().isUserMemberOfAdminGroup(user)
   }
 
   /**

@@ -85,8 +85,6 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
 
   private DivTextPanel projektKostLabel;
 
-  private transient TaskTree taskTree;
-
   // Components for form validation.
   private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
 

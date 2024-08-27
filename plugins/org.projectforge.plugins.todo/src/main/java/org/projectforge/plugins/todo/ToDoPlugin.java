@@ -79,7 +79,7 @@ public class ToDoPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu, ToDoListPage.class);
 
     // Define the access management:
-    registerRight(new ToDoRight(accessChecker));
+    registerRight(new ToDoRight());
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);

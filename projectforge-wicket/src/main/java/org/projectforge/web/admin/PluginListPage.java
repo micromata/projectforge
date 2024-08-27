@@ -29,7 +29,7 @@ import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 /**
- * 
+ *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
  */
@@ -37,8 +37,6 @@ public class PluginListPage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = 5745110028112481137L;
 
-  @SpringBean
-  private PluginAdminService pluginAdminService;
   private PluginListForm form;
 
   public PluginListPage(final PageParameters parameters)
@@ -53,7 +51,7 @@ public class PluginListPage extends AbstractStandardFormPage
     checkAccess();
     super.onInitialize();
 
-    PluginListForm form = new PluginListForm(this, pluginAdminService);
+    PluginListForm form = new PluginListForm(this);
     body.add(form);
     form.init();
   }
@@ -66,7 +64,7 @@ public class PluginListPage extends AbstractStandardFormPage
 
   private void checkAccess()
   {
-    accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-    accessChecker.checkRestrictedOrDemoUser();
+    getAccessChecker().checkIsLoggedInUserMemberOfAdminGroup();
+    getAccessChecker().checkRestrictedOrDemoUser();
   }
 }

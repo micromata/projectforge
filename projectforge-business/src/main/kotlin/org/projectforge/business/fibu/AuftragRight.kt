@@ -30,6 +30,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.WicketSupport
 import java.time.LocalDate
 
 /**
@@ -40,8 +41,8 @@ import java.time.LocalDate
  *
  * @author Kai Reinhard (k.reinhard@me.de)
  */
-class AuftragRight(accessChecker: AccessChecker?) : UserRightAccessCheck<AuftragDO?>(
-  accessChecker, UserRightId.PM_ORDER_BOOK, UserRightCategory.PM,
+class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
+   UserRightId.PM_ORDER_BOOK, UserRightCategory.PM,
   *UserRightServiceImpl.FALSE_READONLY_PARTLYREADWRITE_READWRITE
 ) {
   /**
@@ -50,7 +51,7 @@ class AuftragRight(accessChecker: AccessChecker?) : UserRightAccessCheck<Auftrag
    * @see org.projectforge.business.user.UserRightAccessCheck.hasSelectAccess
    */
   override fun hasSelectAccess(user: PFUserDO): Boolean {
-    return accessChecker.hasRight(
+    return WicketSupport.getAccessChecker().hasRight(
       user, id, UserRightValue.READONLY,
       UserRightValue.PARTLYREADWRITE,
       UserRightValue.READWRITE
@@ -72,6 +73,7 @@ class AuftragRight(accessChecker: AccessChecker?) : UserRightAccessCheck<Auftrag
     operationType: OperationType
   ): Boolean {
     val userGroupCache = getInstance()
+    val accessChecker = WicketSupport.getAccessChecker()
     if (operationType == OperationType.SELECT) {
       if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.CONTROLLING_GROUP)) {
         return true

@@ -304,7 +304,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     body.add(form);
     form.init();
     if (isSelectMode() == false
-        && (accessChecker.isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
+        && (getAccessChecker().isDemoUser() == true || getBaseDao().hasInsertAccess(getUser()) == true)) {
       newItemMenuEntry = new ContentMenuEntryPanel(contentMenuBarPanel.newChildId(), new Link<Object>("link") {
         @Override
         public void onClick() {
@@ -540,7 +540,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   protected void addTopRightMenu() {
     if (isSelectMode() == false
         && ((getBaseDao() instanceof BaseDao<?>) || providesOwnRebuildDatabaseIndex() == true || true)) {
-      new AbstractReindexTopRightMenu(this.contentMenuBarPanel, accessChecker.isLoggedInUserMemberOfAdminGroup()) {
+      new AbstractReindexTopRightMenu(this.contentMenuBarPanel, getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
         @Override
         protected void rebuildDatabaseIndex(final boolean onlyNewest) {
           if (providesOwnRebuildDatabaseIndex() == true) {
@@ -592,7 +592,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    *
    * @param columns
    * @param sortProperty
-   * @param ascending
    * @return
    */
   protected DataTable<O, String> createDataTable(final List<IColumn<O, String>> columns, final String sortProperty,
@@ -611,8 +610,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * At default a new SortableDOProvider is returned. Overload this method e. g. for avoiding
    * LazyInitializationExceptions due to sorting.
    *
-   * @param sortProperty
-   * @param ascending
    */
   protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam) {
     return createSortableDataProvider(sortParam, null);
@@ -622,8 +619,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * At default a new SortableDOProvider is returned. Overload this method e. g. for avoiding
    * LazyInitializationExceptions due to sorting.
    *
-   * @param sortProperty
-   * @param ascending
    */
   protected ISortableDataProvider<O, String> createSortableDataProvider(final SortParam<String> sortParam,
                                                                         final SortParam<String> secondSortParam) {
@@ -821,7 +816,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    * Adds the search string to the recent list, if filter is from type BaseSearchFilter and the search string is not
    * blank and not from type id:4711.
    *
-   * @param Filter The search filter.
    */
   protected void addRecentSearchTerm() {
     if (StringUtils.isNotBlank(form.searchFilter.getSearchString()) == true) {
