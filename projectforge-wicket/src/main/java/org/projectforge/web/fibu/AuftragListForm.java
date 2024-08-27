@@ -30,6 +30,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -45,9 +46,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
-
-  @SpringBean
-  private AuftragDao auftragDao;
 
   private AuftragsStatistik auftragsStatistik;
 
@@ -266,7 +264,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
   private AuftragsStatistik getAuftragsStatistik() {
     if (auftragsStatistik == null) {
-      auftragsStatistik = auftragDao.buildStatistik(getParentPage().getList());
+      auftragsStatistik = WicketSupport.get(AuftragDao.class).buildStatistik(getParentPage().getList());
     }
     return auftragsStatistik;
   }

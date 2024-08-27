@@ -46,6 +46,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -71,12 +72,6 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
   private static final long serialVersionUID = 3150725003240437752L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEditForm.class);
-
-  @SpringBean
-  private HRPlanningEntryDao hrPlanningEntryDao;
-
-  @SpringBean
-  private HRPlanningDao hrPlanningDao;
 
   private boolean showDeletedOnly;
 
@@ -116,7 +111,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       @Override
       public void validate(final Form<?> form)
       {
-        if (hrPlanningDao.doesEntryAlreadyExist(data.getId(), data.getUserId(), data.getWeek()) == true) {
+        if (WicketSupport.get(HRPlanningDao.class).doesEntryAlreadyExist(data.getId(), data.getUserId(), data.getWeek()) == true) {
           error(getString("hr.planning.entry.error.entryDoesAlreadyExistForUserAndWeekOfYear"));
         }
       }
@@ -269,7 +264,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       addPositionButtonPanel.setTooltip(getString("hr.planning.tooltip.addEntry"));
       panel.add(addPositionButtonPanel);
     }
-    WicketUtils.addShowDeleteRowQuestionDialog(this, hrPlanningEntryDao);
+    WicketUtils.addShowDeleteRowQuestionDialog(this, WicketSupport.get(HRPlanningEntryDao.class));
   }
 
   private FieldProperties<LocalDate> getWeekProperties() {
@@ -430,7 +425,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         // Get the entry from the predecessor week:
         PFDay dh = PFDay.from(getData().getWeek());
         dh = dh.minusWeeks(1);
-        predecessor = hrPlanningDao.getEntry(userId, dh.getLocalDate());
+        predecessor = WicketSupport.get(HRPlanningDao.class).getEntry(userId, dh.getLocalDate());
       }
       predecessorUpdToDate = true;
     }

@@ -31,6 +31,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.TooltipImage;
@@ -43,9 +44,6 @@ import org.projectforge.web.wicket.components.TooltipImage;
 public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
 {
   private static final long serialVersionUID = 1017253478360068965L;
-
-  @SpringBean
-  private Kost2Dao kost2Dao;
 
   public Kost2SelectPanel(final String id, final IModel<Kost2DO> model, final ISelectCallerPage caller, final String selectProperty)
   {
@@ -84,7 +82,7 @@ public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
     };
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
-    final boolean hasSelectAccess = kost2Dao.hasLoggedInUserSelectAccess(false);
+    final boolean hasSelectAccess = WicketSupport.get(Kost2Dao.class).hasLoggedInUserSelectAccess(false);
     if (hasSelectAccess == false) {
       selectButton.setVisible(false);
     }

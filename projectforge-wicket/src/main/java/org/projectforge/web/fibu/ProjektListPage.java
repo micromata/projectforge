@@ -44,6 +44,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.reporting.Kost2Art;
 import org.projectforge.reporting.impl.ProjektImpl;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.wicket.*;
@@ -57,18 +58,6 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
     implements IListPageColumnsCreator<ProjektDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
-
-  @SpringBean
-  private ProjektDao projektDao;
-
-  @SpringBean
-  private KontoCache kontoCache;
-
-  @SpringBean
-  private KostCache kostCache;
-
-  @SpringBean
-  private GroupService groupService;
 
   public ProjektListPage(final PageParameters parameters)
   {
@@ -168,7 +157,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
         final ProjektDO projektDO = rowModel.getObject();
         String groupName = "";
         if (projektDO.getProjektManagerGroupId() != null) {
-          final GroupDO group = groupService.getGroup(projektDO.getProjektManagerGroupId());
+          final GroupDO group = WicketSupport.get(GroupService.class).getGroup(projektDO.getProjektManagerGroupId());
           if (group != null) {
             groupName = group.getName();
           }
@@ -192,7 +181,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
           {
             final ProjektDO projektDO = rowModel.getObject();
             final ProjektImpl projekt = new ProjektImpl(projektDO);
-            final List<Kost2Art> kost2Arts = kostCache.getAllKost2Arts(projektDO.getId());
+            final List<Kost2Art> kost2Arts = WicketSupport.get(KostCache.class).getAllKost2Arts(projektDO.getId());
             projekt.setKost2Arts(kost2Arts);
             final Label label = new Label(componentId, new Model<String>(projekt.getKost2ArtsAsHtml()));
             label.setEscapeModelStrings(false);
@@ -204,7 +193,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
         getSortable("description",
             sortable),
         "description", cellItemListener));
-    if (kontoCache.isEmpty() == false) {
+    if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       columns
           .add(new CellItemListenerPropertyColumn<ProjektDO>(new Model<String>(getString("fibu.konto")), null, "konto",
               cellItemListener)
@@ -218,7 +207,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
                                      final IModel<ProjektDO> rowModel)
             {
               final ProjektDO projekt = rowModel.getObject();
-              final KontoDO konto = kontoCache.getKonto(projekt);
+              final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(projekt);
               item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
               cellItemListener.populateItem(item, componentId, rowModel);
             }
@@ -248,11 +237,6 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
   @Override
   public ProjektDao getBaseDao()
   {
-    return projektDao;
-  }
-
-  protected ProjektDao getProjektDao()
-  {
-    return projektDao;
+    return WicketSupport.get(ProjektDao.class);
   }
 }

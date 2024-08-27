@@ -35,6 +35,7 @@ import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WebConstants;
 
 import java.time.LocalDate;
@@ -54,15 +55,12 @@ public class HRListResourceLinkPanel extends Panel
 
   private final HRListPage hrListPage;
 
-  private final HRViewDao hrViewDao;
-
   private final UserFormatter userFormatter;
 
-  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final HRViewDao hrViewDao, final UserFormatter userFormatter)
+  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final UserFormatter userFormatter)
   {
     super(id);
     this.hrListPage = hrListPage;
-    this.hrViewDao = hrViewDao;
     this.userFormatter = userFormatter;
     userRepeater = new RepeatingView("userRepeater");
     add(userRepeater);
@@ -71,7 +69,7 @@ public class HRListResourceLinkPanel extends Panel
   public void refresh(final HRViewData hrViewData, final LocalDate startDay)
   {
     userRepeater.removeAll();
-    final List<PFUserDO> unplannedUsers = hrViewDao.getUnplannedResources(hrViewData);
+    final List<PFUserDO> unplannedUsers = WicketSupport.get(HRViewDao.class).getUnplannedResources(hrViewData);
     for (final PFUserDO user : unplannedUsers) {
       if (!user.getHrPlanning() || !user.hasSystemAccess()) {
         continue;

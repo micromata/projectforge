@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.utils.IntRanges;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.Ranges;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
@@ -55,15 +56,11 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
 
   private PFAutoCompleteTextField<KontoDO> kontoTextField;
 
-  @SpringBean
-  private KontoDao kontoDao;
-
   private IntRanges kontoNumberRanges;
 
   /**
    * @param id
    * @param model
-   * @param kontoText      If no Konto is given then a free text field representing a Konto can be used.
    * @param caller
    * @param selectProperty
    */
@@ -78,7 +75,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("nummer", "bezeichnung", "description");
         filter.setSearchString(input);
-        final List<KontoDO> list = kontoDao.getList(filter);
+        final List<KontoDO> list = WicketSupport.get(KontoDao.class).getList(filter);
         if (kontoNumberRanges != null && list != null) {
           final List<KontoDO> result = new ArrayList<KontoDO>();
           for (final KontoDO konto : list) {
@@ -136,7 +133,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
             final Integer kontonummer = NumberHelper.parseInteger(kontonummerString);
             final KontoDO konto;
             if (kontonummer != null) {
-              konto = kontoDao.getKonto(kontonummer);
+              konto = WicketSupport.get(KontoDao.class).getKonto(kontonummer);
             } else {
               konto = null;
             }
@@ -185,8 +182,6 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
 
   /**
    * Must be called before component is added to a field set. This is different to most other Panels in ProjectForge.
-   *
-   * @see org.projectforge.web.wicket.AbstractSelectPanel#init()
    */
   @Override
   @SuppressWarnings("serial")

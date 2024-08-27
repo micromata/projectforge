@@ -42,6 +42,7 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.Constants;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.WicketAjaxUtils;
 import org.projectforge.web.wicket.WicketUtils;
@@ -69,9 +70,6 @@ public class RechnungCostEditTablePanel extends Panel
   private final Form<AbstractRechnungsPositionDO> form;
 
   private final FeedbackPanel feedbackPanel;
-
-  @SpringBean
-  private Kost2Dao kost2Dao;
 
   private AbstractRechnungsPositionDO position;
 
@@ -293,7 +291,7 @@ public class RechnungCostEditTablePanel extends Panel
       if (rechnung != null) {
         final ProjektDO project = rechnung.getProjekt();
         if (project != null) {
-          final List<Kost2DO> kost2List = kost2Dao.getActiveKost2(project);
+          final List<Kost2DO> kost2List = WicketSupport.get(Kost2Dao.class).getActiveKost2(project);
           if (CollectionUtils.isNotEmpty(kost2List) == true) {
             kostZuweisung.setKost2(kost2List.get(0));
           }

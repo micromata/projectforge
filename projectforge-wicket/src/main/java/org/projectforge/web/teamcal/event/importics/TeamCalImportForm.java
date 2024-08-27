@@ -32,6 +32,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -52,9 +53,6 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
 
   //  private ModalDialog modalDialog;
 
-  @SpringBean
-  private TeamCalDao teamCalDao;
-
   public TeamCalImportForm(final TeamCalImportPage parentPage)
   {
     super(parentPage);
@@ -71,7 +69,7 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
     gridBuilder.newGridPanel();
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.event.teamCal"));
-      final List<TeamCalDO> list = teamCalDao.getAllCalendarsWithFullAccess();
+      final List<TeamCalDO> list = WicketSupport.get(TeamCalDao.class).getAllCalendarsWithFullAccess();
       final LabelValueChoiceRenderer<TeamCalDO> calChoiceRenderer = new LabelValueChoiceRenderer<TeamCalDO>();
       for (final TeamCalDO cal : list) {
         calChoiceRenderer.addValue(cal, cal.getTitle());

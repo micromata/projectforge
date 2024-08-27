@@ -29,6 +29,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivType;
@@ -44,9 +45,6 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
   private static final long serialVersionUID = 3659495003810851072L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalListForm.class);
-
-  @SpringBean
-  private AccessChecker accessChecker;
 
   public TeamCalListForm(final TeamCalListPage parentPage)
   {
@@ -97,7 +95,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
       radioGroup.add(new Model<TeamCalFilter.OwnerType>(TeamCalFilter.OwnerType.ALL), getString("filter.all"));
       radioGroup.add(new Model<TeamCalFilter.OwnerType>(TeamCalFilter.OwnerType.OWN), getString("plugins.teamcal.own"));
       radioGroup.add(new Model<TeamCalFilter.OwnerType>(TeamCalFilter.OwnerType.OTHERS), getString("plugins.teamcal.others"));
-      if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+      if (WicketSupport.getAccessChecker().isLoggedInUserMemberOfAdminGroup() == true) {
         radioGroup.add(new Model<TeamCalFilter.OwnerType>(TeamCalFilter.OwnerType.ADMIN), getString("plugins.teamcal.adminAccess"));
       }
     }

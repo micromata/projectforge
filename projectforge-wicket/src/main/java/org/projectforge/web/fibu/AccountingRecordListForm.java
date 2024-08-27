@@ -29,6 +29,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.common.StringHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.YearListCoiceRenderer;
@@ -41,9 +42,6 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
   private static final long serialVersionUID = -1669760774183582053L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordListForm.class);
-
-  @SpringBean
-  private BuchungssatzDao buchungssatzDao;
 
   @SuppressWarnings("serial")
   @Override
@@ -75,7 +73,7 @@ public class AccountingRecordListForm extends AbstractListForm<AccountingRecordL
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
     // DropDownChoices from
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(buchungssatzDao.getYears(), false);
+    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(WicketSupport.get(BuchungssatzDao.class).getYears(), false);
     final DropDownChoice<Integer> fromYearChoice = new DropDownChoice<Integer>(
             optionsFieldsetPanel.getDropDownChoiceId(),
             new PropertyModel<Integer>(this, "fromYear"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);

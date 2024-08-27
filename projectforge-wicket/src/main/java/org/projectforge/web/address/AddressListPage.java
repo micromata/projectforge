@@ -90,15 +90,6 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
           "f.personaIngrata",
           "f.departed"});
 
-  @SpringBean(name = "addressExport")
-  private AddressExport addressExport;
-
-  @SpringBean
-  private SipgateConfiguration sipgateConfiguration;
-
-  @SpringBean
-  private SmsSenderConfig smsSenderConfig;
-
   Map<Integer, PersonalAddressDO> personalAddressMap;
 
   boolean messagingSupported;
@@ -119,8 +110,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   protected void setup() {
     super.setup();
     this.recentSearchTermsUserPrefKey = "addressSearchTerms";
-    messagingSupported = smsSenderConfig.isSmsConfigured() == true;
-    phoneCallSupported = sipgateConfiguration.isConfigured();
+    messagingSupported = WicketSupport.get(SmsSenderConfig.class).isSmsConfigured() == true;
+    phoneCallSupported = WicketSupport.get(SipgateConfiguration.class).isConfigured();
   }
 
   @Override
@@ -328,7 +319,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         public void onSubmit() {
           log.info("Exporting address list.");
           final List<AddressDO> list = getList();
-          final byte[] xls = addressExport.export(list, personalAddressMap);
+          final byte[] xls = WicketSupport.get(AddressExport.class).export(list, personalAddressMap);
           if (xls == null || xls.length == 0) {
             form.addError("address.book.hasNoVCards");
             return;

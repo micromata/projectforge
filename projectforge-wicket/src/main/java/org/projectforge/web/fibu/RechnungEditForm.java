@@ -36,6 +36,7 @@ import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -52,9 +53,6 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditForm.class);
 
   private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
-
-  @SpringBean
-  private KontoCache kontoCache;
 
   NewCustomerSelectPanel customerSelectPanel;
 
@@ -121,7 +119,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs.add(typeChoice);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
-    if (kontoCache.isEmpty() == false) {
+    if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       // Show this field only if DATEV accounts does exist.
       final FieldsetPanel fs = gridBuilder.newFieldset(RechnungDO.class, "konto");
       final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
@@ -207,8 +205,6 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
    * Highlights the cost2 element if it differs from the cost2 of the given project (if any).
    *
    * @param position
-   * @param cost1
-   * @param cost2
    */
   @Override
   protected void onRenderCostRow(final AbstractRechnungsPositionDO position, final KostZuweisungDO costAssignment,

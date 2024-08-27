@@ -43,6 +43,7 @@ import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarForm;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.calendar.CalendarPageSupport;
@@ -73,18 +74,6 @@ public class TeamCalCalendarForm extends CalendarForm
 
   private ModalMessageDialog errorDialog;
 
-  @SpringBean
-  private transient TeamEventDao teamEventDao;
-
-  @SpringBean
-  private transient TeamEventService teamEventService;
-
-  @SpringBean
-  transient TeamCalCache teamCalCache;
-
-  @SpringBean
-  transient AccessChecker accessChecker;
-
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
 
@@ -104,7 +93,7 @@ public class TeamCalCalendarForm extends CalendarForm
   @Override
   protected CalendarPageSupport createCalendarPageSupport()
   {
-    return new CalendarPageSupport(parentPage, accessChecker).setShowOptions(false).setShowTimsheetsSelectors(false);
+    return new CalendarPageSupport(parentPage).setShowOptions(false).setShowTimsheetsSelectors(false);
   }
 
   @SuppressWarnings("serial")
@@ -255,7 +244,7 @@ public class TeamCalCalendarForm extends CalendarForm
         // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
 
         if (event.getUid() != null && activeTemplateEntry != null) {
-          final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
+          final TeamEventDO dbEvent = WicketSupport.get(TeamEventDao.class).getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
 
           if (dbEvent != null) {
             if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getId()) || dbEvent.getDeleted()) {
@@ -273,11 +262,11 @@ public class TeamCalCalendarForm extends CalendarForm
 
         // set calendar
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
-          teamEventDao.setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
+          WicketSupport.get(TeamEventDao.class).setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
         }
 
         // fix attendees
-        teamEventService.fixAttendees(event);
+        WicketSupport.get(TeamEventService.class).fixAttendees(event);
 
         final Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
         event.getAttendees().forEach(attendee -> {

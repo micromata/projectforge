@@ -32,6 +32,7 @@ import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalS
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarForm;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.calendar.CalendarPanel;
@@ -40,22 +41,13 @@ import java.util.Set;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
+ *
  */
 public class TeamCalCalendarPage extends CalendarPage
 {
   private static final long serialVersionUID = -6413028759027309796L;
 
   private TeamCalCalendarForm form;
-
-  @SpringBean
-  private transient TeamCalDao teamCalDao;
-
-  @SpringBean
-  private transient TeamCalCache teamCalCache;
-
-  @SpringBean
-  private transient TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
 
   public static final String USERPREF_KEY = "TeamCalendarPage.userPrefs";
 
@@ -118,12 +110,12 @@ public class TeamCalCalendarPage extends CalendarPage
       return;
     }
     for (final Integer calId : visibleCalendarIds) {
-      final TeamCalDO teamCalDO = teamCalCache.getCalendar(calId);
+      final TeamCalDO teamCalDO = WicketSupport.get(TeamCalCache.class).getCalendar(calId);
       if (teamCalDO == null || !teamCalDO.getExternalSubscription()) {
         // Nothing to do.
         continue;
       }
-      teamEventExternalSubscriptionCache.updateCache(teamCalDO, true);
+      WicketSupport.get(TeamEventExternalSubscriptionCache.class).updateCache(teamCalDO, true);
     }
   }
 

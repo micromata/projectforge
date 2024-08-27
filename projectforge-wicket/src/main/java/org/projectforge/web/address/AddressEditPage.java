@@ -44,12 +44,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressEditPage.class);
 
-  @SpringBean
-  private ImageService imageService;
-
-  @SpringBean
-  private UserRightService userRights;
-
   private boolean cloneFlag = false;
 
   private AddressDO clonedAddress;

@@ -30,6 +30,7 @@ import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
@@ -49,9 +50,6 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
   private static final long serialVersionUID = -8310756569504320965L;
 
   private static int RESULT_PAGE_SIZE = 20;
-
-  @SpringBean
-  private TeamCalDao teamCalDao;
 
   public TeamCalChoiceProvider()
   {
@@ -127,7 +125,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
 
   private TeamCalDao getTeamCalDao()
   {
-    return teamCalDao;
+    return WicketSupport.get(TeamCalDao.class);
   }
 
 }

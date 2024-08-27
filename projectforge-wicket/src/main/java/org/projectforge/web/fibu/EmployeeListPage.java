@@ -37,6 +37,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 
 import java.util.ArrayList;
@@ -47,9 +48,6 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
     IListPageColumnsCreator<EmployeeDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
-
-  @SpringBean
-  private EmployeeDao employeeDao;
 
   public EmployeeListPage(final PageParameters parameters)
   {
@@ -171,11 +169,6 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
   @Override
   public EmployeeDao getBaseDao()
   {
-    return employeeDao;
-  }
-
-  protected EmployeeDao getEmployeeDao()
-  {
-    return employeeDao;
+    return WicketSupport.get(EmployeeDao.class);
   }
 }

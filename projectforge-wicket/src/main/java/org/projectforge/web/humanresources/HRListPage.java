@@ -44,6 +44,7 @@ import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -67,12 +68,6 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   private static final long serialVersionUID = -718881597957595460L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRListPage.class);
-
-  @SpringBean
-  private HRViewDao hrViewDao;
-
-  @SpringBean
-  private DatabaseDao databaseDao;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -291,7 +286,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   {
     final DivPanel panel = new DivPanel(id);// DivType.GRID12, DivType.BOX, DivType.ROUND_ALL);
     form.add(panel);
-    resourceLinkPanel = new HRListResourceLinkPanel(panel.newChildId(), this, hrViewDao, userFormatter)
+    resourceLinkPanel = new HRListResourceLinkPanel(panel.newChildId(), this, userFormatter)
     {
       @Override
       public boolean isVisible()
@@ -317,7 +312,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   private HRViewData getHRViewData()
   {
     if (hrViewData == null) {
-      hrViewData = hrViewDao.getResources(form.getSearchFilter());
+      hrViewData = getBaseDao().getResources(form.getSearchFilter());
     }
     return hrViewData;
   }
@@ -338,7 +333,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   @Override
   public HRViewDao getBaseDao()
   {
-    return hrViewDao;
+    return WicketSupport.get(HRViewDao.class);
   }
 
   @Override
@@ -387,6 +382,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
   protected void ownRebuildDatabaseIndex(final boolean onlyNewest)
   {
     final ReindexSettings settings = DatabaseDao.createReindexSettings(onlyNewest);
+    var databaseDao = WicketSupport.get(DatabaseDao.class);
     databaseDao.rebuildDatabaseSearchIndices(HRPlanningDO.class, settings);
     databaseDao.rebuildDatabaseSearchIndices(HRPlanningEntryDO.class, settings);
   }

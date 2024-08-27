@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.utils.BaseFormatter;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.web.WicketSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,12 +35,9 @@ public class ProjektFormatter extends BaseFormatter
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektFormatter.class);
 
-  @Autowired
-  private ProjektDao projektDao;
-
   /**
    * Formats kunde, kundeText, projekt.kunde and projekt as string.
-   * 
+   *
    * @param projekt null supported.
    * @param kunde null supported.
    * @param kundeText null supported.
@@ -80,14 +78,11 @@ public class ProjektFormatter extends BaseFormatter
     return buf.toString();
   }
 
-  /**
-   * @see #format(ProjektDO, boolean, String, boolean)
-   */
   public String format(final Integer projektId, final boolean showOnlyNumber)
   {
     ProjektDO projekt = null;
     try {
-      projekt = projektDao.getById(projektId);
+      projekt = WicketSupport.get(ProjektDao.class).getById(projektId);
     } catch (AccessException ex) {
       log.info(ex.getMessage());
       return getNotVisibleString();
@@ -97,11 +92,9 @@ public class ProjektFormatter extends BaseFormatter
 
   /**
    * Formats given project as string.
-   * 
+   *
    * @param projekt The project to show.
    * @param showOnlyNumber If true then only the kost2 number will be shown.
-   * @param select If not empty then the project is selectable for the variable (named via this parameter).
-   * @param nullable If true then the unselect button will be shown.
    * @return
    */
   public String format(final ProjektDO projekt, final boolean showOnlyNumber)
@@ -111,7 +104,7 @@ public class ProjektFormatter extends BaseFormatter
     }
     StringBuilder sb = new StringBuilder();
     // final KundeDO kunde = projekt.getKunde();
-    boolean hasAccess = projektDao.hasLoggedInUserSelectAccess(false);
+    boolean hasAccess = WicketSupport.get(ProjektDao.class).hasLoggedInUserSelectAccess(false);
     if (!hasAccess) {
       return null;
     } else if (projekt != null) {

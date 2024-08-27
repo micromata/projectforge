@@ -54,6 +54,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPageSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -103,25 +104,12 @@ public class TeamCalFilterDialog extends ModalDialog
 
   private FieldsetPanel timesheetUserFieldset;
 
-  @SpringBean
-  private transient TeamCalDao teamCalDao;
-
-  @SpringBean
-  transient TeamCalCache teamCalCache;
-
-  @SpringBean
-  transient UserRightService userRights;
-
-  @SpringBean
-  transient AccessChecker accessChecker;
-
   private final transient TeamEventRight teamEventRight;
 
   private CalendarPageSupport calendarPageSupport;
 
   /**
    * @param id
-   * @param titleModel
    * @param filter
    */
   public TeamCalFilterDialog(final String id, final TeamCalCalendarFilter filter)
@@ -131,12 +119,9 @@ public class TeamCalFilterDialog extends ModalDialog
     setTitle(new ResourceModel("plugins.teamcal.calendar.filterDialog.title"));
     setBigWindow().setShowCancelButton().wantsNotificationOnClose().setEscapeKeyEnabled(false);
     selectedCalendars = new LinkedList<TeamCalDO>();
-    teamEventRight = (TeamEventRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR_EVENT);
+    teamEventRight = (TeamEventRight) WicketSupport.get(UserRightService.class).getRight(UserRightId.PLUGIN_CALENDAR_EVENT);
   }
 
-  /**
-   * @see org.apache.wicket.Component#renderHead(org.apache.wicket.markup.html.IHeaderResponse)
-   */
   @Override
   public void renderHead(final IHeaderResponse response)
   {
@@ -181,15 +166,12 @@ public class TeamCalFilterDialog extends ModalDialog
   {
   }
 
-  /**
-   * @see org.projectforge.web.dialog.ModalDialog#init()
-   */
   @SuppressWarnings("serial")
   @Override
   public void init()
   {
     init(new Form<String>(getFormId()));
-    calendarPageSupport = new CalendarPageSupport((ISelectCallerPage) getPage(), accessChecker);
+    calendarPageSupport = new CalendarPageSupport((ISelectCallerPage) getPage());
     timesheetsCalendar.setTitle(getString("plugins.teamcal.timeSheetCalendar"));
     timesheetsCalendar.setId(Constants.TIMESHEET_CALENDAR_ID);
     // confirm
@@ -398,7 +380,7 @@ public class TeamCalFilterDialog extends ModalDialog
         if (Constants.isTimesheetCalendarId(object)) {
           return timesheetsCalendar.getTitle();
         }
-        return teamCalDao.getById(object).getTitle();
+        return WicketSupport.get(TeamCalDao.class).getById(object).getTitle();
       }
 
       @Override

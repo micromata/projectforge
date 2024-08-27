@@ -35,6 +35,7 @@ import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.WicketUtils;
@@ -48,14 +49,11 @@ import java.util.TreeSet;
 /**
  * This panel shows invoice positions including links to the corresponding order pages.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class InvoicePositionsPanel extends Panel
 {
   private static final long serialVersionUID = 4744964208090705536L;
-
-  @SpringBean
-  private RechnungDao rechnungDao;
 
   public InvoicePositionsPanel(final String id)
   {
@@ -110,7 +108,7 @@ public class InvoicePositionsPanel extends Panel
         final Component label = new Label("label", invoiceNumber);
         item.add(label);
         final String tooltip = DateTimeFormatter.instance().getFormattedDate(invoiceDate) + ": " + CurrencyFormatter.format(netSum);
-        if (rechnungDao.hasLoggedInUserSelectAccess(false)) {
+        if (WicketSupport.get(RechnungDao.class).hasLoggedInUserSelectAccess(false)) {
           link.add(new Label("label", invoiceNumber));
           WicketUtils.addTooltip(link, tooltip);
           label.setVisible(false);

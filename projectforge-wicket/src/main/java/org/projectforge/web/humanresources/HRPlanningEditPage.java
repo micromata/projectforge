@@ -24,13 +24,13 @@
 package org.projectforge.web.humanresources;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.*;
 import org.slf4j.Logger;
@@ -48,9 +48,6 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   private static final long serialVersionUID = -8192471994161712577L;
 
   private static final String SESSION_KEY_RECENT_WEEK = "HRPlanningEditPage.recentWeek";
-
-  @SpringBean
-  private HRPlanningDao hrPlanningDao;
 
   public HRPlanningEditPage(final PageParameters parameters) {
     super(parameters, "hr.planning");
@@ -71,7 +68,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     HRPlanningDO planning = null;
     if (userId != null && week != null) {
       // Check if there exists already an entry (deleted or not):
-      planning = hrPlanningDao.getEntry(userId, week);
+      planning = getBaseDao().getEntry(userId, week);
     }
     if (planning != null) {
       super.init(planning);
@@ -90,7 +87,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
 
   @Override
   protected HRPlanningDao getBaseDao() {
-    return hrPlanningDao;
+    return WicketSupport.get(HRPlanningDao.class);
   }
 
   @Override
@@ -104,9 +101,6 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
     return null;
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   @Override
   public void select(final String property, final Object selectedValue) {
     if (property.startsWith("projektId:")) {
@@ -114,7 +108,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
         final Integer idx = NumberHelper.parseInteger(property.split(":")[1]);
         final Integer uiId = NumberHelper.parseInteger(property.split(":")[2]);
         final HRPlanningEntryDO entry = getData().getEntry(idx);
-        hrPlanningDao.setProjekt(entry, (Integer) selectedValue);
+        getBaseDao().setProjekt(entry, (Integer) selectedValue);
         form.projektSelectPanels.get(uiId).getTextField().modelChanged();
       } catch (final IndexOutOfBoundsException ex) {
         log.error("Oups, idx not supported: " + ex.getMessage(), ex);

@@ -41,6 +41,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
@@ -65,12 +66,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   private static final long serialVersionUID = 1221484611148024273L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventEditPage.class);
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TeamEventService teamEventService;
 
   private RecurrencyChangeType recurrencyChangeType;
 
@@ -113,6 +108,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
                            final Timestamp newEndDate, final RecurrencyChangeType recurrencyChangeType)
   {
     super(parameters, "plugins.teamcal.event");
+    var teamEventService = WicketSupport.get(TeamEventService.class);
     Validate.notNull(event);
     Validate.notNull(recurrencyChangeType);
     // event contains the new start and/or stop date if modified.
@@ -188,7 +184,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
                 buf.append("\n").append(note);
               }
               timesheet.setDescription(buf.toString());
-              timesheetDao.setUser(timesheet, getUserId());
+              WicketSupport.get(TimesheetDao.class).setUser(timesheet, getUserId());
               final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
               timesheetEditPage.setReturnToPage(getReturnToPage());
               setResponsePage(timesheetEditPage);
@@ -277,7 +273,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUndelete()
   {
     super.afterUndelete();
-    teamEventService.checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
+    WicketSupport.get(TeamEventService.class).checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
 
     return null;
   }
@@ -295,6 +291,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onDelete()
   {
     super.onDelete();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
     teamEventService.checkAndSendMail(this.getData(), TeamEventDiffType.DELETED);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
@@ -320,6 +317,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     super.onSaveOrUpdate();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
     if (getData().getCreator() == null) {
       getData().setCreator(ThreadLocalUserContext.getUser());
     }
@@ -385,6 +383,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
+    var teamEventService = WicketSupport.get(TeamEventService.class);
 
     if (newEvent != null) {
       // changed one element of an recurring event
@@ -446,7 +445,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @Override
   protected TeamEventDao getBaseDao()
   {
-    return teamEventService.getTeamEventDao();
+    return WicketSupport.get(TeamEventService.class).getTeamEventDao();
   }
 
   /**

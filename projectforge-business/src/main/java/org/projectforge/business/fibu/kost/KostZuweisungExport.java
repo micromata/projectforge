@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.CurrencyHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,9 +50,6 @@ import java.util.List;
 public class KostZuweisungExport {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KostZuweisungExport.class);
-
-  @Autowired
-  KontoDao kontoDao;
 
   private class MyContentProvider extends MyXlsContentProvider {
     public MyContentProvider(final ExportWorkbook workbook) {
@@ -94,7 +92,7 @@ public class KostZuweisungExport {
    * @return
    */
   public byte[] exportRechnungen(final List<? extends AbstractRechnungDO> list,
-                                 final String sheetTitle, final KontoCache kontoCache) {
+                                 final String sheetTitle) {
     final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
     for (final AbstractRechnungDO rechnung : list) {
       if (rechnung.getAbstractPositionen() != null) {
@@ -119,13 +117,14 @@ public class KostZuweisungExport {
         }
       }
     }
-    return export(zuweisungen, sheetTitle, kontoCache);
+    return export(zuweisungen, sheetTitle);
   }
 
   /**
    * Exports the filtered list as table.
    */
-  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle, final KontoCache kontoCache) {
+  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle) {
+    var kontoCache = WicketSupport.get(KontoCache.class);
     log.info("Exporting kost zuweisung list.");
     final ExportWorkbook xls = new ExportWorkbook();
     final ContentProvider contentProvider = new MyContentProvider(xls);
@@ -254,7 +253,7 @@ public class KostZuweisungExport {
 
     final QueryFilter filter = new QueryFilter();
     filter.addOrder(SortProperty.desc("lastUpdate"));
-    final List<KontoDO> list = kontoDao.getList(filter);
+    final List<KontoDO> list = WicketSupport.get(KontoDao.class).getList(filter);
 
     final PropertyMapping mapping = new PropertyMapping();
     for (final KontoDO konto : list) {

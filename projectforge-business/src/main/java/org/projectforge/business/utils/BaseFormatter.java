@@ -25,7 +25,9 @@ package org.projectforge.business.utils;
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
-public class BaseFormatter
+import java.io.Serializable;
+
+public class BaseFormatter implements Serializable
 {
   /**
    * Appends <not visible> element (italic and gray colored) to the given StringBuffer. This is used by the text for displaying not

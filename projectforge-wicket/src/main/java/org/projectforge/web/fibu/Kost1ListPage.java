@@ -32,13 +32,13 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -53,9 +53,6 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
   private static final long serialVersionUID = 2432908214495492575L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost1ListPage.class);
-
-  @SpringBean
-  private Kost1Dao kost1Dao;
 
   public Kost1ListPage(final PageParameters parameters)
   {
@@ -189,11 +186,6 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
   @Override
   public Kost1Dao getBaseDao()
   {
-    return kost1Dao;
-  }
-
-  protected Kost1Dao getKost1Dao()
-  {
-    return kost1Dao;
+    return WicketSupport.get(Kost1Dao.class);
   }
 }

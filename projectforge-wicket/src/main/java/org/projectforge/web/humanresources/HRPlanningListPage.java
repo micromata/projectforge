@@ -40,6 +40,7 @@ import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.jira.JiraUtils;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -60,12 +61,6 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningListPage.class);
 
   private static final long serialVersionUID = 8582874051700734977L;
-
-  @SpringBean
-  private HRPlanningDao hrPlanningDao;
-
-  @SpringBean
-  private HRPlanningEntryDao hrPlanningEntryDao;
 
   @SpringBean
   private PriorityFormatter priorityFormatter;
@@ -220,8 +215,6 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   /**
    * Get the current date (start date) and preset this date for the edit page.
-   *
-   * @see org.projectforge.web.wicket.AbstractListPage#onNewEntryClick(org.apache.wicket.PageParameters)
    */
   @Override
   protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params) {
@@ -247,13 +240,13 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
    */
   @Override
   protected List<HRPlanningEntryDO> buildList() {
-    final List<HRPlanningEntryDO> list = hrPlanningEntryDao.getList(form.getSearchFilter());
+    final List<HRPlanningEntryDO> list = getBaseDao().getList(form.getSearchFilter());
     return list;
   }
 
   @Override
   public HRPlanningEntryDao getBaseDao() {
-    return hrPlanningEntryDao;
+    return WicketSupport.get(HRPlanningEntryDao.class);
   }
 
   @Override
@@ -313,7 +306,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   protected boolean hasFullAccess() {
     if (fullAccess == null) {
-      fullAccess = hrPlanningDao.hasLoggedInUserInsertAccess(null, false);
+      fullAccess = WicketSupport.get(HRPlanningDao.class).hasLoggedInUserInsertAccess(null, false);
     }
     return fullAccess;
   }

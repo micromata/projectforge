@@ -35,6 +35,7 @@ import org.projectforge.business.fibu.ProjektFavorite;
 import org.projectforge.business.fibu.ProjektFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
@@ -50,17 +51,10 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
 {
   private static final long serialVersionUID = 5452693296383142460L;
 
-  @SpringBean
-  private ProjektFormatter projektFormatter;
-
-  @SpringBean
-  private ProjektDao projektDao;
-
   private Label projektAsStringLabel;
 
   /**
    * @param id
-   * @param label          Not yet in use.
    * @param model
    * @param caller
    * @param selectProperty
@@ -69,6 +63,7 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
   public ProjektSelectPanel(final String id, final IModel<ProjektDO> model, final ISelectCallerPage caller, final String selectProperty)
   {
     super(id, model, caller, selectProperty);
+    var projektFormatter = WicketSupport.get(ProjektFormatter.class);
     projektAsStringLabel = new Label("projectAsString", new Model<String>()
     {
 
@@ -102,7 +97,7 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
     };
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
-    final boolean hasSelectAccess = projektDao.hasLoggedInUserSelectAccess(false);
+    final boolean hasSelectAccess = WicketSupport.get(ProjektDao.class).hasLoggedInUserSelectAccess(false);
     if (hasSelectAccess == false) {
       selectButton.setVisible(false);
     }
