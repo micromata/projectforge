@@ -56,6 +56,7 @@ import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -79,9 +80,6 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
 
   private static final String USER_PREF_KEY_FILTER = "monthlyEmployeeReportFilter";
 
-  @SpringBean
-  private UserDao userDao;
-
   private final MonthlyEmployeeReportForm form;
 
   private MonthlyEmployeeReport report;
@@ -89,28 +87,14 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   private WebMarkupContainer table;
 
   @SpringBean
-  private MonthlyEmployeeReportDao monthlyEmployeeReportDao;
-
-  @SpringBean
-  private PdfRenderer pdfRenderer;
-
-  @SpringBean
-  private Kost1Dao kost1Dao;
-
-  @SpringBean
   private DateTimeFormatter dateTimeFormatter;
-
-  @SpringBean
-  private EmployeeService employeeService;
-
-  @SpringBean
-  private VacationService vacationService;
 
   private final GridBuilder gridBuilder;
 
   @SuppressWarnings("serial")
   public MonthlyEmployeeReportPage(final PageParameters parameters) {
     super(parameters);
+    var vacationService = WicketSupport.get(VacationService.class);
     final boolean costConfigured = Configuration.getInstance().isCostConfigured();
     form = new MonthlyEmployeeReportForm(this);
     if (form.filter == null) {
@@ -164,7 +148,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
           if (report == null) {
             return "";
           }
-          final Kost1DO kost1 = kost1Dao.internalGetById(report.getKost1Id());
+          final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).internalGetById(report.getKost1Id());
           return kost1 != null ? KostFormatter.format(kost1) : "";
         }
       }));
@@ -199,7 +183,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          final EmployeeDO employee = employeeService.getEmployeeByUserId(form.filter.getUserId());
+          final EmployeeDO employee = WicketSupport.get(EmployeeService.class).getEmployeeByUserId(form.filter.getUserId());
           PFDay startOfWorkContract = PFDay.now().getBeginOfMonth();
           if (employee != null && employee.getEintrittsDatum() != null) {
             startOfWorkContract = PFDay.from(employee.getEintrittsDatum());
@@ -270,7 +254,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       body.remove(table);
     }
     body.add(table = new WebMarkupContainer("table"));
-    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth(), form.filter.getUser());
+    report = WicketSupport.get(MonthlyEmployeeReportDao.class).getReport(form.filter.getYear(), form.filter.getMonth(), form.filter.getUser());
     if (report == null) {
       table.setVisible(false);
     } else {
@@ -463,7 +447,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         "Monthly employee report for " + form.filter.getUser().getFullname() + ": " + form.filter.getFormattedMonth());
     final StringBuffer buf = new StringBuffer();
     buf.append(getString("menu.monthlyEmployeeReport.fileprefix")).append("_");
-    final PFUserDO employee = userDao.getById(form.filter.getUserId());
+    final PFUserDO employee = WicketSupport.getUserDao().getById(form.filter.getUserId());
     buf.append(employee.getLastname()).append("_").append(form.filter.getYear()).append("-")
         .append(form.filter.getFormattedMonth())
         .append(".pdf");
@@ -473,7 +457,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     final String styleSheet = "fo-styles/monthlyEmployeeReport-template-fo.xsl";
     final String xmlData = "fo-styles/monthlyEmployeeReport2pdf.xml";
 
-    report = monthlyEmployeeReportDao.getReport(form.filter.getYear(), form.filter.getMonth(), employee);
+    report = WicketSupport.get(MonthlyEmployeeReportDao.class).getReport(form.filter.getYear(), form.filter.getMonth(), employee);
     final Map<String, Object> data = new HashMap<String, Object>();
     data.put("systemDate", dateTimeFormatter.getFormattedDateTime(new Date()));
     data.put("title", getString("menu.monthlyEmployeeReport"));
@@ -485,7 +469,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("workingDaysLabel", getString("fibu.common.workingDays"));
     data.put("workingDays", report.getNumberOfWorkingDays());
     data.put("kost1Label", getString("fibu.kost1"));
-    final Kost1DO kost1 = kost1Dao.internalGetById(report.getKost1Id());
+    final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).internalGetById(report.getKost1Id());
     data.put("kost1", kost1 != null ? kost1.getFormattedNumber() : "--");
     data.put("kost2Label", getString("fibu.kost2"));
     data.put("kundeLabel", getString("fibu.kunde"));
@@ -494,7 +478,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("sumLabel", getString("sum"));
     data.put("netSumLabel", getString("sum"));
     data.put("totalSumLabel", getString("fibu.monthlyEmployeeReport.totalSum"));
-    data.put("vacationAvailabel", vacationService.hasAccessToVacationService(form.filter.getUser(), false));
+    data.put("vacationAvailabel", WicketSupport.get(VacationService.class).hasAccessToVacationService(form.filter.getUser(), false));
     data.put("vacationCountLabel", getString("vacation.annualleave"));
     data.put("vacationPlandCountLabel", getString("vacation.plandannualleave"));
     data.put("report", report);
@@ -502,7 +486,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("signatureProjectLeaderLabel", getString("timesheet.signatureProjectLeader"));
     data.put("unbookedWorkingDaysLabel", getString("fibu.monthlyEmployeeReport.withoutTimesheets"));
     // render the PDF with fop
-    final byte[] ba = pdfRenderer.render(styleSheet, xmlData, data);
+    final byte[] ba = WicketSupport.get(PdfRenderer.class).render(styleSheet, xmlData, data);
     DownloadUtils.setDownloadTarget(ba, filename);
   }
 

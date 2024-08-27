@@ -28,6 +28,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeSalaryDao;
 import org.projectforge.business.fibu.EmployeeSalaryFilter;
 import org.projectforge.common.StringHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.YearListCoiceRenderer;
@@ -40,16 +41,13 @@ public class EmployeeSalaryListForm extends AbstractListForm<EmployeeSalaryFilte
 
   private static final long serialVersionUID = -5969136444233092172L;
 
-  @SpringBean
-  private EmployeeSalaryDao employeeSalaryDao;
-
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
    * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel) {
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(employeeSalaryDao.getYears(), true);
+    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(WicketSupport.get(EmployeeSalaryDao.class).getYears(), true);
     optionsFieldsetPanel.addDropDownChoice(new PropertyModel<Integer>(this, "year"), yearListChoiceRenderer.getYears(),
             yearListChoiceRenderer, true).setNullValid(false);
     // DropDownChoice months

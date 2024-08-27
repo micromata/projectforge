@@ -35,6 +35,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.common.StringHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
@@ -47,9 +48,6 @@ public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2Ar
     IListPageColumnsCreator<Kost2ArtDO>
 {
   private static final long serialVersionUID = -202443770217040251L;
-
-  @SpringBean
-  private Kost2ArtDao kost2ArtDao;
 
   public Kost2ArtListPage(final PageParameters parameters)
   {
@@ -157,11 +155,6 @@ public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2Ar
   @Override
   public Kost2ArtDao getBaseDao()
   {
-    return kost2ArtDao;
-  }
-
-  protected Kost2ArtDao getKost2ArtDao()
-  {
-    return kost2ArtDao;
+    return WicketSupport.get(Kost2ArtDao.class);
   }
 }

@@ -46,6 +46,7 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -66,22 +67,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   );
 
   @SpringBean
-  private AuftragDao auftragDao;
-
-  @SpringBean
-  private AuftragsCache auftragsCache;
-
-  @SpringBean
-  private OrderExport orderExport;
-
-  @SpringBean
-  private ForecastExport forecastExport;
-
-  @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  private RechnungCache rechnungCache;
 
   public AuftragListPage(final PageParameters parameters) {
     super(parameters, "fibu.auftrag");
@@ -96,7 +82,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
                                final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
-        auftragsCache.setValues(auftrag);
+        WicketSupport.get(AuftragsCache.class).setValues(auftrag);
         if (auftrag.getAuftragsStatus() == null) {
           // Should not occur:
           return;
@@ -243,7 +229,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
           public void onSubmit() {
             refresh();
             final List<AuftragDO> list = getList();
-            final byte[] xls = orderExport.export(list);
+            final byte[] xls = WicketSupport.get(OrderExport.class).export(list);
             if (xls == null || xls.length == 0) {
               form.addError("datatable.no-records-found");
               return;
@@ -261,7 +247,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
           public void onSubmit() {
             byte[] xls = null;
             try {
-              xls = forecastExport.export(form.getSearchFilter());
+              xls = WicketSupport.get(ForecastExport.class).export(form.getSearchFilter());
             } catch (Exception e) {
               log.error("Exception while creating forecast report: " + e.getMessage(), e);
               throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
@@ -291,7 +277,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
 
   @Override
   public AuftragDao getBaseDao() {
-    return auftragDao;
+    return WicketSupport.get(AuftragDao.class);
   }
 
   /**

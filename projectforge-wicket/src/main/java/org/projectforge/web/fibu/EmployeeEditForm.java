@@ -36,6 +36,7 @@ import org.projectforge.business.fibu.IsoGender;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.user.UserSelectPanel;
@@ -59,12 +60,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeEditForm.class);
 
   private static final BigDecimal NUMBER_OF_WEEK_HOURS = new BigDecimal(168);
-
-  @SpringBean
-  private EmployeeService employeeService;
-
-  @SpringBean
-  private AccessChecker accessChecker;
 
   public EmployeeEditForm(final EmployeeEditPage parentPage, final EmployeeDO data) {
     super(parentPage, data);
@@ -185,7 +180,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       userSelectPanel.add((IValidator<PFUserDO>) validatable -> {
         PFUserDO user = validatable.getModel().getObject();
         if (user != null && user.getId() != null) {
-          EmployeeDO employeeByUserId = employeeService.getEmployeeByUserId(user.getId());
+          EmployeeDO employeeByUserId = WicketSupport.get(EmployeeService.class).getEmployeeByUserId(user.getId());
           if (employeeByUserId != null && employeeByUserId.getId().equals(data.getId()) == false) {
             validatable.error(new ValidationError().addKey("fibu.employee.error.employeWithUserExists"));
           }

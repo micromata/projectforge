@@ -60,7 +60,7 @@ public class CalendarForm extends AbstractStandardForm<ICalendarFilter, Calendar
 
   protected CalendarPageSupport createCalendarPageSupport()
   {
-    final CalendarPageSupport calendarPageSupport = new CalendarPageSupport(parentPage, WicketSupport.getAccessChecker());
+    final CalendarPageSupport calendarPageSupport = new CalendarPageSupport(parentPage);
     return calendarPageSupport;
   }
 

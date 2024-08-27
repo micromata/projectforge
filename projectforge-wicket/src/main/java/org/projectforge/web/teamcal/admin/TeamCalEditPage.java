@@ -29,6 +29,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.event.importics.TeamCalImportPage;
@@ -50,12 +51,8 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
 
   private static final long serialVersionUID = -3352981782657771662L;
 
-  @SpringBean
-  private TeamCalDao teamCalDao;
-
   /**
    * @param parameters
-   * @param i18nPrefix
    */
   public TeamCalEditPage(final PageParameters parameters)
   {
@@ -105,6 +102,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
+    var teamCalDao = WicketSupport.get(TeamCalDao.class);
     teamCalDao.setFullAccessUsers(getData(), form.fullAccessUsersListHelper.getAssignedItems());
     teamCalDao.setReadonlyAccessUsers(getData(), form.readonlyAccessUsersListHelper.getAssignedItems());
     teamCalDao.setMinimalAccessUsers(getData(), form.minimalAccessUsersListHelper.getAssignedItems());
@@ -119,9 +117,6 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     return super.onSaveOrUpdate();
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   public void select(final String property, final Object selectedValue)
   {
     log.error("Property '" + property + "' not supported for selection.");
@@ -149,7 +144,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   @Override
   protected TeamCalDao getBaseDao()
   {
-    return teamCalDao;
+    return WicketSupport.get(TeamCalDao.class);
   }
 
   /**
@@ -161,10 +156,6 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     return log;
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   *      org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected TeamCalEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamCalDO data)
   {

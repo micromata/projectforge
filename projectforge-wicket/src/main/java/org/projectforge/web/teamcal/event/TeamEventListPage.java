@@ -38,6 +38,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.*;
 
@@ -57,12 +58,6 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
 
   private static final long serialVersionUID = 1749480610890950450L;
 
-  @SpringBean
-  private TeamEventDao teamEventDao;
-
-  @SpringBean
-  TeamCalCache teamCalCache;
-
   /**
    *
    */
@@ -73,7 +68,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
   protected void onFormInit() {
     final String str = WicketUtils.getAsString(getPageParameters(), PARAM_CALENDARS);
     if (StringUtils.isNotBlank(str) == true) {
-      final Collection<TeamCalDO> teamCals = new TeamCalsProvider(teamCalCache).getSortedCalendars(str);
+      final Collection<TeamCalDO> teamCals = new TeamCalsProvider(WicketSupport.get(TeamCalCache.class)).getSortedCalendars(str);
       getFilter().setTeamCals(getCalIdList(teamCals));
     }
   }
@@ -191,7 +186,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    */
   @Override
   public TeamEventDao getBaseDao() {
-    return teamEventDao;
+    return WicketSupport.get(TeamEventDao.class);
   }
 
   /**
@@ -202,9 +197,6 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
     return new TeamEventListForm(this);
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractListPage#init()
-   */
   @Override
   protected void init() {
     dataTable = createDataTable(createColumns(this, true), "lastUpdate", SortOrder.DESCENDING);

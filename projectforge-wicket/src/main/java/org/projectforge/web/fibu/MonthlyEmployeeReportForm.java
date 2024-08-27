@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDayUtils;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.QuickSelectMonthPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
@@ -53,12 +54,6 @@ public class MonthlyEmployeeReportForm
     extends AbstractStandardForm<MonthlyEmployeeReportFilter, MonthlyEmployeeReportPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
-
-  @SpringBean
-  private TimesheetDao timesheetDao;
-
-  @SpringBean
-  AccessChecker accessChecker;
 
   protected MonthlyEmployeeReportFilter filter;
 
@@ -77,7 +72,7 @@ public class MonthlyEmployeeReportForm
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.user"));
-      if (accessChecker.hasLoggedInUserAccessToTimesheetsOfOtherUsers()) {
+      if (WicketSupport.getAccessChecker().hasLoggedInUserAccessToTimesheetsOfOtherUsers()) {
         final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
             new PropertyModel<PFUserDO>(filter, "user"),
             parentPage, "user");
@@ -172,7 +167,7 @@ public class MonthlyEmployeeReportForm
     if (filter.getUser() == null) {
       years = new int[] { new DateHolder().getYear() };
     } else {
-      years = timesheetDao.getYears(filter.getUser().getId());
+      years = WicketSupport.get(TimesheetDao.class).getYears(filter.getUser().getId());
     }
     final LabelValueChoiceRenderer<Integer> yearChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     for (final int year : years) {

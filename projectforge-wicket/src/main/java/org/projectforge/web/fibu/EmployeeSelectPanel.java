@@ -37,6 +37,7 @@ import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -56,12 +57,6 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   private static final long serialVersionUID = -9161889503240264619L;
 
   private static final String USER_PREF_KEY_RECENT_EMPLOYEES = "EmployeeSelectPanel:recentEmployees";
-
-  @SpringBean
-  private EmployeeDao employeeDao;
-
-  @SpringBean
-  private UserXmlPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentEmployees;
 
@@ -170,7 +165,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
               error(getString("fibu.employee.panel.error.employeeNotFound"));
               return null;
             }
-            final EmployeeDO employee = employeeDao.findByUserId(user.getId());
+            final EmployeeDO employee = WicketSupport.get(EmployeeDao.class).findByUserId(user.getId());
             if (employee == null) {
               error(getString("fibu.employee.panel.error.employeeNotFound"));
               return null;
@@ -214,7 +209,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchFields("user.username", "user.firstname", "user.lastname");
     filter.setSearchString(input);
-    final List<EmployeeDO> list = employeeDao.getList(filter);
+    final List<EmployeeDO> list = WicketSupport.get(EmployeeDao.class).getList(filter);
     List<EmployeeDO> resultList = new ArrayList<>(list);
     for (EmployeeDO employeeDO : list) {
       if (employeeDO.getAustrittsDatum() != null && LocalDate.now().isAfter(employeeDO.getAustrittsDatum())) {
@@ -265,6 +260,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   @SuppressWarnings("unchecked")
   private RecentQueue<String> getRecentEmployees()
   {
+    var userPreferencesService = WicketSupport.get(UserXmlPreferencesService.class);
     if (this.recentEmployees == null) {
       this.recentEmployees = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_EMPLOYEES);
     }

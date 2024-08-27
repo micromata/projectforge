@@ -109,12 +109,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   private HtmlDateTimeFormatter dateTimeFormatter;
 
   @SpringBean
-  private FormatterFactory formatterFactory;
-
-  @SpringBean
-  private PdfRenderer pdfRenderer;
-
-  @SpringBean
   private UserFormatter userFormatter;
 
   private TimesheetsICSExportDialog icsExportDialog;
@@ -452,14 +446,14 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     final String xmlData = "fo-styles/" + form.getExportFormat() + "/timesheets2pdf.xml";
 
     // get the formatter for the different export formats
-    final Formatter formatter = formatterFactory.getFormatter(form.getExportFormat());
+    final Formatter formatter = WicketSupport.get(FormatterFactory.class).getFormatter(form.getExportFormat());
 
     final Integer taskId = filter.getTaskId();
 
     final Map<String, Object> data = formatter.getData(timeSheets, taskId, getRequest(), getResponse(), filter);
 
     // render the PDF with fop
-    final byte[] content = pdfRenderer.render(styleSheet, xmlData, data);
+    final byte[] content = WicketSupport.get(PdfRenderer.class).render(styleSheet, xmlData, data);
 
     DownloadUtils.setDownloadTarget(content, filename);
   }

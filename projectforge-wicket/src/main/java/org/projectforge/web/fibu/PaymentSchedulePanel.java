@@ -41,6 +41,7 @@ import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LocalDateModel;
 import org.projectforge.web.wicket.components.LocalDatePanel;
@@ -67,9 +68,6 @@ public class PaymentSchedulePanel extends Panel {
   private final IModel<AuftragDO> model;
 
   private final PFUserDO user;
-
-  @SpringBean
-  private AccessChecker accessChecker;
 
   public PaymentSchedulePanel(final String id, final IModel<AuftragDO> model, final PFUserDO user) {
     super(id);
@@ -143,7 +141,7 @@ public class PaymentSchedulePanel extends Panel {
         item.add(new CheckBox("reached", new PropertyModel<>(entry, "reached")));
 
         // vollstaendig fakturiert | delete button
-        if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE)) {
+        if (WicketSupport.getAccessChecker().hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE)) {
           final DivPanel vollstaendigFakturiertDiv = new DivPanel("vollstaendigFakturiert", DivType.BTN_GROUP);
           vollstaendigFakturiertDiv.add(new CheckBoxButton(vollstaendigFakturiertDiv.newChildId(), new PropertyModel<>(entry, "vollstaendigFakturiert"),
               getString("fibu.auftrag.vollstaendigFakturiert")));

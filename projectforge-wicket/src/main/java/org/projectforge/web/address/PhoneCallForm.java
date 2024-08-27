@@ -48,6 +48,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.rest.AddressViewPageRest;
 import org.projectforge.rest.sipgate.SipgateDirectCallService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -66,12 +67,6 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallForm.class);
 
   private static final String USER_PREF_KEY_RECENTS = "phoneCalls";
-
-  @SpringBean
-  private AddressDao addressDao;
-
-  @SpringBean
-  private SipgateDirectCallService sipgateDirectCallService;
 
   protected AddressDO address;
 
@@ -210,7 +205,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
         final AddressFilter addressFilter = new AddressFilter();
         addressFilter.setSearchString(input);
         addressFilter.setSearchFields("name", "firstName", "organization");
-        return addressDao.getList(addressFilter);
+        return WicketSupport.get(AddressDao.class).getList(addressFilter);
       }
 
       @Override
@@ -267,6 +262,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
     fs.addKeyboardHelpIcon(new ResourceModel("tooltip.autocompletion.title"),
         new ResourceModel("address.directCall.number.tooltip"));
 
+    var sipgateDirectCallService = WicketSupport.get(SipgateDirectCallService.class);
     if (sipgateDirectCallService.isAvailable()) {
       // DropDownChoice myCurrentPhoneId
       fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));

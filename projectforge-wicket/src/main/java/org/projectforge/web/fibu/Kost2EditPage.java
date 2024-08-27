@@ -27,6 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -39,9 +40,6 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2EditPage.class);
 
-  @SpringBean
-  private Kost2Dao kost2Dao;
-
   public Kost2EditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.kost2");
@@ -51,7 +49,7 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
   @Override
   protected Kost2Dao getBaseDao()
   {
-    return kost2Dao;
+    return WicketSupport.get(Kost2Dao.class);
   }
 
   @Override
@@ -60,14 +58,11 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
     return new Kost2EditForm(this, data);
   }
 
-  /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
-   */
   @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property) == true) {
-      kost2Dao.setProjekt(getData(), (Integer) selectedValue);
+      WicketSupport.get(Kost2Dao.class).setProjekt(getData(), (Integer) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       form.nummernkreisField.modelChanged();
       form.bereichField.modelChanged();

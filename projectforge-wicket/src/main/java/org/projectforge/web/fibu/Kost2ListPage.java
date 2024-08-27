@@ -41,6 +41,7 @@ import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -55,9 +56,6 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
-
-  @SpringBean
-  private Kost2Dao kost2Dao;
 
   public Kost2ListPage(final PageParameters parameters)
   {
@@ -239,11 +237,6 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
   @Override
   public Kost2Dao getBaseDao()
   {
-    return kost2Dao;
-  }
-
-  protected Kost2Dao getKost2Dao()
-  {
-    return kost2Dao;
+    return WicketSupport.get(Kost2Dao.class);
   }
 }

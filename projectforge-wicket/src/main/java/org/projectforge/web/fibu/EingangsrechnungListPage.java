@@ -45,6 +45,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.fibu.EingangsrechnungPagesRest;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -63,15 +64,6 @@ public class EingangsrechnungListPage
 
   private static final long serialVersionUID = 4417254962066648504L;
 
-  @SpringBean
-  private EingangsrechnungDao eingangsrechnungDao;
-
-  @SpringBean
-  private KostZuweisungExport kostZuweisungExport;
-
-  @SpringBean
-  private KontoCache kontoCache;
-
   private EingangsrechnungsStatistik eingangsrechnungsStatistik;
 
   private ContentMenuEntryPanel exportKostzuweisungButton;
@@ -79,7 +71,7 @@ public class EingangsrechnungListPage
   EingangsrechnungsStatistik getEingangsrechnungsStatistik()
   {
     if (eingangsrechnungsStatistik == null) {
-      eingangsrechnungsStatistik = eingangsrechnungDao.buildStatistik(getList());
+      eingangsrechnungsStatistik = WicketSupport.get(EingangsrechnungDao.class).buildStatistik(getList());
     }
     return eingangsrechnungsStatistik;
   }
@@ -167,7 +159,7 @@ public class EingangsrechnungListPage
       public void populateItem(final Item item, final String componentId, final IModel rowModel)
       {
         final EingangsrechnungDO rechnung = (EingangsrechnungDO) rowModel.getObject();
-        final KontoDO konto = kontoCache.getKonto(rechnung.getKontoId());
+        final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(rechnung.getKontoId());
         item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
@@ -232,9 +224,6 @@ public class EingangsrechnungListPage
   {
     return new DOListExcelExporter(filenameIdentifier)
     {
-      /**
-       * @see ExcelExporter#onBeforeSettingColumns(java.util.List)
-       */
       @Override
       protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
           final List<ExportColumn> columns)
@@ -265,7 +254,7 @@ public class EingangsrechnungListPage
           Integer kontoNummer = null;
           final Integer kontoId = ((EingangsrechnungDO) entry).getKontoId();
           if (kontoId != null) {
-            final KontoDO konto = kontoCache.getKonto(kontoId);
+            final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
             if (konto != null) {
               kontoNummer = konto.getNummer();
             }
@@ -286,7 +275,7 @@ public class EingangsrechnungListPage
         String kontoBezeichnung = null;
         final Integer kontoId = ((EingangsrechnungDO) entry).getKontoId();
         if (kontoId != null) {
-          final KontoDO konto = kontoCache.getKonto(kontoId);
+          final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
           if (konto != null) {
             kontoBezeichnung = konto.getBezeichnung();
           }
@@ -305,7 +294,7 @@ public class EingangsrechnungListPage
     final RechnungFilter src = form.getSearchFilter();
     filter.setFromDate(src.getFromDate());
     filter.setToDate(src.getToDate());
-    final List<EingangsrechnungDO> rechnungen = eingangsrechnungDao.getList(filter);
+    final List<EingangsrechnungDO> rechnungen = WicketSupport.get(EingangsrechnungDao.class).getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.
       form.addError("validation.error.nothingToExport");
@@ -318,8 +307,7 @@ public class EingangsrechnungListPage
         + "_"
         + DateHelper.getDateAsFilenameSuffix(new Date())
         + ".xls";
-    final byte[] xls = kostZuweisungExport.exportRechnungen(rechnungen, getString("fibu.common.creditor"),
-        kontoCache);
+    final byte[] xls = WicketSupport.get(KostZuweisungExport.class).exportRechnungen(rechnungen, getString("fibu.common.creditor"));
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;
@@ -336,6 +324,6 @@ public class EingangsrechnungListPage
   @Override
   public EingangsrechnungDao getBaseDao()
   {
-    return eingangsrechnungDao;
+    return WicketSupport.get(EingangsrechnungDao.class);
   }
 }

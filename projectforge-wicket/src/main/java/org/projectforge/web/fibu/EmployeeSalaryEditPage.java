@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.EmployeeSalaryDao;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
@@ -42,9 +43,6 @@ public class EmployeeSalaryEditPage
   private static final long serialVersionUID = -3899191243765232906L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryEditPage.class);
-
-  @SpringBean
-  private EmployeeSalaryDao employeeSalaryDao;
 
   public EmployeeSalaryEditPage(final PageParameters parameters) {
     super(parameters, "fibu.employee.salary");
@@ -103,7 +101,7 @@ public class EmployeeSalaryEditPage
       } else {
         id = (Integer) selectedValue;
       }
-      employeeSalaryDao.setEmployee(getData(), id);
+      WicketSupport.get(EmployeeSalaryDao.class).setEmployee(getData(), id);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }
@@ -127,7 +125,7 @@ public class EmployeeSalaryEditPage
 
   @Override
   protected EmployeeSalaryDao getBaseDao() {
-    return employeeSalaryDao;
+    return WicketSupport.get(EmployeeSalaryDao.class);
   }
 
   @Override

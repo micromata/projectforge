@@ -45,6 +45,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.fibu.RechnungPagesRest;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
@@ -62,20 +63,11 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
 
   private static final long serialVersionUID = -8406452960003792763L;
 
-  @SpringBean
-  private RechnungDao rechnungDao;
-
-  @SpringBean
-  KostZuweisungExport kostZuweisungExport;
-
-  @SpringBean
-  KontoCache kontoCache;
-
   private RechnungsStatistik rechnungsStatistik;
 
   RechnungsStatistik getRechnungsStatistik() {
     if (rechnungsStatistik == null) {
-      rechnungsStatistik = rechnungDao.buildStatistik(getList());
+      rechnungsStatistik = WicketSupport.get(RechnungDao.class).buildStatistik(getList());
     }
     return rechnungsStatistik;
   }
@@ -102,6 +94,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
   @SuppressWarnings("serial")
   @Override
   public List<IColumn<RechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
+    var kontoCache = WicketSupport.get(KontoCache.class);
     final List<IColumn<RechnungDO, String>> columns = new ArrayList<IColumn<RechnungDO, String>>();
     final CellItemListener<RechnungDO> cellItemListener = new CellItemListener<RechnungDO>() {
       @Override
@@ -258,9 +251,6 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
   @Override
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
     return new DOListExcelExporter(filenameIdentifier) {
-      /**
-       * @see ExcelExporter#onBeforeSettingColumns(java.util.List)
-       */
       @Override
       protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
                                                           final List<ExportColumn> columns) {
@@ -291,7 +281,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
               KundeFormatter.formatKundeAsString(rechnung.getKunde(), rechnung.getKundeText()));
         } else if ("konto".equals(field.getName()) == true) {
           Integer kontoNummer = null;
-          final KontoDO konto = kontoCache.getKonto((RechnungDO) entry);
+          final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto((RechnungDO) entry);
           if (konto != null) {
             kontoNummer = konto.getNummer();
           }
@@ -308,7 +298,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
       protected void addMappings(final PropertyMapping mapping, final Object entry) {
         final RechnungDO invoice = (RechnungDO) entry;
         String kontoBezeichnung = null;
-        final KontoDO konto = kontoCache.getKonto(invoice);
+        final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(invoice);
         if (konto != null) {
           kontoBezeichnung = konto.getBezeichnung();
         }
@@ -325,7 +315,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     final RechnungFilter src = form.getSearchFilter();
     filter.setFromDate(src.getFromDate());
     filter.setToDate(src.getToDate());
-    final List<RechnungDO> rechnungen = rechnungDao.getList(filter);
+    final List<RechnungDO> rechnungen = WicketSupport.get(RechnungDao.class).getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.
       form.addError("validation.error.nothingToExport");
@@ -338,8 +328,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         + "_"
         + DateHelper.getDateAsFilenameSuffix(new Date())
         + ".xls";
-    final byte[] xls = kostZuweisungExport.exportRechnungen(rechnungen, getString("fibu.common.debitor"),
-        kontoCache);
+    final byte[] xls = WicketSupport.get(KostZuweisungExport.class).exportRechnungen(rechnungen, getString("fibu.common.debitor"));
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;
@@ -354,6 +343,6 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
 
   @Override
   public RechnungDao getBaseDao() {
-    return rechnungDao;
+    return WicketSupport.get(RechnungDao.class);
   }
 }
