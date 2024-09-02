@@ -64,9 +64,9 @@ public class PersonalAddressTest extends AbstractTestBase {
     personalAddress.setFavoriteCard(true);
     personalAddressDao.saveOrUpdate(personalAddress);
 
-    CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<PersonalAddressDO> cq = cb.createQuery(PersonalAddressDO.class);
-    CriteriaQuery<PersonalAddressDO> query = cq.select(cq.from(PersonalAddressDO.class));
+    //CriteriaBuilder cb = em.getCriteriaBuilder();
+    //CriteriaQuery<PersonalAddressDO> cq = cb.createQuery(PersonalAddressDO.class);
+    //CriteriaQuery<PersonalAddressDO> query = cq.select(cq.from(PersonalAddressDO.class));
 
     personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
     assertEquals(personalAddress.getAddressId(), addressIds[0]);

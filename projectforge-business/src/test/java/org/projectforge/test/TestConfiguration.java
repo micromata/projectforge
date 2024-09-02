@@ -72,13 +72,6 @@ public class TestConfiguration {
   @Value("${projectforge.base.dir}")
   private String applicationDir;
 
-  @PostConstruct
-  private void postConstruct() {
-    if (DatabaseSupport.getInstance() == null) {
-      DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDatabaseDialect()));
-    }
-  }
-
   @Bean
   public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
     JpaTransactionManager transactionManager = new JpaTransactionManager();

@@ -26,18 +26,19 @@ package org.projectforge.framework.persistence.history
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
 import jakarta.persistence.FlushModeType
+import mu.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.util.CollectionUtils
 import java.lang.reflect.ParameterizedType
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.
@@ -99,9 +100,8 @@ class HibernateSearchDependentObjectsReindexer {
                 persistenceService.runInTransaction() { context ->
                     val em = context.em
                     em.flushMode = FlushModeType.AUTO
-                    val alreadyReindexed: MutableSet<String> = HashSet()
-                    val entryList =
-                        map[obj.javaClass]!!
+                    val alreadyReindexed = mutableSetOf<String>()
+                    val entryList = map[obj.javaClass]
                     reindexDependents(em, obj, entryList, alreadyReindexed)
                     val size = alreadyReindexed.size
                     if (size >= 10) {
@@ -118,9 +118,9 @@ class HibernateSearchDependentObjectsReindexer {
 
     private fun reindexDependents(
         em: EntityManager, obj: BaseDO<*>,
-        entryList: List<Entry>, alreadyReindexed: MutableSet<String>
+        entryList: List<Entry>?, alreadyReindexed: MutableSet<String>
     ) {
-        if (CollectionUtils.isEmpty(entryList)) {
+        if (entryList.isNullOrEmpty()) {
             // Nothing to do.
             return
         }
@@ -201,7 +201,7 @@ class HibernateSearchDependentObjectsReindexer {
         return obj.javaClass.toString() + ":" + obj.id
     }
 
-    fun register(registryEntry: RegistryEntry) {
+    private fun register(registryEntry: RegistryEntry) {
         val clazz = registryEntry.doClass
         register(clazz)
     }
@@ -247,10 +247,5 @@ class HibernateSearchDependentObjectsReindexer {
                 list.add(entry)
             }
         }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory
-            .getLogger(HibernateSearchDependentObjectsReindexer::class.java)
     }
 }

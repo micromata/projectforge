@@ -806,7 +806,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      */
     fun removeAttendeeByAddressIdFromAllEvents(addressDO: AddressDO) {
         val addressId = addressDO.id ?: return
-        val counter: Int = persistenceService.executeUpdate(
+        val counter: Int = persistenceService.executeNamedUpdate(
             TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS,
             Pair("addressId", addressId),
         )

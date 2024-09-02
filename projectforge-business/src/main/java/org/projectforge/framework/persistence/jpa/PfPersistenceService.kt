@@ -47,8 +47,7 @@ open class PfPersistenceService {
     }
 
     @Autowired
-    lateinit var entityManagerFactory: EntityManagerFactory
-        private set
+    private lateinit var entityManagerFactory: EntityManagerFactory
 
     @PostConstruct
     private fun postConstruct() {
