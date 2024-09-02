@@ -35,60 +35,45 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object SQLHelper {
-    /**
-     * Usage:<br></br>
-     * <pre>
-     * final Object[] minMaxDate = getSession().createNamedQuery(ContractDO.SELECT_MIN_MAX_DATE, Object[].class)
-     * .getSingleResult();
-     * return SQLHelper.getYears((Date)minMaxDate[0], (Date)minMaxDate[1]);
-    </pre> *
-     *
-     * @return Array of years in descendent order. If min or max is null, the current year is returned.
-     */
-    @JvmStatic
-    fun getYears(min: Any?, max: Any?): IntArray {
-        if (min == null || max == null) {
-            return intArrayOf(Year.now().value)
-        }
-        if (min is Date || max is Date) {
-            return getYears(min as Date, max as Date)
-        }
-        return getYears(min as LocalDate, max as LocalDate)
-    }
-
     @JvmStatic
     fun getYears(minYear: Int?, maxYear: Int?): IntArray {
-        val min = minYear ?: Year.now().value
-        val max = maxYear ?: Year.now().value
+        val min = minYear ?: maxYear ?: Year.now().value
+        val max = maxYear ?: min
         if (min > max || max - min > 30) {
             throw UnsupportedOperationException("Paranoia Exception")
         }
         val res = IntArray(max - min + 1)
         var i = 0
-        for (year in max downTo min) {
+        for (year in min..max) {
             res[i++] = year
         }
         return res
     }
 
+    /**
+     * @param minMaxDate Tuple with two Date objects.
+     */
     @JvmStatic
     fun getYearsByTupleOfDate(minMaxDate: Tuple?): IntArray {
         val result = if (minMaxDate == null) {
             val year = Year.now().value
             Pair(year, year)
         } else {
-            Pair(PFDateTime.from(minMaxDate[0] as Date).year, PFDateTime.from(minMaxDate[1] as Date).year)
+            Pair(PFDateTime.fromOrNull(minMaxDate[0] as? Date)?.year, PFDateTime.fromOrNull(minMaxDate[1] as? Date)?.year)
         }
         return getYears(result.first, result.second)
     }
 
+    /**
+     * @param minMaxDate Tuple with two LocalDate objects.
+     */
     @JvmStatic
     fun getYearsByTupleOfLocalDate(minMaxDate: Tuple?): IntArray {
         val result = if (minMaxDate == null) {
             val year = Year.now().value
             Pair(year, year)
         } else {
-            Pair((minMaxDate[0] as LocalDate).year, (minMaxDate[1] as LocalDate).year)
+            Pair((minMaxDate[0] as? LocalDate)?.year, (minMaxDate[1] as? LocalDate)?.year)
         }
         return getYears(result.first, result.second)
     }
