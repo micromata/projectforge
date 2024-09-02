@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
 @Table(
   name = "T_PF_USER_PASSWORD",
   uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
-  indexes = [Index(name = "idx_fk_t_pf_user_id", columnList = "user_id")]
+  indexes = [Index(name = "idx_fk_t_pf_user_password_user_id", columnList = "user_id")]
 )
 @NamedQueries(
   NamedQuery(

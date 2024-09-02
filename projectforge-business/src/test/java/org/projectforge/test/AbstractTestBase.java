@@ -41,6 +41,7 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.database.DatabaseExecutor;
+import org.projectforge.database.DatabaseSupport;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.AccessType;
@@ -48,8 +49,8 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.history.EntityOpType;
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner;
 import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -91,7 +92,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {TestConfiguration.class})
-//@Transactional
 @Component
 public abstract class AbstractTestBase {
     protected static final org.slf4j.Logger baseLog = org.slf4j.LoggerFactory
@@ -156,9 +156,6 @@ public abstract class AbstractTestBase {
 
     public static PFUserDO ADMIN_USER;
 
-    @PersistenceContext
-    protected EntityManager em;
-
     @Autowired
     protected UserService userService;
 
@@ -198,6 +195,10 @@ public abstract class AbstractTestBase {
 
     @PostConstruct
     private void postConstruct() {
+        if (DatabaseSupport.getInstance() == null) {
+            baseLog.info("************ Initializing DatabaseSupport with database dialect = " + HibernateUtils.getDatabaseDialect());
+            DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDatabaseDialect()));
+        }
         if (!pluginsInitialized) {
             pluginsInitialized = true;
             WicketSupport.register(applicationContext);
@@ -272,7 +273,7 @@ public abstract class AbstractTestBase {
     void beforeEach() {
         if (instance == null) {
             instance = this; // Store instance for afterAll method.
-            //System.out.println("******** " + instance.getClass());
+            // System.out.println("******** " + instance.getClass());
         }
         if (testRepoDir != null) {
             repoService.internalResetForJunitTestCases();
@@ -306,7 +307,7 @@ public abstract class AbstractTestBase {
             // ignore
         }
 
-        DatabaseHelper.clearDatabase(em);
+        DatabaseHelper.clearDatabase(persistenceService);
 
         new Configuration(configurationService);
         ConfigXmlTest.createTestConfiguration();
@@ -350,7 +351,7 @@ public abstract class AbstractTestBase {
     }
 
     protected void clearDatabase() {
-        DatabaseHelper.clearDatabase(em);
+        DatabaseHelper.clearDatabase(persistenceService);
         userGroupCache.setExpired();
         initTestDB.clearUsers();
     }

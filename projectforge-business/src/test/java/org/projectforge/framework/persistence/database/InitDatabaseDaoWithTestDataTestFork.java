@@ -134,9 +134,8 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     assertNotNull(order, "Order #1 not found.");
     assertEquals(3, order.getPositionenIncludingDeleted().size(), "Order #1 must have 3 order positions.");
 
-    final List<PfHistoryMasterDO> list = em.createQuery(
-            "select t from " + PfHistoryMasterDO.class.getName() + " t where t.id = :id", PfHistoryMasterDO.class)
-            .getResultList();
+    final List<PfHistoryMasterDO> list = persistenceService.query(
+            "select t from " + PfHistoryMasterDO.class.getName() + " t where t.id = :id", PfHistoryMasterDO.class);
     // assertTrue("At least 10 history entries expected: " + list.size(), list.size() >= 10);
 
     log.error("****> Next exception and error message are OK (part of the test).");

@@ -24,19 +24,27 @@
 package org.projectforge.test
 
 import jakarta.persistence.EntityManager
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object DatabaseHelper {
     @JvmStatic
-    fun clearDatabase(em: EntityManager) {
-        em.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE").executeUpdate() // Ignore all foreign key constraints etc.
-        em.createQuery("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEMA = 'PUBLIC';")
-            .resultList
-            .forEach { tableName ->
-                em.createNativeQuery("TRUNCATE TABLE $tableName").executeUpdate()
-            }
-        em.createNativeQuery("SET REFERENTIAL_INTEGRITY TRUE").executeUpdate()
+    fun clearDatabase(persistenceService: PfPersistenceService) {
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            em.createNativeQuery("SET DATABASE REFERENTIAL INTEGRITY FALSE")
+                .executeUpdate() // Ignore all foreign key constraints etc.
+            em.createNativeQuery("SELECT TABLE_NAME \n" +
+                    "FROM INFORMATION_SCHEMA.TABLES \n" +
+                    "WHERE TABLE_TYPE = 'BASE TABLE' \n" +
+                    "AND TABLE_SCHEMA = 'PUBLIC'")
+                .resultList
+                .forEach { tableName ->
+                    em.createNativeQuery("TRUNCATE TABLE $tableName").executeUpdate()
+                }
+            em.createNativeQuery("SET DATABASE REFERENTIAL INTEGRITY TRUE").executeUpdate()
+        }
     }
 }

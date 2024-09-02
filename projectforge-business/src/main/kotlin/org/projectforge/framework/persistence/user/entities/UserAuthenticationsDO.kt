@@ -38,7 +38,7 @@ import jakarta.persistence.*
 @Table(
   name = "T_PF_USER_AUTHENTICATIONS",
   uniqueConstraints = [UniqueConstraint(columnNames = ["user_id"])],
-  indexes = [Index(name = "idx_fk_t_pf_user_id", columnList = "user_id")]
+  indexes = [Index(name = "idx_fk_t_pf_user_authentication_user_id", columnList = "user_id")]
 )
 @NamedQueries(
   NamedQuery(

@@ -25,8 +25,10 @@ package org.projectforge.framework.persistence.entities
 
 import jakarta.persistence.Column
 import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.SequenceGenerator
 import org.projectforge.common.anots.PropertyInfo
 
 /**
@@ -36,7 +38,7 @@ import org.projectforge.common.anots.PropertyInfo
 //@Analyzer(impl = ClassicAnalyzer::class)
 open class DefaultBaseDO : AbstractHistorizableBaseDO<Int>() {
     @get:Column(name = "pk")
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Id
     @PropertyInfo(i18nKey = "id")
     override var id: Int? = null

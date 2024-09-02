@@ -26,10 +26,13 @@ package org.projectforge.framework.persistence.api
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.Validate
+import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+
 
 private val log = KotlinLogging.logger {}
 
@@ -98,7 +101,7 @@ object BaseDaoSupport {
         baseDao.persistenceService.runInTransaction { context ->
             internalUpdate(context.em, baseDao, obj, checkAccess, res)
         }
-        postInternalUpdate<O>(baseDao, obj, res)
+        postInternalUpdate(baseDao, obj, res)
         return res.modStatus
     }
 
@@ -128,6 +131,29 @@ object BaseDaoSupport {
             res.dbObjBackup = null
         }
         res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
+        res.modStatus = EntityCopyStatus.MAJOR
+        val result = baseDao.copyValues(obj, dbObj)
+        if (result != EntityCopyStatus.NONE) {
+            log.error("*********** To fix: BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj) and history")
+            //BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj)
+            dbObj.setLastUpdate()
+            // } else {
+            //   log.info("No modifications detected (no update needed): " + dbObj.toString());
+            baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
+            em.merge(dbObj)
+            try {
+                em.flush()
+            } catch (ex: Exception) {
+                // Exception stack trace:
+                // org.postgresql.util.PSQLException: FEHLER: ungültige Byte-Sequenz für Kodierung »UTF8«: 0x00
+                log.error("${ex.message} while updating object: ${ToStringUtil.toJsonString(obj)}", ex)
+                throw ex
+            }
+            if (baseDao.logDatabaseActions) {
+                log.info("${baseDao.doClass.simpleName} updated: $dbObj")
+            }
+            flushSearchSession(em)
+        }
         /*
         res.modStatus = HistoryBaseDaoAdapter.wrapHistoryUpdate(em, dbObj) {
           val result = baseDao.copyValues(obj, dbObj)
@@ -340,4 +366,14 @@ object BaseDaoSupport {
         }
         return false
     }
+
+    private fun flushSearchSession(em: EntityManager?) {
+        if (LUCENE_FLUSH_ALWAYS) {
+            val searchSession = Search.session(em)
+            // Flushing the index changes asynchonously
+            searchSession.indexingPlan().execute()
+        }
+    }
+
+    private const val LUCENE_FLUSH_ALWAYS = false
 }

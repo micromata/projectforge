@@ -194,7 +194,7 @@ class Configuration(private val configurationService: ConfigurationService) : Ab
 
   init {
     if (initialized) {
-      log.warn("Oups, shouldn't intatiate Configuration twice.")
+      log.warn("Oups, shouldn't initiate Configuration twice.")
     } else {
       instance = this
       initialized = true
