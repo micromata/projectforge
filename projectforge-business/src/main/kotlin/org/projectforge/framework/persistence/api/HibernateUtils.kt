@@ -74,6 +74,7 @@ object HibernateUtils {
             log.warn("Unknown or unsupported dialect: " + dialect.javaClass.name);
             databaseDialect = DatabaseDialect.PostgreSQL;
         }
+        HibernateMetaModel.internalInit(sessionFactoryImplementor)
         return
     }
 
