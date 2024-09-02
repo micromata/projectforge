@@ -65,8 +65,9 @@ object HibernateMetaModel {
     }
 
     /** Called by HibernateUtils. */
-    fun internalInit(sessionFactory: SessionFactoryImplementor, metamodel: MetamodelImplementor) {
-        this.sessionFactory
+    fun internalInit(sessionFactory: SessionFactoryImplementor) {
+        this.sessionFactory = sessionFactory
+        val metamodel = sessionFactory.metamodel as MetamodelImplementor
         this.metamodel = metamodel
         // Register all entities:
         metamodel.entities.forEach { entityType ->
