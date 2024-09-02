@@ -433,6 +433,36 @@ internal object EntityManagerUtil {
         return query.executeUpdate()
     }
 
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNativeQuery(
+        entityManagerFactory: EntityManagerFactory,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        return PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                executeNativeQuery(context.em, sql, *keyValues)
+            }
+        }
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNativeQuery(
+        em: EntityManager,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        val query = em.createNativeQuery(sql)
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query.executeUpdate()
+    }
+
     fun <T> getReference(
         entityManagerFactory: EntityManagerFactory,
         entityClass: Class<T>,

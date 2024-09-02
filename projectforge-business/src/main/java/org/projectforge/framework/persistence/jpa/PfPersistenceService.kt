@@ -222,6 +222,16 @@ open class PfPersistenceService {
         return executeUpdate(sql, *keyValues, namedQuery = true)
     }
 
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    open fun executeNativeQuery(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        return EntityManagerUtil.executeNativeQuery(entityManagerFactory, sql, *keyValues)
+    }
+
     open fun delete(dbObj: Any) {
         EntityManagerUtil.delete(entityManagerFactory, dbObj)
     }
