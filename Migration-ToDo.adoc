@@ -1,0 +1,11 @@
+- PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
+- Ehcache konfigurieren
+- History
+** NoHistory-Fields
+- Zeitbehaftete Daten
+- Test: SEPA
+- XML-Import für Testsystem
+- AddressDO: valueBridge for numbers
+- TypeBinding: ProjektDO, Kost1DO, Kost2DO, ...: Add path to list of searchable items
+- @WithHistory: AuftragDO, TeamEventDO
+- UserRights zu Benutzer hinzufügen testen (Reihenfolge update/save wichtig)
