@@ -23,7 +23,6 @@
 
 package org.projectforge.test
 
-import jakarta.persistence.EntityManager
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 
 /**
@@ -32,7 +31,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceService
 object DatabaseHelper {
     @JvmStatic
     fun clearDatabase(persistenceService: PfPersistenceService) {
-        persistenceService.executeNativeQuery("SET DATABASE REFERENTIAL INTEGRITY FALSE")
+        persistenceService.executeNativeQueryUpdate("SET DATABASE REFERENTIAL INTEGRITY FALSE")
         persistenceService.runInTransaction { context ->
             val em = context.em
             em.createNativeQuery("SELECT TABLE_NAME \n" +
@@ -44,6 +43,6 @@ object DatabaseHelper {
                     em.createNativeQuery("DELETE FROM $tableName").executeUpdate()
                 }
         }
-        persistenceService.executeNativeQuery("SET DATABASE REFERENTIAL INTEGRITY TRUE")
+        persistenceService.executeNativeQueryUpdate("SET DATABASE REFERENTIAL INTEGRITY TRUE")
     }
 }

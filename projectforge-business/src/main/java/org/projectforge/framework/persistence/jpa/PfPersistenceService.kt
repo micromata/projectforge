@@ -225,10 +225,20 @@ open class PfPersistenceService {
     /**
      * Calls Query(sql, params).executeUpdate()
      */
-    open fun executeNativeQuery(
+    open fun executeNativeQueryUpdate(
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
+        return EntityManagerUtil.executeNativeQueryUpdate(entityManagerFactory, sql, *keyValues)
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    open fun executeNativeQuery(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): List<*> {
         return EntityManagerUtil.executeNativeQuery(entityManagerFactory, sql, *keyValues)
     }
 
