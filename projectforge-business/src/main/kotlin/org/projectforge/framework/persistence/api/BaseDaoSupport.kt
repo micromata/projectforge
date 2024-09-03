@@ -131,8 +131,8 @@ object BaseDaoSupport {
             res.dbObjBackup = null
         }
         res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
-        res.modStatus = EntityCopyStatus.MAJOR
         val result = baseDao.copyValues(obj, dbObj)
+        res.modStatus = result
         if (result != EntityCopyStatus.NONE) {
             log.error("*********** To fix: BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj) and history")
             //BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj)

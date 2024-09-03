@@ -160,18 +160,18 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
 
   @JsonIgnore
   @FullTextField
-  @field:NoHistory
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_names")
   override var attachmentsNames: String? = null
 
   @JsonIgnore
   @FullTextField
-  @field:NoHistory
+  @NoHistory
   @get:Column(length = 10000, name = "attachments_ids")
   override var attachmentsIds: String? = null
 
   @JsonIgnore
-  @field:NoHistory
+  @NoHistory
   @get:Column(name = "attachments_counter")
   override var attachmentsCounter: Int? = null
 
@@ -179,7 +179,7 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
    * Size of all attachments in bytes.
    */
   @JsonIgnore
-  @field:NoHistory
+  @NoHistory
   @get:Column(name = "attachments_size")
   override var attachmentsSize: Long? = null
 

@@ -36,6 +36,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.time.TimeNotation
@@ -163,14 +164,14 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * Zeitstempel des letzten erfolgreichen Logins.
      */
     @PropertyInfo(i18nKey = "login.lastLogin")
-    //@field:NoHistory
+    @NoHistory
     @get:Column
     open var lastLogin: Date? = null
 
     /**
      * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
      */
-    //@field:NoHistory
+    @NoHistory
     @get:Column
     open var loginFailures: Int = 0
 
@@ -282,8 +283,8 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "access.rights")
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
-    //@field:NoHistory
-    open var rights: MutableSet<UserRightDO>? = HashSet()
+    @NoHistory
+    open var rights: MutableSet<UserRightDO>? = mutableSetOf()
 
     /**
      * If true (default) then the user is highlighted in the human resource planning page if not planned for the actual

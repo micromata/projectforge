@@ -50,6 +50,7 @@ import java.util.*
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 private val log = KotlinLogging.logger {}
 
@@ -129,7 +130,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
 
   @GenericField // was: @FullTextField(analyze = Analyze.NO)
   //@DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
-  //@field:NoHistory
+  @NoHistory
   @get:Column(name = "last_email")
   open var lastEmail: Date? = null
 

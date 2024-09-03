@@ -230,12 +230,18 @@ public class BaseDaoJpaAdapter {
     protected static EntityCopyStatus getModificationStatus(final EntityCopyStatus currentStatus, final BaseDO<?> src,
                                                             final String modifiedField) {
         //PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
+        /*
+        TODO: Implement this.
+        if (historyService.getNoHistoryProperties(emf, src.getClass()).contains(modifiedField)) {
+            // This field is not historized, so no major update:
+            return EntityCopyStatus.MINOR;
+        }*/
         if (currentStatus == EntityCopyStatus.MAJOR
                 || !(src instanceof AbstractHistorizableBaseDO)
-                /*|| (!(src instanceof HibernateProxy)
-                && !historyService.getNoHistoryProperties(emf, src.getClass()).contains(modifiedField))*/) {
+                || !(src instanceof HibernateProxy)) {
             return EntityCopyStatus.MAJOR;
         }
+        log.error("********* to be implemented.");
         return EntityCopyStatus.MINOR;
     }
 

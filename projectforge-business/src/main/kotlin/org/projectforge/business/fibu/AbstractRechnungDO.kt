@@ -35,6 +35,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
@@ -120,11 +121,11 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     /**
      * The user interface status of an invoice. The [RechnungUIStatus] is stored as XML.
      */
-    // @field:NoHistory
+    @NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
     open var uiStatusAsXml: String? = null
 
-    // @field:NoHistory
+    @NoHistory
     val uiStatus: RechnungUIStatus? = null
         @Transient
         get() {

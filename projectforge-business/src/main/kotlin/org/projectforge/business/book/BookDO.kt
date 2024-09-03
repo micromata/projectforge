@@ -36,6 +36,7 @@ import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * For managing libraries including lend-out functionality.
@@ -170,23 +171,23 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     @JsonIgnore
     @FullTextField
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_names")
     override var attachmentsNames: String? = null
 
     @JsonIgnore
     @FullTextField
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_ids")
     override var attachmentsIds: String? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_counter")
     override var attachmentsCounter: Int? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_size")
     override var attachmentsSize: Long? = null
 

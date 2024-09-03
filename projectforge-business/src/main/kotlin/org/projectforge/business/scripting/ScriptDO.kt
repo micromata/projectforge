@@ -33,6 +33,7 @@ import org.hibernate.type.SqlTypes
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.UnsupportedEncodingException
 
@@ -102,7 +103,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
      * Please note: script is not historizable. Therefore there is now history of scripts.
      */
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @JdbcTypeCode(SqlTypes.BLOB)
     @get:Column
@@ -112,14 +113,14 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
      * Instead of historizing the script the last version of the script after changing it will stored in this field.
      */
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "script_backup")
     @JdbcTypeCode(SqlTypes.BLOB)
     open var scriptBackup: ByteArray? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column
     @JdbcTypeCode(SqlTypes.BLOB)
@@ -235,23 +236,23 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
     @JsonIgnore
     @FullTextField
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_names")
     override var attachmentsNames: String? = null
 
     @JsonIgnore
     @FullTextField
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_ids")
     override var attachmentsIds: String? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_counter")
     override var attachmentsCounter: Int? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_size")
     override var attachmentsSize: Long? = null
 

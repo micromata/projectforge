@@ -35,6 +35,7 @@ import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -122,7 +123,7 @@ open class ToDoDO : DefaultBaseDO() {
      *
      * @return true if any modification isn't seen by the assignee.
      */
-    // @field:NoHistory
+    @NoHistory
     @get:Column
     open var recent: Boolean = false
 

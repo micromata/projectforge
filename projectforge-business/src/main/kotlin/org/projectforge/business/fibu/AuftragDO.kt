@@ -35,6 +35,7 @@ import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.xmlstream.XmlObjectReader
@@ -233,7 +234,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * @return the XML representation of the uiStatus.
      * @see AuftragUIStatus
      */
-    //@field:NoHistory
+    @NoHistory
     @get:Column(name = "ui_status_as_xml", length = 10000)
     open var uiStatusAsXml: String? = null
 
@@ -286,23 +287,23 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     @JsonIgnore
     @FullTextField
-    // @field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_names")
     override var attachmentsNames: String? = null
 
     @JsonIgnore
     @FullTextField
-    // @field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_ids")
     override var attachmentsIds: String? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_counter")
     override var attachmentsCounter: Int? = null
 
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 10000, name = "attachments_size")
     override var attachmentsSize: Long? = null
 
