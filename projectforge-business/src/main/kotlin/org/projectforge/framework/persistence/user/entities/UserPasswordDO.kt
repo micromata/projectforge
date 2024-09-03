@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import jakarta.persistence.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 private val log = KotlinLogging.logger {}
 
@@ -58,7 +59,7 @@ open class UserPasswordDO : DefaultBaseDO() {
    * Encoded password of the user (SHA-256).
    */
   @JsonIgnore
-  // @field:NoHistory
+  @NoHistory
   @get:Column(name="password_hash", length = 255)
   open var passwordHash: String? = null
 
@@ -66,7 +67,7 @@ open class UserPasswordDO : DefaultBaseDO() {
    * The saltString for giving salt to hashed password.
    */
   @JsonIgnore
-  // @field:NoHistory
+  @NoHistory
   @get:Column(name = "password_salt", length = 40)
   open var passwordSalt: String? = null
 

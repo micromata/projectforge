@@ -39,6 +39,7 @@ import java.util.*
 import jakarta.persistence.Basic
 import jakarta.persistence.Column
 import jakarta.persistence.MappedSuperclass
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -49,12 +50,12 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
     @PropertyInfo(i18nKey = "deleted")
     override var deleted: Boolean = false
 
-    //@NoHistory
+    @NoHistory
     @get:PropertyInfo(i18nKey = "created")
     @get:Column
     override var created: Date? = null
 
-    //@NoHistory
+    @NoHistory
     @PropertyInfo(i18nKey = "modified")
     @get:Column(name = "last_update")
     override var lastUpdate: Date? = null

@@ -238,8 +238,8 @@ public class AuftragDaoTest extends AbstractTestBase {
     }
     logon(AbstractTestBase.TEST_ADMIN_USER);
     user.addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)); //
-    userService.update(user);
     userRightDao.save(new ArrayList<>(user.getRights()));
+    userService.update(user);
     user = userService.getById(user.getId());
     logon(user);
     try {

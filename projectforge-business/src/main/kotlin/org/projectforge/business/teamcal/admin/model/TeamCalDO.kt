@@ -38,6 +38,7 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.hibernate.type.SqlTypes
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -101,7 +102,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      * This hash value is used for detecting changes of an subscribed calendar.
      */
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Column(length = 255, name = "ext_subscription_hash")
     open var externalSubscriptionHash: String? = null
 
@@ -130,7 +131,7 @@ open class TeamCalDO() : BaseUserGroupRightsDO() {
      * any client because it may contain private data.
      */
     @JsonIgnore
-    //@field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "ext_subscription_calendar_binary")
     @JdbcTypeCode(SqlTypes.BLOB)

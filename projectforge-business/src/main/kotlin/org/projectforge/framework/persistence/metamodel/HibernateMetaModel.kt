@@ -80,6 +80,7 @@ object HibernateMetaModel {
             }
             val info = EntityInfo(entityClass, name = entityType.name, entityType = entityType, tableName = tableName)
             entityInfoByName[entityType.name] = info
+            entityInfoByName[entityClass.name] = info
             entityInfoByEntityClass[entityType.javaType] = info
         }
     }

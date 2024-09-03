@@ -114,7 +114,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(name = "valid_until")
     open var validUntil: LocalDate? = null
 
-    @field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file1")
     @JdbcTypeCode(SqlTypes.BLOB)
@@ -124,7 +124,7 @@ open class LicenseDO : DefaultBaseDO() {
     @get:Column(name = "file_name1", length = 255)
     open var filename1: String? = null
 
-    @field:NoHistory
+    @NoHistory
     @get:Basic(fetch = FetchType.LAZY)
     @get:Column(name = "file2")
     @JdbcTypeCode(SqlTypes.BLOB)
