@@ -436,11 +436,41 @@ internal object EntityManagerUtil {
     /**
      * Calls Query(sql, params).executeUpdate()
      */
-    fun executeNativeQuery(
+    fun executeNativeQueryUpdate(
         entityManagerFactory: EntityManagerFactory,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
+        return PfPersistenceContext(entityManagerFactory).use { context ->
+            runInTransactionIfNotReadonly(context) {
+                executeNativeQueryUpdate(context.em, sql, *keyValues)
+            }
+        }
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNativeQueryUpdate(
+        em: EntityManager,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        val query = em.createNativeQuery(sql)
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query.executeUpdate()
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNativeQuery(
+        entityManagerFactory: EntityManagerFactory,
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): List<*> {
         return PfPersistenceContext(entityManagerFactory).use { context ->
             runInTransactionIfNotReadonly(context) {
                 executeNativeQuery(context.em, sql, *keyValues)
@@ -455,12 +485,12 @@ internal object EntityManagerUtil {
         em: EntityManager,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
-    ): Int {
+    ): List<*> {
         val query = em.createNativeQuery(sql)
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
-        return query.executeUpdate()
+        return query.resultList
     }
 
     fun <T> getReference(

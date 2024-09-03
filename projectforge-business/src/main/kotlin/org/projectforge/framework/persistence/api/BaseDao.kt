@@ -958,7 +958,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if the user has the access right for the given operation type and object.
      */
     fun hasLoggedInUserAccess(
-        obj: O, oldObj: O, operationType: OperationType,
+        obj: O, oldObj: O?, operationType: OperationType,
         throwException: Boolean
     ): Boolean {
         return hasAccess(requiredLoggedInUser, obj, oldObj, operationType, throwException)
