@@ -478,15 +478,15 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 throw UserException("fibu.auftrag.error.nummerBereitsVergeben")
             }
         }
-        if (CollectionUtils.isEmpty(obj.positionenIncludingDeleted)) {
+        if (obj.positionen.isNullOrEmpty()) {
             throw UserException("fibu.auftrag.error.auftragHatKeinePositionen")
         }
-        val positionen = obj.positionen?.toMutableList()
+        val positionen = obj.positionen
         if (!positionen.isNullOrEmpty()) {
             val size = positionen.size
             for (i in size - 1 downTo 1) {
                 // Don't remove first position, remove only the last empty positions.
-                val position = obj.positionenIncludingDeleted!![i]
+                val position = positionen[i]
                 if (position.id == null && position.isEmpty) {
                     positionen.removeAt(i)
                 } else {
@@ -494,10 +494,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 }
             }
         }
-        if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
-            for (position in obj.positionenIncludingDeleted!!) {
-                position.checkVollstaendigFakturiert()
-            }
+        positionen?.forEach { position ->
+            position.checkVollstaendigFakturiert()
         }
         toBeInvoicedCounter = null
         val uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus())
