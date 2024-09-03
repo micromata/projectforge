@@ -240,6 +240,7 @@ public abstract class AbstractTestBase {
 
     @BeforeAll
     public static void _beforeAll() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         MyJpaWithExtLibrariesScanner.setInternalSetUnitTestMode();
         ProjectForgeApp.internalSetJunitTestMode();
         AbstractPlugin.setInternalJunitTestMode(true);

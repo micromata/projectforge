@@ -38,8 +38,11 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 import jakarta.persistence.*
+import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  *
@@ -342,8 +345,6 @@ open class HRPlanningDO : DefaultBaseDO() {
     }
 
     companion object {
-        private val log = org.slf4j.LoggerFactory.getLogger(HRPlanningDO::class.java)
-
         internal const val FIND_BY_USER_AND_WEEK = "HrPlanningDO_FindByUserAndWeek"
 
         internal const val FIND_OTHER_BY_USER_AND_WEEK = "HrPlanningDO_FindOtherByUserAndWeek"
