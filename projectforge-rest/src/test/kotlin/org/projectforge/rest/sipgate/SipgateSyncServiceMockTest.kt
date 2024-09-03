@@ -113,6 +113,7 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         return true
       }
     }
+    syncService.persistenceService = persistenceService
     syncService.addressDao = addressDao
     syncService.sipgateContactService = contactService
     var syncContext = syncService.sync()

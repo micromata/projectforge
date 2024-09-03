@@ -404,9 +404,11 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
 
   @Test
   fun checkMaxMassUpdateNumber() {
-    val list: MutableList<TimesheetDO> = ArrayList()
+    val list = mutableListOf<TimesheetDO>()
     for (i in 0..BaseDao.MAX_MASS_UPDATE) {
-      list.add(TimesheetDO())
+      val ts = TimesheetDO()
+      ts.id = i
+      list.add(ts)
     }
     try {
       val master = TimesheetDO()
