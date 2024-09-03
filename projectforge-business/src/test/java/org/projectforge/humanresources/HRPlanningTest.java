@@ -110,8 +110,8 @@ public class HRPlanningTest extends AbstractTestBase {
     assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
     logon(AbstractTestBase.TEST_ADMIN_USER);
     user1.addRight(new UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY));
-    userService.update(user1);
     userRightDao.save(new ArrayList<>(user1.getRights()));
+    userService.update(user1);
     logon(user1);
     assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
     assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));

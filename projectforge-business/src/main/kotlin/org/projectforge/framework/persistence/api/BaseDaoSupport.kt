@@ -30,7 +30,6 @@ import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 
