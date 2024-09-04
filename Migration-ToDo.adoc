@@ -9,3 +9,5 @@
 - TypeBinding: ProjektDO, Kost1DO, Kost2DO, ...: Add path to list of searchable items
 - @WithHistory: AuftragDO, TeamEventDO
 - UserRights zu Benutzer hinzufügen testen (Reihenfolge update/save wichtig)
+- ALTER TABLE xxx ALTER COLUMN pk SET DATA TYPE BIGINT
+- ICalGeneratorParserTest

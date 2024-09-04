@@ -79,10 +79,12 @@ object HibernateMetaModel {
                 null
             }
             val info = EntityInfo(entityClass, name = entityType.name, entityType = entityType, tableName = tableName)
+            log.debug {
+                "Register entity: ${entityType.name} (${entityClass.simpleName}) with table name: $tableName: info=$info"
+            }
             entityInfoByName[entityType.name] = info
             entityInfoByName[entityClass.name] = info
             entityInfoByEntityClass[entityType.javaType] = info
         }
     }
-
 }
