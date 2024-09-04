@@ -39,6 +39,6 @@ class HibernateSearchKost1Bridge : TypeBridge<Kost1DO> {
         sb.append(KostFormatter.format(bridgedElement))
         sb.append(' ')
         sb.append(KostFormatter.format(bridgedElement, true))
-        target.addValue("kost1", sb.toString())
+        target.addValue("nummer", sb.toString())
     }
 }

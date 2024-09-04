@@ -36,6 +36,7 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.search.ClassBridge
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.lang.reflect.AccessibleObject
@@ -49,8 +50,8 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
 
     private val fieldInfos = mutableListOf<HibernateSearchFieldInfo>()
 
-    @JsonSerialize(using = TypeBindingSerializer::class)
-    val typeBindings: Array<TypeBinding>
+    @JsonSerialize(using = ClassBridgesSerializer::class)
+    val classBridges: Array<ClassBridge>
 
     val allFieldNames
         get() = fieldInfos.map { it.luceneField }.toTypedArray()
@@ -66,7 +67,7 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
     init {
         clazz = baseDao.doClass
         val fields = BeanHelper.getAllDeclaredFields(clazz)
-        val typeBindings = mutableListOf<TypeBinding>()
+        val bridges = mutableListOf<ClassBridge>()
         for (field in fields) {
             checkAndRegister(clazz, field.name, field.type, field)
         }
@@ -92,14 +93,13 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
                     val type = if (fieldInfo.genericType != null) fieldInfo.genericType else fieldInfo.field.type
                     if (type != null) {
                         val name = fieldName.substring(fieldName.lastIndexOf('.') + 1)
-                        val typeBindings = getTypeBindings(type)
-                        val typeBinding = typeBindings.find { it.binder.name == name }
-                        if (typeBinding != null) {
-                            typeBindings.add(typeBinding)
+                        val bridge = getClassBridges(type).find { it.name == name }
+                        if (bridge != null) {
+                            bridges.add(bridge)
                             fieldInfos.add(
                                 HibernateSearchFieldInfo(
                                     fieldName,
-                                    TypeBinding::class.java
+                                    ClassBridge::class.java
                                 )
                             ) // Search for class bridge name.
                             fieldFound = true
@@ -117,16 +117,16 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         }
 
         // Check @ClassBridge annotation:
-        getTypeBindings(clazz).forEach {
+        getClassBridges(clazz).forEach {
             fieldInfos.add(
                 HibernateSearchFieldInfo(
-                    it.binder.name,
-                    TypeBinding::class.java
+                    it.name,
+                    ClassBridge::class.java
                 )
             ) // Search for class bridge name.
-            typeBindings.add(it)
+            bridges.add(it)
         }
-        this.typeBindings = typeBindings.toTypedArray()
+        this.classBridges = bridges.toTypedArray()
         log.info(
             "SearchInfo for class ${
                 ClassUtils.getProxiedClass(
@@ -145,8 +145,8 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         return get(field) != null
     }
 
-    fun getTypeBinding(name: String): TypeBinding? {
-        return typeBindings.find { it.binder.name == name }
+    fun getClassBridge(name: String): ClassBridge? {
+        return classBridges.find { it.name == name }
     }
 
     internal fun get(field: String): HibernateSearchFieldInfo? {
@@ -220,15 +220,11 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         return null
     }
 
-    private fun getTypeBindings(clazz: Class<*>): MutableList<TypeBinding> {
-        val result = mutableSetOf<TypeBinding>()
-        val typeBinding = ClassUtils.getClassAnnotation(clazz, TypeBinding::class.java)
-        if (typeBinding != null) {
-            result.add(typeBinding)
-        }
-        val typeBindingAnn = ClassUtils.getClassAnnotation(clazz, TypeBinding::class.java)
-        if (typeBindingAnn != null) {
-            result.add(typeBindingAnn)
+    private fun getClassBridges(clazz: Class<*>): MutableList<ClassBridge> {
+        val result = mutableSetOf<ClassBridge>()
+        val classBridge = ClassUtils.getClassAnnotation(clazz, ClassBridge::class.java)
+        if (classBridge != null) {
+            result.add(classBridge)
         }
         return result.toMutableList()
     }
@@ -237,15 +233,15 @@ class HibernateSearchClassInfo(baseDao: BaseDao<*>) {
         return ToStringUtil.toJsonString(this)
     }
 
-    class TypeBindingSerializer : StdSerializer<Any>(Any::class.java) {
+    class ClassBridgesSerializer : StdSerializer<Any>(Any::class.java) {
         @Throws(IOException::class, JsonProcessingException::class)
         override fun serialize(value: Any?, jgen: JsonGenerator, provider: SerializerProvider) {
             if (value == null) {
                 jgen.writeNull()
                 return
             }
-            value as Array<TypeBinding>
-            jgen.writeString(value.joinToString(", ") { it.binder.name })
+            value as Array<ClassBridge>
+            jgen.writeString(value.joinToString(", ") { it.name })
         }
     }
 }

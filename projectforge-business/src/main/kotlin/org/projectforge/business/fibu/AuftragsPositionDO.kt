@@ -42,6 +42,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
+import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
@@ -51,6 +52,7 @@ import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsT
 @Entity
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchAuftragsPositionTypeBinder::class))
+@ClassBridge(name = "position") // position should be used in HibernateSearchAuftragsPositionBridge as field name.
 //@ClassBridge(name = "position", analyze = Analyze.NO, impl = HibernateSearchAuftragsPositionBridge::class)
 @Cache(region = "orders", usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 //@Cacheable
