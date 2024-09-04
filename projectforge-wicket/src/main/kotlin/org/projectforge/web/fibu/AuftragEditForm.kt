@@ -50,6 +50,7 @@ import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.core.RestResolver
 import org.projectforge.rest.fibu.AuftragPagesRest
 import org.projectforge.web.URLHelper
+import org.projectforge.web.WicketSupport
 import org.projectforge.web.task.TaskSelectPanel
 import org.projectforge.web.user.UserSelectPanel
 import org.projectforge.web.wicket.AbstractEditForm
@@ -81,24 +82,9 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
   private var headOfBusinessManagerSelectPanel: UserSelectPanel? = null
   private var salesManagerSelectPanel: UserSelectPanel? = null
 
-  @SpringBean
-  private lateinit var accessChecker: AccessChecker
-
-  @SpringBean
-  private lateinit var attachmentsService: AttachmentsService
-
-  @SpringBean
-  private lateinit var rechnungCache: RechnungCache
-
-  @SpringBean
-  private lateinit var auftragDao: AuftragDao
-
-  @SpringBean
-  private lateinit var auftragPagesRest: AuftragPagesRest
-
   override fun init() {
     super.init()
-    auftragDao.calculateInvoicedSum(data)
+    WicketSupport.get(AuftragDao::class.java).calculateInvoicedSum(data)
 
     /* GRID8 - BLOCK */gridBuilder.newSplitPanel(GridSize.COL50)
     run {
@@ -431,7 +417,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       val fs = gridBuilder.newFieldset(getString("attachments"))
       var attachments = ""
       if ((data?.attachmentsCounter ?: 0) > 0) {
-        attachments = attachmentsService.getAttachments(
+        val auftragPagesRest = WicketSupport.get(AuftragPagesRest::class.java)
+        attachments = WicketSupport.get(AttachmentsService::class.java).getAttachments(
           auftragPagesRest.jcrPath!!,
           data!!.id!!,
           auftragPagesRest.attachmentsAccessChecker
@@ -602,7 +589,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         }
       }
       posGridBuilder.newSplitPanel(GridSize.COL25)
-      val invoicePositionsByOrderPositionId = rechnungCache
+      val invoicePositionsByOrderPositionId = WicketSupport.get(RechnungCache::class.java)
         .getRechnungsPositionVOSetByAuftragsPositionId(position.id)
       val showInvoices = CollectionUtils.isNotEmpty(invoicePositionsByOrderPositionId)
       run {
@@ -632,7 +619,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         } else {
           fs.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(fs.newChildId()))
         }
-        if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE) == true) {
+        if (WicketSupport.getAccessChecker().hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE) == true) {
           val checkBoxDiv = fs.addNewCheckBoxButtonDiv()
           checkBoxDiv.add(
             CheckBoxButton(
@@ -768,7 +755,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
 
   private fun positionInInvoiceExists(position: AuftragsPositionDO): Boolean {
     if (position.id != null) {
-      val invoicePositionList = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(position.id)
+      val invoicePositionList = WicketSupport.get(RechnungCache::class.java).getRechnungsPositionVOSetByAuftragsPositionId(position.id)
       return invoicePositionList != null && invoicePositionList.isEmpty() == false
     }
     return false

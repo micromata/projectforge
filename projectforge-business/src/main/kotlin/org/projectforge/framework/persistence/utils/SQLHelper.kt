@@ -84,7 +84,7 @@ object SQLHelper {
             val year = Year.now().value
             Pair(year, year)
         } else {
-            Pair(minMaxDate[0] as Int, minMaxDate[1] as Int)
+            Pair(minMaxDate[0] as? Int, minMaxDate[1] as? Int)
         }
         return getYears(result.first, result.second)
     }

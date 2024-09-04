@@ -116,7 +116,7 @@ class UserXmlPreferencesDao {
             checkAccess(userId)
         }
         val list: List<UserXmlPreferencesDO> = persistenceService.query(
-            "select u from UserXmlPreferencesDO u where u.user.id = :userid and u.key = :key",
+            "from UserXmlPreferencesDO where user.id = :userid and key = :key",
             UserXmlPreferencesDO::class.java,
             Pair("userid", userId), Pair("key", key)
         )
