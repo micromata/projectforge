@@ -33,6 +33,7 @@ import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsTypeBinder
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
@@ -42,6 +43,7 @@ import java.util.*
 @Entity
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+@ClassBridge(name = "usersgroups") // usersgroups should be used in HibernateSearchUsersGroupsBridge as field name.
 //ClassBridge(name = "usersgroups", impl = ::class)
 @Table(name = "T_ADDRESSBOOK")
 open class AddressbookDO : BaseUserGroupRightsDO(), DisplayNameCapable {

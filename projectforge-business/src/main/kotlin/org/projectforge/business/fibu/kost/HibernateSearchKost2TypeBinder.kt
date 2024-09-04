@@ -32,7 +32,12 @@ import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
  */
 class HibernateSearchKost2TypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {
-        context.dependencies().useRootOnly()
+        context.dependencies()
+            // It doesn't matter if these fields are indexed by Hibernate Search:
+            .use("nummernkreis")
+            .use("bereich")
+            .use("teilbereich")
+            .use("kost2Art")
 
         val bridge: TypeBridge<Kost2DO> = HibernateSearchKost2Bridge()
         context.bridge(Kost2DO::class.java, bridge)

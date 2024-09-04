@@ -32,6 +32,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -42,7 +43,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
  */
 @Entity
 @Indexed
-@TypeBinding(binder = TypeBinderRef(type = HibernateSearchProjektTypeBinder::class))
+@TypeBinding(binder = TypeBinderRef(type = HibernateSearchProjectKostTypeBinder::class))
+@ClassBridge(name = "kost2") // kost2 should be used in HibernateSearchProjectKostBridge as field name.
 //@ClassBridge(name = "kost2", impl = HibernateSearchProjectKostBridge::class)
 @Table(
     name = "T_FIBU_PROJEKT",

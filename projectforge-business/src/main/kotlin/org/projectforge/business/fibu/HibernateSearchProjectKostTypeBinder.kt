@@ -21,25 +21,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.kost
+package org.projectforge.business.fibu
 
-import org.hibernate.search.engine.backend.document.DocumentElement
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
-import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
-import org.projectforge.business.fibu.KostFormatter
+import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
+import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
 
 /**
- * Kost2Bridge for hibernate search: Kostenträger kann à la 6.201.57 gesucht werden.
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class HibernateSearchKost2Bridge : TypeBridge<Kost2DO> {
+class HibernateSearchProjectKostTypeBinder : TypeBinder {
+    override fun bind(context: TypeBindingContext) {
+        context.dependencies().useRootOnly()
 
-    override fun write(target: DocumentElement, bridgedElement: Kost2DO, context: TypeBridgeWriteContext) {
-        val sb = StringBuilder()
-        sb.append(KostFormatter.format(bridgedElement))
-        sb.append(' ')
-        sb.append(KostFormatter.format(bridgedElement, true))
-        target.addValue("nummer", sb.toString())
+        val bridge: TypeBridge<ProjektDO> = HibernateSearchProjectKostBridge()
+        context.bridge(ProjektDO::class.java, bridge)
     }
 }

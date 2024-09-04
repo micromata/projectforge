@@ -34,11 +34,12 @@ import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
+import org.projectforge.framework.persistence.search.ClassBridge
 
 @Entity
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchKost1TypeBinder::class))
-//@ClassBridge(name = "nummer", impl = HibernateSearchKost1Bridge::class)
+@ClassBridge(name = "nummer") // nummer should be used in HibernateSearchKost1Bridge as field name.
 @Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
 //@WithHistory
 @NamedQueries(

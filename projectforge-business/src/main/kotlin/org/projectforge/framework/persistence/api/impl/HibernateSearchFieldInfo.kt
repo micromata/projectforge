@@ -25,8 +25,8 @@ package org.projectforge.framework.persistence.api.impl
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.search.mapper.pojo.bridge.ValueBridge
-import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.search.ClassBridge
 
 class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     @JsonIgnore
@@ -84,6 +84,6 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     }
 
     fun isClassBridge(): Boolean {
-        return TypeBinder::class.java.isAssignableFrom(type)
+        return ClassBridge::class.java.isAssignableFrom(type)
     }
 }

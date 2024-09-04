@@ -37,6 +37,7 @@ import org.projectforge.common.task.TaskStatus
 import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.search.ClassBridge
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -49,6 +50,7 @@ import java.time.LocalDate
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchTaskPathTypeBinder::class))
 //@ClassBridge(name = "taskpath", impl = HibernateSearchTaskPathBridge::class)
+@ClassBridge(name = "taskpath") // taskpath should be used in HibernateSearchTaskPathBridge as field name.
 @Table(
     name = "T_TASK",
     uniqueConstraints = [UniqueConstraint(columnNames = ["parent_task_id", "title"])],

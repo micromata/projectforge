@@ -39,6 +39,7 @@ import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.hibernate.type.SqlTypes
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.search.ClassBridge
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -47,6 +48,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 @Entity
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchUsersGroupsTypeBinder::class))
+@ClassBridge(name = "usersgroups") // usersgroups should be used in HibernateSearchUsersGroupsBridge as field name.
 //@ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_CALENDAR", indexes = [jakarta.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
 open class TeamCalDO() : BaseUserGroupRightsDO() {

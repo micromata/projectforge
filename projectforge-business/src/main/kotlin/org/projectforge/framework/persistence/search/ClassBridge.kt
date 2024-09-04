@@ -21,24 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu
-
-import org.hibernate.search.engine.backend.document.DocumentElement
-import org.hibernate.search.mapper.pojo.bridge.TypeBridge
-import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
-import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
-import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
-import org.projectforge.business.common.BaseUserGroupRightsDO
-import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsBridge
+package org.projectforge.framework.persistence.search
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * Only used for getting name of field used by the Hibernate Search bridge by HibernateSearchClassInfo
  */
-class HibernateSearchProjektTypeBinder : TypeBinder {
-    override fun bind(context: TypeBindingContext) {
-        context.dependencies().useRootOnly()
-
-        val bridge: TypeBridge<ProjektDO> = HibernateSearchProjectKostBridge()
-        context.bridge(ProjektDO::class.java, bridge)
-    }
-}
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class ClassBridge(
+    val name: String
+)

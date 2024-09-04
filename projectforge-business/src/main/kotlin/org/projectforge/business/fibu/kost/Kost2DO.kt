@@ -36,10 +36,12 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.HibernateSearchAuftragsPositionTypeBinder
+import org.projectforge.framework.persistence.search.ClassBridge
 
 @Entity
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchKost2TypeBinder::class))
+@ClassBridge(name = "nummer") // nummer should be used in HibernateSearchKost2Bridge as field name.
 //@ClassBridge(name = "nummer", impl = HibernateSearchKost2Bridge::class)
 @Table(name = "T_FIBU_KOST2", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "kost2_art_id"])], indexes = [Index(name = "idx_fk_t_fibu_kost2_kost2_art_id", columnList = "kost2_art_id"), Index(name = "idx_fk_t_fibu_kost2_projekt_id", columnList = "projekt_id")])
 //@WithHistory

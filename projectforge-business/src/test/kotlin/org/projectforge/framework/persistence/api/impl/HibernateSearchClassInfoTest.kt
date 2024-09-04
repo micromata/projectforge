@@ -39,8 +39,8 @@ class HibernateSearchClassInfoTest {
         Assertions.assertTrue(info.isStringField("name"))
         Assertions.assertNull(info.get("uid"))
         Assertions.assertFalse(info.isStringField("uid"))
-        Assertions.assertNull(info.getTypeBinding("uid"))
-        Assertions.assertEquals(0, info.typeBindings.size)
+        Assertions.assertNull(info.getClassBridge("uid"))
+        Assertions.assertEquals(0, info.classBridges.size)
     }
 
     @Test
@@ -50,8 +50,8 @@ class HibernateSearchClassInfoTest {
         Assertions.assertNull(info.get("status"))
         Assertions.assertEquals("progress", info.get("progress")?.javaProp)
         Assertions.assertFalse(info.isStringField("progress"))
-        Assertions.assertNotNull(info.getTypeBinding("taskpath"))
-        Assertions.assertEquals(1, info.typeBindings.size)
+        Assertions.assertNotNull(info.getClassBridge("taskpath"))
+        Assertions.assertEquals(1, info.classBridges.size)
     }
 
     @Test
