@@ -35,6 +35,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.time.DateFormats.getFormatString
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.PFDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -83,7 +84,7 @@ open class TimesheetExport {
       sheet.registerColumn(translate("calendar.weekOfYearShortLabel"), "weekOfYearShortLabel").withSize(4)
       sheet.registerColumn(translate("calendar.dayOfWeekShortLabel"), "dayOfWeekShortLabel").withSize(4)
       ExcelUtils.registerColumn(sheet, TimesheetDO::startTime, ExcelUtils.Size.TIMESTAMP)
-      val stopTimeColDef = ExcelUtils.registerColumn(sheet, TimesheetDO::stopTime, 8)
+      val stopTimeColDef = ExcelUtils.registerColumn(sheet, TimesheetDO::stopTime, ExcelUtils.Size.TIMESTAMP)
       sheet.registerColumn(translate("timesheet.duration"), "duration").withSize(ExcelUtils.Size.DURATION)
       sheet.registerColumn(translate("hours"), "hours").withSize(ExcelUtils.Size.DURATION)
       ExcelUtils.registerColumn(sheet, TimesheetDO::location)
@@ -116,8 +117,8 @@ open class TimesheetExport {
           )
         )
         row.getCell(stopTimeColDef).cell.cellStyle = timeFormat
-        // ExcelUtils.getCell(row, TimesheetDO::startTime)?.setCellValue(startTime)
-        // ExcelUtils.getCell(row, TimesheetDO::stopTime)?.setCellValue(stopTime)
+        ExcelUtils.getCell(row, TimesheetDO::startTime)?.setCellValue(PFDateTime.fromOrNull(timesheet.startTime)?.localDateTime)
+        ExcelUtils.getCell(row, TimesheetDO::stopTime)?.setCellValue(PFDateTime.fromOrNull(timesheet.stopTime)?.localDateTime)
         val seconds = BigDecimal(timesheet.getDuration() / 1000) // Seconds
         val duration = seconds.divide(BigDecimal(60 * 60 * 24), 8, RoundingMode.HALF_UP) // Fraction of day (24 hours)
         row.getCell("duration")?.setCellValue(duration.toDouble())?.setCellStyle(durationFormat)
