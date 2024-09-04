@@ -21,29 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.persistence.jpa
+package org.projectforge.framework.persistence.history
 
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.task.TaskDO
-import org.projectforge.business.task.TaskDO.Companion.TITLE_LENGTH
-import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.framework.persistence.jpa.EntityMetaDataRegistry
-import org.projectforge.jira.JiraUtils.buildJiraIssueBrowseLink
-import org.projectforge.jira.JiraUtils.buildJiraIssueBrowseLinkUrl
-import org.projectforge.jira.JiraUtils.hasJiraIssues
-import org.projectforge.jira.JiraUtils.linkJiraIssues
-import org.projectforge.jira.JiraUtils.parseJiraIssues
-import org.projectforge.jira.JiraUtils.parseJiraIssuesForProject
-import org.projectforge.test.TestSetup.init
+import org.projectforge.test.AbstractTestBase
 
-class EntityMetaDataTest {
-  @Test
-  fun entityMetaDataTest() {
-    val column = EntityMetaDataRegistry.getColumnMetaData(TaskDO::class.java, "title")
-    Assertions.assertEquals("title", column!!.name)
-    Assertions.assertEquals(TITLE_LENGTH, column.length)
-    Assertions.assertFalse(column.nullable)
-  }
+class HistoryServiceTest : AbstractTestBase() {
+    @Test
+    fun testNonHistorizableProperties() {
+        var set = HistoryService.get().getNoHistoryProperties(TaskDO::class.java)
+        Assertions.assertEquals(2, set.size)
+        Assertions.assertTrue(set.contains("lastUpdate"))
+        Assertions.assertTrue(set.contains("created"))
+        Assertions.assertTrue(set.contains("lastUpdate"))
+        Assertions.assertTrue(set.contains("created"))
+        Assertions.assertFalse(set.contains("title"))
+
+        set = HistoryService.get().getNoHistoryProperties(AuftragDO::class.java)
+        Assertions.assertEquals(7, set.size)
+        //    not, because transient Assertions.assertTrue(set.contains("uiStatus"));
+        Assertions.assertTrue(set.contains("uiStatusAsXml"))
+        Assertions.assertFalse(set.contains("subject"))
+    }
 }

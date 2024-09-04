@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.metamodel
 import jakarta.persistence.Column
 import jakarta.persistence.metamodel.EntityType
 import org.hibernate.query.sqm.tree.SqmNode.log
+import org.projectforge.framework.json.JsonUtils
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
@@ -83,5 +84,9 @@ class EntityInfo(
             log.info(msg)
         }
         return null
+    }
+
+    override fun toString(): String {
+        return JsonUtils.toJson(this)
     }
 }
