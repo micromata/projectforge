@@ -21,21 +21,28 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.entities
+package org.projectforge.framework.persistence.history
 
-import java.io.Serializable
-import jakarta.persistence.MappedSuperclass
-import org.projectforge.framework.persistence.history.WithHistory
+import kotlin.reflect.KClass
 
 /**
- * Declares lastUpdate and created as invalidHistorizableProperties.
+ * Mark entity, which should be has History.
  *
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-@MappedSuperclass
-@WithHistory
-abstract class AbstractHistorizableBaseDO<I : Serializable> : AbstractBaseDO<I>() {
-    companion object {
-        private const val serialVersionUID = -5980671510045450615L
-    }
-}
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class WithHistory(
+    /**
+     * List of properties names not create history entries.
+     *
+     * @return the string[]
+     */
+    val noHistoryProperties: Array<String> = [],
+    /**
+     * A class, which have nested history entities.
+     *
+     * @return the nested entities
+     */
+    val nestedEntities: Array<KClass<*>> = []
+)

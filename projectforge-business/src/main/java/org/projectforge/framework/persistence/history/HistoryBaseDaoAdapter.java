@@ -45,8 +45,8 @@ public class HistoryBaseDaoAdapter {
     }
 
     public static boolean isHistorizable(Class<?> entityClass) {
-        return false;/*List<WithHistory> whl = ClassUtils.findClassAnnotations(entityClass, WithHistory.class);
-        return whl.isEmpty() == false;*/
+        List<WithHistory> whl = ClassUtils.findClassAnnotations(entityClass, WithHistory.class);
+        return whl.isEmpty() == false;
     }
 
 

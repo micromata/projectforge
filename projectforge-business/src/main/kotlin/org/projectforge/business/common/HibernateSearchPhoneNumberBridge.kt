@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.history
+package org.projectforge.business.common
 
 import org.hibernate.search.mapper.pojo.bridge.ValueBridge
 import org.hibernate.search.mapper.pojo.bridge.runtime.ValueBridgeToIndexedValueContext
