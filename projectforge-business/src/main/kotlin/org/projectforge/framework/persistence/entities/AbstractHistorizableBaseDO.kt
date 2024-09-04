@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.entities
 
 import java.io.Serializable
 import jakarta.persistence.MappedSuperclass
-import org.projectforge.framework.persistence.history.WithHistory
 
 /**
  * Declares lastUpdate and created as invalidHistorizableProperties.
@@ -33,7 +32,7 @@ import org.projectforge.framework.persistence.history.WithHistory
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @MappedSuperclass
-@WithHistory(noHistoryProperties = ["lastUpdate", "created"])
+// @WithHistory(noHistoryProperties = ["lastUpdate", "created"])
 abstract class AbstractHistorizableBaseDO<I : Serializable> : AbstractBaseDO<I>() {
     companion object {
         private const val serialVersionUID = -5980671510045450615L
