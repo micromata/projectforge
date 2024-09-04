@@ -104,7 +104,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         } else throwOrReturnFalse(throwException)
     }
 
-    override fun hasInsertAccess(user: PFUserDO, obj: VacationDO, throwException: Boolean): Boolean {
+    override fun hasInsertAccess(user: PFUserDO, obj: VacationDO?, throwException: Boolean): Boolean {
+        requireNotNull(obj) { "Given VacationDO as obj parameter mustn't be null." }
         return hasVacationAccess(user, obj, null, throwException)
     }
 

@@ -37,7 +37,7 @@ import java.util.*
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class RechnungCache : AbstractCache() {
+open class RechnungCache : AbstractCache() {
     @Autowired
     protected lateinit var persistenceService: PfPersistenceService
 

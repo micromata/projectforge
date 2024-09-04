@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu.kost
 
+import jakarta.persistence.Tuple
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.OperationType
@@ -53,11 +54,11 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
      */
     open val years: IntArray
         get() {
-            val list = persistenceService.queryNullable(
+            val list = persistenceService.selectSingleResult(
                 "select min(year), max(year) from BuchungssatzDO t",
-                Int::class.java,
+                Tuple::class.java,
             )
-            return SQLHelper.getYears(list[0], list[1])
+            return SQLHelper.getYearsByTupleOfYears(list)
         }
 
     open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {

@@ -505,7 +505,8 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return result
     }
 
-    override fun hasInsertAccess(user: PFUserDO, obj: TimesheetDO, throwException: Boolean): Boolean {
+    override fun hasInsertAccess(user: PFUserDO, obj: TimesheetDO?, throwException: Boolean): Boolean {
+        requireNotNull(obj) { "Given timesheet as obj parameter mustn't be null." }
         if (!hasAccess(user, obj, null, OperationType.INSERT, throwException)) {
             return false
         }

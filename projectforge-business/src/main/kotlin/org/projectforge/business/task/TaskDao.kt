@@ -413,10 +413,10 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         }
     }
 
-    override fun hasInsertAccess(user: PFUserDO, obj: TaskDO, throwException: Boolean): Boolean {
-        Validate.notNull(obj)
+    override fun hasInsertAccess(user: PFUserDO, obj: TaskDO?, throwException: Boolean): Boolean {
+        requireNotNull(obj) { "Given TaskDO as obj parameter mustn't be null." }
         // Checks if the task is orphan.
-        val parent = taskTree!!.getTaskNodeById(obj.parentTaskId)
+        val parent = taskTree.getTaskNodeById(obj.parentTaskId)
         if (parent == null) {
             if (taskTree.isRootNode(obj) && obj.deleted) {
                 // Oups, the user has deleted the root task!

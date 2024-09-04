@@ -175,7 +175,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
      * getSession().load();
      */
-    fun getOrLoad(id: Int): O? {
+    fun getOrLoad(id: Int?): O? {
         if (!isIdValid(id)) {
             return null
         }
@@ -958,7 +958,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if the user has the access right for the given operation type and object.
      */
     fun hasLoggedInUserAccess(
-        obj: O, oldObj: O?, operationType: OperationType,
+        obj: O?, oldObj: O?, operationType: OperationType,
         throwException: Boolean
     ): Boolean {
         return hasAccess(requiredLoggedInUser, obj, oldObj, operationType, throwException)
@@ -1050,7 +1050,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param obj Check access to this object.
      * @see .hasInsertAccess
      */
-    open fun hasLoggedInUserInsertAccess(obj: O, throwException: Boolean): Boolean {
+    open fun hasLoggedInUserInsertAccess(obj: O?, throwException: Boolean): Boolean {
         return hasInsertAccess(requiredLoggedInUser, obj, throwException)
     }
 
@@ -1060,7 +1060,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param obj Check access to this object.
      * @see .hasAccess
      */
-    open fun hasInsertAccess(user: PFUserDO, obj: O, throwException: Boolean): Boolean {
+    open fun hasInsertAccess(user: PFUserDO, obj: O?, throwException: Boolean): Boolean {
         return hasAccess(user, obj, null, OperationType.INSERT, throwException)
     }
 

@@ -4,12 +4,11 @@
 
     <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
 
-    <logger name="org.mockserver" level="error"/>
-    <logger name="com.zaxxer" level="error"/>
-    <logger name="de.micromata" level="error"/>
-    <logger name="org.apache" level="error"/>
-    <logger name="org.ehcache" level="error"/>
-    <logger name="org.hibernate" level="error"/>
+    <root level="error">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="MEMORY"/>
+    </root>
+
     <logger name="org.projectforge" level="error"/>
     <logger name="org.projectforge.business.gantt.GanttUtils" level="off"/>
     <logger name="org.projectforge.business.task.TaskNode" level="off"/>
