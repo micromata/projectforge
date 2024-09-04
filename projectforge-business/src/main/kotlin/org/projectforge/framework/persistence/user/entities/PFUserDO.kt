@@ -35,7 +35,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
+import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils

@@ -35,7 +35,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge
+import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.LabelValueBean
 import java.time.LocalDate
