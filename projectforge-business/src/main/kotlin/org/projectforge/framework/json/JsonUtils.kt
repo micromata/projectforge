@@ -56,6 +56,7 @@ object JsonUtils {
     val module = SimpleModule()
     initializeMapper(module)
     objectMapper.registerModule(module)
+    objectMapperIgnoreNullableProps.registerModule(module)
     objectMapperIgnoreNullableProps.setSerializationInclusion(JsonInclude.Include.NON_NULL)
     objectMapperIgnoreUnknownProps.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
