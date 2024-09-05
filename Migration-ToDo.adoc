@@ -1,7 +1,7 @@
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - Ehcache konfigurieren
 - History
-** NoHistory-Fields
+- Besucherbuch ersetzen durch Seite mit Excel-Download (wird nicht mehr genutzt)
 - Zeitbehaftete Daten
 - Test: SEPA
 - XML-Import für Testsystem
@@ -11,3 +11,11 @@
 - UserRights zu Benutzer hinzufügen testen (Reihenfolge update/save wichtig)
 - ALTER TABLE xxx ALTER COLUMN pk SET DATA TYPE BIGINT
 - ICalGeneratorParserTest
+- UserRightId: ClassBridge müsste eigentlich in die Felder der benutzenden DOs
+
+
+Migration employee timed attrs:
+select a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id, a.group_name, b.value, b.propertyname, b.createdby, b.createdat, b.modifiedby, b.modifiedat from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent;
+
+employeestatus
+employeeannualleave
