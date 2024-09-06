@@ -21,21 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu
+package org.projectforge.business.orga
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
-import mu.KotlinLogging
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.io.Serializable
 import java.time.LocalDate
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Represents timeable attributes of an employee (annual leave days and status).
@@ -43,34 +38,32 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
-//@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(
-    name = "t_fibu_employee_validity_period_attr",
+    name = "t_orga_visitorbook_validity_period_attr",
     indexes = [Index(
-        name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_id"
+        name = "idx_fk_t_orga_visitorbook_val_per_employee_id", columnList = "visitorbook_id"
     )]
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Int>() {
+open class VisitorbookValidityPeriodAttrDO : Serializable, AbstractBaseDO<Int>() {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
     override var id: Int? = null
 
-    @PropertyInfo(i18nKey = "fibu.employee")
+    @PropertyInfo(i18nKey = "orga.visitorbook")
     @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "employee_id", nullable = false)
-    open var employee: EmployeeDO? = null
+    @get:JoinColumn(name = "visitorbook_id", nullable = false)
+    open var visitorbook: VisitorbookDO? = null
 
-    @get:Enumerated(EnumType.STRING)
-    @get:Column(name = "attribute", length = 30)
-    open var attribute: EmployeeValidityPeriodAttrType? = null
+    @get:Column(name = "date_of_visit", nullable = false)
+    open var dateOfVisit: LocalDate? = null
 
-    @get:Column(name = "valid_from", nullable = false)
-    open var validFrom: LocalDate? = null
+    @get:Column(name = "arrived", length = 100)
+    open var arrived: String? = null
 
-    @get:Column(name = "value", length = 255)
-    open var value: String? = null
+    @get:Column(name = "departed", length = 100)
+    open var departed: String? = null
 
     @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
     open var comment: String? = null
