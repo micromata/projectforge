@@ -39,6 +39,7 @@ import java.util.*
 import jakarta.persistence.Basic
 import jakarta.persistence.Column
 import jakarta.persistence.MappedSuperclass
+import org.projectforge.framework.persistence.api.BaseDOSupport
 import org.projectforge.framework.persistence.history.NoHistory
 
 /**
@@ -46,6 +47,8 @@ import org.projectforge.framework.persistence.history.NoHistory
  */
 @MappedSuperclass
 abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializable {
+    private val baseDOSupport = BaseDOSupport()
+
     @get:Basic
     @PropertyInfo(i18nKey = "deleted")
     override var deleted: Boolean = false
@@ -69,9 +72,6 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
     @Transient
     override var isMinorChange: Boolean = false
 
-    @Transient
-    private var attributeMap: MutableMap<String?, Any?>? = null
-
     /**
      * If any re-calculations have to be done before displaying, indexing etc. This method have an implementation if a
      * data object has transient fields which are calculated by other fields. This default implementation does nothing.
@@ -80,25 +80,15 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
     }
 
     override fun getTransientAttribute(key: String): Any? {
-        if (attributeMap == null) {
-            return null
-        }
-        return attributeMap!![key]
+        return baseDOSupport.getTransientAttribute(key)
     }
 
     override fun removeTransientAttribute(key: String): Any? {
-        val obj = getTransientAttribute(key)
-        if (obj != null) {
-            attributeMap!!.remove(key)
-        }
-        return obj
+        return baseDOSupport.removeTransientAttribute(key)
     }
 
     override fun setTransientAttribute(key: String, value: Any?) {
-        if (attributeMap == null) {
-            attributeMap = HashMap()
-        }
-        attributeMap!![key] = value
+        baseDOSupport.setTransientAttribute(key, value)
     }
 
     /**
