@@ -25,14 +25,9 @@ package org.projectforge.web.orga;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EmployeeComparator;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.orga.VisitorType;
 import org.projectforge.business.orga.VisitorbookDO;
-import org.projectforge.business.orga.VisitorbookService;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -45,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.util.Collection;
-import java.util.function.Function;
 
 public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, VisitorbookEditPage>
 {

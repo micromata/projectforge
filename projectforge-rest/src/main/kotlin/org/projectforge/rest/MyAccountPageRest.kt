@@ -26,7 +26,7 @@ package org.projectforge.rest
 import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.login.Login
 import org.projectforge.business.user.UserAuthenticationsDao

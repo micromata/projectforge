@@ -27,14 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.IsoGender;
-import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.business.fibu.EmployeeService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.common.BicValidator;
@@ -52,7 +50,6 @@ import org.slf4j.Logger;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.Function;
 
 public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditPage> {
   private static final long serialVersionUID = 8746545908106124484L;

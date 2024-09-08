@@ -25,7 +25,6 @@ package org.projectforge.web;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 
