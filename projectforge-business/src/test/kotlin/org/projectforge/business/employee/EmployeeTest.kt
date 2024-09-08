@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.GenderConverter
 import org.projectforge.business.fibu.IsoGender
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
@@ -39,7 +39,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 

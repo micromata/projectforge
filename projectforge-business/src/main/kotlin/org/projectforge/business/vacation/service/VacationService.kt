@@ -26,7 +26,7 @@ package org.projectforge.business.vacation.service
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao

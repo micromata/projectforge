@@ -26,7 +26,7 @@ package org.projectforge.plugins.merlin.rest
 import de.micromata.merlin.excel.ExcelSheet
 import de.micromata.merlin.word.templating.VariableType
 import mu.KotlinLogging
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.service.UserPrefService
 import org.projectforge.business.user.service.UserService
