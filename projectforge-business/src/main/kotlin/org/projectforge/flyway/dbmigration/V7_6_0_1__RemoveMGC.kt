@@ -49,6 +49,7 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
         log.info { "Migrating attributes with period validity from mgc: Employee (annual leave, status) and Visitorbook" }
         val dataSource = context.configuration.dataSource
         migrateEmployees(dataSource)
+        migrateVisitorbook(dataSource)
     }
 
     internal fun migrateEmployees(dataSource: DataSource) {
@@ -68,7 +69,6 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
                 dbAttr.validFrom,
                 dbAttr.value,
             )
-            dbAttr.removeTransientAttribute("oldAttr")
             log.info { "Migrated employee attribute: $dbAttr" }
         }
     }
@@ -77,7 +77,7 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
         val list = read(
             dataSource,
             "t_fibu_employee",
-            "select a.pk, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id as object_id, a.group_name, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
+            "select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
                     + "from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent "
                     + "WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY pk",
             type = TYPE.EMPLOYEE,
@@ -85,7 +85,7 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
         val resultList = mutableListOf<EmployeeValidityPeriodAttrDO>()
         list.forEach { attr ->
             val dbAttr = EmployeeValidityPeriodAttrDO()
-            dbAttr.id = attr.pk // Re-use the pk.
+            dbAttr.id = attr.pk2 // Re-use the pk.
             if (attr.groupName == "employeestatus") {
                 val status = EmployeeStatus.findByi18nKey(attr.value)
                     ?: throw IllegalStateException("Status not found for '${attr.value}' for attribute: $attr")
@@ -103,17 +103,46 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
             dbAttr.validFrom = attr.startTime?.toLocalDate()
             dbAttr.setTransientAttribute("oldAttr", attr)
             resultList.add(dbAttr)
-            log.info { "Migration of employee attribute: $dbAttr" }
+            log.info { "Read employee attribute: $dbAttr" }
         }
         return resultList
+    }
+
+    internal fun migrateVisitorbook(dataSource: DataSource) {
+        val dbAttrs = readVisitorBook(dataSource)
+        dbAttrs.forEach { dbAttr ->
+            if (dbAttr.getTransientAttribute("oldArrivedAttr") == null && dbAttr.getTransientAttribute("oldDepartedAttr") == null) {
+                throw IllegalStateException("oldArrivedAttr and oldDepartedAttr is null: $dbAttr")
+            }
+        }
+        val jdbcTemplate = JdbcTemplate(dataSource)
+        dbAttrs.forEach { dbAttr ->
+            val oldAttr = dbAttr.getTransientAttribute("oldArrivedAttr") as? TimedAttr?
+                ?: dbAttr.getTransientAttribute("oldDepartedAttr") as? TimedAttr?
+            requireNotNull(oldAttr)
+            val sqlInsert =
+                "INSERT INTO t_orga_visitorbook_validity_period_attr (pk, created, last_update, deleted, visitorbook_fk, date_of_visit, arrived, departed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            jdbcTemplate.update(
+                sqlInsert,
+                dbAttr.id,
+                oldAttr.createdatB,
+                oldAttr.modifiedatB, // Ignore oldDepartedAttr (doesn't really matter)
+                false,
+                dbAttr.visitorbook!!.id,
+                dbAttr.dateOfVisit,
+                dbAttr.arrived,
+                dbAttr.departed,
+            )
+            log.info { "Migrated visitorbook attribute: $dbAttr" }
+        }
     }
 
     internal fun readVisitorBook(dataSource: DataSource): List<VisitorbookValidityPeriodAttrDO> {
         val list = read(
             dataSource,
             "t_orga_visitorbook",
-            "select a.pk, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.visitor_id as object_id, a.group_name, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
-                    + "from t_orga_visitorbook_timed a JOIN t_orga_visitorbook_timedattr b ON a.pk=b.parent ORDER BY pk",
+            "select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.visitor_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
+                    + "from t_orga_visitorbook_timed a JOIN t_orga_visitorbook_timedattr b ON a.pk=b.parent ORDER BY a.pk",
             readEndTime = false,
             type = TYPE.VISITORBOOK,
         )
@@ -127,6 +156,7 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
             val dbAttr = existingAttr ?: VisitorbookValidityPeriodAttrDO()
             if (existingAttr == null) {
                 result.add(dbAttr)
+                dbAttr.id = attr.pk2
             }
             val visitorbook = VisitorbookDO()
             visitorbook.id = attr.objectId
@@ -138,6 +168,7 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
             if (dbAttr.dateOfVisit == null) {
                 throw IllegalStateException("Date of visit (startTime) is null: $attr")
             }
+            // modifiedat dates aren't correct, but migrate them anyway.
             if (attr.propertyname == "arrive") {
                 if (existingAttr?.arrived != null) {
                     throw IllegalStateException("Arrived already set: $dbAttr")
@@ -155,17 +186,8 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
             }
         }
         result.forEach { dbAttr ->
-            log.info { "Migration of visitorbook attribute: $dbAttr" }
+            log.info { "Read visitorbook attributes: $dbAttr" }
         }
-        /*        list.sortedWith(Comparator { o1, o2 ->
-                    val compare = (o1.bundleName ?: "ZZZ").compareTo(o2.bundleName ?: "ZZZ")
-                    if (compare != 0) {
-                        return@Comparator compare
-                    }
-                    return@Comparator o1.i18nKey.compareTo(o2.i18nKey)
-                }) { it.pk }.forEach {
-                    log.info { "Migration of visitorbook attribute: $it" }
-                }*/
         return result
     }
 
@@ -200,11 +222,18 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
             }
             list.add(data)
         }
-        val occurrence = list.groupingBy { it.pk }.eachCount()
         if (type == TYPE.EMPLOYEE) {
-            val notUnique = list.filter { (occurrence[it.pk] ?: 0) > 1 }
+            val occurrence = list.groupingBy { it.pk1 }.eachCount()
+            val notUnique = list.filter { (occurrence[it.pk1] ?: 0) > 1 }
             if (notUnique.isNotEmpty()) {
-                notUnique.forEach { log.error("Not unique: ${it.pk}, group=${it.groupName}, property=${it.propertyname}") }
+                notUnique.forEach { log.error("Not unique: ${it.pk1}, group=${it.groupName}, property=${it.propertyname}") }
+                throw IllegalStateException("Not unique entries found: ${notUnique.size}")
+            }
+        } else {
+            val occurrence = list.groupingBy { it.pk2 }.eachCount()
+            val notUnique = list.filter { (occurrence[it.pk2] ?: 0) > 1 }
+            if (notUnique.isNotEmpty()) {
+                notUnique.forEach { log.error("Not unique: ${it.pk2}, group=${it.groupName}, property=${it.propertyname}") }
                 throw IllegalStateException("Not unique entries found: ${notUnique.size}")
             }
         }
@@ -215,7 +244,8 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
 private enum class TYPE { EMPLOYEE, VISITORBOOK }
 
 private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
-    val pk = resultSet.getInt("pk")
+    val pk1 = resultSet.getInt("pk1")
+    val pk2 = resultSet.getInt("pk2")
     val createdatA = resultSet.getTimestamp("createdat")
     val createdbyA = resultSet.getString("createdby")
     val modifiedatA = resultSet.getTimestamp("modifiedat")
@@ -237,29 +267,29 @@ private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
 
     init {
         if (endTime != null) {
-            throw IllegalStateException("endTime isn't null in entry with pk=$pk: $endTime")
+            throw IllegalStateException("endTime isn't null in entry with pk=$pk1: $endTime")
         }
         if (type == TYPE.EMPLOYEE && createdbyA != createdbyB) {
-            throw IllegalStateException("createdby doesn't match with pk=$pk: createdbyA: $createdbyA != createdbyB: $createdbyB")
+            throw IllegalStateException("createdby doesn't match with pk=$pk1: createdbyA: $createdbyA != createdbyB: $createdbyB")
         }
         if (type == TYPE.EMPLOYEE && !isSameTimestamp(createdatA, createdatB)) {
-            throw IllegalStateException("createdat doesn't match with pk=$pk: createdatA: $createdatA != createdatB: $createdatB")
+            throw IllegalStateException("createdat doesn't match with pk=$pk1: createdatA: $createdatA != createdatB: $createdatB")
         }
         if (type == TYPE.EMPLOYEE && modifiedbyA != modifiedbyB) {
-            throw IllegalStateException("modifiedby doesn't match with pk=$pk: modifiedbyA: $modifiedbyA != modifiedbyB: $modifiedbyB")
+            throw IllegalStateException("modifiedby doesn't match with pk=$pk1: modifiedbyA: $modifiedbyA != modifiedbyB: $modifiedbyB")
         }
         if (type == TYPE.EMPLOYEE && !isSameTimestamp(modifiedatA, modifiedatB)) {
-            throw IllegalStateException("modifiedat doesn't match with pk=$pk: modifiedatA: $modifiedatA != modifiedatB: $modifiedatB")
+            throw IllegalStateException("modifiedat doesn't match with pk=$pk1: modifiedatA: $modifiedatA != modifiedatB: $modifiedatB")
         }
         if (type == TYPE.EMPLOYEE) {
             if (groupName == "employeeannualleave" && propertyname != "employeeannualleavedays" ||
                 groupName == "employeestatus" && propertyname != "status"
             ) {
-                throw IllegalStateException("propertyname isn't '$propertyname' for groupName '$groupName' in entry with pk=$pk: $propertyname")
+                throw IllegalStateException("propertyname isn't '$propertyname' for groupName '$groupName' in entry with pk=$pk1: $propertyname")
             }
         } else {
             if (groupName != "timeofvisit" || propertyname != "arrive" && propertyname != "depart") {
-                throw IllegalStateException("groupName isn't 'visitorbook' and or propertyname isn't 'arrived/departed' in entry with pk=$pk: groupName=$groupName, propertyname=$propertyname")
+                throw IllegalStateException("groupName isn't 'visitorbook' and or propertyname isn't 'arrived/departed' in entry with pk=$pk1: groupName=$groupName, propertyname=$propertyname")
             }
         }
         log.info { "Read $type: $this" }
@@ -276,7 +306,7 @@ private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
     }
 
     override fun toString(): String {
-        return "pk=$pk: created=${show(createdatA, createdatB)} (${show(createdbyA, createdbyB)}), modified=${
+        return "pk=$pk1: created=${show(createdatA, createdatB)} (${show(createdbyA, createdbyB)}), modified=${
             show(
                 modifiedatA,
                 modifiedatB
@@ -319,6 +349,8 @@ fun main() {
         this.username = username
         this.password = password
     }
-    V7_6_0__RemoveMGC().migrateEmployees(dataSource)
+    // V7_6_0__RemoveMGC().readEmployees(dataSource)
+    // V7_6_0__RemoveMGC().migrateEmployees(dataSource)
     //V7_6_0__RemoveMGC().readVisitorBook(dataSource)
+    V7_6_0__RemoveMGC().migrateVisitorbook(dataSource)
 }
