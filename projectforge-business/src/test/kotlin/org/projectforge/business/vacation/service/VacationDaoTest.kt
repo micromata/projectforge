@@ -29,7 +29,7 @@ import org.junit.jupiter.api.fail
 import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus

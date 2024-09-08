@@ -32,7 +32,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
-import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.fibu.EmployeeService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.utils.MyImportedElement;

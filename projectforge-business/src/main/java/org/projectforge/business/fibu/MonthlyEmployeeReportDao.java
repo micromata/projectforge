@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;

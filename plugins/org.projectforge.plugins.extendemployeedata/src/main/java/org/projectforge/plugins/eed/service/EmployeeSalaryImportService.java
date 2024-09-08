@@ -31,7 +31,7 @@ import org.apache.commons.lang3.Validate;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
-import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.fibu.EmployeeService;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.plugins.eed.excelimport.EmployeeSalaryExcelImporter;
 import org.springframework.beans.factory.annotation.Autowired;

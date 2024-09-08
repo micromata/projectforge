@@ -29,7 +29,7 @@ import org.projectforge.business.configuration.DomainService
 import org.projectforge.business.employee.EmployeeTest
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.api.EmployeeService
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.utils.HtmlHelper
 import org.projectforge.business.vacation.model.VacationDO
