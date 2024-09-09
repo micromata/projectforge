@@ -23,11 +23,12 @@
 
 package org.projectforge.business.employee
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.GenderConverter
-import org.projectforge.business.fibu.IsoGender
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.ProjectForgeGroup
@@ -41,7 +42,6 @@ import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.Month
 
 class EmployeeTest : AbstractTestBase() {
     @Autowired
@@ -113,10 +113,12 @@ class EmployeeTest : AbstractTestBase() {
         /**
          * @param email: Optional mail address of the user.
          */
-        fun createEmployee(employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String,
-                           hrAccess: Boolean = false,
-                           groupDao: GroupDao? = null,
-                           email: String? = null): EmployeeDO {
+        fun createEmployee(
+            employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String,
+            hrAccess: Boolean = false,
+            groupDao: GroupDao? = null,
+            email: String? = null
+        ): EmployeeDO {
             val loggedInUser = ThreadLocalUserContext.user
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
