@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.fibu.*
@@ -37,7 +38,6 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,7 +47,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 import java.util.*
-import java.util.stream.Collectors
 
 private val log = KotlinLogging.logger {}
 
@@ -75,6 +74,11 @@ class EmployeeService {
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @PostConstruct
+    private fun postConstruc() {
+        employeeDao.employeeService = this
+    }
 
     fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
         return employeeDao.getList(filter)
@@ -144,9 +148,7 @@ class EmployeeService {
         } else {
             employeeDao.internalLoadAll()
         }
-        return employeeList.stream()
-            .filter { employee: EmployeeDO -> this.isEmployeeActive(employee) }
-            .collect(Collectors.toList())
+        return employeeList.filter { employee -> isEmployeeActive(employee) }
     }
 
     fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
@@ -171,24 +173,18 @@ class EmployeeService {
         return list
     }
 
-    fun getEmployeeStatusEntries(employee: EmployeeDO): List<EmployeeValidityPeriodAttrDO> {
-        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS)
-        return list
-    }
-
     fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
         val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS)
-        log.error { "******* Not yet migrated." }
-return null
-/*        PizzaStatusEnum.valueOf(pizzaEnumValue)
-        val status = getActiveEntry(list)?.value
-
-        final EmployeeTimedDO attrRow = timeableService
-            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date ());
-        if (attrRow != null && !StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))) {
-            return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
+        val validEntry = getActiveEntry(list)
+        val status = validEntry?.value
+        if (status != null) {
+            try {
+                return EmployeeStatus.valueOf(status)
+            } catch (e: IllegalArgumentException) {
+                log.error { "Oups, unknown status value in validityPeriodAttr: $validEntry" }
+            }
         }
-        return null*/
+        return null
     }
 
     fun getAnnualLeaveDays(employee: EmployeeDO?): BigDecimal? {
@@ -273,31 +269,5 @@ return null
         }
         monthlyEmployeeReport.calculate()
         return monthlyEmployeeReport
-    }
-
-    fun isFulltimeEmployee(employee: EmployeeDO?, selectedDate: PFDateTime): Boolean {
-        val startOfMonth = selectedDate.utilDate
-        val dt = selectedDate.plusMonths(1).minusDays(1)
-        val endOfMonth = dt.utilDate
-        log.error("****** Not yet migrated.")
-        return true
-
-        /*
-    final List<EmployeeTimedDO> attrRows = timeableService
-            .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
-
-    final EmployeeTimedDO rowValidAtBeginOfMonth = timeableService
-            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getUtilDate());
-
-    if (rowValidAtBeginOfMonth != null) {
-      attrRows.add(rowValidAtBeginOfMonth);
-    }
-
-    return attrRows
-            .stream()
-            .map(row -> row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))
-            .filter(Objects::nonNull)
-            .anyMatch(s -> EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(s) || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(s));
-            */
     }
 }

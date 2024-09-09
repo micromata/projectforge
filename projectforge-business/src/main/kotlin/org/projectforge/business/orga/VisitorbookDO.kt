@@ -25,6 +25,8 @@ package org.projectforge.business.orga
 
 import jakarta.persistence.*
 import mu.KotlinLogging
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -94,6 +96,11 @@ class VisitorbookDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
 */
+    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "visitorbook")
+    @Fetch(FetchMode.SELECT)
+    // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
+    var entries: MutableList<VisitorbookEntryDO>? = null
+
     override fun copyValuesFrom(src: BaseDO<out Serializable>, vararg ignoreFields: String): EntityCopyStatus {
         var modificationStatus = super.copyValuesFrom(src, "timeableAttributes")
         //wval src = obj as VisitorbookDO
@@ -101,5 +108,11 @@ class VisitorbookDO : DefaultBaseDO() {
         // modificationStatus = modificationStatus
         //    .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src))
         return modificationStatus
+    }
+
+    fun addEntry(entry: VisitorbookEntryDO) {
+        entries?.add(entry) ?: run {
+            entries = mutableListOf(entry)
+        }
     }
 }

@@ -24,12 +24,10 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.NoResultException
-import jakarta.persistence.Tuple
 import mu.KotlinLogging
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
-import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
 import org.projectforge.framework.persistence.api.BaseDao
@@ -37,7 +35,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -58,6 +55,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     @Autowired
     private lateinit var kost1Dao: Kost1Dao
 
+    // Set by EmployeeService in PostConstruct for avoiding circular dependencies.
+    internal lateinit var employeeService: EmployeeService
+
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
@@ -74,14 +74,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     }
 
     open fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
-        log.error("****** Not yet migrated.")
-        /*
-    final EmployeeTimedDO attrRow = timeableService
-            .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
-    if (attrRow != null && !StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))) {
-      return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
-    }*/
-        return null
+        return employeeService.getEmployeeStatus(employee)
     }
 
     open fun findByUserId(userId: Int?): EmployeeDO? {
@@ -182,13 +175,12 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         }
     }
 
+    /**
+     * Sets the employee status from validity period attrs.
+     */
     open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
         employeeDO ?: return
-        log.error("***** Not yet implemented: timeable status")
-        /*employeeDO.timeableAttributes.filter { it.groupName == InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME }
-          .sortedBy { it.startTime }.lastOrNull()?.let { timedDO ->
-            employeeDO.status = EmployeeStatus.findByi18nKey(timedDO.getAttribute("status") as String)
-        }*/
+        employeeDO.status = employeeService.getEmployeeStatus(employeeDO)
     }
 
     override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {

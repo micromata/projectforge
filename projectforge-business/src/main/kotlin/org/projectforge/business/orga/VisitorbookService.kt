@@ -20,6 +20,7 @@
 // with this program; if not, see http://www.gnu.org/licenses/.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.orga
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -31,10 +32,10 @@ import org.springframework.stereotype.Service
 @Service
 class VisitorbookService : IDao<VisitorbookDO?> {
     @Autowired
-    private val visitorbookDao: VisitorbookDao? = null
+    private lateinit var visitorbookDao: VisitorbookDao
 
     override fun getList(filter: BaseSearchFilter): List<VisitorbookDO> {
-        return visitorbookDao!!.getList(filter)
+        return visitorbookDao.getList(filter)
     }
 
     override fun isHistorizable(): Boolean {
@@ -42,24 +43,21 @@ class VisitorbookService : IDao<VisitorbookDO?> {
     }
 
     override fun hasInsertAccess(user: PFUserDO): Boolean {
-        return visitorbookDao!!.hasInsertAccess(user)
+        return visitorbookDao.hasInsertAccess(user)
     }
 
-    fun getAssignedContactPersonsIds(data: VisitorbookDO?): List<Int?> {
-        val assignedContactPersons: MutableList<Int?> = ArrayList()
-        if (data?.contactPersons != null) {
-            for (employee in data.contactPersons!!) {
-                assignedContactPersons.add(employee.id)
-            }
+    fun getAssignedContactPersonsIds(data: VisitorbookDO?): List<Int> {
+        val assignedContactPersons = mutableListOf<Int>()
+        data?.contactPersons?.forEach { employee ->
+            employee.id?.let { assignedContactPersons.add(it) }
         }
         return assignedContactPersons
     }
 
-    fun addNewEntry(visitor: VisitorbookDO, groupName: String?): VisitorbookEntryDO {
-        val nw: VisitorbookTimedDO = VisitorbookTimedDO()
-        nw.setVisitor(visitor)
-        nw.setGroupName(groupName)
-        visitor.getTimeableAttributes().add(nw)
-        return nw
+    fun addNewEntry(visitorBook: VisitorbookDO): VisitorbookEntryDO {
+        val entry = VisitorbookEntryDO()
+        entry.visitorbook = visitorBook
+        visitorBook.addEntry(entry)
+        return entry
     }
 }
