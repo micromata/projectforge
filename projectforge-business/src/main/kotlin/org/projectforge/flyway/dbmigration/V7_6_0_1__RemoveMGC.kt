@@ -32,7 +32,7 @@ import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
 import org.projectforge.business.fibu.EmployeeValidityPeriodAttrType
 import org.projectforge.business.orga.VisitorbookDO
-import org.projectforge.business.orga.VisitorbookValidityPeriodAttrDO
+import org.projectforge.business.orga.VisitorbookEntryDO
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.jdbc.support.rowset.SqlRowSet
@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  */
 class V7_6_0__RemoveMGC : BaseJavaMigration() {
     override fun migrate(context: Context) {
-        log.info { "Migrating attributes with period validity from mgc: Employee (annual leave, status) and Visitorbook" }
+        log.info { "Migrating attributes with period validity from mgc: Employee (annual leave, status) and entries from Visitorbook" }
         val dataSource = context.configuration.dataSource
         migrateEmployees(dataSource)
         migrateVisitorbook(dataSource)
@@ -121,7 +121,7 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
                 ?: dbAttr.getTransientAttribute("oldDepartedAttr") as? TimedAttr?
             requireNotNull(oldAttr)
             val sqlInsert =
-                "INSERT INTO t_orga_visitorbook_validity_period_attr (pk, created, last_update, deleted, visitorbook_fk, date_of_visit, arrived, departed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO t_orga_visitorbook_entry (pk, created, last_update, deleted, visitorbook_fk, date_of_visit, arrived, departed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             jdbcTemplate.update(
                 sqlInsert,
                 dbAttr.id,
@@ -133,11 +133,11 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
                 dbAttr.arrived,
                 dbAttr.departed,
             )
-            log.info { "Migrated visitorbook attribute: $dbAttr" }
+            log.info { "Migrated visitorbook entry: $dbAttr" }
         }
     }
 
-    internal fun readVisitorBook(dataSource: DataSource): List<VisitorbookValidityPeriodAttrDO> {
+    internal fun readVisitorBook(dataSource: DataSource): List<VisitorbookEntryDO> {
         val list = read(
             dataSource,
             "t_orga_visitorbook",
@@ -146,14 +146,14 @@ class V7_6_0__RemoveMGC : BaseJavaMigration() {
             readEndTime = false,
             type = TYPE.VISITORBOOK,
         )
-        val result = mutableListOf<VisitorbookValidityPeriodAttrDO>()
+        val result = mutableListOf<VisitorbookEntryDO>()
         list.forEach { attr ->
             if (attr.startTime == null) {
                 throw IllegalStateException("startTime is null: $attr")
             }
             val existingAttr =
                 result.find { it.visitorbook?.id == attr.objectId && it.dateOfVisit == attr.startTime.toLocalDate() }
-            val dbAttr = existingAttr ?: VisitorbookValidityPeriodAttrDO()
+            val dbAttr = existingAttr ?: VisitorbookEntryDO()
             if (existingAttr == null) {
                 result.add(dbAttr)
                 dbAttr.id = attr.pk2

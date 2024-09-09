@@ -39,13 +39,13 @@ import java.time.LocalDate
  */
 @Entity
 @Table(
-    name = "t_orga_visitorbook_validity_period_attr",
+    name = "t_orga_visitorbook_entry",
     indexes = [Index(
         name = "idx_fk_t_orga_visitorbook_val_per_employee_id", columnList = "visitorbook_id"
     )]
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class VisitorbookValidityPeriodAttrDO : Serializable, AbstractBaseDO<Int>() {
+open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Int>() {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")

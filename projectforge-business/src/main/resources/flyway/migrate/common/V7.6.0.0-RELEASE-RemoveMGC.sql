@@ -2,7 +2,7 @@
 
 -- Replaces tables t_orga_visitorbook_timed, t_orga_visitorbook_timedattr and t_orga_visitorbook_timedattrdata.
 -- t_orga_visitorbook_timedattrdata wasn't in use and empty.
-CREATE TABLE t_orga_visitorbook_validity_period_attr
+CREATE TABLE t_orga_visitorbook_entry
 (
     pk                        INTEGER                       NOT NULL,
     created                   TIMESTAMP WITHOUT TIME ZONE,
@@ -15,14 +15,14 @@ CREATE TABLE t_orga_visitorbook_validity_period_attr
     comment                   CHARACTER VARYING(4000)
 );
 
-ALTER TABLE t_orga_visitorbook_validity_period_attr
-    ADD CONSTRAINT t_orga_visitorbook_validity_period_attr_pk PRIMARY KEY (pk);
+ALTER TABLE t_orga_visitorbook_entry
+    ADD CONSTRAINT t_orga_visitorbook_entry_pk PRIMARY KEY (pk);
 
-CREATE INDEX idx_t_orga_visitorbook_validity_period_attr_fk_visitorbook
-    ON t_orga_visitorbook_validity_period_attr (visitorbook_fk);
+CREATE INDEX idx_t_orga_visitorbook_entry_fk_visitorbook
+    ON t_orga_visitorbook_entry (visitorbook_fk);
 
-ALTER TABLE t_orga_visitorbook_validity_period_attr
-    ADD CONSTRAINT t_orga_visitorbook_validity_period_attr_fk_visitorbook FOREIGN KEY (visitorbook_fk) REFERENCES t_orga_visitorbook (pk);
+ALTER TABLE t_orga_visitorbook_entry
+    ADD CONSTRAINT t_orga_visitorbook_entry_fk_visitorbook FOREIGN KEY (visitorbook_fk) REFERENCES t_orga_visitorbook (pk);
 
 -- Replaces tables t_fibu_employee_timed, t_fibu_employee_timedattr and t_fibu_employee_timedattrdata.
 -- t_fibu_employee_timedattrdata wasn't in use and empty.
