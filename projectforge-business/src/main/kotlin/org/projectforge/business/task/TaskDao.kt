@@ -24,9 +24,9 @@
 package org.projectforge.business.task
 
 import jakarta.persistence.Tuple
+import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.commons.lang3.Validate
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserDao
@@ -46,12 +46,12 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.not
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.web.WicketSupport
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.*
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -166,7 +166,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * @return Duration in seconds.
      */
     fun readTotalDuration(taskId: Int?): Long {
-        log.debug("Calculating duration for all tasks")
+        log.debug { "Calculating duration for task $taskId" }
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
             // Expected type is Integer or Long.
@@ -214,7 +214,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         if (myFilter.isClosed) {
             col.add(TaskStatus.C)
         }
-        if (col.size > 0) {
+        if (col.isNotEmpty()) {
             queryFilter.add(isIn<Any>("status", col))
         } else {
             // Note: Result set should be empty, because every task should has one of the following status values.
@@ -267,7 +267,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     override fun afterSaveOrModify(obj: TaskDO) {
-        taskTree!!.addOrUpdateTaskNode(obj)
+        taskTree.addOrUpdateTaskNode(obj)
     }
 
     /**
@@ -297,12 +297,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     override fun hasUpdateAccess(
-        user: PFUserDO, obj: TaskDO, dbObj: TaskDO,
+        user: PFUserDO, obj: TaskDO, dbObj: TaskDO?,
         throwException: Boolean
     ): Boolean {
-        Validate.notNull(dbObj)
-        Validate.notNull(obj)
-        if (taskTree!!.isRootNode(obj)) {
+        requireNotNull(dbObj)
+        if (taskTree.isRootNode(obj)) {
             if (obj.parentTaskId != null) {
                 throw UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE)
             }
@@ -311,11 +310,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
                 ProjectForgeGroup.FINANCE_GROUP
             )
         }
-        Validate.notNull(dbObj.parentTaskId)
+        requireNotNull(dbObj.parentTaskId)
         if (obj.parentTaskId == null) {
             throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN)
         }
-        val parent = taskTree.getTaskNodeById(obj.parentTaskId)
+        taskTree.getTaskNodeById(obj.parentTaskId)
             ?: throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND)
         // Checks cyclic and self reference. The parent task is not allowed to be a self reference.
         checkCyclicReference(obj)
@@ -356,7 +355,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             return false
         }
         val taskId = if (obj.id != null) obj.id else obj.parentTaskId
-        val projekt = taskTree!!.getProjekt(taskId)
+        val projekt = taskTree.getProjekt(taskId)
         // Parent task because id of current task is null and project can't be found.
         return projekt != null && userGroupCache.isUserProjectManagerOrAssistantForProject(projekt)
     }
@@ -438,10 +437,9 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     override fun hasDeleteAccess(
-        user: PFUserDO, obj: TaskDO, dbObj: TaskDO,
+        user: PFUserDO, obj: TaskDO, dbObj: TaskDO?,
         throwException: Boolean
     ): Boolean {
-        Validate.notNull(obj)
         if (hasUpdateAccess(user, obj, dbObj, throwException)) {
             return true
         }
@@ -480,7 +478,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             // Self reference
             throw UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE)
         }
-        val parent = taskTree!!.getTaskNodeById(obj.parentTaskId)
+        val parent = taskTree.getTaskNodeById(obj.parentTaskId)
             ?: // Task is orphan because it has no parent task.
             throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND)
         val node = taskTree.getTaskNodeById(obj.id)
@@ -494,7 +492,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * Checks only root task (can't be deleted).
      */
     override fun onDelete(obj: TaskDO) {
-        if (taskTree!!.isRootNode(obj)) {
+        if (taskTree.isRootNode(obj)) {
             throw UserException("task.error.couldNotDeleteRootTask")
         }
     }
@@ -518,7 +516,6 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         const val I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND: String = "task.error.parentTaskNotFound"
         const val I18N_KEY_ERROR_PARENT_TASK_NOT_GIVEN: String = "task.error.parentTaskNotGiven"
         const val I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS: String = "task.error.duplicateChildTasks"
-        private val log: Logger = LoggerFactory.getLogger(TaskDao::class.java)
         val ADDITIONAL_SEARCH_FIELDS =
             arrayOf("responsibleUser.username", "responsibleUser.firstname", "responsibleUser.lastname")
     }

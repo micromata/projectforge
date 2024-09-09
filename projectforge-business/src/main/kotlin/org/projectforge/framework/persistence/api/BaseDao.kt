@@ -1107,7 +1107,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param obj   Check access to this object.
      * @see .hasAccess
      */
-    open fun hasUpdateAccess(user: PFUserDO, obj: O, dbObj: O, throwException: Boolean): Boolean {
+    open fun hasUpdateAccess(user: PFUserDO, obj: O, dbObj: O?, throwException: Boolean): Boolean {
         return hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException)
     }
 
@@ -1129,7 +1129,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param dbObj current version of this object in the data base.
      * @see .hasAccess
      */
-    open fun hasDeleteAccess(user: PFUserDO, obj: O, dbObj: O, throwException: Boolean): Boolean {
+    open fun hasDeleteAccess(user: PFUserDO, obj: O, dbObj: O?, throwException: Boolean): Boolean {
         return hasAccess(user, obj, dbObj, OperationType.DELETE, throwException)
     }
 

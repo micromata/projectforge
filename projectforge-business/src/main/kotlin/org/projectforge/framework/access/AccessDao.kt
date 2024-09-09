@@ -209,10 +209,8 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      * @see org.projectforge.framework.persistence.api.BaseDao.hasSelectAccess
      */
     override fun hasUserSelectAccess(user: PFUserDO, obj: GroupTaskAccessDO, throwException: Boolean): Boolean {
-        Validate.notNull(obj)
         var result = accessChecker.isUserMemberOfAdminGroup(user)
         if (!result && !obj.deleted) {
-            Validate.notNull(user)
             result = userGroupCache.isUserMemberOfGroup(user.id, obj.groupId)
         }
         if (throwException && !result) {
@@ -238,9 +236,10 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      * @see org.projectforge.framework.persistence.api.BaseDao.hasUpdateAccess
      */
     override fun hasUpdateAccess(
-        user: PFUserDO, obj: GroupTaskAccessDO, dbObj: GroupTaskAccessDO,
+        user: PFUserDO, obj: GroupTaskAccessDO, dbObj: GroupTaskAccessDO?,
         throwException: Boolean
     ): Boolean {
+        requireNotNull(dbObj)
         requireNotNull(dbObj.taskId)
         requireNotNull(obj.taskId)
         if (!accessChecker.hasPermission(
@@ -302,14 +301,14 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
     }
 
     override fun afterUpdate(obj: GroupTaskAccessDO, dbObj: GroupTaskAccessDO?) {
-        Validate.notNull(dbObj)
+        requireNotNull(dbObj)
         val entries = obj.orderedEntries
         val bufNew = StringBuilder()
         val bufOld = StringBuilder()
         var firstNew = true
         var firstOld = true
         for (entry in entries) {
-            val dbEntry = dbObj!!.getAccessEntry(entry.accessType)
+            val dbEntry = dbObj.getAccessEntry(entry.accessType)
             if (dbEntry != null && dbEntry.accessSelect == entry.accessSelect && dbEntry.accessInsert == entry.accessInsert && dbEntry.accessUpdate == entry.accessUpdate && dbEntry.accessDelete == entry.accessDelete) {
                 // Nothing changed.
                 continue

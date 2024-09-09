@@ -24,6 +24,7 @@
 package org.projectforge.business.timesheet
 
 import jakarta.persistence.Tuple
+import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.Validate
 import org.apache.commons.lang3.builder.ToStringBuilder
@@ -64,10 +65,11 @@ import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.utils.NumberHelper.isEqual
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -192,7 +194,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 taskIds.add(node.id)
                 queryFilter.add(isIn<Any>("task.id", taskIds))
                 if (log.isDebugEnabled) {
-                    log.debug("search in tasks: $taskIds")
+                    log.debug { "search in tasks: $taskIds" }
                 }
             } else {
                 queryFilter.add(eq("task.id", filter.taskId))
@@ -360,8 +362,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     open fun hasTimeOverlap(timesheet: TimesheetDO, throwException: Boolean): Boolean {
         val begin = System.currentTimeMillis()
-        Validate.notNull(timesheet)
-        Validate.notNull(timesheet.user)
+        requireNotNull(timesheet.user)
         val queryFilter = QueryFilter()
         queryFilter.add(eq("user", timesheet.user!!))
         queryFilter.add(eq("deleted", false))
@@ -372,11 +373,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             queryFilter.add(ne("id", timesheet.id!!))
         }
         val list = getList(queryFilter)
-        if (list != null && list.size > 0) {
+        if (list.isNotEmpty()) {
             val ts = list[0]
             if (throwException) {
                 log.info("Time sheet collision detected of time sheet $timesheet with existing time sheet $ts")
-                val startTime = DateHelper.formatIsoTimestamp(ts!!.startTime)
+                val startTime = DateHelper.formatIsoTimestamp(ts.startTime)
                 val stopTime = DateHelper.formatIsoTimestamp(ts.stopTime)
                 throw UserException(
                     "timesheet.error.timeperiodOverlapDetection", MessageParam(
@@ -456,7 +457,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 // em.detach(obj)
                 obj.description = HIDDEN_FIELD_MARKER
                 obj.location = HIDDEN_FIELD_MARKER
-                log.debug("User has no access to own time sheet (or project manager): $obj")
+                log.debug { "User has no access to own time sheet (or project manager): $obj" }
                 return true
             }
         }
@@ -468,12 +469,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     override fun hasUpdateAccess(
-        user: PFUserDO, obj: TimesheetDO, dbObj: TimesheetDO, throwException: Boolean
+        user: PFUserDO, obj: TimesheetDO, dbObj: TimesheetDO?, throwException: Boolean
     ): Boolean {
-        Validate.notNull(dbObj)
-        Validate.notNull(obj)
-        Validate.notNull(dbObj.taskId)
-        Validate.notNull(obj.taskId)
+        requireNotNull(dbObj)
+        requireNotNull(dbObj.taskId)
+        requireNotNull(obj.taskId)
         if (!hasAccess(user, obj, dbObj, OperationType.UPDATE, throwException)) {
             return false
         }
@@ -646,7 +646,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             }
         }
         val taskNode = taskTree.getTaskNodeById(timesheet.taskId)
-        Validate.notNull(taskNode)
+        requireNotNull(taskNode)
         val list = taskNode.pathToRoot
         list.add(0, taskTree.rootTaskNode)
         for (node in list) {
@@ -738,6 +738,5 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             "kost2.description",
             "kost2.projekt.name"
         )
-        private val log = LoggerFactory.getLogger(TimesheetDao::class.java)
     }
 }
