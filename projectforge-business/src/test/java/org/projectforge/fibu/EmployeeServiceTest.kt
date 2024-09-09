@@ -22,95 +22,101 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.fibu
 
-import jakarta.persistence.NoResultException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
+import java.time.Month
 
 class EmployeeServiceTest : AbstractTestBase() {
     @Autowired
-    private val employeeService: EmployeeService? = null
+    private lateinit var employeeService: EmployeeService
+
+    @Autowired
+    private lateinit var employeeDao: EmployeeDao
 
     @Test
-    fun testInsertDelete() {
-        logon(TEST_FULL_ACCESS_USER)
-        val pfUserDO = getUser(TEST_FINANCE_USER)
-        val employeeDO = EmployeeDO()
-        employeeDO.accountHolder = "Horst Mustermann"
-        employeeDO.abteilung = "Finance"
-        employeeDO.user = pfUserDO
-        Assertions.fail<Any>("TODO: Implement employeeService.save")
-        val id: Int = employeeService.save(employeeDO)
-        Assertions.assertTrue(id != null && id > 0)
-        employeeService.delete(employeeDO)
-        var employeeDO1: EmployeeDO? = null
-        val exceptionList: MutableList<Exception> = ArrayList()
-        try {
-            employeeDO1 = employeeService.selectByPkDetached(id)
-        } catch (e: NoResultException) {
-            exceptionList.add(e)
-        }
-
-        Assertions.assertEquals(1, exceptionList.size)
-        Assertions.assertNull(employeeDO1)
+    fun isEmployeeActiveWithoutAustrittsdatumTest() {
+        val employee = EmployeeDO()
+        val result = employeeService.isEmployeeActive(employee)
+        Assertions.assertTrue(result)
     }
 
     @Test
-    fun testUpdateAttribute() {
-        logon(TEST_FULL_ACCESS_USER)
-        val pfUserDO = getUser(TEST_PROJECT_ASSISTANT_USER)
-        val employeeDO = EmployeeDO()
-        employeeDO.accountHolder = "Vorname Name"
-        val abteilung = "Test"
-        employeeDO.abteilung = abteilung
-        employeeDO.user = pfUserDO
-        //    employeeService.save(employeeDO);
-        val expectedNewAccountHolder = "Firstname Lastname"
-        //  employeeService.updateAttribute(pfUserDO.getId(), expectedNewAccountHolder, "accountHolder");
-        val employeeByUserId = employeeService!!.getEmployeeByUserId(pfUserDO.id)
-        Assertions.assertEquals(employeeByUserId!!.abteilung, abteilung)
-        Assertions.assertEquals(employeeByUserId.accountHolder, expectedNewAccountHolder)
+    fun isEmployeeActiveWithAustrittsdatumTest() {
+        val employee = EmployeeDO()
+        val dt = LocalDate.now().plusMonths(1)
+        employee.austrittsDatum = dt
+        val result = employeeService.isEmployeeActive(employee)
+        Assertions.assertTrue(result)
     }
 
-    @get:Test
-    val isEmployeeActiveWithoutAustrittsdatumTest: Unit
-        get() {
-            val employee = EmployeeDO()
-            val result = employeeService!!.isEmployeeActive(employee)
-            Assertions.assertTrue(result)
-        }
+    @Test
+    fun isEmployeeActiveWithAustrittsdatumBeforeTest() {
+        val employee = EmployeeDO()
+        val dt = LocalDate.now().minusMonths(1)
+        employee.austrittsDatum = dt
+        val result = employeeService.isEmployeeActive(employee)
+        Assertions.assertFalse(result)
+    }
 
-    @get:Test
-    val isEmployeeActiveWithAustrittsdatumTest: Unit
-        get() {
-            val employee = EmployeeDO()
-            val dt = LocalDate.now().plusMonths(1)
-            employee.austrittsDatum = dt
-            val result = employeeService!!.isEmployeeActive(employee)
-            Assertions.assertTrue(result)
-        }
+    @Test
+    fun isEmployeeActiveWithAustrittsdatumNowTest() {
+        val employee = EmployeeDO()
+        val dt = LocalDate.now()
+        employee.austrittsDatum = dt
+        val result = employeeService.isEmployeeActive(employee)
+        Assertions.assertFalse(result)
+    }
 
-    @get:Test
-    val isEmployeeActiveWithAustrittsdatumBeforeTest: Unit
-        get() {
-            val employee = EmployeeDO()
-            val dt = LocalDate.now().minusMonths(1)
-            employee.austrittsDatum = dt
-            val result = employeeService!!.isEmployeeActive(employee)
-            Assertions.assertFalse(result)
-        }
+    /**
+     * Test if the method returns the correct active entry.
+     */
+    @Test
+    fun validityTest() {
+        Assertions.assertNull(employeeService.getActiveEntry(emptyList()))
+        Assertions.assertNull(employeeService.getActiveEntry(emptyList(), LocalDate.of(2024, Month.SEPTEMBER, 8)))
+        val list = mutableListOf(createValidityEntry(0, null))
+        // 0 - null
+        // 1 - 2023-09-01
+        // 2 - 2024-09-01
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list)!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        list.add(createValidityEntry(2, LocalDate.of(2024, Month.SEPTEMBER, 1)))
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        // Test other list order:
+        list.removeAt(1)
+        list.add(0, createValidityEntry(2, LocalDate.of(2024, Month.SEPTEMBER, 1))) // prepend entry
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
 
-    @get:Test
-    val isEmployeeActiveWithAustrittsdatumNowTest: Unit
-        get() {
-            val employee = EmployeeDO()
-            val dt = LocalDate.now()
-            employee.austrittsDatum = dt
-            val result = employeeService!!.isEmployeeActive(employee)
-            Assertions.assertFalse(result)
-        }
+        list.add(createValidityEntry(1, LocalDate.of(2023, Month.SEPTEMBER, 1)))
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
+        Assertions.assertEquals(1, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2023, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
+
+        list.reverse() // Check in reverse order
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
+        Assertions.assertEquals(1, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2023, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
+    }
+
+    private fun createValidityEntry(id: Int?, validFrom: LocalDate?): EmployeeValidityPeriodAttrDO {
+        val entry = EmployeeValidityPeriodAttrDO()
+        entry.validFrom = validFrom
+        entry.id = id
+        return entry
+    }
 }

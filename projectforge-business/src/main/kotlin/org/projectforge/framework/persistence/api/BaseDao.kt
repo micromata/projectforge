@@ -455,7 +455,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         AccessException::class
     )
     open fun save(objects: List<O>) {
-        Validate.notNull(objects)
         for (obj in objects) {
             save(obj)
         }
@@ -672,6 +671,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         AccessException::class
     )
     open fun updateAny(obj: Any): EntityCopyStatus {
+        @Suppress("UNCHECKED_CAST")
         return update(obj as O)
     }
 
@@ -685,6 +685,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         AccessException::class
     )
     open fun internalUpdateAny(obj: Any): EntityCopyStatus? {
+        @Suppress("UNCHECKED_CAST")
         return internalUpdate(obj as O)
     }
 
@@ -802,7 +803,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         AccessException::class
     )
     open fun internalDelete(obj: O) {
-        Validate.notNull(obj)
         if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
             val msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString()
             log.error(msg)
