@@ -111,22 +111,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     }
   }
 
-  public static void createBirthdayPanel(final GridBuilder gridBuilder, EmployeeDO data) {
-    // Birthday
-    final FieldProperties<LocalDate> props = new FieldProperties<>("fibu.employee.birthday",
-        new PropertyModel<>(data, "birthday"));
-    final AbstractFieldsetPanel<?> fs = gridBuilder.newFieldset(props);
-    LocalDatePanel datePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(props.getModel()));
-    datePanel.getDateField().setMarkupId("birthday").setOutputMarkupId(true);
-    fs.add(datePanel);
-    fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>() {
-      @Override
-      public String getObject() {
-        return WicketUtils.getUTCDate("birthday", data.getBirthday());
-      }
-    }));
-  }
-
   public static void createBankingDetails(final GridBuilder gridBuilder, EmployeeDO data) {
     // bank account: account holder
     final FieldsetPanel accountHolderFs = gridBuilder.newFieldset(EmployeeDO.class, "accountHolder");
@@ -266,7 +250,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     generateCountryStateFields(gridBuilder, data);
 
     gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
-    createBirthdayPanel(gridBuilder, data);
 
     {
       // DropDownChoice gender

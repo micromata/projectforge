@@ -101,14 +101,12 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     open var kost1: Kost1DO? = null
 
     /**
-     * Field will be overwritten by timeableAttribute.
+     * Field will be set by EmployeeDao automatically from validity period attr.
+     * Field for convenience only. It's not persisted.
      */
-    @Deprecated("Don't use the status field anymore, this is replaced by the status within the internalattrschema.xml")
-    @PropertyInfo(i18nKey = "status")
-    @FullTextField
-    @get:Enumerated(EnumType.STRING)
-    @get:Column(name = "employee_status", length = 30)
+    @get:Transient
     open var status: EmployeeStatus? = null
+        internal set
 
     @PropertyInfo(i18nKey = "address.positionText")
     @FullTextField
@@ -140,58 +138,6 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
     @get:Column(name = "weekly_working_hours", scale = 5, precision = 10)
     open var weeklyWorkingHours: BigDecimal? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.birthday")
-    @GenericField // was: @FullTextField(analyze = Analyze.NO)
-    @get:Column
-    open var birthday: LocalDate? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.accountHolder")
-    @FullTextField
-    @get:Column(length = 255, name = "account_holder")
-    open var accountHolder: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.iban")
-    @FullTextField
-    @get:Column(length = 50)
-    open var iban: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.bic")
-    @FullTextField
-    @get:Column(length = 11)
-    open var bic: String? = null
-
-    @PropertyInfo(i18nKey = "gender")
-    @FullTextField
-    @Convert(converter = GenderConverter::class)
-    @get:Column
-    // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
-    open var gender: IsoGender? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.street")
-    @FullTextField
-    @get:Column(length = 255)
-    open var street: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.zipCode")
-    @FullTextField
-    @get:Column(length = 255)
-    open var zipCode: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.city")
-    @FullTextField
-    @get:Column(length = 255)
-    open var city: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.country")
-    @FullTextField
-    @get:Column(length = 255)
-    open var country: String? = null
-
-    @PropertyInfo(i18nKey = "fibu.employee.state")
-    @FullTextField
-    @get:Column(length = 255)
-    open var state: String? = null
 
     @PropertyInfo(i18nKey = "comment")
     @FullTextField
