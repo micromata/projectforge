@@ -33,6 +33,10 @@ private val log = KotlinLogging.logger {}
 class HistoryService private constructor() {
     private val noHistoryPropertiesByClass = mutableMapOf<Class<*>, Set<String>>()
 
+    fun isNoHistoryProperty(entityClass: Class<*>, propertyName: String): Boolean {
+        return getNoHistoryProperties(entityClass).contains(propertyName)
+    }
+
     fun getNoHistoryProperties(entityClass: Class<*>): Set<String> {
         synchronized(noHistoryPropertiesByClass) {
             noHistoryPropertiesByClass[entityClass]?.let { return it }
