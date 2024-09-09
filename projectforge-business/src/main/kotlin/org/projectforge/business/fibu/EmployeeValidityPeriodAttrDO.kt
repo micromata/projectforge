@@ -31,6 +31,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.io.Serializable
 import java.time.LocalDate
@@ -74,4 +75,8 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Int>() {
 
     @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
     open var comment: String? = null
+
+    override fun toString(): String {
+        return JsonUtils.toJson(this)
+    }
 }

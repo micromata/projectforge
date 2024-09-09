@@ -629,12 +629,11 @@ class VacationServiceTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        fail("Not yet implemented: employeeService.addNewAnnualLeaveDays")
-        //  employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays))
-        //  annualLeaveDayEntries?.forEach {
-        //     employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value))
-        //  }
-        //  employeeDao.internalSave(employee)
+        employeeDao.internalSave(employee)
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays))
+        annualLeaveDayEntries?.forEach {
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value))
+        }
         return employee
     }
 

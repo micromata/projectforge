@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
@@ -135,9 +136,8 @@ class EmployeeTest : AbstractTestBase() {
             }
             val employee = EmployeeDO()
             employee.user = user
-            fail { "employeeService.addNewAnnualLeaveDays not implemented." }
-            // employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             employeeDao.internalSave(employee)
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             test.logon(loggedInUser)
             return employee
         }

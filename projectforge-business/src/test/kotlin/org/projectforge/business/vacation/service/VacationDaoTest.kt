@@ -227,12 +227,12 @@ class VacationDaoTest : AbstractTestBase() {
     }
     if (update) {
       Assertions.assertTrue(
-        vacationDao.hasUpdateAccess(user, vacation, dbVacation!!, false),
+        vacationDao.hasUpdateAccess(user, vacation, dbVacation, false),
         "Update access allowed: $msg."
       )
     } else {
       Assertions.assertFalse(
-        vacationDao.hasUpdateAccess(user, vacation, dbVacation!!, false),
+        vacationDao.hasUpdateAccess(user, vacation, dbVacation, false),
         "Update access not allowed: $msg."
       )
       try {
