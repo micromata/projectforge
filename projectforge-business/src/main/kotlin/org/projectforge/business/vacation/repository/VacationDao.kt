@@ -112,7 +112,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     override fun hasUpdateAccess(
         user: PFUserDO,
         obj: VacationDO,
-        dbObj: VacationDO,
+        dbObj: VacationDO?,
         throwException: Boolean
     ): Boolean {
         return hasVacationAccess(user, obj, dbObj, throwException)
@@ -233,7 +233,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     override fun hasDeleteAccess(
         user: PFUserDO,
         obj: VacationDO,
-        dbObj: VacationDO,
+        dbObj: VacationDO?,
         throwException: Boolean
     ): Boolean {
         if (hasHrRights(user)) {
