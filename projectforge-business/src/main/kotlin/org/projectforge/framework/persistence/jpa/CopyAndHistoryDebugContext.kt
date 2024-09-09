@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.jpa
 
+import org.projectforge.framework.json.JsonUtils
+
 internal class CopyAndHistoryDebugContext {
     val entries = mutableListOf<Entry>()
 
@@ -33,6 +35,10 @@ internal class CopyAndHistoryDebugContext {
         msg: String? = "copied",
     ) {
         entries.add(Entry(fieldName = field, srcValue = srcVal, destValue = destVal, message = msg))
+    }
+
+    override fun toString(): String {
+        return JsonUtils.toJson(this)
     }
 
     class Entry(

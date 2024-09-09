@@ -25,6 +25,8 @@ package org.projectforge.framework.persistence.jpa
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractStatus
 import org.projectforge.framework.persistence.api.BaseDO
@@ -33,6 +35,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 import java.io.Serializable
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
@@ -58,7 +61,7 @@ class CopyAndHistorySupportTest : AbstractTestBase() {
 
     @Test
     fun collectionTests() {
-        val debug = true // For user in debugging-mode
+        val debug = false // For user in debugging-mode
         val src = GroupDO()
         val dest = GroupDO()
         copyValues(src, dest, EntityCopyStatus.NONE, debug)
@@ -84,6 +87,38 @@ class CopyAndHistorySupportTest : AbstractTestBase() {
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1 })
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2 })
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3 })
+
+        src.assignedUsers!!.remove(user2)
+        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        Assertions.assertEquals(2, dest.assignedUsers!!.size)
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1 })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3 })
+    }
+
+    @Test
+    fun auftragTest() {
+        val debug = true // For user in debugging-mode
+        val src = AuftragDO()
+        val dest = AuftragDO()
+        copyValues(src, dest, EntityCopyStatus.NONE, debug)
+        val pos1 = AuftragsPositionDO()
+        pos1.auftrag = src
+        pos1.nettoSumme = BigDecimal.valueOf(2590, 2)
+        src.addPosition(pos1)
+        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        Assertions.assertEquals(1, dest.positionen!!.size)
+        Assertions.assertEquals("25.90", dest.positionen!![0].nettoSumme!!.toString())
+        val destPos1 = AuftragsPositionDO()
+        destPos1.auftrag = dest
+        destPos1.nettoSumme = BigDecimal.valueOf(259, 1)
+        destPos1.number = 1
+        dest.positionen = mutableListOf(destPos1)
+        copyValues(src, dest, EntityCopyStatus.NONE, debug)
+        Assertions.assertEquals("25.9", dest.positionen!![0].nettoSumme!!.toString(), "25.90 should be equals to 25.9, scale of BigDecimal isn't checked.")
+
+        pos1.nettoSumme = BigDecimal.TEN
+        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        Assertions.assertEquals("10", dest.positionen!![0].nettoSumme!!.toString())
     }
 
     private fun createUser(id: Int, username: String): PFUserDO {
