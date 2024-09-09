@@ -40,6 +40,9 @@ class HistoryServiceTest : AbstractTestBase() {
         Assertions.assertTrue(set.contains("created"))
         Assertions.assertFalse(set.contains("title"))
 
+        Assertions.assertTrue(HistoryService.get().isNoHistoryProperty(TaskDO::class.java, "lastUpdate"))
+        Assertions.assertFalse(HistoryService.get().isNoHistoryProperty(TaskDO::class.java, "title"))
+
         set = HistoryService.get().getNoHistoryProperties(AuftragDO::class.java)
         Assertions.assertEquals(7, set.size)
         //    not, because transient Assertions.assertTrue(set.contains("uiStatus"));
