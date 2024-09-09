@@ -47,6 +47,7 @@ import org.projectforge.framework.persistence.history.NoHistory
  */
 @MappedSuperclass
 abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializable {
+    @Transient
     private val baseDOSupport = BaseDOSupport()
 
     @get:Basic
