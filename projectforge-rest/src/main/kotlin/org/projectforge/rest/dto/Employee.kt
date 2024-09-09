@@ -45,16 +45,6 @@ class Employee(
   var staffNumber: String? = null,
   var urlaubstage: Int? = null,
   var weeklyWorkingHours: BigDecimal? = null,
-  var birthday: LocalDate? = null,
-  var accountHolder: String? = null,
-  var iban: String? = null,
-  var bic: String? = null,
-  var gender: IsoGender? = null,
-  var street: String? = null,
-  var zipCode: String? = null,
-  var city: String? = null,
-  var country: String? = null,
-  var state: String? = null,
   var comment: String? = null,
 ) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
   companion object {

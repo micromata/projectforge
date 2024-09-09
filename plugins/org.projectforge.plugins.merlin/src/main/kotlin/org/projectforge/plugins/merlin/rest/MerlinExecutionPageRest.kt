@@ -376,10 +376,6 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
         }
         if (hrAccess) {
           row.getCell("staffNumber")?.setCellValue(employee.staffNumber)
-          row.getCell("street")?.setCellValue(employee.street)
-          row.getCell("zipCode")?.setCellValue(employee.zipCode)
-          row.getCell("city")?.setCellValue(employee.city)
-          row.getCell("country")?.setCellValue(employee.country)
         }
       }
     } else {
