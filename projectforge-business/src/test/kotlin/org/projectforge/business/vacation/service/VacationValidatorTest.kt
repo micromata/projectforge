@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
@@ -123,9 +124,8 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        fail { "employeeService.addNewAnnualLeaveDays not implemented" }
-        //employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         employeeDao.internalSave(employee)
+        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         return employee
     }
 }
