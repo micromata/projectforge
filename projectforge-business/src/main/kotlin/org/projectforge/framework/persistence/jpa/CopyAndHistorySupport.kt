@@ -210,19 +210,17 @@ object CopyAndHistorySupport {
                         field[dest] = destColl
                     }
                     if (destColl != null) { // destColl can be null if the collection type is not supported.
-                        destColl.forEach { o ->
-                            o?.let {
-                                if (!srcFieldValue.contains(it)) {
-                                    toRemove.add(it)
-                                }
+                        destColl.filterNotNull().forEach { destColEntry ->
+                            if (srcFieldValue.none { it == destColEntry }) {
+                                toRemove.add(destColEntry)
                             }
                         }
-                        toRemove.forEach { o ->
-                            log.debug { "Removing collection entry: $o" }
-                            destColl.remove(o)
+                        toRemove.forEach { removeEntry ->
+                            log.debug { "Removing collection entry: $removeEntry" }
+                            destColl.remove(removeEntry)
                             context.debugContext?.add(
                                 "$srcClazz.$fieldName",
-                                msg = "Removing entry $o from destFieldValue.",
+                                msg = "Removing entry $removeEntry from destFieldValue.",
                             )
                             setModificationStatusOnChange(context, src, fieldName)
                         }
@@ -236,10 +234,11 @@ object CopyAndHistorySupport {
                                 )
                                 setModificationStatusOnChange(context, src, fieldName)
                             } else if (srcEntry is BaseDO<*>) {
-                                val behavior = field.getAnnotation(
-                                    PFPersistancyBehavior::class.java
+                                val behavior = field.getAnnotation(PFPersistancyBehavior::class.java)
+                                context.debugContext?.add(
+                                    "$srcClazz.$fieldName",
+                                    msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}"
                                 )
-                                context.debugContext?.add("$srcClazz.$fieldName", msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}")
                                 if (behavior != null && behavior.autoUpdateCollectionEntries) {
                                     var destEntry: BaseDO<*>? = null
                                     for (entry in destColl) {
@@ -249,10 +248,11 @@ object CopyAndHistorySupport {
                                         }
                                     }
                                     requireNotNull(destEntry)
-                                    log.error { "*********** TODO: To migrate" }
-                                    // val newContext = copyValues(srcEntry, destEntry)
-                                    val st = destEntry.copyValuesFrom(srcEntry)
-                                    context.combine(st)
+                                    copyValues(
+                                        srcEntry as BaseDO<Serializable>,
+                                        destEntry as BaseDO<Serializable>,
+                                        context
+                                    )
                                 }
                             }
                         }
@@ -264,7 +264,11 @@ object CopyAndHistorySupport {
                         if (destFieldValue == null
                             || srcFieldValueId != (destFieldValue as BaseDO<*>).id
                         ) {
-                            context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcFieldValue, destVal = destFieldValue)
+                            context.debugContext?.add(
+                                "$srcClazz.$fieldName",
+                                srcVal = srcFieldValue,
+                                destVal = destFieldValue
+                            )
                             field[dest] = srcFieldValue
                             setModificationStatusOnChange(context, src, fieldName)
                         }
@@ -276,7 +280,12 @@ object CopyAndHistorySupport {
                     }
                 } else if (srcFieldValue is LocalDate) {
                     if (destFieldValue == null) {
-                        context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcFieldValue, destVal = destFieldValue, msg = "LocalDate")
+                        context.debugContext?.add(
+                            "$srcClazz.$fieldName",
+                            srcVal = srcFieldValue,
+                            destVal = destFieldValue,
+                            msg = "LocalDate"
+                        )
                         field[dest] = srcFieldValue
                         setModificationStatusOnChange(context, src, fieldName)
                     } else {
@@ -284,33 +293,58 @@ object CopyAndHistorySupport {
                         val destDay = PFDay.from(destFieldValue as LocalDate)
                         if (!srcDay.isSameDay(destDay)) {
                             field[dest] = srcDay.localDate
-                            context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcDay.localDate, destVal = destDay.localDate, msg = "LocalDate")
+                            context.debugContext?.add(
+                                "$srcClazz.$fieldName",
+                                srcVal = srcDay.localDate,
+                                destVal = destDay.localDate,
+                                msg = "LocalDate"
+                            )
                             setModificationStatusOnChange(context, src, fieldName)
                         }
                     }
                 } else if (srcFieldValue is java.sql.Date) {
                     if (destFieldValue == null) {
-                        context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcFieldValue, destVal = destFieldValue, msg = "java.sql.Date")
+                        context.debugContext?.add(
+                            "$srcClazz.$fieldName",
+                            srcVal = srcFieldValue,
+                            destVal = destFieldValue,
+                            msg = "java.sql.Date"
+                        )
                         field[dest] = srcFieldValue
                         setModificationStatusOnChange(context, src, fieldName)
                     } else {
                         val srcDay = PFDay.from(srcFieldValue)
                         val destDay = PFDay.from(destFieldValue as java.util.Date)
                         if (!srcDay.isSameDay(destDay)) {
-                            context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcDay, destVal = destDay, msg = "java.sql.Date")
+                            context.debugContext?.add(
+                                "$srcClazz.$fieldName",
+                                srcVal = srcDay,
+                                destVal = destDay,
+                                msg = "java.sql.Date"
+                            )
                             field[dest] = srcDay.sqlDate
                             setModificationStatusOnChange(context, src, fieldName)
                         }
                     }
                 } else if (srcFieldValue is java.util.Date) {
                     if (destFieldValue == null || srcFieldValue.time != (destFieldValue as java.util.Date).time) {
-                        context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcFieldValue, destVal = destFieldValue, msg = "java.util.Date")
+                        context.debugContext?.add(
+                            "$srcClazz.$fieldName",
+                            srcVal = srcFieldValue,
+                            destVal = destFieldValue,
+                            msg = "java.util.Date"
+                        )
                         field[dest] = srcFieldValue
                         setModificationStatusOnChange(context, src, fieldName)
                     }
                 } else if (srcFieldValue is BigDecimal) {
                     if (destFieldValue == null || srcFieldValue.compareTo(destFieldValue as BigDecimal) != 0) {
-                        context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcFieldValue, destVal = destFieldValue, msg = "BigDecimal")
+                        context.debugContext?.add(
+                            "$srcClazz.$fieldName",
+                            srcVal = srcFieldValue,
+                            destVal = destFieldValue,
+                            msg = "BigDecimal"
+                        )
                         field[dest] = srcFieldValue
                         setModificationStatusOnChange(context, src, fieldName)
                     }
