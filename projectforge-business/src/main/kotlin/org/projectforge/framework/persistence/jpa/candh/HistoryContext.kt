@@ -21,30 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa
+package org.projectforge.framework.persistence.jpa.candh
 
-import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.history.PropertyOpType
 
-internal class CopyAndHistoryDebugContext {
-    val entries = mutableListOf<Entry>()
+internal class HistoryContext {
+    private val entries = mutableListOf<Entry>()
 
-    fun add(
-        field: String? = null,
-        srcVal: Any? = null,
-        destVal: Any? = null,
-        msg: String? = "copied",
-    ) {
-        entries.add(Entry(fieldName = field, srcValue = srcVal, destValue = destVal, message = msg))
+    fun add(path: String, type: PropertyOpType, newValue: Any? = null, oldValue: Any? = null) {
+        entries.add(Entry(path = path, type = type, newValue = newValue, oldValue = oldValue))
     }
 
-    override fun toString(): String {
-        return JsonUtils.toJson(this)
+    class Entry(val path: String, val type: PropertyOpType, val oldValue: Any?, val newValue: Any?) {
     }
-
-    class Entry(
-        val fieldName: String? = null,
-        val srcValue: Any? = null,
-        val destValue: Any? = null,
-        val message: String? = null,
-    )
 }

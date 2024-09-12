@@ -2,8 +2,6 @@ package org.projectforge.framework.persistence.jpa.candh
 
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.PropertyOpType
-import org.projectforge.framework.persistence.jpa.CopyAndHistoryDebugContext
-import org.projectforge.framework.persistence.jpa.HistoryContext
 
 class CandHContext(
     var currentCopyStatus: EntityCopyStatus = EntityCopyStatus.NONE,
@@ -12,7 +10,7 @@ class CandHContext(
     createHistory: Boolean = true,
     debug: Boolean = false,
 ) {
-    internal val debugContext = if (debug) CopyAndHistoryDebugContext() else null
+    internal val debugContext = if (debug) DebugContext() else null
     internal val historyContext = if (createHistory) HistoryContext() else null
     internal fun addHistoryEntry(fieldName: String, type: PropertyOpType, newValue: Any?, oldValue: Any?) {
         historyContext?.add(
