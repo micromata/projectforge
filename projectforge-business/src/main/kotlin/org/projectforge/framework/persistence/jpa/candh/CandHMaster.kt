@@ -32,6 +32,7 @@ object CandHMaster {
         registeredHandlers.add(SqlDateHandler())
         registeredHandlers.add(UtilDateHandler())
         registeredHandlers.add(CollectionHandler())
+        registeredHandlers.add(BaseDOHandler())
         registeredHandlers.add(DefaultHandler()) // Handles everything else.
     }
 
@@ -117,34 +118,8 @@ object CandHMaster {
                         }
                     }
                 }
-                if (processed) {
-                    // Field was processed by a handler.
-                    continue
-                } else if (srcFieldValue is BaseDO<*>) {
-                    context.debugContext?.add("$srcClazz.$fieldName", msg = "srcFieldValue is BaseDO.")
-                    val srcFieldValueId = HibernateUtils.getIdentifier(srcFieldValue)
-                    if (srcFieldValueId != null) {
-                        if (destFieldValue == null
-                            || srcFieldValueId != (destFieldValue as BaseDO<*>).id
-                        ) {
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                destVal = destFieldValue
-                            )
-                            field[dest] = srcFieldValue
-                            setModificationStatusOnChange(context, src, fieldName)
-                        }
-                    } else {
-                        log.error(
-                            ("Can't get id though can't copy the BaseDO (see error message above about HHH-3502), or id not given for "
-                                    + srcFieldValue.javaClass + ": " + ToStringUtil.toJsonString(srcFieldValue))
-                        )
-                    }
-                } else if (destFieldValue != srcFieldValue) {
-                    context.debugContext?.add("$srcClazz.$fieldName", srcVal = srcFieldValue, destVal = destFieldValue)
-                    field[dest] = srcFieldValue
-                    setModificationStatusOnChange(context, src, fieldName)
+                if (!processed) {
+                    log.error { "******** Oups, field $srcClazz.$fieldName not processed!" }
                 }
             } catch (ex: IllegalAccessException) {
                 throw InternalError("Unexpected IllegalAccessException: " + ex.message)
