@@ -11,10 +11,7 @@ import java.time.LocalDate
  */
 open class DefaultHandler : CandHIHandler {
     override fun accept(field: Field): Boolean {
-        // During development phase:
-        return field.type.isPrimitive || field.type == String::class.java || field.type == Int::class.java || field.type == LocalDate::class.java
-        // Later it should accept all types:
-        // return true
+        return true
     }
 
     override fun <IdType : Serializable> process(
