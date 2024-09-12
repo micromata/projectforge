@@ -3,20 +3,17 @@ package org.projectforge.framework.persistence.jpa.candh
 import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.Hibernate
-import org.hibernate.collection.spi.PersistentSet
 import org.hibernate.proxy.HibernateProxy
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.history.HistoryService
 import java.io.Serializable
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -34,6 +31,7 @@ object CandHMaster {
         registeredHandlers.add(BigDecimalHandler())
         registeredHandlers.add(SqlDateHandler())
         registeredHandlers.add(UtilDateHandler())
+        registeredHandlers.add(CollectionHandler())
         registeredHandlers.add(DefaultHandler()) // Handles everything else.
     }
 
@@ -101,7 +99,7 @@ object CandHMaster {
                 val srcFieldValue = field[src]
                 val destFieldValue = field[dest]
                 var processed = false
-                registeredHandlers.forEach { handler ->
+                for (handler in registeredHandlers) {
                     if (handler.accept(field)) {
                         if (handler.process(
                                 srcClazz = srcClazz,
@@ -115,119 +113,13 @@ object CandHMaster {
                             )
                         ) {
                             processed = true
-                            return@forEach
+                            break
                         }
                     }
                 }
                 if (processed) {
                     // Field was processed by a handler.
                     continue
-                } else if (srcFieldValue == null) {
-                    if (destFieldValue != null) {
-                        if (destFieldValue is Collection<*> && destFieldValue.isEmpty()) {
-                            // dest is an empty collection, so no MAJOR update.
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                msg = "destFieldValue is empty, do nothing instead of setting to null."
-                            )
-                        } else {
-                            field[dest] = null
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                destVal = "<not empty collection>"
-                            )
-                            setModificationStatusOnChange(context, src, fieldName)
-                        }
-                    } else {
-                        // dest was already null
-                    }
-                } else if (srcFieldValue is Collection<*>) {
-                    var destColl = destFieldValue as? MutableCollection<Any?>
-                    val toRemove = mutableListOf<Any>()
-                    if (destColl == null) {
-                        if (srcFieldValue is TreeSet<*>) {
-                            destColl = TreeSet()
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                msg = "Creating TreeSet as destFieldValue.",
-                            )
-                        } else if (srcFieldValue is HashSet<*>) {
-                            destColl = HashSet()
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                msg = "Creating HashSet as destFieldValue.",
-                            )
-                        } else if (srcFieldValue is List<*>) {
-                            destColl = ArrayList()
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                msg = "Creating ArrayList as destFieldValue.",
-                            )
-                        } else if (srcFieldValue is PersistentSet<*>) {
-                            destColl = HashSet()
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                srcVal = srcFieldValue,
-                                msg = "Creating HashSet as destFieldValue. srcFieldValue is PersistentSet.",
-                            )
-                        } else {
-                            log.error("Unsupported collection type: " + srcFieldValue.javaClass.name)
-                        }
-                        field[dest] = destColl
-                    }
-                    if (destColl != null) { // destColl can be null if the collection type is not supported.
-                        destColl.filterNotNull().forEach { destColEntry ->
-                            if (srcFieldValue.none { it == destColEntry }) {
-                                toRemove.add(destColEntry)
-                            }
-                        }
-                        toRemove.forEach { removeEntry ->
-                            log.debug { "Removing collection entry: $removeEntry" }
-                            destColl.remove(removeEntry)
-                            context.debugContext?.add(
-                                "$srcClazz.$fieldName",
-                                msg = "Removing entry $removeEntry from destFieldValue.",
-                            )
-                            setModificationStatusOnChange(context, src, fieldName)
-                        }
-                        srcFieldValue.forEach { srcCollEntry ->
-                            if (!destColl.contains(srcCollEntry)) {
-                                log.debug { "Adding new collection entry: $srcCollEntry" }
-                                destColl.add(srcCollEntry)
-                                context.debugContext?.add(
-                                    "$srcClazz.$fieldName",
-                                    msg = "Adding entry $srcCollEntry to destFieldValue.",
-                                )
-                                setModificationStatusOnChange(context, src, fieldName)
-                            } else if (srcCollEntry is BaseDO<*>) {
-                                val behavior = field.getAnnotation(PFPersistancyBehavior::class.java)
-                                context.debugContext?.add(
-                                    "$srcClazz.$fieldName",
-                                    msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}"
-                                )
-                                if (behavior != null && behavior.autoUpdateCollectionEntries) {
-                                    var destEntry: BaseDO<*>? = null
-                                    for (entry in destColl) {
-                                        if (entry == srcCollEntry) {
-                                            destEntry = entry as BaseDO<*>
-                                            break
-                                        }
-                                    }
-                                    requireNotNull(destEntry)
-                                    copyValues(
-                                        srcCollEntry as BaseDO<Serializable>,
-                                        destEntry as BaseDO<Serializable>,
-                                        context
-                                    )
-                                }
-                            }
-                        }
-                    }
                 } else if (srcFieldValue is BaseDO<*>) {
                     context.debugContext?.add("$srcClazz.$fieldName", msg = "srcFieldValue is BaseDO.")
                     val srcFieldValueId = HibernateUtils.getIdentifier(srcFieldValue)
