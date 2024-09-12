@@ -13,6 +13,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.history.HistoryService
 import java.io.Serializable
+import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -85,6 +86,7 @@ object CandHMaster {
     ) {
         context.debugContext?.add(msg = "Processing class $srcClazz")
         val fields = srcClazz.declaredFields
+        AccessibleObject.setAccessible(fields, true)
         for (field in fields) {
             val fieldName = field.name
             if (ignoreFields.contains(fieldName)) {
