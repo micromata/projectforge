@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.metamodel
 
 
 /**
+ * Info of annotation @Column of a property.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class ColumnInfo(

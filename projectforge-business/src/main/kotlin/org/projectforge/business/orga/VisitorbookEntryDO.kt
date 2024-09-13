@@ -53,7 +53,7 @@ open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "orga.visitorbook")
     @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "visitorbook_id", nullable = false)
+    @get:JoinColumn(name = "visitorbook_fk", nullable = false)
     open var visitorbook: VisitorbookDO? = null
 
     @get:Column(name = "date_of_visit", nullable = false)
