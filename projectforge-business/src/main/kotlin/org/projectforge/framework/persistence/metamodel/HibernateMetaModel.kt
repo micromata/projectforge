@@ -54,6 +54,10 @@ object HibernateMetaModel {
         return entityInfoByEntityClass.containsKey(entity)
     }
 
+    fun allEntityInfos(): List<EntityInfo> {
+        return entityInfoByName.values.toList()
+    }
+
     @JvmStatic
     fun getPropertyLength(entityName: String, propertyName: String): Int? {
         return entityInfoByName[entityName]?.getColumnLength(propertyName)
@@ -63,6 +67,12 @@ object HibernateMetaModel {
     fun getPropertyLength(entityClass: Class<*>, propertyName: String): Int? {
         return entityInfoByEntityClass[entityClass]?.getColumnLength(propertyName)
     }
+
+    @JvmStatic
+    fun getColumnInfo(entityName: String, propertyName: String): ColumnInfo? {
+        return entityInfoByName[entityName]?.getColumnInfo(propertyName)
+    }
+
 
     /** Called by HibernateUtils. */
     fun internalInit(sessionFactory: SessionFactoryImplementor) {

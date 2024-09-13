@@ -68,17 +68,21 @@ class EntityInfo(
         }
     }
 
-    fun getColumnLength(name: String): Int? {
-        val length = columns.find { it.propertyName == name || it.columnName == name }?.length
+    fun getColumnInfo(propertyName: String): ColumnInfo? {
+        return columns.find { it.propertyName == propertyName || it.columnName == propertyName }
+    }
+
+    fun getColumnLength(propertyName: String): Int? {
+        val length = columns.find { it.propertyName == propertyName || it.columnName == propertyName }?.length
         if (length != null) {
             return length
         }
-        if (columnWithoutLength.contains(name)) {
+        if (columnWithoutLength.contains(propertyName)) {
             return null
         }
-        columnWithoutLength.add(name)
-        val msg = ("Could not find persistent class for entityName '$name' (OK for non hibernate objects).")
-        if (name.endsWith("DO")) {
+        columnWithoutLength.add(propertyName)
+        val msg = ("Could not find persistent class for entityName '$propertyName' (OK for non hibernate objects).")
+        if (propertyName.endsWith("DO")) {
             log.error(msg)
         } else {
             log.info(msg)

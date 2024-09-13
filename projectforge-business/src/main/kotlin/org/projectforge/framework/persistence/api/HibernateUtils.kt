@@ -36,6 +36,7 @@ import org.projectforge.common.BeanHelper
 import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.metamodel.ColumnInfo
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import java.io.Serializable
@@ -204,6 +205,19 @@ object HibernateUtils {
     fun getDBTableName(entityClass: Class<*>): String? {
         return HibernateMetaModel.getEntityInfo(entityClass)?.tableName
     }
+
+    /**
+     * Gets the info element of the given property.
+     *
+     * @param entity       Class name of the entity
+     * @param propertyName Java bean property name.
+     * @return info if exists.
+     */
+    @JvmStatic
+    fun getColumnInfo(entity: Class<*>, propertyName: String): ColumnInfo? {
+        return HibernateMetaModel.getColumnInfo(entity.name, propertyName)
+    }
+
 
     /**
      * Gets the length of the given property.
