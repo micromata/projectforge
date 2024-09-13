@@ -28,6 +28,7 @@ import jakarta.persistence.metamodel.EntityType
 import org.hibernate.query.sqm.tree.SqmNode.log
 import org.projectforge.framework.json.JsonUtils
 import java.lang.reflect.Field
+import java.lang.reflect.Member
 import java.lang.reflect.Method
 
 
@@ -46,14 +47,7 @@ class EntityInfo(
     init {
         entityType.attributes.forEach { attr ->
             val member = attr.javaMember ?: return@forEach
-            val ann = if (member is Field) {
-                member.getAnnotation(Column::class.java)
-            } else if (member is Method) {
-                member.getAnnotation(Column::class.java)
-            } else {
-                null
-            }
-            if (ann != null) {
+            getAnnotation(member, Column::class.java)?.let { ann ->
                 columns.add(
                     ColumnInfo(
                         propertyName = attr.name,
@@ -68,9 +62,27 @@ class EntityInfo(
         }
     }
 
+    /**
+     * @param fieldName Name of java field.
+     */
+    fun getJPAAnnotations(fieldName: String): List<Annotation>? {
+        val attr = entityType.attributes.find { it.name == fieldName } ?: return null
+        val member = attr.javaMember ?: return null // No java member.
+        /*        val anns = mutableListOf<Annotation>()
+                ClassUtils.getClassAnnotationOfField()
+                getAnnotation(member, Column::class.java)
+                } else if (member is Method) {
+                    member.getAnnotation(Column::class.java)
+                } else {
+                    null
+                }*/
+        return null
+    }
+
     fun getColumnInfo(propertyName: String): ColumnInfo? {
         return columns.find { it.propertyName == propertyName || it.columnName == propertyName }
     }
+
 
     fun getColumnLength(propertyName: String): Int? {
         val length = columns.find { it.propertyName == propertyName || it.columnName == propertyName }?.length
@@ -88,6 +100,21 @@ class EntityInfo(
             log.info(msg)
         }
         return null
+    }
+
+    private fun <Ann : Annotation> getAnnotation(propertyName: String, clazz: Class<Ann>): Ann? {
+
+        return null
+    }
+
+    private fun <Ann : Annotation> getAnnotation(member: Member, clazz: Class<Ann>): Ann? {
+        return if (member is Field) {
+            member.getAnnotation(clazz)
+        } else if (member is Method) {
+            member.getAnnotation(clazz)
+        } else {
+            null
+        }
     }
 
     override fun toString(): String {

@@ -23,16 +23,18 @@
 
 package org.projectforge.common
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 
+private val log = KotlinLogging.logger {}
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object ClassUtils {
-    private val log = org.slf4j.LoggerFactory.getLogger(ClassUtils::class.java)
 
     fun getProxiedClass(clazz: Class<*>): Class<*> {
         if (clazz.name.contains("$$")) {
@@ -52,7 +54,12 @@ object ClassUtils {
      * @return Annotation if found or null.
      */
     @JvmOverloads
-    fun <A : Annotation> getClassAnnotationOfField(clazz: Class<*>, property: String, annotationClass: Class<A>, suppressWarning: Boolean = false): A? {
+    fun <A : Annotation> getClassAnnotationOfField(
+        clazz: Class<*>,
+        property: String,
+        annotationClass: Class<A>,
+        suppressWarning: Boolean = false
+    ): A? {
         val cls = getFieldInfo(clazz, property, suppressWarning)?.clazz ?: return null
         return getClassAnnotation(cls, annotationClass)
     }
@@ -114,8 +121,9 @@ object ClassUtils {
     }
 
     class Info(
-            /**
-             * The parent class of the field.
-             */
-            val clazz: Class<*>, val field: Field, val parent: Info? = null, var genericType: Class<*>? = null)
+        /**
+         * The parent class of the field.
+         */
+        val clazz: Class<*>, val field: Field, val parent: Info? = null, var genericType: Class<*>? = null
+    )
 }
