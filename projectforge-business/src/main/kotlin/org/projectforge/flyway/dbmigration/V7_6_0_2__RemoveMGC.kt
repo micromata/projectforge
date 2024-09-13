@@ -44,7 +44,7 @@ private val log = KotlinLogging.logger {}
 /**
  * Migrates old mgc attributes (timed) from employee and visitorbook to new validity period attributes.
  */
-class V7_6_0__RemoveMGC : BaseJavaMigration() {
+class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
     override fun migrate(context: Context) {
         log.info { "Migrating attributes with period validity from mgc: Employee (annual leave, status) and entries from Visitorbook" }
         val dataSource = context.configuration.dataSource
@@ -351,6 +351,6 @@ fun main() {
     }
     // V7_6_0__RemoveMGC().readEmployees(dataSource)
     // V7_6_0__RemoveMGC().migrateEmployees(dataSource)
-    //V7_6_0__RemoveMGC().readVisitorBook(dataSource)
-    V7_6_0__RemoveMGC().migrateVisitorbook(dataSource)
+    // V7_6_0__RemoveMGC().readVisitorBook(dataSource)
+    V7_6_0_2___RemoveMGC().migrateVisitorbook(dataSource)
 }

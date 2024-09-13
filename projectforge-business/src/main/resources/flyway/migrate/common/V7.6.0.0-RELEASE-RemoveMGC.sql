@@ -1,5 +1,7 @@
 -- Migration to remove MGC.
 
+ALTER TABLE t_pf_history_attr ADD COLUMN old_value CHARACTER VARYING(10000);
+
 -- Replaces tables t_orga_visitorbook_timed, t_orga_visitorbook_timedattr and t_orga_visitorbook_timedattrdata.
 -- t_orga_visitorbook_timedattrdata wasn't in use and empty.
 CREATE TABLE t_orga_visitorbook_entry

@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.history
 
 import jakarta.persistence.*
 import mu.KotlinLogging
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import java.util.*
@@ -34,6 +33,18 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Stores history.
+ *
+ *  pk             | bigint                      |           | not null |
+ *  createdat      | timestamp without time zone |           | not null | -- equals to modifiedat
+ *  createdby      | character varying(60)       |           | not null | -- equals to modifiedby
+ *  modifiedat     | timestamp without time zone |           | not null |
+ *  modifiedby     | character varying(60)       |           | not null |
+ *  updatecounter  | integer                     |           | not null | -- always 0
+ *  entity_id      | bigint                      |           | not null |
+ *  entity_name    | character varying(255)      |           | not null |
+ *  entity_optype  | character varying(32)       |           |          | Insert | Update
+ *  transaction_id | character varying(64)       |           |          | -- the_10415 (for example) or null
+ *  user_comment   | character varying(2000)     |           |          | -- always 0
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
@@ -47,35 +58,53 @@ private val log = KotlinLogging.logger {}
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-//@HibernateSearchInfo(param = "oldValue")
-//@JpaXmlPersist(beforePersistListener = PfHistoryMasterXmlBeforePersistListener::class)
 class PfHistoryMasterDO : HistoryEntry<Long> {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id
     override var id: Long? = null
 
-    @get:Transient
-    //@GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
+    @get:Column(name = "entity_name")
+    @GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
     override var entityName: String? = null
 
-    @get:Transient
+    @get:Column(name = "entity_id")
     //@GenericField // was @get:Field(analyze = Analyze.NO, store = Store.YES, index = Indexed.YES)
     override var entityId: Long? = null
 
-    @get:Transient
+    @get:Column(name = "entity_optype")
+    override var entityOpType: EntityOpType? = null
+
+    /**
+     * User id (same as modifiedBy)
+     */
+    @get:Column(name = "createdby")
+    //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
+    var createdBy: String? = null
+
+    /**
+     * Same as modifiedAt.
+     */
+    @get:Column(name = "createdat")
+    //@GenericField
+    var createdAt: Date? = null
+
+    /**
+     * User id (same as createdBy)
+     */
+    @get:Column(name = "modifiedby")
     //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
     override var modifiedBy: String? = null
 
-    @get:Transient
+    /**
+     * Same
+     */
+    @get:Column(name = "modifiedat")
     //@GenericField
-    override val modifiedAt: Date? = null
+    override var modifiedAt: Date? = null
 
-    override var entityOpType: EntityOpType? = null
-
-    @get:Transient
-    //@FullTextField
-    var oldValue: String? = null // was @get:Field(analyze = Analyze.YES, store = Store.NO, index = Indexed.YES)
+    @get:Column(name = "transaction_id")
+    var transactionId: String? = null
 
     /*@get:MapKey(name = "propertyName")
     @get:OneToMany(
@@ -88,31 +117,31 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     @get:Transient
     var attributes: MutableMap<String, Any?>? = null
 
-   /* @get:Transient
-    val attrEntityClass: Class<out Any?>
-        get() = PfHistoryAttrDO::class.java
+    /* @get:Transient
+     val attrEntityClass: Class<out Any?>
+         get() = PfHistoryAttrDO::class.java
 
-    @get:Transient
-    val attrEntityWithDataClass: Class<out Any?>
-        get() = PfHistoryAttrWithDataDO::class.java
-*/
+     @get:Transient
+     val attrEntityWithDataClass: Class<out Any?>
+         get() = PfHistoryAttrWithDataDO::class.java
+ */
     //@get:Transient
     //val attrDataEntityClass: Class<out Any?>
-        //get() = PfHistoryAttrDataDO::class.java
+    //get() = PfHistoryAttrDataDO::class.java
 
-/*
-    fun createAttrEntity(key: String?, type: Char, value: String?): PfHistoryAttrDO {
-        return PfHistoryAttrDO(this, key, type, value)
-    }
+    /*
+        fun createAttrEntity(key: String?, type: Char, value: String?): PfHistoryAttrDO {
+            return PfHistoryAttrDO(this, key, type, value)
+        }
 
-    fun createAttrEntityWithData(
-        key: String?,
-        type: Char,
-        value: String?
-    ): PfHistoryAttrWithDataDO {
-        return PfHistoryAttrWithDataDO(this, key, type, value)
-    }
-*/
+        fun createAttrEntityWithData(
+            key: String?,
+            type: Char,
+            value: String?
+        ): PfHistoryAttrWithDataDO {
+            return PfHistoryAttrWithDataDO(this, key, type, value)
+        }
+    */
     @get:Transient
     override val diffEntries: List<DiffEntry>?
         get() {
