@@ -45,10 +45,10 @@ object AnnotationsUtils {
         clazz.declaredFields.find { it.name == propertyName }?.let { field ->
             annotations.addAll(field.annotations)
         }
-        clazz.declaredMethods.find { it.name == "get${propertyName.capitalize()}" }?.let { method ->
+        clazz.declaredMethods.find { it.name == "get${propertyName.replaceFirstChar { it.uppercase() }}" }?.let { method ->
             annotations.addAll(method.annotations)
         }
-        clazz.declaredMethods.find { it.name == "set${propertyName.capitalize()}" }?.let { method ->
+        clazz.declaredMethods.find { it.name == "set${propertyName.replaceFirstChar { it.uppercase() }}}" }?.let { method ->
             annotations.addAll(method.annotations)
         }
         clazz.superclass?.let { superclass ->

@@ -60,7 +60,7 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Int>() {
 
     @PropertyInfo(i18nKey = "fibu.employee")
     @get:ManyToOne(fetch = FetchType.EAGER)
-    @get:JoinColumn(name = "employee_id", nullable = false)
+    @get:JoinColumn(name = "employee_fk", nullable = false)
     open var employee: EmployeeDO? = null
 
     @get:Enumerated(EnumType.STRING)
