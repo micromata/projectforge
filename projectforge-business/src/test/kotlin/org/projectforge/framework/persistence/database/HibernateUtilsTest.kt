@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.database
 
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
@@ -40,7 +41,7 @@ import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.test.AbstractTestBase
 
 class HibernateUtilsTest : AbstractTestBase() {
-    @Test
+    // Used for migrating database. In this case, the column type of the primary key is changed from Integer to Long.
     fun entityMetaDataTest() {
         class Entry(
             tableName: String?,
@@ -95,8 +96,11 @@ class HibernateUtilsTest : AbstractTestBase() {
                     BeanHelper.getAllDeclaredFields(clazz).forEach { field ->
                         val annotations = AnnotationsUtils.getAnnotations(clazz, field.name)
                         annotations.find { it.annotationClass == JoinColumn::class }?.let { joinColumn ->
-                            joinColumn as JoinColumn
-                            println("ALTER TABLE ${entry.tableName} ALTER COLUMN ${joinColumn.name}$type bigint;")
+                            if (annotations.none { it.annotationClass == OneToMany::class }) {
+                                // OneToMany not handled here.
+                                joinColumn as JoinColumn
+                                println("ALTER TABLE ${entry.tableName} ALTER COLUMN ${joinColumn.name}$type bigint;")
+                            }
                         }
                     }
                 }
