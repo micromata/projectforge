@@ -12,6 +12,9 @@
 - ALTER TABLE xxx ALTER COLUMN pk SET DATA TYPE BIGINT
 - ICalGeneratorParserTest
 - UserRightId: ClassBridge müsste eigentlich in die Felder der benutzenden DOs
+- Script-Parameter: intValue ist nun long!?
+- ConfigurationParam: Integer -> Long, OK?
+- StringHelper: splitToLongs/LongObjects OK?
 
 
 Migration employee timed attrs:
