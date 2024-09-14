@@ -71,9 +71,9 @@ public class AddressCampaignValueEditPage extends
     if (id == null) {
       // Create new entry.
       sval = parameters.get(PARAMETER_ADDRESS_ID);
-      final Integer addressId = sval.isEmpty() ? null : sval.toInteger();
+      final Long addressId = sval.isEmpty() ? null : sval.toLong();
       sval = parameters.get(PARAMETER_ADDRESS_CAMPAIGN_ID);
-      final Integer addressCampaignId = sval.isEmpty() || "null".equals(sval.toString()) ? null : sval.toInteger();
+      final Long addressCampaignId = sval.isEmpty() || "null".equals(sval.toString()) ? null : sval.toLong();
       if (addressId == null || addressCampaignId == null) {
         throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
       }

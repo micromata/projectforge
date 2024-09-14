@@ -223,7 +223,7 @@ open class VacationService {
    */
   @JvmOverloads
   open fun getVacationsListForPeriod(
-    employeeId: Int?,
+    employeeId: Long?,
     periodBegin: LocalDate,
     periodEnd: LocalDate,
     withSpecial: Boolean = false,

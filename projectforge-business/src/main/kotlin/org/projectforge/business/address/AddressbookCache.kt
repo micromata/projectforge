@@ -45,7 +45,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
 
     private lateinit var addressBookList: List<AddressbookDO>
 
-    open fun getAddressbook(id: Int): AddressbookDO? {
+    open fun getAddressbook(id: Long): AddressbookDO? {
         checkRefresh()
         synchronized(addressBookList) {
             return addressBookList.find { it.id == id }

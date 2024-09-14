@@ -116,7 +116,7 @@ public class SystemService {
     buf.append("------------------------------------\n");
     final List<TaskDO> tasks = taskDao.internalLoadAll();
     buf.append("Found " + tasks.size() + " tasks.\n");
-    final Map<Integer, TaskDO> taskMap = new HashMap<>();
+    final Map<Long, TaskDO> taskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       taskMap.put(task.getId(), task);
     }

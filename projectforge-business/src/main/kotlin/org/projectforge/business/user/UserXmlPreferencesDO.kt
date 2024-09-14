@@ -38,12 +38,12 @@ import org.projectforge.framework.persistence.api.IdObject
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])
-class UserXmlPreferencesDO : Serializable, IdObject<Int> {
+class UserXmlPreferencesDO : Serializable, IdObject<Long> {
 
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     /**
      * The owner of this preference.
@@ -83,7 +83,7 @@ class UserXmlPreferencesDO : Serializable, IdObject<Int> {
     @get:Column
     var version: Int = 0
 
-    val userId: Int?
+    val userId: Long?
         @Transient
         get() = if (this.user == null) {
             null

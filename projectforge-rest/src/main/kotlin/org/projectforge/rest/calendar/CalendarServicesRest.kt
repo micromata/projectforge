@@ -135,7 +135,7 @@ class CalendarServicesRest {
   @GetMapping("refresh")
   fun refresh(): ResponseEntity<Any> {
     val filter = calendarFilterServicesRest.getCurrentFilter()
-    val visibleCalendarIds = mutableListOf<Int>()
+    val visibleCalendarIds = mutableListOf<Long>()
     filter.calendarIds.forEach {
       if (it != null && !filter.invisibleCalendars.contains(it)) {
         visibleCalendarIds.add(it)
@@ -219,7 +219,7 @@ class CalendarServicesRest {
       val origStartDate =
         if (startDate != null) RestHelper.parseJSDateTime(origStartDateParam)?.javaScriptString else null
       val origEndDate = if (endDate != null) RestHelper.parseJSDateTime(origEndDateParam)?.javaScriptString else null
-      val dbId = NumberHelper.parseInteger(dbIdParam)
+      val dbId = NumberHelper.parseLong(dbIdParam)
       val dbIdString = if (dbId != null && dbId >= 0) "$dbId" else ""
       val uidString = if (uidParam.isNullOrBlank()) "" else URLEncoder.encode(uidParam, "UTF-8")
       url = "/$category/edit/$dbIdString$uidString?startDate=$startDate&endDate=$endDate"
@@ -280,7 +280,7 @@ class CalendarServicesRest {
     if (filter.useVisibilityState == true && !visibleCalendarIds.isNullOrEmpty()) {
       val currentFilter = getCurrentFilter(userPrefService)
       if (currentFilter != null) {
-        val set = mutableSetOf<Int?>()
+        val set = mutableSetOf<Long?>()
         visibleCalendarIds.forEach {
           if (it != null && !currentFilter.isInvisible(it))
             set.add(it) // Add only visible calendars.

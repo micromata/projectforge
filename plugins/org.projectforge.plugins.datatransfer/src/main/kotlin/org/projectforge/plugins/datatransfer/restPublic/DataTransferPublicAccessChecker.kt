@@ -48,7 +48,7 @@ open class DataTransferPublicAccessChecker(
   internal fun filterAttachments(
     request: HttpServletRequest,
     externalDownloadEnabled: Boolean?,
-    areaId: Int,
+    areaId: Long,
     attachments: List<Attachment>?
   ): List<Attachment>? {
     attachments ?: return null

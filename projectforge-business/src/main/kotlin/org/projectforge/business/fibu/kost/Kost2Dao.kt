@@ -65,7 +65,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
      * @param projektId If null, then projekt will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setProjekt(kost2: Kost2DO, projektId: Int) {
+    fun setProjekt(kost2: Kost2DO, projektId: Long) {
         val projekt = projektDao!!.getOrLoad(projektId)
         if (projekt != null) {
             kost2.projekt = projekt
@@ -80,7 +80,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
      * @param kost2ArtId If null, then kost2Art will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setKost2Art(kost2: Kost2DO, kost2ArtId: Int) {
+    fun setKost2Art(kost2: Kost2DO, kost2ArtId: Long) {
         val kost2Art = kost2ArtDao!!.getOrLoad(kost2ArtId)
         kost2.kost2Art = kost2Art
     }
@@ -91,10 +91,10 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
      */
     fun getKost2(kostString: String?): Kost2DO? {
         val kost = parseKostString(kostString) ?: return null
-        return getKost2(kost[0], kost[1], kost[2], kost[3])
+        return getKost2(kost[0], kost[1], kost[2], kost[3].toLong())
     }
 
-    fun getKost2(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Int): Kost2DO? {
+    fun getKost2(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Long): Kost2DO? {
         return persistenceService.selectNamedSingleResult(
             Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
             Kost2DO::class.java,

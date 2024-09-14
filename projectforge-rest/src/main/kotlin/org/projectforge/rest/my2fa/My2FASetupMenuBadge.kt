@@ -47,7 +47,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
   /**
    * State by userId. True: setup finished, false: badge counter is 1.
    */
-  private val stateMap = mutableMapOf<Int, Boolean>()
+  private val stateMap = mutableMapOf<Long, Boolean>()
 
   @PostConstruct
   private fun postConstruct() {

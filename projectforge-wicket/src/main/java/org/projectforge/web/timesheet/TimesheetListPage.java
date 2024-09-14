@@ -129,7 +129,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       }
     }
     if (WicketUtils.contains(parameters, PARAMETER_KEY_TASK_ID) == true) {
-      final Integer id = WicketUtils.getAsInteger(parameters, PARAMETER_KEY_TASK_ID);
+      final Long id = WicketUtils.getAsLong(parameters, PARAMETER_KEY_TASK_ID);
       form.getSearchFilter().setTaskId(id);
     }
     if (WicketUtils.contains(parameters, PARAMETER_KEY_SEARCHSTRING) == true) {
@@ -137,7 +137,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       form.getSearchFilter().setSearchString(searchString);
     }
     if (WicketUtils.contains(parameters, PARAMETER_KEY_USER_ID) == true) {
-      final Integer id = WicketUtils.getAsInteger(parameters, PARAMETER_KEY_USER_ID);
+      final Long id = WicketUtils.getAsLong(parameters, PARAMETER_KEY_USER_ID);
       form.getSearchFilter().setUserId(id);
     }
     if (WicketUtils.contains(parameters, PARAMETER_KEY_START_TIME) == true) {
@@ -379,10 +379,10 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("taskId".equals(property) == true) {
-      form.getSearchFilter().setTaskId((Integer) selectedValue);
+      form.getSearchFilter().setTaskId((Long) selectedValue);
       refresh();
     } else if ("userId".equals(property) == true) {
-      form.getSearchFilter().setUserId((Integer) selectedValue);
+      form.getSearchFilter().setUserId((Long) selectedValue);
       refresh();
     } else {
       super.select(property, selectedValue);
@@ -448,7 +448,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     // get the formatter for the different export formats
     final Formatter formatter = WicketSupport.get(FormatterFactory.class).getFormatter(form.getExportFormat());
 
-    final Integer taskId = filter.getTaskId();
+    final Long taskId = filter.getTaskId();
 
     final Map<String, Object> data = formatter.getData(timeSheets, taskId, getRequest(), getResponse(), filter);
 

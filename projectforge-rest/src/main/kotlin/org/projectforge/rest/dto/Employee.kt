@@ -33,7 +33,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class Employee(
-  id: Int? = null,
+  id: Long? = null,
   displayName: String? = null,
   var user: User? = null,
   var kost1: Kost1? = null,

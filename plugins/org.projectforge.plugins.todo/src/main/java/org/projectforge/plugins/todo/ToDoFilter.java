@@ -28,9 +28,9 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import java.io.Serializable;
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ToDoFilter extends BaseSearchFilter implements Serializable
 {
@@ -38,10 +38,10 @@ public class ToDoFilter extends BaseSearchFilter implements Serializable
 
   private boolean opened, reopened, inprogress, closed, postponed, onlyRecent;
 
-  private Integer reporterId, assigneeId;
+  private Long reporterId, assigneeId;
 
-  private Integer taskId;
-  
+  private Long taskId;
+
   public ToDoFilter()
   {
   }
@@ -51,32 +51,32 @@ public class ToDoFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  public Integer getReporterId()
+  public Long getReporterId()
   {
     return reporterId;
   }
 
-  public void setReporterId(Integer reporterId)
+  public void setReporterId(Long reporterId)
   {
     this.reporterId = reporterId;
   }
 
-  public Integer getAssigneeId()
+  public Long getAssigneeId()
   {
     return assigneeId;
   }
 
-  public void setAssigneeId(Integer assigneeId)
+  public void setAssigneeId(Long assigneeId)
   {
     this.assigneeId = assigneeId;
   }
 
-  public Integer getTaskId()
+  public Long getTaskId()
   {
     return taskId;
   }
 
-  public void setTaskId(Integer taskId)
+  public void setTaskId(Long taskId)
   {
     this.taskId = taskId;
   }
@@ -130,12 +130,12 @@ public class ToDoFilter extends BaseSearchFilter implements Serializable
   {
     this.postponed = postponed;
   }
-  
+
   public boolean isOnlyRecent()
   {
     return onlyRecent;
   }
-  
+
   public void setOnlyRecent(boolean onlyRecent)
   {
     this.onlyRecent = onlyRecent;

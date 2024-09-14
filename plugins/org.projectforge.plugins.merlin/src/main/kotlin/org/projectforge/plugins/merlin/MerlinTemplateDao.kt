@@ -50,20 +50,20 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
     throwException: Boolean
   ): Boolean {
     obj ?: return false
-    val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
-    if (adminIds.contains(user.id)) {
+    val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
+    if (adminIds.contains(user.id!!)) {
       return true
     }
     if (operationType == OperationType.SELECT) {
       //em.detach(obj)
       // Select access also for those users:
-      StringHelper.splitToIntegers(obj.accessUserIds, ",")?.let {
-        if (it.contains(user.id)) {
+      StringHelper.splitToLongs(obj.accessUserIds, ",")?.let {
+        if (it.contains(user.id!!)) {
           return true
         }
       }
-      StringHelper.splitToIntegers(obj.accessGroupIds, ",")?.let {
-        if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it)) {
+      StringHelper.splitToLongs(obj.accessGroupIds, ",")?.let {
+        if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it.toTypedArray())) {
           return true
         }
       }

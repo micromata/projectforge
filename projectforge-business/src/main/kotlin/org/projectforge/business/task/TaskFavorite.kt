@@ -28,7 +28,7 @@ import org.projectforge.favorites.AbstractFavorite
 
 class TaskFavorite(
         name: String = "",
-        id: Int = 0,
+        id: Long = 0,
         @XStreamAsAttribute
-        var taskId: Int? = null)
+        var taskId: Long? = null)
     : AbstractFavorite(name, id)

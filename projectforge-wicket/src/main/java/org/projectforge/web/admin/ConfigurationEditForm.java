@@ -26,7 +26,6 @@ package org.projectforge.web.admin;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
@@ -86,7 +85,7 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
     {
       // Parameter value
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.value"));
-      if (data.getConfigurationType() == ConfigurationType.INTEGER) {
+      if (data.getConfigurationType() == ConfigurationType.LONG) {
         final TextField<Integer> textField = new TextField<Integer>(InputPanel.WICKET_ID,
             new PropertyModel<Integer>(data, "intValue"));
         fs.add(textField);
@@ -178,7 +177,7 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
     }
   }
 
-  public void setCalendar(final Integer calendarId)
+  public void setCalendar(final Long calendarId)
   {
     if (calendarId != null) {
       setCalendar(WicketSupport.get(TeamCalCache.class).getCalendar(calendarId));

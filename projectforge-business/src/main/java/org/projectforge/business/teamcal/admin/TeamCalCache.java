@@ -55,13 +55,13 @@ public class TeamCalCache extends AbstractCache
 
   private transient TeamCalRight teamCalRight;
 
-  private Map<Integer, TeamCalDO> calendarMap;
+  private Map<Long, TeamCalDO> calendarMap;
 
   public TeamCalRight getTeamCalRight() {
     return teamCalRight;
   }
 
-  public TeamCalDO getCalendar(final Integer calendarId)
+  public TeamCalDO getCalendar(final Long calendarId)
   {
     checkRefresh();
     return calendarMap.get(calendarId);
@@ -112,7 +112,7 @@ public class TeamCalCache extends AbstractCache
   {
     checkRefresh();
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final Integer loggedInUserId = ThreadLocalUserContext.getUserId();
+    final Long loggedInUserId = ThreadLocalUserContext.getUserId();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.isOwner(loggedInUserId, cal)) {
         set.add(cal);
@@ -121,11 +121,11 @@ public class TeamCalCache extends AbstractCache
     return set;
   }
 
-  public Collection<TeamCalDO> getCalendars(final Collection<Integer> calIds)
+  public Collection<TeamCalDO> getCalendars(final Collection<Long> calIds)
   {
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
     if (calIds != null) {
-      for (final Integer calId : calIds) {
+      for (final Long calId : calIds) {
         final TeamCalDO cal = getCalendar(calId);
         if (cal == null) {
           log.warn("Calendar with id " + calId + " not found in cache.");
@@ -151,7 +151,7 @@ public class TeamCalCache extends AbstractCache
       teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
     }
     // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Integer, TeamCalDO> map = new HashMap<>();
+    final Map<Long, TeamCalDO> map = new HashMap<>();
     final List<TeamCalDO> list = dao.internalLoadAll();
     for (final TeamCalDO cal : list) {
       TeamCalDO put = map.put(cal.getId(), cal);

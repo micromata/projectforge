@@ -75,16 +75,16 @@ open class ConfigurationDO : DefaultBaseDO {
         }
 
     @get:Column
-    open var intValue: Int? = null
+    open var longValue: Long? = null
         get() {
             if (field != null) {
-                checkType(ConfigurationType.INTEGER)
+                checkType(ConfigurationType.LONG)
             }
             return field
         }
         set(stringValue) {
             if (field != null) {
-                checkType(ConfigurationType.INTEGER)
+                checkType(ConfigurationType.LONG)
             }
             field = stringValue
         }
@@ -115,7 +115,7 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && field!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 // Do nothing.
-            } else if (type == ConfigurationType.INTEGER && field == ConfigurationType.CALENDAR) {
+            } else if (type == ConfigurationType.LONG && field == ConfigurationType.CALENDAR) {
                 // Do nothing.
             } else if (type == ConfigurationType.FLOAT && field == ConfigurationType.PERCENT) {
                 // Do nothing.
@@ -177,19 +177,19 @@ open class ConfigurationDO : DefaultBaseDO {
             this.stringValue = timeZone.id
         }
 
-    open var calendarId: Int?
+    open var calendarId: Long?
         @Transient
         get() {
-            if (intValue != null) {
+            if (longValue != null) {
                 checkType(ConfigurationType.CALENDAR)
             }
-            return intValue
+            return longValue
         }
         set(calendarId) {
             if (calendarId != null) {
                 checkType(ConfigurationType.CALENDAR)
             }
-            intValue = calendarId
+            longValue = calendarId
         }
 
     open var booleanValue: Boolean?
@@ -207,9 +207,9 @@ open class ConfigurationDO : DefaultBaseDO {
         @Transient
         get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {
             this.stringValue
-        } else if (this.configurationType == ConfigurationType.INTEGER
+        } else if (this.configurationType == ConfigurationType.LONG
                 || this.configurationType == ConfigurationType.CALENDAR) {
-            this.intValue
+            this.longValue
         } else if (this.configurationType == ConfigurationType.FLOAT || this.configurationType == ConfigurationType.PERCENT) {
             this.floatValue
         } else if (this.configurationType == ConfigurationType.BOOLEAN) {
@@ -220,7 +220,7 @@ open class ConfigurationDO : DefaultBaseDO {
         set(value) {
             if (value == null) {
                 stringValue = null
-                intValue = null
+                longValue = null
                 floatValue = null
                 return
             }
@@ -243,12 +243,12 @@ open class ConfigurationDO : DefaultBaseDO {
      * @param lastUpdate
      * @param configurationType
      * @param floatValue
-     * @param intValue
+     * @param longValue
      * @param parameter
      * @param stringValue
      */
-    constructor(id: Int?, created: Date, deleted: Boolean, lastUpdate: Date,
-                configurationType: ConfigurationType, floatValue: BigDecimal, intValue: Int?, parameter: String,
+    constructor(id: Long?, created: Date, deleted: Boolean, lastUpdate: Date,
+                configurationType: ConfigurationType, floatValue: BigDecimal, longValue: Long?, parameter: String,
                 stringValue: String) {
         this.id = id
         this.created = created
@@ -256,7 +256,7 @@ open class ConfigurationDO : DefaultBaseDO {
         this.lastUpdate = lastUpdate
         this.configurationType = configurationType
         this.floatValue = floatValue
-        this.intValue = intValue
+        this.longValue = longValue
         this.parameter = parameter
         this.stringValue = stringValue
     }
@@ -266,16 +266,16 @@ open class ConfigurationDO : DefaultBaseDO {
         when {
             this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.BOOLEAN, ConfigurationType.TEXT,
                     ConfigurationType.TIME_ZONE) -> {
-                this.intValue = null
+                this.longValue = null
                 this.floatValue = null
             }
-            this.configurationType!!.isIn(ConfigurationType.INTEGER, ConfigurationType.CALENDAR) -> {
+            this.configurationType!!.isIn(ConfigurationType.LONG, ConfigurationType.CALENDAR) -> {
                 this.stringValue = null
                 this.floatValue = null
             }
             this.configurationType!!.isIn(ConfigurationType.FLOAT, ConfigurationType.PERCENT) -> {
                 this.stringValue = null
-                this.intValue = null
+                this.longValue = null
             }
             else -> throw UnsupportedOperationException("Unkown type: $type")
         }
@@ -288,7 +288,7 @@ open class ConfigurationDO : DefaultBaseDO {
             } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                             ConfigurationType.TIME_ZONE)) {
                 return
-            } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
+            } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
                 return
             } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
                 return
@@ -312,7 +312,7 @@ open class ConfigurationDO : DefaultBaseDO {
         } else if (type == ConfigurationType.STRING && this.configurationType!!.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
                         ConfigurationType.TIME_ZONE)) {
             // Do nothing.
-        } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
+        } else if (type == ConfigurationType.LONG && this.configurationType == ConfigurationType.CALENDAR) {
             // Do nothing.
         } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
             // Do nothing.

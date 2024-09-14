@@ -128,7 +128,7 @@ public class AddressDaoRest {
       }
 
       List<PersonalAddressDO> favorites = null;
-      Set<Integer> favoritesSet = null;
+      Set<Long> favoritesSet = null;
       if (!exportAll) {
         favorites = personalAddressDao.getList();
         favoritesSet = new HashSet<>();

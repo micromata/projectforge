@@ -89,7 +89,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     variables: MutableMap<String, Any>,
   ) {
     var taskNode: TaskNode? = taskTree.getTaskNodeById(massUpdateData["task"]?.id)
-    var kost2Id: Int? = massUpdateData["kost2"]?.id
+    var kost2Id: Long? = massUpdateData["kost2"]?.id
     val timesheets = timesheetDao.getListByIds(selectedIds)
     if (taskNode == null && timesheets != null) {
       // Try to get a shared task of all time sheets.

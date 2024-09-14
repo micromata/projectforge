@@ -36,7 +36,7 @@ import org.projectforge.web.task.TaskTreePage;
  * @see EditPageSupport
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends BaseDao<O>>
+public interface IEditPage<O extends AbstractBaseDO<Long>, D extends BaseDao<O>>
 {
   /**
    * The flag already submitted should be set to false in onBeforeRender. It should be set to true if the user has
@@ -120,7 +120,7 @@ public interface IEditPage<O extends AbstractBaseDO<Integer>, D extends BaseDao<
    *
    * @param page
    * @see AbstractListPage#setHighlightedRowId(java.io.Serializable)
-   * @see TaskTreePage#setHighlightedRowId(Integer)
+   * @see TaskTreePage#setHighlightedRowId(Long)
    */
   public void setResponsePageAndHighlightedRow(final WebPage page);
 

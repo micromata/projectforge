@@ -66,8 +66,8 @@ open class UserStatusRest {
     var fullname: String? = null,
     var lastName: String? = null,
     var firstName: String? = null,
-    var userId: Int? = null,
-    var employeeId: Int? = null,
+    var userId: Long? = null,
+    var employeeId: Long? = null,
     var locale: String? = null,
     var timeZone: String? = null,
     var dateFormat: String? = null,
@@ -110,7 +110,7 @@ open class UserStatusRest {
   @GetMapping
   fun loginTest(request: HttpServletRequest): ResponseEntity<Result> {
     val user = LoginService.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
-    var employeeId: Int? = user.getTransientAttribute("employeeId") as Int?
+    var employeeId: Long? = user.getTransientAttribute("employeeId") as Long?
     if (employeeId == null) {
       employeeId = employeeDao.getEmployeeIdByByUserId(user.id) ?: -1
       user.setTransientAttribute("employeeId", employeeId) // Avoid multiple calls of db

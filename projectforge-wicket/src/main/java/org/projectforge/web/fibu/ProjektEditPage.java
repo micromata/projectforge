@@ -109,12 +109,12 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   {
     var projektDao = WicketSupport.get(ProjektDao.class);
     if ("kundeId".equals(property) == true) {
-      projektDao.setKunde(getData(), (Integer) selectedValue);
+      projektDao.setKunde(getData(), (Long) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
     } else if ("taskId".equals(property) == true) {
-      projektDao.setTask(getData(), (Integer) selectedValue);
+      projektDao.setTask(getData(), (Long) selectedValue);
     } else if ("projektManagerGroupId".equals(property) == true) {
-      projektDao.setProjektManagerGroup(getData(), (Integer) selectedValue);
+      projektDao.setProjektManagerGroup(getData(), (Long) selectedValue);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

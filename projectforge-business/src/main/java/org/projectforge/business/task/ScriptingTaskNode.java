@@ -52,7 +52,7 @@ public class ScriptingTaskNode {
     }
   }
 
-  public Integer getId() {
+  public Long getId() {
     return task.getId();
   }
 
@@ -64,11 +64,11 @@ public class ScriptingTaskNode {
     return this.task;
   }
 
-  public Integer getTaskId() {
+  public Long getTaskId() {
     return task.getId();
   }
 
-  public Integer getParentId() {
+  public Long getParentId() {
     return __baseObject.getParentId();
   }
 
@@ -88,7 +88,7 @@ public class ScriptingTaskNode {
     return __baseObject.isFinished();
   }
 
-  public List<Integer> getDescendantIds() {
+  public List<Long> getDescendantIds() {
     return __baseObject.getDescendantIds();
   }
 
@@ -122,11 +122,11 @@ public class ScriptingTaskNode {
     return getPathToAncestor(null);
   }
 
-  public List<ScriptingTaskNode> getPathToAncestor(Integer ancestorTaskId) {
+  public List<ScriptingTaskNode> getPathToAncestor(Long ancestorTaskId) {
     return ScriptingTaskTree.convert(__baseObject.getPathToAncestor(ancestorTaskId));
   }
 
-  public boolean hasPermission(Integer groupId, AccessType accessType, OperationType opType) {
+  public boolean hasPermission(Long groupId, AccessType accessType, OperationType opType) {
     return __baseObject.hasPermission(groupId, accessType, opType);
   }
 

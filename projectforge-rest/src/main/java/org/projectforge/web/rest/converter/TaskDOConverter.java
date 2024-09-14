@@ -46,7 +46,7 @@ public class TaskDOConverter
       return null;
     }
     if (!Hibernate.isInitialized(taskDO)) {
-      final Integer taskId = taskDO.getId();
+      final Long taskId = taskDO.getId();
       taskDO = TaskTree.getInstance().getTaskById(taskId);
       if (taskDO == null) {
         log.error("Oups, task with id '" + taskId + "' not found.");

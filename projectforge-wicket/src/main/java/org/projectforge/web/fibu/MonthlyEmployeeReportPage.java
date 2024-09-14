@@ -502,11 +502,11 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("user".equals(property)) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       form.filter.setUser(UserGroupCache.getInstance().getUser(id));
     } else if ("quickSelect".equals(property)) {

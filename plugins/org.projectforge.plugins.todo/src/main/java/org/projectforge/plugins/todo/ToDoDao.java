@@ -123,7 +123,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
             }
             if (myFilter.getTaskId() != null) {
                 final TaskNode node = getTaskTree().getTaskNodeById(myFilter.getTaskId());
-                final List<Integer> taskIds = node.getDescendantIds();
+                final List<Long> taskIds = node.getDescendantIds();
                 taskIds.add(node.getId());
                 queryFilter.add(QueryFilter.isIn("task.id", taskIds));
             }
@@ -166,9 +166,9 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         }
         data.put("history", list);
         final PFUserDO user = ThreadLocalUserContext.getUser();
-        final Integer userId = user.getId();
-        final Integer assigneeId = todo.getAssigneeId();
-        final Integer reporterId = todo.getReporterId();
+        final Long userId = user.getId();
+        final Long assigneeId = todo.getAssigneeId();
+        final Long reporterId = todo.getReporterId();
         if (assigneeId != null && !userId.equals(assigneeId)) {
             sendNotification(todo.getAssignee(), todo, data, true);
         }
@@ -239,22 +239,22 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         toDoCache.setExpired(); // Force reload of the menu item counters for open to-do entrie.
     }
 
-    public void setAssignee(final ToDoDO todo, final Integer userId) {
+    public void setAssignee(final ToDoDO todo, final Long userId) {
         final PFUserDO user = userDao.getOrLoad(userId);
         todo.setAssignee(user);
     }
 
-    public void setReporter(final ToDoDO todo, final Integer userId) {
+    public void setReporter(final ToDoDO todo, final Long userId) {
         final PFUserDO user = userDao.getOrLoad(userId);
         todo.setReporter(user);
     }
 
-    public void setTask(final ToDoDO todo, final Integer taskId) {
+    public void setTask(final ToDoDO todo, final Long taskId) {
         final TaskDO task = getTaskTree().getTaskById(taskId);
         todo.setTask(task);
     }
 
-    public void setGroup(final ToDoDO todo, final Integer groupId) {
+    public void setGroup(final ToDoDO todo, final Long groupId) {
         final GroupDO group = groupDao.getOrLoad(groupId);
         todo.setGroup(group);
     }
@@ -267,7 +267,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
      * @param userId If null then the current logged in user is assumed.
      * @return Number of open to-do entries.
      */
-    public int getOpenToDoEntries(Integer userId) {
+    public int getOpenToDoEntries(Long userId) {
         if (userId == null) {
             userId = ThreadLocalUserContext.getUserId();
         }
@@ -280,7 +280,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
      * @param userId
      * @return Number of open to-do entries.
      */
-    int internalGetOpenEntries(final Integer userId) {
+    int internalGetOpenEntries(final Long userId) {
         final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         try {
             return jdbc.queryForObject("SELECT COUNT(*) FROM T_PLUGIN_TODO"

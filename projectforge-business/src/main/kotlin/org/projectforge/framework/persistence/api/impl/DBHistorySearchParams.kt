@@ -28,7 +28,7 @@ import org.projectforge.framework.time.PFDateTime
 /**
  * Search for this string in all history entries of the queried entities.
  */
-data class DBHistorySearchParams(var modifiedByUserId: Int? = null,
+data class DBHistorySearchParams(var modifiedByUserId: Long? = null,
                                  var modifiedFrom: PFDateTime? = null,
                                  var modifiedTo: PFDateTime? = null,
                                  var searchHistory: String? = null)

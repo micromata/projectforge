@@ -119,13 +119,13 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
       return null
     }
 
-  val addressId: Int?
+  val addressId: Long?
     @Transient
     get() = if (this.address == null) {
       null
     } else address!!.id
 
-  val userId: Int?
+  val userId: Long?
     @Transient
     get() = if (this.user == null) {
       null

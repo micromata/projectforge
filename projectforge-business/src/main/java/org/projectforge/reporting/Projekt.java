@@ -36,7 +36,7 @@ import java.util.List;
 public interface Projekt
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
-  public Integer getId();
+  public Long getId();
 
   /**
    * Ziffer 5-6 von KOST2 (00-99)

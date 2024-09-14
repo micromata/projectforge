@@ -74,7 +74,7 @@ public class TaskHelperTest extends AbstractTestBase
     projekt.setNummer(5);
     projekt.setTask(task1);
     projektDao.save(projekt);
-    final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42);
+    final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42L);
     final Kost2DO kost = new Kost2DO();
     kost.setNummernkreis(4);
     kost.setBereich(128);

@@ -65,7 +65,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
     abstract var kostZuweisungen: MutableList<KostZuweisungDO>?
 
     @get:Transient
-    abstract val rechnungId: Int?
+    abstract val rechnungId: Long?
 
     fun getKostZuweisung(idx: Int): KostZuweisungDO? {
         return kostZuweisungen?.getOrNull(idx)

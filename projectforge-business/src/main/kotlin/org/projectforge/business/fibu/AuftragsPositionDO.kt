@@ -166,11 +166,11 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
       } else vollstaendigFakturiert != true
     }
 
-  val auftragId: Int?
+  val auftragId: Long?
     @Transient
     get() = auftrag?.id
 
-  val taskId: Int?
+  val taskId: Long?
     @Transient
     get() = task?.id
 

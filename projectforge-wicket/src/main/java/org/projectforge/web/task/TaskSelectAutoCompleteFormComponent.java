@@ -140,7 +140,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
    *
    * @return
    */
-  private String createPath(final Integer taskId)
+  private String createPath(final Long taskId)
   {
     final StringBuilder builder = new StringBuilder();
     final List<TaskNode> nodeList = TaskTree.getInstance().getPathToRoot(taskId);
@@ -190,7 +190,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
           return null;
         }
         try {
-          final TaskDO task = TaskTree.getInstance().getTaskById(Integer.valueOf(value));
+          final TaskDO task = TaskTree.getInstance().getTaskById(Long.valueOf(value));
           if (task == null) {
             error(getString("timesheet.error.invalidTaskId"));
             return null;

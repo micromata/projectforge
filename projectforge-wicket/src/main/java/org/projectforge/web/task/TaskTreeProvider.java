@@ -163,7 +163,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   {
     private static final long serialVersionUID = 1L;
 
-    private final Integer id;
+    private final Long id;
 
     public TaskNodeModel(final TaskNode taskNode)
     {

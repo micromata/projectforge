@@ -34,7 +34,7 @@ class CalendarRestFilter(
   /** Optional, if view isn't given. */
   var view: String? = null,
   var end: Date? = null,
-  var timesheetUserId: Int? = null,
+  var timesheetUserId: Long? = null,
   /**
    * If true, breaks between time sheets of a day will be displayed. If the user clicks on a break, a time sheet
    * with the start and stop time of the break could easily be created.
@@ -49,18 +49,18 @@ class CalendarRestFilter(
    * All vacations of any employee assigned to at least one of this
    * vacationGroups will be displayed.
    */
-  var vacationGroupIds: MutableSet<Int?>? = null,
+  var vacationGroupIds: MutableSet<Long?>? = null,
 
   /**
    * All vacations of the given employees (by user) will be displayed.
    * Null items should only occur on (de)serialization issues.
    */
-  var vacationUserIds: MutableSet<Int?>? = null,
+  var vacationUserIds: MutableSet<Long?>? = null,
   /**
    *  The team calendarIds to display.
    * Null items should only occur on (de)serialization issues.
    */
-  var activeCalendarIds: MutableSet<Int?>? = null,
+  var activeCalendarIds: MutableSet<Long?>? = null,
   /**
    * If true, then calendars in the invisibleCalendarIds set of the current filter will be hidden.
    * Default is false (all active calendars are displayed).

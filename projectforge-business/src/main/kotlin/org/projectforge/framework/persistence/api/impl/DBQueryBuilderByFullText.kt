@@ -40,7 +40,7 @@ import java.time.format.DateTimeFormatter
 /**
  * Query builder for full text search.
  */
-internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Int>>(
+internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
     private val baseDao: BaseDao<O>, private val entityManager: EntityManager,
     /**
      * Only for fall back to criteria search if no predicates found for full text search.

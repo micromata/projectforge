@@ -94,7 +94,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
     EingangsrechnungDO invoice = new EingangsrechnungDO();
 
     // set values
-    invoice.setId(1234);
+    invoice.setId(1234L);
     invoice.setPaymentType(PaymentType.BANK_TRANSFER);
     invoice.setReceiver(creditor);
     invoice.setIban(iban);

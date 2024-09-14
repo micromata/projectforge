@@ -36,7 +36,7 @@ public class TimesheetsICSExportDialog extends AbstractICSExportDialog
 {
   private static final long serialVersionUID = 8054215266883084988L;
 
-  private Integer timesheetUserId;
+  private Long timesheetUserId;
 
   /**
    * @param id
@@ -48,7 +48,7 @@ public class TimesheetsICSExportDialog extends AbstractICSExportDialog
     super(id, titleModel);
   }
 
-  public void init(final Integer timesheetUserId)
+  public void init(final Long timesheetUserId)
   {
     super.init();
     this.timesheetUserId = timesheetUserId;

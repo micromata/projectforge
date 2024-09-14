@@ -50,7 +50,7 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesCache.class);
 
-  private final Map<Integer, UserXmlPreferencesMap> allPreferences = new HashMap<>();
+  private final Map<Long, UserXmlPreferencesMap> allPreferences = new HashMap<>();
 
   @Autowired
   private UserXmlPreferencesDao userXmlPreferencesDao;
@@ -63,7 +63,7 @@ public class UserXmlPreferencesCache extends AbstractCache
    *
    * @see org.projectforge.business.user.UserXmlPreferencesMap#putEntry(String, Object, boolean)
    */
-  public void putEntry(final Integer userId, final String key, final Object value, final boolean persistent)
+  public void putEntry(final Long userId, final String key, final Object value, final boolean persistent)
   {
     final UserXmlPreferencesMap data = ensureAndGetUserPreferencesData(userId);
     data.putEntry(key, value, persistent);
@@ -73,9 +73,9 @@ public class UserXmlPreferencesCache extends AbstractCache
   /**
    * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
    *
-   * @see #ensureAndGetUserPreferencesData(Integer)
+   * @see #ensureAndGetUserPreferencesData(Long)
    */
-  public Object getEntry(final Integer userId, final String key)
+  public Object getEntry(final Long userId, final String key)
   {
     final UserXmlPreferencesMap data = ensureAndGetUserPreferencesData(userId);
     checkRefresh();
@@ -87,12 +87,12 @@ public class UserXmlPreferencesCache extends AbstractCache
    *
    * @see org.projectforge.business.user.UserXmlPreferencesMap#removeEntry(String)
    */
-  public Object removeEntry(final Integer userId, final String key)
+  public Object removeEntry(final Long userId, final String key)
   {
     return removeEntry(userId,key, true);
   }
 
-  private Object removeEntry(final Integer userId, final String key, final boolean warnIfNotExists)
+  private Object removeEntry(final Long userId, final String key, final boolean warnIfNotExists)
   {
     final UserXmlPreferencesMap data = getUserPreferencesData(userId);
     if (data == null) {
@@ -116,7 +116,7 @@ public class UserXmlPreferencesCache extends AbstractCache
    *
    * @see org.projectforge.business.user.UserXmlPreferencesMap#removeEntry(String)
    */
-  public Object removeEntryIfExists(final Integer userId, final String key)
+  public Object removeEntryIfExists(final Long userId, final String key)
   {
     return removeEntry(userId, key, false);
   }
@@ -127,7 +127,7 @@ public class UserXmlPreferencesCache extends AbstractCache
    * @param userId
    * @return
    */
-  public synchronized UserXmlPreferencesMap ensureAndGetUserPreferencesData(final Integer userId)
+  public synchronized UserXmlPreferencesMap ensureAndGetUserPreferencesData(final Long userId)
   {
     UserXmlPreferencesMap data = getUserPreferencesData(userId);
     if (data == null) {
@@ -143,12 +143,12 @@ public class UserXmlPreferencesCache extends AbstractCache
     return data;
   }
 
-  UserXmlPreferencesMap getUserPreferencesData(final Integer userId)
+  UserXmlPreferencesMap getUserPreferencesData(final Long userId)
   {
     return this.allPreferences.get(userId);
   }
 
-  void setUserPreferencesData(final Integer userId, final UserXmlPreferencesMap data)
+  void setUserPreferencesData(final Long userId, final UserXmlPreferencesMap data)
   {
     this.allPreferences.put(userId, data);
   }
@@ -157,12 +157,12 @@ public class UserXmlPreferencesCache extends AbstractCache
    * Flushes the user settings to the database (independent from the expire mechanism). Should be used after the user's
    * logout. If the user data isn't modified, then nothing will be done.
    */
-  public void flushToDB(final Integer userId)
+  public void flushToDB(final Long userId)
   {
     flushToDB(userId, true);
   }
 
-  private synchronized void flushToDB(final Integer userId, final boolean checkAccess)
+  private synchronized void flushToDB(final Long userId, final boolean checkAccess)
   {
     if (checkAccess) {
       if (!userId.equals(ThreadLocalUserContext.getUserId())) {
@@ -194,7 +194,7 @@ public class UserXmlPreferencesCache extends AbstractCache
   protected void refresh()
   {
     log.info("Flushing all user preferences to data-base....");
-    for (final Integer userId : allPreferences.keySet()) {
+    for (final Long userId : allPreferences.keySet()) {
       flushToDB(userId, false);
     }
     log.info("Flushing of user preferences to data-base done.");
@@ -205,7 +205,7 @@ public class UserXmlPreferencesCache extends AbstractCache
    *
    * @param userId
    */
-  public void clear(final Integer userId)
+  public void clear(final Long userId)
   {
     final UserXmlPreferencesMap data = allPreferences.get(userId);
     if (data == null) {

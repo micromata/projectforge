@@ -387,7 +387,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         watchFieldsTriggered: Array<String>?
     ): ResponseEntity<ResponseAction> {
         if (watchFieldsTriggered?.get(0) == "groupAttendees") {
-            val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+            val groupIds = dto.groupAttendees?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
             val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
             val users = User.toUserList(userIds)
             User.restoreDisplayNames(users, userService)

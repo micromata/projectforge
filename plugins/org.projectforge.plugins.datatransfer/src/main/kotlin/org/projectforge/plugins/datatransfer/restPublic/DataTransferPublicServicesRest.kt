@@ -84,7 +84,7 @@ class DataTransferPublicServicesRest {
   fun download(
     request: HttpServletRequest,
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("fileId", required = true) fileId: String,
     @RequestParam("listId") listId: String?,
   )
@@ -123,7 +123,7 @@ class DataTransferPublicServicesRest {
     request: HttpServletRequest,
     response: HttpServletResponse,
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
   ): ResponseEntity<*>? {
     check(category == DataTransferPlugin.ID)
     val data = dataTransferPublicSession.checkLogin(request, id) ?: return RestUtils.badRequest("No valid login.")
@@ -159,7 +159,7 @@ class DataTransferPublicServicesRest {
     request: HttpServletRequest,
     response: HttpServletResponse,
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("fileIds", required = true) fileIds: String,
     @RequestParam("listId") listId: String?
   ) {
@@ -282,7 +282,7 @@ class DataTransferPublicServicesRest {
   fun uploadAttachment(
     request: HttpServletRequest,
     @PathVariable("category", required = true) category: String,
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @PathVariable("listId") listId: String?,
     @RequestParam("file") file: MultipartFile,
   )
@@ -456,7 +456,7 @@ class DataTransferPublicServicesRest {
     request: HttpServletRequest,
     sessionData: DataTransferPublicSession.TransferAreaData,
     category: String,
-    id: Int,
+    id: Long,
     listId: String? = null,
     fileId: String? = null,
     file: Attachment? = null,

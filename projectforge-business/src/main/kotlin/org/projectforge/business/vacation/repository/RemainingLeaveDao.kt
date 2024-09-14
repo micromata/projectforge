@@ -45,7 +45,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      * Mark entry for given employee as deleted (for recalculation), if exist. Otherwise nop.
      * Forces recalculation of remaining leave (carry from previous year).
      */
-    open fun internalMarkAsDeleted(employeeId: Int, year: Int) {
+    open fun internalMarkAsDeleted(employeeId: Long, year: Int) {
         val entry = internalGet(employeeId, year, false) ?: return
         internalMarkAsDeleted(entry)
     }
@@ -71,7 +71,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      * will be returned if exists.
      * @see [LeaveAccountEntryDao.getRemainingLeaveFromPreviousYear]
      */
-    open fun getRemainingLeaveFromPreviousYear(employeeId: Int?, year: Int): BigDecimal? {
+    open fun getRemainingLeaveFromPreviousYear(employeeId: Long?, year: Int): BigDecimal? {
         employeeId ?: return BigDecimal.ZERO
         if (year > Year.now().value) {
             return BigDecimal.ZERO // Can't determine remaining vacation days for future years, assuming 0.
@@ -80,7 +80,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
     }
 
     @JvmOverloads
-    open fun internalGet(employeeId: Int?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
+    open fun internalGet(employeeId: Long?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
         employeeId ?: return null
         val result = persistenceService.selectNamedSingleResult(
             RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,

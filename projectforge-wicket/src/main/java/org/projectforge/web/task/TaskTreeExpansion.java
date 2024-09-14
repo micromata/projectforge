@@ -36,7 +36,7 @@ import java.util.Set;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XStreamAlias("TaskTreeExpansion")
-public class TaskTreeExpansion extends TableTreeExpansion<Integer, TaskNode>
+public class TaskTreeExpansion extends TableTreeExpansion<Long, TaskNode>
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskTreeExpansion.class);
 
@@ -47,7 +47,7 @@ public class TaskTreeExpansion extends TableTreeExpansion<Integer, TaskNode>
     final TaskTreeExpansion expansion = new TaskTreeExpansion();
     try {
       @SuppressWarnings("unchecked")
-      final Set<Integer> ids = (Set<Integer>) UserPreferencesHelper.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS);
+      final Set<Long> ids = (Set<Long>) UserPreferencesHelper.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS);
       if (ids != null) {
         expansion.setIds(ids);
       } else {

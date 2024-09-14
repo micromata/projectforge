@@ -362,7 +362,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     open fun getVacationForPeriod(
-        employeeId: Int?,
+        employeeId: Long?,
         startVacationDate: LocalDate?,
         endVacationDate: LocalDate?,
         withSpecial: Boolean

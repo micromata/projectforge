@@ -45,7 +45,7 @@ class Consumption(
    * barPercentage = if (percentage > 100) 100 / percentage else percentage
    */
   val barPercentage: Int?,
-  val id: Int?,
+  val id: Long?,
 ) {
 
   enum class Status {

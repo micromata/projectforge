@@ -317,21 +317,21 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     }
   }
 
-  private Integer createUser(final String username, final char[] password, final String firstname,
+  private Long createUser(final String username, final char[] password, final String firstname,
                              final String lastname) {
     final PFUserDO user = new PFUserDO();
     user.setUsername(username);
     user.setFirstname(firstname);
     user.setLastname(lastname);
     userService.encryptAndSavePassword(user, password);
-    return (Integer) userService.save(user);
+    return (Long) userService.save(user);
   }
 
-  private Integer createGroup(final String name, final String description) {
+  private Long createGroup(final String name, final String description) {
     final GroupDO group = new GroupDO();
     group.setName(name);
     group.setDescription(description);
-    return (Integer) groupDao.internalSave(group);
+    return (Long) groupDao.internalSave(group);
   }
 
   private LdapMasterLoginHandler createLoginHandler() {

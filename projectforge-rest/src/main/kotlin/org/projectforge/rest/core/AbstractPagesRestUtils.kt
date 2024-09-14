@@ -39,7 +39,7 @@ import jakarta.servlet.http.HttpServletRequest
 
 private val log = KotlinLogging.logger {}
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     getList(
   request: HttpServletRequest,
   pagesRest: AbstractPagesRest<O, DTO, B>,
@@ -59,7 +59,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   return resultSet
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     getObjectList(
   pagesRest: AbstractPagesRest<O, DTO, B>,
   baseDao: BaseDao<O>,
@@ -75,7 +75,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   return baseDao.getList(queryFilter, customResultFilters).toMutableList()
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     saveOrUpdate(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -117,7 +117,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     undelete(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -141,7 +141,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     markAsDeleted(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -165,7 +165,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     forceDelete(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,
@@ -184,7 +184,7 @@ fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
   }
 }
 
-fun <O : ExtendedBaseDO<Int>, DTO : Any, B : BaseDao<O>>
+fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     delete(
   request: HttpServletRequest,
   baseDao: BaseDao<O>,

@@ -35,11 +35,11 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Int>. It copies most fields automatically by name and type from
- * DTO to  AbstractHistorizableBaseDO<Int> and vice versa.
+ * BaseHistorizableDTO is a DTO representation of a AbstractHistorizableBaseDO<Long>. It copies most fields automatically by name and type from
+ * DTO to  AbstractHistorizableBaseDO<Long> and vice versa.
  */
-open class BaseDTO<T : ExtendedBaseDO<Int>>(
-  var id: Int? = null,
+open class BaseDTO<T : ExtendedBaseDO<Long>>(
+  var id: Long? = null,
   var deleted: Boolean = false,
   var created: Date? = null,
   var lastUpdate: Date? = null,
@@ -140,7 +140,7 @@ open class BaseDTO<T : ExtendedBaseDO<Int>>(
                   val srcValue = srcField.get(src)
                   if (srcValue != null) {
                     val instance = destType.getDeclaredConstructor().newInstance()
-                    (instance as BaseDO<Int>).id = (srcValue as BaseDTO<*>).id
+                    (instance as BaseDO<Long>).id = (srcValue as BaseDTO<*>).id
                     destField.isAccessible = true
                     destField.set(dest, instance)
                   }

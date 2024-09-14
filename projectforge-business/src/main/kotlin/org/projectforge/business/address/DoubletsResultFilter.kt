@@ -30,7 +30,7 @@ class DoubletsResultFilter : CustomResultFilter<AddressDO> {
     val fullnames: MutableSet<String> = HashSet()
     val doubletFullnames: MutableSet<String> = HashSet()
     val all: MutableList<AddressDO> = ArrayList() // Already processed addresses to add doublets.
-    val addedDoublets: MutableSet<Int?> = HashSet()
+    val addedDoublets: MutableSet<Long?> = HashSet()
 
     override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
         if (element.deleted) {

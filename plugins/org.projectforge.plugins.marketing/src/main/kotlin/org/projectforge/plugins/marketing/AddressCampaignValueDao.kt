@@ -53,7 +53,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         userRightId = MarketingPluginUserRightId.PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE
     }
 
-    fun get(addressId: Int?, addressCampaignId: Int?): AddressCampaignValueDO? {
+    fun get(addressId: Long?, addressCampaignId: Long?): AddressCampaignValueDO? {
         return persistenceService.selectNamedSingleResult(
             AddressCampaignValueDO.FIND_BY_ADDRESS_AND_CAMPAIGN,
             AddressCampaignValueDO::class.java,
@@ -80,7 +80,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
     /**
      * @see BaseDao.getOrLoad
      */
-    fun setAddress(addressCampaignValue: AddressCampaignValueDO, addressId: Int) {
+    fun setAddress(addressCampaignValue: AddressCampaignValueDO, addressId: Long) {
         val address = addressDao!!.getOrLoad(addressId)
         addressCampaignValue.address = address
     }
@@ -91,15 +91,15 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
 
     fun getAddressCampaignValuesByAddressId(
         searchFilter: AddressCampaignValueFilter
-    ): Map<Int?, AddressCampaignValueDO> {
-        val map = HashMap<Int?, AddressCampaignValueDO>()
+    ): Map<Long?, AddressCampaignValueDO> {
+        val map = HashMap<Long?, AddressCampaignValueDO>()
         return getAddressCampaignValuesByAddressId(map, searchFilter)
     }
 
     fun getAddressCampaignValuesByAddressId(
-        map: MutableMap<Int?, AddressCampaignValueDO>,
+        map: MutableMap<Long?, AddressCampaignValueDO>,
         searchFilter: AddressCampaignValueFilter
-    ): Map<Int?, AddressCampaignValueDO> {
+    ): Map<Long?, AddressCampaignValueDO> {
         map.clear()
         val addressCampaignId = searchFilter.addressCampaignId ?: return map
         val list: List<AddressCampaignValueDO> = persistenceService.namedQuery(
@@ -116,9 +116,9 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
     }
 
     fun getAddressCampaignValuesByAddressId(
-        map: MutableMap<Int, AddressCampaignValueDO>,
-        addressCampaignId: Int?
-    ): Map<Int, AddressCampaignValueDO> {
+        map: MutableMap<Long, AddressCampaignValueDO>,
+        addressCampaignId: Long?
+    ): Map<Long, AddressCampaignValueDO> {
         map.clear()
         if (addressCampaignId == null) {
             return map

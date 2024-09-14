@@ -86,7 +86,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       WicketSupport.get(AuftragDao.class).setKunde(getData(), (Integer) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
     } else if ("contactPersonId".equals(property)) {
-      WicketSupport.get(AuftragDao.class).setContactPerson(getData(), (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setContactPerson(getData(), (Long) selectedValue);
       setSendEMailNotification();
     } else if (property.startsWith("taskId:")) {
       final Short number = NumberHelper.parseShort(property.substring(property.indexOf(':') + 1));

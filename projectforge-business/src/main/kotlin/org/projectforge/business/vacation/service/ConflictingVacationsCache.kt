@@ -52,12 +52,12 @@ class ConflictingVacationsCache() : AbstractCache() {
   /**
    * Key is the employee id.
    */
-  private var conflictingVacationsByEmployee = mutableMapOf<Int, MutableList<VacationDO>>()
+  private var conflictingVacationsByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
 
   /**
    * List of vacation id's with conflicts.
    */
-  private var allConflictingVacations = mutableSetOf<Int>()
+  private var allConflictingVacations = mutableSetOf<Long>()
 
   @Autowired
   private lateinit var applicationContext: ApplicationContext
@@ -93,7 +93,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     return hasConflict(vacationDO.id)
   }
 
-  fun hasConflict(vacationId: Int?): Boolean {
+  fun hasConflict(vacationId: Long?): Boolean {
     vacationId ?: return false
     checkRefresh()
     synchronized(allConflictingVacations) {
@@ -101,7 +101,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     }
   }
 
-  fun numberOfConflicts(userId: Int): Int {
+  fun numberOfConflicts(userId: Long): Int {
     employeeService.getEmployeeByUserId(userId)?.id?.let { employeeId ->
       checkRefresh()
       synchronized(allConflictingVacations) {
@@ -113,7 +113,7 @@ class ConflictingVacationsCache() : AbstractCache() {
 
   override fun refresh() {
     log.info("Refreshing cache of conflicting vacations...")
-    val vacationByEmployee = mutableMapOf<Int, MutableList<VacationDO>>()
+    val vacationByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
     // First, order all vacations by employee:
     val all = vacationDao.getCurrentAndFutureVacations()
     all.forEach { vacation ->
@@ -121,8 +121,8 @@ class ConflictingVacationsCache() : AbstractCache() {
         ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
       }
     }
-    val newConflictingVacations = mutableMapOf<Int, MutableList<VacationDO>>()
-    val newAllConflictingVacations = mutableSetOf<Int>()
+    val newConflictingVacations = mutableMapOf<Long, MutableList<VacationDO>>()
+    val newAllConflictingVacations = mutableSetOf<Long>()
     // Now find conflicting entries:
     all.forEach { vacation ->
       val vacationsOfReplacements = mutableListOf<VacationDO>()
@@ -142,8 +142,8 @@ class ConflictingVacationsCache() : AbstractCache() {
   }
 
   private fun ensureEmployeeList(
-    vacationsByEmployee: MutableMap<Int, MutableList<VacationDO>>,
-    employeeId: Int?,
+    vacationsByEmployee: MutableMap<Long, MutableList<VacationDO>>,
+    employeeId: Long?,
   ): MutableList<VacationDO> {
     employeeId ?: return mutableListOf() // Shouldn't occur.
     var vacations = vacationsByEmployee[employeeId]

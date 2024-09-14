@@ -199,15 +199,15 @@ class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
         type: TYPE,
     ): List<TimedAttr> {
         val jdbcTemplate = JdbcTemplate(dataSource)
-        val validMasterIds = mutableSetOf<Int>()
+        val validMasterIds = mutableSetOf<Long>()
         var resultSet = jdbcTemplate.queryForRowSet("select t.pk as object_id from $masterTable as t")
         while (resultSet.next()) {
-            validMasterIds.add(resultSet.getInt("object_id"))
+            validMasterIds.add(resultSet.getLong("object_id"))
         }
-        val userIds = mutableSetOf<Int>()
+        val userIds = mutableSetOf<Long>()
         resultSet = jdbcTemplate.queryForRowSet("select t.pk as pk from t_pf_user as t")
         while (resultSet.next()) {
-            userIds.add(resultSet.getInt("pk"))
+            userIds.add(resultSet.getLong("pk"))
         }
         val list = mutableListOf<TimedAttr>()
         resultSet =
@@ -244,8 +244,8 @@ class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
 private enum class TYPE { EMPLOYEE, VISITORBOOK }
 
 private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
-    val pk1 = resultSet.getInt("pk1")
-    val pk2 = resultSet.getInt("pk2")
+    val pk1 = resultSet.getLong("pk1")
+    val pk2 = resultSet.getLong("pk2")
     val createdatA = resultSet.getTimestamp("createdat")
     val createdbyA = resultSet.getString("createdby")
     val modifiedatA = resultSet.getTimestamp("modifiedat")
@@ -256,7 +256,7 @@ private class TimedAttr(resultSet: SqlRowSet, type: TYPE) {
     /**
      * The employee id or visitor id.
      */
-    val objectId = resultSet.getInt("object_id")
+    val objectId = resultSet.getLong("object_id")
     val groupName = resultSet.getString("group_name")
     val value = resultSet.getString("value")
     val propertyname = resultSet.getString("propertyname")

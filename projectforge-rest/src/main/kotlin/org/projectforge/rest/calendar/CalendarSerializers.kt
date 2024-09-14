@@ -53,7 +53,7 @@ class EventDateSerializer : StdSerializer<FullCalendarEvent.EventDate>(FullCalen
  * Serialization for TeamCalDO etc.
  */
 class TeamCalDOSerializer : StdSerializer<TeamCalDO>(TeamCalDO::class.java) {
-  private class TeamCal(val id: Int?, val title: String?)
+  private class TeamCal(val id: Long?, val title: String?)
 
   @Throws(IOException::class, JsonProcessingException::class)
   override fun serialize(value: TeamCalDO?, jgen: JsonGenerator, provider: SerializerProvider) {

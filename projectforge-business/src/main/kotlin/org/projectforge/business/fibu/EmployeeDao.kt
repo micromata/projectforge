@@ -77,7 +77,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return employeeService.getEmployeeStatus(employee)
     }
 
-    open fun findByUserId(userId: Int?): EmployeeDO? {
+    open fun findByUserId(userId: Long?): EmployeeDO? {
         val employee = persistenceService.selectNamedSingleResult(
             EmployeeDO.FIND_BY_USER_ID,
             EmployeeDO::class.java,
@@ -87,13 +87,13 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return employee
     }
 
-    open fun getEmployeeIdByByUserId(userId: Int?): Int? {
+    open fun getEmployeeIdByByUserId(userId: Long?): Long? {
         userId ?: return null
         return persistenceService.selectNamedSingleResult(
             EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
-            java.lang.Integer::class.java,
+            java.lang.Long::class.java,
             Pair("userId", userId),
-        )?.toInt()
+        )?.toLong()
     }
 
 
@@ -126,7 +126,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     @Deprecated("")
-    open fun setUser(employee: EmployeeDO, userId: Int) {
+    open fun setUser(employee: EmployeeDO, userId: Long) {
         val user = userDao.getOrLoad(userId)
         employee.user = user
     }
@@ -137,7 +137,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     @Deprecated("")
-    open fun setKost1(employee: EmployeeDO, kost1Id: Int) {
+    open fun setKost1(employee: EmployeeDO, kost1Id: Long) {
         val kost1 = kost1Dao.getOrLoad(kost1Id)
         employee.kost1 = kost1
     }

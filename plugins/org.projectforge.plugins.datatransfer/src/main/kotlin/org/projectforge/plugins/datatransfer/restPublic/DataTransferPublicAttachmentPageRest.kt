@@ -73,7 +73,7 @@ class DataTransferPublicAttachmentPageRest : AbstractDynamicPageRest() {
    */
   @GetMapping("dynamic")
   fun getForm(
-    @RequestParam("id", required = true) id: Int,
+    @RequestParam("id", required = true) id: Long,
     @RequestParam("category", required = true) category: String,
     @RequestParam("fileId", required = true) fileId: String,
     @RequestParam("listId") listId: String?,

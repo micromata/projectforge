@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KUNDE", indexes = [Index(name = "idx_fk_t_fibu_kunde_konto_id", columnList = "konto_id")])
-open class KundeDO : AbstractHistorizableBaseDO<Int>(), DisplayNameCapable {
+open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
@@ -54,10 +54,10 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     @get:Transient
-    open var nummer: Int?
+    open var nummer: Long?
         get() = id
         set(value) {
             id = value
@@ -130,7 +130,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Int>(), DisplayNameCapable {
             this.identifier
         } else this.name
 
-    val kontoId: Int?
+    val kontoId: Long?
         @Transient
         get() = if (konto != null) konto!!.id else null
 

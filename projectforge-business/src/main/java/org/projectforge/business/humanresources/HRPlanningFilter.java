@@ -41,9 +41,9 @@ public class HRPlanningFilter extends BaseSearchFilter implements Serializable
 
   private TimePeriod timePeriod;
 
-  private Integer projektId;
+  private Long projektId;
 
-  private Integer userId;
+  private Long userId;
 
   private boolean longFormat;
 
@@ -51,22 +51,22 @@ public class HRPlanningFilter extends BaseSearchFilter implements Serializable
 
   private boolean onlyMyProjects;
 
-  public Integer getProjektId()
+  public Long getProjektId()
   {
     return projektId;
   }
 
-  public void setProjektId(Integer projektId)
+  public void setProjektId(Long projektId)
   {
     this.projektId = projektId;
   }
 
-  public Integer getUserId()
+  public Long getUserId()
   {
     return userId;
   }
 
-  public void setUserId(Integer userId)
+  public void setUserId(Long userId)
   {
     this.userId = userId;
   }

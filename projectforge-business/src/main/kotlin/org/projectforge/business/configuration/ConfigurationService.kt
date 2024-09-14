@@ -438,7 +438,7 @@ open class ConfigurationService {
       try {
         val minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
         if (minPwLenEntry != null) {
-          val minPwLenValue = minPwLenEntry.intValue
+          val minPwLenValue = minPwLenEntry.longValue?.toInt()
           if (minPwLenValue != null) {
             return minPwLenValue
           }
@@ -447,7 +447,7 @@ open class ConfigurationService {
         // this could happen if the database is not initialized (during projectforge initial setup)
         log.warn("Exception while getting the min password length configuration.", e)
       }
-      return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultIntValue
+      return ConfigurationParam.MIN_PASSWORD_LENGTH.defaultLongValue.toInt()
     }
 
   // this could happen if the database is not initialized (during projectforge initial setup)

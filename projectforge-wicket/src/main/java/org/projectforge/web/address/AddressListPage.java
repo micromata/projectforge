@@ -90,7 +90,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
           "f.personaIngrata",
           "f.departed"});
 
-  Map<Integer, PersonalAddressDO> personalAddressMap;
+  Map<Long, PersonalAddressDO> personalAddressMap;
 
   boolean messagingSupported;
 
@@ -217,7 +217,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
             final PersonalAddressDO personalAddress = personalAddressMap.get(address.getId());
             final RepeatingView view = new RepeatingView(componentId);
             item.add(view);
-            final Integer id = address.getId();
+            final Long id = address.getId();
             boolean first = addPhoneNumber(view, id, PhoneType.BUSINESS, address.getBusinessPhone(), false, IconType.BUILDING, true);
             first = addPhoneNumber(view, id, PhoneType.MOBILE, address.getMobilePhone(), true, IconType.TABLET, first);
             first = addPhoneNumber(view, id, PhoneType.PRIVATE, address.getPrivatePhone(), false, IconType.HOME, first);
@@ -366,7 +366,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
     }
   }
 
-  private boolean addPhoneNumber(final RepeatingView view, final Integer addressId, final PhoneType phoneType,
+  private boolean addPhoneNumber(final RepeatingView view, final Long addressId, final PhoneType phoneType,
                                  final String phoneNumber,
                                  final boolean sendSms, final IconType icon, final boolean first) {
     if (StringUtils.isBlank(phoneNumber) == true) {

@@ -78,7 +78,7 @@ internal class My2FABruteForceProtection {
     }
   }
 
-  private val otpFailures = mutableMapOf<Int, OTPCheckData>()
+  private val otpFailures = mutableMapOf<Long, OTPCheckData>()
 
   internal val userChangeListener = UserChangeListener(this)
 
@@ -90,7 +90,7 @@ internal class My2FABruteForceProtection {
   /**
    * After an OTP failure, this method should be called.
    */
-  fun registerOTPFailure(userId: Int = ThreadLocalUserContext.userId!!) {
+  fun registerOTPFailure(userId: Long = ThreadLocalUserContext.userId!!) {
     var counter = 0
     synchronized(otpFailures) {
       var data = otpFailures[userId]
@@ -117,7 +117,7 @@ internal class My2FABruteForceProtection {
   /**
    * After a successful OTP check, this method should be called. So the user has all retries again.
    */
-  fun registerOTPSuccess(userId: Int = ThreadLocalUserContext.userId!!) {
+  fun registerOTPSuccess(userId: Long = ThreadLocalUserContext.userId!!) {
     synchronized(otpFailures) {
       otpFailures.remove(userId)
     }
@@ -127,7 +127,7 @@ internal class My2FABruteForceProtection {
    * This method should be called before every OTP check. If not allowed, the OTP check must be skipped and an
    * error message should be returned.
    */
-  fun isBlocked(userId: Int = ThreadLocalUserContext.userId!!): Boolean {
+  fun isBlocked(userId: Long = ThreadLocalUserContext.userId!!): Boolean {
     val data = getData(userId) ?: return false
     val lastFailedTry = data.lastFailedTry ?: return false
     val waitingMillis = getWaitingMillis(data.counter)
@@ -138,7 +138,7 @@ internal class My2FABruteForceProtection {
    * If retry is not allowed, this method will return a localized message about the reason including the number
    * of failed retries, the risk of beeing deactivated as well as any time penalty.
    */
-  fun getBlockedResult(userId: Int = ThreadLocalUserContext.userId!!): OTPCheckResult? {
+  fun getBlockedResult(userId: Long = ThreadLocalUserContext.userId!!): OTPCheckResult? {
     getBlockedMessage(userId)?.let { message ->
       return OTPCheckResult.BLOCKED.withMessage(message)
     }
@@ -149,7 +149,7 @@ internal class My2FABruteForceProtection {
    * If retry is not allowed, this method will return a localized message about the reason including the number
    * of failed retries, the risk of beeing deactivated as well as any time penalty.
    */
-  fun getBlockedMessage(userId: Int = ThreadLocalUserContext.userId!!): String? {
+  fun getBlockedMessage(userId: Long = ThreadLocalUserContext.userId!!): String? {
     if (!isBlocked(userId)) {
       return null
     }
@@ -172,11 +172,11 @@ internal class My2FABruteForceProtection {
     )
   }
 
-  fun getNumberOfFailures(userId: Int): Int {
+  fun getNumberOfFailures(userId: Long): Int {
     return getData(userId)?.counter ?: 0
   }
 
-  internal fun getLastFailedTry(userId: Int): Long? {
+  internal fun getLastFailedTry(userId: Long): Long? {
     return getData(userId)?.lastFailedTry
   }
 
@@ -197,11 +197,11 @@ internal class My2FABruteForceProtection {
   /**
    * For test cases only.
    */
-  internal fun setLastFailedTry(userId: Int, millis: Long) {
+  internal fun setLastFailedTry(userId: Long, millis: Long) {
     getData(userId)?.lastFailedTry = millis
   }
 
-  private fun getData(userId: Int): OTPCheckData? {
+  private fun getData(userId: Long): OTPCheckData? {
     synchronized(otpFailures) {
       return otpFailures[userId]
     }

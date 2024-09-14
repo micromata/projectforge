@@ -100,7 +100,7 @@ public class Kost2ArtImpl implements Kost2Art, Comparable<Kost2ArtImpl>, Seriali
     return kost2ArtDO.getFakturiert();
   }
 
-  public Integer getId()
+  public Long getId()
   {
     return kost2ArtDO.getId();
   }

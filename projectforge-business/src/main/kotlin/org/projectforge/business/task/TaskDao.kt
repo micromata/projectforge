@@ -85,7 +85,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * @param parentTaskId If null, then task will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setParentTask(task: TaskDO, parentTaskId: Int): TaskDO {
+    fun setParentTask(task: TaskDO, parentTaskId: Long): TaskDO {
         val parentTask = getOrLoad(parentTaskId)
         task.parentTask = parentTask
         return task
@@ -96,7 +96,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * @param predecessorId If null, then task will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setGanttPredecessor(task: TaskDO, predecessorId: Int) {
+    fun setGanttPredecessor(task: TaskDO, predecessorId: Long) {
         val predecessor = getOrLoad(predecessorId)
         task.ganttPredecessor = predecessor
     }
@@ -106,7 +106,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * @param responsibleUserId If null, then task will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setResponsibleUser(task: TaskDO, responsibleUserId: Int) {
+    fun setResponsibleUser(task: TaskDO, responsibleUserId: Long) {
         val user = userDao.getOrLoad(responsibleUserId)
         task.responsibleUser = user
     }
@@ -137,12 +137,12 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         // select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id");
         val list = mutableListOf<Array<Any>>()
         if (!CollectionUtils.isEmpty(result)) {
-            var currentTaskId: Int? = null
+            var currentTaskId: Long? = null
             var totalDuration: Long = 0
             for (oa in result) {
                 val startTime = oa[0] as Date
                 val stopTime = oa[1] as Date
-                val taskId = oa[2] as Int
+                val taskId = oa[2] as Long
                 val duration = (stopTime.time - startTime.time) / 1000
                 if (currentTaskId == null || currentTaskId != taskId) {
                     if (currentTaskId != null) {
@@ -165,7 +165,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * Gets the total duration of all time sheets of the given task (excluding the child tasks).
      * @return Duration in seconds.
      */
-    fun readTotalDuration(taskId: Int?): Long {
+    fun readTotalDuration(taskId: Long?): Long {
         log.debug { "Calculating duration for task $taskId" }
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {

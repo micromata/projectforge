@@ -43,7 +43,7 @@ object AttachmentsRestUtils {
     attachmentsAccessChecker: AttachmentsAccessChecker,
     filebasename: String?,
     jcrPath: String,
-    id: Int,
+    id: Long,
     attachments: List<Attachment>? = null,
   ) {
     response.status = HttpServletResponse.SC_OK

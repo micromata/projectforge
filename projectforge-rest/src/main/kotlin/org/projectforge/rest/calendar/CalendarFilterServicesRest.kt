@@ -273,7 +273,7 @@ class CalendarFilterServicesRest {
 
   @GetMapping("changeStyle")
   fun changeCalendarStyle(
-    @RequestParam("calendarId", required = true) calendarId: Int,
+    @RequestParam("calendarId", required = true) calendarId: Long,
     @RequestParam("bgColor") bgColor: String?
   ): Map<String, Any> {
     var style = getStyleMap().get(calendarId)
@@ -302,7 +302,7 @@ class CalendarFilterServicesRest {
    */
   @GetMapping("setVisibility")
   fun setVisibility(
-    @RequestParam("calendarId", required = true) calendarId: Int,
+    @RequestParam("calendarId", required = true) calendarId: Long,
     @RequestParam("visible", required = true) visible: Boolean
   ): Map<String, Any> {
     val currentFilter = getCurrentFilter()
@@ -319,7 +319,7 @@ class CalendarFilterServicesRest {
   @GetMapping("changeDefaultCalendar")
   fun changeDefaultCalendar(@RequestParam("id", required = true) id: String): Map<String, Any> {
     val currentFilter = getCurrentFilter()
-    currentFilter.defaultCalendarId = NumberHelper.parseInteger(id)
+    currentFilter.defaultCalendarId = NumberHelper.parseLong(id)
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
@@ -329,7 +329,7 @@ class CalendarFilterServicesRest {
   @GetMapping("changeTimesheetUser")
   fun changeTimesheetUser(@RequestParam("userId") userIdString: String?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
-    val userId = NumberHelper.parseInteger(userIdString)
+    val userId = NumberHelper.parseLong(userIdString)
     if (timesheetDao.showTimesheetsOfOtherUsers()) {
       currentFilter.timesheetUserId = userId
     } else {
@@ -353,14 +353,14 @@ class CalendarFilterServicesRest {
   }
 
   @PostMapping("changeVacationGroups")
-  fun changeVacationGroups(@RequestBody groupIds: Set<Int>?): Map<String, Any> {
+  fun changeVacationGroups(@RequestBody groupIds: Set<Long>?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.vacationGroupIds = groupIds
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
   }
 
   @PostMapping("changeVacationUsers")
-  fun changeVacationUsers(@RequestBody userIds: Set<Int>?): Map<String, Any> {
+  fun changeVacationUsers(@RequestBody userIds: Set<Long>?): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     currentFilter.vacationUserIds = userIds
     return mapOf("isFilterModified" to isCurrentFilterModified(currentFilter))
@@ -407,7 +407,7 @@ class CalendarFilterServicesRest {
    * @return The current filter with flag modified=false.
    */
   @GetMapping("updateFilter")
-  fun updateFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+  fun updateFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val currentFilter = getCurrentFilter()
     getFilterFavorites().get(id)?.copyFrom(currentFilter)
     return mapOf("isFilterModified" to false)
@@ -417,14 +417,14 @@ class CalendarFilterServicesRest {
    * @return The new list of filterFavorites (id's with titles) without the deleted filter.
    */
   @GetMapping("deleteFilter")
-  fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+  fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val favorites = getFilterFavorites()
     favorites.remove(id)
     return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
   }
 
   @GetMapping("selectFilter")
-  fun selectFilter(@RequestParam("id", required = true) id: Int): CalendarInit {
+  fun selectFilter(@RequestParam("id", required = true) id: Long): CalendarInit {
     val favorites = getFilterFavorites()
     val currentFilter = favorites.get(id)
     if (currentFilter != null)
@@ -441,7 +441,7 @@ class CalendarFilterServicesRest {
    */
   @GetMapping("renameFilter")
   fun renameFavoriteFilter(
-    @RequestParam("id", required = true) id: Int,
+    @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
   ): Map<String, Any> {
     val favorites = getFilterFavorites()

@@ -65,7 +65,7 @@ public class BookDao extends BaseDao<BookDO> {
     return doesSignatureAlreadyExist(book.getSignature(), book.getId());
   }
 
-  public boolean doesSignatureAlreadyExist(final String signature, final Integer id) {
+  public boolean doesSignatureAlreadyExist(final String signature, final Long id) {
     if (signature == null) {
       return false;
     }
@@ -88,7 +88,7 @@ public class BookDao extends BaseDao<BookDO> {
     return other != null;
   }
 
-  public void setLendOutBy(final BookDO book, final Integer lendOutById) {
+  public void setLendOutBy(final BookDO book, final Long lendOutById) {
     final PFUserDO user = userDao.getOrLoad(lendOutById);
     book.setLendOutBy(user);
   }

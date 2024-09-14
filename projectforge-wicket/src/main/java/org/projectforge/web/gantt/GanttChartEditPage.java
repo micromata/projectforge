@@ -62,7 +62,7 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
     super(parameters, "gantt");
     init();
     if (isNew() == true) {
-      final Integer taskId = WicketUtils.getAsInteger(parameters, PARAM_KEY_TASK);
+      final Long taskId = WicketUtils.getAsLong(parameters, PARAM_KEY_TASK);
       if (taskId != null) {
         getBaseDao().setTask(getData(), taskId);
       }
@@ -185,11 +185,11 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
   public void select(final String property, final Object selectedValue)
   {
     if ("taskId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       if (ganttChartData == null || Objects.equals(id, ganttChartData.getRootObject().getId()) == false) {
         ganttChartData = null; // Force refresh.
@@ -198,11 +198,11 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
       getBaseDao().setTask(getData(), id);
       refresh();
     } else if ("ownerId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setOwner(getData(), id);
     } else {

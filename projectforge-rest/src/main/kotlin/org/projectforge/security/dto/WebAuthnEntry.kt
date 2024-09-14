@@ -27,7 +27,7 @@ import org.projectforge.security.webauthn.WebAuthnEntryDO
 import java.util.*
 
 open class WebAuthnEntry(
-  var id: Int? = null,
+  var id: Long? = null,
   var created: Date? = null,
   var lastUpdate: Date? = null,
   var displayName: String? = null,

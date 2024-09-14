@@ -74,10 +74,10 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
         ProjectForgeGroup.PROJECT_ASSISTANT)) {
-      Integer userId = user.getId();
-      Integer headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
-      Integer projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
-      Integer salesManageId = obj.getSalesManager() != null ? obj.getSalesManager().getId() : null;
+      Long userId = user.getId();
+      Long headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
+      Long projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
+      Long salesManageId = obj.getSalesManager() != null ? obj.getSalesManager().getId() : null;
       if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
         return true;
       }

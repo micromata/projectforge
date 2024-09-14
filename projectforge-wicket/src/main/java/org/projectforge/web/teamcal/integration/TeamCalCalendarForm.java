@@ -129,7 +129,7 @@ public class TeamCalCalendarForm extends CalendarForm
         @Override
         protected void onSubmit()
         {
-          final Set<Integer> visibleCalsSet = ((TeamCalCalendarFilter) filter).getActiveVisibleCalendarIds();
+          final Set<Long> visibleCalsSet = ((TeamCalCalendarFilter) filter).getActiveVisibleCalendarIds();
           final String calendars = StringHelper.objectColToString(visibleCalsSet, ",");
           final TeamEventListPage teamEventListPage = new TeamEventListPage(
               new PageParameters().add(TeamEventListPage.PARAM_CALENDARS,
@@ -345,7 +345,7 @@ public class TeamCalCalendarForm extends CalendarForm
   /**
    * @return the selectedCalendars
    */
-  public Set<Integer> getSelectedCalendars()
+  public Set<Long> getSelectedCalendars()
   {
     return ((TeamCalCalendarFilter) filter).getActiveVisibleCalendarIds();
   }

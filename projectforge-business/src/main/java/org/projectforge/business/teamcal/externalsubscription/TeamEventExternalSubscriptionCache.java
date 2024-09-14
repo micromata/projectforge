@@ -53,7 +53,7 @@ public class TeamEventExternalSubscriptionCache {
 
   private static final long MAX_WAIT_MS_AFTER_FAILED_UPDATE = 1000 * 60 * 60 * 24; // 24 h
 
-  private final Map<Integer, TeamEventSubscription> subscriptions = new HashMap<>();
+  private final Map<Long, TeamEventSubscription> subscriptions = new HashMap<>();
 
   private static final Long SUBSCRIPTION_UPDATE_TIME = 5L * 60 * 1000; // 5 min
 
@@ -102,8 +102,8 @@ public class TeamEventExternalSubscriptionCache {
       updateCache(calendar);
     }
 
-    final List<Integer> idsToRemove = new ArrayList<>();
-    for (final Integer calendarId : subscriptions.keySet()) {
+    final List<Long> idsToRemove = new ArrayList<>();
+    for (final Long calendarId : subscriptions.keySet()) {
       // if calendar is not subscribed anymore, remove them
       if (!calendarListContainsId(subscribedCalendars, calendarId)) {
         idsToRemove.add(calendarId);
@@ -112,13 +112,13 @@ public class TeamEventExternalSubscriptionCache {
     removeCalendarsFromCache(idsToRemove);
   }
 
-  private void removeCalendarsFromCache(final List<Integer> idsToRemove) {
-    for (final Integer calendarId : idsToRemove) {
+  private void removeCalendarsFromCache(final List<Long> idsToRemove) {
+    for (final Long calendarId : idsToRemove) {
       subscriptions.remove(calendarId);
     }
   }
 
-  private boolean calendarListContainsId(final List<TeamCalDO> subscribedCalendars, final Integer calendarId) {
+  private boolean calendarListContainsId(final List<TeamCalDO> subscribedCalendars, final Long calendarId) {
     for (final TeamCalDO teamCal : subscribedCalendars) {
       if (teamCal.getId().equals(calendarId)) {
         return true;
@@ -136,7 +136,7 @@ public class TeamEventExternalSubscriptionCache {
    * @param force    If true then update is forced (independent of last update time and refresh interval).
    */
   public void updateCache(final TeamCalDO calendar, final boolean force) {
-    final Integer calId = calendar.getId();
+    final Long calId = calendar.getId();
     if (calId == null) {
       log.error("Oups, calId is null (can't update subscription): " + calendar);
       return;
@@ -191,12 +191,12 @@ public class TeamEventExternalSubscriptionCache {
     }
   }
 
-  public boolean isExternalSubscribedCalendar(final Integer calendarId) {
+  public boolean isExternalSubscribedCalendar(final Long calendarId) {
     init();
     return subscriptions.keySet().contains(calendarId);
   }
 
-  public List<TeamEventDO> getEvents(final Integer calendarId, final Long startTime, final Long endTime) {
+  public List<TeamEventDO> getEvents(final Long calendarId, final Long startTime, final Long endTime) {
     init();
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
     final DataobjectAccessType accessType = getAccessType(eventSubscription);
@@ -205,7 +205,7 @@ public class TeamEventExternalSubscriptionCache {
     return eventSubscription.getEvents(startTime, endTime, accessType == DataobjectAccessType.MINIMAL);
   }
 
-  public TeamEventDO getEvent(final Integer calendarId, final String uid) {
+  public TeamEventDO getEvent(final Long calendarId, final String uid) {
     init();
     final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
     final DataobjectAccessType accessType = getAccessType(eventSubscription);
@@ -223,7 +223,7 @@ public class TeamEventExternalSubscriptionCache {
     if (eventSubscription == null) {
       return null;
     }
-    final Integer userId = ThreadLocalUserContext.getUserId();
+    final Long userId = ThreadLocalUserContext.getUserId();
     final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
     if (!accessType.hasAnyAccess()) {
       return null;
@@ -235,10 +235,10 @@ public class TeamEventExternalSubscriptionCache {
     init();
     final List<TeamEventDO> result = new ArrayList<>();
     // precondition: existing teamcals ins filter
-    final Collection<Integer> teamCals = new LinkedList<>();
-    final Integer userId = ThreadLocalUserContext.getUserId();
+    final Collection<Long> teamCals = new LinkedList<>();
+    final Long userId = ThreadLocalUserContext.getUserId();
     if (CollectionUtils.isNotEmpty(filter.getTeamCals())) {
-      for (final Integer calendarId : filter.getTeamCals()) {
+      for (final Long calendarId : filter.getTeamCals()) {
         final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
         if (eventSubscription == null) {
           continue;
@@ -260,7 +260,7 @@ public class TeamEventExternalSubscriptionCache {
       }
     }
     if (teamCals != null) {
-      for (final Integer calendarId : teamCals) {
+      for (final Long calendarId : teamCals) {
         final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);
         if (eventSubscription != null) {
           final List<TeamEventDO> recurrenceEvents = eventSubscription.getRecurrenceEvents();
@@ -280,7 +280,7 @@ public class TeamEventExternalSubscriptionCache {
     return result;
   }
 
-  private DataobjectAccessType getAccessType(final Integer calendarId, final Integer userId) {
+  private DataobjectAccessType getAccessType(final Long calendarId, final Long userId) {
     final TeamCalDO cal = teamCalCache.getCalendar(calendarId);
     return getTeamCalRight().getAccessType(cal, userId);
   }

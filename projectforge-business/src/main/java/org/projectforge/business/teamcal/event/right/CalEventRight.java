@@ -75,7 +75,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       // User has full access to it's own calendars.
       return true;
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     if (teamCalRight.hasFullAccess(calendar, userId)
       || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
@@ -150,7 +150,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       // User has full access to it's own calendars.
       return true;
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     if (teamCalRight.hasFullAccess(calendar, userId) || WicketSupport.getAccessChecker().isDemoUser()) {
       return true;
     }
@@ -178,7 +178,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
       // User has full access to it's own calendars.
       return true;
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     if (teamCalRight.hasFullAccess(calendar, userId)
       || teamCalRight.hasReadonlyAccess(calendar, userId)) {
       return true;
@@ -186,7 +186,7 @@ public class CalEventRight  extends UserRightAccessCheck<CalEventDO>
     return false;
   }
 
-  public boolean hasMinimalAccess(final CalEventDO event, final Integer userId)
+  public boolean hasMinimalAccess(final CalEventDO event, final Long userId)
   {
     if (event.getCalendar() == null) {
       return true;

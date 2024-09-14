@@ -59,7 +59,7 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
     if (CollectionUtils.isEmpty(employeesWithoutLoggedInUser)) {
       employeesWithoutLoggedInUser = new ArrayList<>();
     } else {
-      final Integer loggedInUserId = ThreadLocalUserContext.getUserId();
+      final Long loggedInUserId = ThreadLocalUserContext.getUserId();
       for (EmployeeDO emp : employeesWithoutLoggedInUser) {
         if (!withMyself && Objects.equals(emp.getUserId(), loggedInUserId)) {
           // Don't add myself as employee.

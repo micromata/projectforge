@@ -55,7 +55,7 @@ public class UserFormatter implements Serializable
    * @return User's full name.
    * @see PFUserDO#getFullname()
    */
-  public String formatUser(final Integer userId)
+  public String formatUser(final Long userId)
   {
     final PFUserDO u = UserGroupCache.getInstance().getUser(userId);
     return u != null ? u.getFullname() : "";
@@ -72,7 +72,7 @@ public class UserFormatter implements Serializable
     return HtmlHelper.escapeXml(user.getFullname());
   }
 
-  public String getFormattedUser(final Integer userId)
+  public String getFormattedUser(final Long userId)
   {
     if (userId == null) {
       return "";
@@ -81,7 +81,7 @@ public class UserFormatter implements Serializable
     return getFormattedUser(user);
   }
 
-  public void appendFormattedUser(final StringBuffer buf, final Integer userId)
+  public void appendFormattedUser(final StringBuffer buf, final Long userId)
   {
     final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     appendFormattedUser(buf, user);

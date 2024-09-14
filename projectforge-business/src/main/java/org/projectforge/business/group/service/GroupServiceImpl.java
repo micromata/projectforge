@@ -53,30 +53,30 @@ public class GroupServiceImpl implements GroupService {
 
 
   @Override
-  public GroupDO getGroup(final Integer groupId) {
+  public GroupDO getGroup(final Long groupId) {
     return groupDao.getOrLoad(groupId);
   }
 
   @Override
-  public String getGroupname(final Integer groupId) {
+  public String getGroupname(final Long groupId) {
     final GroupDO group = getGroup(groupId);
     return group == null ? null : group.getName();
   }
 
   @Override
-  public String getDisplayName(final Integer groupId) {
+  public String getDisplayName(final Long groupId) {
     final GroupDO group = getGroup(groupId);
     return group == null ? null : group.getDisplayName();
   }
 
   @Override
-  public String getGroupnames(final Integer userId) {
-    final Set<Integer> groupSet = userGroupCache.getUserGroupIdMap().get(userId);
+  public String getGroupnames(final Long userId) {
+    final Set<Long> groupSet = userGroupCache.getUserGroupIdMap().get(userId);
     if (groupSet == null) {
       return "";
     }
     final List<String> list = new ArrayList<>();
-    for (final Integer groupId : groupSet) {
+    for (final Long groupId : groupSet) {
       final GroupDO group = userGroupCache.getGroup(groupId);
       if (group != null) {
         list.add(group.getName());
@@ -96,9 +96,9 @@ public class GroupServiceImpl implements GroupService {
     if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
-    final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
+    final long[] ids = StringHelper.splitToLongs(groupIds, ",");
     final List<String> list = new ArrayList<>();
-    for (final int id : ids) {
+    for (final long id : ids) {
       final GroupDO group = userGroupCache.getGroup(id);
       if (group != null) {
         list.add(group.getName());
@@ -119,8 +119,8 @@ public class GroupServiceImpl implements GroupService {
       return null;
     }
     Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
-    final int[] ids = StringHelper.splitToInts(groupIds, ",", false);
-    for (final int id : ids) {
+    final long[] ids = StringHelper.splitToLongs(groupIds, ",");
+    for (final long id : ids) {
       final GroupDO group = getGroup(id);
       if (group != null) {
         sortedGroups.add(group);
@@ -158,12 +158,12 @@ public class GroupServiceImpl implements GroupService {
   }
 
   @Override
-  public Collection<PFUserDO> getGroupUsers(int[] groupIds) {
+  public Collection<PFUserDO> getGroupUsers(long[] groupIds) {
     Collection<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
     if (groupIds == null) {
       return sortedUsers;
     }
-    for (int groupId : groupIds) {
+    for (long groupId : groupIds) {
       final GroupDO group = getGroup(groupId);
       if (group != null) {
         final Set<PFUserDO> users = group.getAssignedUsers();

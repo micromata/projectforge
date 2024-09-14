@@ -109,7 +109,7 @@ class UserXmlPreferencesDao {
      * @param userId
      */
     fun getUserPreferencesByUserId(
-        userId: Int, key: String?,
+        userId: Long, key: String?,
         checkAccess: Boolean
     ): UserXmlPreferencesDO? {
         if (checkAccess) {
@@ -126,7 +126,7 @@ class UserXmlPreferencesDao {
         } else null
     }
 
-    fun <T> getDeserializedUserPreferencesByUserId(userId: Int, key: String?, returnClass: Class<T>?): T? {
+    fun <T> getDeserializedUserPreferencesByUserId(userId: Long, key: String?, returnClass: Class<T>?): T? {
         return deserialize(userId, getUserPreferencesByUserId(userId, key, true)!!, false) as T?
     }
 
@@ -136,7 +136,7 @@ class UserXmlPreferencesDao {
      *
      * @param userId
      */
-    fun getUserPreferencesByUserId(userId: Int): List<UserXmlPreferencesDO> {
+    fun getUserPreferencesByUserId(userId: Long): List<UserXmlPreferencesDO> {
         checkAccess(userId)
         return persistenceService.query(
             "select u from UserXmlPreferencesDO u where u.user.id = :userid",
@@ -151,7 +151,7 @@ class UserXmlPreferencesDao {
      *
      * @param userId
      */
-    fun checkAccess(userId: Int) {
+    fun checkAccess(userId: Long) {
         Validate.notNull(userId)
         val user = user
         if (userId != user!!.id) {
@@ -166,7 +166,7 @@ class UserXmlPreferencesDao {
      * @param userPrefs
      * @param logError
      */
-    fun deserialize(userId: Int, userPrefs: UserXmlPreferencesDO, logError: Boolean): Any? {
+    fun deserialize(userId: Long, userPrefs: UserXmlPreferencesDO, logError: Boolean): Any? {
         var xml: String? = null
         try {
             UserXmlPreferencesMigrationDao.migrate(userPrefs)
@@ -228,7 +228,7 @@ class UserXmlPreferencesDao {
     }
 
     // REQUIRES_NEW needed for avoiding a lot of new data base connections from HibernateFilter.
-    fun saveOrUpdateUserEntries(userId: Int, data: UserXmlPreferencesMap, checkAccess: Boolean) {
+    fun saveOrUpdateUserEntries(userId: Long, data: UserXmlPreferencesMap, checkAccess: Boolean) {
         for ((key, value) in data.persistentData) {
             if (data.isModified(key)) {
                 try {
@@ -245,13 +245,13 @@ class UserXmlPreferencesDao {
      * @param userId If null, then user will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setUser(userPrefs: UserXmlPreferencesDO, userId: Int?) {
+    fun setUser(userPrefs: UserXmlPreferencesDO, userId: Long?) {
         userId ?: return
         val user = userDao.getOrLoad(userId)
         userPrefs.user = user
     }
 
-    fun saveOrUpdate(userId: Int, key: String?, entry: Any?, checkAccess: Boolean) {
+    fun saveOrUpdate(userId: Long, key: String?, entry: Any?, checkAccess: Boolean) {
         if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return
@@ -298,7 +298,7 @@ class UserXmlPreferencesDao {
         }
     }
 
-    fun remove(userId: Int, key: String?) {
+    fun remove(userId: Long, key: String?) {
         if (accessChecker!!.isDemoUser(userId)) {
             // Do nothing.
             return

@@ -67,7 +67,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
    * @see MySession#getUserId()
    */
   @Override
-  protected Integer getUserId() {
+  protected Long getUserId() {
     final PFUserDO user = getUser();
     return user != null ? user.getId() : null;
   }
@@ -132,7 +132,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage {
   }
 
   /**
-   * @see UserXmlPreferencesCache#flushToDB(Integer)
+   * @see UserXmlPreferencesCache#flushToDB(Long)
    */
   public void flushUserPrefToDB() {
     getUserXmlPreferencesCache().flushToDB(getUser().getId());

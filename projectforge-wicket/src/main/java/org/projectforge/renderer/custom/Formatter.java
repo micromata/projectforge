@@ -41,14 +41,14 @@ public abstract class Formatter
 {
   /**
    * Takes a Map of Parameters and returns a Map of data for the PDF Renderer
-   * 
+   *
    * @param parameters
    * @return
    */
-  public abstract Map<String, Object> getData(List<TimesheetDO> timeSheets, Integer taskId, HttpServletRequest request,
+  public abstract Map<String, Object> getData(List<TimesheetDO> timeSheets, Long taskId, HttpServletRequest request,
       HttpServletResponse response, TimesheetFilter actionFilter);
 
-  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Integer taskId, final Request request, final Response response,
+  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Long taskId, final Request request, final Response response,
       final TimesheetFilter actionFilter)
       {
     return getData(timeSheets, taskId, (HttpServletRequest) request.getContainerRequest(),

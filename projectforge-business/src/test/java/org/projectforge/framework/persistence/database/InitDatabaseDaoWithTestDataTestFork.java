@@ -96,7 +96,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     final PFUserDO initialAdminUser = userService.authenticateUser("myadmin", testPassword);
     assertNotNull(initialAdminUser);
     assertEquals("myadmin", initialAdminUser.getUsername());
-    final Collection<Integer> col = userGroupCache.getUserGroups(initialAdminUser);
+    final Collection<Long> col = userGroupCache.getUserGroups(initialAdminUser);
     assertEquals(6, col.size());
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(initialAdminUser.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(initialAdminUser.getId()));

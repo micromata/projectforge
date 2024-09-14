@@ -204,7 +204,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     if (treeList != null) {
       for (final GanttTreeTableNode node : treeList) {
         final GanttTask ganttObject = node.getGanttObject();
-        final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
+        final TaskDO task = taskTree.getTaskById((Long) ganttObject.getId());
         if (task != null) {
           int col = 0;
           if (!rejectSaveColumnVisible[col] && isTitleModified(ganttObject, task)) {
@@ -263,7 +263,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       }
       row.setVisible(visible);
       if (visible) {
-        final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
+        final TaskDO task = taskTree.getTaskById((Long) ganttObject.getId());
         int col = 0;
         setRejectSaveLinksFragmentVisibility("rejectSaveTitle", row, col++, isTitleModified(ganttObject, task));
         setRejectSaveLinksFragmentVisibility("rejectSaveStartDate", row, col++, isStartDateModified(ganttObject, task));
@@ -374,7 +374,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       {
         final GanttTreeTableNode node = item.getModelObject();
         final GanttTask ganttObject = node.getGanttObject();
-        final TaskDO task = TaskTree.getInstance().getTaskById((Integer) ganttObject.getId());
+        final TaskDO task = TaskTree.getInstance().getTaskById((Long) ganttObject.getId());
         if (item.getIndex() % 2 == 0) {
           item.add(AttributeModifier.replace("class", "even"));
         } else {
@@ -383,7 +383,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         final Label formattedLabel = new Label(ListSelectActionPanel.LABEL_ID, new Model<String>() {
           @Override
           public String getObject() {
-            if (NumberHelper.greaterZero((Integer) ganttObject.getId())) {
+            if (NumberHelper.greaterZero((Long) ganttObject.getId())) {
               return ganttObject.getTitle();
             } else {
               return "*" + ganttObject.getTitle() + "*";
@@ -457,7 +457,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             void onSubmit()
             {
               final GanttTaskImpl root = (GanttTaskImpl) ganttChartData.getRootObject();
-              final Integer nextId = root.getNextId();
+              final Long nextId = root.getNextId();
               ganttObject.addChild(new GanttTaskImpl(nextId).setVisible(true).setTitle(getString("untitled")));
               final Set<Serializable> openNodes = getOpenNodes();
               openNodes.add(ganttObject.getId());
@@ -497,7 +497,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               TaskDao taskDao = WicketSupport.getTaskDao();
               final GanttTaskImpl root = (GanttTaskImpl) ganttChartData.getRootObject();
               final GanttTask parent = root.findParent(clipboard.getId());
-              final TaskDO task = TaskTree.getInstance().getTaskById((Integer) clipboard.getId());
+              final TaskDO task = TaskTree.getInstance().getTaskById((Long) clipboard.getId());
               parent.removeChild(clipboard);
               if (clipboard == ganttObject) {
                 // Move to top level:
@@ -510,7 +510,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               } else {
                 // Move as a child of this Gantt activity:
                 ganttObject.addChild(clipboard);
-                final TaskDO parentTask = taskDao.getTaskTree().getTaskById((Integer) ganttObject.getId());
+                final TaskDO parentTask = taskDao.getTaskTree().getTaskById((Long) ganttObject.getId());
                 if (parentTask != null && task != null) {
                   task.setParentTask(parentTask);
                   taskDao.update(task);
@@ -526,7 +526,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             @Override
             protected void onBeforeRender() {
               if (clipboard != null) {
-                final TaskDO task = TaskTree.getInstance().getTaskById((Integer) clipboard.getId());
+                final TaskDO task = TaskTree.getInstance().getTaskById((Long) clipboard.getId());
                 if (task != null && onClick == null) {
                   // Question for safety before moving a task.
                   setOnClick("if (!showMoveTaskQuestionDialog()) return;");
@@ -562,11 +562,11 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             void onSubmit() {
               final GanttTaskImpl root = (GanttTaskImpl) ganttChartData.getRootObject();
               final GanttTask parent = root.findParent(ganttObject.getId());
-              final TaskDO parentTask = TaskTree.getInstance().getTaskById((Integer) parent.getId());
+              final TaskDO parentTask = TaskTree.getInstance().getTaskById((Long) parent.getId());
               if (parentTask == null) {
                 throw new UserException("gantt.error.parentObjectIsNotAPFTask");
               }
-              TaskDO task = TaskTree.getInstance().getTaskById((Integer) ganttObject.getId());
+              TaskDO task = TaskTree.getInstance().getTaskById((Long) ganttObject.getId());
               if (task != null) {
                 // Oups, Gantt object is already a ProjectForge task.
                 return;
@@ -575,7 +575,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               task.setParentTask(parentTask);
               final GanttTask predecessor = ganttObject.getPredecessor();
               if (predecessor != null) {
-                final TaskDO predecessorTask = TaskTree.getInstance().getTaskById((Integer) predecessor.getId());
+                final TaskDO predecessorTask = TaskTree.getInstance().getTaskById((Long) predecessor.getId());
                 if (predecessorTask != null) {
                   task.setGanttPredecessor(predecessorTask);
                 }
@@ -866,7 +866,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     addColumn(item, panel, "white-space: nowrap;");
     final GanttTask predecessor = ganttObject.getPredecessor();
     final TaskDO predecessorTask = predecessor != null
-        ? TaskTree.getInstance().getTaskById((Integer) predecessor.getId()) : null;
+        ? TaskTree.getInstance().getTaskById((Long) predecessor.getId()) : null;
     final Label asStringLabel = new Label("asString", new Model<String>()
     {
       @Override
@@ -923,7 +923,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         TaskDao taskDao = WicketSupport.getTaskDao();
-        taskDao.setGanttPredecessor(task, (Integer) ganttObject.getPredecessorId());
+        taskDao.setGanttPredecessor(task, (Long) ganttObject.getPredecessorId());
         taskDao.update(task);
       }
 
@@ -1107,13 +1107,13 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       if (obj == null) {
         log.error("GanttObject not found: + " + property);
       } else {
-        final Integer intValue = (Integer) selectedValue;
-        GanttTask predecessor = findById(intValue);
+        final Long longValue = (Long) selectedValue;
+        GanttTask predecessor = findById(longValue);
         if (predecessor != null) {
           obj.setPredecessor(predecessor);
         } else {
           // OK, maybe an external reference (meaning a reference to a task outside the current Gantt object tree.
-          final TaskDO task = TaskTree.getInstance().getTaskById(intValue);
+          final TaskDO task = TaskTree.getInstance().getTaskById(longValue);
           if (task == null) {
             log.error("Task not found: + " + property);
           } else {

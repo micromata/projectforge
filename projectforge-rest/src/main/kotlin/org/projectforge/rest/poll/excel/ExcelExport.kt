@@ -88,7 +88,7 @@ class ExcelExport {
                 }
 
                 val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-                val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+                val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
                 val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
                 val accessUsers = User.toUserList(accessUserIds)
                 User.restoreDisplayNames(accessUsers, userService)

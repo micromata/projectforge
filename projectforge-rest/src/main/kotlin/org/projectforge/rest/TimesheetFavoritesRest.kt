@@ -50,7 +50,7 @@ class TimesheetFavoritesRest {
   /**
    * Only for rest call to select a timesheet favorite.
    */
-  class SelectTimesheetFavorite(var id: Int, var timesheet: Timesheet)
+  class SelectTimesheetFavorite(var id: Long, var timesheet: Timesheet)
 
   @Autowired
   private lateinit var timsheetFavoritesService: TimesheetFavoritesService
@@ -113,7 +113,7 @@ class TimesheetFavoritesRest {
    * Deletes the given timesheet template/favorite.
    */
   @GetMapping("delete")
-  fun delete(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+  fun delete(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     timsheetFavoritesService.deleteFavorite(id)
     timsheetFavoritesService.refreshMigrationCache(ThreadLocalUserContext.userId!!)
     return mapOf("timesheetFavorites" to getList())
@@ -121,7 +121,7 @@ class TimesheetFavoritesRest {
 
   @GetMapping("rename")
   fun rename(
-    @RequestParam("id", required = true) id: Int,
+    @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
   ): Map<String, Any> {
     timsheetFavoritesService.renameFavorite(id, newName)

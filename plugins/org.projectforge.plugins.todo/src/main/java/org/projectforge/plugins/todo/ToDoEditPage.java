@@ -153,9 +153,9 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
   public void select(final String property, final Object selectedValue)
   {
     if ("taskId".equals(property)) {
-      toDoDao.setTask(getData(), (Integer) selectedValue);
+      toDoDao.setTask(getData(), (Long) selectedValue);
     } else if ("groupId".equals(property)) {
-      toDoDao.setGroup(getData(), (Integer) selectedValue);
+      toDoDao.setGroup(getData(), (Long) selectedValue);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

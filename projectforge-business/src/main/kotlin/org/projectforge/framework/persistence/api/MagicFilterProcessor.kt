@@ -108,7 +108,7 @@ object MagicFilterProcessor {
         queryFilter.modifiedFrom = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.fromValue)
         queryFilter.modifiedTo = PFDateTimeUtils.parseAndCreateDateTime(magicFilterEntry.value.toValue)
       } else if (isModifiedByUserId(field)) {
-        queryFilter.modifiedByUserId = magicFilterEntry.value.id ?: magicFilterEntry.value.value?.toIntOrNull()
+        queryFilter.modifiedByUserId = magicFilterEntry.value.id ?: magicFilterEntry.value.value?.toLongOrNull()
       }
       return
     }
@@ -156,8 +156,8 @@ object MagicFilterProcessor {
       val valueBoolean = magicFilterEntry.value.value == "true"
       queryFilter.add(QueryFilter.eq(field, valueBoolean))
     } else if (TaskDO::class.java.isAssignableFrom(fieldType)) {
-      val valueInt = magicFilterEntry.value.value?.toIntOrNull()
-      queryFilter.add(QueryFilter.taskSearch(field, valueInt, true))
+      val valueLong = magicFilterEntry.value.value?.toLongOrNull()
+      queryFilter.add(QueryFilter.taskSearch(field, valueLong, true))
     } else if (BaseDO::class.java.isAssignableFrom(fieldType)) {
       val valueInt = magicFilterEntry.value.value?.toIntOrNull()
       if (valueInt != null) {

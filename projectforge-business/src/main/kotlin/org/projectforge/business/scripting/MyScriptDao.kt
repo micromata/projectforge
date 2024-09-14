@@ -64,7 +64,7 @@ open class MyScriptDao : AbstractScriptDao() {
         }
       }
       obj.executableByGroupIds?.split(",")?.forEach { groupId ->
-        groupId.toIntOrNull()?.let { gid ->
+        groupId.toLongOrNull()?.let { gid ->
           if (userGroupCache.isUserMemberOfGroup(userId, gid)) {
             // Logged-in user is member of this group listed in executableByGroupIds
             return true

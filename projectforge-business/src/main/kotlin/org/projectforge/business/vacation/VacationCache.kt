@@ -51,7 +51,7 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
   @Autowired
   private lateinit var userGroupCache: UserGroupCache
 
-  private var vacationMap = mutableMapOf<Int?, VacationDO>()
+  private var vacationMap = mutableMapOf<Long?, VacationDO>()
 
   private var vacations = listOf<VacationDO>() // Thread safe
 
@@ -67,7 +67,7 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
    */
   open fun getVacationForPeriodAndUsers(
     startVacationDate: LocalDate, endVacationDate: LocalDate,
-    groupIds: Set<Int?>?, userIds: Set<Int?>?
+    groupIds: Set<Long?>?, userIds: Set<Long?>?
   ): List<VacationDO> {
     checkRefresh()
     val result = mutableListOf<VacationDO>()
@@ -115,7 +115,7 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
   override fun refresh() {
     log.info("Refreshing VacationCache ...")
     // This method must not be synchronized because it works with a new copy of maps.
-    val map = mutableMapOf<Int?, VacationDO>()
+    val map = mutableMapOf<Long?, VacationDO>()
     vacationDao.internalLoadAll().forEach {
       if (!it.deleted) {
         map[it.id] = it

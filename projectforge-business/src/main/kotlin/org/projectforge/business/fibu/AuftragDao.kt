@@ -128,12 +128,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             return getYearsByTupleOfLocalDate(minMaxDate)
         }
 
-    val taskReferences: Map<Int?, MutableSet<AuftragsPositionVO>>
+    val taskReferences: Map<Long?, MutableSet<AuftragsPositionVO>>
         /**
          * @return Map with all order positions referencing a task. The key of the map is the task id.
          */
         get() {
-            val result: MutableMap<Int?, MutableSet<AuftragsPositionVO>> = HashMap()
+            val result: MutableMap<Long?, MutableSet<AuftragsPositionVO>> = HashMap()
             val list = persistenceService.query(
                 "from AuftragsPositionDO a where a.task.id is not null and a.deleted = false",
                 AuftragsPositionDO::class.java,
@@ -192,7 +192,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * @param auftrag
      * @param contactPersonId If null, then contact person will be set to null;
      */
-    fun setContactPerson(auftrag: AuftragDO, contactPersonId: Int?) {
+    fun setContactPerson(auftrag: AuftragDO, contactPersonId: Long?) {
         if (contactPersonId == null) {
             auftrag.contactPerson = null
         } else {
@@ -205,7 +205,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * @param position
      * @param taskId
      */
-    fun setTask(position: AuftragsPositionDO, taskId: Int) {
+    fun setTask(position: AuftragsPositionDO, taskId: Long) {
         val task = taskDao.getOrLoad(taskId)
         position.task = task
     }
@@ -215,7 +215,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * @param kundeId If null, then kunde will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setKunde(auftrag: AuftragDO, kundeId: Int) {
+    fun setKunde(auftrag: AuftragDO, kundeId: Long) {
         val kunde = kundeDao.getOrLoad(kundeId)
         auftrag.kunde = kunde
     }
@@ -225,7 +225,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * @param projektId If null, then projekt will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setProjekt(auftrag: AuftragDO, projektId: Int) {
+    fun setProjekt(auftrag: AuftragDO, projektId: Long) {
         val projekt = projektDao.getOrLoad(projektId)
         auftrag.projekt = projekt
     }
@@ -255,7 +255,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         return if (auftrag != null) auftrag.getPosition(positionNummer) else null
     }
 
-    fun getAuftragsPosition(id: Int?): AuftragsPositionDO? {
+    fun getAuftragsPosition(id: Long?): AuftragsPositionDO? {
         return persistenceService.selectNamedSingleResult(
             AuftragsPositionDO.FIND_BY_ID,
             AuftragsPositionDO::class.java,
@@ -743,7 +743,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.contains
      */
-    override fun contains(idSet: Set<Int?>?, entry: AuftragDO): Boolean {
+    override fun contains(idSet: Set<Long?>?, entry: AuftragDO): Boolean {
         idSet ?: return false
         if (super.contains(idSet, entry)) {
             return true

@@ -117,11 +117,11 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
       public void populateItem(final Item<ICellPopulator<HRViewUserData>> item, final String componentId,
           final IModel<HRViewUserData> rowModel)
       {
-        final Integer planningId = rowModel.getObject().getPlanningId();
+        final Long planningId = rowModel.getObject().getPlanningId();
         final String[] params;
         if (planningId == null) {
           // Preset fields for adding new entry:
-          final Integer userId = rowModel.getObject().getUserId();
+          final Long userId = rowModel.getObject().getUserId();
           params = new String[] { WebConstants.PARAMETER_USER_ID, userId != null ? String.valueOf(userId) : null,
               WebConstants.PARAMETER_DATE, weekMillis != null ? String.valueOf(weekMillis) : null };
         } else {

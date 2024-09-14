@@ -76,7 +76,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
     private lateinit var userService: UserService
 
     class MyAccountData(
-        var userId: Int? = null,
+        var userId: Long? = null,
         var username: String? = null,
         var firstname: String? = null,
         var lastname: String? = null,

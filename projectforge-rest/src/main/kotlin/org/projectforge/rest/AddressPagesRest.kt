@@ -77,7 +77,7 @@ class AddressPagesRest
    */
   private class ListAddress(
     val address: Address,
-    val id: Int, // Needed for history Service
+    val id: Long, // Needed for history Service
     val deleted: Boolean,
     var imageUrl: String? = null,
     var previewImageUrl: String? = null

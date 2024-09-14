@@ -48,7 +48,7 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
   /**
    * List of address books per address (by address.id).
    */
-  private val addressMap = mutableMapOf<Int, MutableSet<AddressbookDO>>()
+  private val addressMap = mutableMapOf<Long, MutableSet<AddressbookDO>>()
 
   /**
    * @param address: must be attached to entity manager for lazy loading of address books.
@@ -67,7 +67,7 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
     return result
   }
 
-  internal fun setAddressExpired(addressId: Int) {
+  internal fun setAddressExpired(addressId: Long) {
     synchronized(addressMap) {
       addressMap.remove(addressId)
     }

@@ -110,7 +110,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         }
     }
 
-    public Integer getPlanningId() {
+    public Long getPlanningId() {
         if (hrPlanning == null) {
             return null;
         }
@@ -147,7 +147,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
         return user;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         if (user == null) {
             return null;
         }
@@ -213,7 +213,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
     @Override
     public void setId(@Nullable Serializable serializable) {
         if (hrPlanning != null) {
-            hrPlanning.setId((Integer) serializable);
+            hrPlanning.setId((Long) serializable);
         }
     }
 }

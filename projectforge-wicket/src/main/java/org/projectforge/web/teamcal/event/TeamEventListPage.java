@@ -73,8 +73,8 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
     }
   }
 
-  private List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals) {
-    final List<Integer> list = new ArrayList<Integer>();
+  private List<Long> getCalIdList(final Collection<TeamCalDO> teamCals) {
+    final List<Long> list = new ArrayList<Long>();
     if (teamCals != null) {
       for (final TeamCalDO cal : teamCals) {
         list.add(cal.getId());

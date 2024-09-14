@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 
 private val log = KotlinLogging.logger {}
 
-class DBQueryBuilder<O : ExtendedBaseDO<Int>>(
+class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
     private val baseDao: BaseDao<O>,
     private val entityManager: EntityManager,
     private val queryFilter: QueryFilter,

@@ -56,7 +56,7 @@ public class OrderExportTest extends AbstractTestBase
     I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
     AuftragDO a = new AuftragDO();
-    a.setId(1);
+    a.setId(1L);
     a.setAngebotsDatum(LocalDate.now());
     a.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();
@@ -100,7 +100,7 @@ public class OrderExportTest extends AbstractTestBase
     I18nHelper.addBundleName(Constants.RESOURCE_BUNDLE_NAME);
 
     AuftragDO a = new AuftragDO();
-    a.setId(2);
+    a.setId(2L);
     a.setAngebotsDatum(LocalDate.now());
     a.setTitel("Titel_TEST");
     KundeDO kunde = new KundeDO();

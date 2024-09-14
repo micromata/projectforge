@@ -87,14 +87,14 @@ class TeamCal(var title: String? = null,
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyTo(dest: TeamCalDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-        dest.readonlyAccessGroupIds = Group.toIntList(readonlyAccessGroups)
-        dest.readonlyAccessUserIds = User.toIntList(readonlyAccessUsers)
-        dest.minimalAccessGroupIds = Group.toIntList(minimalAccessGroups)
-        dest.minimalAccessUserIds = User.toIntList(minimalAccessUsers)
+        dest.fullAccessGroupIds = Group.toLongList(fullAccessGroups)
+        dest.fullAccessUserIds = User.toLongList(fullAccessUsers)
+        dest.readonlyAccessGroupIds = Group.toLongList(readonlyAccessGroups)
+        dest.readonlyAccessUserIds = User.toLongList(readonlyAccessUsers)
+        dest.minimalAccessGroupIds = Group.toLongList(minimalAccessGroups)
+        dest.minimalAccessUserIds = User.toLongList(minimalAccessUsers)
 
-        dest.includeLeaveDaysForGroups = Group.toIntList(includeLeaveDaysForGroups)
-        dest.includeLeaveDaysForUsers = User.toIntList(includeLeaveDaysForUsers)
+        dest.includeLeaveDaysForGroups = Group.toLongList(includeLeaveDaysForGroups)
+        dest.includeLeaveDaysForUsers = User.toLongList(includeLeaveDaysForUsers)
     }
 }

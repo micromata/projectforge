@@ -53,7 +53,7 @@ public class AccessException extends UserException {
 
   protected PFUserDO user = null;
 
-  protected Integer taskId = null;
+  protected Long taskId = null;
 
   protected AccessType accessType = null;
 
@@ -86,12 +86,12 @@ public class AccessException extends UserException {
     log.info("AccessException: " + this);
   }
 
-  public AccessException(final Integer taskId, final AccessType accessType,
+  public AccessException(final Long taskId, final AccessType accessType,
                          final OperationType operationType) {
     this(ThreadLocalUserContext.getUser(), taskId, accessType, operationType);
   }
 
-  public AccessException(final PFUserDO user, final Integer taskId, final AccessType accessType,
+  public AccessException(final PFUserDO user, final Long taskId, final AccessType accessType,
                          final OperationType operationType) {
     super(I18N_KEY_STANDARD_WITH_TASK,
         new MessageParam[]{new MessageParam(taskId), new MessageParam(accessType),
@@ -154,7 +154,7 @@ public class AccessException extends UserException {
     return this.user;
   }
 
-  public Integer getTaskId() {
+  public Long getTaskId() {
     return this.taskId;
   }
 

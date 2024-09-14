@@ -43,7 +43,7 @@ import java.math.BigDecimal
 @Entity
 @Indexed
 @Table(name = "T_FIBU_KOST2ART")
-class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO> {
+class Kost2ArtDO : AbstractHistorizableBaseDO<Long>(), Comparable<Kost2ArtDO> {
 
     /**
      * Zweistellige Endziffer von KOST2
@@ -51,7 +51,7 @@ class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO> {
     @PropertyInfo(i18nKey = "fibu.kost2art.nummer")
     @get:Id
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     @PropertyInfo(i18nKey = "name")
     @FullTextField
@@ -82,7 +82,7 @@ class Kost2ArtDO : AbstractHistorizableBaseDO<Int>(), Comparable<Kost2ArtDO> {
     @get:Column(name = "projekt_standard")
     var projektStandard: Boolean = false
 
-    fun withId(id: Int?): Kost2ArtDO {
+    fun withId(id: Long?): Kost2ArtDO {
         this.id = id
         return this
     }

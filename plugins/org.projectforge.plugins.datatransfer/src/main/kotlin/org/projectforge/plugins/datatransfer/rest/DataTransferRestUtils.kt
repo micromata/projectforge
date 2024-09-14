@@ -45,7 +45,7 @@ object DataTransferRestUtils {
     dbObj: DataTransferAreaDO,
     areaName: String?,
     jcrPath: String,
-    id: Int,
+    id: Long,
     attachments: List<Attachment>? = null,
     byUser: PFUserDO? = null,
     byExternalUser: String? = null,

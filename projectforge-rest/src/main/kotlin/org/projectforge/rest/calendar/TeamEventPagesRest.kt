@@ -180,7 +180,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         return TeamEvent()
       }
       try {
-        val calId = vals[0].toInt()
+        val calId = vals[0].toLong()
         val uid = vals[1]
         val eventDO = teamEventExternalSubscriptionCache.getEvent(calId, uid)
         if (eventDO == null) {
@@ -275,7 +275,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
       calendars.add(0, dto.calendar)
     }
     val calendarSelectValues = calendars.map {
-      UISelectValue<Int>(it.id!!, it.title!!)
+      UISelectValue<Long>(it.id!!, it.title!!)
     }
     val subject = UIInput("subject", lc)
     subject.focus = true
@@ -319,7 +319,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
             .add(
               UICol(6)
                 .add(
-                  UISelect<Int>(
+                  UISelect<Long>(
                     "calendar",
                     values = calendarSelectValues.toMutableList(),
                     label = "plugins.teamcal.event.teamCal",

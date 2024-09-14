@@ -166,7 +166,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     assertEquals(dayOfMonth, dt.getDayOfMonth(), message);
   }
 
-  private Integer getTaskId(final String taskName) {
+  private Long getTaskId(final String taskName) {
     final TaskDO task = getTask(taskName);
     if (task != null) {
       return task.getId();

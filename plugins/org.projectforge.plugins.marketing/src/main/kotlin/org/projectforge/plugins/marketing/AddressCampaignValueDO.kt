@@ -84,11 +84,11 @@ open class AddressCampaignValueDO : DefaultBaseDO() {
   @get:Column(length = Constants.LENGTH_COMMENT)
   open var comment: String? = null
 
-  val addressCampaignId: Int?
+  val addressCampaignId: Long?
     @Transient
     get() = if (addressCampaign != null) addressCampaign!!.id else null
 
-  val addressId: Int?
+  val addressId: Long?
     @Transient
     get() = if (this.address != null) this.address!!.id else null
 

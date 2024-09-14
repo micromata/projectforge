@@ -40,9 +40,9 @@ public class WicketTaskFormatter extends TaskFormatter
    * enableLinks = false, lineThroughDeletedTasks = true
    *
    * @param taskId
-   * @see #getTaskPath(Integer, boolean)
+   * @see #getTaskPath(Long, boolean)
    */
-  public static String getTaskPath(final RequestCycle requestCycle, final Integer taskId)
+  public static String getTaskPath(final RequestCycle requestCycle, final Long taskId)
   {
     return getTaskPath(requestCycle, taskId, true);
   }
@@ -53,7 +53,7 @@ public class WicketTaskFormatter extends TaskFormatter
    * @param taskId
    * @param enableLinks If true, every task title is associated with a link to EditTask.
    */
-  public static String getTaskPath(final RequestCycle requestCycle, final Integer taskId,
+  public static String getTaskPath(final RequestCycle requestCycle, final Long taskId,
       final boolean lineThroughDeletedTasks)
   {
     return getTaskPath(requestCycle, taskId, null, lineThroughDeletedTasks);
@@ -67,7 +67,7 @@ public class WicketTaskFormatter extends TaskFormatter
    * @param ancestorTaskId          If not null, the path will shown between taskId and ancestorTaskId. If mainTaskId is not an
    *                                ancestor of taskId, the whole path will be shown.
    */
-  public static String getTaskPath(final RequestCycle requestCycle, final Integer taskId, final Integer ancestorTaskId,
+  public static String getTaskPath(final RequestCycle requestCycle, final Long taskId, final Long ancestorTaskId,
       final boolean lineThroughDeletedTasks)
   {
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();

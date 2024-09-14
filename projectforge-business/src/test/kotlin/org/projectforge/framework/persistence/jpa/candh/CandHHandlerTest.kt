@@ -100,8 +100,8 @@ class CandHHandlerTest {
         fieldValue1: Any, // first value for testing.
         fieldValue2: Any, // second value for testing (should be different to fieldValue1.‚
     ) {
-        val src = clazz.getDeclaredConstructor().newInstance() as BaseDO<Int>
-        val dest = clazz.getDeclaredConstructor().newInstance() as BaseDO<Int>
+        val src = clazz.getDeclaredConstructor().newInstance() as BaseDO<Long>
+        val dest = clazz.getDeclaredConstructor().newInstance() as BaseDO<Long>
         processAndCheckContext(handler, clazz, fieldName, src, dest, null, null, false)
         processAndCheckContext(handler, clazz, fieldName, src, dest, fieldValue1, null, true)
         processAndCheckContext(handler, clazz, fieldName, src, dest, null, fieldValue2, true)
@@ -114,8 +114,8 @@ class CandHHandlerTest {
         handler: CandHIHandler,
         clazz: Class<*>,
         fieldName: String,
-        src: BaseDO<Int>,
-        dest: BaseDO<Int>,
+        src: BaseDO<Long>,
+        dest: BaseDO<Long>,
         srcFieldValue: Any?,
         destFieldValue: Any?,
         modificationExpected: Boolean,

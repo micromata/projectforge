@@ -121,7 +121,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @param rechnung
      * @param kundeId  If null, then kunde will be set to null;
      */
-    fun setKunde(rechnung: RechnungDO, kundeId: Int) {
+    fun setKunde(rechnung: RechnungDO, kundeId: Long) {
         val kunde = kundeDao.getOrLoad(kundeId)
         rechnung.kunde = kunde
     }
@@ -130,7 +130,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @param rechnung
      * @param projektId If null, then projekt will be set to null;
      */
-    fun setProjekt(rechnung: RechnungDO, projektId: Int) {
+    fun setProjekt(rechnung: RechnungDO, projektId: Long) {
         val projekt = projektDao.getOrLoad(projektId)
         rechnung.projekt = projekt
     }
@@ -377,7 +377,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Returns also true, if idSet contains the id of any order position.
      */
-    override fun contains(idSet: Set<Int?>?, entry: RechnungDO): Boolean {
+    override fun contains(idSet: Set<Long?>?, entry: RechnungDO): Boolean {
         idSet ?: return false
         if (super.contains(idSet, entry)) {
             return true

@@ -24,7 +24,7 @@
 package org.projectforge.plugins.merlin
 
 class MerlinExecutionData(
-  val id: Int,
+  val id: Long,
   val name: String? = null,
   var pdfFormat: Boolean = false,
 ) {

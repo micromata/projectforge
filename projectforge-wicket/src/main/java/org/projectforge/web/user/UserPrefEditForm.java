@@ -263,7 +263,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
           groupSelectPanel.init();
         } else if (Kost2DO.class.isAssignableFrom(param.getType()) == true) {
           final UserPrefEntryDO taskParam = data.getUserPrefEntry(param.getDependsOn());
-          Integer taskId = null;
+          Long taskId = null;
           if (taskParam == null) {
             log.error(
                 "Annotation for Kost2DO types should have a valid dependsOn annotation. Task param not found for: "
@@ -278,7 +278,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
               (Kost2DO) param.getValueAsObject(), taskId)
           {
             @Override
-            protected void setKost2Id(final Integer kost2Id)
+            protected void setKost2Id(final Long kost2Id)
             {
               param.setValue(String.valueOf(kost2Id));
             }

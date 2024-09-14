@@ -93,7 +93,7 @@ class MassUpdateParameterTest {
     delete: Boolean? = null,
     append: Boolean? = null,
     change: Boolean? = null,
-    id: Int? = null,
+    id: Long? = null,
     error: String? = null,
     msg: String? = null,
   ) {

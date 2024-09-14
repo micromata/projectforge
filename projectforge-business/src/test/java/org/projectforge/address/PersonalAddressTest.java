@@ -47,7 +47,7 @@ public class PersonalAddressTest extends AbstractTestBase {
   @Test
   public void testSaveAndUpdate() {
     logon(AbstractTestBase.ADMIN);
-    final Integer[] addressIds = new Integer[1];
+    final Long[] addressIds = new Long[1];
     AddressDO address = new AddressDO();
     address.setFirstName("Kai");
     address.setName("Reinhard");
@@ -55,7 +55,7 @@ public class PersonalAddressTest extends AbstractTestBase {
     address.setFax("+49 561 316793-11");
     address.setBusinessPhone("+49 561 316793-0");
     address.setPrivatePhone("+49 561 12345678");
-    addressIds[0] = (Integer) addressDao.save(address);
+    addressIds[0] = (Long) addressDao.save(address);
 
     PersonalAddressDO personalAddress = new PersonalAddressDO();
     AddressDO a = addressDao.getOrLoad(addressIds[0]);

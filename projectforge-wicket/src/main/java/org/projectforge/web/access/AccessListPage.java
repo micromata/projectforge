@@ -59,7 +59,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
     public AccessListPage(final PageParameters parameters) {
         super(parameters, "access");
         if (WicketUtils.contains(parameters, PARAMETER_KEY_TASK_ID) == true) {
-            final Integer id = WicketUtils.getAsInteger(parameters, PARAMETER_KEY_TASK_ID);
+            final Long id = WicketUtils.getAsLong(parameters, PARAMETER_KEY_TASK_ID);
             form.getSearchFilter().setTaskId(id);
         }
     }
@@ -164,14 +164,14 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
     @Override
     public void select(final String property, final Object selectedValue) {
         if ("taskId".equals(property) == true) {
-            form.getSearchFilter().setTaskId((Integer) selectedValue);
+            form.getSearchFilter().setTaskId((Long) selectedValue);
             refresh();
         } else if ("groupId".equals(property) == true) {
-            form.getSearchFilter().setGroupId((Integer) selectedValue);
+            form.getSearchFilter().setGroupId((Long) selectedValue);
             form.groupSelectPanel.getTextField().modelChanged();
             refresh();
         } else if ("userId".equals(property) == true) {
-            form.getSearchFilter().setUserId((Integer) selectedValue);
+            form.getSearchFilter().setUserId((Long) selectedValue);
             refresh();
         } else {
             super.select(property, selectedValue);

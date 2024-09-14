@@ -113,7 +113,7 @@ public class GroupsWicketProvider extends ChoiceProvider<GroupDO>
       return list;
     }
     for (final String str : ids) {
-      final Integer groupId = NumberHelper.parseInteger(str);
+      final Long groupId = NumberHelper.parseLong(str);
       if (groupId == null) {
         continue;
       }

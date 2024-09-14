@@ -42,8 +42,8 @@ public class Kost1Impl implements Kost1
   {
     this.kost1 = kost1;
   }
-  
-  public Integer getId()
+
+  public Long getId()
   {
     return kost1.getId();
   }
@@ -77,7 +77,7 @@ public class Kost1Impl implements Kost1
   {
     return kost1.getTeilbereich();
   }
-  
+
   public String getFormattedString()
   {
     return KostFormatter.format(kost1);

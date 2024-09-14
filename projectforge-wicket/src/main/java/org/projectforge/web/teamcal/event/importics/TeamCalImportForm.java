@@ -112,7 +112,7 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
     panel.add(storagePanel);
   }
 
-  protected Integer getCalendarId()
+  protected Long getCalendarId()
   {
     return calendar != null ? calendar.getId() : null;
   }

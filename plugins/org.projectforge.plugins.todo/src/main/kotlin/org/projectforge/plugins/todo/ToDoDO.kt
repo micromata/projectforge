@@ -144,19 +144,19 @@ open class ToDoDO : DefaultBaseDO() {
     @get:Column
     open var resubmission: LocalDate? = null
 
-    val reporterId: Int?
+    val reporterId: Long?
         @Transient
         get() = if (reporter != null) reporter!!.id else null
 
-    val assigneeId: Int?
+    val assigneeId: Long?
         @Transient
         get() = if (assignee != null) assignee!!.id else null
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task != null) task!!.id else null
 
-    val groupId: Int?
+    val groupId: Long?
         @Transient
         get() = if (this.group != null) group!!.id else null
 }

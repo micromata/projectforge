@@ -134,7 +134,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
       for (final UserPrefEntryDO entry : dependents) {
         if (Kost2DO.class.isAssignableFrom(entry.getType()) == true) {
           final Kost2DropDownChoice choice = (Kost2DropDownChoice) form.dependentsMap.get(entry.getParameter());
-          choice.setTaskId((Integer) value);
+          choice.setTaskId((Long) value);
         }
       }
     }

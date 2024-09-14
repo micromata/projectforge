@@ -166,7 +166,7 @@ open class SipgateContactSyncDO {
   open var syncInfoAsJson: String? = null
 
   @get:Transient
-  val addressId: Int?
+  val addressId: Long?
     get() = address?.id
 
 

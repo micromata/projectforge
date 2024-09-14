@@ -73,7 +73,7 @@ open class MerlinTemplateDefinitionHandler {
    * than the last modification time of the template.
    * If the template definition is read from Excel file, the variables of the given dto will be updated.
    */
-  fun readOrCreateTemplateDefinitionFrom(id: Int): TemplateDefinition {
+  fun readOrCreateTemplateDefinitionFrom(id: Long): TemplateDefinition {
     return readOrCreateTemplateDefinitionFrom(merlinHandler.getDto(id))
   }
 
@@ -102,7 +102,7 @@ open class MerlinTemplateDefinitionHandler {
     return createTemplateDefinitionFromDto(dto)
   }
 
-  private fun readTemplateDefinition(id: Int, attachment: Attachment?): TemplateDefinition? {
+  private fun readTemplateDefinition(id: Long, attachment: Attachment?): TemplateDefinition? {
     attachment ?: return null
     val attPair = attachmentsService.getAttachmentInputStream(
       merlinHandler.jcrPath,

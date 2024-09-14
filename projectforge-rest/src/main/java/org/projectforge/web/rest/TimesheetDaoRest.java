@@ -143,7 +143,7 @@ public class TimesheetDaoRest
     if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
-    final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
+    final Map<Long, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
       rtaskMap.put(task.getId(), rtask);
@@ -155,7 +155,7 @@ public class TimesheetDaoRest
   }
 
   private TaskObject addTask(final TaskTree taskTree, final List<TaskObject> topLevelTasks, final TaskDO task,
-      final Map<Integer, TaskObject> rtaskMap)
+      final Map<Long, TaskObject> rtaskMap)
   {
     TaskObject rtask = rtaskMap.get(task.getId());
     if (rtask == null) {

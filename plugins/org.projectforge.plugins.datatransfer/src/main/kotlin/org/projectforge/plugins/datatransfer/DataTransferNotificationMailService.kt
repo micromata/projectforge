@@ -76,8 +76,8 @@ open class DataTransferNotificationMailService {
     downloadAuditEntries: List<DataTransferAuditDO>,
   ): Int {
     // First detect all recipients by checking all audit entries:
-    val recipients = mutableSetOf<Int>()
-    val observerIds = StringHelper.splitToInts(area.observerIds, ",", false)
+    val recipients = mutableSetOf<Long>()
+    val observerIds = StringHelper.splitToLongs(area.observerIds, ",")
     auditEntries.forEach { audit ->
       registerRecipients(audit, observerIds, recipients)
     }
@@ -117,7 +117,7 @@ open class DataTransferNotificationMailService {
    * Sends an email with files being deleted to an observer.
    */
   fun sendNotificationMail(
-    userId: Int,
+    userId: Long,
     notificationInfoList: List<DataTransferNotificationMailService.AttachmentNotificationInfo>?
   ) {
     if (notificationInfoList.isNullOrEmpty()) {
@@ -230,7 +230,7 @@ open class DataTransferNotificationMailService {
   }
 
   companion object {
-    internal fun registerRecipients(audit: DataTransferAuditDO, observerIds: IntArray, recipients: MutableSet<Int>) {
+    internal fun registerRecipients(audit: DataTransferAuditDO, observerIds: LongArray, recipients: MutableSet<Long>) {
       audit.eventType?.let { eventType ->
         if (eventType == AttachmentsEventType.DELETE || eventType == AttachmentsEventType.MODIFICATION) {
           val uploadByUserId = audit.uploadByUser?.id

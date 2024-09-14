@@ -78,7 +78,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
    * @param sheet
    * @param projektId If null, then projekt will be set to null;
    */
-  public void setProjekt(final HRPlanningEntryDO sheet, final Integer projektId) {
+  public void setProjekt(final HRPlanningEntryDO sheet, final Long projektId) {
     final ProjektDO projekt = projektDao.getOrLoad(projektId);
     sheet.setProjekt(projekt);
   }
@@ -111,7 +111,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
       return list;
     }
     final List<HRPlanningEntryDO> result = new ArrayList<>();
-    final Set<Integer> set = (myFilter.isGroupEntries()) ? new HashSet<>() : null;
+    final Set<Long> set = (myFilter.isGroupEntries()) ? new HashSet<>() : null;
     for (final HRPlanningEntryDO entry : list) {
       if (myFilter.isOnlyMyProjects()) {
         if (entry.getProjekt() == null) {

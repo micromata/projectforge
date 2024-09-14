@@ -137,16 +137,16 @@ class AddressCampaignValuePagesRest :
     return true
   }
 
-  private fun getAddressCampaignValueMap(addressCampaignId: Int?): Map<Int, AddressCampaignValueDO> {
-    val addressCampaignValueMap = mutableMapOf<Int, AddressCampaignValueDO>()
+  private fun getAddressCampaignValueMap(addressCampaignId: Long?): Map<Long, AddressCampaignValueDO> {
+    val addressCampaignValueMap = mutableMapOf<Long, AddressCampaignValueDO>()
     addressCampaignValueDao.getAddressCampaignValuesByAddressId(addressCampaignValueMap, addressCampaignId)
     return addressCampaignValueMap
   }
 
   private fun fillValues(
     dest: AddressCampaignValue,
-    addressCampaignValueMap: Map<Int, AddressCampaignValueDO>,
-    personalAddressMap: Map<Int, PersonalAddressDO>,
+    addressCampaignValueMap: Map<Long, AddressCampaignValueDO>,
+    personalAddressMap: Map<Long, PersonalAddressDO>,
     addressDO: AddressDO? = null,
   ) {
     if (addressDO != null) {
@@ -173,7 +173,7 @@ class AddressCampaignValuePagesRest :
 
   internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
     val addressCampaignId = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
-    if (addressCampaignId != null && addressCampaignId is Int) {
+    if (addressCampaignId != null && addressCampaignId is Long) {
       return addressCampaignDao.getById(addressCampaignId)
     }
     return null

@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractFavorite(var name: String? = null,
-                                var id: Int? = null)
+                                var id: Long? = null)
     : Comparable<AbstractFavorite> {
     /**
      * Uses the locale of the thread local user for comparing.

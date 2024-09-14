@@ -160,7 +160,7 @@ public class CalendarForm extends AbstractStandardForm<ICalendarFilter, Calendar
 
   public PFUserDO getTimesheetsUser()
   {
-    final Integer userId = getFilter().getTimesheetUserId();
+    final Long userId = getFilter().getTimesheetUserId();
     return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 

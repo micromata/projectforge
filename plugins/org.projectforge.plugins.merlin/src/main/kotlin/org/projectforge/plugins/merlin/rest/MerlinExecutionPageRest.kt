@@ -116,7 +116,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @PostMapping("serialExecution/{id}")
   fun serialExecution(
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("file") file: MultipartFile
   ): ResponseEntity<*> {
     MerlinPlugin.ensureUserLogSubscription()
@@ -151,7 +151,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("downloadSerialExecutionTemplate/{id}")
   fun downloadSerialExecutionTemplate(
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     @RequestParam("fill") fill: String? = null
   )
       : ResponseEntity<*> {
@@ -171,7 +171,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
     val logViewerMenuItem = MerlinPlugin.createUserLogSubscriptionMenuItem()
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalAccessException("Parameter id not an int.")
+    val id = NumberHelper.parseLong(idString) ?: throw IllegalAccessException("Parameter id not an int.")
     val dbObj = merlinTemplateDao.getById(id)!!
     val dto = merlinPagesRest.transformFromDB(dbObj)
     val stats = merlinHandler.analyze(dto).statistics
@@ -284,7 +284,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(executionData, layout, createServerData(request))
   }
 
-  private fun createSerialExcelDownloadMenu(id: Int, type: String): MenuItem {
+  private fun createSerialExcelDownloadMenu(id: Long, type: String): MenuItem {
     val fill = if (type == "base") {
       ""
     } else {
@@ -331,7 +331,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     return merlinTemplateDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
   }
 
-  private fun getUserPref(id: Int): MerlinExecutionData {
+  private fun getUserPref(id: Long): MerlinExecutionData {
     return userPrefService.ensureEntry("merlin-template", "$id", MerlinExecutionData(id, ""))
   }
 

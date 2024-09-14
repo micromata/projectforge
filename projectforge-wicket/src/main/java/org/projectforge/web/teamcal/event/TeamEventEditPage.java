@@ -125,7 +125,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     }
     this.eventOfCaller = event;
     this.recurrencyChangeType = recurrencyChangeType;
-    Integer id;
+    Long id;
     if (event instanceof TeamEventDO) {
       id = ((TeamEventDO) event).getId();
     } else {
@@ -296,7 +296,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
-    final Integer masterId = getData().getId(); // Store the id of the master entry.
+    final Long masterId = getData().getId(); // Store the id of the master entry.
     final TeamEventDO masterEvent = teamEventService.getById(masterId);
     if (recurrencyChangeType == RecurrencyChangeType.ALL_FUTURE) {
       final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
@@ -334,7 +334,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
-    final Integer masterId = getData().getId(); // Store the id of the master entry.
+    final Long masterId = getData().getId(); // Store the id of the master entry.
     getData().setId(null); // Clone object.
     final TeamEventDO oldDataObject = getData();
     final TeamEventDO masterEvent = teamEventService.getById(masterId);

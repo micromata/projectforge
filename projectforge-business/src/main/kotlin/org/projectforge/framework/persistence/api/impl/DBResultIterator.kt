@@ -33,7 +33,7 @@ import jakarta.persistence.criteria.CriteriaQuery
 /**
  * Generic interface for iterating over database search results (after criteria search as well as after full text query).
  */
-interface DBResultIterator<O : ExtendedBaseDO<Int>> {
+interface DBResultIterator<O : ExtendedBaseDO<Long>> {
     fun next(): O?
     fun sort(list: List<O>): List<O>
 }
@@ -41,7 +41,7 @@ interface DBResultIterator<O : ExtendedBaseDO<Int>> {
 /**
  * Usable for empty queries without any result.
  */
-internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>
+internal class DBEmptyResultIterator<O : ExtendedBaseDO<Long>>
     : DBResultIterator<O> {
     override fun next(): O? {
         return null
@@ -55,7 +55,7 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Int>>
     }
 }
 
-internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Int>>(
+internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
         entityManager: EntityManager,
         criteria: CriteriaQuery<O>,
         val resultPredicates: List<DBPredicate>)

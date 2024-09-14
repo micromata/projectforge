@@ -100,7 +100,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
     @Transient
     get() = !deleted && (amount ?: BigDecimal.ZERO) > BigDecimal.ZERO
 
-  val auftragId: Int?
+  val auftragId: Long?
     @Transient
     get() = if (this.auftrag == null) {
       null

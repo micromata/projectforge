@@ -50,13 +50,13 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   private final Set<TemplateCalendarProperties> calendarProperties = new TreeSet<>();
 
-  private Set<Integer> visibleCalendarIds;
+  private Set<Long> visibleCalendarIds;
 
   @XStreamAsAttribute
   private String name;
 
   @XStreamAsAttribute
-  private Integer defaultCalendarId;
+  private Long defaultCalendarId;
 
   @XStreamAsAttribute
   private Boolean showBirthdays;
@@ -65,7 +65,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   private Boolean showStatistics;
 
   @XStreamAsAttribute
-  private Integer timesheetUserId;
+  private Long timesheetUserId;
 
   @XStreamAsAttribute
   private String selectedCalendar;
@@ -99,7 +99,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     return this;
   }
 
-  public TemplateCalendarProperties addNewCalendarProperties(final TeamCalCalendarFilter filter, final Integer calId)
+  public TemplateCalendarProperties addNewCalendarProperties(final TeamCalCalendarFilter filter, final Long calId)
   {
     Validate.notNull(calId);
     final TemplateCalendarProperties props = new TemplateCalendarProperties();
@@ -110,7 +110,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     return props;
   }
 
-  public void removeCalendarProperties(final Integer calId)
+  public void removeCalendarProperties(final Long calId)
   {
     Validate.notNull(calId);
     final TemplateCalendarProperties props = getCalendarProperties(calId);
@@ -120,7 +120,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     this.visibleCalendarIds = null;
   }
 
-  public String getColorCode(final Integer calendarId)
+  public String getColorCode(final Long calendarId)
   {
     final TemplateCalendarProperties props = getCalendarProperties(calendarId);
     if (props == null) {
@@ -129,7 +129,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     return props.getColorCode();
   }
 
-  public TemplateCalendarProperties getCalendarProperties(final Integer calendarId)
+  public TemplateCalendarProperties getCalendarProperties(final Long calendarId)
   {
     if (calendarId == null) {
       return null;
@@ -142,12 +142,12 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     return null;
   }
 
-  public boolean contains(final Integer calendarId)
+  public boolean contains(final Long calendarId)
   {
     return getCalendarProperties(calendarId) != null;
   }
 
-  public boolean isVisible(final Integer calendarId)
+  public boolean isVisible(final Long calendarId)
   {
     final TemplateCalendarProperties props = getCalendarProperties(calendarId);
     return props != null && props.isVisible();
@@ -156,7 +156,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   /**
    * @return the visibleCalendarIds
    */
-  public Set<Integer> getVisibleCalendarIds()
+  public Set<Long> getVisibleCalendarIds()
   {
     if (this.visibleCalendarIds == null) {
       this.visibleCalendarIds = new HashSet<>();
@@ -189,9 +189,9 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   /**
    * @return All contained calendars (visible and not visible ones).
    */
-  public Set<Integer> getCalendarIds()
+  public Set<Long> getCalendarIds()
   {
-    final Set<Integer> result = new HashSet<>();
+    final Set<Long> result = new HashSet<>();
     for (final TemplateCalendarProperties props : this.calendarProperties) {
       result.add(props.getCalId());
     }
@@ -281,9 +281,6 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
 
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
-   *
-   * @param filter
-   * @return
    */
   public boolean isModified(final TemplateEntry other)
   {
@@ -316,7 +313,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   /**
    * @return the defaultCalendarId
    */
-  public Integer getDefaultCalendarId()
+  public Long getDefaultCalendarId()
   {
     return defaultCalendarId;
   }
@@ -325,7 +322,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    * @param defaultCalendarId the defaultCalendarId to set
    * @return this for chaining.
    */
-  public TemplateEntry setDefaultCalendarId(final Integer defaultCalendarId)
+  public TemplateEntry setDefaultCalendarId(final Long defaultCalendarId)
   {
     this.defaultCalendarId = defaultCalendarId;
     return this;
@@ -406,7 +403,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
   /**
    * @return the timesheetUserId
    */
-  public Integer getTimesheetUserId()
+  public Long getTimesheetUserId()
   {
     return timesheetUserId;
   }
@@ -417,7 +414,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    * @param timesheetUserId the timesheetUserId to set
    * @return this for chaining.
    */
-  public TemplateEntry setTimesheetUserId(final Integer timesheetUserId)
+  public TemplateEntry setTimesheetUserId(final Long timesheetUserId)
   {
     this.timesheetUserId = timesheetUserId;
     return this;
@@ -457,7 +454,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
     return this;
   }
 
-  public static String calcCalendarStringForCalendar(final Integer calendarId)
+  public static String calcCalendarStringForCalendar(final Long calendarId)
   {
     if ( calendarId == null || Constants.isTimesheetCalendarId(calendarId)) {
       return Constants.EVENT_CLASS_NAME;

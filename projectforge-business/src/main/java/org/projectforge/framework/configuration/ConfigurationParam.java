@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.configuration;
 
-import org.projectforge.framework.configuration.entities.ConfigurationDO;
-
 import java.util.TimeZone;
 
 /**
@@ -96,7 +94,7 @@ public enum ConfigurationParam implements IConfigurationParam
   /**
    * Minimum password length configuration param.
    */
-  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, 8),
+  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.LONG, 8),
   /**
    * Password Flag Check - configuration, that passwords will be checked that passwords have to change each time a new one is entered.
    */
@@ -160,7 +158,7 @@ public enum ConfigurationParam implements IConfigurationParam
   }
 
   @Override
-  public int getDefaultIntValue()
+  public long getDefaultLongValue()
   {
     return defaultIntValue;
   }

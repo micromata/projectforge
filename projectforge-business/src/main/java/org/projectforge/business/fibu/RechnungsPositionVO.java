@@ -40,7 +40,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   private final short number;
 
-  private final Integer rechnungId;
+  private final Long rechnungId;
 
   private final LocalDate date;
 
@@ -50,11 +50,11 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
 
   private final String text;
 
-  private Integer auftragsId;
+  private Long auftragsId;
 
   private short auftragsPositionNummer;
 
-  private Integer auftragsPositionId;
+  private Long auftragsPositionId;
 
   private final BigDecimal netSum;
 
@@ -102,7 +102,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     return text;
   }
 
-  public Integer getRechnungId()
+  public Long getRechnungId()
   {
     return rechnungId;
   }
@@ -120,7 +120,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     return rechnungBetreff;
   }
 
-  public Integer getAuftragsId()
+  public Long getAuftragsId()
   {
     return auftragsId;
   }
@@ -130,7 +130,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     return auftragsPositionNummer;
   }
 
-  public Integer getAuftragsPositionId() {
+  public Long getAuftragsPositionId() {
     return auftragsPositionId;
   }
 

@@ -58,7 +58,7 @@ public class DatabaseServiceTestFork extends AbstractTestBase
     assertFalse(databaseService.databaseTablesWithEntriesExist());
     final PFUserDO admin = new PFUserDO();
     admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
-    admin.setId(1);
+    admin.setId(1L);
     userService.encryptAndSavePassword(admin, DEFAULT_ADMIN_PASSWORD);
     ThreadLocalUserContext.setUser(admin);
     //pfJpaXmlDumpService.createTestDatabase();
@@ -67,7 +67,7 @@ public class DatabaseServiceTestFork extends AbstractTestBase
     final PFUserDO user = userService.authenticateUser(DatabaseService.DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD);
     assertNotNull(user);
     assertEquals(DatabaseService.DEFAULT_ADMIN_USER, user.getUsername());
-    final Collection<Integer> col = userGroupCache.getUserGroups(user);
+    final Collection<Long> col = userGroupCache.getUserGroups(user);
     assertEquals(6, col.size());
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(user.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(user.getId()));

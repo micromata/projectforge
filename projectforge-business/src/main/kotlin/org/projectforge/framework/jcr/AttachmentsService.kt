@@ -186,7 +186,7 @@ open class AttachmentsService {
      * Only for external users. Otherwise logged in user will be assumed.
      */
     userString: String? = null,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>? = null,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>? = null,
     )
       : Pair<FileObject, InputStream>? {
     val fileObject = repoService.getFileInfo(
@@ -269,8 +269,8 @@ open class AttachmentsService {
     path: String,
     fileInfo: FileInfo,
     content: ByteArray,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
-    obj: ExtendedBaseDO<Int>,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+    obj: ExtendedBaseDO<Long>,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
     password: String? = null,
@@ -349,8 +349,8 @@ open class AttachmentsService {
     path: String,
     fileInfo: FileInfo,
     inputStream: InputStream,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
-    obj: ExtendedBaseDO<Int>,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+    obj: ExtendedBaseDO<Long>,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
     password: String? = null,
@@ -420,8 +420,8 @@ open class AttachmentsService {
   open fun deleteAttachment(
     path: String,
     fileId: String,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
-    obj: ExtendedBaseDO<Int>,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+    obj: ExtendedBaseDO<Long>,
     accessChecker: AttachmentsAccessChecker,
     subPath: String? = null,
     encryptionInProgress: Boolean? = null,
@@ -447,8 +447,8 @@ open class AttachmentsService {
   open fun internalDeleteAttachment(
     path: String,
     fileId: String,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
-    obj: ExtendedBaseDO<Int>,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+    obj: ExtendedBaseDO<Long>,
     subPath: String? = null,
     userString: String? = null,
     encryptionInProgress: Boolean? = null,
@@ -517,8 +517,8 @@ open class AttachmentsService {
   open fun changeFileInfo(
     path: String,
     fileId: String,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
-    obj: ExtendedBaseDO<Int>,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+    obj: ExtendedBaseDO<Long>,
     newFileName: String?,
     newDescription: String?,
     accessChecker: AttachmentsAccessChecker,
@@ -574,8 +574,8 @@ open class AttachmentsService {
 
   private fun updateAttachmentsInfo(
     path: String,
-    baseDao: BaseDao<out ExtendedBaseDO<Int>>,
-    obj: ExtendedBaseDO<Int>,
+    baseDao: BaseDao<out ExtendedBaseDO<Long>>,
+    obj: ExtendedBaseDO<Long>,
     event: AttachmentsEventType,
     fileInfo: FileInfo,
     subPath: String? = null,
@@ -631,12 +631,12 @@ open class AttachmentsService {
 
   private fun asAttachment(fileObject: FileObject): Attachment {
     val attachment = Attachment(fileObject)
-    NumberHelper.parseInteger(fileObject.createdByUser, false)?.let {
+    NumberHelper.parseLong(fileObject.createdByUser, false)?.let {
       val user = userGroupCache.getUser(it)
       attachment.createdByUser = user?.getFullname()
       attachment.createdByUserId = user?.id
     }
-    NumberHelper.parseInteger(fileObject.lastUpdateByUser, false)?.let {
+    NumberHelper.parseLong(fileObject.lastUpdateByUser, false)?.let {
       attachment.lastUpdateByUser = userGroupCache.getUser(it)?.getFullname()
     }
     return attachment

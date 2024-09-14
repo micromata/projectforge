@@ -41,7 +41,7 @@ public class TaskObject extends AbstractBaseObject implements Comparable<TaskObj
 {
   private Collection<TaskObject> children;
 
-  private Integer parentTaskId;
+  private Long parentTaskId;
 
   private String description, title, shortDescription, reference;
 
@@ -89,12 +89,12 @@ public class TaskObject extends AbstractBaseObject implements Comparable<TaskObj
     this.title = title;
   }
 
-  public Integer getParentTaskId()
+  public Long getParentTaskId()
   {
     return parentTaskId;
   }
 
-  public void setParentTaskId(final Integer parentTaskId)
+  public void setParentTaskId(final Long parentTaskId)
   {
     this.parentTaskId = parentTaskId;
   }

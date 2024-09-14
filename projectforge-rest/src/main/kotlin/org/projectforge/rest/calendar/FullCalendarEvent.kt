@@ -74,7 +74,7 @@ class FullCalendarEvent(
     /**
      * The db id of the object (team event, address (birthday) etc.)
      */
-    var dbId: Int? = null,
+    var dbId: Long? = null,
     /**
      * If given, a tooltip will be displayed on mouse-over. Don't forget to add the content of the tooltip.
      */
@@ -192,7 +192,7 @@ class FullCalendarEvent(
       baseBackgroundColor: String? = null,
       style: CalendarStyle? = null,
       classNames: String? = null,
-      dbId: Int? = null,
+      dbId: Long? = null,
       uid: String? = null,
       editable: Boolean = false,
       startEditable: Boolean? = null,
@@ -250,7 +250,7 @@ class FullCalendarEvent(
       baseBackgroundColor: String? = null,
       style: CalendarStyle? = null,
       classNames: String? = null,
-      dbId: Int? = null,
+      dbId: Long? = null,
       uid: String? = null,
       editable: Boolean = false,
       formattedDuration: String? = null,

@@ -126,7 +126,7 @@ class SipgateSyncServiceTest {
   private fun assertScore(
     matchScores: List<SipgateContactSyncService.MatchScore>,
     contactId: String,
-    addressId: Int,
+    addressId: Long,
     expectedScore: Int,
     msg: String,
   ) {
@@ -261,7 +261,7 @@ class SipgateSyncServiceTest {
       mobilePhone: String? = null,
       fax: String? = null,
       organization: String? = null,
-      id: Int? = null,
+      id: Long? = null,
     ): AddressDO {
       val address = AddressDO()
       address.name = name
@@ -300,7 +300,7 @@ class SipgateSyncServiceTest {
 
     internal fun createSyncDO(
       contactId: String,
-      addressId: Int,
+      addressId: Long,
     ): SipgateContactSyncDO {
       val syncDO = SipgateContactSyncDO()
       syncDO.sipgateContactId = contactId

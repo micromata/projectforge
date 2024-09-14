@@ -21,14 +21,39 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.address
+package org.projectforge.common;
 
-import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+/**
+ * Some useful methods for handling integer values.
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
+ *
+ */
+public class LongHelper
+{
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LongHelper.class);
 
-class FavoritesResultFilter(personalAddressDao: PersonalAddressDao) : CustomResultFilter<AddressDO> {
-    var favoriteAddressIds: List<Long?> = personalAddressDao.favoriteAddressIdList
-
-    override fun match(list: MutableList<AddressDO>, element: AddressDO): Boolean {
-        return favoriteAddressIds.contains(element.id)
+  /**
+   * Parses the given string as long value.
+   *
+   * @param value The string representation of the long value to parse.
+   * @return Long value or null if an empty string was given or a syntax error occurs.
+   */
+  public static Long parseLong(String value)
+  {
+    if (value == null) {
+      return null;
     }
+    value = value.trim();
+    if (value.length() == 0) {
+      return null;
+    }
+    Long result = null;
+    try {
+      result = new Long(value);
+    } catch (final NumberFormatException ex) {
+      log.warn("Can't parse long: '" + value + "'.");
+    }
+    return result;
+  }
 }

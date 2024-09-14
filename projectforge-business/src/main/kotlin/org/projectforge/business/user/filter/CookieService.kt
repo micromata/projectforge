@@ -138,7 +138,7 @@ class CookieService {
     return getCookie(request, COOKIE_NAME_FOR_LAST_2FA)
   }
 
-  fun getLast2FA(request: HttpServletRequest, userId: Int): Long? {
+  fun getLast2FA(request: HttpServletRequest, userId: Long): Long? {
     val cookie = getLast2FACookie(request) ?: return null
     try {
       val lastSuccessful2FA = userService.decrypt(cookie.value, userId) ?: return null

@@ -68,7 +68,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * @param kundeId If null, then kunde will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setKunde(projekt: ProjektDO, kundeId: Int?) {
+    fun setKunde(projekt: ProjektDO, kundeId: Long?) {
         if (kundeId == null) {
             projekt.kunde = null
         } else {
@@ -82,7 +82,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * @param taskId  If null, then task will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setTask(projekt: ProjektDO, taskId: Int?) {
+    fun setTask(projekt: ProjektDO, taskId: Long?) {
         if (taskId == null) {
             projekt.task = null
         } else {
@@ -91,7 +91,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
     }
 
-    fun setProjektManagerGroup(projekt: ProjektDO, groupId: Int?) {
+    fun setProjektManagerGroup(projekt: ProjektDO, groupId: Long?) {
         if (groupId == null) {
             projekt.projektManagerGroup = null
         } else {
@@ -119,7 +119,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         }
     }
 
-    fun getProjekt(kunde: KundeDO?, nummer: Int): ProjektDO? {
+    fun getProjekt(kunde: KundeDO?, nummer: Long): ProjektDO? {
         return persistenceService.selectSingleResult(
             "SELECT p FROM ProjektDO p WHERE p.kunde = :kunde and p.nummer = :nummer",
             ProjektDO::class.java,

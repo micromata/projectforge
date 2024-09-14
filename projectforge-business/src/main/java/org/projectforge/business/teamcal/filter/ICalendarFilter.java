@@ -111,9 +111,9 @@ public interface ICalendarFilter extends Serializable
    *
    * @return this for chaining.
    */
-  Integer getTimesheetUserId();
+  Long getTimesheetUserId();
 
-  ICalendarFilter setTimesheetUserId(final Integer timesheetUserId);
+  ICalendarFilter setTimesheetUserId(final Long timesheetUserId);
 
   /**
    * Show timesheets?

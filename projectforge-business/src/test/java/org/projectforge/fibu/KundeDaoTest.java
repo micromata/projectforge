@@ -45,7 +45,7 @@ public class KundeDaoTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     KundeDO kunde = new KundeDO();
     kunde.setName("ACME");
-    kunde.setId(42);
+    kunde.setId(42L);
     Serializable id = kundeDao.save(kunde);
     kunde = kundeDao.getById(id);
     kunde.setDescription("Test");
@@ -106,7 +106,7 @@ public class KundeDaoTest extends AbstractTestBase {
   private void checkNoWriteAccess(Serializable id, KundeDO kunde, String who) {
     try {
       KundeDO ku = new KundeDO();
-      ku.setId(42);
+      ku.setId(42L);
       kunde.setName("ACME 2");
       kundeDao.save(ku);
       fail("AccessException expected: " + who + " users should not have save access to customers.");

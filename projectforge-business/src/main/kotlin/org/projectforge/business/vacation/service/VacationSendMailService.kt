@@ -285,7 +285,7 @@ open class VacationSendMailService {
       return "$linkToVacationEntry$id?returnToCaller=account"
     }
 
-    fun getLinkToVacationEntry(id: Int?): String {
+    fun getLinkToVacationEntry(id: Long?): String {
       id ?: return "???"
       return getLinkToVacationEntry(id.toString())
     }

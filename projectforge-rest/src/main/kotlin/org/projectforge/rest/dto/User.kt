@@ -41,7 +41,7 @@ import org.projectforge.framework.time.TimeNotation
 import java.util.*
 
 class User(
-  id: Int? = null,
+  id: Long? = null,
   displayName: String? = null,
   var username: String? = null,
   var firstname: String? = null,
@@ -195,7 +195,7 @@ class User(
     private val userRightService =
       ApplicationContextProvider.getApplicationContext().getBean(UserRightService::class.java)
 
-    fun getUser(userId: Int?, minimal: Boolean = true): User? {
+    fun getUser(userId: Long?, minimal: Boolean = true): User? {
       userId ?: return null
       val userDO = userDao.getOrLoad(userId) ?: return null
       val user = User()
@@ -212,21 +212,21 @@ class User(
      */
     fun toUserList(str: String?): List<User>? {
       if (str.isNullOrBlank()) return null
-      return toIntArray(str)?.map { User(it, "???") }
+      return toLongArray(str)?.map { User(it, "???") }
     }
 
     /**
      * Converts csv of user ids to list of user id's.
      */
-    fun toIntArray(str: String?): IntArray? {
+    fun toLongArray(str: String?): LongArray? {
       if (str.isNullOrBlank()) return null
-      return StringHelper.splitToInts(str, ",", false)
+      return StringHelper.splitToLongs(str, ",")
     }
 
     /**
-     * Converts user list to ints (of format supported by [toUserList]).
+     * Converts user list to list of long values (of format supported by [toUserList]).
      */
-    fun toIntList(users: List<User>?): String? {
+    fun toLongList(users: List<User>?): String? {
       return users?.filter { it.id != null }?.joinToString { "${it.id}" }
     }
 

@@ -91,7 +91,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
    */
   private TaskTreePage taskTreePage;
 
-  static void appendCssClasses(final Item<?> item, final TaskDO task, final Integer preselectedTaskNode)
+  static void appendCssClasses(final Item<?> item, final TaskDO task, final Long preselectedTaskNode)
   {
     appendCssClasses(item, task.getId(), preselectedTaskNode, task.getDeleted());
   }
@@ -107,7 +107,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
       final boolean selectMode, final TaskNode node)
   {
     Integer maxHours = null;
-    Integer taskId = null;
+    Long taskId = null;
     boolean finished = false;
     if (node != null) {
       maxHours = node.getTask().getMaxHours();
@@ -210,7 +210,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
           final IModel<TaskDO> rowModel)
       {
         final TaskDO task = rowModel.getObject();
-        appendCssClasses(item, task, (Integer) getHighlightedRowId());
+        appendCssClasses(item, task, (Long) getHighlightedRowId());
       }
     };
     final List<IColumn<TaskDO, String>> columns = new ArrayList<IColumn<TaskDO, String>>();

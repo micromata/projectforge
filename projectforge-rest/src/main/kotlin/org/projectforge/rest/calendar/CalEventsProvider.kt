@@ -50,7 +50,7 @@ class CalEventsProvider() {
     start: PFDateTime,
     end: PFDateTime,
     events: MutableList<FullCalendarEvent>,
-    calendarIds: List<Int?>?,
+    calendarIds: List<Long?>?,
     styleMap: CalendarStyleMap
   ) {
     if (calendarIds.isNullOrEmpty())
@@ -75,7 +75,7 @@ class CalEventsProvider() {
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
       val allDay = eventDO.allDay
       val style = styleMap.get(eventDO.calendar.id) ?: CalendarStyle()
-      val dbId: Int?
+      val dbId: Long?
       val uid: String?
       if (eventDO.id!! > 0) {
         dbId = eventDO.id

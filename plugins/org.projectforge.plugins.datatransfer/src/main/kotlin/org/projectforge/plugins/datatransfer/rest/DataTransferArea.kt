@@ -40,7 +40,7 @@ import java.util.*
 import jakarta.persistence.Transient
 
 class DataTransferArea(
-  id: Int? = null,
+  id: Long? = null,
   var areaName: String? = null,
   var description: String? = null,
   var admins: List<User>? = null,
@@ -125,10 +125,10 @@ class DataTransferArea(
     if (personalBox == true) {
       dest.areaName = DataTransferAreaDO.PERSONAL_BOX_AREA_NAME // Restore db specific name.
     } else {
-      dest.adminIds = User.toIntList(admins)
-      dest.observerIds = User.toIntList(observers)
-      dest.accessGroupIds = Group.toIntList(accessGroups)
-      dest.accessUserIds = User.toIntList(accessUsers)
+      dest.adminIds = User.toLongList(admins)
+      dest.observerIds = User.toLongList(observers)
+      dest.accessGroupIds = Group.toLongList(accessGroups)
+      dest.accessUserIds = User.toLongList(accessUsers)
     }
   }
 

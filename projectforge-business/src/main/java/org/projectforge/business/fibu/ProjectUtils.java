@@ -55,7 +55,7 @@ public class ProjectUtils {
    * @param userId
    * @return List of all projects of which the given user (by user id) is member of the project manager group.
    */
-  public static Collection<ProjektDO> getProjectsOfManager(final Integer userId) {
+  public static Collection<ProjektDO> getProjectsOfManager(final Long userId) {
     final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     return getProjectsOfManager(user);
   }
@@ -74,7 +74,7 @@ public class ProjectUtils {
     }
     final UserGroupCache userGroupCache = UserGroupCache.getInstance();
     for (final ProjektDO project : projects) {
-      final Integer groupId = project.getProjektManagerGroupId();
+      final Long groupId = project.getProjektManagerGroupId();
       if (groupId == null) {
         // No manager group defined.
         continue;

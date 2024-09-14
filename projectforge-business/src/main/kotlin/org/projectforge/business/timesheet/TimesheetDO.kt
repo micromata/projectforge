@@ -199,19 +199,19 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @Transient
     get() = TimePeriod(startTime, stopTime, marked)
 
-  val userId: Int?
+  val userId: Long?
     @Transient
     get() = if (this.user == null) {
       null
     } else user!!.id
 
-  val taskId: Int?
+  val taskId: Long?
     @Transient
     get() = if (this.task == null) {
       null
     } else task!!.id
 
-  val kost2Id: Int?
+  val kost2Id: Long?
     @Transient
     get() = if (this.kost2 == null) {
       null

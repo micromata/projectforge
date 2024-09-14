@@ -46,8 +46,8 @@ class VisitorbookService : IDao<VisitorbookDO?> {
         return visitorbookDao.hasInsertAccess(user)
     }
 
-    fun getAssignedContactPersonsIds(data: VisitorbookDO?): List<Int> {
-        val assignedContactPersons = mutableListOf<Int>()
+    fun getAssignedContactPersonsIds(data: VisitorbookDO?): List<Long> {
+        val assignedContactPersons = mutableListOf<Long>()
         data?.contactPersons?.forEach { employee ->
             employee.id?.let { assignedContactPersons.add(it) }
         }

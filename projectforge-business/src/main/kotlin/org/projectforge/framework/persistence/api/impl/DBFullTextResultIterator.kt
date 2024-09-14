@@ -38,7 +38,7 @@ import java.text.Collator
 
 private const val MAX_RESULTS = 100
 
-internal class DBFullTextResultIterator<O : ExtendedBaseDO<Int>>(
+internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     val baseDao: BaseDao<O>,
     private val searchSession: SearchSession,
     private val resultMatchers: List<DBPredicate>,

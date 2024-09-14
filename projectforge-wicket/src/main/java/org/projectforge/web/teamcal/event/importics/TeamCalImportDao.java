@@ -107,7 +107,7 @@ public class TeamCalImportDao {
   }
 
   @SuppressWarnings("unchecked")
-  public void reconcile(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId) {
+  public void reconcile(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Long teamCalId) {
     Validate.notNull(storage.getSheets());
     Validate.notNull(sheet);
     reconcile((ImportedSheet<TeamEventDO>) sheet, teamCalId);
@@ -115,7 +115,7 @@ public class TeamCalImportDao {
   }
 
   @SuppressWarnings("unchecked")
-  public void commit(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Integer teamCalId) {
+  public void commit(final ImportStorage<?> storage, final ImportedSheet<?> sheet, final Long teamCalId) {
     Validate.notNull(storage.getSheets());
     Validate.notNull(sheet);
     Validate.isTrue(sheet.getStatus() == ImportStatus.RECONCILED);
@@ -128,7 +128,7 @@ public class TeamCalImportDao {
     return ThreadLocalUserContext.getLocalizedString("plugins.teamcal.events");
   }
 
-  private void reconcile(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId) {
+  private void reconcile(final ImportedSheet<TeamEventDO> sheet, final Long teamCalId) {
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
       teamEventDao.setCalendar(event, teamCalId);
@@ -139,7 +139,7 @@ public class TeamCalImportDao {
     sheet.calculateStatistics();
   }
 
-  private int commit(final ImportedSheet<TeamEventDO> sheet, final Integer teamCalId) {
+  private int commit(final ImportedSheet<TeamEventDO> sheet, final Long teamCalId) {
     log.info("Commit team events called");
     final Collection<TeamEventDO> col = new ArrayList<TeamEventDO>();
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {

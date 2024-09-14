@@ -49,7 +49,7 @@ class HistoryFormatService {
   internal lateinit var applicationContext: ApplicationContext
 
   private val historyServiceAdapters =
-    mutableMapOf<Class<out ExtendedBaseDO<Int>>, HistoryFormatAdapter>()
+    mutableMapOf<Class<out ExtendedBaseDO<Long>>, HistoryFormatAdapter>()
 
   private lateinit var stdHistoryFormatAdapter: HistoryFormatAdapter
 
@@ -77,7 +77,7 @@ class HistoryFormatService {
     register(PFUserDO::class.java, HistoryFormatUserAdapter(em, this))
   }
 
-  fun <O : ExtendedBaseDO<Int>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
+  fun <O : ExtendedBaseDO<Long>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
     if (historyServiceAdapters[clazz] != null) {
       log.warn { "Can't register HistoryServiceAdapter ${historyServiceAdapter::class.java.name} twice. Ignoring." }
       return
@@ -88,7 +88,7 @@ class HistoryFormatService {
   /**
    * Creates a list of formatted history entries (get the user names etc.)
    */
-  fun <O : ExtendedBaseDO<Int>> format(item: O, orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
+  fun <O : ExtendedBaseDO<Long>> format(item: O, orig: Array<HistoryEntry<*>>): List<DisplayHistoryEntryDTO> {
     val entries = mutableListOf<DisplayHistoryEntryDTO>()
     orig.forEach { historyEntry ->
       entries.add(convert(item, historyEntry))
@@ -98,7 +98,7 @@ class HistoryFormatService {
     return entries.sortedByDescending { it.modifiedAt }
   }
 
-  fun <O : ExtendedBaseDO<Int>> convert(item: O, historyEntry: HistoryEntry<*>): DisplayHistoryEntryDTO {
+  fun <O : ExtendedBaseDO<Long>> convert(item: O, historyEntry: HistoryEntry<*>): DisplayHistoryEntryDTO {
     val adapter = historyServiceAdapters[item::class.java]
     return adapter?.convert(item, historyEntry) ?: stdHistoryFormatAdapter.convert(item, historyEntry)
   }

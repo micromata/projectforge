@@ -62,7 +62,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         userRightId = UserRightId.MISC_ADDRESSBOOK
     }
 
-    fun setOwner(ab: AddressbookDO, userId: Int) {
+    fun setOwner(ab: AddressbookDO, userId: Long) {
         val user = userDao!!.getOrLoad(userId)
         ab.owner = user
     }
@@ -254,7 +254,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     }
 
     companion object {
-        const val GLOBAL_ADDRESSBOOK_ID: Int = 1
+        const val GLOBAL_ADDRESSBOOK_ID: Long = 1
         val ADDITIONAL_SEARCH_FIELDS = arrayOf("usersgroups", "owner.username", "owner.firstname", "owner.lastname")
     }
 }

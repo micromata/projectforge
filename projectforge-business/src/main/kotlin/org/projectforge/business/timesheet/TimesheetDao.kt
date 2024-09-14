@@ -122,7 +122,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
      * user=?.
      */
-    open fun getYears(userId: Int?): IntArray {
+    open fun getYears(userId: Long?): IntArray {
         val minMaxDate = persistenceService.selectNamedSingleResult(
             TimesheetDO.SELECT_MIN_MAX_DATE_FOR_USER,
             Tuple::class.java,
@@ -135,7 +135,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * @param userId If null, then task will be set to null;
      * @see BaseDao.getOrLoad
      */
-    open fun setUser(sheet: TimesheetDO, userId: Int?) {
+    open fun setUser(sheet: TimesheetDO, userId: Long?) {
         userId ?: return
         val user = userDao.getOrLoad(userId)
         sheet.user = user
@@ -145,7 +145,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * @param taskId If null, then task will be set to null;
      * @see TaskTree.getTaskById
      */
-    open fun setTask(sheet: TimesheetDO, taskId: Int?) {
+    open fun setTask(sheet: TimesheetDO, taskId: Long?) {
         val task = taskTree.getTaskById(taskId)
         sheet.task = task
     }
@@ -154,7 +154,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * @param kost2Id If null, then kost2 will be set to null;
      * @see BaseDao.getOrLoad
      */
-    open fun setKost2(sheet: TimesheetDO, kost2Id: Int?) {
+    open fun setKost2(sheet: TimesheetDO, kost2Id: Long?) {
         kost2Id ?: return
         val kost2 = kost2Dao.getOrLoad(kost2Id)
         sheet.kost2 = kost2
@@ -688,7 +688,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * Get all used references of time sheets with given task id or used in any sub task.
      */
-    open fun getUsedReferences(taskId: Int): List<String> {
+    open fun getUsedReferences(taskId: Long): List<String> {
         checkLoggedInUserSelectAccess()
         return persistenceService.namedQuery(
             TimesheetDO.SELECT_REFERENCES_BY_TASK_ID,
@@ -697,7 +697,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         )
     }
 
-    open fun getUsedReferences(taskId: Int, search: String?): List<String> {
+    open fun getUsedReferences(taskId: Long, search: String?): List<String> {
         return AutoCompletionUtils.filter(getUsedReferences(taskId), search)
     }
 

@@ -80,21 +80,21 @@ class CandHTest : AbstractTestBase() {
         src.assignedUsers = mutableSetOf(user1, user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
         Assertions.assertEquals(2, dest.assignedUsers!!.size)
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1 })
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2 })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1L })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2L })
 
         src.assignedUsers!!.add(user3)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
         Assertions.assertEquals(3, dest.assignedUsers!!.size)
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1 })
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2 })
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3 })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1L })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2L })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3L })
 
         src.assignedUsers!!.remove(user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
         Assertions.assertEquals(2, dest.assignedUsers!!.size)
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1 })
-        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3 })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1L })
+        Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3L })
     }
 
     @Test
@@ -127,7 +127,7 @@ class CandHTest : AbstractTestBase() {
         Assertions.assertEquals("10", dest.positionen!![0].nettoSumme!!.toString())
     }
 
-    private fun createUser(id: Int, username: String): PFUserDO {
+    private fun createUser(id: Long, username: String): PFUserDO {
         val user = PFUserDO()
         user.id = id
         user.username = username

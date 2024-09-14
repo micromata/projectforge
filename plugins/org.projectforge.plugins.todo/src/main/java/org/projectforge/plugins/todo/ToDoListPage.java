@@ -193,13 +193,13 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
   public void select(final String property, final Object selectedValue)
   {
     if ("taskId".equals(property)) {
-      form.getSearchFilter().setTaskId((Integer) selectedValue);
+      form.getSearchFilter().setTaskId((Long) selectedValue);
       refresh();
     } else if ("reporterId".equals(property)) {
-      form.getSearchFilter().setReporterId((Integer) selectedValue);
+      form.getSearchFilter().setReporterId((Long) selectedValue);
       refresh();
     } else if ("assigneeId".equals(property)) {
-      form.getSearchFilter().setAssigneeId((Integer) selectedValue);
+      form.getSearchFilter().setAssigneeId((Long) selectedValue);
       refresh();
     } else {
       super.select(property, selectedValue);

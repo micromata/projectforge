@@ -94,7 +94,7 @@ public class RestClientMain
     if (user == null) {
       throw new RuntimeException("Can't deserialize user : " + json);
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     final String authenticationToken = user.getAuthenticationToken();
     log.info("userId = " + userId + ", authenticationToken=" + authenticationToken);
     return user;

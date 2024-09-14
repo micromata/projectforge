@@ -56,7 +56,7 @@ public class AddressCampaignValueListForm
   @SpringBean
   private AddressbookDao addressbookDao;
 
-  private Integer addressCampaignId;
+  private Long addressCampaignId;
 
   @SuppressWarnings("unused")
   private String addressCampaignValue;
@@ -104,12 +104,12 @@ public class AddressCampaignValueListForm
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.marketing.addressCampaign"));
-      final LabelValueChoiceRenderer<Integer> addressCampaignRenderer = new LabelValueChoiceRenderer<>();
+      final LabelValueChoiceRenderer<Long> addressCampaignRenderer = new LabelValueChoiceRenderer<>();
       for (final AddressCampaignDO addressCampaign : addressCampaignList) {
         addressCampaignRenderer.addValue(addressCampaign.getId(), addressCampaign.getTitle());
       }
-      final DropDownChoice<Integer> addressCampaignChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<Integer>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
+      final DropDownChoice<Long> addressCampaignChoice = new DropDownChoice<Long>(fs.getDropDownChoiceId(),
+          new PropertyModel<Long>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
           addressCampaignRenderer);
       addressCampaignChoice.add(new FormComponentUpdatingBehavior()
 /*=======

@@ -51,7 +51,7 @@ class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
    * @param all      If false, only the birthdays of favorites will be returned.
    * @return The entries are ordered by date of year and name.
    */
-  fun getBirthdays(fromDate: Date, toDate: Date, all: Boolean, favorites: List<Int>)
+  fun getBirthdays(fromDate: Date, toDate: Date, all: Boolean, favorites: List<Long>)
       : Set<BirthdayAddress> {
     checkRefresh()
     // Uses not Collections.sort because every comparison needs Calendar.getDayOfYear().

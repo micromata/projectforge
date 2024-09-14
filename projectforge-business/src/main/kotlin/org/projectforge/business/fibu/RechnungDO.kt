@@ -140,13 +140,13 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         } else this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null
 
 
-    val kundeId: Int?
+    val kundeId: Long?
         @Transient
         get() = if (this.kunde == null) {
             null
         } else kunde!!.nummer
 
-    val projektId: Int?
+    val projektId: Long?
         @Transient
         get() = if (this.projekt == null) {
             null

@@ -50,13 +50,13 @@ public class PFUserDOConverter
   @Autowired
   LdapService ldapService;
 
-  public static Integer getId(final LdapUser user)
+  public static Long getId(final LdapUser user)
   {
     final String employeeNumber = user.getEmployeeNumber();
     if (employeeNumber != null && employeeNumber.startsWith(ID_PREFIX)
         && employeeNumber.length() > ID_PREFIX.length()) {
       final String id = employeeNumber.substring(ID_PREFIX.length());
-      return NumberHelper.parseInteger(id);
+      return NumberHelper.parseLong(id);
     }
     return null;
   }
@@ -235,7 +235,6 @@ public class PFUserDOConverter
   /**
    * Exports the LDAP values such as posix account properties of the given ldapUser as xml string.
    *
-   * @param ldapUser
    */
   public static String getLdapValuesAsXml(final LdapUserValues values)
   {

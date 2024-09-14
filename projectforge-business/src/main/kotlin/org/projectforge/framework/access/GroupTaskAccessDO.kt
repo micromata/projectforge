@@ -111,13 +111,13 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
             return list
         }
 
-    val groupId: Int?
+    val groupId: Long?
         @Transient
         get() = if (this.group == null) {
             null
         } else this.group!!.id
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task == null) {
             null

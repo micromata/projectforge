@@ -91,7 +91,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * @param sheet
      * @param projektId If null, then projekt will be set to null;
      */
-    public void setProjekt(final HRPlanningEntryDO sheet, final Integer projektId) {
+    public void setProjekt(final HRPlanningEntryDO sheet, final Long projektId) {
         final ProjektDO projekt = projektDao.getOrLoad(projektId);
         sheet.setProjekt(projekt);
     }
@@ -100,7 +100,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * @param sheet
      * @param userId If null, then user will be set to null;
      */
-    public void setUser(final HRPlanningDO sheet, final Integer userId) {
+    public void setUser(final HRPlanningDO sheet, final Long userId) {
         final PFUserDO user = userDao.getOrLoad(userId);
         sheet.setUser(user);
     }
@@ -124,7 +124,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * @param week
      * @return If week or user id is not given, return false.
      */
-    public boolean doesEntryAlreadyExist(final Integer planningId, final Integer userId, final LocalDate week) {
+    public boolean doesEntryAlreadyExist(final Long planningId, final Long userId, final LocalDate week) {
         if (week == null || userId == null) {
             return false;
         }
@@ -152,7 +152,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
         return getEntry(user.getId(), week);
     }
 
-    public HRPlanningDO getEntry(final Integer userId, final LocalDate week) {
+    public HRPlanningDO getEntry(final Long userId, final LocalDate week) {
         PFDay day = PFDay.from(week);
         if (!day.isBeginOfWeek()) {
             log.error("Date is not begin of week, try to change date: " + day.getIsoString());
@@ -250,10 +250,10 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
                 ProjektDO projekt = entry.getProjekt();
                 if (entryHasUpdates(entry, existingPlanning) && projekt != null) {
                     boolean userHasRightForProject = false;
-                    Integer userId = ThreadLocalUserContext.getUser().getId();
-                    Integer headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
-                    Integer projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
-                    Integer salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
+                    Long userId = ThreadLocalUserContext.getUser().getId();
+                    Long headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
+                    Long projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
+                    Long salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
                     if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
                         userHasRightForProject = true;
                     }

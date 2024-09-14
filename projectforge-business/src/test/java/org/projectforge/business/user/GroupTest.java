@@ -126,7 +126,7 @@ public class GroupTest extends AbstractTestBase {
   @Test
   public void test3CheckUnmodifiableGroupNames() {
     GroupDO adminGroup = getGroup(ProjectForgeGroup.ADMIN_GROUP.getName());
-    final Integer id = adminGroup.getId();
+    final Long id = adminGroup.getId();
     adminGroup.setName("Changed admin group");
     groupDao.internalUpdate(adminGroup);
     adminGroup = groupDao.internalGetById(id);

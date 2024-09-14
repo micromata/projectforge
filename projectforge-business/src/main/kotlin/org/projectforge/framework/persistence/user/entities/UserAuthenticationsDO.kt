@@ -100,7 +100,7 @@ open class UserAuthenticationsDO : DefaultBaseDO() {
   @get:JoinColumn(name = "user_id")
   open var user: PFUserDO? = null
 
-  val userId: Int?
+  val userId: Long?
     @Transient
     get() = user?.id
 

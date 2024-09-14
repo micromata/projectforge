@@ -516,7 +516,7 @@ class MerlinPagesRest :
     }
     dto.accessGroupsAsString = dto.accessGroups?.joinToString { it.displayName ?: "???" } ?: ""
     val accessGroupUsers =
-      groupService.getGroupUsers(User.toIntArray(dto.accessGroupIds)).joinToString { it.displayName }
+      groupService.getGroupUsers(User.toLongArray(dto.accessGroupIds)).joinToString { it.displayName }
     dto.accessGroupsAsString += ": $accessGroupUsers"
   }
 }

@@ -88,7 +88,7 @@ open class HRPlanningDO : DefaultBaseDO() {
         @Transient
         get() = DateTimeFormatter.formatWeekOfYear(week)
 
-    val userId: Int?
+    val userId: Long?
         @Transient
         get() = if (this.user == null) {
             null

@@ -54,7 +54,7 @@ import jakarta.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("${Rest.URL}/task")
 class TaskServicesRest {
-  class Kost2(val id: Int, val title: String)
+  class Kost2(val id: Long, val title: String)
 
   // class OrderPosition(val number: Int, val personDays: Int?, val title: String, val status: AuftragsPositionsStatus?)
   class Order(
@@ -66,7 +66,7 @@ class TaskServicesRest {
 
   enum class TreeStatus { LEAF, OPENED, CLOSED }
   class Task(
-    val id: Int,
+    val id: Long,
     /**
      * Indent is only given for table view.
      */
@@ -127,7 +127,7 @@ class TaskServicesRest {
   companion object {
     private const val PREF_ARA = "task"
 
-    fun createTask(id: Int?): Task? {
+    fun createTask(id: Long?): Task? {
       if (id == null)
         return null
       val taskTree = TaskTree.getInstance()
@@ -171,7 +171,7 @@ class TaskServicesRest {
     val result: Result,
     val user: PFUserDO,
     val taskFilter: TaskFilter,
-    val openedNodes: MutableSet<Int>,
+    val openedNodes: MutableSet<Long>,
     var highlightedTaskNode: TaskNode? = null,
   )
 
@@ -208,9 +208,9 @@ class TaskServicesRest {
   fun getTree(
     request: HttpServletRequest,
     @RequestParam("initial") initial: Boolean?,
-    @RequestParam("open") open: Int?,
-    @RequestParam("close") close: Int?,
-    @RequestParam("highlightedTaskId") highlightedTaskId: Int?,
+    @RequestParam("open") open: Long?,
+    @RequestParam("close") close: Long?,
+    @RequestParam("highlightedTaskId") highlightedTaskId: Long?,
     @RequestParam("table") table: Boolean?,
     @RequestParam("searchString") searchString: String?,
     @RequestParam("opened") opened: Boolean?,
@@ -221,7 +221,7 @@ class TaskServicesRest {
   )
       : Result {
     @Suppress("UNCHECKED_CAST")
-    val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Int>())
+    val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Long>())
     val filter = listFilterService.getSearchFilter(request.getSession(false), TaskFilter::class.java) as TaskFilter
 
     if (initial != true) {
@@ -333,7 +333,7 @@ class TaskServicesRest {
    * @return json
    */
   @GetMapping("info/{id}")
-  fun getTaskInfo(@PathVariable("id") id: Int?): ResponseEntity<Task> {
+  fun getTaskInfo(@PathVariable("id") id: Long?): ResponseEntity<Task> {
     val task = createTask(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
     return ResponseEntity(task, HttpStatus.OK)
   }
@@ -398,7 +398,7 @@ class TaskServicesRest {
     }
   }
 
-  private fun openTask(ctx: BuildContext, taskId: Int?) {
+  private fun openTask(ctx: BuildContext, taskId: Long?) {
     if (taskId == null)
       return
     val taskNode = taskTree.getTaskNodeById(taskId)
@@ -414,7 +414,7 @@ class TaskServicesRest {
     }
   }
 
-  private fun closeTask(ctx: BuildContext, taskId: Int?) {
+  private fun closeTask(ctx: BuildContext, taskId: Long?) {
     if (taskId == null)
       return
     val taskNode = taskTree.getTaskNodeById(taskId)

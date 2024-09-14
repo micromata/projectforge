@@ -420,7 +420,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
   {
     if (predecessorUpdToDate == false) {
       predecessor = null;
-      final Integer userId = data.getUserId();
+      final Long userId = data.getUserId();
       if (userId != null) {
         // Get the entry from the predecessor week:
         PFDay dh = PFDay.from(getData().getWeek());

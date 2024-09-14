@@ -48,7 +48,7 @@ open class AddressImageDao {
     /**
      * Does the access checking. The user may only get images, if he has the select access to the given address.
      */
-    open fun getImage(addressId: Int): ByteArray? {
+    open fun getImage(addressId: Long): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
         return persistenceService.selectNamedSingleResult(
             AddressImageDO.SELECT_IMAGE,
@@ -60,7 +60,7 @@ open class AddressImageDao {
     /**
      * Does the access checking. The user may only get images, if he has the select access to the given address.
      */
-    open fun getPreviewImage(addressId: Int): ByteArray? {
+    open fun getPreviewImage(addressId: Long): ByteArray? {
         addressDao.getById(addressId) ?: return null // For access checking!
         return persistenceService.selectNamedSingleResult(
             AddressImageDO.SELECT_IMAGE_PREVIEW,
@@ -72,7 +72,7 @@ open class AddressImageDao {
     /**
      * Does the access checking. The user may only modify images, if he has the access to modify the given address.
      */
-    open fun saveOrUpdate(addressId: Int, image: ByteArray): Boolean {
+    open fun saveOrUpdate(addressId: Long, image: ByteArray): Boolean {
         val address = addressDao.getById(addressId)
         if (address == null) {
             log.error("Can't save or update immage of address. Address #$addressId not found.")
@@ -106,7 +106,7 @@ open class AddressImageDao {
     /**
      * Does the access checking. The user may only delete images, if he has the access to modify the given address.
      */
-    open fun delete(addressId: Int): Boolean {
+    open fun delete(addressId: Long): Boolean {
         val address = addressDao.getById(addressId)
         if (address == null) {
             log.error("Can't save or update immage of address. Address #$addressId not found.")

@@ -150,7 +150,7 @@ public class TaskTest extends AbstractTestBase {
     initTestDB.addTask("d.1.2.1", "d.1.2");
     initTestDB.addTask("d.2", "d");
     final TaskNode d = taskTree.getTaskNodeById(getTask("d").getId());
-    final List<Integer> ids = d.getDescendantIds();
+    final List<Long> ids = d.getDescendantIds();
     assertEquals(5, ids.size());
     assertTrue(ids.contains(getTask("d.1").getId()));
     assertTrue(ids.contains(getTask("d.1.1").getId()));
@@ -266,7 +266,7 @@ public class TaskTest extends AbstractTestBase {
             true);
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final Kost2ArtDO kost2Art = new Kost2ArtDO();
-    kost2Art.setId(42);
+    kost2Art.setId(42L);
     kost2Art.setName("Test");
     kost2ArtDao.save(kost2Art);
     final Kost2DO kost2 = new Kost2DO();
@@ -476,7 +476,7 @@ public class TaskTest extends AbstractTestBase {
     boolean taskFound = false;
     boolean subtask1Found = false;
     for (final Object[] oa : list) {
-      final Integer taskId = (Integer) oa[1];
+      final Long taskId = (Long) oa[1];
       if (taskId.equals(task.getId())) {
         assertFalse(taskFound, "Entry should only exist once.");
         assertFalse(subtask1Found, "Entry not first.");
@@ -506,11 +506,11 @@ public class TaskTest extends AbstractTestBase {
     assertEquals(0, getDuration(taskTree, subTask2.getId()));
   }
 
-  private long getTotalDuration(final TaskTree taskTree, final Integer taskId) {
+  private long getTotalDuration(final TaskTree taskTree, final Long taskId) {
     return taskTree.getTaskNodeById(taskId).getDuration(taskTree, true);
   }
 
-  private long getDuration(final TaskTree taskTree, final Integer taskId) {
+  private long getDuration(final TaskTree taskTree, final Long taskId) {
     return taskTree.getTaskNodeById(taskId).getDuration(taskTree, false);
   }
 

@@ -82,7 +82,7 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setStringValue("Hurzel");
     config.setType(ConfigurationType.STRING);
     try {
-      config.setType(ConfigurationType.INTEGER);
+      config.setType(ConfigurationType.LONG);
       fail("Exception should be thrown.");
     } catch (final RuntimeException ex) {
 

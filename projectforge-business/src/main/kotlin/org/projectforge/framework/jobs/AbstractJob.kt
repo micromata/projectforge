@@ -56,7 +56,7 @@ private val log = KotlinLogging.logger {}
 abstract class AbstractJob(
   val title: String,
   val area: String? = null,
-  val ownerId: Int? = ThreadLocalUserContext.userId,
+  val ownerId: Long? = ThreadLocalUserContext.userId,
   val queueName: String? = null,
   /**
    * If true then jobs of same area, same queueName and same user are queued.

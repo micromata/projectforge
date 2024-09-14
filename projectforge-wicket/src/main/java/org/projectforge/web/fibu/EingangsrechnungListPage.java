@@ -252,7 +252,7 @@ public class EingangsrechnungListPage
       {
         if ("konto".equals(field.getName()) == true) {
           Integer kontoNummer = null;
-          final Integer kontoId = ((EingangsrechnungDO) entry).getKontoId();
+          final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
           if (kontoId != null) {
             final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
             if (konto != null) {
@@ -273,7 +273,7 @@ public class EingangsrechnungListPage
       {
         final EingangsrechnungDO invoice = (EingangsrechnungDO) entry;
         String kontoBezeichnung = null;
-        final Integer kontoId = ((EingangsrechnungDO) entry).getKontoId();
+        final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
         if (kontoId != null) {
           final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
           if (konto != null) {

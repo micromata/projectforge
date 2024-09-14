@@ -42,7 +42,7 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
 
   private static final long serialVersionUID = 6173766812848285792L;
 
-  private Integer calId;
+  private Long calId;
 
   private String colorCode = TeamCalCalendarFilter.DEFAULT_COLOR;
 
@@ -71,12 +71,12 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
     return this;
   }
 
-  public Integer getCalId()
+  public Long getCalId()
   {
     return calId;
   }
 
-  public TemplateCalendarProperties setCalId(final Integer calId)
+  public TemplateCalendarProperties setCalId(final Long calId)
   {
     this.calId = calId;
     return this;
@@ -179,7 +179,6 @@ public class TemplateCalendarProperties implements Serializable, Comparable<Temp
   /**
    * For avoiding reload of Calendar if no changes are detected. (Was für'n Aufwand für so'n kleines Feature...)
    *
-   * @param filter
    * @return
    */
   public boolean isModified(final TemplateCalendarProperties other)

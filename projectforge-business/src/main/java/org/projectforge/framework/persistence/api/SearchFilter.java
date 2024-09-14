@@ -90,7 +90,7 @@ public class SearchFilter extends BaseSearchFilter
     return task;
   }
 
-  public Integer getTaskId()
+  public Long getTaskId()
   {
     return task != null ? task.getId() : null;
   }

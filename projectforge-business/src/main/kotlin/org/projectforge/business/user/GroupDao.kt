@@ -191,8 +191,8 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         groupsToUnassign: Set<GroupDO>?,
         updateUserGroupCache: Boolean = true
     ) {
-        val groupIdsToAssign: MutableSet<Int?> = HashSet()
-        val groupIdsToUnassign: MutableSet<Int?> = HashSet()
+        val groupIdsToAssign: MutableSet<Long?> = HashSet()
+        val groupIdsToUnassign: MutableSet<Long?> = HashSet()
         if (groupIdsToAssign != null) {
             for (group in groupsToAssign) {
                 groupIdsToAssign.add(group.id)
@@ -215,8 +215,8 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      */
     fun assignGroupByIds(
         user: PFUserDO,
-        groupIdsToAssign: Set<Int?>?,
-        groupIdsToUnassign: Set<Int?>?,
+        groupIdsToAssign: Set<Long?>?,
+        groupIdsToUnassign: Set<Long?>?,
         updateUserGroupCache: Boolean
     ) {
         val assignedGroups = mutableListOf<GroupDO>()

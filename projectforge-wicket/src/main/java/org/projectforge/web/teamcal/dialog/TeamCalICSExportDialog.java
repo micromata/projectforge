@@ -143,14 +143,14 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
         return true;
       }
     }
-    Collection<Integer> userGroupsIds = UserGroupCache.getInstance().getUserGroups(user);
+    Collection<Long> userGroupsIds = UserGroupCache.getInstance().getUserGroups(user);
     List<String> fullAccessGroupIds =
         StringUtils.isBlank(teamCal.getFullAccessGroupIds()) == false ? Arrays.asList(teamCal.getFullAccessGroupIds().split(",")) :
             Collections.emptyList();
     List<String> readonlyAccessGroupIds = StringUtils.isBlank(teamCal.getReadonlyAccessGroupIds()) == false ?
         Arrays.asList(teamCal.getReadonlyAccessGroupIds().split(",")) :
         Collections.emptyList();
-    for (Integer groupId : userGroupsIds) {
+    for (Long groupId : userGroupsIds) {
       // Export reminders for full access group.
       if (fullAccessGroupIds.contains(String.valueOf(groupId))) {
         return true;

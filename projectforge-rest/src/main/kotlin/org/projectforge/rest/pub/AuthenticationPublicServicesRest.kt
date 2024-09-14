@@ -50,9 +50,9 @@ private val log = KotlinLogging.logger {}
 @RestController
 @RequestMapping(Rest.PUBLIC_URL)
 open class AuthenticationPublicServicesRest {
-    class Credentials(val username: String, val uid: Int, val authenticationToken: String, val url: String)
+    class Credentials(val username: String, val uid: Long, val authenticationToken: String, val url: String)
 
-    internal class TemporaryToken(val uid: Int, val systemTimeInMillis: Long, val token: String)
+    internal class TemporaryToken(val uid: Long, val systemTimeInMillis: Long, val token: String)
 
     @Autowired
     private lateinit var domainService: DomainService
@@ -117,7 +117,7 @@ open class AuthenticationPublicServicesRest {
     /**
      * Internal usage for test cases.
      */
-    internal open fun createTemporaryToken(uid: Int, currentTimeInMillis: Long): String {
+    internal open fun createTemporaryToken(uid: Long, currentTimeInMillis: Long): String {
         cleanTemporaryToken()
         val token = NumberHelper.getSecureRandomAlphanumeric(TEMPORARY_TOKEN_LENGTH)
         synchronized(temporaryTokenList) {

@@ -213,7 +213,7 @@ public class InitTestDB {
   }
 
   public ProjektDO addProjekt(final KundeDO kunde, final Integer projektNummer, final String projektName,
-                              final Integer... kost2ArtIds) {
+                              final Long... kost2ArtIds) {
     final ProjektDO projekt = new ProjektDO();
     projekt.setNummer(projektNummer);
     projekt.setName(projektName);
@@ -222,12 +222,12 @@ public class InitTestDB {
     }
     projektDao.save(projekt);
     if (kost2ArtIds != null) {
-      for (final Integer id : kost2ArtIds) {
+      for (final Long id : kost2ArtIds) {
         final Kost2DO kost2 = new Kost2DO();
         kost2.setProjekt(projekt);
         kost2.setNummernkreis(5);
         if (kunde != null) {
-          kost2.setBereich(kunde.getId());
+          kost2.setBereich(kunde.getId().intValue());
         }
         kost2.setTeilbereich(projekt.getNummer());
         kost2Dao.setKost2Art(kost2, id);
@@ -241,7 +241,7 @@ public class InitTestDB {
     final PFUserDO origUser = ThreadLocalUserContext.getUser();
     final PFUserDO initUser = new PFUserDO();
     initUser.setUsername("Init-database-pseudo-user");
-    initUser.setId(-1);
+    initUser.setId(-1L);
     initUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE));
     try {
       ThreadLocalUserContext.setUser(initUser);
@@ -348,14 +348,14 @@ public class InitTestDB {
   }
 
   private void initKost2Arts() {
-    addKost2Art(0, "Akquise");
-    addKost2Art(1, "Research");
-    addKost2Art(2, "Realization");
-    addKost2Art(3, "Systemadministration");
-    addKost2Art(4, "Travel costs");
+    addKost2Art(0L, "Akquise");
+    addKost2Art(1L, "Research");
+    addKost2Art(2L, "Realization");
+    addKost2Art(3L, "Systemadministration");
+    addKost2Art(4L, "Travel costs");
   }
 
-  private void addKost2Art(final Integer id, final String name) {
+  private void addKost2Art(final Long id, final String name) {
     final Kost2ArtDO kost2Art = new Kost2ArtDO();
     kost2Art.setId(id);
     kost2Art.setName("Akquise");

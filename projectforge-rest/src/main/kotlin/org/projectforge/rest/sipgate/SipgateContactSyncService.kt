@@ -116,7 +116,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     /**
      * Match score of contact and address to find the best matching pairs.
      */
-    class MatchScore(val contactId: String, val addressId: Int, val score: Int) {
+    class MatchScore(val contactId: String, val addressId: Long, val score: Int) {
         var synced = false
     }
 
@@ -841,7 +841,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         log.info { "updateSyncObjects: ${syncContext.remoteContacts.size} remote contacts processed. $nomatch remote contacts without local matched address." }
     }
 
-    private fun findByContactOrAddressId(sipgateContactId: String?, addressId: Int): SipgateContactSyncDO? {
+    private fun findByContactOrAddressId(sipgateContactId: String?, addressId: Long): SipgateContactSyncDO? {
         val list = if (sipgateContactId != null) {
             persistenceService.namedQuery(
                 SipgateContactSyncDO.FIND_BY_CONTACT_AND_ADDRESS_ID,

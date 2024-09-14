@@ -82,7 +82,7 @@ class PersonalAddressDao {
      * @param ownerId         If null, then task will be set to null;
 
      */
-    fun setOwner(personalAddress: PersonalAddressDO, ownerId: Int) {
+    fun setOwner(personalAddress: PersonalAddressDO, ownerId: Long) {
         val user = userDao.getOrLoad(ownerId)
         personalAddress.owner = user
     }
@@ -122,8 +122,8 @@ class PersonalAddressDao {
         return true
     }
 
-    private fun getAddressbookIdsForUser(user: PFUserDO): Set<Int?> {
-        val abIdSet: MutableSet<Int?> = HashSet()
+    private fun getAddressbookIdsForUser(user: PFUserDO): Set<Long?> {
+        val abIdSet: MutableSet<Long?> = HashSet()
         //Get all addressbooks for user
         if (addressbookRight == null) {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
@@ -211,7 +211,7 @@ class PersonalAddressDao {
     /**
      * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
      */
-    fun getByAddressId(addressId: Int?): PersonalAddressDO? {
+    fun getByAddressId(addressId: Long?): PersonalAddressDO? {
         val owner = user
         return getByAddressId(addressId, owner)
     }
@@ -219,7 +219,7 @@ class PersonalAddressDao {
     /**
      * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
      */
-    fun getByAddressId(addressId: Int?, owner: PFUserDO?): PersonalAddressDO? {
+    fun getByAddressId(addressId: Long?, owner: PFUserDO?): PersonalAddressDO? {
         return getByAddressId(addressId, owner, false)
     }
 
@@ -227,7 +227,7 @@ class PersonalAddressDao {
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
      */
-    private fun getByAddressId(addressId: Int?, owner: PFUserDO?, attached: Boolean): PersonalAddressDO? {
+    private fun getByAddressId(addressId: Long?, owner: PFUserDO?, attached: Boolean): PersonalAddressDO? {
         requireNotNull(owner?.id)
         return persistenceService.selectNamedSingleResult(
             PersonalAddressDO.FIND_BY_OWNER_AND_ADDRESS_ID,
@@ -269,7 +269,7 @@ class PersonalAddressDao {
             return list.filter { pa -> checkAccess(pa, false) }
         }
 
-    val favoriteAddressIdList: List<Int>
+    val favoriteAddressIdList: List<Long>
         /**
          * @return the list of all PersonalAddressDO entries for the context user without any check access (addresses might be also deleted).
          */
@@ -277,12 +277,12 @@ class PersonalAddressDao {
             val owner = requiredLoggedInUser
             return persistenceService.namedQuery(
                 PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
-                Int::class.java,
+                Long::class.java,
                 Pair("ownerId", owner.id)
             )
         }
 
-    val personalAddressByAddressId: Map<Int, PersonalAddressDO>
+    val personalAddressByAddressId: Map<Long, PersonalAddressDO>
         /**
          * @return the list of all address ids of personal address book for the context user (isFavorite() must be true).
          * @see PersonalAddressDO.isFavorite
@@ -294,7 +294,7 @@ class PersonalAddressDao {
                 PersonalAddressDO::class.java,
                 Pair("ownerId", owner.id),
             )
-            val result = mutableMapOf<Int, PersonalAddressDO>()
+            val result = mutableMapOf<Long, PersonalAddressDO>()
             for (entry in list) {
                 if (entry.isFavorite && checkAccess(entry, false)) {
                     entry.addressId?.let { addressId ->

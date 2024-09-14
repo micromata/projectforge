@@ -67,7 +67,7 @@ open class My2FAService {
   val smsConfigured
     get() = smsSenderConfig.isSmsConfigured() || SystemStatus.isDevelopmentMode()
 
-  private var mail2FADisabledGroupIds: MutableList<Int>? = null
+  private var mail2FADisabledGroupIds: MutableList<Long>? = null
 
   enum class Unit { MINUTES, HOURS, DAYS }
 
@@ -102,7 +102,7 @@ open class My2FAService {
       return
     }
     val foundGroupNames = mutableListOf<String>()
-    val list = mutableListOf<Int>()
+    val list = mutableListOf<Long>()
     groupNames.split(";,:").forEach { groupName ->
       if (groupName.isNotBlank()) {
         val allGroups = groupService.allGroups

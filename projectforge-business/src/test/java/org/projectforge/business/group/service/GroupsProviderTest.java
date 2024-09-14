@@ -48,10 +48,10 @@ public class GroupsProviderTest
     final GroupServiceImpl groupService = new GroupServiceImpl();
     groupService.setUserGroupCache(Mockito.mock(UserGroupCache.class));
     groupService.setGroupDao(Mockito.mock(GroupDao.class));
-    Mockito.when(groupService.getGroup(1)).thenReturn(cg("1", 1));
-    Mockito.when(groupService.getGroup(2)).thenReturn(cg("2", 2));
-    Mockito.when(groupService.getGroup(3)).thenReturn(cg("3", 3));
-    Mockito.when(groupService.getGroup(4)).thenReturn(cg("4", 4));
+    Mockito.when(groupService.getGroup(1L)).thenReturn(cg("1", 1));
+    Mockito.when(groupService.getGroup(2L)).thenReturn(cg("2", 2));
+    Mockito.when(groupService.getGroup(3L)).thenReturn(cg("3", 3));
+    Mockito.when(groupService.getGroup(4L)).thenReturn(cg("4", 4));
 
     assertEquals("", groupService.getGroupIds(createGroupsCol()));
     assertEquals("1", groupService.getGroupIds(createGroupsCol(1)));
@@ -67,11 +67,11 @@ public class GroupsProviderTest
 
   /**
    * Creates a group with the given name and id.
-   * 
+   *
    * @param name
    * @param id
    */
-  private GroupDO cg(final String name, final int id)
+  private GroupDO cg(final String name, final long id)
   {
     final GroupDO group = new GroupDO();
     group.setName(name);
@@ -95,7 +95,7 @@ public class GroupsProviderTest
       return;
     }
     assertEquals(expectedIds.length, actualGroupSet.size());
-    final Set<Integer> actualIdSet = new HashSet<>();
+    final Set<Long> actualIdSet = new HashSet<>();
     for (final GroupDO actualGroup : actualGroupSet) {
       actualIdSet.add(actualGroup.getId());
     }

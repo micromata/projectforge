@@ -75,7 +75,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     form.init();
   }
 
-  public Integer getAddressId() {
+  public Long getAddressId() {
     return form.address != null ? form.address.getId() : null;
   }
 

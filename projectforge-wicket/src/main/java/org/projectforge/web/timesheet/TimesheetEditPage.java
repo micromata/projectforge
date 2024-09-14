@@ -125,7 +125,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   void preInit() {
     if (isNew() == true) {
       final PageParameters parameters = getPageParameters();
-      final Integer taskId = WicketUtils.getAsInteger(parameters, PARAMETER_KEY_TASK_ID);
+      final Long taskId = WicketUtils.getAsLong(parameters, PARAMETER_KEY_TASK_ID);
       if (taskId != null) {
         getBaseDao().setTask(getData(), taskId);
       }
@@ -147,7 +147,7 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
       if (description != null) {
         getData().setDescription(description);
       }
-      final int userId = WicketUtils.getAsInt(parameters, PARAMETER_KEY_USER, -1);
+      final long userId = WicketUtils.getAsLong(parameters, PARAMETER_KEY_USER, -1L);
       if (userId != -1) {
         WicketSupport.get(TimesheetDao.class).setUser(getData(), userId);
       }
@@ -288,28 +288,28 @@ public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEd
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("taskId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setTask(getData(), id);
       form.refresh();
     } else if ("userId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setUser(getData(), id);
     } else if ("kost2Id".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       getBaseDao().setKost2(getData(), id);
     } else {

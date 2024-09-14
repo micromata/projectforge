@@ -32,7 +32,7 @@ import java.util.Date;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
+ *
  */
 public class TeamEventFilter extends BaseSearchFilter implements Serializable, Cloneable
 {
@@ -40,9 +40,9 @@ public class TeamEventFilter extends BaseSearchFilter implements Serializable, C
 
   private PFUserDO user;
 
-  private Integer teamCalId;
+  private Long teamCalId;
 
-  private Collection<Integer> teamCals;
+  private Collection<Long> teamCals;
 
   private Date startDate;
 
@@ -119,7 +119,7 @@ public class TeamEventFilter extends BaseSearchFilter implements Serializable, C
   /**
    * @return the teamCalId
    */
-  public Integer getTeamCalId()
+  public Long getTeamCalId()
   {
     return teamCalId;
   }
@@ -128,7 +128,7 @@ public class TeamEventFilter extends BaseSearchFilter implements Serializable, C
    * @param teamCalId the teamCalId to set
    * @return this for chaining.
    */
-  public TeamEventFilter setTeamCalId(final Integer teamCalId)
+  public TeamEventFilter setTeamCalId(final Long teamCalId)
   {
     this.teamCalId = teamCalId;
     return this;
@@ -137,7 +137,7 @@ public class TeamEventFilter extends BaseSearchFilter implements Serializable, C
   /**
    * @return the teamCals
    */
-  public Collection<Integer> getTeamCals()
+  public Collection<Long> getTeamCals()
   {
     return teamCals;
   }
@@ -146,7 +146,7 @@ public class TeamEventFilter extends BaseSearchFilter implements Serializable, C
    * @param teamCals the teamCals to set
    * @return this for chaining.
    */
-  public TeamEventFilter setTeamCals(final Collection<Integer> teamCals)
+  public TeamEventFilter setTeamCals(final Collection<Long> teamCals)
   {
     this.teamCals = teamCals;
     return this;

@@ -120,7 +120,7 @@ object ThreadLocalUserContext {
    * @see .getUser
    */
   @JvmStatic
-  val userId: Int?
+  val userId: Long?
     get() {
       val user = user
       return user?.id
@@ -131,7 +131,7 @@ object ThreadLocalUserContext {
    * @see .getUser
    */
   @JvmStatic
-  val requiredLoggedInUserId: Int
+  val requiredLoggedInUserId: Long
     get() = requiredLoggedInUser.id!!
 
 

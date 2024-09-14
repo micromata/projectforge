@@ -50,18 +50,18 @@ class KostCache : AbstractCache() {
     /**
      * The key is the kost2-id.
      */
-    private var kost2Map: MutableMap<Int?, Kost2DO>? = null
+    private var kost2Map: MutableMap<Long?, Kost2DO>? = null
 
     /**
      * The key is the kost2-id.
      */
-    private var kost1Map: MutableMap<Int?, Kost1DO>? = null
+    private var kost1Map: MutableMap<Long?, Kost1DO>? = null
 
     private var allKost2Arts: List<Kost2Art>? = null
 
     private var kost2EntriesExists = false
 
-    fun getKost2(kost2Id: Int?): Kost2DO? {
+    fun getKost2(kost2Id: Long?): Kost2DO? {
         if (!greaterZero(kost2Id)) {
             return null
         }
@@ -79,7 +79,7 @@ class KostCache : AbstractCache() {
 
     fun getKost2(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2art: Int): Kost2DO? {
         for (kost in getKost2Map()!!.values) {
-            if (kost.nummernkreis == nummernkreis && kost.bereich == bereich && kost.teilbereich == teilbereich && kost.kost2ArtId == kost2art) {
+            if (kost.nummernkreis == nummernkreis && kost.bereich == bereich && kost.teilbereich == teilbereich && kost.kost2ArtId == kost2art.toLong()) {
                 return kost
             }
         }
@@ -99,7 +99,7 @@ class KostCache : AbstractCache() {
         return list
     }
 
-    fun getKost1(kost1Id: Int?): Kost1DO? {
+    fun getKost1(kost1Id: Long?): Kost1DO? {
         if (!greaterZero(kost1Id)) {
             return null
         }
@@ -125,7 +125,7 @@ class KostCache : AbstractCache() {
      *
      * @param projektId
      */
-    fun getKost2Arts(projektId: Int?): Set<Kost2ArtDO> {
+    fun getKost2Arts(projektId: Long?): Set<Kost2ArtDO> {
         checkRefresh()
         val set: MutableSet<Kost2ArtDO> = TreeSet()
         if (projektId == null) {
@@ -150,7 +150,7 @@ class KostCache : AbstractCache() {
      *
      * @param projektId
      */
-    fun getAllKost2Arts(projektId: Int?): List<Kost2Art> {
+    fun getAllKost2Arts(projektId: Long?): List<Kost2Art> {
         checkRefresh()
         val set = getKost2Arts(projektId)
         val result: MutableList<Kost2Art> = ArrayList()
@@ -218,12 +218,12 @@ class KostCache : AbstractCache() {
         this.allKost2Arts = list
     }
 
-    private fun getKost2Map(): MutableMap<Int?, Kost2DO>? {
+    private fun getKost2Map(): MutableMap<Long?, Kost2DO>? {
         checkRefresh()
         return kost2Map
     }
 
-    private fun getKost1Map(): MutableMap<Int?, Kost1DO>? {
+    private fun getKost1Map(): MutableMap<Long?, Kost1DO>? {
         checkRefresh()
         return kost1Map
     }
@@ -234,7 +234,7 @@ class KostCache : AbstractCache() {
     override fun refresh() {
         log.info("Initializing KostCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
-        val map1: MutableMap<Int?, Kost1DO> = HashMap()
+        val map1: MutableMap<Long?, Kost1DO> = HashMap()
         val list1 = persistenceService.query(
             "from Kost1DO t", Kost1DO::class.java,
             lockModeType = LockModeType.NONE,
@@ -243,7 +243,7 @@ class KostCache : AbstractCache() {
             map1[kost1.id] = kost1
         }
         this.kost1Map = map1
-        val map2: MutableMap<Int?, Kost2DO> = HashMap()
+        val map2: MutableMap<Long?, Kost2DO> = HashMap()
         val list2 = persistenceService.query("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
         kost2EntriesExists = false
         for (kost2 in list2) {

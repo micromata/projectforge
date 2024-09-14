@@ -52,11 +52,11 @@ private val log = KotlinLogging.logger {}
     )]
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Int>() {
+open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     @PropertyInfo(i18nKey = "fibu.employee")
     @get:ManyToOne(fetch = FetchType.EAGER)

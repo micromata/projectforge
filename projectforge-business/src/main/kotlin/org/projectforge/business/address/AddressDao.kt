@@ -248,7 +248,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
 
     private fun addAddressbookRestriction(queryFilter: QueryFilter, addressFilter: AddressFilter?) {
         //Addressbook rights check
-        val abIdList = mutableSetOf<Int>()
+        val abIdList = mutableSetOf<Long>()
         //First check wicket ui addressbook filter
         if (addressFilter != null && addressFilter.addressbooks != null && addressFilter.addressbooks.size > 0) {
             abIdList.addAll(addressFilter.addressbookIds)

@@ -68,7 +68,7 @@ class TimesheetReferenceListTest : AbstractTestBase() {
     Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1.1")).size)
   }
 
-  private fun getTaskId(name: String): Int {
+  private fun getTaskId(name: String): Long {
     return initTestDB.getTask("$prefix.$name").id!!
   }
 

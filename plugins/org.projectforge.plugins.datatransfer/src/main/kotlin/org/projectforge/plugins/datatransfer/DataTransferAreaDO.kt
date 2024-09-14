@@ -53,13 +53,13 @@ import org.projectforge.framework.persistence.history.NoHistory
     query = "from DataTransferAreaDO where areaName=:areaName and adminIds=:adminIds"
   )
 )
-open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTransferArea {
+open class DataTransferAreaDO : AbstractBaseDO<Long>(), AttachmentsInfo, IDataTransferArea {
 
   @get:Id
   @get:GeneratedValue
   @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
-  override var id: Int? = null
+  override var id: Long? = null
 
   @PropertyInfo(i18nKey = "plugins.datatransfer.areaName")
   @FullTextField
@@ -207,11 +207,11 @@ open class DataTransferAreaDO : AbstractBaseDO<Int>(), AttachmentsInfo, IDataTra
 
   @JsonIgnore
   @Transient
-  fun getPersonalBoxUserId(): Int? {
+  fun getPersonalBoxUserId(): Long? {
     if (areaName != PERSONAL_BOX_AREA_NAME) {
       return null
     }
-    return adminIds?.toIntOrNull()
+    return adminIds?.toLongOrNull()
   }
 
   val displayName: String

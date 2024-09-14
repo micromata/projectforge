@@ -35,7 +35,7 @@ public class KostFormatter {
 
   /**
    * @return Id im dreistelligen Format: "001" - "999" oder "???" wenn id null ist.
-   * @see #format3Digits(Integer)
+   * @see #format3Digits(Number)
    */
   public static String format(final KundeDO kunde) {
     if (kunde == null) {
@@ -44,7 +44,7 @@ public class KostFormatter {
     return formatKunde(kunde.getId());
   }
 
-  public static String formatKunde(final Integer kundeId) {
+  public static String formatKunde(final Number kundeId) {
     if (kundeId == null) {
       return "???";
     }
@@ -326,13 +326,27 @@ public class KostFormatter {
   }
 
   /**
+   * Gibt den Kostenträger als Ganzzahl zurück. Wenn die Wertebereiche der einzelnen Parameter außerhalb des definierten
+   * Bereichs liegt, wird eine UnsupportedOperationException geworfen.
+   *
+   * @param nummernkreis Muss zwischen 1 und 9 inklusive liegen.
+   * @param bereich      Muss ziwschen 0 und 999 inklusive liegen.
+   * @param teilbereich  Muss zwischen 0 und 99 inklusive liegen.
+   * @param endziffer    Muss zwischen 0 und 99 inklusive liegen.
+   * @return
+   */
+  public static int getKostAsInt(final int nummernkreis, final int bereich, final int teilbereich, final long endziffer) {
+    return getKostAsInt(nummernkreis, bereich, teilbereich, (int) endziffer);
+  }
+
+  /**
    * If not given, then ?? will be returned.
    *
    * @param number
    * @return
    * @see StringUtils#leftPad(String, int, char)
    */
-  public static String format2Digits(final Integer number) {
+  public static String format2Digits(final Number number) {
     if (number == null) {
       return "??";
     }
@@ -346,7 +360,7 @@ public class KostFormatter {
    * @return
    * @see StringUtils#leftPad(String, int, char)
    */
-  public static String format3Digits(final Integer number) {
+  public static String format3Digits(final Number number) {
     if (number == null) {
       return "???";
     }

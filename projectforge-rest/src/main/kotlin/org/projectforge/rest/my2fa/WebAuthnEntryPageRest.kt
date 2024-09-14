@@ -61,7 +61,7 @@ class WebAuthnEntryPageRest : AbstractDynamicPageRest() {
    */
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    val id = idString?.toIntOrNull()
+    val id = idString?.toLongOrNull()
     val data = if (id != null) {
       WebAuthnEntry.create(webAuthnEntryDao.getEntryById(id))
     } else {

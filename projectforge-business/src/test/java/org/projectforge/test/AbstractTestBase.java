@@ -378,7 +378,7 @@ public abstract class AbstractTestBase {
         return initTestDB.getGroup(groupName);
     }
 
-    public Integer getGroupId(final String groupName) {
+    public Long getGroupId(final String groupName) {
         return initTestDB.getGroup(groupName).getId();
     }
 
@@ -390,7 +390,7 @@ public abstract class AbstractTestBase {
         return initTestDB.getUser(userName);
     }
 
-    public Integer getUserId(final String userName) {
+    public Long getUserId(final String userName) {
         return initTestDB.getUser(userName).getId();
     }
 
@@ -435,7 +435,7 @@ public abstract class AbstractTestBase {
         System.out.println(string);
     }
 
-    protected void assertAccessException(final AccessException ex, final Integer taskId, final AccessType accessType,
+    protected void assertAccessException(final AccessException ex, final Long taskId, final AccessType accessType,
                                          final OperationType operationType) {
         assertEquals(accessType, ex.getAccessType());
         assertEquals(operationType, ex.getOperationType());
@@ -443,13 +443,13 @@ public abstract class AbstractTestBase {
     }
 
 /*    @SuppressWarnings("rawtypes")
-    protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
+    protected void assertHistoryEntry(final HistoryEntry entry, final Long entityId, final PFUserDO user,
                                       final EntityOpType type) {
         assertHistoryEntry(entry, entityId, user, type, null, null, null, null);
     }
 
     @SuppressWarnings("rawtypes")
-    protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
+    protected void assertHistoryEntry(final HistoryEntry entry, final Long entityId, final PFUserDO user,
                                       final EntityOpType type,
                                       final String propertyName, final Class<?> classType, final Object oldValue, final Object newValue) {
         assertEquals(user.getId().toString(), entry.getUserName());

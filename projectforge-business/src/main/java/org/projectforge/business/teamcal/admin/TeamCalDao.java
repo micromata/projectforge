@@ -86,7 +86,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
-  public void setOwner(final TeamCalDO calendar, final Integer userId) {
+  public void setOwner(final TeamCalDO calendar, final Long userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     calendar.setOwner(user);
   }
@@ -114,7 +114,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
     }
     final List<TeamCalDO> result = new ArrayList<>();
     final TeamCalRight right = (TeamCalRight) getUserRight();
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     final boolean adminAccessOnly = (myFilter.isAdmin()
             && accessChecker.isUserMemberOfAdminGroup(user));
     for (final TeamCalDO cal : list) {

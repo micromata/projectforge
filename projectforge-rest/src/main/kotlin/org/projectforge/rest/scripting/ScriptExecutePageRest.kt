@@ -127,7 +127,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
     script.executableByGroups?.let { groups ->
       groups.mapNotNull { it.id }.let {
         if (it.isNotEmpty()) {
-          groupService.getGroupUsers(it.toIntArray())?.forEach { user ->
+          groupService.getGroupUsers(it.toLongArray())?.forEach { user ->
             user.email?.let { email ->
               if (email.isNotBlank()) {
                 executableByMails.add(email)

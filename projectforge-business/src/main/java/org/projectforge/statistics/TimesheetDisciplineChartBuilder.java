@@ -103,7 +103,7 @@ public class TimesheetDisciplineChartBuilder
    * @param forLastNDays
    * @return
    */
-  public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final double workingHoursPerDay, final short forLastNDays, boolean useWorkingHours)
+  public JFreeChart create(final TimesheetDao timesheetDao, final Long userId, final double workingHoursPerDay, final short forLastNDays, boolean useWorkingHours)
   {
     PFDateTime dt = PFDateTime.now();
     final TimesheetFilter filter = new TimesheetFilter();
@@ -209,7 +209,7 @@ public class TimesheetDisciplineChartBuilder
    * @param forLastNDays
    * @return
    */
-  public JFreeChart create(final TimesheetDao timesheetDao, final Integer userId, final short forLastNDays)
+  public JFreeChart create(final TimesheetDao timesheetDao, final Long userId, final short forLastNDays)
   {
     PFDateTime dt = PFDateTime.now();
     final TimesheetFilter filter = new TimesheetFilter();

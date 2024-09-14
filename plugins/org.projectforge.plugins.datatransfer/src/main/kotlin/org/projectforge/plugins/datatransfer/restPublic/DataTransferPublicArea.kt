@@ -29,7 +29,7 @@ import org.projectforge.rest.dto.AttachmentsSupport
 import org.projectforge.rest.dto.BaseDTO
 
 class DataTransferPublicArea(
-  id: Int? = null,
+  id: Long? = null,
   var areaName: String? = null,
   var description: String? = null,
   var externalAccessToken: String? = null,

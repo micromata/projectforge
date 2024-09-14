@@ -51,7 +51,7 @@ import java.util.Objects;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TaskNode implements IdObject<Integer>, Serializable {
+public class TaskNode implements IdObject<Long>, Serializable {
   private static final long serialVersionUID = -3759574521842841341L;
 
   /**
@@ -116,23 +116,23 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * The id of this task given by the database.
    */
   @Override
-  public Integer getId() {
+  public Long getId() {
     return task.getId();
   }
 
   @Override
-  public void setId(@Nullable Integer integer) {
+  public void setId(@Nullable Long value) {
     throw new IllegalArgumentException("TaskNode.setId not supported.");
   }
 
   /**
    * The id of this task given by the database.
    */
-  public Integer getTaskId() {
+  public Long getTaskId() {
     return task.getId();
   }
 
-  public Integer getParentId() {
+  public Long getParentId() {
     if (parent == null) {
       return null;
     }
@@ -170,7 +170,6 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   /**
    * Gets the project, which is assigned to the task or if not found to the parent task or grand parent task etc.
    *
-   * @param taskId
    * @return null, if now project is assigned to this task or ancestor tasks.
    * @see ProjektDO#getTask()
    */
@@ -181,7 +180,6 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   /**
    * Gets the project, which is assigned to the task or if not found to the parent task or grand parent task etc.
    *
-   * @param taskId
    * @param recursive If true then search the ancestor nodes for a given project.
    * @return null, if now project is assigned to this task or ancestor tasks.
    * @see ProjektDO#getTask()
@@ -220,13 +218,13 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     return bookableForTimesheets;
   }
 
-  public List<Integer> getDescendantIds() {
-    final List<Integer> descendants = new ArrayList<>();
+  public List<Long> getDescendantIds() {
+    final List<Long> descendants = new ArrayList<>();
     getDescendantIds(descendants);
     return descendants;
   }
 
-  private void getDescendantIds(final List<Integer> descendants) {
+  private void getDescendantIds(final List<Long> descendants) {
     if (this.children != null) {
       for (final TaskNode node : this.children) {
         if (!descendants.contains(node.getId())) {
@@ -238,13 +236,13 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     }
   }
 
-  public List<Integer> getAncestorIds() {
-    final List<Integer> ancestors = new ArrayList<>();
+  public List<Long> getAncestorIds() {
+    final List<Long> ancestors = new ArrayList<>();
     getAncestorIds(ancestors);
     return ancestors;
   }
 
-  private void getAncestorIds(final List<Integer> ancestors) {
+  private void getAncestorIds(final List<Long> ancestors) {
     if (this.parent != null) {
       if (!ancestors.contains(this.parent.getId())) {
         // Paranoia setting for cyclic references.
@@ -326,7 +324,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
   /**
    * Returns the path to the parent node in an ArrayList.
    */
-  public List<TaskNode> getPathToAncestor(final Integer ancestorTaskId) {
+  public List<TaskNode> getPathToAncestor(final Long ancestorTaskId) {
     if (this.parent == null || this.task.getId().equals(ancestorTaskId)) {
       return new ArrayList<>();
     }
@@ -393,7 +391,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * @see AccessType
    * @see OperationType
    */
-  public boolean hasPermission(final Integer groupId, final AccessType accessType, final OperationType opType) {
+  public boolean hasPermission(final Long groupId, final AccessType accessType, final OperationType opType) {
     final GroupTaskAccessDO groupAccess = getGroupTaskAccess(groupId);
     if (groupAccess == null) {
       if (parent != null) {
@@ -405,7 +403,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
     return groupAccess.hasPermission(accessType, opType);
   }
 
-  public boolean isPermissionRecursive(final Integer groupId) {
+  public boolean isPermissionRecursive(final Long groupId) {
     final GroupTaskAccessDO groupAccess = getGroupTaskAccess(groupId);
     return groupAccess == null || groupAccess.isRecursive();
   }
@@ -416,7 +414,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * @param groupId
    * @return The GroupTaskAccessDO or null if not exists.
    */
-  GroupTaskAccessDO getGroupTaskAccess(final Integer groupId) {
+  GroupTaskAccessDO getGroupTaskAccess(final Long groupId) {
     Validate.notNull(groupId);
     for (final GroupTaskAccessDO access : groupTaskAccessList) {
       if (groupId.equals(access.getGroupId())) {
@@ -430,7 +428,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * Sets the task group access to this task node for the given group. Removes any previous stored GroupTaskAccessDO for
    * the same group if exists. Multiple GroupTaskAccessDO entries for one group will be avoided.
    *
-   * @param GroupTaskAccessDO
+   * @param groupTaskAccess
    */
   void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess) {
     Validate.isTrue(Objects.equals(this.getTaskId(), groupTaskAccess.getTaskId()));
@@ -450,7 +448,7 @@ public class TaskNode implements IdObject<Integer>, Serializable {
    * @param groupId
    * @return true if an entry was found and removed, otherwise false.
    */
-  boolean removeGroupTaskAccess(final Integer groupId) {
+  boolean removeGroupTaskAccess(final Long groupId) {
     // TODO: Should be called after deleting from database.
     Validate.notNull(groupId);
     boolean result = false;

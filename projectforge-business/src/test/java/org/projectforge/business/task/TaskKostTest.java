@@ -68,21 +68,21 @@ public class TaskKostTest extends AbstractTestBase
     kost.setNummernkreis(1);
     kost.setBereich(137);
     kost.setTeilbereich(05);
-    kost.setKost2Art(new Kost2ArtDO().withId(1));
+    kost.setKost2Art(new Kost2ArtDO().withId(1L));
     final Kost2DO kost2a = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.01
     kost = new Kost2DO();
     kost.setNummernkreis(1);
     kost.setBereich(137);
     kost.setTeilbereich(05);
-    kost.setKost2Art(new Kost2ArtDO().withId(2));
+    kost.setKost2Art(new Kost2ArtDO().withId(2L));
     final Kost2DO kost2b = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.02
     kost = new Kost2DO();
     kost.setNummernkreis(2);
     kost.setBereich(423);
     kost.setTeilbereich(12);
-    kost.setKost2Art(new Kost2ArtDO().withId(1));
+    kost.setKost2Art(new Kost2ArtDO().withId(1L));
     final Kost2DO kost2c = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 2.423.12.01
     final TaskDO task = initTestDB.addTask("kost2test2", "root");
@@ -127,7 +127,7 @@ public class TaskKostTest extends AbstractTestBase
     kost.setBereich(137);
     kost.setProjekt(projekt);
     kost.setTeilbereich(05);
-    kost.setKost2Art(new Kost2ArtDO().withId(1));
+    kost.setKost2Art(new Kost2ArtDO().withId(1L));
     final Kost2DO kost2a = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.01
     kost = new Kost2DO();
@@ -135,7 +135,7 @@ public class TaskKostTest extends AbstractTestBase
     kost.setBereich(137);
     kost.setProjekt(projekt);
     kost.setTeilbereich(05);
-    kost.setKost2Art(new Kost2ArtDO().withId(2));
+    kost.setKost2Art(new Kost2ArtDO().withId(2L));
     final Kost2DO kost2b = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.02
     list = taskTree.getKost2List(task.getId());
@@ -147,7 +147,7 @@ public class TaskKostTest extends AbstractTestBase
     kost.setBereich(137);
     kost.setProjekt(projekt);
     kost.setTeilbereich(05);
-    kost.setKost2Art(new Kost2ArtDO().withId(3));
+    kost.setKost2Art(new Kost2ArtDO().withId(3L));
     final Kost2DO kost2c = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.03
     kost = new Kost2DO();
@@ -155,7 +155,7 @@ public class TaskKostTest extends AbstractTestBase
     kost.setBereich(137);
     kost.setProjekt(projekt);
     kost.setTeilbereich(05);
-    kost.setKost2Art(new Kost2ArtDO().withId(4));
+    kost.setKost2Art(new Kost2ArtDO().withId(4L));
     final Kost2DO kost2d = kost2Dao
         .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.04
     list = taskTree.getKost2List(task.getId());
@@ -199,9 +199,9 @@ public class TaskKostTest extends AbstractTestBase
   private void assertKost2(final Kost2DO expected, final Kost2DO actual)
   {
     assertArrayEquals( new Integer[] { expected.getNummernkreis(), expected.getBereich(),
-        expected.getTeilbereich(), expected.getKost2ArtId() },
+        expected.getTeilbereich(), expected.getKost2ArtId().intValue() },
         new Integer[] { actual.getNummernkreis(), actual.getBereich(),
-            actual.getTeilbereich(), actual.getKost2ArtId() },
+            actual.getTeilbereich(), actual.getKost2ArtId().intValue() },
             "Kost2DO not expected.");
   }
 }

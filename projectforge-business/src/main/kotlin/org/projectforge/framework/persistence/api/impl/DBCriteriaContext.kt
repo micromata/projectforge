@@ -31,7 +31,7 @@ import jakarta.persistence.criteria.*
 /**
  * Context for building criterias. Holding criteria builder, root path and joinSets.
  */
-internal class DBCriteriaContext<O : ExtendedBaseDO<Int>>(
+internal class DBCriteriaContext<O : ExtendedBaseDO<Long>>(
         val cb: CriteriaBuilder,
         val cr: CriteriaQuery<O>,
         val root: Root<O>,

@@ -40,7 +40,7 @@ open class AccountingRecord(
   val customer: String?,
   val customerGroup: String,
   val project: String,
-  val projectId: Int,
+  val projectId: Long,
   val cost2: Int? = null,
   val account: Int? = null,
   val projectManagerGroup: String? = null,
@@ -90,7 +90,7 @@ open class AccountingRecord(
   }
 
   companion object {
-    fun groupByProject(records: List<AccountingRecord>, von: PFDay, bis: PFDay): Map<Int, AccountingRecord> {
+    fun groupByProject(records: List<AccountingRecord>, von: PFDay, bis: PFDay): Map<Long, AccountingRecord> {
       return records.filter { it.date in von..bis }.groupingBy { it.projectId }
         .aggregateTo(mutableMapOf()) { _, accumulator: AccountingRecord?, element, first ->
           if (first) // first element

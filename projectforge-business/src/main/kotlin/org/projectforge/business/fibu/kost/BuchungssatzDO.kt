@@ -153,19 +153,19 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
         @Transient
         get() = year.toString() + '-'.toString() + StringHelper.format2DigitNumber(month!!) + '-'.toString() + formatSatzNr()
 
-    val kontoId: Int?
+    val kontoId: Long?
         @Transient
         get() = if (this.konto != null) this.konto!!.id else null
 
-    val gegenKontoId: Int?
+    val gegenKontoId: Long?
         @Transient
         get() = if (this.gegenKonto != null) this.gegenKonto!!.id else null
 
-    val kost1Id: Int?
+    val kost1Id: Long?
         @Transient
         get() = if (this.kost1 != null) this.kost1!!.id else null
 
-    val kost2Id: Int?
+    val kost2Id: Long?
         @Transient
         get() = if (this.kost2 != null) this.kost2!!.id else null
 

@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class Group(
-  id: Int? = null,
+  id: Long? = null,
   displayName: String? = null,
   var name: String? = null,
   var assignedUsers: MutableList<User>? = null,
@@ -79,20 +79,20 @@ class Group(
      */
     fun toGroupList(str: String?): List<Group>? {
       if (str.isNullOrBlank()) return null
-      return toIntArray(str)?.map { Group(it, "???") }
+      return toLongArray(str)?.map { Group(it, "???") }
     }
 
     /**
      * Converts csv of group ids to list of user id's.
      */
-    fun toIntArray(str: String?): IntArray? {
-      return User.toIntArray(str)
+    fun toLongArray(str: String?): LongArray? {
+      return User.toLongArray(str)
     }
 
     /**
-     * Converts group list to ints (of format supported by [toGroupList]).
+     * Converts group list to long values (of format supported by [toGroupList]).
      */
-    fun toIntList(groups: List<Group>?): String? {
+    fun toLongList(groups: List<Group>?): String? {
       return groups?.joinToString { "${it.id}" }
     }
 

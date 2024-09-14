@@ -81,7 +81,7 @@ public class AddressTest extends AbstractTestBase {
     a1.setName("Test");
     addressDao.save(a1);
 
-    Integer id = a1.getId();
+    Long id = a1.getId();
     a1 = addressDao.getById(id);
     addressDao.markAsDeleted(a1);
     a1 = addressDao.getById(id);
@@ -98,7 +98,7 @@ public class AddressTest extends AbstractTestBase {
               AddressDO a1 = new AddressDO();
               a1.setName("Not deletable");
               addressDao.save(a1);
-              Integer id = a1.getId();
+              Long id = a1.getId();
               a1 = addressDao.getById(id);
               addressDao.delete(a1);
             });
@@ -231,7 +231,7 @@ public class AddressTest extends AbstractTestBase {
     AddressDO address = new AddressDO();
     address.setName("Kai Reinhard");
     address.setAddressbookList(addressbookSet);
-    Integer id = addressDao.save(address);
+    Long id = addressDao.save(address);
 
     address = addressDao.getById(id);
     assertEquals(2, address.getAddressbookList().size());
