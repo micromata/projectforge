@@ -65,7 +65,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   private void addTopMenuPanel()
   {
     if (isNew() == false) {
-      final Integer id = form.getData().getId();
+      final Long id = form.getData().getId();
       ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Void>(ContentMenuEntryPanel.LINK_ID)
           {

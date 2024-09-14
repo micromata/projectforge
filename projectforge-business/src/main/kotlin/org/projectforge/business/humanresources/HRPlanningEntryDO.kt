@@ -122,7 +122,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(length = 4000)
     open var description: String? = null
 
-    val planningId: Int?
+    val planningId: Long?
         @Transient
         get() = if (this.planning == null) {
             null
@@ -132,7 +132,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() = StringUtils.abbreviate(description, 50)
 
-    val projektId: Int?
+    val projektId: Long?
         @Transient
         get() = if (this.projekt == null) {
             null

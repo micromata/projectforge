@@ -46,8 +46,11 @@ public class ScriptParameter implements Serializable
 
   protected String stringValue;
 
+  /**
+   * intValue is of type long.
+   */
   @XStreamAsAttribute
-  protected Integer intValue;
+  protected Long intValue;
 
   @XStreamAsAttribute
   protected BigDecimal decimalValue;
@@ -109,7 +112,7 @@ public class ScriptParameter implements Serializable
     } else if (type == ScriptParameterType.TIME_PERIOD) {
       timePeriodValue = (TimePeriod) value;
     } else if (type == ScriptParameterType.INTEGER) {
-      intValue = (Integer) value;
+      intValue = (Long) value;
     } else if (type == ScriptParameterType.BOOLEAN) {
       booleanValue = (Boolean) value;
     } else if (type == ScriptParameterType.TASK) {
@@ -129,7 +132,7 @@ public class ScriptParameter implements Serializable
     } else if (type == ScriptParameterType.TIME_PERIOD) {
       return TimePeriod.class;
     } else if (type == ScriptParameterType.INTEGER) {
-      return Integer.class;
+      return Long.class;
      } else if (type == ScriptParameterType.BOOLEAN) {
        return Boolean.class;
     } else if (type == ScriptParameterType.TASK) {
@@ -164,12 +167,12 @@ public class ScriptParameter implements Serializable
     this.stringValue = stringValue;
   }
 
-  public Integer getIntValue()
+  public Long getIntValue()
   {
     return intValue;
   }
 
-  public void setIntValue(Integer intValue)
+  public void setIntValue(Long intValue)
   {
     if (type != ScriptParameterType.INTEGER) {
       throw new IllegalArgumentException("Cannot set value for non integer parameter: " + type);

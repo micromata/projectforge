@@ -45,7 +45,8 @@ public class VacationMenuCounterCache extends AbstractCache {
   @Autowired
   private VacationService vacationService;
 
-  private Map<Integer, Integer> openMenuCounter = new HashMap<>();
+  // Key is employee id
+  private Map<Long, Integer> openMenuCounter = new HashMap<>();
 
   public Integer getOpenLeaveApplicationsForUser(PFUserDO employeeUser) {
     if (employeeUser == null)

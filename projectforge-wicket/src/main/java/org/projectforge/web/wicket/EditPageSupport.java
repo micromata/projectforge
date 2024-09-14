@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.projectforge.common.i18n.UserException;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
@@ -37,231 +36,231 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.Serializable;
 
-public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends BaseDao<O>, P extends WebPage & IEditPage<O, D>>
-    implements Serializable {
-  private static final long serialVersionUID = 5504452697069803264L;
+public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O>, P extends WebPage & IEditPage<O, D>>
+        implements Serializable {
+    private static final long serialVersionUID = 5504452697069803264L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EditPageSupport.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EditPageSupport.class);
 
-  public final P editPage;
+    public final P editPage;
 
-  private final D baseDao;
+    private final D baseDao;
 
-  private boolean updateAndNext;
+    private boolean updateAndNext;
 
-  private String entity;
+    private String entity;
 
-  public EditPageSupport(final P editPage, final D baseDao) {
-    this.editPage = editPage;
-    this.baseDao = baseDao;
-    this.entity = "unknown";
-    if (baseDao instanceof BaseDao) {
-      this.entity = ((BaseDao) baseDao).getIdentifier();
-    } else {
-      this.entity = StringUtils.uncapitalize(StringUtils.removeEnd(baseDao.getEntityClass().getSimpleName(), "DO"));
-    }
-    if (this.entity.equals("pFUser")) {
-      this.entity = "user"; // Used by TwoFactorAuthenticationHandler.
-    }
-  }
-
-  /**
-   * User has clicked the save button for storing a new item.
-   */
-  public void create() {
-    if (log.isDebugEnabled() == true) {
-      log.debug("create in " + editPage.getClass() + ": " + editPage.getData());
-    }
-    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
-    }
-    synchronized (editPage.getData()) {
-      if (editPage.isAlreadySubmitted() == true) {
-        log.info("Double click detection in " + editPage.getClass() + " create method. Do nothing.");
-      } else {
-        editPage.setAlreadySubmitted(true);
-        if (editPage.getData().getId() != null) { // && editPage.getData() instanceof IManualIndex == false) {
-          // User has used the back button?
-          log.info("User has used the back button in "
-              + editPage.getClass()
-              + " after inserting a new object? Try to load the object from the data base and show edit page again.");
-          final O dbObj = baseDao.getById(editPage.getData().getId());
-          if (dbObj == null) {
-            // Error while trying to insert Object and user has used the back button?
-            log.info("User has used the back button "
-                + editPage.getClass()
-                + " after inserting a new object and a failure occured (because object with id not found in the data base)? Deleting the id and show the edit page again.");
-            editPage.clearIds();
-            return;
-          }
-          editPage.getData().copyValuesFrom(dbObj);
-          return;
+    public EditPageSupport(final P editPage, final D baseDao) {
+        this.editPage = editPage;
+        this.baseDao = baseDao;
+        this.entity = "unknown";
+        if (baseDao instanceof BaseDao) {
+            this.entity = ((BaseDao) baseDao).getIdentifier();
+        } else {
+            this.entity = StringUtils.uncapitalize(StringUtils.removeEnd(baseDao.getEntityClass().getSimpleName(), "DO"));
         }
-        WebPage page = editPage.onSaveOrUpdate();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+        if (this.entity.equals("pFUser")) {
+            this.entity = "user"; // Used by TwoFactorAuthenticationHandler.
         }
-        try {
-          baseDao.save(editPage.getData());
-        } catch (final DataIntegrityViolationException ex) {
-          log.error(ex.getMessage(), ex);
-          throw new UserException("exception.constraintViolation");
-        }
-        page = editPage.afterSaveOrUpdate();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
-        }
-        page = editPage.afterSave();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
-        }
-      }
-      editPage.setResponsePage();
     }
-  }
 
-  /**
-   * User has clicked the update button for updating an existing item.
-   */
-  public void update() {
-    if (log.isDebugEnabled() == true) {
-      log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
-    }
-    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
-    }
-    synchronized (editPage.getData()) {
-      if (editPage.isAlreadySubmitted() == true) {
-        log.info("Double click detection in " + editPage.getClass() + " update method. Do nothing.");
-      } else {
-        editPage.setAlreadySubmitted(true);
-        WebPage page = editPage.onSaveOrUpdate();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+    /**
+     * User has clicked the save button for storing a new item.
+     */
+    public void create() {
+        if (log.isDebugEnabled() == true) {
+            log.debug("create in " + editPage.getClass() + ": " + editPage.getData());
         }
-        EntityCopyStatus modified = EntityCopyStatus.NONE;
-        try {
-          modified = baseDao.update(editPage.getData());
-        } catch (final DataIntegrityViolationException ex) {
-          log.error(ex.getMessage(), ex);
-          throw new UserException("exception.constraintViolation");
+        if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
+            throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
         }
-        page = editPage.afterSaveOrUpdate();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+        synchronized (editPage.getData()) {
+            if (editPage.isAlreadySubmitted() == true) {
+                log.info("Double click detection in " + editPage.getClass() + " create method. Do nothing.");
+            } else {
+                editPage.setAlreadySubmitted(true);
+                if (editPage.getData().getId() != null) { // && editPage.getData() instanceof IManualIndex == false) {
+                    // User has used the back button?
+                    log.info("User has used the back button in "
+                            + editPage.getClass()
+                            + " after inserting a new object? Try to load the object from the data base and show edit page again.");
+                    final O dbObj = baseDao.getById(editPage.getData().getId());
+                    if (dbObj == null) {
+                        // Error while trying to insert Object and user has used the back button?
+                        log.info("User has used the back button "
+                                + editPage.getClass()
+                                + " after inserting a new object and a failure occured (because object with id not found in the data base)? Deleting the id and show the edit page again.");
+                        editPage.clearIds();
+                        return;
+                    }
+                    editPage.getData().copyValuesFrom(dbObj);
+                    return;
+                }
+                WebPage page = editPage.onSaveOrUpdate();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                try {
+                    baseDao.save(editPage.getData());
+                } catch (final DataIntegrityViolationException ex) {
+                    log.error(ex.getMessage(), ex);
+                    throw new UserException("exception.constraintViolation");
+                }
+                page = editPage.afterSaveOrUpdate();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                page = editPage.afterSave();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+            }
+            editPage.setResponsePage();
         }
-        page = editPage.afterUpdate(modified);
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+    }
+
+    /**
+     * User has clicked the update button for updating an existing item.
+     */
+    public void update() {
+        if (log.isDebugEnabled() == true) {
+            log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
         }
-      }
-    }
-    editPage.setResponsePage();
-  }
-
-  /**
-   * User has clicked the update-and-next button for updating an existing item.
-   */
-  public void updateAndNext() {
-    if (log.isDebugEnabled() == true) {
-      log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
-    }
-    update();
-    updateAndNext = true;
-    editPage.setResponsePage();
-  }
-
-  /**
-   * Update but do not leave the current edit page.
-   */
-  public void updateAndStay() {
-    update();
-    editPage.setResponsePage(editPage);
-  }
-
-  public boolean isUpdateAndNext() {
-    return updateAndNext;
-  }
-
-  public void setUpdateAndNext(final boolean updateAndNext) {
-    this.updateAndNext = updateAndNext;
-  }
-
-  public void undelete() {
-    if (log.isDebugEnabled() == true) {
-      log.debug("undelete in " + editPage.getClass() + ": " + editPage.getData());
-    }
-    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
-    }
-    synchronized (editPage.getData()) {
-      if (editPage.isAlreadySubmitted() == true) {
-        log.info("Double click detection in " + editPage.getClass() + " undelete method. Do nothing.");
-      } else {
-        editPage.setAlreadySubmitted(true);
-        final WebPage page = editPage.onUndelete();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+        if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
+            throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
         }
-        baseDao.undelete(editPage.getData());
-      }
-    }
-    editPage.afterUndelete();
-    editPage.setResponsePage();
-  }
-
-  public void markAsDeleted() {
-    if (log.isDebugEnabled() == true) {
-      log.debug("Mark object as deleted in " + editPage.getClass() + ": " + editPage.getData());
-    }
-    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
-    }
-    synchronized (editPage.getData()) {
-      if (editPage.isAlreadySubmitted() == true) {
-        log.info("Double click detection in " + editPage.getClass() + " markAsDeleted method. Do nothing.");
-      } else {
-        editPage.setAlreadySubmitted(true);
-        final WebPage page = editPage.onDelete();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+        synchronized (editPage.getData()) {
+            if (editPage.isAlreadySubmitted() == true) {
+                log.info("Double click detection in " + editPage.getClass() + " update method. Do nothing.");
+            } else {
+                editPage.setAlreadySubmitted(true);
+                WebPage page = editPage.onSaveOrUpdate();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                EntityCopyStatus modified = EntityCopyStatus.NONE;
+                try {
+                    modified = baseDao.update(editPage.getData());
+                } catch (final DataIntegrityViolationException ex) {
+                    log.error(ex.getMessage(), ex);
+                    throw new UserException("exception.constraintViolation");
+                }
+                page = editPage.afterSaveOrUpdate();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                page = editPage.afterUpdate(modified);
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+            }
         }
-        baseDao.markAsDeleted(editPage.getData());
-        editPage.afterDelete();
         editPage.setResponsePage();
-      }
     }
-  }
 
-  public void delete() {
-    if (log.isDebugEnabled() == true) {
-      log.debug("delete in " + editPage.getClass() + ": " + editPage.getData());
-    }
-    if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
-      throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
-    }
-    synchronized (editPage.getData()) {
-      if (editPage.isAlreadySubmitted() == true) {
-        log.info("Double click detection in " + editPage.getClass() + " delete method. Do nothing.");
-      } else {
-        editPage.setAlreadySubmitted(true);
-        final WebPage page = editPage.onDelete();
-        if (page != null) {
-          editPage.setResponsePageAndHighlightedRow(page);
-          return;
+    /**
+     * User has clicked the update-and-next button for updating an existing item.
+     */
+    public void updateAndNext() {
+        if (log.isDebugEnabled() == true) {
+            log.debug("update in " + editPage.getClass() + ": " + editPage.getData());
         }
-        baseDao.delete(editPage.getData());
-        editPage.afterDelete();
+        update();
+        updateAndNext = true;
         editPage.setResponsePage();
-      }
     }
-  }
+
+    /**
+     * Update but do not leave the current edit page.
+     */
+    public void updateAndStay() {
+        update();
+        editPage.setResponsePage(editPage);
+    }
+
+    public boolean isUpdateAndNext() {
+        return updateAndNext;
+    }
+
+    public void setUpdateAndNext(final boolean updateAndNext) {
+        this.updateAndNext = updateAndNext;
+    }
+
+    public void undelete() {
+        if (log.isDebugEnabled() == true) {
+            log.debug("undelete in " + editPage.getClass() + ": " + editPage.getData());
+        }
+        if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
+            throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
+        }
+        synchronized (editPage.getData()) {
+            if (editPage.isAlreadySubmitted() == true) {
+                log.info("Double click detection in " + editPage.getClass() + " undelete method. Do nothing.");
+            } else {
+                editPage.setAlreadySubmitted(true);
+                final WebPage page = editPage.onUndelete();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                baseDao.undelete(editPage.getData());
+            }
+        }
+        editPage.afterUndelete();
+        editPage.setResponsePage();
+    }
+
+    public void markAsDeleted() {
+        if (log.isDebugEnabled() == true) {
+            log.debug("Mark object as deleted in " + editPage.getClass() + ": " + editPage.getData());
+        }
+        if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
+            throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
+        }
+        synchronized (editPage.getData()) {
+            if (editPage.isAlreadySubmitted() == true) {
+                log.info("Double click detection in " + editPage.getClass() + " markAsDeleted method. Do nothing.");
+            } else {
+                editPage.setAlreadySubmitted(true);
+                final WebPage page = editPage.onDelete();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                baseDao.markAsDeleted(editPage.getData());
+                editPage.afterDelete();
+                editPage.setResponsePage();
+            }
+        }
+    }
+
+    public void delete() {
+        if (log.isDebugEnabled() == true) {
+            log.debug("delete in " + editPage.getClass() + ": " + editPage.getData());
+        }
+        if (WicketSupport.get(My2FARequestHandler.class).twoFactorRequiredForWriteAccess(entity)) {
+            throw new RedirectToUrlException(My2FARequestHandler.MY_2FA_URL);
+        }
+        synchronized (editPage.getData()) {
+            if (editPage.isAlreadySubmitted() == true) {
+                log.info("Double click detection in " + editPage.getClass() + " delete method. Do nothing.");
+            } else {
+                editPage.setAlreadySubmitted(true);
+                final WebPage page = editPage.onDelete();
+                if (page != null) {
+                    editPage.setResponsePageAndHighlightedRow(page);
+                    return;
+                }
+                baseDao.delete(editPage.getData());
+                editPage.afterDelete();
+                editPage.setResponsePage();
+            }
+        }
+    }
 }

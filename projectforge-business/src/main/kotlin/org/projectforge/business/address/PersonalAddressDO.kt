@@ -74,12 +74,12 @@ import jakarta.persistence.*
     query = "from PersonalAddressDO p join fetch p.address where p.owner.id = :ownerId and p.address.deleted=false order by p.address.name, p.address.firstName"
   )
 )
-class PersonalAddressDO : AbstractBaseDO<Int>() {
+class PersonalAddressDO : AbstractBaseDO<Long>() {
 
   @get:Id
   @get:GeneratedValue
   @get:Column(name = "pk")
-  override var id: Int? = null
+  override var id: Long? = null
 
   /**
    * Not used as object due to performance reasons.
@@ -108,11 +108,11 @@ class PersonalAddressDO : AbstractBaseDO<Int>() {
     @Transient
     get() = isFavoriteCard
 
-  val ownerId: Int?
+  val ownerId: Long?
     @Transient
     get() = if (this.owner == null) null else owner!!.id
 
-  val addressId: Int?
+  val addressId: Long?
     @Transient
     get() = if (this.address == null) null else address!!.id
 

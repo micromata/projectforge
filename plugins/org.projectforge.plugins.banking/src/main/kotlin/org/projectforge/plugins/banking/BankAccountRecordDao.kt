@@ -79,7 +79,7 @@ class BankAccountRecordDao : BaseDao<BankAccountRecordDO>(BankAccountRecordDO::c
         return BankAccountRecordDO()
     }
 
-    fun getByTimePeriod(accountId: Int, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
+    fun getByTimePeriod(accountId: Long, from: LocalDate, until: LocalDate): List<BankAccountRecordDO> {
         val account = bankAccountDao.getById(accountId)!! // For access checking
         log.info("Getting records of account '${account.name}', IBAN=${account.iban}: $from until $until")
         return persistenceService.namedQuery(

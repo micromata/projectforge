@@ -104,11 +104,11 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                 return BigDecimal.ZERO
             }
             return configurationDO.floatValue
-        } else if (parameter.type == ConfigurationType.INTEGER) {
+        } else if (parameter.type == ConfigurationType.LONG) {
             if (configurationDO == null) {
                 return 0
             }
-            return configurationDO.intValue
+            return configurationDO.longValue
         } else if (parameter.type == ConfigurationType.BOOLEAN) {
             if (configurationDO == null) {
                 return null
@@ -181,8 +181,8 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         if (param.type.isIn(ConfigurationType.STRING, ConfigurationType.TEXT)) {
             configuration.value = param.defaultStringValue
         }
-        if (param.type.isIn(ConfigurationType.INTEGER)) {
-            configuration.intValue = param.defaultIntValue
+        if (param.type.isIn(ConfigurationType.LONG)) {
+            configuration.longValue = param.defaultLongValue
         }
         if (param.type.isIn(ConfigurationType.BOOLEAN)) {
             configuration.stringValue = param.defaultBooleanValue.toString()

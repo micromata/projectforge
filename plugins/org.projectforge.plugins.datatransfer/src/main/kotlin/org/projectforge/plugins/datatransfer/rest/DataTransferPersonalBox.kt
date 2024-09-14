@@ -33,7 +33,7 @@ import org.projectforge.rest.dto.User
 import jakarta.persistence.Transient
 
 class DataTransferPersonalBox(
-  id: Int? = null,
+  id: Long? = null,
   var user: User? = null,
   var internalLink: String? = null,
   override var attachmentsCounter: Int? = null,

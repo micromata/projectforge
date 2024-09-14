@@ -63,7 +63,7 @@ open class TeamCalEventsProvider() {
     start: PFDateTime,
     end: PFDateTime,
     events: MutableList<FullCalendarEvent>,
-    teamCalendarIds: List<Int?>?,
+    teamCalendarIds: List<Long?>?,
     styleMap: CalendarStyleMap,
     settings: CalendarSettings,
   ) {
@@ -89,7 +89,7 @@ open class TeamCalEventsProvider() {
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
       val allDay = eventDO.allDay
       val style = styleMap.get(eventDO.calendarId)
-      val dbId: Int?
+      val dbId: Long?
       val uid: String?
       if (eventDO.id!! > 0) {
         dbId = eventDO.id
@@ -207,8 +207,8 @@ open class TeamCalEventsProvider() {
       if (cal.includeLeaveDaysForGroups.isNullOrBlank() && cal.includeLeaveDaysForUsers.isNullOrBlank()) {
         continue
       }
-      val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
-      val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
+      val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
+      val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
       val style = styleMap.get(calId)
       vacationProvider.addEvents(start, end, events, groupIds, userIds, settings, style)
     }

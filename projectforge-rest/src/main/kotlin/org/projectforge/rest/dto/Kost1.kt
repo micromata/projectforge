@@ -26,7 +26,7 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 
-class Kost1(id: Int? = null,
+class Kost1(id: Long? = null,
             displayName: String? = null,
             var nummernkreis: Int = 0,
             var bereich: Int = 0,

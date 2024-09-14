@@ -57,7 +57,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         @JvmStatic
-        fun createFrom(value: Int): Kost2DO {
+        fun createFrom(value: Long): Kost2DO {
             val kost2 = Kost2DO()
             kost2.id = value
             return kost2
@@ -85,7 +85,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     open var nummernkreis: Int = 0
 
     /**
-     * Bereich entspricht der 2.-4. Ziffer.
+     * Bereich entspricht der 2.-4. Ziffer. Bei 5.### ist ### die Kundennummer
      */
     @get:Column(name = "bereich")
     open var bereich: Int = 0
@@ -152,20 +152,20 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
         @Transient
         get() = KostFormatter.formatToolTip(this)
 
-    val kost2ArtId: Int?
+    val kost2ArtId: Long?
         @Transient
         get() = if (this.kost2Art == null) {
             null
         } else kost2Art!!.id
 
-    val projektId: Int?
+    val projektId: Long?
         @Transient
         get() = if (this.projekt == null) {
             null
         } else projekt!!.id
 
     @Transient
-    fun isEqual(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Int): Boolean {
+    fun isEqual(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Long): Boolean {
         return (this.nummernkreis == nummernkreis
                 && this.bereich == bereich
                 && this.teilbereich == teilbereich

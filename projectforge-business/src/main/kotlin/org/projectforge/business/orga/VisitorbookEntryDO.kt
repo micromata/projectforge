@@ -45,11 +45,11 @@ import java.time.LocalDate
     )]
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
-open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Int>() {
+open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Long>() {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook")
     @get:ManyToOne(fetch = FetchType.EAGER)

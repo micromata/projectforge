@@ -94,7 +94,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
       historyQuery.modifiedTo = value
     }
 
-  var modifiedByUserId: Int?
+  var modifiedByUserId: Long?
     get() = historyQuery.modifiedByUserId
     set(value) {
       historyQuery.modifiedByUserId = value
@@ -331,7 +331,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
     }
 
     @JvmStatic
-    fun taskSearch(field: String, taskId: Int?, recursive: Boolean): DBPredicate {
+    fun taskSearch(field: String, taskId: Long?, recursive: Boolean): DBPredicate {
       if (taskId == null) {
         return DBPredicate.IsNull(field)
       }

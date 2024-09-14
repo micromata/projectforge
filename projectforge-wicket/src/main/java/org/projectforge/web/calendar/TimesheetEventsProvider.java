@@ -105,7 +105,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
     for (int i = 0; i < durationsPerDayOfYear.length; i++) {
       durationsPerDayOfYear[i] = 0;
     }
-    final Integer userId = calFilter.getTimesheetUserId();
+    final Long userId = calFilter.getTimesheetUserId();
     if (userId == null) {
       return;
     }

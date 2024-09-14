@@ -114,7 +114,7 @@ class EmployeeServiceTest : AbstractTestBase() {
         Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
     }
 
-    private fun createValidityEntry(id: Int?, validFrom: LocalDate?): EmployeeValidityPeriodAttrDO {
+    private fun createValidityEntry(id: Long?, validFrom: LocalDate?): EmployeeValidityPeriodAttrDO {
         val entry = EmployeeValidityPeriodAttrDO()
         entry.validFrom = validFrom
         entry.id = id

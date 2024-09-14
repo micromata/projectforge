@@ -51,7 +51,7 @@ public class Kost2Impl implements Kost2
     this.projekt = new ProjektImpl(kost2.getProjekt());
   }
 
-  public Integer getId()
+  public Long getId()
   {
     return kost2.getId();
   }

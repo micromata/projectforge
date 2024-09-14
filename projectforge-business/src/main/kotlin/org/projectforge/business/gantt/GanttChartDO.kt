@@ -40,12 +40,12 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 @Entity
 @Indexed
 @Table(name = "T_GANTT_CHART", indexes = [Index(name = "idx_fk_t_gantt_chart_owner_fk", columnList = "owner_fk"), Index(name = "idx_fk_t_gantt_chart_task_fk", columnList = "task_fk")])
-class GanttChartDO : AbstractBaseDO<Int>() {
+class GanttChartDO : AbstractBaseDO<Long>() {
 
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     /**
      * Free usable name.
@@ -107,11 +107,11 @@ class GanttChartDO : AbstractBaseDO<Int>() {
     @get:JoinColumn(name = "owner_fk")
     var owner: PFUserDO? = null
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task == null) null else task!!.id
 
-    val ownerId: Int?
+    val ownerId: Long?
         @Transient
         get() = if (this.owner == null) null else owner!!.id
 }

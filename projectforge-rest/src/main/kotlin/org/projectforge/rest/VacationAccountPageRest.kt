@@ -89,7 +89,7 @@ class VacationAccountPageRest {
   private lateinit var remainingLeaveDao: RemainingLeaveDao
 
   @GetMapping("dynamic")
-  fun getForm(@RequestParam("id") searchEmployeeId: Int? = null): FormLayoutData {
+  fun getForm(@RequestParam("id") searchEmployeeId: Long? = null): FormLayoutData {
     val layout = UILayout("vacation.leaveaccount.title")
     val lc = LayoutContext(VacationDO::class.java)
     layout.addTranslations(
@@ -130,7 +130,7 @@ class VacationAccountPageRest {
 
     val isHRMember = vacationService.hasLoggedInUserHRVacationAccess()
 
-    val employeeId: Int? = if (isHRMember) {
+    val employeeId: Long? = if (isHRMember) {
       // If, and only if the current logged-in user is a member of HR staff, other employees may be chosen:
       // 1st any given user by request param is used,
       // 2nd the last chosen user from the user's preferences or, if none given:
@@ -273,7 +273,7 @@ class VacationAccountPageRest {
     return buildResponseAction(employeeId)
   }
 
-  private fun buildResponseAction(employeeId: Int): ResponseAction {
+  private fun buildResponseAction(employeeId: Long): ResponseAction {
     val layoutData = getForm(employeeId)
 
     return ResponseAction(
@@ -284,7 +284,7 @@ class VacationAccountPageRest {
       .addVariable("ui", layoutData.ui)
   }
 
-  private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Int, year: Int) {
+  private fun readVacations(variables: MutableMap<String, Any>, id: String, employeeId: Long, year: Int) {
     val yearDate = PFDay.of(year, Month.JANUARY, 1)
     val dbList = vacationService.getVacationsListForPeriod(
       employeeId,
@@ -303,7 +303,7 @@ class VacationAccountPageRest {
     variables["year$id"] = year
   }
 
-  class VacationAccountUserPref(var employeeId: Int? = null)
+  class VacationAccountUserPref(var employeeId: Long? = null)
 
   private fun getUserPref(): VacationAccountUserPref {
     return userPrefService.ensureEntry("vacation", "account", VacationAccountUserPref())

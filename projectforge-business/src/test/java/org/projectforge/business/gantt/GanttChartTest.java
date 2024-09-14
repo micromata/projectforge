@@ -130,9 +130,9 @@ public class GanttChartTest extends AbstractTestBase {
     assertNull(findById(ganttObject, getTask(prefix + "1").getId())
                     .getStartDate(),
             "Start date should be stored as null (start date of task is set).");
-    findById(ganttObject, getTask(prefix + "1").getId()).addChild(new GanttTaskImpl(-1).setTitle("Child of 1"));
+    findById(ganttObject, getTask(prefix + "1").getId()).addChild(new GanttTaskImpl(-1L).setTitle("Child of 1"));
     findById(ganttObject, getTask(prefix + "1.1").getId()).addChild(
-            new GanttTaskImpl(-2).setTitle("Child of 1.1").addChild(new GanttTaskImpl(-3).setTitle("Grand child of 1.1")));
+            new GanttTaskImpl(-2L).setTitle("Child of 1.1").addChild(new GanttTaskImpl(-3L).setTitle("Grand child of 1.1")));
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     xml = transform(prefix, "<ganttObject id='{}'>"
             + "<children>"
@@ -163,12 +163,12 @@ public class GanttChartTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GanttTest3";
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
-    final Integer id1 = addTask(prefix + "1", null, null);
-    final Integer id2 = addTask(prefix + "2", null, null);
-    final Integer id3 = addTask(prefix + "3", BigDecimal.TEN, 10);
-    final Integer id4 = addTask(prefix + "4", BigDecimal.TEN, 10);
-    final Integer id5 = addTask(prefix + "5", BigDecimal.TEN, 10);
-    // final Integer id3 = task.getId();
+    final Long id1 = addTask(prefix + "1", null, null);
+    final Long id2 = addTask(prefix + "2", null, null);
+    final Long id3 = addTask(prefix + "3", BigDecimal.TEN, 10);
+    final Long id4 = addTask(prefix + "4", BigDecimal.TEN, 10);
+    final Long id5 = addTask(prefix + "5", BigDecimal.TEN, 10);
+    // final Long id3 = task.getId();
     final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
     final GanttTask rootObject = data.getRootObject();
     final GanttChartDO ganttChartDO = new GanttChartDO();
@@ -194,7 +194,7 @@ public class GanttChartTest extends AbstractTestBase {
     assertDurationAndProgress(ganttObject, id5, null, null);
   }
 
-  private void assertDurationAndProgress(final GanttTask root, final Integer id, final BigDecimal expectedDuration,
+  private void assertDurationAndProgress(final GanttTask root, final Long id, final BigDecimal expectedDuration,
                                          final Integer expectedProgress) {
     final GanttTask task = root.findById(id);
     assertTrue(NumberHelper.isEqual(expectedDuration, task.getDuration()));
@@ -205,7 +205,7 @@ public class GanttChartTest extends AbstractTestBase {
     }
   }
 
-  private Integer addTask(final String name, final BigDecimal duration, final Integer progress) {
+  private Long addTask(final String name, final BigDecimal duration, final Integer progress) {
     final TaskDO task = initTestDB.addTask(name, "GanttTest3");
     task.setDuration(duration);
     task.setProgress(progress);

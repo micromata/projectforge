@@ -54,7 +54,7 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
 
   private int pageSize = 20;
 
-  private Integer internalNewAttendeeSequence = -1;
+  private Long internalNewAttendeeSequence = -1L;
 
   public AttendeeWicketProvider(TeamEventDO event, TeamEventService teamEventService)
   {
@@ -72,9 +72,9 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
     return this;
   }
 
-  public int getAndDecreaseInternalNewAttendeeSequence()
+  public long getAndDecreaseInternalNewAttendeeSequence()
   {
-    int result = internalNewAttendeeSequence;
+    long result = internalNewAttendeeSequence;
     internalNewAttendeeSequence--;
     return result;
   }
@@ -192,7 +192,7 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
       return list;
     }
     for (final String str : ids) {
-      final Integer attendeeId = NumberHelper.parseInteger(str);
+      final Long attendeeId = NumberHelper.parseLong(str);
       if (attendeeId == null) {
         continue;
       }

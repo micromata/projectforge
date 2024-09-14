@@ -59,13 +59,13 @@ public class GroupDOConverter
 
   static final String ID_PREFIX = "pf-id-";
 
-  public Integer getId(final LdapGroup group)
+  public Long getId(final LdapGroup group)
   {
     final String businessCategory = group.getBusinessCategory();
     if (businessCategory != null && businessCategory.startsWith(ID_PREFIX)
         && businessCategory.length() > ID_PREFIX.length()) {
       final String id = businessCategory.substring(ID_PREFIX.length());
-      return NumberHelper.parseInteger(id);
+      return NumberHelper.parseLong(id);
     }
     return null;
   }
@@ -83,7 +83,7 @@ public class GroupDOConverter
     return group;
   }
 
-  public LdapGroup convert(final GroupDO pfGroup, final String baseDN, final Map<Integer, LdapUser> ldapUserMap)
+  public LdapGroup convert(final GroupDO pfGroup, final String baseDN, final Map<Long, LdapUser> ldapUserMap)
   {
     final LdapGroup ldapGroup = new LdapGroup();
     if (pfGroup.getId() != null) {

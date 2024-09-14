@@ -172,10 +172,7 @@ public class StringHelper {
     /**
      * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
      *
-     * @param list      List of input strings.
      * @param delimiter The delimiter of the single string in output string.
-     * @param sort      If true, the given list will be first sorted.
-     * @return
      */
     public static String colToString(final Collection<String> col, final String delimiter) {
         final StringBuffer buf = new StringBuffer();
@@ -189,10 +186,7 @@ public class StringHelper {
     /**
      * For example ["Micromata", "IT-Services", "Computer"] -> "Computer, IT-Services, Micromata".
      *
-     * @param list      List of input strings.
      * @param delimiter The delimiter of the single string in output string.
-     * @param sort      If true, the given list will be first sorted.
-     * @return
      */
     public static String objectColToString(final Collection<?> col, final String delimiter) {
         final StringBuffer buf = new StringBuffer();
@@ -237,7 +231,6 @@ public class StringHelper {
 
     /**
      * @param delimiter
-     * @param strings
      * @see #listToString(List, String, boolean)
      */
     public static String listToString(final String delimiter, final Object... oa) {
@@ -263,7 +256,6 @@ public class StringHelper {
 
     /**
      * @param delimiter
-     * @param strings
      * @see #listToString(List, String, boolean)
      */
     public static String doublesToString(final String delimiter, final double... oa) {
@@ -517,16 +509,62 @@ public class StringHelper {
         return buf.toString();
     }
 
-    public static Integer[] splitToIntegers(final String str, final String delim) {
+    public static long[] splitToLongs(final String str, final String delim) {
         if (str == null) {
             return null;
         }
         final StringTokenizer tokenizer = new StringTokenizer(str, delim);
-        final Integer[] result = new Integer[tokenizer.countTokens()];
+        final long[] result = new long[tokenizer.countTokens()];
         int i = 0;
         while (tokenizer.hasMoreTokens()) {
             final String token = tokenizer.nextToken();
-            final Integer value = IntegerHelper.parseInteger(token);
+            final Long value = LongHelper.parseLong(token);
+            result[i++] = value;
+        }
+        return result;
+    }
+
+    /**
+     * @param str
+     * @param delim
+     * @param ignoreEmptyItems If true then "1, ,2" returns [1,0,2], otherwise [1,2] is returned.
+     * @return
+     */
+    public static long[] splitToLongs(final String str, final String delim, final boolean ignoreEmptyItems) {
+        if (ignoreEmptyItems) {
+            return splitToLongs(str, delim);
+        }
+        if (str == null) {
+            return new long[0];
+        }
+        final StringTokenizer tokenizer = new StringTokenizer(str, delim);
+        final List<Long> list = new ArrayList<>(tokenizer.countTokens());
+        while (tokenizer.hasMoreTokens()) {
+            final String token = tokenizer.nextToken();
+            final Long value = LongHelper.parseLong(token);
+            if (value != null) {
+                list.add(value);
+            }
+        }
+        final long[] result = new long[list.size()];
+        int i = 0;
+        for (final Long number : list) {
+            result[i++] = number;
+        }
+        return result;
+    }
+
+
+    public static Long[] splitToLongObjects(final String str, final String delim) {
+        if (str == null) {
+            return null;
+        }
+        final StringTokenizer tokenizer = new StringTokenizer(str, delim);
+        final Long[] result = new Long[tokenizer.countTokens()];
+        int i = 0;
+        while (tokenizer.hasMoreTokens()) {
+            final String token = tokenizer.nextToken();
+            final Long value = LongHelper.parseLong(token);
             result[i++] = value;
         }
         return result;
@@ -602,15 +640,12 @@ public class StringHelper {
      *
      * @param strs
      * @return true if one of the given strings is not blank, otherwise false.
-     * @see StringUtils#isNotBlank(String)
      */
     public static boolean isNotBlank(final String... strs) {
         return !isBlank(strs);
     }
 
     /**
-     * Calls {@link StringUtils#isBlank(String)} for each of the given strings.
-     *
      * @param strs
      * @return true if one of the given strings is not blank, otherwise false.
      * @see #isNotBlank(String...)

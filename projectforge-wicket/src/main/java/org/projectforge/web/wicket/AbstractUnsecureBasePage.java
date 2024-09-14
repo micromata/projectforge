@@ -267,7 +267,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
    * @return null
    * @see AbstractSecuredPage#getUser()
    */
-  protected Integer getUserId() {
+  protected Long getUserId() {
     return null;
   }
 

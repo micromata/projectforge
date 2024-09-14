@@ -93,9 +93,9 @@ public class UserService {
     if (StringUtils.isEmpty(userIds)) {
       return null;
     }
-    final int[] ids = StringHelper.splitToInts(userIds, ",", false);
+    final long[] ids = StringHelper.splitToLongs(userIds, ",", false);
     final List<String> list = new ArrayList<>();
-    for (final int id : ids) {
+    for (final long id : ids) {
       final PFUserDO user = userGroupCache.getUser(id);
       if (user != null) {
         list.add(user.getFullname());
@@ -151,8 +151,8 @@ public class UserService {
       return null;
     }
     TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
-    final int[] ids = StringHelper.splitToInts(userIds, ",", false);
-    for (final int id : ids) {
+    final long[] ids = StringHelper.splitToLongs(userIds, ",", false);
+    for (final long id : ids) {
       final PFUserDO user = userGroupCache.getUser(id);
       if (user != null) {
         sortedUsers.add(user);
@@ -206,7 +206,7 @@ public class UserService {
    * @param userId
    * @return The user from UserGroupCache.
    */
-  public PFUserDO getUser(Integer userId) {
+  public PFUserDO getUser(Long userId) {
     return userGroupCache.getUser(userId);
   }
 
@@ -215,7 +215,7 @@ public class UserService {
    *
    * @param user              The user to user.
    * @param clearTextPassword as clear text.x
-   * @see UserPasswordDao#encryptAndSavePassword(int, char[])
+   * @see UserPasswordDao#encryptAndSavePassword(long, char[])
    */
   public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword) {
     encryptAndSavePassword(user, clearTextPassword, true);
@@ -240,7 +240,7 @@ public class UserService {
    * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changePassword(final Integer userId, final char[] oldPassword, final char[] newPassword) {
+  public List<I18nKeyAndParams> changePassword(final Long userId, final char[] oldPassword, final char[] newPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(oldPassword.length > 0);
@@ -265,7 +265,7 @@ public class UserService {
    * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changePasswordByAdmin(final Integer userId, final char[] newPassword) {
+  public List<I18nKeyAndParams> changePasswordByAdmin(final Long userId, final char[] newPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
@@ -301,7 +301,7 @@ public class UserService {
    * @param newPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> internalChangePasswordAfterPasswordReset(final Integer userId, final char[] newPassword) {
+  public List<I18nKeyAndParams> internalChangePasswordAfterPasswordReset(final Long userId, final char[] newPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(newPassword.length > 0);
@@ -333,7 +333,7 @@ public class UserService {
    * @param newWlanPassword Will be cleared at the end of this method due to security reasons
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPassword(final Integer userId, final char[] loginPassword, final char[] newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPassword(final Long userId, final char[] loginPassword, final char[] newWlanPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(loginPassword.length > 0);
@@ -359,7 +359,7 @@ public class UserService {
    * @param newWlanPassword Will be cleared at the end of this method due to security reasons.
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final Integer userId, final char[] newWlanPassword) {
+  public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final Long userId, final char[] newWlanPassword) {
     try {
       Validate.notNull(userId);
       Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
@@ -462,7 +462,7 @@ public class UserService {
     return userDao.internalGetById(id);
   }
 
-  public Integer save(PFUserDO user) {
+  public Long save(PFUserDO user) {
     return userDao.internalSave(user);
   }
 
@@ -542,7 +542,7 @@ public class UserService {
    * @return The decrypted data.
    * @see UserDao#decrypt(String)
    */
-  public String decrypt(String encrypted, Integer userId) {
+  public String decrypt(String encrypted, Long userId) {
     return userDao.decrypt(encrypted, userId);
   }
 }

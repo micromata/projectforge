@@ -40,7 +40,7 @@ import jakarta.persistence.EntityManager
 private val log = KotlinLogging.logger {}
 
 class SipgateSyncServiceMockTest : AbstractTestBase() {
-  private var addressCounter = 0
+  private var addressCounter = 0L
   var contactIdCounter = 0
 
   @Test
@@ -53,7 +53,7 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         return addressList
       }
 
-      override fun internalSave(obj: AddressDO): Int {
+      override fun internalSave(obj: AddressDO): Long {
         obj.id = ++addressCounter
         addressList.add(obj)
         return obj.id!!

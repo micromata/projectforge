@@ -203,7 +203,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
             return this.faelligkeit?.isBefore(today.localDate) ?: false
         }
 
-    val kontoId: Int?
+    val kontoId: Long?
         @Transient
         get() = konto?.id
 

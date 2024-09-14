@@ -59,7 +59,7 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
   @get:IndexingDependency(derivedFrom = [ObjectPath(PropertyValue(propertyName = "positionen"))])
   open var rechnung: RechnungDO? = null
 
-  override val rechnungId: Int?
+  override val rechnungId: Long?
     @Transient
     get() = rechnung?.id
 

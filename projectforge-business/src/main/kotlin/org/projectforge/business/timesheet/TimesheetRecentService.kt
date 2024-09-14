@@ -74,23 +74,23 @@ open class TimesheetRecentService {
     return getRecentLocationsQueue(ThreadLocalUserContext.userId!!).recentList ?: emptyList()
   }
 
-  open fun getRecentTaskIds(): List<Int> {
+  open fun getRecentTaskIds(): List<Long> {
     return getRecentTaskIdsQueue(ThreadLocalUserContext.userId!!).recentList ?: emptyList()
   }
 
-  private fun getRecentTimesheetsQueue(userId: Int): RecentQueue<TimesheetRecentEntry> {
+  private fun getRecentTimesheetsQueue(userId: Long): RecentQueue<TimesheetRecentEntry> {
     return getRecentQueue(userId, "recent.timesheets") { recentQueue -> readRecentTimesheets(recentQueue, userId) }
   }
 
-  private fun getRecentLocationsQueue(userId: Int): RecentQueue<String> {
+  private fun getRecentLocationsQueue(userId: Long): RecentQueue<String> {
     return getRecentQueue(userId, "recent.locations") { recentQueue -> readRecentLocations(recentQueue, userId) }
   }
 
-  private fun getRecentTaskIdsQueue(userId: Int): RecentQueue<Int> {
+  private fun getRecentTaskIdsQueue(userId: Long): RecentQueue<Long> {
     return getRecentQueue(userId, "recent.taskIds") { recentQueue -> readRecentTaskIds(recentQueue, userId) }
   }
 
-  private fun <T> getRecentQueue(userId: Int, id: String, read: (recentQueue: RecentQueue<T>) -> Unit): RecentQueue<T> {
+  private fun <T> getRecentQueue(userId: Long, id: String, read: (recentQueue: RecentQueue<T>) -> Unit): RecentQueue<T> {
     var recentQueue: RecentQueue<T>? = null
     try {
       @Suppress("UNCHECKED_CAST")
@@ -108,7 +108,7 @@ open class TimesheetRecentService {
   }
 
 
-  private fun readRecentTimesheets(recentQueue: RecentQueue<TimesheetRecentEntry>, userId: Int) {
+  private fun readRecentTimesheets(recentQueue: RecentQueue<TimesheetRecentEntry>, userId: Long) {
     log.info { "Getting recent timesheets for user #$userId." }
     val added = mutableSetOf<TimesheetRecentEntry>()
     val list = timesheetDao.getList(getTimesheetFilter(userId)) ?: return
@@ -133,7 +133,7 @@ open class TimesheetRecentService {
     log.info { "Found ${recentQueue.size()}/$MAX_RECENT distinct entries in ${list.size} timesheets of user #$userId since ${sinceDate.isoString}." }
   }
 
-  private fun readRecentLocations(recentQueue: RecentQueue<String>, userId: Int) {
+  private fun readRecentLocations(recentQueue: RecentQueue<String>, userId: Long) {
     log.info { "Getting recent timesheet locations for user #$userId." }
     val added = mutableSetOf<String>()
     val list = timesheetDao.getRecentLocation(sinceDate.utilDate)
@@ -149,9 +149,9 @@ open class TimesheetRecentService {
     log.info { "Found ${recentQueue.size()}/$MAX_RECENT distinct locations of ${list.size} timesheet locations of user #$userId since ${sinceDate.isoString}." }
   }
 
-  private fun readRecentTaskIds(recentQueue: RecentQueue<Int>, userId: Int) {
+  private fun readRecentTaskIds(recentQueue: RecentQueue<Long>, userId: Long) {
     log.info { "Getting recent timesheet task id's for user #$userId." }
-    val added = mutableSetOf<Int>()
+    val added = mutableSetOf<Long>()
     val list = timesheetDao.getList(getTimesheetFilter(userId)) ?: return
     for (timesheet in list) {
       val taskId = timesheet.taskId ?: continue
@@ -169,7 +169,7 @@ open class TimesheetRecentService {
   private val sinceDate
     get() = PFDateTime.now().minusYears(YEARS_AGO).beginOfDay
 
-  private fun getTimesheetFilter(userId: Int): TimesheetFilter {
+  private fun getTimesheetFilter(userId: Long): TimesheetFilter {
     val filter = TimesheetFilter()
     filter.userId = userId
     filter.startTime = sinceDate.utilDate

@@ -71,8 +71,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     @Autowired
     private lateinit var userService: UserService
 
-    private var pollId: Int? = null
-    private var questionOwnerId: Int? = null
+    private var pollId: Long? = null
+    private var questionOwnerId: Long? = null
 
     @GetMapping("dynamic")
     fun getForm(
@@ -82,14 +82,14 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("returnToCaller") returnToCaller: String?,
     ): FormLayoutData {
         if (pollId === null || pollStringId != null) {
-            pollId = NumberHelper.parseInteger(pollStringId) ?: throw IllegalArgumentException("id not given.")
+            pollId = NumberHelper.parseLong(pollStringId) ?: throw IllegalArgumentException("id not given.")
         }
         // used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
         val pollData = pollDao.internalGetById(pollId) ?: PollDO()
 
         val answerTitle: String
-        if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toInt())) {
-            questionOwnerId = delUser.toInt()
+        if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toLong())) {
+            questionOwnerId = delUser.toLong()
             answerTitle = translateMsg("poll.delegationAnswers") + userService.getUser(questionOwnerId).displayName
         } else {
             questionOwnerId = ThreadLocalUserContext.userId
@@ -255,7 +255,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     @PostMapping("addResponse")
     fun addResponse(
         request: HttpServletRequest,
-        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Int?
+        @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction>? {
         val pollResponseDO = PollResponseDO()
         postData.data.copyTo(pollResponseDO)
@@ -321,7 +321,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 ResponseAction()
             )
         }
-        if (joinedAttendeeIds.split(", ").any { it.toInt() == questionOwnerId }) {
+        if (joinedAttendeeIds.split(", ").any { it.toLong() == questionOwnerId }) {
             return ResponseEntity.ok(
                 ResponseAction(
                     url = "/react/response/dynamic?pollId=${pollId}&questionOwner=${questionOwnerId}",

@@ -54,5 +54,5 @@ public interface IConfigurationParam
 
   String getDefaultStringValue();
 
-  int getDefaultIntValue();
+  long getDefaultLongValue();
 }

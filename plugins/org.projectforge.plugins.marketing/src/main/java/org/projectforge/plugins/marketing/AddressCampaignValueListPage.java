@@ -74,9 +74,9 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   @SpringBean
   private PersonalAddressDao personalAddressDao;
 
-  Map<Integer, PersonalAddressDO> personalAddressMap;
+  Map<Long, PersonalAddressDO> personalAddressMap;
 
-  Map<Integer, AddressCampaignValueDO> addressCampaignValueMap;
+  Map<Long, AddressCampaignValueDO> addressCampaignValueMap;
 
   public AddressCampaignValueListPage(final PageParameters parameters) {
     super(parameters, "plugins.marketing.addressCampaignValue");
@@ -92,8 +92,8 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   @SuppressWarnings("serial")
   protected static final List<IColumn<AddressDO, String>> createColumns(final WebPage page, final boolean sortable,
                                                                         final AddressCampaignValueFilter searchFilter,
-                                                                        final Map<Integer, PersonalAddressDO> personalAddressMap,
-                                                                        final Map<Integer, AddressCampaignValueDO> addressCampaignValueMap) {
+                                                                        final Map<Long, PersonalAddressDO> personalAddressMap,
+                                                                        final Map<Long, AddressCampaignValueDO> addressCampaignValueMap) {
 
     final List<IColumn<AddressDO, String>> columns = new ArrayList<>();
     final CellItemListener<AddressDO> cellItemListener = new CellItemListener<AddressDO>() {
@@ -131,7 +131,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
                                final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(address.getId());
-        final Integer addressCampaignValueId = addressCampaignValue != null ? addressCampaignValue.getId() : null;
+        final Long addressCampaignValueId = addressCampaignValue != null ? addressCampaignValue.getId() : null;
         item.add(new ListSelectActionPanel(componentId, rowModel, AddressCampaignValueEditPage.class,
             addressCampaignValueId, page,
             DateTimeFormatter.instance().getFormattedDateTime(address.getCreated()),
@@ -195,7 +195,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
                                final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
-        final Integer id = address.getId();
+        final Long id = address.getId();
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(id);
         if (addressCampaignValue != null) {
           item.add(new Label(componentId, addressCampaignValue.getValue()));
@@ -211,7 +211,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
                                final IModel<AddressDO> rowModel) {
         final AddressDO address = rowModel.getObject();
-        final Integer id = address.getId();
+        final Long id = address.getId();
         final AddressCampaignValueDO addressCampaignValue = addressCampaignValueMap.get(id);
         if (addressCampaignValue != null) {
           item.add(new Label(componentId, addressCampaignValue.getComment()));

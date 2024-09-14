@@ -34,15 +34,15 @@ import java.util.Set;
 /**
  * User preferences contains a Map used by UserXmlPreferencesCache for storing user data application wide. Also
  * persistent user preferences in the database are supported.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 @XStreamAlias("userPreferences")
 public class UserXmlPreferencesMap
 {
   @XStreamOmitField
-  private Integer userId;
+  private Long userId;
 
   @XStreamOmitField
   private transient Set<String> modifiedObjects;
@@ -99,7 +99,7 @@ public class UserXmlPreferencesMap
 
   /**
    * Gets the stored user preference entry.
-   * 
+   *
    * @param key
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    *         existing, otherwise null;
@@ -117,7 +117,7 @@ public class UserXmlPreferencesMap
 
   /**
    * Removes the entry from persistent and volatile storage if exist. Does not remove the entry from the data base!
-   * 
+   *
    * @param key
    * @return the removed value if found.
    */
@@ -132,12 +132,12 @@ public class UserXmlPreferencesMap
     return value;
   }
 
-  public Integer getUserId()
+  public Long getUserId()
   {
     return userId;
   }
 
-  public void setUserId(Integer userId)
+  public void setUserId(Long userId)
   {
     this.userId = userId;
   }

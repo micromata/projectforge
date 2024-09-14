@@ -172,6 +172,15 @@ public class WicketUtils {
     }
   }
 
+  public static long getAsLong(final PageParameters parameters, final String name, final long defaultValue) {
+    final StringValue sval = parameters.get(name);
+    if (sval == null || sval.isNull() == true) {
+      return defaultValue;
+    } else {
+      return sval.toInt();
+    }
+  }
+
   public static Boolean getAsBooleanObject(final PageParameters parameters, final String name) {
     final StringValue sval = parameters.get(name);
     if (sval == null || sval.isNull() == true) {
@@ -325,7 +334,7 @@ public class WicketUtils {
    * @param id
    * @return new PageParameters containing the given id as page parameter.
    */
-  public final static PageParameters getEditPageParameters(final Integer id) {
+  public final static PageParameters getEditPageParameters(final Long id) {
     return new PageParameters().set(AbstractEditPage.PARAMETER_KEY_ID, id);
   }
 

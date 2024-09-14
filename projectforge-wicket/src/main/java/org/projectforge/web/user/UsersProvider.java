@@ -86,8 +86,8 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
       return null;
     }
     sortedUsers = new TreeSet<PFUserDO>(usersComparator);
-    final int[] ids = StringHelper.splitToInts(userIds, ",", false);
-    for (final int id : ids) {
+    final long[] ids = StringHelper.splitToLongs(userIds, ",");
+    for (final long id : ids) {
       final PFUserDO user = UserGroupCache.getInstance().getUser(id);
       if (user != null) {
         sortedUsers.add(user);
@@ -168,7 +168,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
       return list;
     }
     for (final String str : ids) {
-      final Integer userId = NumberHelper.parseInteger(str);
+      final Long userId = NumberHelper.parseLong(str);
       if (userId == null) {
         continue;
       }

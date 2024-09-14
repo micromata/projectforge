@@ -81,7 +81,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       return;
     }
     final HRPlanningFilter filter = new HRPlanningFilter();
-    Integer timesheetUserId = calendarFilter.getTimesheetUserId();
+    Long timesheetUserId = calendarFilter.getTimesheetUserId();
     if (timesheetUserId == null) {
       timesheetUserId = ThreadLocalUserContext.getUserId();
     }

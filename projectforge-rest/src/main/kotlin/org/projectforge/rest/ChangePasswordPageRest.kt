@@ -127,7 +127,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     loginPasswordI18nKey: String,
     caller: AbstractDynamicPageRest,
   ): FormLayoutData {
-    val userId = userIdString?.toIntOrNull() ?: ThreadLocalUserContext.userId!!
+    val userId = userIdString?.toLongOrNull() ?: ThreadLocalUserContext.userId!!
     val changeOwnPassword = checkChangeOwn(userId)
 
     val data = ChangePasswordData(userId)
@@ -179,7 +179,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     return FormLayoutData(data, layout, createServerData(request))
   }
 
-  private fun checkChangeOwn(userId: Int): Boolean {
+  private fun checkChangeOwn(userId: Long): Boolean {
     return if (userId != ThreadLocalUserContext.userId) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
       false

@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus
 import org.projectforge.framework.configuration.ApplicationContextProvider
 
 class Kost2(
-  id: Int? = null,
+  id: Long? = null,
   displayName: String? = null,
   var nummernkreis: Int = 0,
   var bereich: Int = 0,
@@ -55,7 +55,7 @@ class Kost2(
     nummernkreis = src.nummernkreis
     bereich = src.bereich
     teilbereich = src.teilbereich
-    endziffer = src.kost2Art?.id ?: 0
+    endziffer = src.kost2Art?.id?.toInt() ?: 0
     description = src.description
     formattedNumber = src.formattedNumber
     this.project = src.projekt?.let {
@@ -76,7 +76,7 @@ class Kost2(
 
   override fun copyFrom(src: Kost2DO) {
     super.copyFrom(src)
-    endziffer = src.kost2Art?.id ?: 0
+    endziffer = src.kost2Art?.id?.toInt() ?: 0
     formattedNumber = src.formattedNumber
     this.project = src.projekt?.let {
       val project = Project()
@@ -88,7 +88,7 @@ class Kost2(
   companion object {
     private val kost2Dao = ApplicationContextProvider.getApplicationContext().getBean(Kost2Dao::class.java)
 
-    fun getkost2(kost2Id: Int?, minimal: Boolean = true): Kost2? {
+    fun getkost2(kost2Id: Long?, minimal: Boolean = true): Kost2? {
       kost2Id ?: return null
       val kost2DO = kost2Dao.getOrLoad(kost2Id) ?: return null
       val kost2 = Kost2()

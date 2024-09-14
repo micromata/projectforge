@@ -59,7 +59,7 @@ public class TeamCalConfig implements ConfigurationData
    * @param id
    * @see #createUid(String, String)
    */
-  private String createUid(final String prefix, final Integer id)
+  private String createUid(final String prefix, final Long id)
   {
     return createUid(prefix, id != null ? id.toString() : "");
   }
@@ -88,15 +88,13 @@ public class TeamCalConfig implements ConfigurationData
    * @param id
    * @return
    */
-  public String createTimesheetUid(final Integer id)
+  public String createTimesheetUid(final Long id)
   {
     return createUid(TIMESHEET_UID_PREFIX, id);
   }
 
   /**
    * Only for internal test purposes.
-   *
-   * @param config
    */
   public static void __internalSetConfig(final TeamCalConfig newConfig)
   {

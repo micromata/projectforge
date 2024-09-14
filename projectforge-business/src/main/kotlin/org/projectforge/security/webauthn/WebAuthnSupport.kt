@@ -194,7 +194,7 @@ class WebAuthnSupport {
   val availableForLoggedInUser: Boolean
     get() = webAuthnStorage.loadAll().isNotEmpty()
 
-  fun isAvailableForUser(ownerId: Int?): Boolean {
+  fun isAvailableForUser(ownerId: Long?): Boolean {
     return webAuthnStorage.loadAll(ownerId).isNotEmpty()
   }
 

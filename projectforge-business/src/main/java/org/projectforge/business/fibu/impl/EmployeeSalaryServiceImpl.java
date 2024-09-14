@@ -74,7 +74,7 @@ public class EmployeeSalaryServiceImpl implements EmployeeSalaryService
   }
 
   @Override
-  public EmployeeSalaryDO selectByPk(Integer id)
+  public EmployeeSalaryDO selectByPk(Long id)
   {
     return employeeSalaryDao.getById(id);
   }

@@ -40,7 +40,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 
   public static final String DEFAULT_COLOR = "#FAAF26";
 
-  private static final Set<Integer> EMPTY_INT_SET = new HashSet<>();
+  private static final Set<Long> EMPTY_LONG_SET = new HashSet<>();
 
   private final List<TemplateEntry> templateEntries;
 
@@ -61,7 +61,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
    * @param calId Id of the calendar to search for.
    * @return Previous used color for the given calendar or DEFAULT_COLOR if not found.
    */
-  public String getUsedColor(final Integer calId)
+  public String getUsedColor(final Long calId)
   {
     String lastCalendarColor = null;
     String lastColor = DEFAULT_COLOR;
@@ -189,17 +189,17 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
     return this;
   }
 
-  public Set<Integer> getActiveVisibleCalendarIds()
+  public Set<Long> getActiveVisibleCalendarIds()
   {
     if (getActiveTemplateEntry() != null) {
       return this.activeTemplateEntry.getVisibleCalendarIds();
     } else {
-      if (!EMPTY_INT_SET.isEmpty()) {
+      if (!EMPTY_LONG_SET.isEmpty()) {
         log.error(
             "************** Oups, dear developers, don't add entries to the empty HashSet returned by this method!!!!");
-        EMPTY_INT_SET.clear();
+        EMPTY_LONG_SET.clear();
       }
-      return EMPTY_INT_SET;
+      return EMPTY_LONG_SET;
     }
   }
 
@@ -360,7 +360,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
    * @see org.projectforge.business.teamcal.filter.ICalendarFilter#getTimesheetUserId()
    */
   @Override
-  public Integer getTimesheetUserId()
+  public Long getTimesheetUserId()
   {
     if (getActiveTemplateEntry() == null) {
       return null;
@@ -369,10 +369,10 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   }
 
   /**
-   * @see org.projectforge.business.teamcal.filter.ICalendarFilter#setTimesheetUserId(java.lang.Integer)
+   * @see org.projectforge.business.teamcal.filter.ICalendarFilter#setTimesheetUserId(java.lang.Long)
    */
   @Override
-  public TeamCalCalendarFilter setTimesheetUserId(final Integer timesheetUserId)
+  public TeamCalCalendarFilter setTimesheetUserId(final Long timesheetUserId)
   {
     if (getActiveTemplateEntry() != null) {
       activeTemplateEntry.setTimesheetUserId(timesheetUserId);

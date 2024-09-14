@@ -96,12 +96,12 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   TextArea<String> descriptionArea;
 
-  DropDownChoicePanel<Integer> cost2ChoicePanel;
+  DropDownChoicePanel<Long> cost2ChoicePanel;
 
   @SpringBean
   private UserFormatter userFormatter;
   private UserPrefDO recentUserPref;
-  private DropDownChoice<Integer> cost2Choice;
+  private DropDownChoice<Long> cost2Choice;
   private FieldsetPanel cost2ChoiceFieldset;
   private ConsumptionBarPanel consumptionBarPanel;
   private List<Kost2DO> cost2List;
@@ -117,17 +117,17 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   }
 
   @SuppressWarnings("serial")
-  protected static DropDownChoice<Integer> createCost2ChoiceRenderer(final String id, final TimesheetDao timesheetDao,
-                                                                     final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer, final TimesheetDO data,
+  protected static DropDownChoice<Long> createCost2ChoiceRenderer(final String id, final TimesheetDao timesheetDao,
+                                                                     final LabelValueChoiceRenderer<Long> kost2ChoiceRenderer, final TimesheetDO data,
                                                                      final List<Kost2DO> kost2List) {
-    final DropDownChoice<Integer> choice = new DropDownChoice<>(id, new Model<Integer>() {
+    final DropDownChoice<Long> choice = new DropDownChoice<>(id, new Model<Long>() {
       @Override
-      public Integer getObject() {
+      public Long getObject() {
         return data.getKost2Id();
       }
 
       @Override
-      public void setObject(final Integer kost2Id) {
+      public void setObject(final Long kost2Id) {
         if (kost2Id != null) {
           timesheetDao.setKost2(data, kost2Id);
         } else {
@@ -136,10 +136,10 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       }
     }, kost2ChoiceRenderer.getValues(), kost2ChoiceRenderer);
     choice.setNullValid(true);
-    choice.add(new IValidator<Integer>() {
+    choice.add(new IValidator<Long>() {
       @Override
-      public void validate(final IValidatable<Integer> validatable) {
-        final Integer value = validatable.getValue();
+      public void validate(final IValidatable<Long> validatable) {
+        final Long value = validatable.getValue();
         if (value != null && value >= 0) {
           return;
         }
@@ -161,12 +161,12 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
    * @param kost2Choice
    * @return
    */
-  protected static LabelValueChoiceRenderer<Integer> getCost2LabelValueChoiceRenderer(final TimesheetDao timesheetDao,
+  protected static LabelValueChoiceRenderer<Long> getCost2LabelValueChoiceRenderer(final TimesheetDao timesheetDao,
                                                                                       final List<Kost2DO> kost2List, final TimesheetDO data, final DropDownChoice<Integer> kost2Choice) {
-    final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = new LabelValueChoiceRenderer<>();
+    final LabelValueChoiceRenderer<Long> kost2ChoiceRenderer = new LabelValueChoiceRenderer<>();
     if (kost2List != null && kost2List.size() == 1) {
       // Es ist genau ein Eintrag. Deshalb selektieren wir diesen auch:
-      final Integer kost2Id = kost2List.get(0).getId();
+      final Long kost2Id = kost2List.get(0).getId();
       timesheetDao.setKost2(data, kost2Id);
       if (kost2Choice != null) {
         kost2Choice.modelChanged();
@@ -225,8 +225,8 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             // Kost2 is not available for current task.
             final TaskNode taskNode = getTaskTree().getTaskNodeById(data.getTaskId());
             if (taskNode != null) {
-              final List<Integer> descendents = taskNode.getDescendantIds();
-              for (final Integer taskId : descendents) {
+              final List<Long> descendents = taskNode.getDescendantIds();
+              for (final Long taskId : descendents) {
                 if (CollectionUtils.isNotEmpty(getTaskTree().getKost2List(taskId))) {
                   // But Kost2 is available for sub task, so user should book his time sheet
                   // on a sub task with kost2s.
@@ -283,7 +283,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       cost2ChoiceFieldset.getFieldset().setOutputMarkupId(true);
       cost2ChoiceFieldset.getFieldset().setOutputMarkupPlaceholderTag(true);
       cost2List = getTaskTree().getKost2List(data.getTaskId());
-      final LabelValueChoiceRenderer<Integer> cost2ChoiceRenderer = getCost2LabelValueChoiceRenderer(
+      final LabelValueChoiceRenderer<Long> cost2ChoiceRenderer = getCost2LabelValueChoiceRenderer(
           parentPage.getBaseDao(), cost2List,
           data, null);
       cost2Choice = createCost2ChoiceRenderer(cost2ChoiceFieldset.getDropDownChoiceId(), parentPage.getBaseDao(),
@@ -540,7 +540,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   protected void refresh() {
     if (cost2ChoicePanel != null) {
       cost2List = getTaskTree().getKost2List(data.getTaskId());
-      final LabelValueChoiceRenderer<Integer> cost2ChoiceRenderer = getCost2LabelValueChoiceRenderer(
+      final LabelValueChoiceRenderer<Long> cost2ChoiceRenderer = getCost2LabelValueChoiceRenderer(
           parentPage.getBaseDao(), cost2List,
           data, null);
       cost2ChoicePanel.getDropDownChoice().setChoiceRenderer(cost2ChoiceRenderer);
@@ -551,7 +551,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   }
 
   protected ConsumptionBarPanel getConsumptionBar() {
-    final Integer taskId = data.getTaskId();
+    final Long taskId = data.getTaskId();
     TaskNode node = taskId != null ? getTaskTree().getTaskNodeById(taskId) : null;
     if (node != null) {
       final TaskNode personDaysNode = getTaskTree().getPersonDaysNode(node);

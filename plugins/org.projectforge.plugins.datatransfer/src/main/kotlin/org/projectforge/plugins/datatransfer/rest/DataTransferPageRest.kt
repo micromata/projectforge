@@ -88,7 +88,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("downloadAll/{id}")
   fun downloadAll(
-    @PathVariable("id", required = true) id: Int,
+    @PathVariable("id", required = true) id: Long,
     response: HttpServletResponse
   ) {
     val pair = convertData(id)
@@ -109,8 +109,8 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    var id = NumberHelper.parseInteger(idString)
-    if (id == -1) {
+    var id = NumberHelper.parseLong(idString)
+    if (id == -1L) {
       // personal box of logged-in user is requested:
       id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.userId!!)?.id
     }
@@ -321,7 +321,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     } else {
       newObservers.removeIf { it.id == loggedInUser.id }
     }
-    dbObj.observerIds = User.toIntList(newObservers)
+    dbObj.observerIds = User.toLongList(newObservers)
     // InternalSave, because user must not be admin to observe this area. Read access is given, because data transfer
     // area was already gotten by user in [DataTransferPageRest#convertData]
     dataTransferAreaDao.internalUpdate(dbObj)
@@ -342,7 +342,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     return dto.personalBox != true && dataTransferAreaDao.hasLoggedInUserUpdateAccess(dbObj, dbObj, false)
   }
 
-  private fun convertData(id: Int): Pair<DataTransferAreaDO, DataTransferArea> {
+  private fun convertData(id: Long): Pair<DataTransferAreaDO, DataTransferArea> {
     val dbObj = dataTransferAreaDao.getById(id)!!
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
     if (hasEditAccess(dto, dbObj)) {
@@ -360,7 +360,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     if (!dbObj.accessGroupIds.isNullOrBlank()) {
       // Add all users assigned to the access groups:
       val accessGroupUsers =
-        groupService.getGroupUsers(User.toIntArray(dbObj.accessGroupIds)).joinToString { it.displayName }
+        groupService.getGroupUsers(User.toLongArray(dbObj.accessGroupIds)).joinToString { it.displayName }
       dto.accessGroupsAsString += ": $accessGroupUsers"
     }
     dto.userWantsToObserve = isLoggedInUserObserver(dto)

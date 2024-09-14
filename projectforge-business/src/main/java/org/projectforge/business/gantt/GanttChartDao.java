@@ -248,7 +248,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
           // GanttTask already added to the Gantt object tree.
           return true;
         }
-        if (taskTree.getTaskById((Integer) ganttTask.getId()) != null) {
+        if (taskTree.getTaskById((Long) ganttTask.getId()) != null) {
           // External task, so ignore it:
           return true;
         }
@@ -276,7 +276,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
 
   private GanttTask getGanttObject(final TaskTree taskTree, final GanttChartData ganttChartData, final Element el) {
     final String idString = el.attributeValue("id");
-    final Integer id = NumberHelper.parseInteger(idString);
+    final Long id = NumberHelper.parseLong(idString);
     GanttTask ganttObject = ganttChartData.findById(id);
     if (ganttObject == null) {
       ganttObject = ganttChartData.ensureAndGetExternalGanttObject(taskTree.getTaskById(id));
@@ -336,11 +336,11 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
             return true;
           }
           final GanttTask ganttObject = (GanttTask) obj;
-          final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
+          final TaskDO task = taskTree.getTaskById((Long) ganttObject.getId());
           if (task != null) {
             if ("predecessor".equals(field.getName())) {
               // Predecessor unmodified?
-              return NumberHelper.isEqual((Integer) ganttObject.getPredecessorId(), task.getGanttPredecessorId());
+              return NumberHelper.isEqual((Long) ganttObject.getPredecessorId(), task.getGanttPredecessorId());
             }
             String taskFieldname = fieldMapping.get(fieldName);
             if (taskFieldname == null) {
@@ -369,7 +369,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
           final String fieldName = field.getName();
           if (!"id".equals(fieldName)) {
             final GanttTask ganttObject = (GanttTask) obj;
-            final TaskDO task = taskTree.getTaskById((Integer) ganttObject.getId());
+            final TaskDO task = taskTree.getTaskById((Long) ganttObject.getId());
             if (task != null) {
               String taskFieldname = fieldMapping.get(fieldName);
               if (taskFieldname == null) {
@@ -399,9 +399,9 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
   /**
    * @param ganttChart
    * @param taskId     If null, then task will be set to null;
-   * @see TaskTree#getTaskById(Integer)
+   * @see TaskTree#getTaskById(Long)
    */
-  public void setTask(final GanttChartDO ganttChart, final Integer taskId) {
+  public void setTask(final GanttChartDO ganttChart, final Long taskId) {
     final TaskDO task = taskDao.getOrLoad(taskId);
     ganttChart.setTask(task);
   }
@@ -409,9 +409,9 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
   /**
    * @param ganttChart
    * @param userId     If null, then task will be set to null;
-   * @see BaseDao#getOrLoad(Integer)
+   * @see BaseDao#getOrLoad(Long)
    */
-  public void setOwner(final GanttChartDO ganttChart, final Integer userId) {
+  public void setOwner(final GanttChartDO ganttChart, final Long userId) {
     final PFUserDO user = userDao.getOrLoad(userId);
     ganttChart.setOwner(user);
   }

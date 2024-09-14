@@ -49,12 +49,12 @@ open class Favorites<T : AbstractFavorite>() {
   /**
    * For exports etc.
    */
-  class FavoriteIdTitle(val id: Int, val name: String)
+  class FavoriteIdTitle(val id: Long, val name: String)
 
   @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
   private val set: MutableSet<T> = mutableSetOf()
 
-  fun get(id: Int?): T? {
+  fun get(id: Long?): T? {
     if (id == null) return null
     fixNamesAndIds()
     return set.find { it.id == id }
@@ -76,12 +76,12 @@ open class Favorites<T : AbstractFavorite>() {
     set.removeIf { it.name == name }
   }
 
-  fun remove(id: Int) {
+  fun remove(id: Long) {
     fixNamesAndIds()
     set.removeIf { it.id == id }
   }
 
-  fun rename(id: Int, newName: String) {
+  fun rename(id: Long, newName: String) {
     val entry = get(id)
     if (entry != null) {
       entry.name = newName
@@ -128,8 +128,8 @@ open class Favorites<T : AbstractFavorite>() {
    */
   private fun fixNamesAndIds() {
     val namesSet = mutableSetOf<String>()
-    val idSet = mutableSetOf<Int>()
-    var maxId: Int = set.maxByOrNull { it.id ?: 0 }?.id ?: 0
+    val idSet = mutableSetOf<Long>()
+    var maxId: Long = set.maxByOrNull { it.id ?: 0 }?.id ?: 0
     set.forEach {
       var id = it.id
       if (id == null || idSet.contains(id)) {
@@ -221,7 +221,7 @@ open class Favorites<T : AbstractFavorite>() {
       )
     }
 
-    fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Int) {
+    fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Long) {
       val userPref = userPrefDao.getUserPref(area, id)
       if (userPref != null) {
         userPrefDao.delete(userPref)
@@ -233,7 +233,7 @@ open class Favorites<T : AbstractFavorite>() {
     /**
      * Rename the user pref itself, not the name of the favorite. This is only used for backwardcompability (e. g. used by TaskFavorites).
      */
-    fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Int, newName: String) {
+    fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Long, newName: String) {
       val userPref = userPrefDao.getUserPref(area, id)
       if (userPref != null) {
         if (userPref.name == newName) {

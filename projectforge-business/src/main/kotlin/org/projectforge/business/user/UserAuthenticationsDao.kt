@@ -80,7 +80,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
     }
 
-    private fun hasLoggedInUserAccess(ownerUserId: Int?, throwException: Boolean = true): Boolean {
+    private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {
         ownerUserId ?: return false
         if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.userId) {
             return true
@@ -100,7 +100,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @param userId   If null, then user will be set to null;
      * @see BaseDao.getOrLoad
      */
-    open fun setUser(authentications: UserAuthenticationsDO, userId: Int) {
+    open fun setUser(authentications: UserAuthenticationsDO, userId: Long) {
         val user = userDao.internalGetById(userId)
         authentications.user = user
     }
@@ -109,11 +109,11 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @return Stored or created authentications object for given user.
      * @throws AccessException if the logged-in user neither doesn't match the given user nor is admin user.
      */
-    open fun getByUserId(userId: Int): UserAuthenticationsDO? {
+    open fun getByUserId(userId: Long): UserAuthenticationsDO? {
         return ensureAuthentications(userId)
     }
 
-    open fun getUserByToken(userId: Int, type: UserTokenType, token: String?): PFUserDO? {
+    open fun getUserByToken(userId: Long, type: UserTokenType, token: String?): PFUserDO? {
         if (token.isNullOrBlank() || token.trim().length < 10) {
             log.warn("Token for user $userId too short, aborting.")
             return null
@@ -175,7 +175,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @return The decrypted token.
      * @throws AccessException if logged in user isn't either admin user nor owner of this token.
      */
-    open fun getToken(userId: Int, type: UserTokenType): String? {
+    open fun getToken(userId: Long, type: UserTokenType): String? {
         return getTokenData(userId, type)?.token
     }
 
@@ -185,7 +185,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @return The decrypted token and date of creation.
      * @throws AccessException if logged in user isn't either admin user nor owner of this token.
      */
-    open fun getTokenData(userId: Int, type: UserTokenType): UserTokenData? {
+    open fun getTokenData(userId: Long, type: UserTokenType): UserTokenData? {
         if (ThreadLocalUserContext.userId != userId) { // Only admin users are able to renew authentication token of other users:
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         }
@@ -197,7 +197,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * will be generated. Without check access.
      * @return The decrypted token.
      */
-    open fun internalGetToken(userId: Int, type: UserTokenType): String? {
+    open fun internalGetToken(userId: Long, type: UserTokenType): String? {
         return internalGetTokenData(userId, type)?.token
     }
 
@@ -206,7 +206,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * will be generated. Without check access.
      * @return The decrypted token including type and creation date.
      */
-    open fun internalGetTokenData(userId: Int, type: UserTokenType): UserTokenData? {
+    open fun internalGetTokenData(userId: Long, type: UserTokenType): UserTokenData? {
         val authentications = ensureAuthentications(userId, checkAccess = false)
         return UserTokenData(decryptToken(authentications.getToken(type)), type, authentications.getCreationDate(type))
     }
@@ -235,7 +235,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     /**
      * @return true, if an Authenticator app (token) is configured by the given user.
      */
-    open fun internalHasAuthenticatorToken(userId: Int): Boolean {
+    open fun internalHasAuthenticatorToken(userId: Long): Boolean {
         val authentications = ensureAuthentications(userId, checkAccess = false)
         return !authentications.authenticatorToken.isNullOrEmpty()
     }
@@ -261,7 +261,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         }
     }
 
-    private fun checkAndFixToken(authentications: UserAuthenticationsDO, userId: Int, type: UserTokenType): Boolean {
+    private fun checkAndFixToken(authentications: UserAuthenticationsDO, userId: Long, type: UserTokenType): Boolean {
         val token = authentications.getToken(type)
         if (token.isNullOrBlank() || token.trim().length < 10) {
             log.info("Authentication token '$type' renewed for user: $userId")
@@ -274,7 +274,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     /**
      * Renews the user's authentication token (random string sequence).
      */
-    open fun renewToken(userId: Int, type: UserTokenType) {
+    open fun renewToken(userId: Long, type: UserTokenType) {
         accessChecker.checkRestrictedOrDemoUser() // Demo users are also not allowed to do this.
         val authentications = getByUserId(userId)
         if (authentications == null) {
@@ -357,7 +357,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @return Stored or created authentications object for given user.
      * @throws AccessException if the logged-in user neither doesn't match the given user nor is admin user.
      */
-    private fun ensureAuthentications(userId: Int?, checkAccess: Boolean = true): UserAuthenticationsDO {
+    private fun ensureAuthentications(userId: Long?, checkAccess: Boolean = true): UserAuthenticationsDO {
         userId ?: throw AccessException("User ID must not be null.")
         if (checkAccess) {
             hasLoggedInUserAccess(userId)

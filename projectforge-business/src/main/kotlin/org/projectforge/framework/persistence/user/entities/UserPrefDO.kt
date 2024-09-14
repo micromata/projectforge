@@ -70,7 +70,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
         NamedQuery(name = FIND_NAMES_BY_USER_AND_AREA, query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"),
         NamedQuery(name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA, query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"),
         NamedQuery(name = FIND_OTHER_BY_USER_AND_AREA_AND_NAME, query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"))
-class UserPrefDO : AbstractBaseDO<Int>() {
+class UserPrefDO : AbstractBaseDO<Long>() {
     @JsonIgnore
     private val log = org.slf4j.LoggerFactory.getLogger(UserPrefDO::class.java)
 
@@ -106,7 +106,7 @@ class UserPrefDO : AbstractBaseDO<Int>() {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     /**
      * The value as string representation (e. g. json).

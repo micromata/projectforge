@@ -51,7 +51,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
 
   public HRPlanningEditPage(final PageParameters parameters) {
     super(parameters, "hr.planning");
-    final Integer userId = WicketUtils.getAsInteger(parameters, WebConstants.PARAMETER_USER_ID);
+    final Long userId = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_USER_ID);
     Long millis = WicketUtils.getAsLong(parameters, WebConstants.PARAMETER_DATE);
     final LocalDate week;
     if (millis == null) {
@@ -108,13 +108,13 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
         final Integer idx = NumberHelper.parseInteger(property.split(":")[1]);
         final Integer uiId = NumberHelper.parseInteger(property.split(":")[2]);
         final HRPlanningEntryDO entry = getData().getEntry(idx);
-        getBaseDao().setProjekt(entry, (Integer) selectedValue);
+        getBaseDao().setProjekt(entry, (Long) selectedValue);
         form.projektSelectPanels.get(uiId).getTextField().modelChanged();
       } catch (final IndexOutOfBoundsException ex) {
         log.error("Oups, idx not supported: " + ex.getMessage(), ex);
       }
     } else if ("userId".equals(property)) {
-      getBaseDao().setUser(getData(), (Integer) selectedValue);
+      getBaseDao().setUser(getData(), (Long) selectedValue);
       form.refresh();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

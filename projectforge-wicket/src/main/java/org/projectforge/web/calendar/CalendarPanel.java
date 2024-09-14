@@ -234,7 +234,7 @@ public class CalendarPanel extends Panel {
                         return;
                     } else if (BirthdayEventsProvider.EVENT_CLASS_NAME.startsWith(eventClassName) == true) {
                         // User clicked on birthday, show the address:
-                        final Integer id = NumberHelper.parseInteger(eventId);
+                        final Long id = NumberHelper.parseLong(eventId);
                         throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(id, "/wa/teamCalendar"));
                     }
                     onEventClickedHook(clickedEvent, response, event, eventId, eventClassName);

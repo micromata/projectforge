@@ -53,7 +53,7 @@ public class RestUserFilterTest extends AbstractTestBase {
 
   final RestUserFilter filter = new RestUserFilter();
 
-  int userId = 0;
+  long userId = 0;
 
   String userToken = "token";
 
@@ -100,7 +100,7 @@ public class RestUserFilterTest extends AbstractTestBase {
     verify(chain).doFilter(Mockito.eq(request), Mockito.eq(response));
   }
 
-  private HttpServletRequest mockRequest(final String username, final char[] password, final Integer userId,
+  private HttpServletRequest mockRequest(final String username, final char[] password, final Long userId,
                                          final String authenticationToken) {
     final HttpServletRequest request = mock(HttpServletRequest.class);
     if (username != null) {

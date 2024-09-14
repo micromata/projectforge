@@ -92,7 +92,7 @@ public class TeamCalFilterDialog extends ModalDialog
 
   private TeamCalFilterDialogCalendarColorPanel calendarColorPanel;
 
-  private Select<Integer> defaultCalendarSelect;
+  private Select<Long> defaultCalendarSelect;
 
   private Select2MultiChoice<TeamCalDO> teamCalsChoice;
 
@@ -345,8 +345,8 @@ public class TeamCalFilterDialog extends ModalDialog
       protected void onUpdate(final AjaxRequestTarget target)
       {
         final TemplateEntry activeTemplateEntry = filter.getActiveTemplateEntry();
-        final Set<Integer> oldCalIds = activeTemplateEntry.getCalendarIds();
-        final List<Integer> newIds = new LinkedList<Integer>();
+        final Set<Long> oldCalIds = activeTemplateEntry.getCalendarIds();
+        final List<Long> newIds = new LinkedList<Long>();
         // add new keys
         for (final TeamCalDO calendar : selectedCalendars) {
           if (oldCalIds.contains(calendar.getId()) == false) {
@@ -355,7 +355,7 @@ public class TeamCalFilterDialog extends ModalDialog
           newIds.add(calendar.getId());
         }
         // delete removed keys
-        for (final Integer key : oldCalIds) {
+        for (final Long key : oldCalIds) {
           if (newIds.contains(key) == false) {
             activeTemplateEntry.removeCalendarProperties(key);
           }
@@ -371,11 +371,11 @@ public class TeamCalFilterDialog extends ModalDialog
   {
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.defaultCalendar"));
     fs.addHelpIcon(getString("plugins.teamcal.defaultCalendar.tooltip"));
-    final IOptionRenderer<Integer> renderer = new IOptionRenderer<Integer>()
+    final IOptionRenderer<Long> renderer = new IOptionRenderer<Long>()
     {
 
       @Override
-      public String getDisplayValue(final Integer object)
+      public String getDisplayValue(final Long object)
       {
         if (Constants.isTimesheetCalendarId(object)) {
           return timesheetsCalendar.getTitle();
@@ -384,14 +384,14 @@ public class TeamCalFilterDialog extends ModalDialog
       }
 
       @Override
-      public IModel<Integer> getModel(final Integer value)
+      public IModel<Long> getModel(final Long value)
       {
         return Model.of(value);
       }
     };
 
     // TEAMCAL SELECT
-    defaultCalendarSelect = new Select<Integer>(fs.getSelectId(), new PropertyModel<Integer>(filter,
+    defaultCalendarSelect = new Select<Long>(fs.getSelectId(), new PropertyModel<Long>(filter,
         "activeTemplateEntry.defaultCalendarId"))
     {
 
@@ -412,7 +412,7 @@ public class TeamCalFilterDialog extends ModalDialog
             }
           }
         }
-        final List<Integer> filteredList = new ArrayList<Integer>();
+        final List<Long> filteredList = new ArrayList<Long>();
         filteredList.add(Constants.TIMESHEET_CALENDAR_ID);
         if (result != null) {
           final Iterator<TeamCalDO> it = result.iterator();
@@ -421,7 +421,7 @@ public class TeamCalFilterDialog extends ModalDialog
             filteredList.add(teamCal.getId());
           }
         }
-        final SelectOptions<Integer> options = new SelectOptions<Integer>(SelectPanel.OPTIONS_WICKET_ID, filteredList,
+        final SelectOptions<Long> options = new SelectOptions<Long>(SelectPanel.OPTIONS_WICKET_ID, filteredList,
             renderer);
         this.addOrReplace(options);
       }
@@ -433,7 +433,7 @@ public class TeamCalFilterDialog extends ModalDialog
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
       {
-        final Integer value = defaultCalendarSelect.getModelObject();
+        final Long value = defaultCalendarSelect.getModelObject();
         filter.getActiveTemplateEntry().setDefaultCalendarId(value);
       }
     });
@@ -461,7 +461,7 @@ public class TeamCalFilterDialog extends ModalDialog
     if (activeTemplateEntry == null) {
       return null;
     }
-    final Integer userId = activeTemplateEntry.getTimesheetUserId();
+    final Long userId = activeTemplateEntry.getTimesheetUserId();
     return userId != null ? UserGroupCache.getInstance().getUser(userId) : null;
   }
 

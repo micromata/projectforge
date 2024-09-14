@@ -81,7 +81,7 @@ public class UserPrefService {
    * @param persistent If true, the object will be persisted in the database.
    * @param userId     Optional userId. If not given, {@link ThreadLocalUserContext#getUserId()} is used.
    */
-  public void putEntry(final String area, final String name, final Object value, final boolean persistent, Integer userId) {
+  public void putEntry(final String area, final String name, final Object value, final boolean persistent, Long userId) {
     userPrefCache.putEntry(area, name, value, persistent, userId);
   }
 
@@ -110,7 +110,7 @@ public class UserPrefService {
    * @return Return a persistent object with this name, if existing, or if not a volatile object with this name, if
    * existing, otherwise null;
    */
-  public <T> T getEntry(String area, String name, Class<T> expectedType, Integer userId) {
+  public <T> T getEntry(String area, String name, Class<T> expectedType, Long userId) {
     return userPrefCache.getEntry(area, name, expectedType, userId);
   }
 
@@ -151,7 +151,7 @@ public class UserPrefService {
    * @param userId       User to use. Uses ThreadLocalUserContext.getUserId() if null.
    * @return
    */
-  public <T> T ensureEntry(String area, String name, T defaultValue, boolean persistent, Integer userId) {
+  public <T> T ensureEntry(String area, String name, T defaultValue, boolean persistent, Long userId) {
     T value = (T) getEntry(area, name, defaultValue.getClass(), userId);
     if (value == null) {
       value = defaultValue;

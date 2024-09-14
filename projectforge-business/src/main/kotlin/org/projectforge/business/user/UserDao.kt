@@ -110,11 +110,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return list
     }
 
-    fun getAssignedGroups(user: PFUserDO?): Collection<Int>? {
+    fun getAssignedGroups(user: PFUserDO?): Collection<Long>? {
         return userGroupCache.getUserGroups(user)
     }
 
-    fun getUserRights(userId: Int?): List<UserRightDO>? {
+    fun getUserRights(userId: Long?): List<UserRightDO>? {
         return userGroupCache.getUserRights(userId)
     }
 
@@ -191,7 +191,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         persistenceService.criteriaUpdate(PFUserDO::class.java) { cb, root, update ->
             update.set(root.get("lastLogin"), Date())
             update.set(root.get("loginFailures"), 0)
-            update.where(cb.equal(root.get<Int>("id"), user.id));
+            update.where(cb.equal(root.get<Long>("id"), user.id));
         }
     }
 
@@ -359,12 +359,12 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      * @return The decrypted data.
      * @see UserDao.decrypt
      */
-    fun decrypt(encrypted: String?, userId: Int): String? {
+    fun decrypt(encrypted: String?, userId: Long): String? {
         val password = getPasswordOfUser(userId) ?: return null
         return decrypt(password, encrypted)
     }
 
-    private fun getPasswordOfUser(userId: Int): String? {
+    private fun getPasswordOfUser(userId: Long): String? {
         if (userPasswordDao == null) {
             userPasswordDao = applicationContext.getBean(UserPasswordDao::class.java)
         }

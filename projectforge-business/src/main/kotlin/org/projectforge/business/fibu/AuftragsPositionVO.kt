@@ -35,7 +35,7 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
 
     val number: Short
 
-    var auftragId: Int? = null
+    var auftragId: Long? = null
         private set
 
     var auftragNummer: Int? = null
@@ -59,7 +59,7 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
     var auftragsPersonDays: BigDecimal? = null
         private set
 
-    val taskId: Int?
+    val taskId: Long?
 
     val art: AuftragsPositionsArt?
 

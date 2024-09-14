@@ -79,7 +79,7 @@ class HibernateSearchUsersGroupsBridge : TypeBridge<BaseUserGroupRightsDO> {
             return null
         }
         val sortedGroups: MutableCollection<GroupDO> = TreeSet(groupsComparator)
-        val ids = StringHelper.splitToInts(groupIds, ",", false)
+        val ids = StringHelper.splitToLongs(groupIds, ",", false)
         for (id in ids) {
             val group = userGroupCache.getGroup(id)
             if (group != null) {
@@ -99,7 +99,7 @@ class HibernateSearchUsersGroupsBridge : TypeBridge<BaseUserGroupRightsDO> {
             return null
         }
         val sortedUsers: MutableCollection<PFUserDO> = TreeSet(usersComparator)
-        val ids = StringHelper.splitToInts(userIds, ",", false)
+        val ids = StringHelper.splitToLongs(userIds, ",", false)
         for (id in ids) {
             val user = userGroupCache.getUser(id)
             if (user != null) {

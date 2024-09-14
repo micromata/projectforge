@@ -40,7 +40,7 @@ import jakarta.persistence.*
 @Entity
 @Indexed
 @Table(name = "T_GROUP_TASK_ACCESS_ENTRY", uniqueConstraints = [UniqueConstraint(columnNames = ["group_task_access_fk", "access_type"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_task_access_entry_group_task_access_fk", columnList = "group_task_access_fk")])
-class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
+class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Long> {
 
     // private static final Logger log = Logger.getLogger(AccessEntryDO.class);
 
@@ -67,7 +67,7 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Int> {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
-    override var id: Int? = null
+    override var id: Long? = null
 
     /**
      * @return Always false.

@@ -42,14 +42,14 @@ public interface GroupService
 
   List<GroupDO> getAllGroups();
 
-  Collection<PFUserDO> getGroupUsers(int[] groupIds);
+  Collection<PFUserDO> getGroupUsers(long[] groupIds);
 
-  GroupDO getGroup(Integer groupId);
+  GroupDO getGroup(Long groupId);
 
-  String getGroupname(Integer groupId);
+  String getGroupname(Long groupId);
 
-  String getDisplayName(Integer groupId);
+  String getDisplayName(Long groupId);
 
-  String getGroupnames(Integer userId);
+  String getGroupnames(Long userId);
 
 }

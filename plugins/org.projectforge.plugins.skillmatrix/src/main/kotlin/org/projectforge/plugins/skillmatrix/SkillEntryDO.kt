@@ -51,13 +51,13 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
     query = "delete from SkillEntryDO where owner.id=:userId"
   ),
 )
-open class SkillEntryDO : AbstractBaseDO<Int>() {
+open class SkillEntryDO : AbstractBaseDO<Long>() {
 
   @get:Column(name = "pk")
   @get:GeneratedValue
   @get:Id
   @PropertyInfo(i18nKey = "id")
-  override var id: Int? = null
+  override var id: Long? = null
 
   @PropertyInfo(i18nKey = "plugins.skillmatrix.skill")
   @FullTextField
@@ -100,7 +100,7 @@ open class SkillEntryDO : AbstractBaseDO<Int>() {
   @get:Column(length = Constants.LENGTH_COMMENT)
   open var comment: String? = null
 
-  val ownerId: Int?
+  val ownerId: Long?
     @Transient
     get() = owner?.id
 

@@ -66,9 +66,9 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     var selectedIds: Collection<Serializable>? = null
   }
 
-  protected open fun getId(obj: T): Int {
+  protected open fun getId(obj: T): Long {
     if (obj is IdObject<*>) {
-      return obj.id as Int
+      return obj.id as Long
     }
     throw NotImplementedError("Please override getId(T).")
   }
@@ -115,7 +115,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
     val selectedIds = MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java)
 
     val massUpdateContext = object : MassUpdateContext<T>(postData.data.toMutableMap()) {
-      override fun getId(obj: T): Int {
+      override fun getId(obj: T): Long {
         return this@AbstractMultiSelectedPage.getId(obj)
       }
     }

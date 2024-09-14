@@ -932,11 +932,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
   private void addAssignedGroups(final boolean adminAccess) {
     var groupService = WicketSupport.get(GroupService.class);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("user.assignedGroups")).setLabelSide(false);
-    final Collection<Integer> set = ((UserDao) getBaseDao()).getAssignedGroups(data);
+    final Collection<Long> set = ((UserDao) getBaseDao()).getAssignedGroups(data);
     assignGroupsListHelper = new MultiChoiceListHelper<GroupDO>().setComparator(new GroupsComparator()).setFullList(
             groupService.getSortedGroups());
     if (set != null) {
-      for (final Integer groupId : set) {
+      for (final Long groupId : set) {
         final GroupDO group = groupService.getGroup(groupId);
         if (group != null) {
           assignGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);

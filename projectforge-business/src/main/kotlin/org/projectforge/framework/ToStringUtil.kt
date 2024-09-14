@@ -135,7 +135,7 @@ class ToStringUtil {
         }
 
 
-        internal fun writeFields(jgen: JsonGenerator, id: Int?, fieldName: String, value: String?) {
+        internal fun writeFields(jgen: JsonGenerator, id: Long?, fieldName: String, value: String?) {
             if (id == null) {
                 jgen.writeNullField("id")
             } else {

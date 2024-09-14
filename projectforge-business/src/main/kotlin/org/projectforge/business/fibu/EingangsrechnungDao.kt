@@ -85,7 +85,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * @param kontoId          If null, then konto will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setKonto(eingangsrechnung: EingangsrechnungDO, kontoId: Int) {
+    fun setKonto(eingangsrechnung: EingangsrechnungDO, kontoId: Long) {
         val konto = kontoDao!!.getOrLoad(kontoId)
         eingangsrechnung.konto = konto
     }
@@ -215,7 +215,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.contains
      */
-    fun contains(idSet: Set<Int?>, entry: EingangsrechnungDO): Boolean {
+    fun contains(idSet: Set<Long?>, entry: EingangsrechnungDO): Boolean {
         if (super.contains(idSet, entry)) {
             return true
         }

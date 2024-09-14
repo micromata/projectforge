@@ -43,13 +43,13 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_MEMO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
-open class MemoDO : AbstractBaseDO<Int>() {
+open class MemoDO : AbstractBaseDO<Long>() {
 
     @get:Column(name = "pk")
     @get:GeneratedValue
     @get:Id
     @PropertyInfo(i18nKey = "id")
-    override var id: Int? = null
+    override var id: Long? = null
 
     @PropertyInfo(i18nKey = "plugins.memo.subject")
     @FullTextField
@@ -66,7 +66,7 @@ open class MemoDO : AbstractBaseDO<Int>() {
     @get:Column(length = Constants.LENGTH_TEXT)
     open var memo: String? = null
 
-    val ownerId: Int?
+    val ownerId: Long?
         @Transient
         get() = owner?.id
 }

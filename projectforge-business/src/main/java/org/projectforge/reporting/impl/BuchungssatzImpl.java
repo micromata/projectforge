@@ -61,7 +61,7 @@ public class BuchungssatzImpl implements Buchungssatz
     this.kost2 = new Kost2Impl(this.buchungssatz.getKost2());
   }
 
-  public Integer getId()
+  public Long getId()
   {
     return buchungssatz.getId();
   }

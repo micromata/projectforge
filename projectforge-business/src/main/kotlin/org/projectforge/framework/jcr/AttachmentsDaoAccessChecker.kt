@@ -35,7 +35,7 @@ import java.io.Serializable
 /**
  * Checks access to attachments.
  */
-open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Int>>(
+open class AttachmentsDaoAccessChecker<O : ExtendedBaseDO<Long>>(
   val baseDao: BaseDao<O>,
   val jcrPath: String?,
   supportedListIds: Array<String>? = null,

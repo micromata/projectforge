@@ -66,7 +66,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      *
      * @return true, if the user owns the required permission, otherwise false.
      */
-    public boolean hasLoggedInUserPermission(final Integer taskId, final AccessType accessType,
+    public boolean hasLoggedInUserPermission(final Long taskId, final AccessType accessType,
                                              final OperationType operationType,
                                              final boolean throwException) {
         return hasPermission(ThreadLocalUserContext.getUser(), taskId, accessType, operationType, throwException);
@@ -78,7 +78,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      * @return true, if the user owns the required permission, otherwise false.
      */
     @Override
-    public boolean hasPermission(final PFUserDO user, final Integer taskId, final AccessType accessType,
+    public boolean hasPermission(final PFUserDO user, final Long taskId, final AccessType accessType,
                                  final OperationType operationType,
                                  final boolean throwException) {
         Validate.notNull(user);
@@ -94,7 +94,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             // A user group "Admin" has always access.
             return true;
         }
-        final Collection<Integer> groupIds = userGroupCache.getUserGroups(user);
+        final Collection<Long> groupIds = userGroupCache.getUserGroups(user);
         if (groupIds == null) {
             // No groups are assigned to this user.
             if (throwException) {
@@ -102,7 +102,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             }
             return false;
         }
-        for (final Integer groupId : groupIds) {
+        for (final Long groupId : groupIds) {
             if (node.hasPermission(groupId, accessType, operationType)) {
                 return true;
             }
@@ -122,7 +122,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
 
     /**
-     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
+     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Long)
      */
     @Override
     public boolean isLoggedInUserMemberOfAdminGroup() {
@@ -130,7 +130,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
 
     /**
-     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
+     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Long)
      */
     @Override
     public boolean isUserMemberOfAdminGroup(final PFUserDO user) {
@@ -138,14 +138,14 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
 
     /**
-     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
+     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Long)
      */
     public boolean isLoggedInUserMemberOfAdminGroup(final boolean throwException) {
         return isLoggedInUserMemberOfGroup(throwException, ProjectForgeGroup.ADMIN_GROUP);
     }
 
     /**
-     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Integer)
+     * @see org.projectforge.business.user.UserGroupCache#isUserMemberOfAdminGroup(java.lang.Long)
      */
     @Override
     public boolean isUserMemberOfAdminGroup(final PFUserDO user, final boolean throwException) {
@@ -287,17 +287,17 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean areUsersInSameGroup(final PFUserDO user1, final PFUserDO user2) {
-        final Collection<Integer> userGroups = userGroupCache.getUserGroups(user2);
+        final Collection<Long> userGroups = userGroupCache.getUserGroups(user2);
         // No groups found.
         if (userGroups == null) {
             return false;
         }
-        final Collection<Integer> currentUserGroups = userGroupCache.getUserGroups(user1);
+        final Collection<Long> currentUserGroups = userGroupCache.getUserGroups(user1);
         if (currentUserGroups == null) {
             // User has now associated groups.
             return false;
         }
-        for (final Integer id : currentUserGroups) {
+        for (final Long id : currentUserGroups) {
             if (userGroups.contains(id)) {
                 return true;
             }
@@ -610,8 +610,6 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      * Calls {@link #hasWriteAccess(IUserRightId, boolean)} with throwException = true.
      *
      * @param rightId
-     * @param value
-     * @see #hasWriteAccess(IUserRightId, boolean)
      */
     public boolean checkLoggedInUserWriteAccess(final IUserRightId rightId) {
         return hasLoggedInUserWriteAccess(rightId, true);
@@ -700,7 +698,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
 
     @Override
-    public boolean isDemoUser(final Integer userId) {
+    public boolean isDemoUser(final Long userId) {
         final PFUserDO user = userGroupCache.getUser(userId);
         return AccessChecker.isDemoUser(user);
     }
@@ -715,7 +713,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     }
 
     @Override
-    public boolean isRestrictedUser(final Integer userId) {
+    public boolean isRestrictedUser(final Long userId) {
         if (userId < 0) {
             return false; // Internal system user (e. g. init-db-pseudo user on test cases.
         }
@@ -750,7 +748,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
         return isRestrictedOrDemoUser(user.getId());
     }
 
-    public boolean isRestrictedOrDemoUser(final Integer userId) {
+    public boolean isRestrictedOrDemoUser(final Long userId) {
         final PFUserDO user = userGroupCache.getUser(userId);
         return isRestrictedOrDemoUser(user);
     }
@@ -810,7 +808,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
     @Override
     public boolean hasLoggedInUserAccess(Class<?> entClass, OperationType opType) {
-        BaseDao<ExtendedBaseDO<Integer>> dao = getBaseDao(entClass);
+        BaseDao<ExtendedBaseDO<Long>> dao = getBaseDao(entClass);
         switch (opType) {
             case INSERT:
                 return dao.hasLoggedInUserInsertAccess();
@@ -824,9 +822,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
         }
     }
 
-    private BaseDao<ExtendedBaseDO<Integer>> getBaseDao(Class<?> entClass) {
+    private BaseDao<ExtendedBaseDO<Long>> getBaseDao(Class<?> entClass) {
         //noinspection unchecked
-        return (BaseDao<ExtendedBaseDO<Integer>>) Registry.getInstance().getEntryByDO((Class<? extends BaseDO<Integer>>) entClass).getDao();
+        return (BaseDao<ExtendedBaseDO<Long>>) Registry.getInstance().getEntryByDO((Class<? extends BaseDO<Long>>) entClass).getDao();
     }
 
     @Override
@@ -837,7 +835,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             IUserRightId ret = userRights.getRightId(rightId.value());
             return ret;
         }
-        BaseDao<ExtendedBaseDO<Integer>> dao = getBaseDao(entClass);
+        BaseDao<ExtendedBaseDO<Long>> dao = getBaseDao(entClass);
         UserRight userRight = dao.getUserRight();
         if (userRight == null) {
             throw new IllegalArgumentException(
@@ -849,7 +847,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
     @Override
     public boolean hasLoggedInUserHistoryAccess(Class<?> entClass) {
-        BaseDao<ExtendedBaseDO<Integer>> dao = getBaseDao(entClass);
+        BaseDao<ExtendedBaseDO<Long>> dao = getBaseDao(entClass);
         return dao.hasLoggedInUserHistoryAccess(false);
     }
 }

@@ -184,8 +184,9 @@ object NumberHelper {
   /**
    * Catches any NumberFormatException and returns 0, otherwise the long value represented by the given value is returned.
    */
+  @JvmOverloads
   @JvmStatic
-  fun parseLong(value: String?): Long? {
+  fun parseLong(value: String?, logMessage: Boolean = true): Long? {
     var v = value ?: return null
     v = v.trim { it <= ' ' }
     if (v.isEmpty()) {
@@ -195,7 +196,9 @@ object NumberHelper {
     try {
       result = java.lang.Long.valueOf(v)
     } catch (ex: NumberFormatException) {
-      log.debug(ex.message, ex)
+      if (logMessage == true) {
+        log.warn("Can't parse integer: '$v'.")
+      }
     }
     return result
   }
@@ -426,6 +429,24 @@ object NumberHelper {
    */
   @JvmStatic
   fun isEqual(value1: Int?, value: Int?): Boolean {
+    if (value1 == null) {
+      return value == null
+    }
+    return if (value == null) {
+      false
+    } else value1.compareTo(value) == 0
+  }
+
+  /**
+   * Compares two given Longs using compareTo method.
+   *
+   * @param value1
+   * @param value
+   * @return
+   * @see Long.compareTo
+   */
+  @JvmStatic
+  fun isEqual(value1: Long?, value: Long?): Boolean {
     if (value1 == null) {
       return value == null
     }

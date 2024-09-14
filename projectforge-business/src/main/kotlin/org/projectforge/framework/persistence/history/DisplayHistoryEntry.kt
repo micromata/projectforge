@@ -35,7 +35,7 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.utils.NumberHelper.parseInteger
+import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.lang.reflect.Field
@@ -94,7 +94,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
     if (StringUtils.isBlank(userId)) {
       return null
     }
-    val id = parseInteger(userId) ?: return null
+    val id = parseLong(userId) ?: return null
     return userGroupCache.getUser(id)
   }
 
@@ -284,7 +284,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
     timestamp = entry.modifiedAt!!
     val str = entry.modifiedBy
     if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
-      val userId = parseInteger(entry.modifiedBy)
+      val userId = parseLong(entry.modifiedBy)
       if (userId != null) {
         user = userGroupCache.getUser(userId)
       }

@@ -79,7 +79,7 @@ public class TaskTreePage extends AbstractSecuredPage
     init();
     if (WicketUtils.contains(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW) == true) {
       WicketSupport.get(TaskTreeBuilder.class)
-          .setHighlightedTaskNodeId(WicketUtils.getAsInteger(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW));
+          .setHighlightedTaskNodeId(WicketUtils.getAsLong(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW));
     }
   }
 
@@ -102,7 +102,7 @@ public class TaskTreePage extends AbstractSecuredPage
     init();
   }
 
-  public void setHighlightedRowId(final Integer highlightedRowId)
+  public void setHighlightedRowId(final Long highlightedRowId)
   {
     WicketSupport.get(TaskTreeBuilder.class).setHighlightedTaskNodeId(highlightedRowId);
   }

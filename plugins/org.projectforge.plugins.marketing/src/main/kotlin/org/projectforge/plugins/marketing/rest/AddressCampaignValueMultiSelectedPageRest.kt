@@ -61,7 +61,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
 
   override val layoutContext: LayoutContext = LayoutContext(AddressCampaignValueDO::class.java)
 
-  override fun getId(obj: AddressCampaignValue): Int {
+  override fun getId(obj: AddressCampaignValue): Long {
     return obj.id ?: obj.address?.id ?: -1
   }
 

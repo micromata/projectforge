@@ -37,7 +37,7 @@ internal class UserPrefCacheData {
             var persistant: Boolean = true,
             var modified: Boolean = false)
 
-    var userId: Int? = null
+    var userId: Long? = null
 
     private var entries = mutableListOf<CacheEntry>()
 

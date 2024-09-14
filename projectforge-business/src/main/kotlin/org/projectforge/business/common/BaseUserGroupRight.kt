@@ -113,15 +113,15 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
     return BaseUserGroupRightUtils.isOwner(user, obj)
   }
 
-  fun isOwner(userId: Int?, obj: T?): Boolean {
+  fun isOwner(userId: Long?, obj: T?): Boolean {
     return BaseUserGroupRightUtils.isOwner(userId, obj)
   }
 
-  fun hasReadAccess(obj: T?, userId: Int?, throwException: Boolean = false): Boolean {
+  fun hasReadAccess(obj: T?, userId: Long?, throwException: Boolean = false): Boolean {
     return BaseUserGroupRightUtils.hasReadAccess(obj, userId, throwException)
   }
 
-  fun hasWriteAccess(obj: T?, userId: Int?, throwException: Boolean = false): Boolean {
+  fun hasWriteAccess(obj: T?, userId: Long?, throwException: Boolean = false): Boolean {
     return BaseUserGroupRightUtils.hasWriteAccess(obj, userId, throwException)
   }
 
@@ -129,19 +129,19 @@ abstract class BaseUserGroupRight<T : BaseUserGroupRightsDO?> protected construc
    * @return [DataobjectAccessType.NONE], [DataobjectAccessType.MINIMAL], [DataobjectAccessType.READONLY] or
    * [DataobjectAccessType.FULL]. null will never be returned!
    */
-  fun getAccessType(obj: T?, userId: Int?): DataobjectAccessType {
+  fun getAccessType(obj: T?, userId: Long?): DataobjectAccessType {
     return BaseUserGroupRightUtils.getAccessType(obj, userId)
   }
 
-  fun hasFullAccess(obj: T, userId: Int?): Boolean {
+  fun hasFullAccess(obj: T, userId: Long?): Boolean {
     return getAccessType(obj, userId).hasFullAccess()
   }
 
-  fun hasReadonlyAccess(obj: T, userId: Int?): Boolean {
+  fun hasReadonlyAccess(obj: T, userId: Long?): Boolean {
     return getAccessType(obj, userId) == DataobjectAccessType.READONLY
   }
 
-  fun hasMinimalAccess(obj: T, userId: Int?): Boolean {
+  fun hasMinimalAccess(obj: T, userId: Long?): Boolean {
     return getAccessType(obj, userId) == DataobjectAccessType.MINIMAL
   }
 }

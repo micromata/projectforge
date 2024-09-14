@@ -86,7 +86,7 @@ public class LdapPosixAccountsUtils
    * @return Returns true if any user (also deleted user) other than the given user has the given uidNumber, otherwise
    *         false.
    */
-  public boolean isGivenNumberFree(final Integer currentUserId, final int uidNumber)
+  public boolean isGivenNumberFree(final Long currentUserId, final int uidNumber)
   {
     final Collection<PFUserDO> allUsers = userGroupCache.getAllUsers();
     for (final PFUserDO user : allUsers) {

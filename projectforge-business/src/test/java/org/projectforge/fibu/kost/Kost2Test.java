@@ -56,7 +56,7 @@ public class Kost2Test
     Kost2ArtDO kost2Art = map.get(art);
     if (kost2Art == null) {
       kost2Art = new Kost2ArtDO();
-      kost2Art.setId(art);
+      kost2Art.setId((long)art);
       map.put(art, kost2Art);
     }
     kost2.setKost2Art(kost2Art);

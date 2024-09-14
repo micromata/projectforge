@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * Is not synchronized.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class HRViewData implements Serializable
 {
@@ -45,11 +45,11 @@ public class HRViewData implements Serializable
 
   HRFilter filter;
 
-  Map<Integer, HRViewUserData> userDatas;
+  Map<Long, HRViewUserData> userDatas;
 
-  private Map<Integer, ProjektDO> projects;
+  private Map<Long, ProjektDO> projects;
 
-  private Map<Integer, KundeDO> customers;
+  private Map<Long, KundeDO> customers;
 
   private List<HRViewUserData> sortedUserDatas;
 

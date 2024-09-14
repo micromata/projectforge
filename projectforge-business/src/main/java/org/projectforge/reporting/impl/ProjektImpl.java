@@ -61,7 +61,7 @@ public class ProjektImpl implements Projekt
     this.kost2Arts = kost2Arts;
   }
 
-  public Integer getId()
+  public Long getId()
   {
     return projekt != null ? projekt.getId() : null;
   }
@@ -177,7 +177,6 @@ public class ProjektImpl implements Projekt
    * Return the kost2Arts only if set previously via setKost2Arts.
    *
    * @see org.projectforge.reporting.Projekt#getKost2Arts()
-   * @see #setKost2Arts(int[])
    */
   public List<Kost2Art> getKost2Arts()
   {

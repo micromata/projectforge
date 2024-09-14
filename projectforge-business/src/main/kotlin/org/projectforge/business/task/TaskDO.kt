@@ -279,17 +279,17 @@ open class TaskDO : DefaultBaseDO(), Cloneable, DisplayNameCapable // , GanttObj
     /** -&gt; Gantt  */
     @Suppress("DEPRECATION")
     @Deprecated("Properties of Gantt diagram will be refactored some day.")
-    val ganttPredecessorId: Int?
+    val ganttPredecessorId: Long?
         @Transient
         get() = this.ganttPredecessor?.id
 
-    val parentTaskId: Int?
+    val parentTaskId: Long?
         @Transient
         get() = if (this.parentTask == null) {
             null
         } else this.parentTask!!.id
 
-    val responsibleUserId: Int?
+    val responsibleUserId: Long?
         @Transient
         get() = if (this.responsibleUser == null) {
             null

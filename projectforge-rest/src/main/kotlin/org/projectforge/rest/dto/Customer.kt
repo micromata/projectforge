@@ -28,7 +28,7 @@ import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeStatus
 import org.projectforge.framework.i18n.translate
 
-class Customer(id: Int? = null,
+class Customer(id: Long? = null,
                displayName: String? = null,
                var nummer: Int? = null,
                var name: String? = null,

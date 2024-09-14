@@ -64,7 +64,7 @@ class WebAuthnEntryDao {
         }
     }
 
-    fun getEntry(ownerId: Int, credentialId: String): WebAuthnEntryDO? {
+    fun getEntry(ownerId: Long, credentialId: String): WebAuthnEntryDO? {
         return persistencyService.selectNamedSingleResult(
             WebAuthnEntryDO.FIND_BY_OWNER_AND_CREDENTIAL_ID,
             WebAuthnEntryDO::class.java,
@@ -78,7 +78,7 @@ class WebAuthnEntryDao {
      * If the entry isn't found, the same exception will be thrown to prevent any attacker to find valid ids of entries
      * (security paranoia).
      */
-    fun getEntryById(id: Int): WebAuthnEntryDO {
+    fun getEntryById(id: Long): WebAuthnEntryDO {
         return persistencyService.runReadOnly { context ->
             getEntryById(persistenceContext = context, id = id)
         }
@@ -91,7 +91,7 @@ class WebAuthnEntryDao {
      */
     private fun getEntryById(
         persistenceContext: PfPersistenceContext,
-        id: Int,
+        id: Long,
         attached: Boolean = false
     ): WebAuthnEntryDO {
         val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
@@ -108,7 +108,7 @@ class WebAuthnEntryDao {
         return result
     }
 
-    fun getEntries(ownerId: Int?): List<WebAuthnEntryDO> {
+    fun getEntries(ownerId: Long?): List<WebAuthnEntryDO> {
         if (ownerId == null) {
             return emptyList()
         }
@@ -121,7 +121,7 @@ class WebAuthnEntryDao {
         )
     }
 
-    fun delete(entryId: Int) {
+    fun delete(entryId: Long) {
         persistencyService.runInTransaction { context ->
             val entry = getEntryById(context, entryId, true)
             val ownerId = entry.owner?.id

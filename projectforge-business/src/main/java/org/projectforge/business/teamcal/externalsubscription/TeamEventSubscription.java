@@ -57,7 +57,7 @@ public class TeamEventSubscription implements Serializable {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventSubscription.class);
 
-  private Integer teamCalId;
+  private Long teamCalId;
 
   private boolean initialized = false;
 
@@ -190,7 +190,7 @@ public class TeamEventSubscription implements Serializable {
     final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
     try {
       final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
-      Integer startId = -1;
+      Long startId = -1L;
       ICalParser parser = ICalParser.parseAllFields();
       parser.parse(new ByteArrayInputStream(bytes));
 
@@ -309,7 +309,7 @@ public class TeamEventSubscription implements Serializable {
     return result;
   }
 
-  public Integer getTeamCalId() {
+  public Long getTeamCalId() {
     return teamCalId;
   }
 

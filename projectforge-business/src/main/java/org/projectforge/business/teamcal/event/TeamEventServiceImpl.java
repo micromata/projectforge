@@ -110,8 +110,8 @@ public class TeamEventServiceImpl implements TeamEventService {
   ).collect(Collectors.toCollection(HashSet::new));
 
   @Override
-  public List<Integer> getAssignedAttendeeIds(TeamEventDO data) {
-    List<Integer> assignedAttendees = new ArrayList<>();
+  public List<Long> getAssignedAttendeeIds(TeamEventDO data) {
+    List<Long> assignedAttendees = new ArrayList<>();
     if (data != null && data.getAttendees() != null) {
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
         assignedAttendees.add(attendee.getId());
@@ -125,7 +125,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     List<TeamEventAttendeeDO> resultList = new ArrayList<>();
     List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted();
     List<PFUserDO> allUserList = userService.getAllActiveUsers();
-    Set<Integer> addedUserIds = new HashSet<>();
+    Set<Long> addedUserIds = new HashSet<>();
     for (AddressDO singleAddress : allAddressList) {
       if (!StringUtils.isBlank(singleAddress.getEmail())) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
@@ -152,7 +152,7 @@ public class TeamEventServiceImpl implements TeamEventService {
   }
 
   @Override
-  public TeamEventAttendeeDO getAttendee(Integer attendeeId) {
+  public TeamEventAttendeeDO getAttendee(Long attendeeId) {
     return teamEventAttendeeDao.internalGetById(attendeeId);
   }
 
@@ -600,12 +600,12 @@ public class TeamEventServiceImpl implements TeamEventService {
   }
 
   @Override
-  public TeamEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted) {
+  public TeamEventDO findByUid(Long calendarId, String reqEventUid, boolean excludeDeleted) {
     return teamEventDao.getByUid(calendarId, reqEventUid, excludeDeleted);
   }
 
   @Override
-  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess) {
+  public TeamEventAttendeeDO findByAttendeeId(Long attendeeId, boolean checkAccess) {
     TeamEventAttendeeDO result = null;
     if (checkAccess) {
       result = teamEventAttendeeDao.getById(attendeeId);
@@ -616,7 +616,7 @@ public class TeamEventServiceImpl implements TeamEventService {
   }
 
   @Override
-  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId) {
+  public TeamEventAttendeeDO findByAttendeeId(Long attendeeId) {
     return findByAttendeeId(attendeeId, true);
   }
 
@@ -641,7 +641,7 @@ public class TeamEventServiceImpl implements TeamEventService {
   }
 
   @Override
-  public TeamEventDO getById(Integer teamEventId) {
+  public TeamEventDO getById(Long teamEventId) {
     return teamEventDao.getById(teamEventId);
   }
 
@@ -680,7 +680,7 @@ public class TeamEventServiceImpl implements TeamEventService {
   }
 
   @Override
-  public List<Integer> getCalIdList(Collection<TeamCalDO> teamCals) {
+  public List<Long> getCalIdList(Collection<TeamCalDO> teamCals) {
     return teamEventDao.getCalIdList(teamCals);
   }
 
@@ -693,7 +693,7 @@ public class TeamEventServiceImpl implements TeamEventService {
   public void fixAttendees(final TeamEventDO event) {
     List<TeamEventAttendeeDO> attendeesFromDbList = this.getAddressesAndUserAsAttendee();
 
-    Integer internalNewAttendeeSequence = -10000;
+    Long internalNewAttendeeSequence = -10000L;
     boolean found;
 
     for (TeamEventAttendeeDO attendeeDO : event.getAttendees()) {

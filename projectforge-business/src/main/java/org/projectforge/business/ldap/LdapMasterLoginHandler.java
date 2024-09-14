@@ -249,7 +249,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
             + " deleted.");
         // Now get all groups:
         final List<LdapGroup> ldapGroups = getAllLdapGroups(ctx);
-        final Map<Integer, LdapUser> ldapUserMap = getUserMap(updatedLdapUsers);
+        final Map<Long, LdapUser> ldapUserMap = getUserMap(updatedLdapUsers);
         error = unmodified = created = updated = renamed = deleted = 0;
         for (final GroupDO group : groups) {
           try {
@@ -364,7 +364,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
    * @param ldapUserMap
    */
   private void setMembers(final LdapGroup updatedLdapGroup, final Set<PFUserDO> assignedUsers,
-                          final Map<Integer, LdapUser> ldapUserMap) {
+                          final Map<Long, LdapUser> ldapUserMap) {
     updatedLdapGroup.clearMembers();
     if (assignedUsers == null) {
       // No user to assign.
@@ -390,13 +390,13 @@ public class LdapMasterLoginHandler extends LdapLoginHandler {
     }
   }
 
-  private Map<Integer, LdapUser> getUserMap(final Collection<LdapUser> users) {
-    final Map<Integer, LdapUser> map = new HashMap<>();
+  private Map<Long, LdapUser> getUserMap(final Collection<LdapUser> users) {
+    final Map<Long, LdapUser> map = new HashMap<>();
     if (users == null) {
       return map;
     }
     for (final LdapUser user : users) {
-      final Integer id = PFUserDOConverter.getId(user);
+      final Long id = PFUserDOConverter.getId(user);
       if (id != null) {
         map.put(id, user);
       } else {

@@ -47,16 +47,16 @@ class TimesheetFavoritesService {
 
   private class MigrationCache(val service: TimesheetFavoritesService) : AbstractCache() {
     // Key is user id, value is flag, if the user has entries to migrate.
-    private var map = mutableMapOf<Int, Boolean>()
+    private var map = mutableMapOf<Long, Boolean>()
 
-    fun refresh(userId: Int?) {
+    fun refresh(userId: Long?) {
       userId ?: return
       synchronized(map) {
         map.remove(userId)
       }
     }
 
-    fun hasLegacyFavoritesToMigrate(userId: Int?): Boolean {
+    fun hasLegacyFavoritesToMigrate(userId: Long?): Boolean {
       userId ?: return false
       synchronized(map) {
         map[userId]?.let { return it }
@@ -80,7 +80,7 @@ class TimesheetFavoritesService {
     return favorites.idTitleList.map { TimesheetFavorite(it.name, it.id) }
   }
 
-  fun selectTimesheet(id: Int): TimesheetFavorite? {
+  fun selectTimesheet(id: Long): TimesheetFavorite? {
     return getFavorites().get(id)
   }
 
@@ -88,11 +88,11 @@ class TimesheetFavoritesService {
     getFavorites().add(newFavorite)
   }
 
-  fun deleteFavorite(id: Int) {
+  fun deleteFavorite(id: Long) {
     getFavorites().remove(id)
   }
 
-  fun renameFavorite(id: Int, newName: String) {
+  fun renameFavorite(id: Long, newName: String) {
     getFavorites().rename(id, newName)
   }
 
@@ -100,7 +100,7 @@ class TimesheetFavoritesService {
    * After modifying the user's favorites, the migration cache should be invalidated for the given user, so
    * it will be checked, if there are any favorites of the old (classical) version to migrate.
    */
-  fun refreshMigrationCache(userId: Int) {
+  fun refreshMigrationCache(userId: Long) {
     migrationCache.refresh(userId)
   }
 
@@ -155,7 +155,7 @@ class TimesheetFavoritesService {
     return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.userId)
   }
 
-  private fun hasLegacyFavoritesToMigrate(userId: Int): Boolean {
+  private fun hasLegacyFavoritesToMigrate(userId: Long): Boolean {
     val list = userPrefDao.getUserPrefs(userId, UserPrefArea.TIMESHEET_TEMPLATE)
     if (list.isNullOrEmpty())
       return false

@@ -45,7 +45,7 @@ public class KostZuweisungenCopyHelperTest extends AbstractTestBase
     KostZuweisungDO kostZuweisung = new KostZuweisungDO();
     kostZuweisung.setNetto(BigDecimal.ONE);
     kostZuweisung.setComment("1");
-    kostZuweisung.setId(4711); // simulate non deletable
+    kostZuweisung.setId(4711L); // simulate non deletable
     srcPos.addKostZuweisung(kostZuweisung);
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());

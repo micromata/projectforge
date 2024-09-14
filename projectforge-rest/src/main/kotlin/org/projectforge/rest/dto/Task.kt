@@ -33,7 +33,7 @@ import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.persistence.api.BaseDO
 import java.math.BigDecimal
 
-class Task(id: Int? = null,
+class Task(id: Long? = null,
            displayName: String? = null,
            var parentTask: Task? = null,
            var title: String? = null,
@@ -77,7 +77,7 @@ class Task(id: Int? = null,
     }
 
     companion object {
-        fun getTask(taskId: Int?, minimal: Boolean = true): Task? {
+        fun getTask(taskId: Long?, minimal: Boolean = true): Task? {
             taskId ?: return null
             val taskDO = TaskTree.getInstance().getTaskById(taskId) ?: return null
             val task = Task()

@@ -70,7 +70,7 @@ open class VacationDO : DefaultBaseDO() {
   @get:JoinColumn(name = "employee_id", nullable = false)
   open var employee: EmployeeDO? = null
 
-  val employeeId: Int?
+  val employeeId: Long?
     @Transient get() = employee?.id
 
   @PropertyInfo(i18nKey = "vacation.startdate")
@@ -183,7 +183,7 @@ open class VacationDO : DefaultBaseDO() {
   }
 
   @Transient
-  fun isReplacement(userId: Int?): Boolean {
+  fun isReplacement(userId: Long?): Boolean {
     return userId != null && replacement?.userId == userId
   }
 

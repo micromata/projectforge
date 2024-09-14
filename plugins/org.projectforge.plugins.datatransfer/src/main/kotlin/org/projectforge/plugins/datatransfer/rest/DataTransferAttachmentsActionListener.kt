@@ -44,7 +44,7 @@ class DataTransferAttachmentsActionListener(
   AttachmentsActionListener(attachmentsService) {
 
   override fun createResponseData(
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?

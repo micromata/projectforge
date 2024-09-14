@@ -60,8 +60,8 @@ open class VacationProvider {
     /**
      * Vacation days will only be displayed for employees (users) who are member of at least one of the following groups:
      */
-    groupIds: Set<Int?>?,
-    userIds: Set<Int?>?,
+    groupIds: Set<Long?>?,
+    userIds: Set<Long?>?,
     settings: CalendarSettings,
     style: CalendarStyle? = null,
   ) {

@@ -64,7 +64,7 @@ open class DataTransferAccessChecker(
         // User has full access to his own personal box.
         return
       }
-      val userId = file.createdByUser?.toIntOrNull()
+      val userId = file.createdByUser?.toLongOrNull()
       if (userId != user.id!!) {
         throw AccessException("plugins.datatransfer.external.noAccess")
       }

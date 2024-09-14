@@ -90,7 +90,7 @@ open class MerlinRunner {
   /**
    * @return Pair of filename and byte array representing the Word file.
    */
-  fun executeTemplate(id: Int, inputVariables: Map<String, Any?>?): Pair<String, ByteArray> {
+  fun executeTemplate(id: Long, inputVariables: Map<String, Any?>?): Pair<String, ByteArray> {
     val analysis = merlinHandler.analyze(id)
     val dto = analysis.dto
     val templateDefinition = analysis.statistics.templateDefinition
@@ -119,7 +119,7 @@ open class MerlinRunner {
    * @param istream Inputstream of Excel serial file.
    * @return Pair of filename and byte array representing the zip file containing all generated word documents.
    */
-  fun serialExecuteTemplate(id: Int, filename: String, istream: InputStream): Pair<String, ByteArray>? {
+  fun serialExecuteTemplate(id: Long, filename: String, istream: InputStream): Pair<String, ByteArray>? {
     if (!filename.endsWith("xlsx") && !filename.endsWith(".xls")) {
       log.error { "Only Excel files are supported for serial execution. Unsupported file: '$filename'" }
       return null
@@ -218,7 +218,7 @@ open class MerlinRunner {
    * @param id Id of the MerlinTemplateDO
    * @return Pair of filename and byte array representing the Excel file.
    */
-  fun createSerialExcelTemplate(id: Int, fill: (sheet: ExcelSheet) -> Unit): Pair<String, ByteArray> {
+  fun createSerialExcelTemplate(id: Long, fill: (sheet: ExcelSheet) -> Unit): Pair<String, ByteArray> {
     val serialData = SerialData()
     val analysis = merlinHandler.analyze(id)
     serialData.templateDefinition = analysis.statistics.templateDefinition

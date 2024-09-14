@@ -52,7 +52,7 @@ class TimesheetEventsProvider {
   fun addTimesheetEvents(
     start: PFDateTime,
     end: PFDateTime,
-    userId: Int?,
+    userId: Long?,
     events: MutableList<FullCalendarEvent>,
     settings: CalendarSettings,
     showBreaks: Boolean? = null,

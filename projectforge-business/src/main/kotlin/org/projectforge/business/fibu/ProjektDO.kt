@@ -190,21 +190,21 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      */
     val bereich: Int?
         @Transient
-        get() = if (kunde != null) kunde!!.id else internKost2_4
+        get() = if (kunde != null) kunde!!.id!!.toInt() else internKost2_4
 
-    val projektManagerGroupId: Int?
+    val projektManagerGroupId: Long?
         @Transient
         get() = if (projektManagerGroup != null) projektManagerGroup!!.id else null
 
-    val projectManagerId: Int?
+    val projectManagerId: Long?
         @Transient
         get() = if (projectManager != null) projectManager!!.id else null
 
-    val headOfBusinessManagerId: Int?
+    val headOfBusinessManagerId: Long?
         @Transient
         get() = if (headOfBusinessManager != null) headOfBusinessManager!!.id else null
 
-    val salesManagerId: Int?
+    val salesManagerId: Long?
         @Transient
         get() = if (salesManager != null) salesManager!!.id else null
 
@@ -217,17 +217,17 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
             this.identifier
         } else this.name
 
-    val kundeId: Int?
+    val kundeId: Long?
         @Transient
         get() = if (this.kunde == null) {
             null
         } else kunde!!.id
 
-    val taskId: Int?
+    val taskId: Long?
         @Transient
         get() = if (this.task != null) task!!.id else null
 
-    val kontoId: Int?
+    val kontoId: Long?
         @Transient
         get() = if (konto != null) konto!!.id else null
 

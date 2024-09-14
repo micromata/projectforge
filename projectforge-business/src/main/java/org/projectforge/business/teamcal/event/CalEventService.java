@@ -73,7 +73,7 @@ public class CalEventService
 
   public boolean checkAndSendMail(final CalEventDO eventNew, final CalEventDO eventOld) { return false; }
 
-  public CalEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted) {
+  public CalEventDO findByUid(Long calendarId, String reqEventUid, boolean excludeDeleted) {
     return calEventDao.getByUid(calendarId, reqEventUid, excludeDeleted);
   }
 

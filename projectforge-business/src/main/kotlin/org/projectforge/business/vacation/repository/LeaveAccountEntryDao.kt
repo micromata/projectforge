@@ -50,14 +50,14 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     }
 
     // Open needed or proxying.
-    open fun getList(employeeId: Int?, year: Int): List<LeaveAccountEntryDO>? {
+    open fun getList(employeeId: Long?, year: Int): List<LeaveAccountEntryDO>? {
         val beginOfYear = LocalDate.of(year, Month.JANUARY, 1)
         val endOfYear = PFDayUtils.getEndOfYear(beginOfYear)
         return getList(employeeId, beginOfYear, endOfYear)
     }
 
     // Open needed or proxying.
-    open fun getList(employeeId: Int?, periodBegin: LocalDate, periodEnd: LocalDate): List<LeaveAccountEntryDO>? {
+    open fun getList(employeeId: Long?, periodBegin: LocalDate, periodEnd: LocalDate): List<LeaveAccountEntryDO>? {
         employeeId ?: return null
         return persistenceService.namedQuery(
             LeaveAccountEntryDO.FIND_BY_EMPLOYEE_ID_AND_DATEPERIOD,

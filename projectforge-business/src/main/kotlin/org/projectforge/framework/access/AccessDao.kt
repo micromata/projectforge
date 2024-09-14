@@ -68,7 +68,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      * @param taskId If null, then task will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setTask(access: GroupTaskAccessDO, taskId: Int) {
+    fun setTask(access: GroupTaskAccessDO, taskId: Long) {
         val task = taskDao.getOrLoad(taskId)
         access.task = task
     }
@@ -78,7 +78,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      * @param groupId If null, then group will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setGroup(access: GroupTaskAccessDO, groupId: Int) {
+    fun setGroup(access: GroupTaskAccessDO, groupId: Long) {
         val group = groupDao.getOrLoad(groupId)
         access.group = group
     }
@@ -99,8 +99,8 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
                 cb.equal(root.get<Boolean>("deleted"), false)
             )
                 .orderBy(
-                    cb.asc(root.get<TaskDO>("task").get<Int>("id")),
-                    cb.asc(root.get<GroupDO>("group").get<Int>("id")),
+                    cb.asc(root.get<TaskDO>("task").get<Long>("id")),
+                    cb.asc(root.get<GroupDO>("group").get<Long>("id")),
                 )
                 .distinct(true)
             em.createQuery(cr).resultList
@@ -131,8 +131,8 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         }
         val queryFilter = QueryFilter(myFilter)
         if (myFilter.taskId != null) {
-            var descendants: List<Int?>? = null
-            var ancestors: List<Int?>? = null
+            var descendants: List<Long?>? = null
+            var ancestors: List<Long?>? = null
             val node = taskTree.getTaskNodeById(myFilter.taskId)
             if (myFilter.isIncludeDescendentTasks) {
                 descendants = node.descendantIds
@@ -141,7 +141,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
                 ancestors = node.ancestorIds
             }
             if (descendants != null || ancestors != null) {
-                val taskIds: MutableList<Int?> = ArrayList()
+                val taskIds: MutableList<Long?> = ArrayList()
                 if (descendants != null) {
                     taskIds.addAll(descendants)
                 }

@@ -125,7 +125,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
      * @param employeeId     If null, then employee will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setEmployee(employeeSalary: EmployeeSalaryDO, employeeId: Int) {
+    fun setEmployee(employeeSalary: EmployeeSalaryDO, employeeId: Long) {
         val employee = employeeDao!!.getOrLoad(employeeId)
         employeeSalary.employee = employee
     }

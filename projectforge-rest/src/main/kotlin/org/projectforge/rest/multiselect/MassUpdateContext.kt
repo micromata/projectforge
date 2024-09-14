@@ -40,7 +40,7 @@ abstract class MassUpdateContext<T>(
 ) {
   class Error(val identifier: String, val message: String)
 
-  abstract fun getId(obj: T): Int
+  abstract fun getId(obj: T): Long
 
   var modifiedCounter: Int = 0
     private set
@@ -62,7 +62,7 @@ abstract class MassUpdateContext<T>(
 
   fun startUpdate(dbObj: T) {
     current = object : MassUpdateObject<T>(dbObj, massUpdateData, ignoreFieldsForModificationCheck) {
-      override fun getId(): Int {
+      override fun getId(): Long {
         return getId(dbObj)
       }
     }

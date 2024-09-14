@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
 @DependsOn("entityManagerFactory")
 class UserPrefCache : AbstractCache() {
 
-    private val allPreferences = HashMap<Int, UserPrefCacheData>()
+    private val allPreferences = HashMap<Long, UserPrefCacheData>()
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -64,7 +64,7 @@ class UserPrefCache : AbstractCache() {
      * @param persistent If true (default) this user preference will be stored to the data base, otherwise it will
      * be volatile stored in memory and will expire.
      */
-    fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true, userId: Int?) {
+    fun putEntry(area: String, name: String, value: Any?, persistent: Boolean = true, userId: Long?) {
         val uid = userId ?: ThreadLocalUserContext.userId!!
         if (accessChecker.isDemoUser(uid)) {
             // Store user pref for demo user only in user's session.
@@ -106,7 +106,7 @@ class UserPrefCache : AbstractCache() {
      * Gets the user's entry.
      */
     @JvmOverloads
-    fun <T> getEntry(area: String, name: String, clazz: Class<T>, userId: Int? = null): T? {
+    fun <T> getEntry(area: String, name: String, clazz: Class<T>, userId: Long? = null): T? {
         return getEntry(userId ?: ThreadLocalUserContext.userId!!, area, name, clazz)
     }
 
@@ -120,7 +120,7 @@ class UserPrefCache : AbstractCache() {
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun <T> getEntry(userId: Int, area: String, name: String, clazz: Class<T>): T? {
+    private fun <T> getEntry(userId: Long, area: String, name: String, clazz: Class<T>): T? {
         val value = getEntry(userId, area, name)
         try {
             @Suppress("UNCHECKED_CAST")
@@ -131,14 +131,14 @@ class UserPrefCache : AbstractCache() {
         }
     }
 
-    private fun getEntry(userId: Int, area: String, name: String): Any? {
+    private fun getEntry(userId: Long, area: String, name: String): Any? {
         val data = ensureAndGetUserPreferencesData(userId)
         checkRefresh()
         val userPref = data.getEntry(area, name)?.userPrefDO ?: return null
         return userPref.valueObject ?: userPrefDao.deserizalizeValueObject(userPref)
     }
 
-    private fun removeEntry(userId: Int, area: String, name: String) {
+    private fun removeEntry(userId: Long, area: String, name: String) {
         val data = getUserPreferencesData(userId)
             ?: // Should only occur for the pseudo-first-login-user setting up the system.
             return
@@ -163,7 +163,7 @@ class UserPrefCache : AbstractCache() {
      * @return
      */
     @Synchronized
-    private fun ensureAndGetUserPreferencesData(userId: Int): UserPrefCacheData {
+    private fun ensureAndGetUserPreferencesData(userId: Long): UserPrefCacheData {
         var data = getUserPreferencesData(userId)
         if (data == null) {
             data = UserPrefCacheData()
@@ -182,13 +182,13 @@ class UserPrefCache : AbstractCache() {
         return data
     }
 
-    internal fun getUserPreferencesData(userId: Int): UserPrefCacheData? {
+    internal fun getUserPreferencesData(userId: Long): UserPrefCacheData? {
         synchronized(allPreferences) {
             return this.allPreferences[userId]
         }
     }
 
-    internal fun setUserPreferencesData(userId: Int, data: UserPrefCacheData) {
+    internal fun setUserPreferencesData(userId: Long, data: UserPrefCacheData) {
         synchronized(allPreferences) {
             this.allPreferences[userId] = data
         }
@@ -198,12 +198,12 @@ class UserPrefCache : AbstractCache() {
      * Flushes the user settings to the database (independent from the expire mechanism). Should be used after the user's
      * logout. If the user data isn't modified, then nothing will be done.
      */
-    fun flushToDB(userId: Int?) {
+    fun flushToDB(userId: Long?) {
         flushToDB(userId, true)
     }
 
     @Synchronized
-    private fun flushToDB(userId: Int?, checkAccess: Boolean) {
+    private fun flushToDB(userId: Long?, checkAccess: Boolean) {
         if (checkAccess) {
             if (userId != ThreadLocalUserContext.userId) {
                 log.error(
@@ -250,7 +250,7 @@ class UserPrefCache : AbstractCache() {
      *
      * @param userId
      */
-    fun clear(userId: Int?) {
+    fun clear(userId: Long?) {
         synchronized(allPreferences) {
             val data = allPreferences[userId] ?: return
             if (log.isDebugEnabled) {

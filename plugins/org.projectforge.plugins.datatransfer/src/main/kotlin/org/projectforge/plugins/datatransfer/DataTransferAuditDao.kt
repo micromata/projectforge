@@ -73,7 +73,7 @@ class DataTransferAuditDao {
         }
     }
 
-    fun getEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+    fun getEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO>? {
         areaId ?: return null
         val area = dataTransferAreaDao.getById(areaId)!!
         val loggedInUser = ThreadLocalUserContext.user
@@ -89,7 +89,7 @@ class DataTransferAuditDao {
         return internalGetEntriesByAreaId(areaId)
     }
 
-    internal fun internalGetEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+    internal fun internalGetEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO>? {
         areaId ?: return null
         return persistenceService.namedQuery(
             DataTransferAuditDO.FIND_BY_AREA_ID,
@@ -102,7 +102,7 @@ class DataTransferAuditDao {
      * @return list of unprocessed audit entries, if exists. If any audit entry (not DOWNLOAD{_ALL}) exists newer than
      * 10 minutes, null is returned.
      */
-    internal fun internalGetQueuedEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO>? {
+    internal fun internalGetQueuedEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO>? {
         areaId ?: return null
         val resultList =
             persistenceService.namedQuery(
@@ -127,7 +127,7 @@ class DataTransferAuditDao {
     /**
      * @return list of all download events (download, download multi or download all).
      */
-    internal fun internalGetDownloadEntriesByAreaId(areaId: Int?): List<DataTransferAuditDO> {
+    internal fun internalGetDownloadEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO> {
         areaId ?: return emptyList()
         return persistenceService.namedQuery(
             DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID,

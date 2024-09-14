@@ -56,7 +56,7 @@ public class BaseSearchFilter implements Serializable {
 
   protected boolean useModificationFilter;
 
-  protected Integer modifiedByUserId;
+  protected Long modifiedByUserId;
 
   @Deprecated
   protected Date startTimeOfLastModification;
@@ -191,7 +191,7 @@ public class BaseSearchFilter implements Serializable {
     return this;
   }
 
-  public Integer getModifiedByUserId() {
+  public Long getModifiedByUserId() {
     return modifiedByUserId;
   }
 
@@ -199,7 +199,7 @@ public class BaseSearchFilter implements Serializable {
    * @param modifiedByUserId
    * @return this for chaining.
    */
-  public BaseSearchFilter setModifiedByUserId(final Integer modifiedByUserId) {
+  public BaseSearchFilter setModifiedByUserId(final Long modifiedByUserId) {
     this.modifiedByUserId = modifiedByUserId;
     return this;
   }

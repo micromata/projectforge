@@ -41,7 +41,7 @@ public class TeamEventAttendeeDOTest
   public void testEqualsHashCode()
   {
     AddressDO exampleAddress = new AddressDO();
-    exampleAddress.setId(4712);
+    exampleAddress.setId(4712L);
 
     TeamEventAttendeeDO first = new TeamEventAttendeeDO();
     TeamEventAttendeeDO second = new TeamEventAttendeeDO();
@@ -55,10 +55,10 @@ public class TeamEventAttendeeDOTest
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
 
-    first.setId(4711);
+    first.setId(4711L);
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
-    second.setId(4711);
+    second.setId(4711L);
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
 
@@ -88,9 +88,9 @@ public class TeamEventAttendeeDOTest
     TeamEventAttendeeDO second = new TeamEventAttendeeDO();
     testSet.remove(second);
     assertTrue(testSet.isEmpty());
-    first.setId(4711);
+    first.setId(4711L);
     testSet.add(first);
-    second.setId(4711);
+    second.setId(4711L);
     testSet.remove(second);
     assertTrue(testSet.isEmpty());
     first.setId(null);

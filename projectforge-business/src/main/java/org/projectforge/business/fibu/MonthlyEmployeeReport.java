@@ -60,13 +60,13 @@ public class MonthlyEmployeeReport implements Serializable {
   /**
    * ID of pseudo task, see below.
    */
-  static final int MAGIC_PSEUDO_TASK_ID = -42;
+  static final long MAGIC_PSEUDO_TASK_ID = -42L;
 
   /**
    * Checks if the given taskId is the Pseudo task, see below.
    * @return true, if the given task id matches the magic pseudo task id.
    */
-  public static boolean isPseudoTask(Integer taskId) {
+  public static boolean isPseudoTask(Long taskId) {
     return taskId == MAGIC_PSEUDO_TASK_ID;
   }
 
@@ -156,7 +156,7 @@ public class MonthlyEmployeeReport implements Serializable {
 
   private BigDecimal vacationPlannedCount = BigDecimal.ZERO;
 
-  private Integer kost1Id;
+  private Long kost1Id;
 
   private List<MonthlyEmployeeReportWeek> weeks;
 
@@ -170,12 +170,12 @@ public class MonthlyEmployeeReport implements Serializable {
   /**
    * Key is kost2.id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> kost2Durations;
+  private Map<Long, MonthlyEmployeeReportEntry> kost2Durations;
 
   /**
    * Key is task.id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> taskDurations;
+  private Map<Long, MonthlyEmployeeReportEntry> taskDurations;
 
   /**
    * String is formatted Kost2-String for sorting.
@@ -301,7 +301,7 @@ public class MonthlyEmployeeReport implements Serializable {
       if (MapUtils.isNotEmpty(week.getTaskEntries())) {
         for (final MonthlyEmployeeReportEntry entry : week.getTaskEntries().values()) {
           Validate.notNull(entry.getTask());
-          int taskId = entry.getTask().getId();
+          long taskId = entry.getTask().getId();
           if (isPseudoTask(taskId)) {
             // Pseudo task (see MonthlyEmployeeReportWeek for timesheet the current user has no select access.
             TaskDO pseudoTask = createPseudoTask();
@@ -384,7 +384,7 @@ public class MonthlyEmployeeReport implements Serializable {
   /**
    * Key is the kost2 id.
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Durations() {
+  public Map<Long, MonthlyEmployeeReportEntry> getKost2Durations() {
     return kost2Durations;
   }
 
@@ -398,7 +398,7 @@ public class MonthlyEmployeeReport implements Serializable {
   /**
    * Key is the task id.
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getTaskDurations() {
+  public Map<Long, MonthlyEmployeeReportEntry> getTaskDurations() {
     return taskDurations;
   }
 
@@ -473,7 +473,7 @@ public class MonthlyEmployeeReport implements Serializable {
     return MonthlyEmployeeReport.getFormattedDuration(totalNetDuration);
   }
 
-  public Integer getKost1Id() {
+  public Long getKost1Id() {
     return kost1Id;
   }
 

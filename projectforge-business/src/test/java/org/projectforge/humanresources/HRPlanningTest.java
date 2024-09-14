@@ -76,7 +76,7 @@ public class HRPlanningTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
-    kunde.setId(59);
+    kunde.setId(59L);
     kundeDao.save(kunde);
     projekt1 = initTestDB.addProjekt(kunde, 0, "Web portal");
     projekt2 = initTestDB.addProjekt(kunde, 1, "Order management");

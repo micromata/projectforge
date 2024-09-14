@@ -38,7 +38,7 @@ import jakarta.servlet.http.HttpServletRequest
  * by these rest services.
  */
 abstract class AbstractDOPagesRest<
-    O : ExtendedBaseDO<Int>,
+    O : ExtendedBaseDO<Long>,
     B : BaseDao<O>>
 @JvmOverloads
 constructor(
@@ -87,7 +87,7 @@ constructor(
   /**
    * @param dto Expected as O
    */
-  override fun getId(dto: Any): Int? {
+  override fun getId(dto: Any): Long? {
     @Suppress("UNCHECKED_CAST")
     return (dto as O).id
   }

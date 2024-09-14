@@ -144,7 +144,7 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
     /**
      * @see AbstractSecuredBasePage#getUserId()
      */
-    protected Integer getUserId() {
+    protected Long getUserId() {
         return this.parentPage.getUserId();
     }
 

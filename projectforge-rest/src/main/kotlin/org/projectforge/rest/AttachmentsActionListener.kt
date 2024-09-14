@@ -45,7 +45,7 @@ open class AttachmentsActionListener(
    * Will be called on upload. If ResponseEntity is returned, further processing of this upload will be prevented.
    * Useful e. g. to allow only special file extensions etc.
    */
-  open fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Int>): ResponseEntity<*>? {
+  open fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Long>): ResponseEntity<*>? {
     return null
   }
 
@@ -54,7 +54,7 @@ open class AttachmentsActionListener(
    */
   open fun afterUpload(
     attachment: Attachment,
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
@@ -71,7 +71,7 @@ open class AttachmentsActionListener(
    */
   open fun afterModification(
     attachment: Attachment,
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
@@ -87,7 +87,7 @@ open class AttachmentsActionListener(
    * Will be called after upload.
    */
   open fun afterDeletion(
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?
@@ -104,7 +104,7 @@ open class AttachmentsActionListener(
    * As an example MerlinAttachmentsActionListener disables encryptionSupport.
    */
   open fun createAttachmentLayout(
-    id: Int,
+    id: Long,
     category: String,
     fileId: String,
     listId: String?,
@@ -128,7 +128,7 @@ open class AttachmentsActionListener(
   }
 
   open fun createResponseData(
-    obj: ExtendedBaseDO<Int>,
+    obj: ExtendedBaseDO<Long>,
     jcrPath: String,
     attachmentsAccessChecker: AttachmentsAccessChecker,
     listId: String?,

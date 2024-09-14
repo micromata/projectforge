@@ -192,7 +192,7 @@ public class KostZuweisungExport {
           kontoNummer = konto.getNummer();
         }
       } else if (rechnung instanceof EingangsrechnungDO) {
-        final Integer kontoId = ((EingangsrechnungDO) rechnung).getKontoId();
+        final Long kontoId = ((EingangsrechnungDO) rechnung).getKontoId();
         if (kontoId != null) {
           final KontoDO konto = kontoCache.getKonto(kontoId);
           if (konto != null) {

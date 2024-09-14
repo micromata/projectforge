@@ -42,7 +42,7 @@ open class TaskFormatter : AbstractFormatter() {
     @JvmStatic
     @JvmOverloads
     fun getTaskPath(
-      taskId: Int?,
+      taskId: Long?,
       showCurrentTask: Boolean,
       outputType: OutputType,
       abreviationLength: Int? = null
@@ -63,7 +63,7 @@ open class TaskFormatter : AbstractFormatter() {
     @JvmStatic
     @JvmOverloads
     fun getTaskPath(
-      taskId: Int?, ancestorTaskId: Int?, showCurrentTask: Boolean,
+      taskId: Long?, ancestorTaskId: Long?, showCurrentTask: Boolean,
       outputType: OutputType,
       abreviationLength: Int? = null,
     ): String? {

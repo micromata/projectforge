@@ -52,7 +52,7 @@ open class DBQuery {
      * @return
      */
     @JvmOverloads
-    open fun <O : ExtendedBaseDO<Int>> getList(
+    open fun <O : ExtendedBaseDO<Long>> getList(
         baseDao: BaseDao<O>,
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<O>>?,
@@ -113,7 +113,7 @@ open class DBQuery {
         }
     }
 
-    private fun <O : ExtendedBaseDO<Int>> createList(
+    private fun <O : ExtendedBaseDO<Long>> createList(
         baseDao: BaseDao<O>,
         em: EntityManager,
         dbResultIterator: DBResultIterator<O>,
@@ -128,7 +128,7 @@ open class DBQuery {
 
         val list = mutableListOf<O>()
         var next: O? = dbResultIterator.next() ?: return list
-        val ensureUniqueSet = mutableSetOf<Int>()
+        val ensureUniqueSet = mutableSetOf<Long>()
         var resultCounter = 0
         if (historSearchParams.modifiedByUserId != null
             || historSearchParams.modifiedFrom != null
@@ -193,7 +193,7 @@ open class DBQuery {
      * If predicates are defined (not used for data base query), they're checked with the given result object.
      * @return true, if no predicates are given or if all predicate matches, otherwise false.
      */
-    private fun <O : ExtendedBaseDO<Int>> match(
+    private fun <O : ExtendedBaseDO<Long>> match(
         list: MutableList<O>,
         customResultFilters: List<CustomResultFilter<O>>?,
         predicates: List<DBPredicate>,

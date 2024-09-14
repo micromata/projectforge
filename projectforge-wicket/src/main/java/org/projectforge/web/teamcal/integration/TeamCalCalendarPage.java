@@ -104,12 +104,12 @@ public class TeamCalCalendarPage extends CalendarPage
       // Nothing to do.
       return;
     }
-    final Set<Integer> visibleCalendarIds = templateEntry.getVisibleCalendarIds();
+    final Set<Long> visibleCalendarIds = templateEntry.getVisibleCalendarIds();
     if (visibleCalendarIds == null) {
       // Nothing to do.
       return;
     }
-    for (final Integer calId : visibleCalendarIds) {
+    for (final Long calId : visibleCalendarIds) {
       final TeamCalDO teamCalDO = WicketSupport.get(TeamCalCache.class).getCalendar(calId);
       if (teamCalDO == null || !teamCalDO.getExternalSubscription()) {
         // Nothing to do.

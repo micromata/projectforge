@@ -112,8 +112,8 @@ public class Task2GanttTaskConverter
       return;
     }
     if (!ganttTask.equals(ganttChartData.getRootObject())) {
-      final TaskDO task = taskTree.getTaskById((Integer) ganttTask.getId());
-      final Integer predecessorId = task.getGanttPredecessorId();
+      final TaskDO task = taskTree.getTaskById((Long) ganttTask.getId());
+      final Long predecessorId = task.getGanttPredecessorId();
       if (predecessorId != null) {
         GanttTask predecessor = ganttChartData.getRootObject().findById(predecessorId);
         if (predecessor == null) {

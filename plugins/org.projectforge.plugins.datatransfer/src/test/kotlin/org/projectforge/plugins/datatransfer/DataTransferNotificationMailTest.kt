@@ -147,7 +147,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
     firstname: String = "Kai",
     lastname: String = "Reinhard",
     email: String = "k.reinhard@acme.com",
-    id: Int = 1
+    id: Long = 1
   ): PFUserDO {
     val recipient = PFUserDO()
     recipient.email = email
@@ -157,7 +157,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
     return recipient
   }
 
-  private fun createDataTransferArea(id: Int, areaName: String, expireDays: Int = 30): DataTransferAreaDO {
+  private fun createDataTransferArea(id: Long, areaName: String, expireDays: Int = 30): DataTransferAreaDO {
     val area = DataTransferAreaDO()
     area.areaName = areaName
     area.id = id
@@ -187,7 +187,7 @@ class DataTransferNotificationMailTest : AbstractTestBase() {
     return info
   }
 
-  private fun createLink(areaId: Int?): String {
+  private fun createLink(areaId: Long?): String {
     return domainService.getDomain(PagesResolver.getDynamicPageUrl(DataTransferPageRest::class.java, id = areaId ?: 0))
   }
 }

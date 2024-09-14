@@ -46,7 +46,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
    */
   public static int MAX_DEPTH = 50;
 
-  private Integer id;
+  private Long id;
 
   private Integer predecessorOffset;
 
@@ -86,7 +86,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   {
   }
 
-  public GanttTaskImpl(final Integer id)
+  public GanttTaskImpl(final Long id)
   {
     this.id = id;
   }
@@ -103,7 +103,7 @@ public class GanttTaskImpl implements GanttTask, Serializable
   @Override
   public GanttTaskImpl setId(final Serializable id)
   {
-    this.id = (Integer) id;
+    this.id = (Long) id;
     return this;
   }
 
@@ -610,27 +610,27 @@ public class GanttTaskImpl implements GanttTask, Serializable
    * (of ProjectForge's TaskTree) (the id is equals to the task id).
    * @return
    */
-  public int getNextId()
+  public long getNextId()
   {
-    final Integer id = getNextId(this, -1);
+    final Long id = getNextId(this, -1);
     return id != null ? id : -1;
   }
 
-  private Integer getNextId(final GanttTask node, final int id)
+  private Long getNextId(final GanttTask node, final int id)
   {
-    Integer result = null;
+    Long result = null;
     if (node == null) {
       return null;
     }
-    if (node.getId() != null && ((Integer) node.getId()) <= id) {
-      result = ((Integer) node.getId()) - 1;
+    if (node.getId() != null && ((Long) node.getId()) <= id) {
+      result = ((Long) node.getId()) - 1;
     }
     final List<GanttTask> children = node.getChildren();
     if (children == null) {
       return result;
     }
     for (final GanttTask child : children) {
-      final Integer i = getNextId(child, id);
+      final Long i = getNextId(child, id);
       if (i == null) {
         continue;
       }

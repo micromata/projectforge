@@ -61,10 +61,10 @@ class Poll(
 
     override fun copyTo(dest: PollDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toIntList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toIntList(fullAccessUsers)
-        dest.groupAttendeeIds = Group.toIntList(groupAttendees)
-        dest.attendeeIds = User.toIntList(attendees)
+        dest.fullAccessGroupIds = Group.toLongList(fullAccessGroups)
+        dest.fullAccessUserIds = User.toLongList(fullAccessUsers)
+        dest.groupAttendeeIds = Group.toLongList(groupAttendees)
+        dest.attendeeIds = User.toLongList(attendees)
         if (inputFields != null) {
             dest.inputFields = ObjectMapper().writeValueAsString(inputFields)
         }

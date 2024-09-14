@@ -257,11 +257,11 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("projektId".equals(property)) {
-      form.getSearchFilter().setProjektId((Integer) selectedValue);
+      form.getSearchFilter().setProjektId((Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       refresh();
     } else if ("userId".equals(property)) {
-      form.getSearchFilter().setUserId((Integer) selectedValue);
+      form.getSearchFilter().setUserId((Long) selectedValue);
       refresh();
     } else if (property.startsWith("quickSelect.")) { // month".equals(property) == true) {
       final LocalDate date = (LocalDate) selectedValue;

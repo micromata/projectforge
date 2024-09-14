@@ -52,11 +52,11 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
     @Autowired
     private lateinit var vCardService: VCardService
 
-    private var contactMap = mutableMapOf<Int, Contact>()
+    private var contactMap = mutableMapOf<Long, Contact>()
 
-    open fun getContacts(addressBook: AddressBook, ids: List<Int>): List<Contact> {
+    open fun getContacts(addressBook: AddressBook, ids: List<Long>): List<Contact> {
         val result = mutableListOf<Contact>()
-        val missedInCache = mutableListOf<Int>()
+        val missedInCache = mutableListOf<Long>()
         ids.forEach {
             val contact = getCachedAddress(it)
             if (contact != null) {
@@ -79,13 +79,13 @@ open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListene
         return result
     }
 
-    private fun getCachedAddress(id: Int): Contact? {
+    private fun getCachedAddress(id: Long): Contact? {
         synchronized(contactMap) {
             return contactMap[id]
         }
     }
 
-    private fun addCachedContact(id: Int, contact: Contact) {
+    private fun addCachedContact(id: Long, contact: Contact) {
         synchronized(contactMap) {
             contactMap[id] = contact
         }

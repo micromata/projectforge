@@ -95,7 +95,7 @@ class AuthenticationPublicServicesRestTest : AbstractTestBase() {
         }
     }
 
-    private fun paramCheck(uid: Int, timeOffset: Long, expectedResult: Boolean, msg: String) {
+    private fun paramCheck(uid: Long, timeOffset: Long, expectedResult: Boolean, msg: String) {
         val q = authenticationPublicServicesRest.createTemporaryToken(uid, System.currentTimeMillis() + timeOffset)
         try {
             authenticationPublicServicesRest.checkQuery(q)

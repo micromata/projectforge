@@ -54,7 +54,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.time.PFDay.Companion.now
-import org.projectforge.framework.utils.NumberHelper.parseInteger
+import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.config.RestUtils
 import org.projectforge.rest.dto.Group
@@ -156,10 +156,10 @@ class CalendarSubscriptionServiceRest {
     }
   }
 
-  private fun getTimesheetUser(userId: Int, timesheetUserParam: String): PFUserDO? {
+  private fun getTimesheetUser(userId: Long, timesheetUserParam: String): PFUserDO? {
     var timesheetUser: PFUserDO? = null
     if (StringUtils.isNotBlank(timesheetUserParam)) {
-      val timesheetUserId = parseInteger(timesheetUserParam)
+      val timesheetUserId = parseLong(timesheetUserParam)
       if (timesheetUserId != null) {
         if (timesheetUserId != userId) {
           log.error("Not yet allowed: all users are only allowed to download their own time-sheets.")
@@ -191,10 +191,10 @@ class CalendarSubscriptionServiceRest {
     val eventDateUntilLimit = now().plusYears(2)
     eventFilter.isDeleted = false
     eventFilter.startDate = eventDateFromLimit.utilDate
-    val vacationEvents = mutableSetOf<Int>() // For avoiding multiple entries of vacation days. Ids of vacation event.
+    val vacationEvents = mutableSetOf<Long>() // For avoiding multiple entries of vacation days. Ids of vacation event.
     val processedTeamCals = mutableListOf<TeamCalDO>()
     for (teamCalIdString in teamCalIds) {
-      val calId = Integer.valueOf(teamCalIdString)
+      val calId = teamCalIdString.toLong()
       eventFilter.teamCalId = calId
       val teamEvents = teamEventService.getEventList(eventFilter, false)
       teamEvents?.forEach { teamEventObject ->
@@ -208,8 +208,8 @@ class CalendarSubscriptionServiceRest {
       teamCalDao.internalGetById(calId)?.let { cal ->
         processedTeamCals.add(cal)
         if (!cal.includeLeaveDaysForGroups.isNullOrBlank() || !cal.includeLeaveDaysForUsers.isNullOrBlank()) {
-          val userIds = User.toIntArray(cal.includeLeaveDaysForUsers)?.toSet()
-          val groupIds = Group.toIntArray(cal.includeLeaveDaysForGroups)?.toSet()
+          val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
+          val groupIds = Group.toLongArray(cal.includeLeaveDaysForGroups)?.toSet()
 
           val vacations = vacationCache.getVacationForPeriodAndUsers(
             eventDateFromLimit.localDate,
@@ -333,7 +333,7 @@ class CalendarSubscriptionServiceRest {
 
     fun decryptRequestParams(
       request: HttpServletRequest,
-      userId: Int,
+      userId: Long,
       userAuthenticationsService: UserAuthenticationsService
     )
         : Map<String, String>? {

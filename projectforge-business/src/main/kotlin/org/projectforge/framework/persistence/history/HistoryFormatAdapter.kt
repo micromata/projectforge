@@ -59,7 +59,7 @@ open class HistoryFormatAdapter(
   fun convert(item: Any, historyEntry: HistoryEntry<*>): HistoryFormatService.DisplayHistoryEntryDTO {
     var user: PFUserDO? = null
     try {
-      user = userGroupCache.getUser(historyEntry.modifiedBy?.toInt())
+      user = userGroupCache.getUser(historyEntry.modifiedBy?.toLong())
     } catch (e: NumberFormatException) {
       // Ignore error.
     }

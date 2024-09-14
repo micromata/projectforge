@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import java.io.Serializable;
 import java.util.List;
 
-public class ScriptingDao<O extends ExtendedBaseDO<Integer>>
+public class ScriptingDao<O extends ExtendedBaseDO<Long>>
 {
   private BaseDao<O> __baseDao;
 

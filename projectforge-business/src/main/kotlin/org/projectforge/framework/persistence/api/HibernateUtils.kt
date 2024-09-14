@@ -143,15 +143,15 @@ object HibernateUtils {
         if (Hibernate.isInitialized(obj)) {
             obj.id = value
         } else if (obj is DefaultBaseDO) {
-            (obj as DefaultBaseDO).id = value as Int
+            (obj as DefaultBaseDO).id = value as Long
         } else if (obj is AccessEntryDO) {
-            (obj as AccessEntryDO).id = value as Int
+            (obj as AccessEntryDO).id = value as Long
         } else if (obj is Kost2ArtDO) {
-            (obj as Kost2ArtDO).id = value as Int
+            (obj as Kost2ArtDO).id = value as Long
         } else if (obj is KundeDO) {
-            (obj as KundeDO).id = value as Int
+            (obj as KundeDO).id = value as Long
         } else if (obj is UserPrefEntryDO) {
-            (obj as UserPrefEntryDO).id = value as Int
+            (obj as UserPrefEntryDO).id = value as Long
         } else {
             log.error("Couldn't set the identifier of the given object for class: " + obj.javaClass.name)
         }

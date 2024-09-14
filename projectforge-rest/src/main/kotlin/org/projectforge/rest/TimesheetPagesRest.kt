@@ -109,7 +109,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   @Suppress("unused")
   private class Timesheet4ListExport(
     val timesheet: Timesheet,
-    val id: Int, // Needed for history Service
+    val id: Long, // Needed for history Service
     val weekOfYear: String,
     val dayName: String,
     val timePeriod: String,
@@ -146,7 +146,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
 
 
   override fun getInitialList(request: HttpServletRequest): InitialListData {
-    val taskId = NumberHelper.parseInteger(request.getParameter("taskId")) ?: return super.getInitialList(request)
+    val taskId = NumberHelper.parseLong(request.getParameter("taskId")) ?: return super.getInitialList(request)
     val filter = MagicFilter()
     filter.entries.add(MagicFilterEntry("task", "$taskId"))
     return super.getInitialList(request, filter)
@@ -164,7 +164,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       val stop = PFDateTime.fromOrNow(endTimeEpochSeconds)
       sheet.stopTime = stop.sqlTimestamp
     }
-    val userId = RestHelper.parseInt(request, "userId") // Optional parameter given to edit page
+    val userId = RestHelper.parseLong(request, "userId") // Optional parameter given to edit page
     sheet.user = User.getUser(userId)
     val recentEntry = timesheetRecentService.getRecentTimesheet()
     if (recentEntry != null) {
@@ -261,7 +261,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
   }
 
   @GetMapping("acReference")
-  fun getReferences(@RequestParam("search") search: String?, @RequestParam("taskId") taskId: Int?): List<String> {
+  fun getReferences(@RequestParam("search") search: String?, @RequestParam("taskId") taskId: Long?): List<String> {
     taskId ?: return emptyList()
     return timesheetDao.getUsedReferences(taskId, search)
   }

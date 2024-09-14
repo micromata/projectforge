@@ -62,7 +62,7 @@ public class MicromataFormatter extends Formatter
   private KostCache kostCache;
 
   @Override
-  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Integer taskId,
+  public Map<String, Object> getData(final List<TimesheetDO> timeSheets, final Long taskId,
       final HttpServletRequest request,
       final HttpServletResponse response, final TimesheetFilter actionFilter)
   {

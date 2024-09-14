@@ -172,31 +172,31 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
       return CurrencyHelper.getGrossAmount(this.netto, vat)
     }
 
-  val kost1Id: Int?
+  val kost1Id: Long?
     @Transient
     get() = if (this.kost1 == null) {
       null
     } else kost1!!.id
 
-  val kost2Id: Int?
+  val kost2Id: Long?
     @Transient
     get() = if (this.kost2 == null) {
       null
     } else kost2!!.id
 
-  val rechnungsPositionId: Int?
+  val rechnungsPositionId: Long?
     @Transient
     get() = if (this.rechnungsPosition == null) {
       null
     } else rechnungsPosition!!.id
 
-  val eingangsrechnungsPositionId: Int?
+  val eingangsrechnungsPositionId: Long?
     @Transient
     get() = if (this.eingangsrechnungsPosition == null) {
       null
     } else eingangsrechnungsPosition!!.id
 
-  val employeeSalaryId: Int?
+  val employeeSalaryId: Long?
     @Transient
     get() = if (this.employeeSalary == null) {
       null

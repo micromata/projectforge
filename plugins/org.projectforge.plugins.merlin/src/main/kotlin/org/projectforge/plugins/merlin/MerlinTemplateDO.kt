@@ -40,12 +40,12 @@ import org.projectforge.framework.persistence.history.NoHistory
 @Entity
 @Indexed
 @Table(name = "t_plugin_merlin_template")
-open class MerlinTemplateDO : AbstractBaseDO<Int>(), AttachmentsInfo {
+open class MerlinTemplateDO : AbstractBaseDO<Long>(), AttachmentsInfo {
   @get:Id
   @get:GeneratedValue
   @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
-  override var id: Int? = null
+  override var id: Long? = null
 
   @PropertyInfo(i18nKey = "plugins.merlin.name")
   @get:Column(length = 100, nullable = false)

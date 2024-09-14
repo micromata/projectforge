@@ -43,7 +43,7 @@ private val PAGE_SIZES = intArrayOf(25, 50, 100, 250, 500, 1000)
  */
 object LayoutListFilterUtils {
   fun createNamedSearchFilterContainer(
-    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Int>, *, out BaseDao<*>>,
+    pagesRest: AbstractPagesRest<out ExtendedBaseDO<Long>, *, out BaseDao<*>>,
     lc: LayoutContext
   ): UINamedContainer {
     val container = UINamedContainer("searchFilter")

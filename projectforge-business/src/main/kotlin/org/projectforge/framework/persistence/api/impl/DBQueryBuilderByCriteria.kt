@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.Predicate
 
-internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Int>>(
+internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
         private val baseDao: BaseDao<O>,
         private val entityManager: EntityManager,
         private val queryFilter: QueryFilter

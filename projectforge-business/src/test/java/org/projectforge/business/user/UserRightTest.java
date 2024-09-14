@@ -68,7 +68,7 @@ public class UserRightTest extends AbstractTestBase {
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    Integer userId = userService.save(user);
+    Long userId = userService.save(user);
     userRightDao.save(userRights);
     user = userService.internalGetById(userId);
 

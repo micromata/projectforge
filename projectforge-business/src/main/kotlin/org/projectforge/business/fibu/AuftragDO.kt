@@ -124,7 +124,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:JoinColumn(name = "contact_person_fk", nullable = true)
     open var contactPerson: PFUserDO? = null
 
-    val contactPersonId: Int?
+    val contactPersonId: Long?
         @Transient
         get() = contactPerson?.id
 
@@ -136,7 +136,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:JoinColumn(name = "kunde_fk", nullable = true)
     open var kunde: KundeDO? = null
 
-    val kundeId: Int?
+    val kundeId: Long?
         @Transient
         get() = kunde?.id
 
@@ -155,7 +155,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:JoinColumn(name = "projekt_fk", nullable = true)
     open var projekt: ProjektDO? = null
 
-    val projektId: Int?
+    val projektId: Long?
         @Transient
         get() = projekt?.id
 
@@ -539,15 +539,15 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
             return field
         }
 
-    val projectManagerId: Int?
+    val projectManagerId: Long?
         @Transient
         get() = if (projectManager != null) projectManager!!.id else null
 
-    val headOfBusinessManagerId: Int?
+    val headOfBusinessManagerId: Long?
         @Transient
         get() = if (headOfBusinessManager != null) headOfBusinessManager!!.id else null
 
-    val salesManagerId: Int?
+    val salesManagerId: Long?
         @Transient
         get() = if (salesManager != null) salesManager!!.id else null
 

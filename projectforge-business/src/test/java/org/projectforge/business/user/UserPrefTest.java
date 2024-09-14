@@ -77,7 +77,7 @@ public class UserPrefTest extends AbstractTestBase {
     userPref.setValueObject(user);
     userPref.setArea("TEST_AREA");
     userPref.setName("");
-    Integer id = userPrefDao.save(userPref);
+    Long id = userPrefDao.save(userPref);
     userPref = userPrefDao.internalGetById(id);
     User user2 = (User) userPrefDao.deserizalizeValueObject(userPref);
     assertEquals(User.class.getName(), userPref.getValueTypeString());
@@ -166,7 +166,7 @@ public class UserPrefTest extends AbstractTestBase {
     userPref.setArea("TEST_AREA2");
     userPref.setName(name);
     userPrefDao.internalSaveOrUpdate(userPref);
-    Integer id = userPref.getId();
+    Long id = userPref.getId();
     userPref = new UserPrefDO();
     userPref.setUser(loggedInUser);
     userPref.setValueObject(user);
@@ -188,7 +188,7 @@ public class UserPrefTest extends AbstractTestBase {
     assertFalse(userPrefDao.doesParameterNameAlreadyExist(null, user, UserPrefArea.TIMESHEET_TEMPLATE, "test"));
     final Serializable id = userPrefDao.save(userPref);
     assertTrue(userPrefDao.doesParameterNameAlreadyExist(null, user, UserPrefArea.TIMESHEET_TEMPLATE, "test"));
-    assertFalse(userPrefDao.doesParameterNameAlreadyExist((Integer) id, user, UserPrefArea.TIMESHEET_TEMPLATE, "test"));
+    assertFalse(userPrefDao.doesParameterNameAlreadyExist((Long) id, user, UserPrefArea.TIMESHEET_TEMPLATE, "test"));
     userPref = userPrefDao.getById(id);
     assertEquals(5, userPref.getUserPrefEntries().size()); // user, task, kost2, location, description.
     {

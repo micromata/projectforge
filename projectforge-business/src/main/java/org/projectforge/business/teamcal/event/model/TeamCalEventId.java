@@ -46,7 +46,7 @@ public class TeamCalEventId
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEventId.class);
 
-  private final Integer databaseId;
+  private final Long databaseId;
 
   private Date date;
 
@@ -56,7 +56,7 @@ public class TeamCalEventId
 
   private final TimeZone timeZone;
 
-  public TeamCalEventId(final Integer databaseId, final Date date, final TimeZone timeZone)
+  public TeamCalEventId(final Long databaseId, final Date date, final TimeZone timeZone)
   {
     this.databaseId = databaseId;
     this.date = date;
@@ -69,11 +69,11 @@ public class TeamCalEventId
     final int pos = idString.indexOf('-');
     if (pos < 0) {
       this.date = null;
-      databaseId = NumberHelper.parseInteger(idString);
+      databaseId = NumberHelper.parseLong(idString);
       return;
     }
     final String idStr = idString.substring(0, pos);
-    databaseId = NumberHelper.parseInteger(idStr);
+    databaseId = NumberHelper.parseLong(idStr);
     final String dateString = idString.substring(pos + 1);
     try {
       date = getDateFormat().parse(dateString);
@@ -96,7 +96,7 @@ public class TeamCalEventId
   /**
    * @return the id of the event or the id of the master event for recurrence events.
    */
-  public Integer getDataBaseId()
+  public Long getDataBaseId()
   {
     return databaseId;
   }

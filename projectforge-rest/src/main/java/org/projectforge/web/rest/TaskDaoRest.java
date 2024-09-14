@@ -25,6 +25,7 @@ package org.projectforge.web.rest;
 
 import org.projectforge.business.task.*;
 import org.projectforge.framework.json.JsonUtils;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TaskObject;
@@ -145,7 +146,7 @@ public class TaskDaoRest
     if (tasks == null || tasks.isEmpty()) {
       return topLevelTasks;
     }
-    final Map<Integer, TaskObject> rtaskMap = new HashMap<>();
+    final Map<Long, TaskObject> rtaskMap = new HashMap<>();
     for (final TaskDO task : tasks) {
       final TaskObject rtask = createRTask(task);
       rtaskMap.put(task.getId(), rtask);
@@ -157,7 +158,7 @@ public class TaskDaoRest
   }
 
   private TaskObject addTask(final TaskTree taskTree, final List<TaskObject> topLevelTasks, final TaskDO task,
-      final Map<Integer, TaskObject> rtaskMap)
+      final Map<Long, TaskObject> rtaskMap)
   {
     TaskObject rtask = rtaskMap.get(task.getId());
     if (rtask == null) {

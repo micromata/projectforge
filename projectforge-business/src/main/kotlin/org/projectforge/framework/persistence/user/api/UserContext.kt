@@ -39,7 +39,7 @@ class UserContext() : Serializable {
    * @return the user
    */
   var user: PFUserDO? = null
-  val employeeId: Int?
+  val employeeId: Long?
     get() = UserGroupCache.getInstance().getEmployeeId(user?.id)
 
   /**

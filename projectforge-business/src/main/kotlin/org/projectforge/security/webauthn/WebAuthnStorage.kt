@@ -55,7 +55,7 @@ class WebAuthnStorage {
     return webAuthnEntryDao.getEntry(ownerId, credentialId)
   }
 
-  fun loadAll(ownerId: Int? = null): List<WebAuthnEntryDO> {
+  fun loadAll(ownerId: Long? = null): List<WebAuthnEntryDO> {
     return webAuthnEntryDao.getEntries(ownerId ?: ThreadLocalUserContext.userId)
   }
 

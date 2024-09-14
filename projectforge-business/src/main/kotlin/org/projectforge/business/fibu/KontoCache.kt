@@ -44,7 +44,7 @@ open class KontoCache : AbstractCache() {
     /**
      * The key is the order id.
      */
-    private var accountMapById: Map<Int?, KontoDO?>? = null
+    private var accountMapById: Map<Long?, KontoDO?>? = null
 
     val isEmpty: Boolean
         get() {
@@ -52,7 +52,7 @@ open class KontoCache : AbstractCache() {
             return MapUtils.isEmpty(accountMapById)
         }
 
-    fun getKonto(id: Int?): KontoDO? {
+    fun getKonto(id: Long?): KontoDO? {
         if (id == null) {
             return null
         }
@@ -136,7 +136,7 @@ open class KontoCache : AbstractCache() {
     public override fun refresh() {
         log.info("Initializing KontoCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
-        val map: MutableMap<Int?, KontoDO?> = HashMap()
+        val map: MutableMap<Long?, KontoDO?> = HashMap()
         val list = persistenceService.query(
             "from KontoDO t where deleted=false",
             KontoDO::class.java,

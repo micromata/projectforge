@@ -68,7 +68,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   enum class PhoneType { BUSINESS, MOBILE, PRIVATE, PRIVATE_MOBILE }
 
   class PhoneNumber(
-    var addressId: Int,
+    var addressId: Long,
     var number: String?,
     var phoneCallEnabled: Boolean,
     var phoneType: PhoneType,
@@ -84,7 +84,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     @RequestParam("id") idString: String?,
     @RequestParam("returnToCaller") returnToCaller: String?,
   ): FormLayoutData {
-    val id = NumberHelper.parseInteger(idString) ?: throw IllegalArgumentException("id not given.")
+    val id = NumberHelper.parseLong(idString) ?: throw IllegalArgumentException("id not given.")
     val addressDO = addressDao.getById(id) ?: AddressDO()
     val address = Address()
     address.copyFrom(addressDO)
@@ -326,7 +326,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   companion object {
     @JvmStatic
     @JvmOverloads
-    fun getPageUrl(id: Int?, returnToCaller: String? = null, absolute: Boolean = true): String {
+    fun getPageUrl(id: Long?, returnToCaller: String? = null, absolute: Boolean = true): String {
       return PagesResolver.getDynamicPageUrl(
         AddressViewPageRest::class.java,
         id = id,

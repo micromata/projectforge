@@ -50,12 +50,12 @@ public class MonthlyEmployeeReportWeek implements Serializable {
   /**
    * Key is kost2 id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> kost2Entries = new HashMap<>();
+  private Map<Long, MonthlyEmployeeReportEntry> kost2Entries = new HashMap<>();
 
   /**
    * Key is task id.
    */
-  private Map<Integer, MonthlyEmployeeReportEntry> taskEntries = new HashMap<>();
+  private Map<Long, MonthlyEmployeeReportEntry> taskEntries = new HashMap<>();
 
   /**
    * FromDate will be set to the begin of week but not before first day of month.
@@ -143,7 +143,7 @@ public class MonthlyEmployeeReportWeek implements Serializable {
    *
    * @return
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getKost2Entries() {
+  public Map<Long, MonthlyEmployeeReportEntry> getKost2Entries() {
     return kost2Entries;
   }
 
@@ -152,7 +152,7 @@ public class MonthlyEmployeeReportWeek implements Serializable {
    *
    * @return
    */
-  public Map<Integer, MonthlyEmployeeReportEntry> getTaskEntries() {
+  public Map<Long, MonthlyEmployeeReportEntry> getTaskEntries() {
     return taskEntries;
   }
 }

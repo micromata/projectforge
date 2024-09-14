@@ -30,7 +30,7 @@ import org.projectforge.business.fibu.ProjektStatus
 import org.projectforge.framework.i18n.translate
 
 class Project(
-  id: Int? = null,
+  id: Long? = null,
   displayName: String? = null,
   var nummer: Int = 0,
   var name: String? = null,

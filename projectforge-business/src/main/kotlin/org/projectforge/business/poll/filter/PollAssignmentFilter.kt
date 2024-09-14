@@ -35,7 +35,7 @@ class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilte
     override fun match(list: MutableList<PollDO>, element: PollDO): Boolean {
         var foundUser: PFUserDO? = null
         if (!element.fullAccessGroupIds.isNullOrEmpty()) {
-            val groupIds = element.fullAccessGroupIds!!.split(", ").map { it.toInt() }.toIntArray()
+            val groupIds = element.fullAccessGroupIds!!.split(", ").map { it.toLong() }.toLongArray()
             val accessUsers = groupService.getGroupUsers(groupIds)
             val localUser = ThreadLocalUserContext.userId!!
             foundUser = accessUsers.firstOrNull { user -> user.id == localUser }

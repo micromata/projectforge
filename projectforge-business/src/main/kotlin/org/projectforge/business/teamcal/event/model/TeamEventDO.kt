@@ -260,7 +260,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
       return field
     }
 
-  val calendarId: Int?
+  val calendarId: Long?
     @Transient
     get() = calendar?.id
 
@@ -677,7 +677,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
    * @param recurrenceReferenceId the recurrenceReferenceId to set
    * @return this for chaining.
    */
-  fun setRecurrenceReferenceId(recurrenceReferenceId: Int?): TeamEventDO {
+  fun setRecurrenceReferenceId(recurrenceReferenceId: Long?): TeamEventDO {
     this.recurrenceReferenceId = recurrenceReferenceId?.toString()
     return this
   }

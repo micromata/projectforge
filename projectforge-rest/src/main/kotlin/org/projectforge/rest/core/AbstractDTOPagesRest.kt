@@ -38,7 +38,7 @@ import jakarta.servlet.http.HttpServletRequest
  * by these rest services.
  */
 abstract class AbstractDTOPagesRest<
-    O : ExtendedBaseDO<Int>,
+    O : ExtendedBaseDO<Long>,
     DTO : BaseDTO<O>,
     B : BaseDao<O>>(
   baseDaoClazz: Class<B>,
@@ -75,7 +75,7 @@ abstract class AbstractDTOPagesRest<
   /**
    * @param dto Expected as DTO
    */
-  override fun getId(dto: Any): Int? {
+  override fun getId(dto: Any): Long? {
     @Suppress("UNCHECKED_CAST")
     return (dto as DTO).id
   }

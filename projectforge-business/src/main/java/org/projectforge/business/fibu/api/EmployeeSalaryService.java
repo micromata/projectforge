@@ -36,6 +36,6 @@ public interface EmployeeSalaryService
 
   void saveOrUpdate(EmployeeSalaryDO employeeSalaryDO);
 
-  EmployeeSalaryDO selectByPk(Integer id);
+  EmployeeSalaryDO selectByPk(Long id);
 
 }

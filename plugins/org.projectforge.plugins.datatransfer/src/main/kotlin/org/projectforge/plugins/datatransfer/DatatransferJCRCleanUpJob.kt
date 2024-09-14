@@ -67,7 +67,7 @@ class DataTransferJCRCleanUpJob {
     log.info("Data transfer clean-up job started.")
     val startTimeInMillis = System.currentTimeMillis()
 
-    val processedDBOs = mutableListOf<Int>() // For checking orphaned areas.
+    val processedDBOs = mutableListOf<Long>() // For checking orphaned areas.
 
     var deletedCounter = 0
     var deletedSize: Long = 0
@@ -110,7 +110,7 @@ class DataTransferJCRCleanUpJob {
     val nodeInfo = repoService.getNodeInfo(nodePath, true)
     nodeInfo.children?.let { children ->
       for (child in children) {
-        val dbId = NumberHelper.parseInteger(child.name)
+        val dbId = NumberHelper.parseLong(child.name)
         if (dbId == null) {
           log.warn { "Oups, name of node isn't of type int (db id): '${child.name}'. Ignoring node." }
           continue

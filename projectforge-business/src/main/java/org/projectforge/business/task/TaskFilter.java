@@ -52,15 +52,15 @@ public class TaskFilter extends BaseSearchFilter {
 
   /**
    * Used by match filter for avoiding multiple traversing of the tree. Should be empty before building a task node
-   * list!
+   * list! Key is the task id.
    */
-  private transient HashMap<Integer, Boolean> taskVisibility;
+  private transient HashMap<Long, Boolean> taskVisibility;
 
   /**
    * Used by match filter for storing those tasks which matches the search string. Should be empty before building a
-   * task node list!
+   * task node list! Key is the task id.
    */
-  private transient HashSet<Integer> tasksMatched;
+  private transient HashSet<Long> tasksMatched;
 
   public TaskFilter() {
     searchString = "";
@@ -119,7 +119,6 @@ public class TaskFilter extends BaseSearchFilter {
    * @param node    Node to check.
    * @param taskDao Needed for access checking.
    * @param user    Needed for access checking.
-   * @see org.projectforge.web.tree.TreeTableFilter#match(org.projectforge.web.tree.TreeTableNode)
    */
   public boolean match(final TaskNode node, final TaskDao taskDao, final PFUserDO user) {
     Validate.notNull(node);

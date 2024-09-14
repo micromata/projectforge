@@ -77,7 +77,7 @@ private val log = KotlinLogging.logger {}
  * by these rest services.
  */
 abstract class AbstractPagesRest<
-    O : ExtendedBaseDO<Int>,
+    O : ExtendedBaseDO<Long>,
     DTO : Any, // DTO may be equals to O if no special data transfer objects are used.
     B : BaseDao<O>>
 @JvmOverloads
@@ -414,7 +414,7 @@ constructor(
   protected fun getInitialList(request: HttpServletRequest, filter: MagicFilter): InitialListData {
     val favorites = getFilterFavorites()
     val resultSet = processResultSetBeforeExport(getList(request, this, baseDao, filter), request, filter)
-    resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
+    resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
     val ui = createListLayout(request, filter)
       .addTranslations(
         "table.showing",
@@ -504,7 +504,7 @@ constructor(
     val list = getList(request, this, baseDao, filter)
     saveCurrentFilter(filter)
     val resultSet = processResultSetBeforeExport(list, request, filter)
-    resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Int::class.java)
+    resultSet.highlightRowId = userPrefService.getEntry(category, USER_PREF_PARAM_HIGHLIGHT_ROW, Long::class.java)
     return resultSet
   }
 
@@ -570,7 +570,7 @@ constructor(
   }
 
   @GetMapping("filter/select")
-  fun selectFavoriteFilter(request: HttpServletRequest, @RequestParam("id", required = true) id: Int): InitialListData {
+  fun selectFavoriteFilter(request: HttpServletRequest, @RequestParam("id", required = true) id: Long): InitialListData {
     val favorites = getFilterFavorites()
     val currentFilter = favorites.get(id)
     if (currentFilter != null) {
@@ -607,7 +607,7 @@ constructor(
    */
   @GetMapping("filter/rename")
   fun renameFavoriteFilter(
-    @RequestParam("id", required = true) id: Int,
+    @RequestParam("id", required = true) id: Long,
     @RequestParam("newName", required = true) newName: String
   ): Map<String, Any> {
     val favorites = getFilterFavorites()
@@ -647,7 +647,7 @@ constructor(
    * @return The new list of filterFavorites (id's with titles) without the deleted filter.
    */
   @GetMapping("filter/delete")
-  fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Int): Map<String, Any> {
+  fun deleteFavoriteFilter(@RequestParam("id", required = true) id: Long): Map<String, Any> {
     val favorites = getFilterFavorites()
     favorites.remove(id)
     return mapOf("filterFavorites" to getFilterFavorites().idTitleList)
@@ -696,7 +696,7 @@ constructor(
    * layout will be also included if the id is not given.
    */
   @GetMapping("{id}")
-  fun getItem(@PathVariable("id") id: Int?): ResponseEntity<Any> {
+  fun getItem(@PathVariable("id") id: Long?): ResponseEntity<Any> {
     val item = getById(id, true) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
     return ResponseEntity(item, HttpStatus.OK)
   }
@@ -707,10 +707,10 @@ constructor(
     userAccess: UILayout.UserAccess? = null
   ): DTO? {
     if (idString == null) return null
-    return getById(idString.toInt(), editMode, userAccess)
+    return getById(idString.toLong(), editMode, userAccess)
   }
 
-  protected fun getById(id: Int?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
+  protected fun getById(id: Long?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
     id ?: return null
     val item = baseDao.getById(id) ?: return null
     checkUserAccess(item, userAccess)
@@ -885,7 +885,7 @@ constructor(
    * @param id Id of the item to get the history entries for.
    */
   @GetMapping("history/{id}")
-  fun getHistory(@PathVariable("id") id: Int?): ResponseEntity<List<HistoryFormatService.DisplayHistoryEntryDTO>> {
+  fun getHistory(@PathVariable("id") id: Long?): ResponseEntity<List<HistoryFormatService.DisplayHistoryEntryDTO>> {
     if (id == null) {
       return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
@@ -1298,7 +1298,7 @@ constructor(
    */
   abstract fun transformFromDB(obj: O, editMode: Boolean = false): DTO
 
-  abstract fun getId(dto: Any): Int?
+  abstract fun getId(dto: Any): Long?
 
   abstract fun isDeleted(dto: Any): Boolean
 

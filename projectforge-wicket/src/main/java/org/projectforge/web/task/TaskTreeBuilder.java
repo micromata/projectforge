@@ -81,7 +81,7 @@ public class TaskTreeBuilder implements Serializable {
 
     private final Behavior theme = new WindowsTheme();
 
-    private Integer highlightedTaskNodeId;
+    private Long highlightedTaskNodeId;
 
     private boolean selectMode, showRootNode, showCost, showOrders;
 
@@ -109,7 +109,7 @@ public class TaskTreeBuilder implements Serializable {
         final List<IColumn<TaskNode, String>> columns = createColumns();
 
         tree = new TableTree<TaskNode, String>(id, columns,
-                new TaskTreeProvider(taskFilter).setShowRootNode(showRootNode), Integer.MAX_VALUE,
+                new TaskTreeProvider(taskFilter).setShowRootNode(showRootNode), Long.MAX_VALUE,
                 TaskTreeExpansion.getExpansionModel()) {
             private static final long serialVersionUID = 1L;
 
@@ -347,7 +347,7 @@ public class TaskTreeBuilder implements Serializable {
      * @param highlightedTaskNodeId the highlightedTaskNodeId to set
      * @return this for chaining.
      */
-    public TaskTreeBuilder setHighlightedTaskNodeId(final Integer highlightedTaskNodeId) {
+    public TaskTreeBuilder setHighlightedTaskNodeId(final Long highlightedTaskNodeId) {
         this.highlightedTaskNodeId = highlightedTaskNodeId;
         final TaskNode node = getTaskTree().getTaskNodeById(highlightedTaskNodeId);
         if (node == null) {

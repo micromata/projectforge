@@ -72,9 +72,9 @@ public class LicenseManagementRight extends UserRightAccessCheck<LicenseDO>
       // No owners defined.
       return false;
     }
-    final int[] ids = StringHelper.splitToInts(license.getOwnerIds(), ",", true);
-    final int userId = user.getId();
-    for (final int id : ids) {
+    final long[] ids = StringHelper.splitToLongs(license.getOwnerIds(), ",", true);
+    final long userId = user.getId();
+    for (final long id : ids) {
       if (id == userId) {
         // User is member of owners:
         return true;

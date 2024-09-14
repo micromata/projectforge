@@ -39,14 +39,14 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object BaseDaoSupport {
-    class ResultObject<O : ExtendedBaseDO<Int>>(
+    class ResultObject<O : ExtendedBaseDO<Long>>(
         var dbObjBackup: O? = null,
         var wantsReindexAllDependentObjects: Boolean = false,
         var modStatus: EntityCopyStatus? = null
     )
 
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalSave(baseDao: BaseDao<O>, obj: O): Int? {
+    fun <O : ExtendedBaseDO<Long>> internalSave(baseDao: BaseDao<O>, obj: O): Long? {
         preInternalSave(baseDao, obj)
         baseDao.persistenceService.runInTransaction { context ->
             internalSave(context.em, baseDao, obj)
@@ -56,7 +56,7 @@ object BaseDaoSupport {
         return obj.id
     }
 
-    private fun <O : ExtendedBaseDO<Int>> internalSave(em: EntityManager, baseDao: BaseDao<O>, obj: O) {
+    private fun <O : ExtendedBaseDO<Long>> internalSave(em: EntityManager, baseDao: BaseDao<O>, obj: O) {
         // BaseDaoJpaAdapter.prepareInsert(em, obj)
         em.persist(obj)
         if (baseDao.logDatabaseActions) {
@@ -76,7 +76,7 @@ object BaseDaoSupport {
         // HistoryBaseDaoAdapter.inserted(emgr, obj)
     }
 
-    private fun <O : ExtendedBaseDO<Int>> preInternalSave(baseDao: BaseDao<O>, obj: O) {
+    private fun <O : ExtendedBaseDO<Long>> preInternalSave(baseDao: BaseDao<O>, obj: O) {
         Validate.notNull<O>(obj)
         obj.setCreated()
         obj.setLastUpdate()
@@ -84,13 +84,13 @@ object BaseDaoSupport {
         baseDao.onSaveOrModify(obj)
     }
 
-    private fun <O : ExtendedBaseDO<Int>> postInternalSave(baseDao: BaseDao<O>, obj: O) {
+    private fun <O : ExtendedBaseDO<Long>> postInternalSave(baseDao: BaseDao<O>, obj: O) {
         baseDao.afterSaveOrModify(obj)
         baseDao.afterSave(obj)
     }
 
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalUpdate(
+    fun <O : ExtendedBaseDO<Long>> internalUpdate(
         baseDao: BaseDao<O>,
         obj: O,
         checkAccess: Boolean
@@ -104,7 +104,7 @@ object BaseDaoSupport {
         return res.modStatus
     }
 
-    private fun <O : ExtendedBaseDO<Int>> preInternalUpdate(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean) {
+    private fun <O : ExtendedBaseDO<Long>> preInternalUpdate(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean) {
         baseDao.beforeSaveOrModify(obj)
         baseDao.onSaveOrModify(obj)
         if (checkAccess) {
@@ -112,7 +112,7 @@ object BaseDaoSupport {
         }
     }
 
-    private fun <O : ExtendedBaseDO<Int>> internalUpdate(
+    private fun <O : ExtendedBaseDO<Long>> internalUpdate(
         em: EntityManager,
         baseDao: BaseDao<O>,
         obj: O,
@@ -180,7 +180,7 @@ object BaseDaoSupport {
         }*/
     }
 
-    private fun <O : ExtendedBaseDO<Int>> postInternalUpdate(baseDao: BaseDao<O>, obj: O, res: ResultObject<O>) {
+    private fun <O : ExtendedBaseDO<Long>> postInternalUpdate(baseDao: BaseDao<O>, obj: O, res: ResultObject<O>) {
         baseDao.afterSaveOrModify(obj)
         if (baseDao.supportAfterUpdate) {
             baseDao.afterUpdate(obj, res.dbObjBackup, res.modStatus != EntityCopyStatus.NONE)
@@ -196,7 +196,7 @@ object BaseDaoSupport {
 
 
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalMarkAsDeleted(baseDao: BaseDao<O>, obj: O) {
+    fun <O : ExtendedBaseDO<Long>> internalMarkAsDeleted(baseDao: BaseDao<O>, obj: O) {
         /*if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
           log.error(
             "Object is not historizable. Therefore, marking as deleted is not supported. Please use delete instead."
@@ -232,7 +232,7 @@ object BaseDaoSupport {
     }
 
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalUndelete(baseDao: BaseDao<O>, obj: O) {
+    fun <O : ExtendedBaseDO<Long>> internalUndelete(baseDao: BaseDao<O>, obj: O) {
         baseDao.onSaveOrModify(obj)
         baseDao.persistenceService.runInTransaction { context ->
             val em = context.em
@@ -259,7 +259,7 @@ object BaseDaoSupport {
     }
 
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalForceDelete(baseDao: BaseDao<O>, obj: O) {
+    fun <O : ExtendedBaseDO<Long>> internalForceDelete(baseDao: BaseDao<O>, obj: O) {
         /*if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
           log.error(
             "Object is not historizable. Therefore use normal delete instead."
@@ -312,7 +312,7 @@ object BaseDaoSupport {
      * Bulk update.
      */
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>) {
+    fun <O : ExtendedBaseDO<Long>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>) {
         baseDao.persistenceService.runInTransaction { context ->
             val em = context.em
             for (obj in col) {
@@ -336,7 +336,7 @@ object BaseDaoSupport {
      * @param blockSize The block size of commit blocks.
      */
     @JvmStatic
-    fun <O : ExtendedBaseDO<Int>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>, blockSize: Int) {
+    fun <O : ExtendedBaseDO<Long>> internalSaveOrUpdate(baseDao: BaseDao<O>, col: Collection<O>, blockSize: Int) {
         val list: MutableList<O> = ArrayList<O>()
         var counter = 0
         for (obj in col) {

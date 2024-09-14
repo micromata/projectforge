@@ -97,7 +97,7 @@ class MassUpdateParameter: DisplayNameCapable {
   /**
    * E. g. for tasks, the id of the selected task is set.
    */
-  var id: Int? = null
+  var id: Long? = null
   var textValue: String? = null
   var intValue: Int? = null
   var decimalValue: BigDecimal? = null

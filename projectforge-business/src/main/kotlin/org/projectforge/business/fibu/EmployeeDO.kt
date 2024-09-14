@@ -144,11 +144,11 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     @get:Column(length = Constants.COMMENT_LENGTH)
     open var comment: String? = null
 
-    val kost1Id: Int?
+    val kost1Id: Long?
         @Transient
         get() = kost1?.id
 
-    val userId: Int?
+    val userId: Long?
         @Transient
         get() = user?.id
 

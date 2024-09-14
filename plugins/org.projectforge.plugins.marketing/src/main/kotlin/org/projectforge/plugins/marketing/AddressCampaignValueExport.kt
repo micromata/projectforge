@@ -45,7 +45,7 @@ open class AddressCampaignValueExport : AddressExport() {
 
   override fun export(
     origList: List<AddressDO>,
-    personalAddressMap: Map<Int, PersonalAddressDO>,
+    personalAddressMap: Map<Long, PersonalAddressDO>,
     vararg params: Any
   ): ByteArray? {
     log.info { "Exporting campaign '${params[1]}'..." }
@@ -59,7 +59,7 @@ open class AddressCampaignValueExport : AddressExport() {
 
   override fun handleAddressCampaign(row: ExcelRow, address: AddressDO, vararg params: Any) {
     @Suppress("UNCHECKED_CAST")
-    val addressCampaignValue = (params[0] as Map<Int, AddressCampaignValueDO>).get(address.id)
+    val addressCampaignValue = (params[0] as Map<Long, AddressCampaignValueDO>).get(address.id)
     row.getCell("campaignValue")?.setCellValue(addressCampaignValue?.value)
     row.getCell("campaignComment")?.setCellValue(addressCampaignValue?.comment)
   }

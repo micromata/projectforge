@@ -52,7 +52,7 @@ public class UserXmlPreferencesService {
    * @param key
    * @param value
    * @param persistent If true, the object will be persisted in the database.
-   * @see UserXmlPreferencesCache#putEntry(Integer, String, Object, boolean)
+   * @see UserXmlPreferencesCache#putEntry(Long, String, Object, boolean)
    */
   public void putEntry(final String key, final Object value, final boolean persistent) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
@@ -78,7 +78,7 @@ public class UserXmlPreferencesService {
    * @param key
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    * existing, otherwise null;
-   * @see UserXmlPreferencesCache#getEntry(Integer, String)
+   * @see UserXmlPreferencesCache#getEntry(Long, String)
    */
   public Object getEntry(final String key) {
     final PFUserDO user = ThreadLocalUserContext.getUser();
@@ -86,7 +86,7 @@ public class UserXmlPreferencesService {
       // Should only occur, if user is not logged in.
       return null;
     }
-    final Integer userId = user.getId();
+    final Long userId = user.getId();
     try {
       return userXmlPreferencesCache.getEntry(userId, key);
     } catch (final Exception ex) {
@@ -103,7 +103,7 @@ public class UserXmlPreferencesService {
    *                     from the expected type, otherwise null is returned.
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    * existing, otherwise null;
-   * @see UserXmlPreferencesCache#getEntry(Integer, String)
+   * @see UserXmlPreferencesCache#getEntry(Long, String)
    */
   public <T> T getEntry(Class<T> expectedType, String key) {
     final Object entry = getEntry(key);

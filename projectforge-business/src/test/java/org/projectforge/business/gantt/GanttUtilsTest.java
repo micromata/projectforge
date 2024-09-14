@@ -143,11 +143,11 @@ public class GanttUtilsTest extends AbstractTestBase {
 
   @Test
   public void compareTo() {
-    final GanttTaskImpl a1 = new GanttTaskImpl(1).setTitle("B");
+    final GanttTaskImpl a1 = new GanttTaskImpl(1L).setTitle("B");
     assertEquals(0, GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a1));
-    GanttTaskImpl a2 = new GanttTaskImpl(1).setTitle("A");
+    GanttTaskImpl a2 = new GanttTaskImpl(1L).setTitle("A");
     assertEquals(0, GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a1)); // Same id
-    a2 = new GanttTaskImpl(2).setTitle("A");
+    a2 = new GanttTaskImpl(2L).setTitle("A");
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a1, a2) > 0,
             "Start date not given, use alphabetical order instead.");
     assertTrue(GanttUtils.GANTT_OBJECT_COMPARATOR.compare(a2, a1) < 0,

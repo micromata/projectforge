@@ -51,12 +51,12 @@ import org.projectforge.framework.persistence.search.ClassBridge
 @ClassBridge(name = "usersgroups") // usersgroups should be used in HibernateSearchUsersGroupsBridge as field name.
 //@ClassBridge(name = "usersgroups", index = Index.YES, store = Store.NO, impl = HibernateSearchUsersGroupsBridge::class)
 @Table(name = "T_CALENDAR", indexes = [jakarta.persistence.Index(name = "idx_fk_t_calendar_owner_fk", columnList = "owner_fk")])
-open class TeamCalDO() : BaseUserGroupRightsDO() {
+open class TeamCalDO : BaseUserGroupRightsDO() {
 
     companion object {
         @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
         @JvmStatic
-        fun createFrom(value: Int): TeamCalDO {
+        fun createFrom(value: Long): TeamCalDO {
             val cal = TeamCalDO()
             cal.id = value
             return cal

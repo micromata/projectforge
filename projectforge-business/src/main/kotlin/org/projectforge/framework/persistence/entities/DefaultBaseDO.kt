@@ -36,12 +36,12 @@ import org.projectforge.common.anots.PropertyInfo
  */
 @MappedSuperclass
 //@Analyzer(impl = ClassicAnalyzer::class)
-open class DefaultBaseDO : AbstractHistorizableBaseDO<Int>() {
+open class DefaultBaseDO : AbstractHistorizableBaseDO<Long>() {
     @get:Column(name = "pk")
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Id
     @PropertyInfo(i18nKey = "id")
-    override var id: Int? = null
+    override var id: Long? = null
 
     companion object {
         private const val serialVersionUID = 659687830219996653L

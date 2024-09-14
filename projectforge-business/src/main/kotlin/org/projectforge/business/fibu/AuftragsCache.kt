@@ -57,7 +57,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
   @Autowired
   private lateinit var rechnungDao: RechnungDao
 
-  private var orderMap = mutableMapOf<Int, OrderInfo>()
+  private var orderMap = mutableMapOf<Long, OrderInfo>()
 
   @PostConstruct
   private fun init() {

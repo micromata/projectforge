@@ -85,7 +85,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         return hasLoggedInUserAccess(obj!!.user!!.id, throwException)
     }
 
-    private fun hasLoggedInUserAccess(ownerUserId: Int?, throwException: Boolean = true): Boolean {
+    private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {
         ownerUserId ?: return false
         if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.userId) {
             return true
@@ -101,7 +101,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     }
 
     @JvmOverloads
-    open fun saveOrUpdate(userId: Int, passwords: UserPasswordDO, throwException: Boolean = true) {
+    open fun saveOrUpdate(userId: Long, passwords: UserPasswordDO, throwException: Boolean = true) {
         if (!hasLoggedInUserAccess(userId)) {
             if (throwException) {
                 throw AccessException("access.exception.violation", "AccessToken")
@@ -126,7 +126,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      * @see Crypt.digest
      */
     @JvmOverloads
-    open fun encryptAndSavePassword(userId: Int, clearTextPassword: CharArray, checkAccess: Boolean = true) {
+    open fun encryptAndSavePassword(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
         val passwords = ensurePassword(userId, checkAccess)
         newSaltString.let { salt ->
             passwords.passwordSalt = salt
@@ -145,7 +145,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      * @return Stored or created passwords object for given user.
      * @throws AccessException if the logged-in user neither doesn't match the given user nor is admin user.
      */
-    private fun ensurePassword(userId: Int, checkAccess: Boolean = true): UserPasswordDO {
+    private fun ensurePassword(userId: Long, checkAccess: Boolean = true): UserPasswordDO {
         if (checkAccess) {
             hasLoggedInUserAccess(userId)
         }
@@ -162,7 +162,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         obj.checkAndFixPassword()
     }
 
-    open fun internalGetByUserId(userId: Int): UserPasswordDO? {
+    open fun internalGetByUserId(userId: Long): UserPasswordDO? {
         return persistenceService.selectNamedSingleResult(
             UserPasswordDO.FIND_BY_USER_ID,
             UserPasswordDO::class.java,

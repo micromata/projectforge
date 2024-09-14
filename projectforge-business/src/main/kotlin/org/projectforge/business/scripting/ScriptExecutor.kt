@@ -330,7 +330,7 @@ abstract class ScriptExecutor(
       val scriptContent = script.scriptAsString ?: return
       INCLUDE_REGEX.findAll(scriptContent).forEach { m ->
         val snippetNameOrId = m.groupValues[1]
-        val id = snippetNameOrId.toIntOrNull()
+        val id = snippetNameOrId.toLongOrNull()
         var snippet = processedScripts.find {
             (id != null && it.id == id) ||
                 it.name?.contains(

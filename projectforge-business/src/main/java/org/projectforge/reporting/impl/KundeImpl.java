@@ -52,7 +52,7 @@ public class KundeImpl implements Kunde
     return kunde != null ? kunde.getDivision() : "";
   }
 
-  public Integer getId()
+  public Long getId()
   {
     return kunde != null ? kunde.getId() : null;
   }

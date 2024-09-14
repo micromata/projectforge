@@ -181,7 +181,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
     }
 
-    open fun ensurePersonalBox(userId: Int): DataTransferAreaDO? {
+    open fun ensurePersonalBox(userId: Long): DataTransferAreaDO? {
         userGroupCache.getUser(userId) ?: return null
         var dbo = persistenceService.selectNamedSingleResult(
             DataTransferAreaDO.FIND_PERSONAL_BOX,
@@ -239,8 +239,8 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             // Select only on inboxes:
             return operationType == OperationType.SELECT
         }
-        val adminIds = StringHelper.splitToIntegers(obj.adminIds, ",")
-        if (adminIds?.contains(user.id) == true) {
+        val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
+        if (adminIds?.contains(user.id!!) == true) {
             return true
         }
         if (operationType == OperationType.SELECT) {
@@ -250,13 +250,13 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
             obj.externalPassword = null
             obj.externalAccessLogs = null
             // Select access also for those users:
-            StringHelper.splitToIntegers(obj.accessUserIds, ",")?.let {
-                if (it.contains(user.id)) {
+            StringHelper.splitToLongs(obj.accessUserIds, ",")?.let {
+                if (it.contains(user.id!!)) {
                     return true
                 }
             }
-            StringHelper.splitToIntegers(obj.accessGroupIds, ",")?.let {
-                if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it)) {
+            StringHelper.splitToLongs(obj.accessGroupIds, ",")?.let {
+                if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it.toTypedArray())) {
                     return true
                 }
             }

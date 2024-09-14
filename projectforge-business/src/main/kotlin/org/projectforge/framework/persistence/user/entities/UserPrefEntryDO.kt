@@ -44,7 +44,7 @@ import java.io.Serializable
     uniqueConstraints = [UniqueConstraint(columnNames = ["user_pref_fk", "parameter"])],
     indexes = [Index(name = "idx_fk_t_user_pref_entry_user_pref_fk", columnList = "user_pref_fk")]
 )
-class UserPrefEntryDO : BaseDO<Int>, Serializable {
+class UserPrefEntryDO : BaseDO<Long>, Serializable {
     @get:Column(length = 255)
     var parameter: String? = null // 255 not null
 
@@ -108,7 +108,7 @@ class UserPrefEntryDO : BaseDO<Int>, Serializable {
     @get:Column(name = "pk")
     @get:GeneratedValue
     @get:Id
-    override var id: Int? = null
+    override var id: Long? = null
 
     @get:Transient
     val valueAsInteger: Int?

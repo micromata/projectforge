@@ -38,15 +38,15 @@ class ScriptingTaskTree {
   val rootTaskNode: ScriptingTaskNode
     get() = ScriptingTaskNode(__baseDao.rootTaskNode)
 
-  fun getPath(taskId: Int?, ancestorTaskId: Int?): List<ScriptingTaskNode>? {
+  fun getPath(taskId: Long?, ancestorTaskId: Long?): List<ScriptingTaskNode>? {
     return convert(__baseDao.getPath(taskId, ancestorTaskId))
   }
 
-  fun getPathToRoot(taskId: Int?): List<ScriptingTaskNode>? {
+  fun getPathToRoot(taskId: Long?): List<ScriptingTaskNode>? {
     return getPath(taskId, null)
   }
 
-  fun getTaskNodeById(id: Int?): ScriptingTaskNode? {
+  fun getTaskNodeById(id: Long?): ScriptingTaskNode? {
     return convert(__baseDao.getTaskNodeById(id))
   }
 
@@ -58,7 +58,7 @@ class ScriptingTaskTree {
    * @param marker Marker must be part of task or any ancestor task. If null or blank, any task matches.
    */
   @JvmOverloads
-  fun matchesMarker(taskId: Int?, marker: String?, ignoreCase: Boolean = true): Boolean {
+  fun matchesMarker(taskId: Long?, marker: String?, ignoreCase: Boolean = true): Boolean {
     var taskNode: TaskNode? = __baseDao.getTaskNodeById(taskId) ?: return false
     if (marker.isNullOrBlank()) {
       return true
@@ -113,7 +113,7 @@ class ScriptingTaskTree {
    * @param taskId
    * @return
    */
-  fun getProjekt(taskId: Int?): ProjektDO? {
+  fun getProjekt(taskId: Long?): ProjektDO? {
     val projekt = __baseDao.getProjekt(taskId) ?: return null
     val result = ProjektDO()
     result.copyValuesFrom(projekt)
@@ -136,19 +136,19 @@ class ScriptingTaskTree {
     return __baseDao.hasOrderPositionsEntries()
   }
 
-  fun hasOrderPositions(taskId: Int?, recursive: Boolean): Boolean {
+  fun hasOrderPositions(taskId: Long?, recursive: Boolean): Boolean {
     return __baseDao.hasOrderPositions(taskId, recursive)
   }
 
-  fun hasOrderPositionsUpwards(taskId: Int?): Boolean {
+  fun hasOrderPositionsUpwards(taskId: Long?): Boolean {
     return __baseDao.hasOrderPositionsUpwards(taskId)
   }
 
-  fun getOrderPositionsUpwards(taskId: Int?): Set<AuftragsPositionVO> {
+  fun getOrderPositionsUpwards(taskId: Long?): Set<AuftragsPositionVO> {
     return __baseDao.getOrderPositionsUpwards(taskId)
   }
 
-  fun getPersonDays(taskId: Int?): BigDecimal {
+  fun getPersonDays(taskId: Long?): BigDecimal {
     taskId ?: return BigDecimal.ZERO
     return __baseDao.getPersonDays(taskId) ?: BigDecimal.ZERO
   }

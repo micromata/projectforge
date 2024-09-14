@@ -108,7 +108,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
           task = getTaskTree().getTaskById(task.getId());
         }
       } else if (obj instanceof Integer) {
-        final Integer taskId = (Integer) obj;
+        final Long taskId = (Long) obj;
         task = getTaskTree().getTaskById(taskId);
       } else {
         throw new IllegalStateException("Unsupported column type: " + obj);

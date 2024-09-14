@@ -143,7 +143,7 @@ public class MySession extends WebSession {
   /**
    * @return The id of the logged-in user or null if no user is logged-in.
    */
-  public synchronized Integer getUserId() {
+  public synchronized Long getUserId() {
     final PFUserDO user = getUser();
     return user != null ? user.getId() : null;
   }

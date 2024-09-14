@@ -53,11 +53,11 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         userRightId = UserRightId.CALENDAR_EVENT
     }
 
-    fun getByUid(calendarId: Int?, uid: String?): CalEventDO? {
+    fun getByUid(calendarId: Long?, uid: String?): CalEventDO? {
         return this.getByUid(calendarId, uid, true)
     }
 
-    fun getByUid(calendarId: Int?, uid: String?, excludeDeleted: Boolean): CalEventDO? {
+    fun getByUid(calendarId: Long?, uid: String?, excludeDeleted: Boolean): CalEventDO? {
         if (uid == null) {
             return null
         }

@@ -31,8 +31,8 @@ package org.projectforge.reporting;
 public interface Konto
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
-  public Integer getId();
-  
+  public Long getId();
+
   /**
    * @return Kontonummer aus Datev.
    */

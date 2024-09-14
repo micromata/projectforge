@@ -84,16 +84,16 @@ class EmployeeService {
         return employeeDao.getList(filter)
     }
 
-    fun setPfUser(employee: EmployeeDO, userId: Int?) {
+    fun setPfUser(employee: EmployeeDO, userId: Long?) {
         val user = userDao.getOrLoad(userId)
         employee.user = user
     }
 
-    fun getEmployeeByUserId(userId: Int?): EmployeeDO? {
+    fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
         return employeeDao.findByUserId(userId)
     }
 
-    fun setKost1(employee: EmployeeDO, kost1Id: Int?) {
+    fun setKost1(employee: EmployeeDO, kost1Id: Long?) {
         val kost1 = kost1Dao.getOrLoad(kost1Id)
         employee.kost1 = kost1
     }

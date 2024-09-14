@@ -36,7 +36,7 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 import org.slf4j.Logger;
 
-public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P extends AbstractEditPage<?, ?, ?>> extends
+public abstract class AbstractEditForm<O extends AbstractBaseDO<Long>, P extends AbstractEditPage<?, ?, ?>> extends
     AbstractSecuredForm<O, P>
 {
   public static final String UPDATE_AND_STAY_BUTTON_MARKUP_ID = "updateAndStay";

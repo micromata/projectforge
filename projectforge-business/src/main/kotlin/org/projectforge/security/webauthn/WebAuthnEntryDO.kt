@@ -65,7 +65,7 @@ open class WebAuthnEntryDO {
   @get:Id
   @get:GeneratedValue
   @get:Column(name = "pk")
-  open var id: Int? = null
+  open var id: Long? = null
 
   @PropertyInfo(i18nKey = "created")
   @get:Basic

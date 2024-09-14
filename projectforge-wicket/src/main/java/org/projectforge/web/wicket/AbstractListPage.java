@@ -774,7 +774,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("modifiedByUserId".equals(property) == true) {
-      form.getSearchFilter().setModifiedByUserId((Integer) selectedValue);
+      form.getSearchFilter().setModifiedByUserId((Long) selectedValue);
       form.getSearchFilter().setUseModificationFilter(true);
       refresh();
     } else {

@@ -95,7 +95,7 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
     @get:Column(length = 20)
     open var type: EmployeeSalaryType? = null
 
-    val employeeId: Int?
+    val employeeId: Long?
         @Transient
         get() = if (this.employee == null) null else employee!!.id
 

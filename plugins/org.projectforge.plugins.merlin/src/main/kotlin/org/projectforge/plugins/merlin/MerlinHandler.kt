@@ -65,7 +65,7 @@ open class MerlinHandler {
     var wordTemplateFilename: String? = null
   }
 
-  internal fun getDto(id: Int): MerlinTemplate {
+  internal fun getDto(id: Long): MerlinTemplate {
     val dbo = merlinTemplateDao.getById(id) ?: return MerlinTemplate()
     return getDto(dbo)
   }
@@ -85,7 +85,7 @@ open class MerlinHandler {
     return dto
   }
 
-  internal fun getAttachments(id: Int): List<Attachment>? {
+  internal fun getAttachments(id: Long): List<Attachment>? {
     return attachmentsService.getAttachments(jcrPath, id, attachmentsAccessChecker)?.sortedByDescending { it.created }
   }
 
@@ -93,7 +93,7 @@ open class MerlinHandler {
     return list.find { it.fileExtension == "docx" }
   }
 
-  internal fun getWordTemplateInputStream(id: Int): Pair<FileObject, InputStream>? {
+  internal fun getWordTemplateInputStream(id: Long): Pair<FileObject, InputStream>? {
     val list = getAttachments(id) ?: return null
     val wordAttachment = getWordTemplate(list) ?: return null
     return attachmentsService.getAttachmentInputStream(
@@ -107,14 +107,14 @@ open class MerlinHandler {
   /**
    * Don't forget to close the returned WordDocument!!!!!!
    */
-  internal fun getWordTemplateToCloseOnYourOwn(id: Int): WordDocument? {
+  internal fun getWordTemplateToCloseOnYourOwn(id: Long): WordDocument? {
     val result = getWordTemplateInputStream(id) ?: return null
     val fileObject = result.first
     val inputStream = result.second
     return WordDocument(inputStream, fileObject.fileName)
   }
 
-  fun analyze(id: Int, keepWordDocument: Boolean = false): Result {
+  fun analyze(id: Long, keepWordDocument: Boolean = false): Result {
     return analyze(getDto(id), keepWordDocument)
   }
 

@@ -44,26 +44,26 @@ open class RechnungCache : AbstractCache() {
     /**
      * The key is the order id.
      */
-    private var invoicePositionMapByAuftragId: Map<Int?, MutableSet<RechnungsPositionVO>>? = null
+    private var invoicePositionMapByAuftragId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
 
     /**
      * The key is the order position id.
      */
-    private var invoicePositionMapByAuftragsPositionId: Map<Int?, MutableSet<RechnungsPositionVO>>? = null
+    private var invoicePositionMapByAuftragsPositionId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
 
-    private var invoicePositionMapByRechnungId: Map<Int?, MutableSet<RechnungsPositionVO>>? = null
+    private var invoicePositionMapByRechnungId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
 
-    fun getRechnungsPositionVOSetByAuftragId(auftragId: Int?): Set<RechnungsPositionVO>? {
+    fun getRechnungsPositionVOSetByAuftragId(auftragId: Long?): Set<RechnungsPositionVO>? {
         checkRefresh()
         return invoicePositionMapByAuftragId!![auftragId]
     }
 
-    fun getRechnungsPositionVOSetByRechnungId(rechnungId: Int?): Set<RechnungsPositionVO>? {
+    fun getRechnungsPositionVOSetByRechnungId(rechnungId: Long?): Set<RechnungsPositionVO>? {
         checkRefresh()
         return invoicePositionMapByRechnungId!![rechnungId]
     }
 
-    fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Int?): Set<RechnungsPositionVO>? {
+    fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Long?): Set<RechnungsPositionVO>? {
         checkRefresh()
         return invoicePositionMapByAuftragsPositionId!![auftragsPositionId]
     }
@@ -74,9 +74,9 @@ open class RechnungCache : AbstractCache() {
     override fun refresh() {
         log.info("Initializing RechnungCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
-        val mapByAuftragId: MutableMap<Int?, MutableSet<RechnungsPositionVO>> = HashMap()
-        val mapByAuftragsPositionId: MutableMap<Int?, MutableSet<RechnungsPositionVO>> = HashMap()
-        val mapByRechnungsPositionMapByRechnungId: MutableMap<Int?, MutableSet<RechnungsPositionVO>> = HashMap()
+        val mapByAuftragId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
+        val mapByAuftragsPositionId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
+        val mapByRechnungsPositionMapByRechnungId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
         val list: List<RechnungsPositionDO> = persistenceService.query(
             "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
             RechnungsPositionDO::class.java,

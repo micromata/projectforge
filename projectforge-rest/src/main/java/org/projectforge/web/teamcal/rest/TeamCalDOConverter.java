@@ -45,7 +45,7 @@ public class TeamCalDOConverter
     if (src == null) {
       return null;
     }
-    final Integer userId = ThreadLocalUserContext.getUserId();
+    final Long userId = ThreadLocalUserContext.getUserId();
     final CalendarObject cal = new CalendarObject();
     DOConverter.copyFields(cal, src);
     cal.setTitle(src.getTitle());

@@ -60,8 +60,8 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
 
   @GetMapping("dynamic")
   fun getForm(request: HttpServletRequest, @RequestParam("id") idString: String?): FormLayoutData {
-    var id = NumberHelper.parseInteger(idString)
-    if (id == -1) {
+    var id = NumberHelper.parseLong(idString)
+    if (id == -1L) {
       // personal box of logged-in user is requested:
       id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.userId!!)?.id
     }

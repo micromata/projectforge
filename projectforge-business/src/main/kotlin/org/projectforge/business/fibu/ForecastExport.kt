@@ -120,13 +120,13 @@ open class ForecastExport { // open needed by Wicket.
     val percentageCellStyle = workbook.createOrGetCellStyle("DataFormat.percentage")
     val writerContext =
       ExcelWriterContext(I18n(Constants.RESOURCE_BUNDLE_NAME, ThreadLocalUserContext.locale), workbook)
-    val orderMap = mutableMapOf<Int, AuftragDO>()
+    val orderMap = mutableMapOf<Long, AuftragDO>()
 
     // All projects of the user used in the orders to show also invoices without order, but with assigned project:
-    val projectIds = mutableSetOf<Int>()
+    val projectIds = mutableSetOf<Long>()
     var showAll: Boolean = false // showAll is true, if no filter is given and for financial and controlling staff only.
-    val orderPositionMap = mutableMapOf<Int, AuftragsPositionDO>()
-    val orderMapByPositionId = mutableMapOf<Int, AuftragDO>()
+    val orderPositionMap = mutableMapOf<Long, AuftragsPositionDO>()
+    val orderMapByPositionId = mutableMapOf<Long, AuftragDO>()
     val today = PFDay.now()
     val thisMonth = today.beginOfMonth
 

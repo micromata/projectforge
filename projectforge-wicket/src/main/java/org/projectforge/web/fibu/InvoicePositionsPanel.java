@@ -71,7 +71,7 @@ public class InvoicePositionsPanel extends Panel
         invoiceNumbers.add(invoicePosition.getRechnungNummer());
       }
       boolean first = true;
-      Integer invoiceId = null;
+      Long invoiceId = null;
       LocalDate invoiceDate = null;
       for (final Integer invoiceNumber : invoiceNumbers) {
         BigDecimal netSum = BigDecimal.ZERO;

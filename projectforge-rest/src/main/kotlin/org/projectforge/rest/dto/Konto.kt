@@ -27,7 +27,7 @@ import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoStatus
 
 class Konto(
-  id: Int? = null,
+  id: Long? = null,
   var nummer: Int? = null,
   var bezeichnung: String? = null,
   var description: String? = null,

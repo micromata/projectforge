@@ -63,7 +63,7 @@ private val log = KotlinLogging.logger {}
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class BaseDao<O : ExtendedBaseDO<Int>>
+abstract class BaseDao<O : ExtendedBaseDO<Long>>
 /**
  * The setting of the DO class is required.
  */
@@ -167,7 +167,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * getOrLoad checks first weather the id is valid or not. Default implementation: id != 0 && id &gt; 0. Overload this,
      * if the id of the DO can be 0 for example.
      */
-    protected open fun isIdValid(id: Int?): Boolean {
+    protected open fun isIdValid(id: Long?): Boolean {
         return (id != null && id > 0)
     }
 
@@ -175,7 +175,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
      * getSession().load();
      */
-    fun getOrLoad(id: Int?): O? {
+    fun getOrLoad(id: Long?): O? {
         if (!isIdValid(id)) {
             return null
         }
@@ -288,7 +288,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * idSet.contains(entry.getId()) at default.
      */
-    open fun contains(idSet: Set<Int?>?, entry: O): Boolean {
+    open fun contains(idSet: Set<Long?>?, entry: O): Boolean {
         if (idSet == null) {
             return false
         }
@@ -466,7 +466,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     @Throws(
         AccessException::class
     )
-    open fun save(obj: O): Int {
+    open fun save(obj: O): Long {
         //long begin = System.currentTimeMillis();
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
@@ -483,7 +483,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     @Throws(
         AccessException::class
     )
-    open fun insert(obj: O): Int {
+    open fun insert(obj: O): Long {
         return save(obj)
     }
 
@@ -601,7 +601,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return the generated identifier.
      */
-    open fun internalSave(obj: O): Int? {
+    open fun internalSave(obj: O): Long? {
         return internalSave(this, obj)
     }
 
@@ -1252,7 +1252,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @Throws(AccessException::class)
-    open fun selectByPkDetached(pk: Int): O? {
+    open fun selectByPkDetached(pk: Long): O? {
         // TODO RK not detached here
         return getById(pk)
     }

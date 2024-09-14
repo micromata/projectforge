@@ -70,7 +70,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
 
   private RepeatingView ancestorRepeater;
 
-  private Integer currentTaskId;
+  private Long currentTaskId;
 
   private boolean ajaxTaskSelectMode;
 
@@ -120,7 +120,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
   {
     super.onBeforeRender();
     final TaskDO task = getModelObject();
-    final Integer taskId = task != null ? task.getId() : null;
+    final Long taskId = task != null ? task.getId() : null;
     if (Objects.equals(currentTaskId, taskId)) {
       return;
     }
@@ -128,10 +128,10 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     if (showPath == true && task != null) {
       ancestorRepeater.removeAll();
       final TaskNode taskNode = getTaskTree().getTaskNodeById(task.getId());
-      final List<Integer> ancestorIds = taskNode.getAncestorIds();
-      final ListIterator<Integer> it = ancestorIds.listIterator(ancestorIds.size());
+      final List<Long> ancestorIds = taskNode.getAncestorIds();
+      final ListIterator<Long> it = ancestorIds.listIterator(ancestorIds.size());
       while (it.hasPrevious() == true) {
-        final Integer ancestorId = it.previous();
+        final Long ancestorId = it.previous();
         final TaskDO ancestorTask = getTaskTree().getTaskById(ancestorId);
         if (ancestorTask.getParentTask() == null) {
           // Don't show root node:
@@ -297,9 +297,6 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     {
       private static final long serialVersionUID = -7741009167252308262L;
 
-      /**
-       * @see org.projectforge.web.task.TaskSelectAutoCompleteFormComponent#onModelChanged(org.apache.wicket.ajax.AjaxRequestTarget)
-       */
       @Override
       protected void onModelSelected(final AjaxRequestTarget target, final TaskDO taskDo)
       {

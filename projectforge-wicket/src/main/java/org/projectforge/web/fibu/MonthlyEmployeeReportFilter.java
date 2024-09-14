@@ -66,7 +66,7 @@ public class MonthlyEmployeeReportFilter implements Serializable
     this.user = user;
   }
 
-  public Integer getUserId()
+  public Long getUserId()
   {
     return user != null ? user.getId() : null;
   }

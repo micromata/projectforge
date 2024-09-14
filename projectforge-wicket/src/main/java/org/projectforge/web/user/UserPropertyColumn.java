@@ -101,8 +101,8 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
     if (obj != null) {
       if (obj instanceof PFUserDO) {
         user = (PFUserDO) obj;
-      } else if (obj instanceof Integer) {
-        final Integer userId = (Integer) obj;
+      } else if (obj instanceof Long) {
+        final Long userId = (Long) obj;
         user = getUserGroupCache().getUser(userId);
       } else {
         throw new IllegalStateException("Unsupported column type: " + obj);
@@ -120,7 +120,7 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 
   /**
    * Fluent pattern
-   * 
+   *
    * @param userFormatter
    */
   public UserPropertyColumn<T> withUserFormatter(final UserFormatter userFormatter)

@@ -33,8 +33,8 @@ import org.projectforge.business.fibu.kost.KostentraegerStatus;
 public interface Kost1
 {
   /** Synthetischer, eindeutiger Datenbankschlüssel. */
-  Integer getId();
-  
+  Long getId();
+
   /** Ist der Kostenträger aktiv? */
   KostentraegerStatus getKostentraegerStatus();
 

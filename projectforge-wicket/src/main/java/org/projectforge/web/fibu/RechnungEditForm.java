@@ -219,7 +219,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     final ProjektDO projekt = invoice.getProjekt();
     int numberRange; // First number of cost.
     int area = -1; // Number 2-4
-    int number; // Number 5-6.
+    long number; // Number 5-6.
     if (projekt != null) {
       numberRange = projekt.getNummernkreis();
       area = projekt.getBereich();

@@ -107,7 +107,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
       // Nothing to build.
       return;
     }
-    final Set<Integer> visibleCalendars = activeTemplateEntry.getVisibleCalendarIds();
+    final Set<Long> visibleCalendars = activeTemplateEntry.getVisibleCalendarIds();
     if (CollectionUtils.isEmpty(visibleCalendars) == true) {
       // Nothing to build.
       return;

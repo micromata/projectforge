@@ -39,7 +39,7 @@ public class ToDoCache extends AbstractCache
   private static Logger log = LoggerFactory.getLogger(ToDoCache.class);
 
   /** The key is the user id and the value is the number of open to-do entries. */
-  private Map<Integer, Integer> openEntriesMap;
+  private Map<Long, Integer> openEntriesMap;
 
   private ToDoDao toDoDao;
 
@@ -52,7 +52,7 @@ public class ToDoCache extends AbstractCache
     this.toDoDao = toDoDao;
   }
 
-  int getOpenToDoEntries(final Integer userId)
+  int getOpenToDoEntries(final Long userId)
   {
     checkRefresh();
     final Integer result = openEntriesMap.get(userId);

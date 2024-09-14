@@ -59,7 +59,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F extends AbstractEditForm<O, ?>, D extends BaseDao<O>>
+public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends AbstractEditForm<O, ?>, D extends BaseDao<O>>
     extends
     AbstractSecuredPage implements IEditPage<O, D>
 {
@@ -121,7 +121,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
     }
     buf.append("');\n}\n");
     body.add(new Label("showDeleteQuestionDialog", buf.toString()).setEscapeModelStrings(false));
-    final Integer id = WicketUtils.getAsInteger(getPageParameters(), PARAMETER_KEY_ID);
+    final Long id = WicketUtils.getAsLong(getPageParameters(), PARAMETER_KEY_ID);
     if (data == null) {
       if (id != null) {
         data = getBaseDao().getById(id);
@@ -358,7 +358,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
         ((AbstractListPage<?, ?, ?>) page).refresh();
       } else if (returnToPage instanceof TaskTreePage) {
         // Force reload/refresh of calling AbstractListPage, otherwise the data object will not be updated.
-        ((TaskTreePage) page).setHighlightedRowId((Integer) getHighlightedRowId());
+        ((TaskTreePage) page).setHighlightedRowId((Long) getHighlightedRowId());
         ((TaskTreePage) page).refresh();
       } else if (returnToPage instanceof WizardPage) {
         ((WizardPage) returnToPage).setCreatedObject(getData());

@@ -405,7 +405,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
   @Test
   fun checkMaxMassUpdateNumber() {
     val list = mutableListOf<TimesheetDO>()
-    for (i in 0..BaseDao.MAX_MASS_UPDATE) {
+    for (i in 0L..BaseDao.MAX_MASS_UPDATE) {
       val ts = TimesheetDO()
       ts.id = i
       list.add(ts)
@@ -423,7 +423,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
 
   private fun createProjekt(
     kunde: KundeDO, projektNummer: Int, projektName: String,
-    vararg kost2ArtIds: Int
+    vararg kost2ArtIds: Long
   ): ProjektDO {
     return initTestDB.addProjekt(kunde, projektNummer, projektName, *kost2ArtIds.toTypedArray())
   }
@@ -481,7 +481,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     ts.location = location
     ts.description = description
     if (kost2Nummernkreis > 0) {
-      val kost2 = kost2Dao.getKost2(kost2Nummernkreis, kost2Bereich, kost2Teilbereich, kost2Art)
+      val kost2 = kost2Dao.getKost2(kost2Nummernkreis, kost2Bereich, kost2Teilbereich, kost2Art.toLong())
       Assertions.assertNotNull(kost2)
       ts.kost2 = kost2
     }
@@ -526,7 +526,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
       }
     }
     val massUpdateContext = object: MassUpdateContext<TimesheetDO>(massUpdateData) {
-      override fun getId(obj: TimesheetDO): Int {
+      override fun getId(obj: TimesheetDO): Long {
         return obj.id!!
       }
     }

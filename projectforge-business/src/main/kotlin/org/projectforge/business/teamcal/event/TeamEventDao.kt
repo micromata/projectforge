@@ -157,8 +157,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
     }
 
-    fun getCalIdList(teamCals: Collection<TeamCalDO>?): List<Int?> {
-        val list: MutableList<Int?> = ArrayList()
+    fun getCalIdList(teamCals: Collection<TeamCalDO>?): List<Long?> {
+        val list: MutableList<Long?> = ArrayList()
         if (teamCals != null) {
             for (cal in teamCals) {
                 list.add(cal.id)
@@ -172,16 +172,16 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      * @param teamCalendarId If null, then team calendar will be set to null;
      * @see BaseDao.getOrLoad
      */
-    fun setCalendar(teamEvent: TeamEventDO, teamCalendarId: Int) {
+    fun setCalendar(teamEvent: TeamEventDO, teamCalendarId: Long) {
         val teamCal = teamCalDao!!.getOrLoad(teamCalendarId)
         teamEvent.calendar = teamCal
     }
 
-    fun getByUid(calendarId: Int?, uid: String?): TeamEventDO? {
+    fun getByUid(calendarId: Long?, uid: String?): TeamEventDO? {
         return this.getByUid(calendarId, uid, true)
     }
 
-    fun getByUid(calendarId: Int?, uid: String?, excludeDeleted: Boolean): TeamEventDO? {
+    fun getByUid(calendarId: Long?, uid: String?, excludeDeleted: Boolean): TeamEventDO? {
         if (uid == null) {
             return null
         }
@@ -463,7 +463,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             }
         }
         // subscriptions
-        val alreadyAdded: MutableList<Int> = ArrayList()
+        val alreadyAdded: MutableList<Long> = ArrayList()
         // precondition for abos: existing teamcals in filter
         if (teamEventFilter.teamCals != null) {
             for (calendarId in teamEventFilter.teamCals) {
@@ -498,7 +498,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         checkLoggedInUserSelectAccess()
         val sql =
             ("select distinct location from ${doClass.simpleName} t where deleted=false and t.calendar.id in :cals and lastUpdate > :lastUpdate and lower(t.location) like :location order by t.location")
-        val calIds = mutableListOf<Int>()
+        val calIds = mutableListOf<Long>()
         for (i in calendars.indices) {
             calendars[i].id?.let {
                 calIds.add(it)
@@ -515,7 +515,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
     private fun addEventsToList(
         teamEventFilter: TeamEventFilter, result: MutableList<TeamEventDO>,
-        aboCache: TeamEventExternalSubscriptionCache, calendarId: Int
+        aboCache: TeamEventExternalSubscriptionCache, calendarId: Long
     ) {
         val startDate = teamEventFilter.startDate
         val endDate = teamEventFilter.endDate
@@ -660,7 +660,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.contains
      */
-    override fun contains(idSet: Set<Int?>?, entry: TeamEventDO): Boolean {
+    override fun contains(idSet: Set<Long?>?, entry: TeamEventDO): Boolean {
         idSet ?: return false
         if (super.contains(idSet, entry)) {
             return true

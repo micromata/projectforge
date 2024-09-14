@@ -76,43 +76,43 @@ open class UserGroupCache() : AbstractCache() {
   /**
    * The key is the user id and the value is a list of assigned groups.
    */
-  private var userGroupIdMap: Map<Int, MutableSet<Int>>? = null
+  private var userGroupIdMap: Map<Long, MutableSet<Long>>? = null
 
   /**
    * The key is the group id.
    */
-  private var groupMap: Map<Int, GroupDO>? = null
+  private var groupMap: Map<Long, GroupDO>? = null
 
   /**
    * List of all rights (value) defined for the user ids (key).
    */
-  private var rightMap: Map<Int, List<UserRightDO>>? = null
-  private var userMap: MutableMap<Int, PFUserDO?>? = null
+  private var rightMap: Map<Long, List<UserRightDO>>? = null
+  private var userMap: MutableMap<Long, PFUserDO?>? = null
 
   /**
    * Key is user id.
    */
-  private var employeeMap = mapOf<Int?, EmployeeDO>()
-  private var adminUsers: MutableSet<Int>? = null
-  private var financeUsers: Set<Int>? = null
-  private var controllingUsers: Set<Int>? = null
-  private var projectManagers: Set<Int>? = null
-  private var projectAssistants: Set<Int>? = null
-  private var marketingUsers: Set<Int>? = null
-  private var orgaUsers: Set<Int>? = null
-  private var hrUsers: Set<Int>? = null
+  private var employeeMap = mapOf<Long?, EmployeeDO>()
+  private var adminUsers: MutableSet<Long>? = null
+  private var financeUsers: Set<Long>? = null
+  private var controllingUsers: Set<Long>? = null
+  private var projectManagers: Set<Long>? = null
+  private var projectAssistants: Set<Long>? = null
+  private var marketingUsers: Set<Long>? = null
+  private var orgaUsers: Set<Long>? = null
+  private var hrUsers: Set<Long>? = null
 
   fun getGroup(group: ProjectForgeGroup): GroupDO? {
     checkRefresh()
     return groupMap?.values?.find { group.matches(it.name) }
   }
 
-  fun getGroup(groupId: Int?): GroupDO? {
+  fun getGroup(groupId: Long?): GroupDO? {
     checkRefresh()
     return groupMap!![groupId]
   }
 
-  fun getUser(userId: Int?): PFUserDO? {
+  fun getUser(userId: Long?): PFUserDO? {
     if (userId == null) {
       return null
     }
@@ -164,7 +164,7 @@ open class UserGroupCache() : AbstractCache() {
     }
   }
 
-  fun getUsername(userId: Int?): String? { // checkRefresh(); Done by getUserMap().
+  fun getUsername(userId: Long?): String? { // checkRefresh(); Done by getUserMap().
     userId ?: return null
     val user = getUserMap()!![userId] ?: return userId.toString()
     return user.username
@@ -173,30 +173,30 @@ open class UserGroupCache() : AbstractCache() {
   /**
    * Check for current logged in user.
    */
-  fun isLoggedInUserMemberOfGroup(groupId: Int?): Boolean {
+  fun isLoggedInUserMemberOfGroup(groupId: Long?): Boolean {
     return isUserMemberOfGroup(ThreadLocalUserContext.userId, groupId)
   }
 
-  fun isUserMemberOfGroup(user: PFUserDO?, groupId: Int?): Boolean {
+  fun isUserMemberOfGroup(user: PFUserDO?, groupId: Long?): Boolean {
     return if (user == null) {
       false
     } else isUserMemberOfGroup(user.id, groupId)
   }
 
-  fun isUserMemberOfGroup(userId: Int?, groupId: Int?): Boolean {
+  fun isUserMemberOfGroup(userId: Long?, groupId: Long?): Boolean {
     if (groupId == null) {
       return false
     }
     checkRefresh()
-    val groupSet: Set<Int>? = getUserGroupIdMap()!![userId]
+    val groupSet: Set<Long>? = getUserGroupIdMap()!![userId]
     return groupSet != null && groupSet.contains(groupId)
   }
 
-  fun isLoggedInUserMemberOfAtLeastOneGroup(vararg groupIds: Int?): Boolean {
+  fun isLoggedInUserMemberOfAtLeastOneGroup(vararg groupIds: Long?): Boolean {
     return isUserMemberOfAtLeastOneGroup(ThreadLocalUserContext.userId, *groupIds)
   }
 
-  fun isUserMemberOfAtLeastOneGroup(userId: Int?, vararg groupIds: Int?): Boolean {
+  fun isUserMemberOfAtLeastOneGroup(userId: Long?, vararg groupIds: Long?): Boolean {
     if (groupIds.isEmpty()) {
       return false
     }
@@ -208,7 +208,7 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfAdminGroup: Boolean
     get() = isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfAdminGroup(userId: Int?): Boolean {
+  fun isUserMemberOfAdminGroup(userId: Long?): Boolean {
     checkRefresh()
     // adminUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return adminUsers != null && adminUsers!!.contains(userId)
@@ -217,7 +217,7 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfFinanceGroup: Boolean
     get() = isUserMemberOfFinanceGroup(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfFinanceGroup(userId: Int?): Boolean {
+  fun isUserMemberOfFinanceGroup(userId: Long?): Boolean {
     checkRefresh()
     // financeUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return financeUsers != null && financeUsers!!.contains(userId)
@@ -226,7 +226,7 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfProjectManagers: Boolean
     get() = isUserMemberOfProjectManagers(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfProjectManagers(userId: Int?): Boolean {
+  fun isUserMemberOfProjectManagers(userId: Long?): Boolean {
     checkRefresh()
     // projectManagers should only be null in maintenance mode (e. g. if user table isn't readable).
     return projectManagers != null && projectManagers!!.contains(userId)
@@ -235,7 +235,7 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfProjectAssistant: Boolean
     get() = isUserMemberOfProjectAssistant(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfProjectAssistant(userId: Int?): Boolean {
+  fun isUserMemberOfProjectAssistant(userId: Long?): Boolean {
     checkRefresh()
     // projectAssistants should only be null in maintenance mode (e. g. if user table isn't readable).
     return projectAssistants != null && projectAssistants!!.contains(userId)
@@ -254,7 +254,7 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfControllingGroup: Boolean
     get() = isUserMemberOfControllingGroup(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfControllingGroup(userId: Int?): Boolean {
+  fun isUserMemberOfControllingGroup(userId: Long?): Boolean {
     checkRefresh()
     // controllingUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return controllingUsers != null && controllingUsers!!.contains(userId)
@@ -263,7 +263,7 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfMarketingGroup: Boolean
     get() = isUserMemberOfMarketingGroup(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfMarketingGroup(userId: Int?): Boolean {
+  fun isUserMemberOfMarketingGroup(userId: Long?): Boolean {
     checkRefresh()
     // marketingUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return marketingUsers!!.contains(userId)
@@ -272,13 +272,13 @@ open class UserGroupCache() : AbstractCache() {
   val isUserMemberOfOrgaGroup: Boolean
     get() = isUserMemberOfOrgaGroup(ThreadLocalUserContext.userId)
 
-  fun isUserMemberOfOrgaGroup(userId: Int?): Boolean {
+  fun isUserMemberOfOrgaGroup(userId: Long?): Boolean {
     checkRefresh()
     // orgaUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return orgaUsers != null && orgaUsers!!.contains(userId)
   }
 
-  fun isUserMemberOfHRGroup(userId: Int?): Boolean {
+  fun isUserMemberOfHRGroup(userId: Long?): Boolean {
     checkRefresh()
     // hrUsers should only be null in maintenance mode (e. g. if user table isn't readable).
     return hrUsers != null && hrUsers!!.contains(userId)
@@ -317,16 +317,16 @@ open class UserGroupCache() : AbstractCache() {
     return false
   }
 
-  fun getUserRights(userId: Int?): List<UserRightDO>? {
+  fun getUserRights(userId: Long?): List<UserRightDO>? {
     return userRightMap!![userId]
   }
 
-  fun getUserRight(userId: Int?, rightId: UserRightId): UserRightDO? {
+  fun getUserRight(userId: Long?, rightId: UserRightId): UserRightDO? {
     val rights = getUserRights(userId) ?: return null
     return rights.find { it.rightIdString == rightId.id }
   }
 
-  private val userRightMap: Map<Int, List<UserRightDO>>?
+  private val userRightMap: Map<Long, List<UserRightDO>>?
     get() {
       checkRefresh()
       return rightMap
@@ -337,7 +337,7 @@ open class UserGroupCache() : AbstractCache() {
    *
    * @return collection if found, otherwise null.
    */
-  fun getUserGroups(user: PFUserDO?): Collection<Int>? {
+  fun getUserGroups(user: PFUserDO?): Collection<Long>? {
     user ?: return null
     checkRefresh()
     return getUserGroupIdMap()!![user.id]
@@ -354,23 +354,23 @@ open class UserGroupCache() : AbstractCache() {
     }?.filterNotNull()
   }
 
-  private fun getGroupMap(): Map<Int, GroupDO>? {
+  private fun getGroupMap(): Map<Long, GroupDO>? {
     checkRefresh()
     return groupMap
   }
 
-  fun getUserGroupIdMap(): Map<Int, MutableSet<Int>>? {
+  fun getUserGroupIdMap(): Map<Long, MutableSet<Long>>? {
     checkRefresh()
     return userGroupIdMap
   }
 
-  fun getEmployeeId(userId: Int?): Int? {
+  fun getEmployeeId(userId: Long?): Long? {
     userId ?: return null
     checkRefresh()
     return employeeMap[userId]?.id
   }
 
-  fun getEmployeeByUser(userId: Int?): EmployeeDO? {
+  fun getEmployeeByUser(userId: Long?): EmployeeDO? {
     userId ?: return null
     checkRefresh()
     return employeeMap[userId]
@@ -389,7 +389,7 @@ open class UserGroupCache() : AbstractCache() {
     user.id?.let { getUserMap()!![it] = user }
   }
 
-  private fun getUserMap(): MutableMap<Int, PFUserDO?>? {
+  private fun getUserMap(): MutableMap<Long, PFUserDO?>? {
     checkRefresh()
     return userMap
   }
@@ -401,7 +401,7 @@ open class UserGroupCache() : AbstractCache() {
     val begin = System.currentTimeMillis()
     log.info("Initializing UserGroupCache...")
     // This method must not be synchronized because it works with a new copy of maps.
-    val uMap: MutableMap<Int, PFUserDO?> = HashMap()
+    val uMap: MutableMap<Long, PFUserDO?> = HashMap()
     // Could not autowire UserDao because of cyclic reference with AccessChecker.
     log.info("Loading all users ...")
     val users = Login.getInstance().allUsers
@@ -418,16 +418,16 @@ open class UserGroupCache() : AbstractCache() {
     }
     log.info("Loading all groups ...")
     val groups = Login.getInstance().allGroups
-    val gMap: MutableMap<Int, GroupDO> = HashMap()
-    val ugIdMap: MutableMap<Int, MutableSet<Int>> = HashMap()
-    val nAdminUsers: MutableSet<Int> = HashSet()
-    val nFinanceUser: MutableSet<Int> = HashSet()
-    val nControllingUsers: MutableSet<Int> = HashSet()
-    val nProjectManagers: MutableSet<Int> = HashSet()
-    val nProjectAssistants: MutableSet<Int> = HashSet()
-    val nMarketingUsers: MutableSet<Int> = HashSet()
-    val nOrgaUsers: MutableSet<Int> = HashSet()
-    val nhrUsers: MutableSet<Int> = HashSet()
+    val gMap: MutableMap<Long, GroupDO> = HashMap()
+    val ugIdMap: MutableMap<Long, MutableSet<Long>> = HashMap()
+    val nAdminUsers: MutableSet<Long> = HashSet()
+    val nFinanceUser: MutableSet<Long> = HashSet()
+    val nControllingUsers: MutableSet<Long> = HashSet()
+    val nProjectManagers: MutableSet<Long> = HashSet()
+    val nProjectAssistants: MutableSet<Long> = HashSet()
+    val nMarketingUsers: MutableSet<Long> = HashSet()
+    val nOrgaUsers: MutableSet<Long> = HashSet()
+    val nhrUsers: MutableSet<Long> = HashSet()
     for (group in groups) {
       val groupId = group.id ?: continue
       gMap[groupId] = group
@@ -473,7 +473,7 @@ open class UserGroupCache() : AbstractCache() {
     }
     userMap = uMap
     groupMap = gMap
-    val nEmployeeMap = mutableMapOf<Int?, EmployeeDO>()
+    val nEmployeeMap = mutableMapOf<Long?, EmployeeDO>()
     employeeDao.internalLoadAll().forEach { employeeDO ->
       nEmployeeMap[employeeDO.userId] = employeeDO
       employeeDao.setEmployeeStatus(employeeDO)
@@ -488,7 +488,7 @@ open class UserGroupCache() : AbstractCache() {
     orgaUsers = nOrgaUsers
     hrUsers = nhrUsers
     userGroupIdMap = ugIdMap
-    val rMap: MutableMap<Int, List<UserRightDO>> = HashMap()
+    val rMap: MutableMap<Long, List<UserRightDO>> = HashMap()
     val rights: List<UserRightDO>
     rights = try {
       userRightDao.internalGetAllOrdered()
@@ -501,7 +501,7 @@ open class UserGroupCache() : AbstractCache() {
       ArrayList()
     }
     var list: MutableList<UserRightDO>? = null
-    var userId: Int? = null
+    var userId: Long? = null
     for (right in rights) {
       if (right.userId == null) {
         log.warn("Oups, userId = null: $right")
@@ -547,7 +547,7 @@ open class UserGroupCache() : AbstractCache() {
       return INSTANCE!!
     }
 
-    private fun ensureAndGetUserGroupIdMap(ugIdMap: MutableMap<Int, MutableSet<Int>>, userId: Int): MutableSet<Int> {
+    private fun ensureAndGetUserGroupIdMap(ugIdMap: MutableMap<Long, MutableSet<Long>>, userId: Long): MutableSet<Long> {
       var set = ugIdMap[userId]
       if (set == null) {
         set = HashSet()

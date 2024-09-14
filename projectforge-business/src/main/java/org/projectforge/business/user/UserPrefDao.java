@@ -145,7 +145,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
             UserPrefDO userPref = new UserPrefDO();
             userPref.setUser(user);
             userPref.setArea(areaId);
-            userPref.setId((Integer) oa[0]);
+            userPref.setId((Long) oa[0]);
             userPref.setName((String) oa[1]);
             result.add(userPref);
         }
@@ -158,7 +158,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
      *
      * @param id of the current data object (null for new objects).
      */
-    public boolean doesParameterNameAlreadyExist(final Integer id, final PFUserDO user, final UserPrefArea area,
+    public boolean doesParameterNameAlreadyExist(final Long id, final PFUserDO user, final UserPrefArea area,
                                                  final String name) {
         Validate.notNull(user);
         Validate.notNull(area);
@@ -170,7 +170,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
      *
      * @param id of the current data object (null for new objects).
      */
-    public boolean doesParameterNameAlreadyExist(final Integer id, final Integer userId, final String areaId,
+    public boolean doesParameterNameAlreadyExist(final Long id, final Long userId, final String areaId,
                                                  final String name) {
         Validate.notNull(userId);
         Validate.notNull(areaId);
@@ -209,11 +209,11 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     /**
-     * @deprecated Use getUserPref(String, Integer) instead.
+     * @deprecated Use getUserPref(String, Long) instead.
      */
     @Deprecated
     public UserPrefDO getUserPref(final UserPrefArea area, final String name) {
-        final Integer userId = ThreadLocalUserContext.getUserId();
+        final Long userId = ThreadLocalUserContext.getUserId();
         return internalQuery(userId, area.getId(), name);
     }
 
@@ -222,12 +222,12 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
      * @param id     id of the user pref to search.
      * @return The user pref of the areaId with the given id of the logged in user (from ThreadLocal).
      */
-    public UserPrefDO getUserPref(final String areaId, final Integer id) {
+    public UserPrefDO getUserPref(final String areaId, final Long id) {
         final PFUserDO user = ThreadLocalUserContext.getUser();
         return getUserPref(user.getId(), areaId, id);
     }
 
-    private UserPrefDO getUserPref(final Integer userId, final String areaId, final Integer id) {
+    private UserPrefDO getUserPref(final Long userId, final String areaId, final Long id) {
         return persistenceService.selectNamedSingleResult(
                 UserPrefDO.FIND_BY_USER_AND_AREA_AND_ID,
                 UserPrefDO.class,
@@ -237,11 +237,11 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     public List<UserPrefDO> getUserPrefs(final UserPrefArea area) {
-        final Integer userId = ThreadLocalUserContext.getUserId();
+        final Long userId = ThreadLocalUserContext.getUserId();
         return getUserPrefs(userId, area);
     }
 
-    public List<UserPrefDO> getUserPrefs(final Integer userId, final UserPrefArea area) {
+    public List<UserPrefDO> getUserPrefs(final Long userId, final UserPrefArea area) {
         final List<UserPrefDO> list = persistenceService.namedQuery(
                 UserPrefDO.FIND_BY_USER_ID_AND_AREA,
                 UserPrefDO.class,
@@ -250,7 +250,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
         return selectUnique(list);
     }
 
-    public List<UserPrefDO> getUserPrefs(Integer userId) {
+    public List<UserPrefDO> getUserPrefs(Long userId) {
         final List<UserPrefDO> list = persistenceService.namedQuery(
                 UserPrefDO.FIND_BY_USER_ID,
                 UserPrefDO.class,
@@ -450,8 +450,10 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
             return str;
         } else if (type.isAssignableFrom(Integer.class)) {
             return Integer.valueOf(str);
+        } else if (type.isAssignableFrom(Long.class)) {
+            return Long.valueOf(str);
         } else if (DefaultBaseDO.class.isAssignableFrom(type)) {
-            final Integer id = NumberHelper.parseInteger(str);
+            final Long id = NumberHelper.parseLong(str);
             if (id != null) {
                 if (PFUserDO.class.isAssignableFrom(type)) {
                     return userDao.getOrLoad(id);
@@ -469,7 +471,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
                 return null;
             }
         } else if (KundeDO.class.isAssignableFrom(type)) {
-            final Integer id = NumberHelper.parseInteger(str);
+            final Long id = NumberHelper.parseLong(str);
             if (id != null) {
                 return kundeDao.getOrLoad(id);
             } else {
@@ -546,7 +548,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
      * @param area   Must be not blank.
      * @param name   Optional, may-be null.
      */
-    public UserPrefDO internalQuery(Integer userId, String area, String name) {
+    public UserPrefDO internalQuery(Long userId, String area, String name) {
         Validate.notNull(userId);
         Validate.notBlank(area);
         if (name == null) {

@@ -246,6 +246,7 @@ open class JacksonConfiguration {
     JsonUtils.initializeMapper(module)
     module.addDeserializer(String::class.java, TextDeserializer())
     module.addDeserializer(java.lang.Integer::class.java, IntDeserializer())
+    module.addDeserializer(java.lang.Long::class.java, LongDeserializer())
     module.addDeserializer(BigDecimal::class.java, BigDecimalDeserializer())
 
     module.addSerializer(Kost1DO::class.java, Kost1DOSerializer())
