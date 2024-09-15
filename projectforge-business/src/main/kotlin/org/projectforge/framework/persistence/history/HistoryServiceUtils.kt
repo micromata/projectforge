@@ -30,7 +30,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  */
-class HistoryService private constructor() {
+class HistoryServiceUtils private constructor() {
     private val noHistoryPropertiesByClass = mutableMapOf<Class<*>, Set<String>>()
 
     fun isNoHistoryProperty(entityClass: Class<*>, propertyName: String): Boolean {
@@ -78,10 +78,10 @@ class HistoryService private constructor() {
     }
 
     companion object {
-        private val instance = HistoryService()
+        private val instance = HistoryServiceUtils()
 
         @JvmStatic
-        fun get(): HistoryService {
+        fun get(): HistoryServiceUtils {
             return instance
         }
     }
