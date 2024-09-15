@@ -44,12 +44,55 @@ class HistoryServiceTest : AbstractTestBase() {
             return // Already done.
         }
         val user = getUser(TEST_USER)
-        add(
-            user, value = "1052256", propertyName = "assignedGroups", operationType = EntityOpType.Insert,
+        // One group assigned:
+        addOldFormat(user, value = "1052256", propertyName = "assignedGroups", operationType = EntityOpType.Insert)
+        // Assigned: 34,101478,33 unassigned: 17,16,11,31
+        addOldFormat(user, value = "34,101478,33", oldValue = "17,16,11,31", propertyName = "assignedGroups", operationType = EntityOpType.Insert)
+        // U
+        addOldFormat(
+            user,
+            value = "Project manager",
+            oldValue = "Project assistant",
+            propertyName = "description",
+            operationType = EntityOpType.Update,
         )
+
+
     }
 
+    /**
+     * Create entries in new format:
+     */
     private fun add(
+        entity: BaseDO<Long>,
+        value: String?,
+        oldValue: String? = null,
+        propertyName: String,
+        operationType: EntityOpType
+    ) {
+        val master = HistoryServiceUtils.createMaster(entity, operationType)
+
+        val attr1 = HistoryServiceUtils.createAttr(GroupDO::class, propertyName = "$propertyName", value = value, oldValue = oldValue)
+        val attrs = mutableListOf(attr1)
+
+        pk = historyService.save(master, attrs)!!
+
+        Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
+        Assertions.assertEquals(entity.id, master.entityId)
+        Assertions.assertEquals("anon", master.createdBy)
+        val createdAt = master.createdAt!!.time
+        Assertions.assertTrue(
+            Math.abs(System.currentTimeMillis() - createdAt) < 10000,
+            "createdAt should be near to now (10s)",
+        )
+
+        Assertions.assertEquals(master.id, attr1.master!!.id)
+    }
+
+    /**
+     * Create entries in old mgc format:
+     */
+    private fun addOldFormat(
         entity: BaseDO<Long>,
         value: String?,
         oldValue: String? = null,
@@ -75,18 +118,6 @@ class HistoryServiceTest : AbstractTestBase() {
         )
 
         Assertions.assertEquals(master.id, attr1.master!!.id)
-        Assertions.assertEquals("V", attr1.type)
-        Assertions.assertEquals("V", attr2.type)
-        if (oldValue == null) {
-            Assertions.assertEquals("N", attr3.type)
-        } else {
-            Assertions.assertEquals("V", attr3.type)
-        }
-
-
-        // 0        | 42353387 | 2024-04-11 07:24:18.658 | 2         | 2024-04-11 07:24:18.658 | 2          |             0 | 1052256 | assignedGroups:nv | V    | org.projectforge.framework.persistence.user.entities.GroupDO |  42353386 |
-        // 0        | 42353388 | 2024-04-11 07:24:18.658 | 2         | 2024-04-11 07:24:18.658 | 2          |             0 | Update  | assignedGroups:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType   |  42353386 |
-        // 0        | 42353389 | 2024-04-11 07:24:18.658 | 2         | 2024-04-11 07:24:18.658 | 2          |             0 |         | assignedGroups:ov | N    | org.projectforge.framework.persistence.user.entities.GroupDO |  42353386 |
     }
 
     companion object {

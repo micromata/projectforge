@@ -53,8 +53,6 @@ class HistoryService {
             log.info { "Saving history: $master" }
             attrs?.forEach { attr ->
                 attr.master = master
-                // N (Null) or V (String) (de.micromata.genome.util.strings.converter.ConvertedStringTypes)
-                attr.type = if (attr.value == null) "N" else "V"
                 em.persist(attr)
             }
         }
