@@ -28,7 +28,7 @@ import java.io.Serializable
 import java.util.*
 
 /**
- * An change for an Entity.
+ * A change for an Entity.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */

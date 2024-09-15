@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.history
 
 /**
- * The Class DiffEntry.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */

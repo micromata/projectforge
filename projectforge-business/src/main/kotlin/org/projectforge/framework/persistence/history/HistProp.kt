@@ -28,28 +28,20 @@ package org.projectforge.framework.persistence.history
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-class HistProp {
+class HistProp(
     /**
      * The name.
      */
-    var name: String? = null
+    var name: String? = null,
 
     /**
      * The type.
      */
-    var type: String? = null
+    var type: String? = null,
 
     /**
      * The value.
      */
     @JvmField
-    var value: String? = null
-
-    constructor()
-
-    constructor(name: String?, type: String?, value: String?) : super() {
-        this.name = name
-        this.type = type
-        this.value = value
-    }
-}
+    var value: String? = null,
+)
