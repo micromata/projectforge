@@ -46,16 +46,24 @@ class CORSFilter : Filter {
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(servletRequest: ServletRequest, servletResponse: ServletResponse, chain: FilterChain) {
     val request = servletRequest as HttpServletRequest
+    servletResponse as HttpServletResponse
+    val origin = request.getHeader("Origin")
+    if (origin != null && !origin.isEmpty()) {
+      servletResponse.addHeader("Access-Control-Allow-Origin", origin)
+    } else {
+      servletResponse.addHeader("Access-Control-Allow-Origin", "*")
+    }
     // Authorize (allow) all domains(the domain the request came from) to consume the content
-    (servletResponse as HttpServletResponse).addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
+    //servletResponse.addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
     servletResponse.addHeader("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD, PUT, POST, DELETE")
     servletResponse.addHeader("Access-Control-Allow-Credentials", "true")
-    servletResponse.addHeader("Access-Control-Allow-Headers", "Content-Type")
+    servletResponse.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
     // "Content-Disposition" for filenames of downloads.
     servletResponse.addHeader("Access-Control-Expose-Headers", "Content-Disposition")
     // For HTTP OPTIONS verb/method reply with ACCEPTED status code -- per CORS handshake
     if (request.method == "OPTIONS") {
-      servletResponse.status = HttpServletResponse.SC_ACCEPTED
+      servletResponse.status = HttpServletResponse.SC_OK
+      // servletResponse.status = HttpServletResponse.SC_ACCEPTED
       return
     }
     // pass the request along the filter chain
