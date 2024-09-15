@@ -29,16 +29,16 @@ import org.junit.jupiter.api.Test
 class AnnotationsUtilsTest {
     @Test
     fun getAnnotationsTest() {
+        assertAnnotations( "age", "Age")
         assertAnnotations( "firstName", "First name")
         assertAnnotations( "name", "Name")
         assertAnnotations( "staffNumber", "Number")
-        assertAnnotations( "age", "Age")
     }
 
     private fun assertAnnotations(propertyName: String, expectedValue: String) {
         val annotations = AnnotationsUtils.getAnnotations(Employee::class.java, propertyName)
         Assertions.assertNotNull(annotations)
-        Assertions.assertEquals(1, annotations!!.size)
+        Assertions.assertEquals(1, annotations.size)
         val annotation = annotations.first() as MyAnnotation
         Assertions.assertEquals(expectedValue, annotation.name)
 

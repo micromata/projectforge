@@ -24,6 +24,7 @@
 package org.projectforge.common
 
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.superclasses
 
 /**
@@ -45,12 +46,14 @@ object AnnotationsUtils {
         clazz.declaredFields.find { it.name == propertyName }?.let { field ->
             annotations.addAll(field.annotations)
         }
-        clazz.declaredMethods.find { it.name == "get${propertyName.replaceFirstChar { it.uppercase() }}" }?.let { method ->
-            annotations.addAll(method.annotations)
-        }
-        clazz.declaredMethods.find { it.name == "set${propertyName.replaceFirstChar { it.uppercase() }}}" }?.let { method ->
-            annotations.addAll(method.annotations)
-        }
+        clazz.declaredMethods.find { it.name == "get${propertyName.replaceFirstChar { it.uppercase() }}" }
+            ?.let { method ->
+                annotations.addAll(method.annotations)
+            }
+        clazz.declaredMethods.find { it.name == "set${propertyName.replaceFirstChar { it.uppercase() }}}" }
+            ?.let { method ->
+                annotations.addAll(method.annotations)
+            }
         clazz.superclass?.let { superclass ->
             addAnnotations(superclass, propertyName, annotations)
         }
@@ -59,6 +62,17 @@ object AnnotationsUtils {
     private fun addAnnotations(clazz: KClass<*>, propertyName: String, annotations: MutableSet<Annotation>) {
         clazz.members.find { it.name == propertyName }?.annotations?.let {
             annotations.addAll(it)
+        }
+        clazz.members.find { it.name == propertyName }?.let { member ->
+            member.annotations.let {
+                annotations.addAll(it)
+            }
+            (member as KMutableProperty1<*, *>).setter.annotations.let {
+                annotations.addAll(it)
+            }
+            (member as KMutableProperty1<*, *>).getter.annotations.let {
+                annotations.addAll(it)
+            }
         }
         clazz.superclasses.forEach { superclass ->
             addAnnotations(superclass, propertyName, annotations)
