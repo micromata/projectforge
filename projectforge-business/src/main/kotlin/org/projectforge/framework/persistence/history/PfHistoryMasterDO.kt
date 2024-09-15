@@ -36,8 +36,8 @@ private val log = KotlinLogging.logger {}
  * Stores history.
  *
  *  pk             | bigint                      |           | not null |
- *  createdat      | timestamp without time zone |           | not null | -- equals to modifiedat
- *  createdby      | character varying(60)       |           | not null | -- equals to modifiedby
+ *  createdat      | timestamp without time zone |           | not null | -- equals to modifiedat (isn't used after MGC)
+ *  createdby      | character varying(60)       |           | not null | -- equals to modifiedby (isn't used after MGC)
  *  modifiedat     | timestamp without time zone |           | not null |
  *  modifiedby     | character varying(60)       |           | not null |
  *  updatecounter  | integer                     |           | not null | -- always 0
@@ -83,21 +83,7 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     override var entityOpType: EntityOpType? = null
 
     /**
-     * User id (same as modifiedBy)
-     */
-    @get:Column(name = "createdby", length = 60)
-    //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
-    var createdBy: String? = null
-
-    /**
-     * Same as modifiedAt.
-     */
-    @get:Column(name = "createdat")
-    //@GenericField
-    var createdAt: Date? = null
-
-    /**
-     * User id (same as createdBy)
+     * User id (same as createdBy by MGC)
      */
     @get:Column(name = "modifiedby", length = 60)
     //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
@@ -110,49 +96,15 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     //@GenericField
     override var modifiedAt: Date? = null
 
-    /**
-     * Not in use.
-     * the_10415 (for example) or null
-     */
-    @get:Column(name = "transaction_id", length = 64)
-    var transactionId: String? = null
-
-    /*@get:MapKey(name = "propertyName")
     @get:OneToMany(
         cascade = [CascadeType.ALL],
         mappedBy = "parent",
-        //targetEntity = PfHistoryAttrDO::class,
-        orphanRemoval = true,
-        fetch = FetchType.EAGER
-    )*/
-    @get:Transient
-    var attributes: MutableMap<String, Any?>? = null
+        targetEntity = PfHistoryAttrDO::class,
+        fetch = FetchType.EAGER,
+        orphanRemoval = true
+    )
+    var attributes: MutableSet<PfHistoryAttrDO>? = null
 
-    /* @get:Transient
-     val attrEntityClass: Class<out Any?>
-         get() = PfHistoryAttrDO::class.java
-
-     @get:Transient
-     val attrEntityWithDataClass: Class<out Any?>
-         get() = PfHistoryAttrWithDataDO::class.java
- */
-    //@get:Transient
-    //val attrDataEntityClass: Class<out Any?>
-    //get() = PfHistoryAttrDataDO::class.java
-
-    /*
-        fun createAttrEntity(key: String?, type: Char, value: String?): PfHistoryAttrDO {
-            return PfHistoryAttrDO(this, key, type, value)
-        }
-
-        fun createAttrEntityWithData(
-            key: String?,
-            type: Char,
-            value: String?
-        ): PfHistoryAttrWithDataDO {
-            return PfHistoryAttrWithDataDO(this, key, type, value)
-        }
-    */
     @get:Transient
     override val diffEntries: List<DiffEntry>?
         get() {

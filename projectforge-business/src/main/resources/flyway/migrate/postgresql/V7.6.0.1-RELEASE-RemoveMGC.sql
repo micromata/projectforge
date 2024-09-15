@@ -1,12 +1,12 @@
-ALTER TABLE t_pf_history ALTER COLUMN modifiedat DROP NOT NULL;
-ALTER TABLE t_pf_history ALTER COLUMN modifiedby DROP NOT NULL;
+ALTER TABLE t_pf_history ALTER COLUMN createdat DROP NOT NULL; -- modifiedat is used instead.
+ALTER TABLE t_pf_history ALTER COLUMN createdby DROP NOT NULL; -- modifiedby is used instead.
 ALTER TABLE t_pf_history ALTER COLUMN updatecounter DROP NOT NULL;
 
 ALTER TABLE t_pf_history_attr ALTER COLUMN value TYPE varchar(50000);
-ALTER TABLE t_pf_history_attr ALTER COLUMN createdat DROP NOT NULL;
-ALTER TABLE t_pf_history_attr ALTER COLUMN createdby DROP NOT NULL;
-ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedat DROP NOT NULL;
-ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby DROP NOT NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN createdat DROP NOT NULL; -- parent.modifiedat is used instead.
+ALTER TABLE t_pf_history_attr ALTER COLUMN createdby DROP NOT NULL; -- parent.modifieby is used instead.
+ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedat DROP NOT NULL; -- parent.modifiedat is used instead.
+ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby DROP NOT NULL; -- parent.modifieby is used instead.
 ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter DROP NOT NULL;
 ALTER TABLE t_pf_history_attr ALTER COLUMN type DROP NOT NULL;
 

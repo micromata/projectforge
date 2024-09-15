@@ -47,8 +47,8 @@ class HistoryService {
     fun save(master: PfHistoryMasterDO, attrs: Collection<PfHistoryAttrDO>? = null): Long? {
         persistenceService.runInTransaction { context ->
             val em = context.em
-            master.createdBy = ThreadLocalUserContext.user?.id?.toString() ?: "anon"
-            master.createdAt = Date()
+            master.modifiedBy = ThreadLocalUserContext.user?.id?.toString() ?: "anon"
+            master.modifiedAt = Date()
             em.persist(master)
             log.info { "Saving history: $master" }
             attrs?.forEach { attr ->
