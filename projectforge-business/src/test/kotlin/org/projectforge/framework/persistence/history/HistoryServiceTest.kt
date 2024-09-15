@@ -47,7 +47,13 @@ class HistoryServiceTest : AbstractTestBase() {
         // One group assigned:
         addOldFormat(user, value = "1052256", propertyName = "assignedGroups", operationType = EntityOpType.Insert)
         // Assigned: 34,101478,33 unassigned: 17,16,11,31
-        addOldFormat(user, value = "34,101478,33", oldValue = "17,16,11,31", propertyName = "assignedGroups", operationType = EntityOpType.Insert)
+        addOldFormat(
+            user,
+            value = "34,101478,33",
+            oldValue = "17,16,11,31",
+            propertyName = "assignedGroups",
+            operationType = EntityOpType.Insert
+        )
         // U
         addOldFormat(
             user,
@@ -56,8 +62,6 @@ class HistoryServiceTest : AbstractTestBase() {
             propertyName = "description",
             operationType = EntityOpType.Update,
         )
-
-
     }
 
     /**
@@ -72,15 +76,20 @@ class HistoryServiceTest : AbstractTestBase() {
     ) {
         val master = HistoryServiceUtils.createMaster(entity, operationType)
 
-        val attr1 = HistoryServiceUtils.createAttr(GroupDO::class, propertyName = "$propertyName", value = value, oldValue = oldValue)
+        val attr1 = HistoryServiceUtils.createAttr(
+            GroupDO::class,
+            propertyName = propertyName,
+            value = value,
+            oldValue = oldValue,
+        )
         val attrs = mutableListOf(attr1)
 
         pk = historyService.save(master, attrs)!!
 
         Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
         Assertions.assertEquals(entity.id, master.entityId)
-        Assertions.assertEquals("anon", master.createdBy)
-        val createdAt = master.createdAt!!.time
+        Assertions.assertEquals("anon", master.modifiedBy)
+        val createdAt = master.modifiedAt!!.time
         Assertions.assertTrue(
             Math.abs(System.currentTimeMillis() - createdAt) < 10000,
             "createdAt should be near to now (10s)",
@@ -110,8 +119,8 @@ class HistoryServiceTest : AbstractTestBase() {
 
         Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
         Assertions.assertEquals(entity.id, master.entityId)
-        Assertions.assertEquals("anon", master.createdBy)
-        val createdAt = master.createdAt!!.time
+        Assertions.assertEquals("anon", master.modifiedBy)
+        val createdAt = master.modifiedAt!!.time
         Assertions.assertTrue(
             Math.abs(System.currentTimeMillis() - createdAt) < 10000,
             "createdAt should be near to now (10s)",
