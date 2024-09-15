@@ -27,12 +27,10 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.Hibernate
 import org.hibernate.proxy.HibernateProxy
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import java.io.Serializable
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
@@ -162,7 +160,7 @@ object CandHMaster {
         src: BaseDO<IdType>,
         modifiedField: String
     ) {
-        if (HistoryService.get().isNoHistoryProperty(src.javaClass, modifiedField)) {
+        if (HistoryServiceUtils.get().isNoHistoryProperty(src.javaClass, modifiedField)) {
             // This field is not historized, so no major update:
             context.combine(EntityCopyStatus.MINOR)
             return

@@ -29,10 +29,10 @@ import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.test.AbstractTestBase
 
-class HistoryServiceTest : AbstractTestBase() {
+class HistoryServiceUtilsTest : AbstractTestBase() {
     @Test
     fun testNonHistorizableProperties() {
-        var set = HistoryService.get().getNoHistoryProperties(TaskDO::class.java)
+        var set = HistoryServiceUtils.get().getNoHistoryProperties(TaskDO::class.java)
         Assertions.assertEquals(2, set.size)
         Assertions.assertTrue(set.contains("lastUpdate"))
         Assertions.assertTrue(set.contains("created"))
@@ -40,10 +40,10 @@ class HistoryServiceTest : AbstractTestBase() {
         Assertions.assertTrue(set.contains("created"))
         Assertions.assertFalse(set.contains("title"))
 
-        Assertions.assertTrue(HistoryService.get().isNoHistoryProperty(TaskDO::class.java, "lastUpdate"))
-        Assertions.assertFalse(HistoryService.get().isNoHistoryProperty(TaskDO::class.java, "title"))
+        Assertions.assertTrue(HistoryServiceUtils.get().isNoHistoryProperty(TaskDO::class.java, "lastUpdate"))
+        Assertions.assertFalse(HistoryServiceUtils.get().isNoHistoryProperty(TaskDO::class.java, "title"))
 
-        set = HistoryService.get().getNoHistoryProperties(AuftragDO::class.java)
+        set = HistoryServiceUtils.get().getNoHistoryProperties(AuftragDO::class.java)
         Assertions.assertEquals(7, set.size)
         //    not, because transient Assertions.assertTrue(set.contains("uiStatus"));
         Assertions.assertTrue(set.contains("uiStatusAsXml"))
