@@ -445,14 +445,14 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
 
   private fun assertKost2(
     sheet: TimesheetDO, nummernkreis: Int, bereich: Int, teilbereich: Int,
-    art: Int
+    art: Long
   ) {
     val kost2 = sheet.kost2
     Assertions.assertNotNull(kost2)
     Assertions.assertEquals(nummernkreis, kost2!!.nummernkreis)
     Assertions.assertEquals(bereich, kost2.bereich)
     Assertions.assertEquals(teilbereich, kost2.teilbereich)
-    Assertions.assertEquals(art, kost2.kost2ArtId as Int)
+    Assertions.assertEquals(art, kost2.kost2ArtId as Long)
   }
 
   private fun createTimesheet(

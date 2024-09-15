@@ -60,7 +60,7 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
     super(parameters, "task");
     init();
     addTopMenuPanel();
-    final Integer parentTaskId = WicketUtils.getAsInteger(parameters, PARAM_PARENT_TASK_ID);
+    final Long parentTaskId = WicketUtils.getAsLong(parameters, PARAM_PARENT_TASK_ID);
     if (NumberHelper.greaterZero(parentTaskId) == true) {
       getBaseDao().setParentTask(getData(), parentTaskId);
     }
@@ -81,13 +81,13 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
   public void select(final String property, final Object selectedValue)
   {
     if ("parentTaskId".equals(property) == true) {
-      getBaseDao().setParentTask(getData(), (Integer) selectedValue);
+      getBaseDao().setParentTask(getData(), (Long) selectedValue);
     } else if ("ganttPredecessorId".equals(property) == true) {
-      getBaseDao().setGanttPredecessor(getData(), (Integer) selectedValue);
+      getBaseDao().setGanttPredecessor(getData(), (Long) selectedValue);
     } else if ("responsibleUserId".equals(property) == true) {
-      getBaseDao().setResponsibleUser(getData(), (Integer) selectedValue);
+      getBaseDao().setResponsibleUser(getData(), (Long) selectedValue);
     } else if ("kost2Id".equals(property) == true) {
-      final Integer kost2Id = (Integer) selectedValue;
+      final Long kost2Id = (Long) selectedValue;
       if (kost2Id != null) {
         final Kost2DO kost2 = WicketSupport.get(Kost2Dao.class).getById(kost2Id);
         if (kost2 != null) {

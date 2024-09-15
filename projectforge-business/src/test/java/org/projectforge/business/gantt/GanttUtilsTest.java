@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GanttUtilsTest extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtilsTest.class);
 
-  private static int counter = 0;
+  private static long counter = 0;
 
   private static BigDecimal TWO = new BigDecimal("2");
 

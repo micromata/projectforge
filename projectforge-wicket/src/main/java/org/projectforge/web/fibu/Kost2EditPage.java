@@ -62,7 +62,7 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property) == true) {
-      WicketSupport.get(Kost2Dao.class).setProjekt(getData(), (Integer) selectedValue);
+      WicketSupport.get(Kost2Dao.class).setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       form.nummernkreisField.modelChanged();
       form.bereichField.modelChanged();

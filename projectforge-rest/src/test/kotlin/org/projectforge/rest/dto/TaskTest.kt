@@ -90,7 +90,7 @@ class TaskTest: AbstractTestBase() {
         checkMinimalTask(dest.parentTask?.parentTask, 1, "root")
     }
 
-    private fun checkMinimalTask(task: Task?, id: Int, title: String) {
+    private fun checkMinimalTask(task: Task?, id: Long, title: String) {
         assertNotNull(task)
         assertEquals(id, task?.id)
         assertEquals(title, task?.title)

@@ -440,10 +440,10 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
         internal const val FIND_OTHER_USER_BY_USERNAME = "PFUserDO_FindOtherUserByUsername"
 
         /**
-         * Converts user list to comma separated int values.
+         * Converts user list to comma separated long values.
          * @return String with csv or null, if list of user's is null.
          */
-        fun toIntList(users: List<PFUserDO>?): String? {
+        fun toLongList(users: List<PFUserDO>?): String? {
             return users?.filter { it.id != null }?.joinToString { "${it.id}" }
         }
 

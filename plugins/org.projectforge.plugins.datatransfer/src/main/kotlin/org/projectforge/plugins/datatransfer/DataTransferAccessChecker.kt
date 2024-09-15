@@ -85,7 +85,7 @@ open class DataTransferAccessChecker(
 
   private fun getDataTransferArea(user: PFUserDO?, id: Any): DataTransferAreaDO? {
     user!!
-    return dataTransferAreaDao.internalGetById(id as Int)
+    return dataTransferAreaDao.internalGetById(id as Long)
   }
 
   /**
@@ -93,7 +93,7 @@ open class DataTransferAccessChecker(
    */
   override fun checkUpdateAccess(user: PFUserDO?, path: String, id: Any, fileId: String, subPath: String?) {
     /*user!!
-    val dbo = dataTransferAreaDao.internalGetById(id as Int)
+    val dbo = dataTransferAreaDao.internalGetById(id as Long)
     if (dataTransferAreaDao.hasAccess(user, dbo, dbo, OperationType.UPDATE, throwException = false)) {
       // User has update access.
       return
@@ -119,7 +119,7 @@ open class DataTransferAccessChecker(
     operationType: OperationType,
     attachment: Attachment
   ): Boolean {
-    val dbo = dataTransferAreaDao.internalGetById(id as Int)
+    val dbo = dataTransferAreaDao.internalGetById(id as Long)
     if (!dbo!!.isPersonalBox()) {
       return true
     }

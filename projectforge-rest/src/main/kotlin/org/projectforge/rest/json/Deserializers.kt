@@ -60,7 +60,7 @@ class LongDeserializer : StdDeserializer<java.lang.Long>(java.lang.Long::class.j
         try {
             return java.lang.Long.valueOf(str) as java.lang.Long
         } catch (ex: NumberFormatException) {
-            throw ctxt.weirdStringException(str, Integer::class.java, "Can't parse integer.")
+            throw ctxt.weirdStringException(str, Long::class.java, "Can't parse Long.")
         }
     }
 }

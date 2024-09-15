@@ -43,10 +43,10 @@ class AddressbookTest: AbstractTestBase() {
         val book = Addressbook()
         book.copyFrom(bookDO)
 
-        checkIntList(book.fullAccessGroups, 1)
-        checkIntList(book.fullAccessUsers, 1, 2, 3)
+        checkLongList(book.fullAccessGroups, 1)
+        checkLongList(book.fullAccessUsers, 1, 2, 3)
         assertNull(book.readonlyAccessGroups)
-        checkIntList(book.readonlyAccessUsers, 1, 3)
+        checkLongList(book.readonlyAccessUsers, 1, 3)
 
         bookDO = AddressbookDO()
         book.copyTo(bookDO)
@@ -56,13 +56,13 @@ class AddressbookTest: AbstractTestBase() {
         assertEquals("1, 3", bookDO.readonlyAccessUserIds)
     }
 
-    private fun checkIntList(intList: List<BaseDTO<*>>?, vararg expected: Int) {
-        assertNotNull(intList)
-        if (intList == null) {
+    private fun checkLongList(longList: List<BaseDTO<*>>?, vararg expected: Long) {
+        assertNotNull(longList)
+        if (longList == null) {
             return
         }
-        assertEquals(expected.size, intList.size)
-        intList.forEachIndexed { index, element ->
+        assertEquals(expected.size, longList.size)
+        longList.forEachIndexed { index, element ->
             assertEquals(expected[index], element.id)
         }
     }

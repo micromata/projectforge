@@ -40,7 +40,7 @@ public class BookTest extends AbstractTestBase {
 
     @Test
     public void testUniqueSignatureDO() {
-        final Serializable[] ids = new Integer[3];
+        final Serializable[] ids = new Long[3];
 
         BookDO book = createTestBook("42");
         ids[0] = bookDao.internalSave(book);

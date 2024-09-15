@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class NumberHelperConfigTest extends AbstractTestBase {
   @Test
   public void greaterZero() {
-    assertFalse(NumberHelper.greaterZero((Integer) null));
+    assertFalse(NumberHelper.greaterZero((Long) null));
     assertFalse(NumberHelper.greaterZero(-1));
     assertFalse(NumberHelper.greaterZero(0));
     assertTrue(NumberHelper.greaterZero(1));
@@ -64,12 +64,12 @@ public class NumberHelperConfigTest extends AbstractTestBase {
   }
 
   @Test
-  public void splitToInts() {
-    compareIntArray(new int[]{1, 111, 5, 11}, NumberHelper.splitToInts(11110511, 1, 3, 2, 2));
-    compareIntArray(new int[]{1, 0, 5, 11}, NumberHelper.splitToInts(10000511, 1, 3, 2, 2));
-    compareIntArray(new int[]{0, 0, 5, 11}, NumberHelper.splitToInts(511, 1, 3, 2, 2));
-    compareIntArray(new int[]{0, 0, 5, 11}, NumberHelper.splitToInts(511, 1, 3, 2, 2));
-    compareIntArray(new int[]{5, 120, 1, 2}, NumberHelper.splitToInts(new Double("51200102"), 1, 3, 2, 2));
+  public void splitToLongs() {
+    compareLongArray(new long[]{1, 111, 5, 11}, NumberHelper.splitToLongs(11110511, 1, 3, 2, 2));
+    compareLongArray(new long[]{1, 0, 5, 11}, NumberHelper.splitToLongs(10000511, 1, 3, 2, 2));
+    compareLongArray(new long[]{0, 0, 5, 11}, NumberHelper.splitToLongs(511, 1, 3, 2, 2));
+    compareLongArray(new long[]{0, 0, 5, 11}, NumberHelper.splitToLongs(511, 1, 3, 2, 2));
+    compareLongArray(new long[]{5, 120, 1, 2}, NumberHelper.splitToLongs(new Double("51200102"), 1, 3, 2, 2));
   }
 
   @Test
@@ -167,7 +167,7 @@ public class NumberHelperConfigTest extends AbstractTestBase {
     assertTrue(NumberHelper.isIn(0, 1, 0));
   }
 
-  private void compareIntArray(final int[] a1, final int[] a2) {
+  private void compareLongArray(final long[] a1, final long[] a2) {
     assertEquals(a1.length, a2.length);
     for (int i = 0; i < a1.length; i++) {
       assertEquals(a1[i], a2[i]);
