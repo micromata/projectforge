@@ -1,4 +1,13 @@
+ALTER TABLE t_pf_history ALTER COLUMN modifiedat SET NULL;
+ALTER TABLE t_pf_history ALTER COLUMN modifiedby SET NULL;
+ALTER TABLE t_pf_history ALTER COLUMN updatecounter SET NULL;
+
 ALTER TABLE t_pf_history_attr ALTER COLUMN value varchar(50000);
+ALTER TABLE t_pf_history_attr ALTER COLUMN createdat SET NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN createdby SET NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedat SET NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby SET NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter SET NULL;
 
 -- Plugins without own flyway scripts:
 ALTER TABLE t_plugin_calendar_event ALTER COLUMN pk bigint;
