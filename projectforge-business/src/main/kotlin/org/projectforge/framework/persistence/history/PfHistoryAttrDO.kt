@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.history
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import java.util.*
+import kotlin.jvm.Transient
 
 /**
  * Stores history attributes.
@@ -73,30 +74,6 @@ class PfHistoryAttrDO {
     var master: PfHistoryMasterDO? = null
 
     /**
-     * User id (same as modifiedBy and master.modifiedBy)
-     */
-    @get:Column(name = "createdby")
-    var createdBy: String? = null
-
-    /**
-     * Same as modifiedAt and master.modifiedAt.
-     */
-    @get:Column(name = "createdat")
-    var createdAt: Date? = null
-
-    /**
-     * User id (same as createdBy and master.createdBy)
-     */
-    @get:Column(name = "modifiedby")
-    var modifiedBy: String? = null
-
-    /**
-     * Same as createdAt and master.createdAt.
-     */
-    @get:Column(name = "modifiedat")
-    var modifiedAt: Date? = null
-
-    /**
      * The new value.
      */
     @get:Column(name = "value", length = 100000)
@@ -107,6 +84,14 @@ class PfHistoryAttrDO {
      */
     @get:Column(name = "old_value", length = 100000)
     var oldValue: String? = null
+
+    /**
+     * Insert, Update (new field after MGC migration). In MGC version it was one additional entry with property_type_class
+     * de.micromata.genome.db.jpa.history.entities.PropertyOpType.
+     */
+    @get:Column(name = "optype", length = 32)
+    var optype: PropertyOpType? = null
+
 
     /**
      * With MGC:
@@ -123,6 +108,19 @@ class PfHistoryAttrDO {
      */
     @get:Column(name = "propertyname", length = 255)
     var propertyName: String? = null
+
+    val plainPropertyName: String?
+        get() {
+            propertyName.let { str ->
+                return if (str == null) {
+                    null
+                } else if (str.contains(':')) {
+                    str.substringBefore(':')
+                } else {
+                    str
+                }
+            }
+        }
 
     /**
      * Used values (until summer 2024):
