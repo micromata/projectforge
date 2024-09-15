@@ -1,4 +1,4 @@
-ALTER TABLE t_pf_history_attr ALTER COLUMN value TYPE varchar(10000);
+ALTER TABLE t_pf_history_attr ALTER COLUMN value TYPE varchar(50000);
 
 DROP VIEW IF EXISTS v_t_pf_user; -- Very old view, not used anymore.
 DROP TABLE IF EXISTS t_address_attrdata; -- Unused empty table.

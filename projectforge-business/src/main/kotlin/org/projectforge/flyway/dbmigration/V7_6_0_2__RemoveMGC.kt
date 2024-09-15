@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
 import org.projectforge.business.fibu.EmployeeValidityPeriodAttrType
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookEntryDO
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.datasource.DriverManagerDataSource
 import org.springframework.jdbc.support.rowset.SqlRowSet
@@ -52,24 +53,78 @@ class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
         migrateVisitorbook(dataSource)
     }
 
+    internal fun migrateHistoryAttrWithData(dataSource: DataSource) {
+        class HistoryAttr(val pk: Long, var value: String, val alreadyProcessed: Boolean)
+
+        val jdbcTemplate = JdbcTemplate(dataSource)
+        var resultSet =
+            jdbcTemplate.queryForRowSet("select t.datacol, t.datarow, t.parent_pk from t_pf_history_attr_data as t order by parent_pk, datarow")
+        var parent = HistoryAttr(-1, "", true)
+        while (resultSet.next()) {
+            val value = resultSet.getString("datacol")
+            val rowNumber = resultSet.getInt("datarow")
+            val parentPk = resultSet.getLong("parent_pk")
+            if (parentPk != parent.pk) {
+                if (parent.pk != -1L) {
+                    // Update parent before processing next parent.
+                    updateParent(jdbcTemplate, parent.pk, parent.value, parent.alreadyProcessed)
+                }
+                val parentMap =
+                    jdbcTemplate.queryForList("select t.pk, t.value from t_pf_history_attr as t where pk = ?", parentPk)
+                require(parentMap.size == 1)
+                val value = parentMap[0]["value"] as String
+                val alreadyProcessed =
+                    if (value.length > 2990) { // Old length of value field was 2990.
+                        log.info { "Entry already processed (migration called twice?). Ignoring t_pf_history_attr_data for entry with pk=$parentPk, value.length=${value.length}." }
+                        true
+                    } else {
+                        false
+                    }
+                parent = HistoryAttr(parentPk, value, alreadyProcessed)
+            }
+            parent.value += value
+        }
+        updateParent(jdbcTemplate, parent.pk, parent.value, parent.alreadyProcessed)
+        val userIds = mutableSetOf<Long>()
+        resultSet = jdbcTemplate.queryForRowSet("select t.pk as pk from t_pf_user as t")
+        while (resultSet.next()) {
+            userIds.add(resultSet.getLong("pk"))
+        }
+    }
+
+    private fun updateParent(jdbcTemplate: JdbcTemplate, pk: Long, value: String, alreadyProcessed: Boolean) {
+        if (!alreadyProcessed) {
+            if (value.length > 50000) {
+                throw IllegalArgumentException("Value too long: ${value.length} (> 50.000)")
+            }
+            log.info { "Migrating t_pf_history_attr entry with attr_data: $pk" }
+            // jdbcTemplate.update("update t_pf_history_attr set value = ? where pk = ?", value, pk)
+            // println("update t_pf_history_attr set value = $value where pk = $pk")
+        }
+    }
+
     internal fun migrateEmployees(dataSource: DataSource) {
         val jdbcTemplate = JdbcTemplate(dataSource)
         readEmployees(dataSource).forEach { dbAttr ->
             val oldAttr = dbAttr.getTransientAttribute("oldAttr") as TimedAttr
             val sqlInsert =
                 "INSERT INTO t_fibu_employee_validity_period_attr (pk, created, last_update, deleted, employee_fk, attribute, valid_from, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-            jdbcTemplate.update(
-                sqlInsert,
-                dbAttr.id,
-                oldAttr.createdatA,
-                oldAttr.modifiedatA,
-                false,
-                dbAttr.employee!!.id,
-                dbAttr.attribute!!.name,
-                dbAttr.validFrom,
-                dbAttr.value,
-            )
-            log.info { "Migrated employee attribute: $dbAttr" }
+            try {
+                jdbcTemplate.update(
+                    sqlInsert,
+                    dbAttr.id,
+                    oldAttr.createdatA,
+                    oldAttr.modifiedatA,
+                    false,
+                    dbAttr.employee!!.id,
+                    dbAttr.attribute!!.name,
+                    dbAttr.validFrom,
+                    dbAttr.value,
+                )
+                log.info { "Migrated employee attribute: $dbAttr" }
+            } catch (ex: DuplicateKeyException) {
+                log.info { "Employee already migrated (migration called twice?). Don't overwrite entry t_fibu_employee_validity_period_attr.${dbAttr.id}." }
+            }
         }
     }
 
@@ -79,7 +134,7 @@ class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
             "t_fibu_employee",
             "select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
                     + "from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent "
-                    + "WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY pk",
+                    + "WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY a.pk",
             type = TYPE.EMPLOYEE,
         )
         val resultList = mutableListOf<EmployeeValidityPeriodAttrDO>()
@@ -122,18 +177,22 @@ class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
             requireNotNull(oldAttr)
             val sqlInsert =
                 "INSERT INTO t_orga_visitorbook_entry (pk, created, last_update, deleted, visitorbook_fk, date_of_visit, arrived, departed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-            jdbcTemplate.update(
-                sqlInsert,
-                dbAttr.id,
-                oldAttr.createdatB,
-                oldAttr.modifiedatB, // Ignore oldDepartedAttr (doesn't really matter)
-                false,
-                dbAttr.visitorbook!!.id,
-                dbAttr.dateOfVisit,
-                dbAttr.arrived,
-                dbAttr.departed,
-            )
-            log.info { "Migrated visitorbook entry: $dbAttr" }
+            try {
+                jdbcTemplate.update(
+                    sqlInsert,
+                    dbAttr.id,
+                    oldAttr.createdatB,
+                    oldAttr.modifiedatB, // Ignore oldDepartedAttr (doesn't really matter)
+                    false,
+                    dbAttr.visitorbook!!.id,
+                    dbAttr.dateOfVisit,
+                    dbAttr.arrived,
+                    dbAttr.departed,
+                )
+                log.info { "Migrated visitorbook entry: $dbAttr" }
+            } catch (ex: DuplicateKeyException) {
+                log.info { "Visitorbook already migrated (migration called twice?). Don't overwrite entry t_orga_visitorbook_entry.${dbAttr.id}." }
+            }
         }
     }
 
@@ -206,6 +265,7 @@ class V7_6_0_2___RemoveMGC : BaseJavaMigration() {
         }
         val userIds = mutableSetOf<Long>()
         resultSet = jdbcTemplate.queryForRowSet("select t.pk as pk from t_pf_user as t")
+        // select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY pk
         while (resultSet.next()) {
             userIds.add(resultSet.getLong("pk"))
         }
@@ -349,8 +409,9 @@ fun main() {
         this.username = username
         this.password = password
     }
-    // V7_6_0__RemoveMGC().readEmployees(dataSource)
-    // V7_6_0__RemoveMGC().migrateEmployees(dataSource)
-    // V7_6_0__RemoveMGC().readVisitorBook(dataSource)
-    V7_6_0_2___RemoveMGC().migrateVisitorbook(dataSource)
+    // V7_6_0_2___RemoveMGC().readEmployees(dataSource)
+    // V7_6_0_2___RemoveMGC().migrateEmployees(dataSource)
+    // V7_6_0_2___RemoveMGC().readVisitorBook(dataSource)
+    // V7_6_0_2___RemoveMGC().migrateVisitorbook(dataSource)
+    // V7_6_0_2___RemoveMGC().migrateHistoryAttrWithData(dataSource)
 }

@@ -1,4 +1,4 @@
-ALTER TABLE t_pf_history_attr ALTER COLUMN value varchar(10000);
+ALTER TABLE t_pf_history_attr ALTER COLUMN value varchar(50000);
 
 -- Plugins without own flyway scripts:
 ALTER TABLE t_plugin_calendar_event ALTER COLUMN pk bigint;

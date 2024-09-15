@@ -15,6 +15,7 @@
 - Script-Parameter: intValue ist nun long!?
 - ConfigurationParam: Integer -> Long, OK?
 - StringHelper: splitToLongs/LongObjects OK?
+- HighlightedRow: Int or Long? (Wicket, Rest), see DefaultTreeTablePanel.java
 
 
 Migration employee timed attrs:
