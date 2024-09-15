@@ -1,4 +1,13 @@
+ALTER TABLE t_pf_history ALTER COLUMN modifiedat DROP NOT NULL;
+ALTER TABLE t_pf_history ALTER COLUMN modifiedby DROP NOT NULL;
+ALTER TABLE t_pf_history ALTER COLUMN updatecounter DROP NOT NULL;
+
 ALTER TABLE t_pf_history_attr ALTER COLUMN value TYPE varchar(50000);
+ALTER TABLE t_pf_history_attr ALTER COLUMN createdat DROP NOT NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN createdby DROP NOT NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedat DROP NOT NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby DROP NOT NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter DROP NOT NULL;
 
 DROP VIEW IF EXISTS v_t_pf_user; -- Very old view, not used anymore.
 DROP TABLE IF EXISTS t_address_attrdata; -- Unused empty table.

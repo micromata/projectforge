@@ -24,11 +24,8 @@
 package org.projectforge.framework.persistence.history
 
 import jakarta.persistence.*
-import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import java.util.*
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Stores history attributes.
@@ -70,6 +67,10 @@ class PfHistoryAttrDO {
     @get:Column(name = "pk")
     @get:Id
     var id: Long? = null
+
+    @get:ManyToOne(fetch = FetchType.LAZY)
+    @get:JoinColumn(name = "master_fk", nullable = false)
+    var master: PfHistoryMasterDO? = null
 
     /**
      * User id (same as modifiedBy and master.modifiedBy)
