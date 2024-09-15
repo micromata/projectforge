@@ -40,7 +40,7 @@ import java.util.*
  *  updatecounter       | integer                     |           | not null | -- always 0
  *  value               | character varying(3000)     |           |          |
  *  propertyname        | character varying(255)      |           |          |
- *  type                | character(1)                |           | not null | N, V
+ *  type                | character(1)                |           | not null | N, V (not needed, value is null if type == N, otherwise V)
  *  property_type_class | character varying(128)      |           |          |
  *  master_fk           | bigint                      |           | not null |
  *
@@ -123,13 +123,6 @@ class PfHistoryAttrDO {
      */
     @get:Column(name = "propertyname", length = 255)
     var propertyName: String? = null
-
-    /**
-     * de.micromata.genome.util.strings.converter.ConvertedStringTypes
-     * N (Null) or V (String)
-     */
-    @get:Column(name = "type", length = 1)
-    var type: String? = null
 
     /**
      * Used values (until summer 2024):
