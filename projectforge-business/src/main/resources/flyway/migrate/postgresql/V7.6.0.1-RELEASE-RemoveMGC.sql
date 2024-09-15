@@ -9,15 +9,23 @@ DROP TABLE IF EXISTS t_contact; -- Unused empty table.
 
 DROP TABLE IF EXISTS t_employee_vacation_calendar; -- Unused table (entries not younger than 2020-01-07).
 
-ALTER TABLE t_plugin_banking_account_balance ALTER COLUMN banking_account_fk TYPE bigint;
-ALTER TABLE t_plugin_banking_account_record ALTER COLUMN banking_account_fk TYPE bigint;
-ALTER TABLE t_plugin_datatransfer_audit ALTER COLUMN area_fk TYPE bigint;
-ALTER TABLE t_plugin_datatransfer_audit ALTER COLUMN by_user_fk TYPE bigint;
-ALTER TABLE t_plugin_datatransfer_audit ALTER COLUMN upload_by_user_fk TYPE bigint;
+-- Plugins without own flyway scripts:
+ALTER TABLE t_plugin_calendar_event ALTER COLUMN pk TYPE bigint;
+ALTER TABLE t_plugin_calendar_event ALTER COLUMN calendar_fk TYPE bigint;
+ALTER TABLE t_plugin_calendar_event ALTER COLUMN team_event_fk_creator TYPE bigint;
+ALTER TABLE t_plugin_calendar_event_attachment ALTER COLUMN pk TYPE bigint;
+ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN pk TYPE bigint;
+ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN address_id TYPE bigint;
+ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN user_id TYPE bigint;
+ALTER TABLE t_plugin_liqui_entry ALTER COLUMN pk TYPE bigint;
+ALTER TABLE t_plugin_lm_license ALTER COLUMN pk TYPE bigint;
+ALTER TABLE t_plugin_marketing_address_campaign ALTER COLUMN pk TYPE bigint;
+ALTER TABLE t_plugin_marketing_address_campaign_value ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_plugin_marketing_address_campaign_value ALTER COLUMN address_fk TYPE bigint;
 ALTER TABLE t_plugin_marketing_address_campaign_value ALTER COLUMN address_campaign_fk TYPE bigint;
+ALTER TABLE t_plugin_memo ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_plugin_memo ALTER COLUMN owner_fk TYPE bigint;
-ALTER TABLE t_plugin_skillmatrix_entry ALTER COLUMN owner_fk TYPE bigint;
+ALTER TABLE t_plugin_todo ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_plugin_todo ALTER COLUMN reporter_fk TYPE bigint;
 ALTER TABLE t_plugin_todo ALTER COLUMN assignee_fk TYPE bigint;
 ALTER TABLE t_plugin_todo ALTER COLUMN task_id TYPE bigint;
@@ -129,26 +137,6 @@ ALTER TABLE t_pf_user_authentications ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_pf_user_authentications ALTER COLUMN user_id TYPE bigint;
 ALTER TABLE t_pf_user_password ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_pf_user_password ALTER COLUMN user_id TYPE bigint;
-ALTER TABLE t_plugin_banking_account ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_banking_account_balance ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_banking_account_record ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_calendar_event ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_calendar_event ALTER COLUMN calendar_fk TYPE bigint;
-ALTER TABLE t_plugin_calendar_event ALTER COLUMN team_event_fk_creator TYPE bigint;
-ALTER TABLE t_plugin_calendar_event_attachment ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN address_id TYPE bigint;
-ALTER TABLE t_plugin_calendar_event_attendee ALTER COLUMN user_id TYPE bigint;
-ALTER TABLE t_plugin_datatransfer_area ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_datatransfer_audit ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_liqui_entry ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_lm_license ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_marketing_address_campaign ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_marketing_address_campaign_value ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_memo ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_merlin_template ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_skillmatrix_entry ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_plugin_todo ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_poll ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_poll ALTER COLUMN owner_fk TYPE bigint;
 ALTER TABLE t_poll_response ALTER COLUMN pk TYPE bigint;
