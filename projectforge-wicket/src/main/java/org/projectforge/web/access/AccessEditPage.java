@@ -76,9 +76,9 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   {
     var accessDao = WicketSupport.getAccessDao();
     if ("taskId".equals(property) == true) {
-      accessDao.setTask(getData(), (Integer) selectedValue);
+      accessDao.setTask(getData(), (Long) selectedValue);
     } else if ("groupId".equals(property) == true) {
-      accessDao.setGroup(getData(), (Integer) selectedValue);
+      accessDao.setGroup(getData(), (Long) selectedValue);
       form.groupSelectPanel.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

@@ -193,10 +193,10 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
 
     companion object {
         /**
-         * Converts group list to comma separated int values.
+         * Converts group list to comma separated long values.
          * @return String with csv or null, if list of group's is null.
          */
-        fun toIntList(users: List<GroupDO>?): String? {
+        fun toLongList(users: List<GroupDO>?): String? {
             return users?.filter { it.id != null }?.joinToString { "${it.id}" }
         }
 

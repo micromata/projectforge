@@ -483,6 +483,33 @@ object NumberHelper {
   }
 
   /**
+   * Splits string representation of the given number into digits. Examples:<br></br>
+   * NumberHelper.splitToInts(11110511, 1, 3, 2, 2) = {1, 111, 5, 11}<br></br>
+   * NumberHelper.splitToInts(10000511, 1, 3, 2, 2) = { 1, 0, 5, 11}<br></br>
+   * NumberHelper.splitToInts(511, 1, 3, 2, 2) = { 0, 0, 5, 11}
+   *
+   * @param value
+   * @param split
+   * @return
+   */
+  @JvmStatic
+  fun splitToLongs(value: Number, vararg split: Int): LongArray {
+    var numberOfDigits = 0
+    for (n in split) {
+      numberOfDigits += n
+    }
+    val str = StringUtils.leftPad(value.toInt().toString(), numberOfDigits, '0')
+    val result = LongArray(split.size)
+    var pos = 0
+    var i = 0
+    for (n in split) {
+      result[i++] = parseLong(str.substring(pos, pos + n))!!
+      pos += n
+    }
+    return result
+  }
+
+  /**
    * If given string is an number (NumberUtils.isNumber(String)) then it will be converted to a plain string via BigDecimal.toPlainString().
    * Any exponent such as 1E7 will be avoided.
    *

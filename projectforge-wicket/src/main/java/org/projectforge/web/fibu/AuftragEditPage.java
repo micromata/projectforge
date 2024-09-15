@@ -76,14 +76,14 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property)) {
-      WicketSupport.get(AuftragDao.class).setProjekt(getData(), (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null && getData().getProjektId() >= 0) {
         final ProjektDO projekt = WicketSupport.get(ProjektDao.class).getById(getData().getProjektId());
         form.setKundePmHobmAndSmIfEmpty(projekt, null);
       }
     } else if ("kundeId".equals(property)) {
-      WicketSupport.get(AuftragDao.class).setKunde(getData(), (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setKunde(getData(), (Long) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
     } else if ("contactPersonId".equals(property)) {
       WicketSupport.get(AuftragDao.class).setContactPerson(getData(), (Long) selectedValue);
@@ -91,7 +91,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
     } else if (property.startsWith("taskId:")) {
       final Short number = NumberHelper.parseShort(property.substring(property.indexOf(':') + 1));
       final AuftragsPositionDO pos = getData().getPosition(number);
-      WicketSupport.get(AuftragDao.class).setTask(pos, (Integer) selectedValue);
+      WicketSupport.get(AuftragDao.class).setTask(pos, (Long) selectedValue);
     } else {
       log.error("Property '" + property + "' not supported for selection.");
     }

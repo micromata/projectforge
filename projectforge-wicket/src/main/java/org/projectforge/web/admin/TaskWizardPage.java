@@ -119,12 +119,12 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
   {
     GroupDao groupDao = WicketSupport.get(GroupDao.class);
     if ("taskId".equals(property) == true) {
-      form.task = WicketSupport.getTaskDao().getById((Integer) selectedValue);
+      form.task = WicketSupport.getTaskDao().getById((Long) selectedValue);
     } else if ("managerGroupId".equals(property) == true) {
-      form.managerGroup = groupDao.getById((Integer) selectedValue);
+      form.managerGroup = groupDao.getById((Long) selectedValue);
       form.groupSelectPanelManager.getTextField().modelChanged();
     } else if ("teamId".equals(property) == true) {
-      form.team = groupDao.getById((Integer) selectedValue);
+      form.team = groupDao.getById((Long) selectedValue);
       form.groupSelectPanelTeam.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

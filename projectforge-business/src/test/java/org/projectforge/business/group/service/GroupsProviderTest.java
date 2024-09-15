@@ -88,7 +88,7 @@ public class GroupsProviderTest
     return col;
   }
 
-  private void assertGroupSet(final Collection<GroupDO> actualGroupSet, final int... expectedIds)
+  private void assertGroupSet(final Collection<GroupDO> actualGroupSet, final long... expectedIds)
   {
     if (expectedIds == null || expectedIds.length == 0) {
       assertTrue(CollectionUtils.isEmpty(actualGroupSet));
@@ -99,7 +99,7 @@ public class GroupsProviderTest
     for (final GroupDO actualGroup : actualGroupSet) {
       actualIdSet.add(actualGroup.getId());
     }
-    for (final int expectedId : expectedIds) {
+    for (final long expectedId : expectedIds) {
       assertTrue(actualIdSet.contains(expectedId));
     }
   }

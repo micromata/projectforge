@@ -158,7 +158,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("projektId".equals(property)) {
-      getBaseDao().setProjekt(getData(), (Integer) selectedValue);
+      getBaseDao().setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null
               && getData().getProjektId() >= 0
@@ -172,7 +172,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
         }
       }
     } else if ("kundeId".equals(property)) {
-      getBaseDao().setKunde(getData(), (Integer) selectedValue);
+      getBaseDao().setKunde(getData(), (Long) selectedValue);
       form.customerSelectPanel.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

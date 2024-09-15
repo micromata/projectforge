@@ -58,7 +58,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   /**
    * @param label
    * @param sortProperty
-   * @param property         Should be from type TaskDO or Integer for task id.
+   * @param property         Should be from type TaskDO or Long for task id.
    * @param cellItemListener
    */
   public TaskPropertyColumn(final String label, final String sortProperty,
@@ -71,7 +71,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   /**
    * @param label
    * @param sortProperty
-   * @param property     Should be from type TaskDO or Integer for task id.
+   * @param property     Should be from type TaskDO or Long for task id.
    */
   public TaskPropertyColumn(final String label, final String sortProperty,
       final String property)
@@ -107,7 +107,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
         if (Hibernate.isInitialized(task) == false) {
           task = getTaskTree().getTaskById(task.getId());
         }
-      } else if (obj instanceof Integer) {
+      } else if (obj instanceof Long) {
         final Long taskId = (Long) obj;
         task = getTaskTree().getTaskById(taskId);
       } else {

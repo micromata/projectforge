@@ -220,7 +220,7 @@ class User(
      */
     fun toLongArray(str: String?): LongArray? {
       if (str.isNullOrBlank()) return null
-      return StringHelper.splitToLongs(str, ",")
+      return StringHelper.splitToLongs(str, ",", false)
     }
 
     /**

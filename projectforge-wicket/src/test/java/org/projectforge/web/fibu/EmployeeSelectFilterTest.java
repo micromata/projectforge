@@ -62,10 +62,6 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     EmployeeSalaryDO data = new EmployeeSalaryDO();
     EmployeeSelectPanel selectPanel = new EmployeeSelectPanel("1", new PropertyModel<EmployeeDO>(data,
             "employee"), null, "employee");
-    Field panelDao = selectPanel.getClass().getDeclaredField("employeeDao");
-    panelDao.setAccessible(true);
-    panelDao.set(selectPanel, employeeDao);
-
     PFUserDO pfUserDO = new PFUserDO();
     pfUserDO.setUsername("EmployeeSelectFilterTestuser1");
     userDao.save(pfUserDO);

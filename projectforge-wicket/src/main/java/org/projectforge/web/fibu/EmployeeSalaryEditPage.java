@@ -95,11 +95,11 @@ public class EmployeeSalaryEditPage
   @Override
   public void select(final String property, final Object selectedValue) {
     if ("userId".equals(property) == true) {
-      final Integer id;
+      final Long id;
       if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
+        id = NumberHelper.parseLong((String) selectedValue);
       } else {
-        id = (Integer) selectedValue;
+        id = (Long) selectedValue;
       }
       WicketSupport.get(EmployeeSalaryDao.class).setEmployee(getData(), id);
     } else {

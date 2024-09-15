@@ -96,7 +96,7 @@ public class GroupServiceImpl implements GroupService {
     if (StringUtils.isEmpty(groupIds)) {
       return null;
     }
-    final long[] ids = StringHelper.splitToLongs(groupIds, ",");
+    final long[] ids = StringHelper.splitToLongs(groupIds, ",", false);
     final List<String> list = new ArrayList<>();
     for (final long id : ids) {
       final GroupDO group = userGroupCache.getGroup(id);
@@ -119,7 +119,7 @@ public class GroupServiceImpl implements GroupService {
       return null;
     }
     Collection<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
-    final long[] ids = StringHelper.splitToLongs(groupIds, ",");
+    final long[] ids = StringHelper.splitToLongs(groupIds, ",", false);
     for (final long id : ids) {
       final GroupDO group = getGroup(id);
       if (group != null) {
