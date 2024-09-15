@@ -34,7 +34,7 @@ private val log = KotlinLogging.logger {}
  * Stores history attributes.
  *
  * Table t_pf_history_attr
- *  withdata            | character(1)                |           | not null | -- 0, 1
+ *  withdata            | character(1)                |           | not null | -- 0, 1 (only used by mgc), attr_data concatinated to attr.value.
  *  pk                  | bigint                      |           | not null |
  *  createdat           | timestamp without time zone |           | not null | -- equals to modifiedat and parent.modifiedat
  *  createdby           | character varying(60)       |           | not null | -- equals to modifiedby and parent.modifiedby
@@ -71,9 +71,6 @@ class PfHistoryAttrDO {
     @get:Id
     var id: Long? = null
 
-    @get:Column(name = "withdata")
-    var withdata: String? = null
-
     /**
      * User id (same as modifiedBy and master.modifiedBy)
      */
@@ -98,19 +95,137 @@ class PfHistoryAttrDO {
     @get:Column(name = "modifiedat")
     var modifiedAt: Date? = null
 
-    @get:Column(name = "value")
+    /**
+     * The new value.
+     */
+    @get:Column(name = "value", length = 100000)
     var value: String? = null
 
-    @get:Column(name = "propertyname")
+    /**
+     * The new value.
+     */
+    @get:Column(name = "old_value", length = 100000)
+    var oldValue: String? = null
+
+    /**
+     * With MGC:
+     *   The property name with the suffix {:nv|:ov|:op}.
+     *   - :nv: New value.
+     *   - :ov: Old value.
+     *   - :op: Operation, value is Insert or Update (property_type_class is de.micromata.genome.db.jpa.history.entities.PropertyOpType)
+     *   For timeable attributes the start time of validity period is included:
+     *   - timeableAttributes.timeofvisit.2023-07-12 00:00:00:000.depart:op
+     *   - timeableAttributes.employeeannualleave.2021-11-15 00:00:00:000.employeeannualleavedays:op
+     *   - timeableAttributes.employeeannualleave.2022-03-01 00:00:00:000.employeeannualleavedays:ov
+     *
+     * Without MGC: The property name.
+     */
+    @get:Column(name = "propertyname", length = 255)
     var propertyName: String? = null
 
     /**
      * de.micromata.genome.util.strings.converter.ConvertedStringTypes
      * N (Null) or V (String)
      */
-    @get:Column(name = "type")
+    @get:Column(name = "type", length = 1)
     var type: String? = null
 
-    @get:Column(name = "property_type_class")
+    /**
+     * Used values (until summer 2024):
+     *  boolean
+     *  de.micromata.fibu.AuftragsArt
+     *  de.micromata.fibu.AuftragsPositionsArt
+     *  de.micromata.fibu.AuftragsPositionsStatus
+     *  de.micromata.fibu.AuftragsStatus
+     *  de.micromata.fibu.EmployeeStatus
+     *  de.micromata.fibu.kost.KostentraegerStatus
+     *  de.micromata.fibu.KundeStatus
+     *  de.micromata.fibu.ProjektStatus
+     *  de.micromata.fibu.RechnungStatus
+     *  de.micromata.fibu.RechnungTyp
+     *  de.micromata.genome.db.jpa.history.entities.PropertyOpType
+     *  de.micromata.projectforge.address.AddressStatus
+     *  de.micromata.projectforge.address.ContactStatus
+     *  de.micromata.projectforge.address.FormOfAddress
+     *  de.micromata.projectforge.book.BookStatus
+     *  de.micromata.projectforge.core.Priority
+     *  de.micromata.projectforge.humanresources.HRPlanningEntryStatus
+     *  de.micromata.projectforge.orga.PostType
+     *  de.micromata.projectforge.scripting.ScriptParameterType
+     *  de.micromata.projectforge.task.TaskDO
+     *  de.micromata.projectforge.task.TaskStatus
+     *  de.micromata.projectforge.task.TimesheetBookingStatus
+     *  de.micromata.projectforge.user.PFUserDO
+     *  int
+     *  java.lang.Boolean
+     *  java.lang.Integer
+     *  java.lang.Short
+     *  java.lang.String
+     *  java.math.BigDecimal
+     *  java.sql.Date
+     *  java.sql.Timestamp
+     *  java.time.LocalDate
+     *  java.util.Date
+     *  java.util.Locale
+     *  net.fortuna.ical4j.model.Date
+     *  net.fortuna.ical4j.model.DateTime
+     *  org.projectforge.address.AddressStatus
+     *  org.projectforge.address.ContactStatus
+     *  org.projectforge.address.FormOfAddress
+     *  org.projectforge.book.BookStatus
+     *  org.projectforge.book.BookType
+     *  org.projectforge.business.address.AddressbookDO
+     *  org.projectforge.business.address.AddressDO
+     *  org.projectforge.business.address.AddressDO_$$_jvst148_2f
+     *  org.projectforge.business.address.AddressDO_$$_jvst16a_2f
+     *  org.projectforge.business.address.AddressDO_$$_jvst174_2f
+     *  ...
+     *  org.projectforge.business.fibu.ProjektDO$HibernateProxy$L5sN8U45
+     *  org.projectforge.business.fibu.ProjektDO$HibernateProxy$LKb2NJnZ
+     *  org.projectforge.business.fibu.ProjektDO$HibernateProxy$mRBJJfeJ
+     *  ...
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$op5ygU4h
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$OTs8u37E
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$PEKvYn0M
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$pL6vOROg
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$pryblTxE
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$PWGeegv6
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$PZtCR99n
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$Q4HYrXiF
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$QEL1umFQ
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$qFzJgJXc
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$qjRoWiJQ
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$QjYlbJSR
+     *  org.projectforge.framework.persistence.user.entities.TenantDO$HibernateProxy$QkjMNYcg
+     *  ...
+     *  org.projectforge.framework.time.TimeNotation
+     *  org.projectforge.gantt.GanttDependencyType
+     *  org.projectforge.gantt.GanttObjectType
+     *  org.projectforge.gantt.GanttRelationType
+     *  org.projectforge.humanresources.HRPlanningEntryStatus
+     *  org.projectforge.orga.PostType
+     *  org.projectforge.plugins.banking.BankAccountDO
+     *  org.projectforge.plugins.ffp.model.FFPAccountingDO
+     *  org.projectforge.plugins.ffp.model.FFPEventDO
+     *  org.projectforge.plugins.marketing.AddressCampaignDO
+     *  org.projectforge.plugins.marketing.AddressCampaignDO_$$_jvst148_26
+     *  org.projectforge.plugins.marketing.AddressCampaignDO_$$_jvstba1_26
+     *  org.projectforge.plugins.marketing.AddressCampaignDO_$$_jvstc5d_26
+     *  org.projectforge.plugins.skillmatrix.SkillDO
+     *  org.projectforge.plugins.skillmatrix.SkillDO_$$_jvstf4d_19
+     *  org.projectforge.plugins.skillmatrix.SkillRating
+     *  org.projectforge.plugins.teamcal.event.ReminderActionType
+     *  org.projectforge.plugins.teamcal.event.ReminderDurationUnit
+     *  org.projectforge.plugins.todo.ToDoStatus
+     *  org.projectforge.plugins.todo.ToDoType
+     *  org.projectforge.scripting.ScriptParameterType
+     *  org.projectforge.task.TaskDO
+     *  org.projectforge.task.TaskStatus
+     *  org.projectforge.task.TimesheetBookingStatus
+     *  org.projectforge.user.PFUserDO
+     *  org.projectforge.user.UserRightValue
+     *  void
+     */
+    @get:Column(name = "property_type_class", length = 128)
     var propertyTypeClass: String? = null
 }

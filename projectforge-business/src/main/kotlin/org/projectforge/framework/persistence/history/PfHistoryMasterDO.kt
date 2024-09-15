@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
  *  modifiedby     | character varying(60)       |           | not null |
  *  updatecounter  | integer                     |           | not null | -- always 0
  *  entity_id      | bigint                      |           | not null |
- *  entity_name    | character varying(255)      |           | not null |
+ *  entity_name    | character varying(255)      |           | not null | -- Full qualified class, e.g. org.projectforge.business.task.TaskDO
  *  entity_optype  | character varying(32)       |           |          | Insert | Update
  *  transaction_id | character varying(64)       |           |          | -- the_10415 (for example) or null
  *  user_comment   | character varying(2000)     |           |          | -- always 0
@@ -64,7 +64,10 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     @get:Id
     override var id: Long? = null
 
-    @get:Column(name = "entity_name")
+    /**
+     * Full qualified class name, e. g. org.projectforge.business.task.TaskDO.
+     */
+    @get:Column(name = "entity_name", length = 255)
     @GenericField // was @Field(analyze = Analyze.NO, store = Store.NO)
     override var entityName: String? = null
 
@@ -72,13 +75,16 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     //@GenericField // was @get:Field(analyze = Analyze.NO, store = Store.YES, index = Indexed.YES)
     override var entityId: Long? = null
 
-    @get:Column(name = "entity_optype")
+    /**
+     * Insert or Update.
+     */
+    @get:Column(name = "entity_optype", length = 32)
     override var entityOpType: EntityOpType? = null
 
     /**
      * User id (same as modifiedBy)
      */
-    @get:Column(name = "createdby")
+    @get:Column(name = "createdby", length = 60)
     //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
     var createdBy: String? = null
 
@@ -92,7 +98,7 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     /**
      * User id (same as createdBy)
      */
-    @get:Column(name = "modifiedby")
+    @get:Column(name = "modifiedby", length = 60)
     //@GenericField // was: @get:Field(analyze = Analyze.NO, store = Store.NO, index = Indexed.YES)
     override var modifiedBy: String? = null
 
@@ -103,7 +109,11 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     //@GenericField
     override var modifiedAt: Date? = null
 
-    @get:Column(name = "transaction_id")
+    /**
+     * Not in use.
+     * the_10415 (for example) or null
+     */
+    @get:Column(name = "transaction_id", length = 64)
     var transactionId: String? = null
 
     /*@get:MapKey(name = "propertyName")
