@@ -74,9 +74,9 @@ class HistoryServiceTest : AbstractTestBase() {
         propertyName: String,
         operationType: EntityOpType
     ) {
-        val master = HistoryServiceUtils.createMaster(entity, operationType)
+        val master = HistoryCreateUtils.createMaster(entity, operationType)
 
-        val attr1 = HistoryServiceUtils.createAttr(
+        val attr1 = HistoryCreateUtils.createAttr(
             GroupDO::class,
             propertyName = propertyName,
             value = value,
@@ -108,11 +108,11 @@ class HistoryServiceTest : AbstractTestBase() {
         propertyName: String,
         operationType: EntityOpType
     ) {
-        val master = HistoryServiceUtils.createMaster(entity, operationType)
+        val master = HistoryCreateUtils.createMaster(entity, operationType)
 
-        val attr1 = HistoryServiceUtils.createAttr(GroupDO::class, propertyName = "$propertyName:nv", value = value)
-        val attr2 = HistoryServiceUtils.createAttr(oldPropertyClass, "$propertyName:op", value = operationType.name)
-        val attr3 = HistoryServiceUtils.createAttr(GroupDO::class, "$propertyName:ov", value = oldValue)
+        val attr1 = HistoryCreateUtils.createAttr(GroupDO::class, propertyName = "$propertyName:nv", value = value)
+        val attr2 = HistoryCreateUtils.createAttr(oldPropertyClass, "$propertyName:op", value = operationType.name)
+        val attr3 = HistoryCreateUtils.createAttr(GroupDO::class, "$propertyName:ov", value = oldValue)
         val attrs = mutableListOf(attr1, attr2, attr3)
 
         pk = historyService.save(master, attrs)!!

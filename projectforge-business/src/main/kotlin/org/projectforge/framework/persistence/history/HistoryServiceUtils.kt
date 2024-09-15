@@ -25,8 +25,6 @@ package org.projectforge.framework.persistence.history
 
 import mu.KotlinLogging
 import org.projectforge.common.BeanHelper
-import org.projectforge.framework.persistence.api.BaseDO
-import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
@@ -86,58 +84,5 @@ class HistoryServiceUtils private constructor() {
         fun get(): HistoryServiceUtils {
             return instance
         }
-
-        /**
-         * Attributes createdAd and createdBy will be set by save(PFHistoryMaster, Collection) method.
-         */
-        fun createMaster(entity: BaseDO<Long>, opType: EntityOpType): PfHistoryMasterDO {
-            val master = PfHistoryMasterDO()
-            master.entityId = entity.id
-            master.entityName = entity::class.java.name
-            master.entityOpType = opType
-            return master
-        }
-
-        /**
-         * Creates a new history attr object. Master will be set by save(PFHistoryMaster, Collection) method.
-         */
-        fun createAttr(
-            propertyClass: KClass<*>,
-            propertyName: String,
-            value: String?,
-            oldValue: String? = null,
-        ): PfHistoryAttrDO {
-            return createAttr(propertyClass.java, propertyName = propertyName, value = value, oldValue = oldValue)
-        }
-
-        /**
-         * Creates a new history attr object. Master will be set by save(PFHistoryMaster, Collection) method.
-         */
-        fun createAttr(
-            propertyClass: Class<*>,
-            propertyName: String,
-            value: String?,
-            oldValue: String? = null,
-        ): PfHistoryAttrDO {
-            return createAttr(propertyClass.name, propertyName = propertyName, value = value, oldValue = oldValue)
-        }
-
-        /**
-         * Creates a new history attr object. Master will be set by save(PFHistoryMaster, Collection) method.
-         */
-        fun createAttr(
-            propertyTypeClass: String,
-            propertyName: String,
-            value: String?,
-            oldValue: String? = null,
-        ): PfHistoryAttrDO {
-            val attr = PfHistoryAttrDO()
-            attr.propertyTypeClass = propertyTypeClass
-            attr.propertyName = propertyName
-            attr.value = value
-            attr.oldValue = oldValue
-            return attr
-        }
     }
-
 }
