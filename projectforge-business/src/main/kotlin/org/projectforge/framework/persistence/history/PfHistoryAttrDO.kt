@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import java.util.*
@@ -53,6 +54,12 @@ import kotlin.jvm.Transient
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
+@NamedQueries(
+    NamedQuery(
+        name = PfHistoryAttrDO.SELECT_HISTORY_ATTR_FOR_BASEDO,
+        query = "from PfHistoryAttrDO where master.id=:masterId order by id desc"
+    ),
+)
 @Entity
 @Table(
     name = "t_pf_history_attr",
@@ -69,6 +76,7 @@ class PfHistoryAttrDO {
     @get:Id
     var id: Long? = null
 
+    @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "master_fk", nullable = false)
     var master: PfHistoryMasterDO? = null
@@ -109,6 +117,7 @@ class PfHistoryAttrDO {
     @get:Column(name = "propertyname", length = 255)
     var propertyName: String? = null
 
+    @get:jakarta.persistence.Transient
     val plainPropertyName: String?
         get() {
             propertyName.let { str ->
@@ -220,4 +229,8 @@ class PfHistoryAttrDO {
      */
     @get:Column(name = "property_type_class", length = 128)
     var propertyTypeClass: String? = null
+
+    companion object {
+        internal const val SELECT_HISTORY_ATTR_FOR_BASEDO = "PfHistoryAttrDO_SelectForBaseDO"
+    }
 }

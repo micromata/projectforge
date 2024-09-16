@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 import mu.KotlinLogging
+import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -40,6 +41,19 @@ private val log = KotlinLogging.logger {}
 class HistoryService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    /**
+     * Loads all history entries for the given baseDO by class and id.
+     */
+    fun loadHistory(baseDO: BaseDO<Long>): Collection<PfHistoryMasterDO> {
+        val result = persistenceService.namedQuery(
+            PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
+            PfHistoryMasterDO::class.java,
+            Pair("entityId", baseDO.id),
+            Pair("entityName", baseDO::class.java.name),
+        )
+        return result
+    }
 
     /**
      * Save method will be called automatically by the Dao services.

@@ -1,0 +1,45 @@
+    pk    | modifiedby | entity_id |                entity_name                | entity_optype
+----------+------------+-----------+-------------------------------------------+---------------
+ 40770229 | 17         |  40770225 | org.projectforge.business.fibu.RechnungDO | Insert
+ 41391150 | 10         |  40770225 | org.projectforge.business.fibu.RechnungDO | Update
+
+ 36901229 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Insert
+ 36901410 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 36901457 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38118558 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38118562 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38147991 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38507984 | 377        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 38508173 | 377        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+ 41195493 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
+
+ 2658215 | 12345       |    190664 | org.projectforge.framework.access.GroupTaskAccessDO | Insert
+ 2658991 | 12345       |    190664 | org.projectforge.framework.access.GroupTaskAccessDO | Update
+
+ 34961223 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Insert
+ 34961266 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34961278 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34961320 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34961324 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 34962400 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36511605 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36516954 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36543747 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36634908 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36634926 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36781542 | 2233       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36804073 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 36815550 | 3089       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 37229748 | 3222       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 37257895 | 3689       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38057999 | 3222       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38064542 | 79         |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38440550 | 1248       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38567639 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38764389 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 38821044 | 3558       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 40790124 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 40965676 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 41070156 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 41819958 | 3558       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+ 42902117 | 3678       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update

@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
@@ -49,6 +50,12 @@ private val log = KotlinLogging.logger {}
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
+@NamedQueries(
+    NamedQuery(
+        name = PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
+        query = "from PfHistoryMasterDO as m left join fetch m.attributes where m.entityId=:entityId and m.entityName=:entityName order by m.modifiedAt desc"
+    ),
+)
 @Entity
 @Table(
     name = "t_pf_history",
@@ -96,9 +103,10 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     //@GenericField
     override var modifiedAt: Date? = null
 
+    @JsonManagedReference
     @get:OneToMany(
         cascade = [CascadeType.ALL],
-        mappedBy = "parent",
+        mappedBy = "master",
         targetEntity = PfHistoryAttrDO::class,
         fetch = FetchType.EAGER,
         orphanRemoval = true
@@ -114,6 +122,10 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
 
     override fun toString(): String {
         return JsonUtils.toJson(this)
+    }
+
+    companion object {
+        internal const val SELECT_HISTORY_FOR_BASEDO = "PfHistoryMasterDO_SelectForBaseDO"
     }
 }
 
