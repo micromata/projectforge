@@ -23,11 +23,13 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.junit.Assert
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
@@ -52,8 +54,47 @@ class HistoryServiceTest : AbstractTestBase() {
         ensureSetup()
         val invoice = RechnungDO()
         invoice.id = 40770225
-        val historyEntries = historyService.loadHistory(invoice)
+        var historyEntries = historyService.loadHistory(invoice)
         Assertions.assertEquals(2, historyEntries.size)
+        var master = historyEntries[0]
+        Assertions.assertEquals(12, master.attributes!!.size)
+        var diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+        Assertions.assertEquals(4, diffEntries.size)
+        assert(diffEntries[0], "bemerkung", "PoBa", null, PropertyOpType.Insert)
+        assert(diffEntries[1], "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
+        assert(diffEntries[2], "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
+        assert(diffEntries[3], "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
+        master = historyEntries[1]
+        Assertions.assertEquals(34, master.attributes!!.size)
+
+        val user = PFUserDO()
+        user.id = 34961222
+        historyEntries = historyService.loadHistory(user)
+        Assertions.assertEquals(27, historyEntries.size)
+        master = historyEntries.find { it.id == getNewMasterId(34961266) }!! // was 34961266
+        Assertions.assertEquals(3, master.attributes!!.size)
+        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+        Assertions.assertEquals(1, diffEntries.size)
+        assert(diffEntries[0], "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
+
+        master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 34961266
+        Assertions.assertEquals(3, master.attributes!!.size)
+        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+        Assertions.assertEquals(1, diffEntries.size)
+        assert(diffEntries[0], "lastPasswordChange", "2023-02-10 13:34:25:184", "2022-10-04 09:55:19:329", PropertyOpType.Update)
+
+        master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 34961266
+        Assertions.assertEquals(6, master.attributes!!.size)
+        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+        Assertions.assertEquals(2, diffEntries.size)
+        assert(diffEntries[0], "locale", "de_DE", "", PropertyOpType.Update)
+        assert(diffEntries[1], "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
+    }
+
+    private fun getNewMasterId(origMasterId: Long): Long {
+        val newMaster = historyMasterMap[origMasterId]
+        Assertions.assertNotNull(newMaster, "Master with id $origMasterId not found!")
+        return newMaster!!.id!!
     }
 
     fun ensureSetup() {
@@ -116,6 +157,19 @@ class HistoryServiceTest : AbstractTestBase() {
         // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
         // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk=<PK>
 
+    }
+
+    private fun assert(
+        diffEntry: DiffEntry,
+        propertyName: String,
+        value: String?,
+        oldValue: String?,
+        operationType: PropertyOpType
+    ) {
+        Assertions.assertEquals(propertyName, diffEntry.propertyName)
+        Assertions.assertEquals(value, diffEntry.newValue)
+        Assertions.assertEquals(oldValue, diffEntry.oldValue)
+        Assertions.assertEquals(operationType, diffEntry.propertyOpType)
     }
 
     /**
