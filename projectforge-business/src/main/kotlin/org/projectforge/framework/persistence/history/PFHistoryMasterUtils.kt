@@ -32,7 +32,7 @@ object PFHistoryMasterUtils {
     /**
      * Concatenates also history attributes from older MGC versions.
      */
-    fun createDiffEntries(attrs: List<PfHistoryAttrDO>): List<DiffEntry> {
+    fun createDiffEntries(attrs: Collection<PfHistoryAttrDO>): List<DiffEntry> {
         val diffEntries = mutableListOf<DiffEntry>()
         var currentDiffEntry: DiffEntry? = null
         attrs.sortedBy { it.propertyName }.forEach { attr ->

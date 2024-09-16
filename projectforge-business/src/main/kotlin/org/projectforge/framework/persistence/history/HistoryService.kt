@@ -45,7 +45,7 @@ class HistoryService {
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<Long>): Collection<PfHistoryMasterDO> {
+    fun loadHistory(baseDO: BaseDO<Long>): List<PfHistoryMasterDO> {
         val result = persistenceService.namedQuery(
             PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
             PfHistoryMasterDO::class.java,
