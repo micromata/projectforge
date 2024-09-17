@@ -23,16 +23,35 @@
 
 package org.projectforge.framework.persistence.metamodel
 
+import org.projectforge.common.AnnotationsUtils
+import kotlin.reflect.KClass
+
 
 /**
- * Info of annotation @Column of a property.
+ * Represents a property of an entity and contains all annotation of package jakarta.persistence.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class ColumnInfo(
+class EntityPropertyInfo(
+    val entityClass: Class<*>,
     val propertyName: String,
-    val columnName: String,
-    val length: Int? = null,
-    val nullable: Boolean? = null,
-    val scale: Int? = null,
-    val precision: Int? = null,
-)
+) {
+    private val annotations = mutableSetOf<Annotation>()
+
+    init {
+        AnnotationsUtils.getAnnotations(entityClass, propertyName).forEach { ann ->
+            if (ann.annotationClass.qualifiedName?.startsWith("jakarta.persistence") == true) {
+                annotations.add(ann)
+            }
+        }
+    }
+
+    fun hasAnnotation(annotationClass: KClass<out Annotation>): Boolean {
+        return getAnnotation(annotationClass) != null
+    }
+
+    fun <Ann : Annotation> getAnnotation(annotationClass: KClass<out Ann>): Ann? {
+        @Suppress("UNCHECKED_CAST")
+        return annotations.find { it.annotationClass == annotationClass } as? Ann
+    }
+}

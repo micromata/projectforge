@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
+import jakarta.persistence.Column
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
@@ -36,7 +37,6 @@ import org.projectforge.common.BeanHelper
 import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.metamodel.ColumnInfo
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import java.io.Serializable
@@ -214,13 +214,13 @@ object HibernateUtils {
      * @return info if exists.
      */
     @JvmStatic
-    fun getColumnInfo(entity: Class<*>, propertyName: String): ColumnInfo? {
+    fun getColumnAnnotation(entity: Class<*>, propertyName: String): Column? {
         return HibernateMetaModel.getColumnInfo(entity.name, propertyName)
     }
 
 
     /**
-     * Gets the length of the given property.
+     * Gets the length of the given property, defined in annotation @Column(length=...).
      *
      * @param entity       Class name of the entity
      * @param propertyName Java bean property name.
@@ -232,7 +232,7 @@ object HibernateUtils {
     }
 
     /**
-     * Gets the length of the given property.
+     * Gets the length of the given property, defined in annotation @Column(length=...).
      *
      * @param entityName   Class name of the entity
      * @param propertyName Java bean property name.

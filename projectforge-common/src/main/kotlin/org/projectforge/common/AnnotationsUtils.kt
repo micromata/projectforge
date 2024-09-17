@@ -25,12 +25,21 @@ package org.projectforge.common
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.superclasses
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object AnnotationsUtils {
+    fun getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Annotation? {
+        return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass }
+    }
+
+    fun hasAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Boolean {
+        return getAnnotation(clazz, propertyName, annotationClass) != null
+    }
+
     /**
      * Get all annotations of field, getter and setter method.
      */
@@ -67,11 +76,19 @@ object AnnotationsUtils {
             member.annotations.let {
                 annotations.addAll(it)
             }
-            (member as KMutableProperty1<*, *>).setter.annotations.let {
-                annotations.addAll(it)
-            }
-            (member as KMutableProperty1<*, *>).getter.annotations.let {
-                annotations.addAll(it)
+            if (member is KMutableProperty1<*, *>) {
+                member.setter.annotations.let {
+                    annotations.addAll(it)
+                }
+                member.getter.annotations.let {
+                    annotations.addAll(it)
+                }
+            } else if (member is KProperty1<*, *>) {
+                member.getter.annotations.let {
+                    annotations.addAll(it)
+                }
+            } else {
+                // Can't access getter/setter (OK).
             }
         }
         clazz.superclasses.forEach { superclass ->
