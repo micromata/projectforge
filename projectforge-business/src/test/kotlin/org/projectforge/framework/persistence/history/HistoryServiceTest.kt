@@ -23,9 +23,10 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.junit.Assert
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -77,18 +78,39 @@ class HistoryServiceTest : AbstractTestBase() {
         Assertions.assertEquals(1, diffEntries.size)
         assert(diffEntries[0], "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
 
-        master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 34961266
+        master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 38057999
         Assertions.assertEquals(3, master.attributes!!.size)
         diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
         Assertions.assertEquals(1, diffEntries.size)
-        assert(diffEntries[0], "lastPasswordChange", "2023-02-10 13:34:25:184", "2022-10-04 09:55:19:329", PropertyOpType.Update)
+        assert(
+            diffEntries[0],
+            "lastPasswordChange",
+            "2023-02-10 13:34:25:184",
+            "2022-10-04 09:55:19:329",
+            PropertyOpType.Update
+        )
 
-        master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 34961266
+        master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 37229748
         Assertions.assertEquals(6, master.attributes!!.size)
         diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
         Assertions.assertEquals(2, diffEntries.size)
         assert(diffEntries[0], "locale", "de_DE", "", PropertyOpType.Update)
         assert(diffEntries[1], "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
+
+        val order = AuftragDO()
+        order.id = 36901223
+        historyEntries = historyService.loadHistory(order)
+        Assertions.assertEquals(9, historyEntries.size)
+
+        master = historyEntries.find { it.id == getNewMasterId(36901229) }!! // was 36901229
+        Assertions.assertEquals(36, master.attributes!!.size)
+        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+        Assertions.assertEquals(18, diffEntries.size)
+
+        val orderPos = AuftragsPositionDO()
+        orderPos.id = 36901228
+        historyEntries = historyService.loadHistory(order)
+        Assertions.fail<Any>("History of positions not loaded")
     }
 
     private fun getNewMasterId(origMasterId: Long): Long {
@@ -155,7 +177,7 @@ class HistoryServiceTest : AbstractTestBase() {
         // Test entries generated with:
         // \pset null 'NULL'
         // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
-        // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk=<PK>
+        // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (PK1,PK2,PK3);
 
     }
 

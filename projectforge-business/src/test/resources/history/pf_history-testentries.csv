@@ -13,6 +13,25 @@
  38508173 | 377        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
  41195493 | 137        |  36901223 | org.projectforge.business.fibu.AuftragDO | Update
 
+ 38118578 | 14532637   |  36901224 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38385654 | 14532637   |  36901224 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38512218 | 34370177   |  36901224 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118574 | 14532637   |  36901225 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39310527 | 14532637   |  36901225 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39427996 | 34370177   |  36901225 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118570 | 14532637   |  36901226 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 40325359 | 14532637   |  36901226 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 40372455 | 105816     |  36901226 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118566 | 14532637   |  36901227 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41195497 | 14532637   |  36901227 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41214090 | 34370177   |  36901227 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 38118582 | 14532637   |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39552414 | 14532637   |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 39552418 | 14532637   |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41195501 | 14532637   |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+ 41214094 | 34370177   |  36901228 | org.projectforge.business.fibu.AuftragsPositionDO | Update
+
+
  2658215 | 12345       |    190664 | org.projectforge.framework.access.GroupTaskAccessDO | Insert
  2658991 | 12345       |    190664 | org.projectforge.framework.access.GroupTaskAccessDO | Update
 

@@ -23,10 +23,12 @@
 
 package org.projectforge.framework.persistence.metamodel
 
+import jakarta.persistence.Column
 import mu.KotlinLogging
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.metamodel.spi.MetamodelImplementor
 import org.hibernate.persister.entity.SingleTableEntityPersister
+import org.projectforge.framework.persistence.api.BaseDO
 
 private val log = KotlinLogging.logger {}
 
@@ -42,6 +44,11 @@ object HibernateMetaModel {
     @JvmStatic
     fun getEntityInfo(entityName: String): EntityInfo? {
         return entityInfoByName[entityName]
+    }
+
+    @JvmStatic
+    fun getEntityInfo(baseDO: BaseDO<*>): EntityInfo? {
+        return getEntityInfo(baseDO::class.java)
     }
 
     @JvmStatic
@@ -69,8 +76,8 @@ object HibernateMetaModel {
     }
 
     @JvmStatic
-    fun getColumnInfo(entityName: String, propertyName: String): ColumnInfo? {
-        return entityInfoByName[entityName]?.getColumnInfo(propertyName)
+    fun getColumnInfo(entityName: String, propertyName: String): Column? {
+        return entityInfoByName[entityName]?.getColumnAnnotation(propertyName)
     }
 
 

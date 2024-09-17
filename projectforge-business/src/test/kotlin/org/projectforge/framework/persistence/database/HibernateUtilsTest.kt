@@ -62,7 +62,7 @@ class HibernateUtilsTest : AbstractTestBase() {
                 val tableName = info.tableName
                 val idField = ClassUtils.getFieldInfo(clazz, "id")
                 val idColumnType = idField?.field?.type
-                val idColumnName = HibernateUtils.getColumnInfo(clazz, "id")?.columnName
+                val idColumnName = HibernateUtils.getColumnAnnotation(clazz, "id")?.name
                 entries.add(Entry(tableName, idColumnName, idColumnType, info))
             }
         }
