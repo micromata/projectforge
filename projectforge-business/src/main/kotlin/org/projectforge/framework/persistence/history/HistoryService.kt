@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.history
 import jakarta.persistence.EntityManager
 import jakarta.persistence.OneToMany
 import mu.KotlinLogging
+import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
@@ -52,7 +53,7 @@ class HistoryService {
         val allHistoryEntries = mutableListOf<PfHistoryMasterDO>()
         persistenceService.runReadOnly { context ->
             val em = context.em
-            loadAndAddHistory(em, allHistoryEntries, baseDO::class.java.name, baseDO.id)
+            loadAndAddHistory(em, allHistoryEntries, baseDO::class.java, baseDO.id)
         }
         return allHistoryEntries
     }
@@ -60,7 +61,7 @@ class HistoryService {
     private fun loadAndAddHistory(
         em: EntityManager,
         allHistoryEntries: MutableList<PfHistoryMasterDO>,
-        entityClass: String,
+        entityClass: Class<out BaseDO<Long>>,
         entityId: Long?
     ) {
         entityId ?: return
@@ -71,7 +72,7 @@ class HistoryService {
             namedQuery = true,
             keyValues = arrayOf(
                 Pair("entityId", entityId),
-                Pair("entityName", entityClass),
+                Pair("entityName", entityClass.name),
             ),
         )
         allHistoryEntries.addAll(result)
@@ -104,36 +105,46 @@ class HistoryService {
                         }
                     }
                 }
-                // Check now all embedded objects of the baseDO:
-                /*            ClassUtils.getFieldInfo(entityClass, oneToManyProps.first().propertyName)?.field?.let { field ->
-                                synchronized(field) {
-                                    val wasAccessible = field.canAccess(baseDO)
-                                    try {
-                                        field.isAccessible = true
-                                        synchronized(field) {
-                                            field[baseDO]?.let { value ->
-                                                if (value is Collection<*>) {
-                                                    value.forEach { embeddedObject ->
-                                                        if (embeddedObject is BaseDO<*>) {
-                                                            embeddedObject as BaseDO<Long>
-                                                            embeddedObject.id?.let { entityId ->
-                                                                embeddedObjectsMap.computeIfAbsent(embeddedObject::class.java.name) { mutableSetOf() }
-                                                                    .add(entityId)
-                                                                log.debug { "${baseDO::class.java}.${baseDO.id}: entity ids added: '${embeddedObject::class.java.name}': $entityId" }
-                                                            }
+                em.find(entityClass, entityId)?.let { baseDO ->
+                    // Check now all embedded objects of the baseDO:
+                    oneToManyProps.forEach { propInfo ->
+                        val propertyName = propInfo.propertyName
+                        ClassUtils.getFieldInfo(entityClass, propertyName)?.field?.let { field ->
+                            synchronized(field) {
+                                val wasAccessible = field.canAccess(baseDO)
+                                try {
+                                    field.isAccessible = true
+                                    synchronized(field) {
+                                        field[baseDO]?.let { value ->
+                                            if (value is Collection<*>) {
+                                                value.forEach { embeddedObject ->
+                                                    if (embeddedObject is BaseDO<*>) {
+                                                        embeddedObject as BaseDO<Long>
+                                                        embeddedObject.id?.let { entityId ->
+                                                            embeddedObjectsMap.computeIfAbsent(embeddedObject::class.java.name) { mutableSetOf() }
+                                                                .add(entityId)
+                                                            log.debug { "${baseDO::class.java}.${baseDO.id}: entity ids added: '${embeddedObject::class.java.name}': $entityId" }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-                                    } finally {
-                                        field.isAccessible = wasAccessible
                                     }
+                                } finally {
+                                    field.isAccessible = wasAccessible
                                 }
-                            }*/
+                            }
+                        }
+                    }
+                }
                 embeddedObjectsMap.forEach { (propertyTypeClass, entityIds) ->
                     entityIds.forEach { entityId ->
-                        loadAndAddHistory(em, allHistoryEntries, propertyTypeClass, entityId)
+                        try {
+                            val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<Long>>
+                            loadAndAddHistory(em, allHistoryEntries, clazz, entityId)
+                        } catch (ex: Exception) {
+                            log.error(ex) { "Can't get class of name '$propertyTypeClass' (skipping): ${ex.message}" }
+                        }
                     }
                 }
                 println("******* Load also embedded objects, embedded by embedded objects (recursive)")
