@@ -38,6 +38,7 @@ import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import java.net.URI
+import kotlin.contracts.contract
 
 private val log = KotlinLogging.logger {}
 
@@ -239,11 +240,14 @@ class HistoryServiceTest : AbstractTestBase() {
                 throw IllegalStateException("Error parsing map $map", ex)
             }
         }
-        historyMasterMap.entries.forEach { entry ->
-            val master = entry.value
-            val masterId = entry.key
-            val attrs = historyAttrMap[masterId]
-            historyService.save(master, attrs)
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            historyMasterMap.entries.forEach { entry ->
+                val master = entry.value
+                val masterId = entry.key
+                val attrs = historyAttrMap[masterId]
+                historyService.save(em, master, attrs)
+            }
         }
 
         val user = getUser(TEST_USER)
