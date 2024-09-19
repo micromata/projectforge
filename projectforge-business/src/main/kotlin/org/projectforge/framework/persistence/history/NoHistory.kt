@@ -23,5 +23,8 @@
 
 package org.projectforge.framework.persistence.history
 
+/**
+ * Any property annotated with this annotation will not be stored in the history.
+ */
 @Retention(AnnotationRetention.RUNTIME)
 annotation class NoHistory

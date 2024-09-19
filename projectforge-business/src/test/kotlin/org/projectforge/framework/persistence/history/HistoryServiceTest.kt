@@ -23,11 +23,14 @@
 
 package org.projectforge.framework.persistence.history
 
+import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.RechnungsPositionDO
+import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -35,6 +38,8 @@ import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import java.net.URI
+
+private val log = KotlinLogging.logger {}
 
 class HistoryServiceTest : AbstractTestBase() {
     @Autowired
@@ -51,66 +56,140 @@ class HistoryServiceTest : AbstractTestBase() {
     private val historyAttrMap = mutableMapOf<Long, MutableList<PfHistoryAttrDO>>()
 
     @Test
-    fun testOldHistory() {
+    fun testOldInvoiceHistory() {
         ensureSetup()
         val invoice = RechnungDO()
         invoice.id = 40770225
-        var historyEntries = historyService.loadHistory(invoice)
-        Assertions.assertEquals(2, historyEntries.size)
-        var master = historyEntries[0]
-        Assertions.assertEquals(12, master.attributes!!.size)
-        var diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
-        Assertions.assertEquals(4, diffEntries.size)
-        assert(diffEntries[0], "bemerkung", "PoBa", null, PropertyOpType.Insert)
-        assert(diffEntries[1], "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
-        assert(diffEntries[2], "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
-        assert(diffEntries[3], "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
-        master = historyEntries[1]
-        Assertions.assertEquals(34, master.attributes!!.size)
+        /*historyService.loadHistory(invoice).let { historyEntries ->
+            Assertions.assertEquals(2, historyEntries.size)
+            var master = historyEntries[0]
+            Assertions.assertEquals(12, master.attributes!!.size)
+            val diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            Assertions.assertEquals(4, diffEntries.size)
+            assert(diffEntries[0], "bemerkung", "PoBa", null, PropertyOpType.Insert)
+            assert(diffEntries[1], "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
+            assert(diffEntries[2], "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
+            assert(diffEntries[3], "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
+            master = historyEntries[1]
+            Assertions.assertEquals(34, master.attributes!!.size)
+        }*/
+        invoice.id = 351958
+        RechnungsPositionDO().let { pos ->
+            pos.id = 351959
+            invoice.addPosition(pos)
+            KostZuweisungDO().let { zuw ->
+                zuw.id = 382507
+                pos.addKostZuweisung(zuw)
+            }
+            KostZuweisungDO().let { zuw ->
+                zuw.id = 382508
+                pos.addKostZuweisung(zuw)
+            }
+            KostZuweisungDO().let { zuw ->
+                zuw.id = 382509
+                pos.addKostZuweisung(zuw)
+            }
+        }
+        RechnungsPositionDO().let { pos ->
+            pos.id = 351960
+            invoice.addPosition(pos)
+            KostZuweisungDO().let { zuw ->
+                zuw.id = 382506
+                pos.addKostZuweisung(zuw)
+            }
+        }
+        historyService.loadHistory(invoice).let { historyEntries ->
+            historyEntries.filter { it.entityId == 351958L }.let { entries ->
+                Assertions.assertEquals(4, entries.size, "4 entries for Invoice 351958")
+            }
+            historyEntries.filter { it.entityId == 351959L }.let { entries ->
+                Assertions.assertEquals(4, entries.size, "4 entries for Invoice position 351959")
+            }
+            historyEntries.filter { it.entityId == 351960L }.let { entries ->
+                Assertions.assertEquals(4, entries.size, "4 entries for Invoice position 3519560")
+            }
+            historyEntries.filter { it.entityId == 382506L }.let { entries ->
+                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382506")
+            }
+            historyEntries.filter { it.entityId == 382507L }.let { entries ->
+                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382507")
+            }
+            historyEntries.filter { it.entityId == 382508L }.let { entries ->
+                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382508")
+            }
+            historyEntries.filter { it.entityId == 382509L }.let { entries ->
+                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382509")
+            }
+            Assertions.assertEquals(20, historyEntries.size)
+        }
+    }
 
+    @Test
+    fun testOldUserHistory() {
+        ensureSetup()
         val user = PFUserDO()
         user.id = 34961222
-        historyEntries = historyService.loadHistory(user)
-        Assertions.assertEquals(27, historyEntries.size)
-        master = historyEntries.find { it.id == getNewMasterId(34961266) }!! // was 34961266
-        Assertions.assertEquals(3, master.attributes!!.size)
-        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
-        Assertions.assertEquals(1, diffEntries.size)
-        assert(diffEntries[0], "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
+        historyService.loadHistory(user).let { historyEntries ->
+            Assertions.assertEquals(27, historyEntries.size)
+            var master = historyEntries.find { it.id == getNewMasterId(34961266) }!! // was 34961266
+            Assertions.assertEquals(3, master.attributes!!.size)
+            var diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            Assertions.assertEquals(1, diffEntries.size)
+            assert(diffEntries[0], "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
+            master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 38057999
+            Assertions.assertEquals(3, master.attributes!!.size)
+            diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            Assertions.assertEquals(1, diffEntries.size)
+            assert(
+                diffEntries[0],
+                "lastPasswordChange",
+                "2023-02-10 13:34:25:184",
+                "2022-10-04 09:55:19:329",
+                PropertyOpType.Update
+            )
+            master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 37229748
+            Assertions.assertEquals(6, master.attributes!!.size)
+            diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            Assertions.assertEquals(2, diffEntries.size)
+            assert(diffEntries[0], "locale", "de_DE", "", PropertyOpType.Update)
+            assert(diffEntries[1], "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
+        }
+    }
 
-        master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 38057999
-        Assertions.assertEquals(3, master.attributes!!.size)
-        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
-        Assertions.assertEquals(1, diffEntries.size)
-        assert(
-            diffEntries[0],
-            "lastPasswordChange",
-            "2023-02-10 13:34:25:184",
-            "2022-10-04 09:55:19:329",
-            PropertyOpType.Update
-        )
-
-        master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 37229748
-        Assertions.assertEquals(6, master.attributes!!.size)
-        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
-        Assertions.assertEquals(2, diffEntries.size)
-        assert(diffEntries[0], "locale", "de_DE", "", PropertyOpType.Update)
-        assert(diffEntries[1], "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
-
+    @Test
+    fun testOldAuftragHistory() {
+        ensureSetup()
         val order = AuftragDO()
         order.id = 36901223
-        historyEntries = historyService.loadHistory(order)
-        Assertions.assertEquals(9, historyEntries.size)
+        historyService.loadHistory(order).let { historyEntries ->
+            // 9 master entries, 36 attr entries in old format -> 18 entries in new format.
+            historyEntries.filter { it.entityId == 36901223L }.let { entries ->
+                Assertions.assertEquals(9, entries.size, "9 entries for Auftrag 36901229")
+            }
+            historyEntries.filter { it.entityId == 36901224L }.let { entries ->
+                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901224")
+            }
+            historyEntries.filter { it.entityId == 36901225L }.let { entries ->
+                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901225")
+            }
+            historyEntries.filter { it.entityId == 36901226L }.let { entries ->
+                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901226")
+            }
+            historyEntries.filter { it.entityId == 36901227L }.let { entries ->
+                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901227")
+            }
+            historyEntries.filter { it.entityId == 36901228L }.let { entries ->
+                Assertions.assertEquals(5, entries.size, "5 for Auftragsposition 36901228")
+            }
+            Assertions.assertEquals(26, historyEntries.size, "26 entries in total")
+            val master = historyEntries.find { it.id == getNewMasterId(36901229) }!! // was 36901229
+            Assertions.assertEquals(36, master.attributes!!.size)
+            val diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            Assertions.assertEquals(18, diffEntries.size)
 
-        master = historyEntries.find { it.id == getNewMasterId(36901229) }!! // was 36901229
-        Assertions.assertEquals(36, master.attributes!!.size)
-        diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
-        Assertions.assertEquals(18, diffEntries.size)
-
-        val orderPos = AuftragsPositionDO()
-        orderPos.id = 36901228
-        historyEntries = historyService.loadHistory(order)
-        Assertions.fail<Any>("History of positions not loaded")
+            val orderPos = AuftragsPositionDO()
+            orderPos.id = 36901228
+        }
     }
 
     private fun getNewMasterId(origMasterId: Long): Long {
@@ -119,7 +198,7 @@ class HistoryServiceTest : AbstractTestBase() {
         return newMaster!!.id!!
     }
 
-    fun ensureSetup() {
+    private fun ensureSetup() {
         if (historyMasterMap.isNotEmpty()) {
             return // Already done.
         }
@@ -134,19 +213,31 @@ class HistoryServiceTest : AbstractTestBase() {
             historyMasterMap[pk] = historyMaster
         }
         parseFile(getUri("/history/pf_history_attr-testentries.csv")).forEach { map ->
-            // value, propertyname, type, property_type_class, old_value, optype, master_fk
-            val attr = PfHistoryAttrDO()
-            attr.value = map["value"]
-            attr.oldValue = map["old_alue"]
-            attr.propertyName = map["propertyname"]
-            attr.propertyTypeClass = map["property_type_class"]
-            map["optype"]?.let { optype ->
-                if (optype.isNotEmpty()) {
-                    attr.optype = PropertyOpType.valueOf(optype)
+            try {
+                // value, propertyname, type, property_type_class, old_value, optype, master_fk
+                val attr = PfHistoryAttrDO()
+                attr.value = map["value"]
+                attr.oldValue = map["old_alue"]
+                attr.propertyName = map["propertyname"]
+                attr.propertyTypeClass = map["property_type_class"]
+                map["optype"]?.let { optype ->
+                    if (optype.isNotEmpty()) {
+                        attr.optype = PropertyOpType.valueOf(optype)
+                    }
                 }
+                val masterFk = map["master_fk"]!!.toLong()
+                historyAttrMap.getOrPut(masterFk) { mutableListOf() }.add(attr)
+            } catch (ex: Exception) {
+                log.error {
+                    "Error while parsing map ${
+                        map.entries.joinToString(
+                            prefix = "{",
+                            postfix = "}"
+                        ) { (key, value) -> "\"$key\": \"$value\"" }
+                    }"
+                }
+                throw IllegalStateException("Error parsing map $map", ex)
             }
-            val masterFk = map["master_fk"]!!.toLong()
-            historyAttrMap.getOrPut(masterFk) { mutableListOf() }.add(attr)
         }
         historyMasterMap.entries.forEach { entry ->
             val master = entry.value

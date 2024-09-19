@@ -222,3 +222,106 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
  true                                                                              | vollstaendigFakturiert:nv | V    | java.lang.Boolean                                          | NULL      | NULL   |  41214094
  Update                                                                            | vollstaendigFakturiert:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  41214094
  false                                                                             | vollstaendigFakturiert:ov | V    | java.lang.Boolean                                          | NULL      | NULL   |  41214094
+
+--------------------------------------------------------------------------------------------------------------
+-- Rechnung 351958
+-- Invoice (RechnungDO) 351958 (embeds RechnungsPositionDO which embeds KostZuweisungDO)
+--   Position 351959
+--     KostZuweisung 382507, 382508, 382509
+--   Position 351960
+--     KostZuweisung 382506
+-- RechnungDO 351958:
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (2972182,3042917,3062919,6191673);
+--                    value                       |  propertyname  | type |                    property_type_class                     | old_value | optype | master_fk
+--------------------------------------------------+----------------+------+------------------------------------------------------------+-----------+--------+-----------
+                                                  | :nv            | V    | java.lang.String                                           | NULL      | NULL   |   2972182
+ Insert                                           | :op            | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2972182
+                                                  | :ov            | V    | java.lang.String                                           | NULL      | NULL   |   2972182
+ 2010-02-22                                       | bezahlDatum:nv | V    | java.sql.Date                                              | NULL      | NULL   |   3042917
+ Update                                           | bezahlDatum:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3042917
+ NULL                                             | bezahlDatum:ov | N    | java.sql.Date                                              | NULL      | NULL   |   3042917
+ BEZAHLT                                          | status:nv      | V    | de.micromata.fibu.RechnungStatus                           | NULL      | NULL   |   3042917
+ Update                                           | status:op      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3042917
+ GESTELLT                                         | status:ov      | V    | de.micromata.fibu.RechnungStatus                           | NULL      | NULL   |   3042917
+ 4455.00                                          | zahlBetrag:nv  | V    | java.math.BigDecimal                                       | NULL      | NULL   |   3042917
+ Update                                           | zahlBetrag:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3042917
+ NULL                                             | zahlBetrag:ov  | N    | java.math.BigDecimal                                       | NULL      | NULL   |   3042917
+ Digitale Medien Januar-Februar-Ausgabe 2010      | betreff:nv     | V    | java.lang.String                                           | NULL      | NULL   |   3062919
+ Update                                           | betreff:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062919
+ Digitale Medien Januar-Februar-Ausgabe 2010 #674 | betreff:ov     | V    | java.lang.String                                           | NULL      | NULL   |   3062919
+ 167040                                           | konto:nv       | V    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   6191673
+ Update                                           | konto:op       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   6191673
+ NULL                                             | konto:ov       | N    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   6191673
+-- RechnungsPositionDO 351960:
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (2972178,2985201,3026625,3062923);
+--      value         |    propertyname     | type |                    property_type_class                     | old_value | optype | master_fk
+----------------------+---------------------+------+------------------------------------------------------------+-----------+--------+-----------
+                      | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   2972178
+ Insert               | :op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2972178
+                      | :ov                 | V    | java.lang.String                                           | NULL      | NULL   |   2972178
+ 0.19                 | vat:nv              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2985201
+ Update               | vat:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2985201
+ 0.19000              | vat:ov              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2985201
+ 382508,382509,382507 | kostZuweisungen:nv  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026625
+ Update               | kostZuweisungen:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026625
+                      | kostZuweisungen:ov  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026625
+ 320426               | auftragsPosition:nv | V    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062923
+ Update               | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062923
+ NULL                 | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062923
+
+-- RechnungsPositionDO 351960:
+-- value |    propertyname     | type |                    property_type_class                     | old_value | optype | master_fk
+---------+---------------------+------+------------------------------------------------------------+-----------+--------+-----------
+         | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   2972186
+ Insert  | :op                 | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2972186
+         | :ov                 | V    | java.lang.String                                           | NULL      | NULL   |   2972186
+ 0.19    | vat:nv              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2988849
+ Update  | vat:op              | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   2988849
+ 0.19000 | vat:ov              | V    | java.math.BigDecimal                                       | NULL      | NULL   |   2988849
+ 382506  | kostZuweisungen:nv  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026621
+ Update  | kostZuweisungen:op  | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026621
+         | kostZuweisungen:ov  | V    | org.projectforge.business.fibu.kost.KostZuweisungDO        | NULL      | NULL   |   3026621
+ 320848  | auftragsPosition:nv | V    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062915
+ Update  | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062915
+ NULL    | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062915
+
+-- KostZuweisungDO: 382506
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024280,3026609);
+-- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
+--------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
+ 331838 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024280
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024280
+ 166807 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024280
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026609
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026609
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026609
+-- KostZuweisungDO: 382507
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024288,3026613);
+--value | propertyname | type |                    property_type_class                     | old_value | optype | master_fk
+--------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
+ 166797 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024288
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024288
+ 166806 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024288
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026613
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026613
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026613
+-- KostZuweisungDO: 382508
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024284,3026617);
+-- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
+--------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
+ 166797 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024284
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024284
+ 166806 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024284
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026617
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026617
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026617
+-- KostZuweisungDO: 382509
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024276,3026605);
+-- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
+--------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
+ 166797 | kost2:nv     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024276
+ Update | kost2:op     | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3024276
+ 166806 | kost2:ov     | V    | org.projectforge.business.fibu.kost.Kost2DO                | NULL      | NULL   |   3024276
+        | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026605
+ Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026605
+        | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026605

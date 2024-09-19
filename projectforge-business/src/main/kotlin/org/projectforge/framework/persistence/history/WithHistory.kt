@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.history
 import kotlin.reflect.KClass
 
 /**
- * Mark entity, which should be has History.
+ * Mark entity, which should be stored has History.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */

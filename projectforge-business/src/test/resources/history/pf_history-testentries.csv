@@ -62,3 +62,33 @@
  41070156 | 2652       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
  41819958 | 3558       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
  42902117 | 3678       |  34961222 | org.projectforge.framework.persistence.user.entities.PFUserDO | Update
+
+----------------------------------------------------------------------------------------------
+-- Invoice (RechnungDO) 351958 (embeds RechnungsPositionDO which embeds KostZuweisungDO)
+--   Position 351959
+--     KostZuweisung 382507, 382508, 382509
+--   Position 351960
+--     KostZuweisung 382506
+-- select pk,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id in (351958,351959,351960,382506,382507,382508,382509) order by entity_name, pk;
+-- pk    | modifiedby | entity_id |                     entity_name                     | entity_optype
+---------+------------+-----------+-----------------------------------------------------+---------------
+ 2972182 | 18         |    351958 | org.projectforge.business.fibu.RechnungDO           | Insert
+ 3042917 | 18         |    351958 | org.projectforge.business.fibu.RechnungDO           | Update
+ 3062919 | 105816     |    351958 | org.projectforge.business.fibu.RechnungDO           | Update
+ 6191673 | 395257     |    351958 | org.projectforge.business.fibu.RechnungDO           | Update
+ 2972178 | 18         |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Insert
+ 2985201 | 2          |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3026625 | 105816     |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3062923 | 105816     |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 2972186 | 18         |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Insert
+ 2988849 | 2          |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3026621 | 105816     |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3062915 | 105816     |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+ 3024280 | 105816     |    382506 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3026609 | 105816     |    382506 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 3024288 | 105816     |    382507 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3026613 | 105816     |    382507 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 3024284 | 105816     |    382508 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3026617 | 105816     |    382508 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
+ 3024276 | 105816     |    382509 | org.projectforge.business.fibu.kost.KostZuweisungDO | Update
+ 3026605 | 105816     |    382509 | org.projectforge.business.fibu.kost.KostZuweisungDO | Insert
