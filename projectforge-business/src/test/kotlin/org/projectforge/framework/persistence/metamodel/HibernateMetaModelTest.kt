@@ -40,7 +40,7 @@ class HibernateMetaModelTest : AbstractTestBase() {
                 list.find {  it.propertyName == "authors" }.let { propInfo ->
                     requireNotNull(propInfo)
                     Assertions.assertNotNull(propInfo.getAnnotation(Column::class))
-                    Assertions.assertNull(propInfo.getAnnotation(NoHistoryxx::class))
+                    Assertions.assertNull(propInfo.getAnnotation(NoHistory::class))
                 }
             }
             entityInfo.getPropertyInfo("attachmentsNames").let { propInfo ->
