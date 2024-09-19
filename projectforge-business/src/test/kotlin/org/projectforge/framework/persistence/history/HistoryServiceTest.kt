@@ -29,8 +29,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.RechnungDO
-import org.projectforge.business.fibu.RechnungsPositionDO
-import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -38,7 +36,6 @@ import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import java.net.URI
-import kotlin.contracts.contract
 
 private val log = KotlinLogging.logger {}
 
@@ -74,31 +71,17 @@ class HistoryServiceTest : AbstractTestBase() {
             master = historyEntries[1]
             Assertions.assertEquals(34, master.attributes!!.size)
         }*/
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,1)").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,2)").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,3)").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,1)").executeUpdate()
+        }
         invoice.id = 351958
-        RechnungsPositionDO().let { pos ->
-            pos.id = 351959
-            invoice.addPosition(pos)
-            KostZuweisungDO().let { zuw ->
-                zuw.id = 382507
-                pos.addKostZuweisung(zuw)
-            }
-            KostZuweisungDO().let { zuw ->
-                zuw.id = 382508
-                pos.addKostZuweisung(zuw)
-            }
-            KostZuweisungDO().let { zuw ->
-                zuw.id = 382509
-                pos.addKostZuweisung(zuw)
-            }
-        }
-        RechnungsPositionDO().let { pos ->
-            pos.id = 351960
-            invoice.addPosition(pos)
-            KostZuweisungDO().let { zuw ->
-                zuw.id = 382506
-                pos.addKostZuweisung(zuw)
-            }
-        }
         historyService.loadHistory(invoice).let { historyEntries ->
             historyEntries.filter { it.entityId == 351958L }.let { entries ->
                 Assertions.assertEquals(4, entries.size, "4 entries for Invoice 351958")
