@@ -24,9 +24,6 @@
 package org.projectforge.framework.persistence.jpa
 
 import jakarta.persistence.Column
-import mu.KotlinLogging
-
-private val log = KotlinLogging.logger {}
 
 class ColumnMetaData(fieldName: String, columnAnnotation: Column) {
     val name: String
@@ -36,10 +33,10 @@ class ColumnMetaData(fieldName: String, columnAnnotation: Column) {
     val nullable = columnAnnotation.nullable
 
     init {
-        if (columnAnnotation.name.isBlank()) {
-            name = fieldName
+        name = if (columnAnnotation.name.isBlank()) {
+            fieldName
         } else {
-            name = columnAnnotation.name
+            columnAnnotation.name
         }
     }
 }

@@ -21,27 +21,31 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa
+package org.projectforge.framework.persistence.metamodel
 
+import jakarta.persistence.Column
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.book.BookDO
-import org.projectforge.business.task.TaskDO
-import org.projectforge.business.task.TaskDO.Companion.TITLE_LENGTH
+import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.test.AbstractTestBase
 
-class EntityMetaDataTest {
+class HibernateMetaModelTest : AbstractTestBase() {
     @Test
-    fun entityMetaDataTest() {
-        EntityMetaDataRegistry.getColumnMetaData(TaskDO::class.java, "title").let { columnMetaData ->
-            Assertions.assertEquals("title", columnMetaData!!.name)
-            Assertions.assertEquals(TITLE_LENGTH, columnMetaData.length)
-            Assertions.assertFalse(columnMetaData.nullable)
-        }
-        EntityMetaDataRegistry.getEntityMetaData(BookDO::class.java).let { entityMetaData ->
-            entityMetaData.getColumnMetaData("attachmentsNames").let { columnMetaData ->
-                Assertions.assertEquals("attachments_names", columnMetaData!!.name)
-                Assertions.assertEquals(10000, columnMetaData.length)
-                Assertions.assertTrue(columnMetaData.nullable)
+    fun annotationTest() {
+        HibernateMetaModel.getEntityInfo(BookDO::class.java).let { entityInfo ->
+            requireNotNull(entityInfo)
+            entityInfo.getPropertiesWithAnnotation(Column::class).let { list ->
+                Assertions.assertEquals(22, list.size)
+                list.find {  it.propertyName == "authors" }.let { propInfo ->
+                    requireNotNull(propInfo)
+                    Assertions.assertNotNull(propInfo.getAnnotation(Column::class))
+                    Assertions.assertNull(propInfo.getAnnotation(NoHistoryxx::class))
+                }
+            }
+            entityInfo.getPropertyInfo("attachmentsNames").let { propInfo ->
+                requireNotNull(propInfo)
+                Assertions.assertNotNull(propInfo.getAnnotation(NoHistory::class))
             }
         }
     }
