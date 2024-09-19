@@ -28,21 +28,17 @@ object EntityMetaDataRegistry {
 
     private val notFoundEntities = mutableSetOf<Class<*>>()
 
-    private fun getEntityMetaData(entityClass: Class<*>): EntityMetaData {
+    fun getEntityMetaData(entityClass: Class<*>): EntityMetaData {
         synchronized(notFoundEntities) {
             if (notFoundEntities.contains(entityClass)) {
                 throw IllegalArgumentException(notFoundExceptionMessage(entityClass))
             }
         }
-        synchronized(columnMetaDataMap) {
-            columnMetaDataMap[entityClass]?.let { return it }
-        }
         try {
-            val entityMetaData = EntityMetaData(entityClass)
+            // val entityMetaData = EntityMetaData(entityClass)
             synchronized(columnMetaDataMap) {
-                columnMetaDataMap[entityClass] = entityMetaData
+                return columnMetaDataMap.computeIfAbsent(entityClass) { EntityMetaData(entityClass) }
             }
-            return entityMetaData
         } catch (e: Exception) {
             synchronized(notFoundEntities) {
                 notFoundEntities.add(entityClass)

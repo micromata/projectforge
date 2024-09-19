@@ -48,10 +48,15 @@ class EntityInfo(
             propertyInfos.add(
                 EntityPropertyInfo(
                     entityClass = entityClass,
+                    attr = attr,
                     propertyName = attr.name,
                 )
             )
         }
+    }
+
+    fun getPropertyInfo(propertyName: String): EntityPropertyInfo? {
+        return propertyInfos.find { it.propertyName == propertyName }
     }
 
     fun getPropertiesWithAnnotation(annotationClass: KClass<out Annotation>): List<EntityPropertyInfo> {

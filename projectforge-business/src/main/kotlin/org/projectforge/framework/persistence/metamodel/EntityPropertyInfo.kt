@@ -23,24 +23,29 @@
 
 package org.projectforge.framework.persistence.metamodel
 
+import jakarta.persistence.metamodel.Attribute
 import org.projectforge.common.AnnotationsUtils
 import kotlin.reflect.KClass
 
 
 /**
- * Represents a property of an entity and contains all annotation of package jakarta.persistence.
+ * Represents a property of an entity and contains all annotation of package jakarta.persistence and
+ * org.projectforge.framework.persistence
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class EntityPropertyInfo(
     val entityClass: Class<*>,
+    val attr: Attribute<*,*>,
     val propertyName: String,
 ) {
     private val annotations = mutableSetOf<Annotation>()
 
     init {
         AnnotationsUtils.getAnnotations(entityClass, propertyName).forEach { ann ->
-            if (ann.annotationClass.qualifiedName?.startsWith("jakarta.persistence") == true) {
+            if (ann.annotationClass.qualifiedName?.startsWith("jakarta.persistence") == true ||
+                ann.annotationClass.qualifiedName?.startsWith("org.projectforge.framework.persistence") == true
+            ) {
                 annotations.add(ann)
             }
         }

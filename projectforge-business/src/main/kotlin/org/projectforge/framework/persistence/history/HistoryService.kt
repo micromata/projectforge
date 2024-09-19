@@ -23,15 +23,17 @@
 
 package org.projectforge.framework.persistence.history
 
+import jakarta.persistence.OneToMany
 import mu.KotlinLogging
-import org.projectforge.business.timesheet.TimesheetDO
+import org.projectforge.common.AnnotationsUtils
+import org.projectforge.common.StringHelper2
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
-import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
@@ -51,7 +53,52 @@ class HistoryService {
             PfHistoryMasterDO::class.java,
             Pair("entityId", baseDO.id),
             Pair("entityName", baseDO::class.java.name),
-        )
+        ).toMutableList()
+        HibernateMetaModel.getEntityInfo(baseDO)?.getPropertiesWithAnnotation(OneToMany::class)
+            ?.filter { !it.hasAnnotation(NoHistory::class) }?.let { oneToManyProps ->
+            // Check all history entries for embedded objects.
+            // Key is the class type of the members, e.g. org.projectforge....OrderPositionDO of OrderDO. Values are all entity_ids found.
+            val embeddedObjectsMap = mutableMapOf<String, MutableSet<Long>>()
+            result.forEach { master ->
+                master.attributes?.forEach { attr ->
+                    attr.plainPropertyName?.let { propertyName ->
+                        val propertyInfo = oneToManyProps.find { it.propertyName == propertyName } ?: return@forEach
+                        attr.propertyTypeClass?.let { propertyTypeClass ->
+                            // oneToMany.targetEntity not always given, using propertyName instead:
+                            if (propertyInfo.propertyName == propertyName ||
+                                !AnnotationsUtils.hasAnnotation(
+                                    baseDO::class.java,
+                                    propertyName,
+                                    NoHistory::class.java,
+                                )
+                            ) {
+                                log.info { "****** $propertyName" }
+                                val entityIds = mutableSetOf<Long>()
+                                val ids1 = StringHelper2.splitToListOfLongValues(attr.value)
+                                val ids2 = StringHelper2.splitToListOfLongValues(attr.oldValue)
+                                entityIds.addAll(ids1)
+                                entityIds.addAll(ids2)
+                                entityIds.forEach { entityId ->
+                                    embeddedObjectsMap.computeIfAbsent(propertyTypeClass) { mutableSetOf() }
+                                        .add(entityId)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            embeddedObjectsMap.forEach { (propertyTypeClass, entityIds) ->
+                entityIds.forEach { entityId ->
+                    val historyEntries = persistenceService.namedQuery(
+                        PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
+                        PfHistoryMasterDO::class.java,
+                        Pair("entityId", entityId),
+                        Pair("entityName", propertyTypeClass),
+                    )
+                    result.addAll(historyEntries)
+                }
+            }
+        }
         return result
     }
 
