@@ -283,7 +283,6 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
 
     @PropertyInfo(i18nKey = "access.rights")
     @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
-    @NoHistory
     open var rights: MutableSet<UserRightDO>? = mutableSetOf()
 
     /**

@@ -96,14 +96,14 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
   @IndexedEmbedded(includeDepth = 1)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
-  @get:JoinColumn(name = "kost1_fk", nullable = false)
+  @get:JoinColumn(name = "kost1_fk")
   open var kost1: Kost1DO? = null
 
   @PropertyInfo(i18nKey = "fibu.kost2")
   @IndexedEmbedded(includeDepth = 1)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
   @get:ManyToOne(fetch = FetchType.EAGER)
-  @get:JoinColumn(name = "kost2_fk", nullable = false)
+  @get:JoinColumn(name = "kost2_fk")
   open var kost2: Kost2DO? = null
 
   @IndexedEmbedded(includeDepth = 1)

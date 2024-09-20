@@ -36,6 +36,9 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 
 private val log = KotlinLogging.logger {}
 
+/**
+ * Only for internal usage. Please use [PfPersistenceService] and [PfPersistenceContext] instead.
+ */
 internal object EntityManagerUtil {
     /**
      * @param readonly If true, no transaction is used.

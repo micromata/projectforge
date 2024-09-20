@@ -62,6 +62,7 @@ open class DefaultHandler : CandHIHandler {
                 destVal = destFieldValue,
                 msg = "Field of type ${field.type} modified.",
             )
+            context.addHistoryEntry(fieldName, srcFieldValue, destFieldValue)
             synchronized(field) {
                 val wasAccessible = field.canAccess(dest)
                 try {

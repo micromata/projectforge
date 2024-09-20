@@ -23,10 +23,13 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
+import jakarta.persistence.JoinColumn
 import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
+import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.setModificationStatusOnChange
 import java.io.Serializable
@@ -66,6 +69,11 @@ open class CollectionHandler : CandHIHandler {
                 srcVal = srcFieldValue,
                 destVal = "<not empty collection>"
             )
+            if (collectionManagedBySrcClazz(srcClazz, fieldName)) {
+                context.addHistoryEntry(fieldName, "", "collection removed")
+            } else {
+                context.addHistoryEntry(fieldName, "", "collection removed")
+            }
             setModificationStatusOnChange(context, src, fieldName)
             return true
         }
@@ -152,5 +160,17 @@ open class CollectionHandler : CandHIHandler {
             }
         }
         return true
+    }
+
+    /**
+     * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
+     */
+    private fun collectionManagedBySrcClazz(srcClazz: Class<*>, fieldName: String): Boolean {
+        val annotations = AnnotationsUtils.getAnnotations(srcClazz, fieldName)
+        if (annotations.any { it.annotationClass == JoinColumn::class } &&
+            annotations.none { it.annotationClass == NoHistory::class }) {
+            return true
+        }
+        return false
     }
 }
