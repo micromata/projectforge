@@ -44,11 +44,6 @@ class HistoryServiceTest : AbstractTestBase() {
     private lateinit var historyService: HistoryService
 
     /**
-     * Key is the parsed history master entry id and value the database entry saved by this test case.
-     */
-    private val historyMasterMap = mutableMapOf<Long, PfHistoryMasterDO>()
-
-    /**
      * Key is the parsed history master_fk id and value the generated PfHistoryAttrDO.
      */
     private val historyAttrMap = mutableMapOf<Long, MutableList<PfHistoryAttrDO>>()
@@ -404,8 +399,11 @@ class HistoryServiceTest : AbstractTestBase() {
     }
 
     companion object {
-        internal const val SELECT_HISTORY_FOR_BASEDO = "PfHistoryAttrDO_SelectForBaseDO"
-
         private val oldPropertyClass = "de.micromata.genome.db.jpa.history.entities.PropertyOpType"
+
+        /**
+         * Key is the parsed history master entry id and value the database entry saved by this test case.
+         */
+        private val historyMasterMap = mutableMapOf<Long, PfHistoryMasterDO>()
     }
 }
