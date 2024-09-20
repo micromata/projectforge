@@ -58,7 +58,7 @@ class HistoryServiceTest : AbstractTestBase() {
         ensureSetup()
         val invoice = RechnungDO()
         invoice.id = 40770225
-        /*historyService.loadHistory(invoice).let { historyEntries ->
+        historyService.loadHistory(invoice).let { historyEntries ->
             Assertions.assertEquals(2, historyEntries.size)
             var master = historyEntries[0]
             Assertions.assertEquals(12, master.attributes!!.size)
@@ -70,7 +70,7 @@ class HistoryServiceTest : AbstractTestBase() {
             assert(diffEntries[3], "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
             master = historyEntries[1]
             Assertions.assertEquals(34, master.attributes!!.size)
-        }*/
+        }
         persistenceService.runInTransaction { context ->
             val em = context.em
             em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')").executeUpdate()
@@ -106,6 +106,29 @@ class HistoryServiceTest : AbstractTestBase() {
             }
             Assertions.assertEquals(20, historyEntries.size)
         }
+
+        // 20.04.15 17:19 Update Konto              -> 12202
+        // 08.03.10 13:26 Update #1:Position        -> 674.1
+        // 08.03.10 13:26 Update Betreff            DM 2010 #674 -> DM 2010
+        // 08.03.10 13:26 Update #2:Position        -> 674.2
+        // 22.02.10 08:55 Update Rechnungsstatus    gestellt -> bezahlt
+        // 22.02.10 08:55 Update Bezahldatum        -> 2010-02-22
+        // 22.02.10 08:55 Update Zahlbetrag         -> 4455.00
+        // 08.02.10 11:33 Update #1.kost#0:Kost     5.620.08.02 -> 5.620.07.02
+        // 08.02.10 11:33 Update #1.kost#1:Kost     5.620.08.02 -> 5.620.07.02
+        // 08.02.10 11:33 Update #1.kost#2:Kost     5.620.08.02 -> 5.620.07.02
+        // 08.02.10 11:33 Update #2.kost#0:Kost     5.620.08.04 -> 5.620.07.04
+        // 08.02.10 11:24 Update #1:kostZuweisungen	-> 0, 1, 2
+        // 08.02.10 11:24 Update #2:kostZuweisungen	-> 0
+        // 08.02.10 11:24 Insert #1.kost#0:
+        // 08.02.10 11:24 Insert #1.kost#1:
+        // 08.02.10 11:24 Insert #1.kost#2:
+        // 08.02.10 11:24 Insert #2.kost#0:
+        // 02.02.10 16:16 Update #2:Mwst-Satz       0.19000 -> 0.19
+        // 02.02.10 16:16 Update #1:Mwst-Satz       0.19000 -> 0.19
+        // 26.01.10 08:31 Insert #2:
+        // 26.01.10 08:31 Insert
+        // 26.01.10 08:31 Insert #1:
     }
 
     @Test

@@ -35,17 +35,6 @@ class PfPersistenceContext(
     private val entityManagerFactory: EntityManagerFactory,
     val em: EntityManager = entityManagerFactory.createEntityManager(),
 ) : AutoCloseable {
-    fun <T> runInTransaction(
-        readonly: Boolean = false,
-        run: (context: PfPersistenceContext) -> T
-    ): T {
-        return EntityManagerUtil.runInTransaction(entityManagerFactory, readonly = readonly, run)
-    }
-
-    fun <T> runInReadOnlyTransaction(block: (context: PfPersistenceContext) -> T): T {
-        return runInTransaction(true, block)
-    }
-
     fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,

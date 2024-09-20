@@ -30,6 +30,7 @@ import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
+import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -52,21 +53,19 @@ class HistoryService {
     fun loadHistory(baseDO: BaseDO<Long>): List<PfHistoryMasterDO> {
         val allHistoryEntries = mutableListOf<PfHistoryMasterDO>()
         persistenceService.runReadOnly { context ->
-            val em = context.em
-            loadAndAddHistory(em, allHistoryEntries, baseDO::class.java, baseDO.id)
+            loadAndAddHistory(context, allHistoryEntries, baseDO::class.java, baseDO.id)
         }
         return allHistoryEntries
     }
 
     private fun loadAndAddHistory(
-        em: EntityManager,
+        context: PfPersistenceContext,
         allHistoryEntries: MutableList<PfHistoryMasterDO>,
         entityClass: Class<out BaseDO<Long>>,
         entityId: Long?
     ) {
         entityId ?: return
-        val result = EntityManagerUtil.query(
-            em = em,
+        val result = context.query(
             sql = PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
             resultClass = PfHistoryMasterDO::class.java,
             namedQuery = true,
@@ -81,12 +80,14 @@ class HistoryService {
             ?.let { oneToManyProps ->
                 // Check all history entries for embedded objects.
                 // Key is the class type of the members, e.g. org.projectforge....OrderPositionDO of OrderDO. Values are all entity_ids found.
+                // This is important, because some embedded objects may be removed in the meantime, so we have to look especially in oldValue for removed
+                // entities.
                 val embeddedObjectsMap = mutableMapOf<String, MutableSet<Long>>()
                 // Check all result history entries for embedded objects:
                 result.forEach { master ->
-                    master.attributes?.forEach { attr ->
+                    master.attributes?.forEach attributes@ { attr ->
                         attr.plainPropertyName?.let { propertyName ->
-                            oneToManyProps.find { it.propertyName == propertyName } ?: return@forEach
+                            oneToManyProps.find { it.propertyName == propertyName } ?: return@attributes
                             attr.propertyTypeClass?.let { propertyTypeClass ->
                                 // oneToMany.targetEntity not always given, using propertyName instead:
                                 val entityIds = mutableSetOf<Long>()
@@ -105,8 +106,8 @@ class HistoryService {
                         }
                     }
                 }
-                em.find(entityClass, entityId)?.let { baseDO ->
-                    // Check now all embedded objects of the baseDO:
+                context.em.find(entityClass, entityId)?.let { baseDO ->
+                    // Check now all actually embedded objects of the baseDO, load from the database:
                     oneToManyProps.forEach { propInfo ->
                         val propertyName = propInfo.propertyName
                         ClassUtils.getFieldInfo(entityClass, propertyName)?.field?.let { field ->
@@ -119,8 +120,8 @@ class HistoryService {
                                             if (value is Collection<*>) {
                                                 value.forEach { embeddedObject ->
                                                     if (embeddedObject is BaseDO<*>) {
-                                                        embeddedObject as BaseDO<Long>
                                                         embeddedObject.id?.let { entityId ->
+                                                            entityId as Long
                                                             embeddedObjectsMap.computeIfAbsent(embeddedObject::class.java.name) { mutableSetOf() }
                                                                 .add(entityId)
                                                             log.debug { "${baseDO::class.java}.${baseDO.id}: entity ids added: '${embeddedObject::class.java.name}': $entityId" }
@@ -141,13 +142,12 @@ class HistoryService {
                     entityIds.forEach { entityId ->
                         try {
                             val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<Long>>
-                            loadAndAddHistory(em, allHistoryEntries, clazz, entityId)
+                            loadAndAddHistory(context, allHistoryEntries, clazz, entityId)
                         } catch (ex: Exception) {
                             log.error(ex) { "Can't get class of name '$propertyTypeClass' (skipping): ${ex.message}" }
                         }
                     }
                 }
-                println("******* Load also embedded objects, embedded by embedded objects (recursive)")
             }
 
     }

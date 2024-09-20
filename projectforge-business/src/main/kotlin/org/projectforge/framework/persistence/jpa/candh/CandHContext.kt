@@ -35,7 +35,12 @@ class CandHContext(
 ) {
     internal val debugContext = if (debug) DebugContext() else null
     internal val historyContext = if (createHistory) HistoryContext() else null
-    internal fun addHistoryEntry(fieldName: String, type: PropertyOpType, newValue: Any?, oldValue: Any?) {
+    internal fun addHistoryEntry(
+        fieldName: String,
+        newValue: Any?,
+        oldValue: Any?,
+        type: PropertyOpType = PropertyOpType.Update
+    ) {
         historyContext?.add(
             path = "${currentObjectPath}$fieldName",
             type = type,
