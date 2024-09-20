@@ -31,12 +31,11 @@ import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
-import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
+
 
 @Service
 open class PfPersistenceService {
