@@ -29,8 +29,7 @@ import mu.KotlinLogging
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.impl.EntityManagerUtil
-import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext

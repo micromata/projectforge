@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api.impl
+package org.projectforge.framework.persistence.jpa
 
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityManagerFactory

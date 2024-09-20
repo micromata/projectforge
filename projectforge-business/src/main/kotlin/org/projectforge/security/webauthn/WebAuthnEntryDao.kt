@@ -26,7 +26,7 @@ package org.projectforge.security.webauthn
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.projectforge.framework.access.AccessException
-import org.projectforge.framework.persistence.api.impl.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
