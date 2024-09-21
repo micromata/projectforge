@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -197,8 +198,8 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return userService!!.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun getDisplayHistoryEntries(obj: AddressbookDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: AddressbookDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(context, obj)
         if (CollectionUtils.isEmpty(list)) {
             return list
         }

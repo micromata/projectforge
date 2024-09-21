@@ -35,6 +35,7 @@ import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -127,8 +128,8 @@ class EmployeeService {
         return employeeDao.getAutocompletion(property, searchString)
     }
 
-    fun getDisplayHistoryEntries(obj: EmployeeDO): List<DisplayHistoryEntry> {
-        return employeeDao.getDisplayHistoryEntries(obj)
+    fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: EmployeeDO): List<DisplayHistoryEntry> {
+        return employeeDao.getDisplayHistoryEntries(context, obj)
     }
 
     fun isEmployeeActive(employee: EmployeeDO): Boolean {

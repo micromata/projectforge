@@ -33,6 +33,8 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
@@ -53,7 +55,7 @@ class HistoryServiceTest : AbstractTestBase() {
             Assertions.assertEquals(2, historyEntries.size)
             var master = historyEntries[0]
             Assertions.assertEquals(12, master.attributes!!.size)
-            val diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            val diffEntries = master.diffEntries!!
             Assertions.assertEquals(4, diffEntries.size)
             assert(diffEntries[0], "bemerkung", "PoBa", null, PropertyOpType.Insert)
             assert(diffEntries[1], "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
@@ -61,23 +63,6 @@ class HistoryServiceTest : AbstractTestBase() {
             assert(diffEntries[3], "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
             master = historyEntries[1]
             Assertions.assertEquals(34, master.attributes!!.size)
-        }
-        persistenceService.runInTransaction { context ->
-            val em = context.em
-            em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
-                .executeUpdate()
-            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
-                .executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,1)")
-                .executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,2)")
-                .executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,3)")
-                .executeUpdate()
-            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
-                .executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,1)")
-                .executeUpdate()
         }
         invoice.id = 351958
         historyService.loadHistory(invoice).let { historyEntries ->
@@ -138,12 +123,12 @@ class HistoryServiceTest : AbstractTestBase() {
             Assertions.assertEquals(27, historyEntries.size)
             var master = historyEntries.find { it.id == getNewMasterId(34961266) }!! // was 34961266
             Assertions.assertEquals(3, master.attributes!!.size)
-            var diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            var diffEntries = master.diffEntries!!
             Assertions.assertEquals(1, diffEntries.size)
             assert(diffEntries[0], "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
             master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 38057999
             Assertions.assertEquals(3, master.attributes!!.size)
-            diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            diffEntries = master.diffEntries!!
             Assertions.assertEquals(1, diffEntries.size)
             assert(
                 diffEntries[0],
@@ -154,7 +139,7 @@ class HistoryServiceTest : AbstractTestBase() {
             )
             master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 37229748
             Assertions.assertEquals(6, master.attributes!!.size)
-            diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            diffEntries = master.diffEntries!!
             Assertions.assertEquals(2, diffEntries.size)
             assert(diffEntries[0], "locale", "de_DE", "", PropertyOpType.Update)
             assert(diffEntries[1], "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
@@ -189,7 +174,7 @@ class HistoryServiceTest : AbstractTestBase() {
             Assertions.assertEquals(26, historyEntries.size, "26 entries in total")
             val master = historyEntries.find { it.id == getNewMasterId(36901229) }!! // was 36901229
             Assertions.assertEquals(36, master.attributes!!.size)
-            val diffEntries = PFHistoryMasterUtils.createDiffEntries(master.attributes!!)
+            val diffEntries = master.diffEntries!!
             Assertions.assertEquals(18, diffEntries.size)
 
             val orderPos = AuftragsPositionDO()
@@ -275,6 +260,7 @@ class HistoryServiceTest : AbstractTestBase() {
                 // pk, modifiedby, entity_id, entity_name, entity_optype
                 val pk = map["pk"]!!.toLong()
                 val historyMaster = PfHistoryMasterDO()
+                historyMaster.modifiedAt = PFDateTimeUtils.parse(map["modifiedat"])?.utilDate
                 historyMaster.modifiedBy = map["modifiedby"]
                 historyMaster.entityId = map["entity_id"]!!.toLong()
                 historyMaster.entityName = map["entity_name"]!!
@@ -352,7 +338,23 @@ class HistoryServiceTest : AbstractTestBase() {
             // \pset null 'NULL'
             // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
             // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (PK1,PK2,PK3);
-
+            persistenceService.runInTransaction { context ->
+                val em = context.em
+                em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
+                    .executeUpdate()
+                em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
+                    .executeUpdate()
+                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,0)")
+                    .executeUpdate()
+                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,1)")
+                    .executeUpdate()
+                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,2)")
+                    .executeUpdate()
+                em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
+                    .executeUpdate()
+                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,0)")
+                    .executeUpdate()
+            }
         }
 
         private fun parseFile(uri: URI): List<Map<String, String?>> {
@@ -411,9 +413,9 @@ class HistoryServiceTest : AbstractTestBase() {
         ) {
             val master = HistoryCreateUtils.createMaster(entity, operationType)
 
-            val attr1 = HistoryCreateUtils.createAttr(GroupDO::class, propertyName = "$propertyName:nv", value = value)
-            val attr2 = HistoryCreateUtils.createAttr(oldPropertyClass, "$propertyName:op", value = operationType.name)
-            val attr3 = HistoryCreateUtils.createAttr(GroupDO::class, "$propertyName:ov", value = oldValue)
+            val attr1 = HistoryCreateUtils.createAttr(GroupDO::class, propertyName = "$propertyName${PFHistoryMasterUtils.NEWVAL_SUFFIX}", value = value)
+            val attr2 = HistoryCreateUtils.createAttr(oldPropertyClass, "$propertyName${PFHistoryMasterUtils.OP_SUFFIX}", value = operationType.name)
+            val attr3 = HistoryCreateUtils.createAttr(GroupDO::class, "$propertyName${PFHistoryMasterUtils.OLDVAL_SUFFIX}", value = oldValue)
             val attrs = mutableListOf(attr1, attr2, attr3)
 
             val pk = historyService.save(master, attrs)!!

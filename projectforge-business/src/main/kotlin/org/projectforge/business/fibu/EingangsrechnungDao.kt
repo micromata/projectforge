@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -166,8 +167,8 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: EingangsrechnungDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: EingangsrechnungDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(context, obj)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

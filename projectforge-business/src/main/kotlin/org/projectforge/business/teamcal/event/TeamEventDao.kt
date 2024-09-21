@@ -63,6 +63,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
@@ -631,8 +632,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun getDisplayHistoryEntries(obj: TeamEventDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: TeamEventDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(context, obj)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

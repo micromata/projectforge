@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.framework.utils.NumberHelper.parseShort
@@ -699,8 +700,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: AuftragDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: AuftragDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(context, obj)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

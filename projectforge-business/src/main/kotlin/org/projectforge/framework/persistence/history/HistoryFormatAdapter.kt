@@ -44,7 +44,7 @@ open class HistoryFormatAdapter {
     }
 
     open fun convert(
-        persistenceContext: PfPersistenceContext, item: Any, historyEntry: HistoryEntry<*>
+        context: PfPersistenceContext, item: Any, historyEntry: HistoryEntry<*>
     ): HistoryFormatService.DisplayHistoryEntryDTO {
         var user: PFUserDO? = null
         try {
@@ -61,7 +61,7 @@ open class HistoryFormatAdapter {
             operation = HistoryFormatService.translate(historyEntry.entityOpType)
         )
         historyEntry.diffEntries?.forEach { diffEntry ->
-        /*    val dhe = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, em)
+            val dhe = DisplayHistoryEntry(userGroupCache, historyEntry, diffEntry, context.em)
             val diffEntryDTO = HistoryFormatService.DisplayHistoryDiffEntryDTO(
                 operationType = diffEntry.propertyOpType,
                 operation = HistoryFormatService.translate(diffEntry.propertyOpType),
@@ -69,7 +69,7 @@ open class HistoryFormatAdapter {
                 oldValue = dhe.oldValue,
                 newValue = dhe.newValue
             )
-            entryDTO.diffEntries.add(diffEntryDTO)*/
+            entryDTO.diffEntries.add(diffEntryDTO)
         }
         return entryDTO
     }
