@@ -31,10 +31,14 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 
+/**
+ * A wrapper for EntityManager with some convenience methods. The EntityManager is created by the given entityManagerFactory.
+ */
 class PfPersistenceContext(
-    private val entityManagerFactory: EntityManagerFactory,
-    val em: EntityManager = entityManagerFactory.createEntityManager(),
+    entityManagerFactory: EntityManagerFactory,
 ) : AutoCloseable {
+    val em: EntityManager = entityManagerFactory.createEntityManager()
+
     fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,

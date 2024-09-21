@@ -890,8 +890,8 @@ constructor(
       return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
     val item = baseDao.getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-    val historyEntries = baseDao.getHistoryEntries(item)
-    return ResponseEntity(historyFormatService.format(item, historyEntries), HttpStatus.OK)
+    val historyEntries = historyFormatService.loadHistory(item) //baseDao.getHistoryEntries(item)
+    return ResponseEntity(historyEntries, HttpStatus.OK)
   }
 
   /**

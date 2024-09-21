@@ -48,6 +48,7 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getCl
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
@@ -148,6 +149,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
 
     @Autowired
     private lateinit var hibernateSearchDependentObjectsReindexer: HibernateSearchDependentObjectsReindexer
+
+    @Autowired
+    private lateinit var historyService: HistoryService
 
     open val additionalSearchFields: Array<String>?
         /**
@@ -367,16 +371,15 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the history entries of the object.
      */
-    fun getHistoryEntries(obj: O): Array<HistoryEntry<*>> {
+    fun getHistoryEntries(obj: O): List<HistoryEntry<*>> {
         accessChecker.checkRestrictedUser()
         checkLoggedInUserHistoryAccess(obj)
         return internalGetHistoryEntries(obj)
     }
 
-    fun internalGetHistoryEntries(obj: BaseDO<*>): Array<HistoryEntry<*>> {
+    fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry<*>> {
         accessChecker.checkRestrictedUser()
-        // return HistoryBaseDaoAdapter.getHistoryFor(obj);
-        return emptyArray()
+        return historyService.loadHistory(obj)
     }
 
     /**
@@ -393,26 +396,26 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     protected fun internalGetDisplayHistoryEntries(obj: BaseDO<*>): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
         val entries = internalGetHistoryEntries(obj)
-        return persistenceService.runReadOnly { context -> convertAll(entries, context.em) }
+        return persistenceService.runReadOnly { context -> convertAll(context, entries) }
     }
 
-    private fun convertAll(entries: Array<HistoryEntry<*>>, em: EntityManager): MutableList<DisplayHistoryEntry> {
-        val list: MutableList<DisplayHistoryEntry> = ArrayList()
+    private fun convertAll(context: PfPersistenceContext, entries: List<HistoryEntry<*>>): MutableList<DisplayHistoryEntry> {
+        val list = mutableListOf<DisplayHistoryEntry>()
         for (entry in entries) {
-            val l = convert(entry, em)
+            val l = convert(context, entry)
             list.addAll(l)
         }
         return list
     }
 
-    open fun convert(entry: HistoryEntry<*>, em: EntityManager): List<DisplayHistoryEntry> {
+    open fun convert(context: PfPersistenceContext, entry: HistoryEntry<*>): List<DisplayHistoryEntry> {
         if (entry.diffEntries.isNullOrEmpty()) {
             val se = DisplayHistoryEntry(userGroupCache, entry)
             return listOf(se)
         }
         val result: MutableList<DisplayHistoryEntry> = ArrayList()
         for (prop in entry.diffEntries!!) {
-            val se = DisplayHistoryEntry(userGroupCache, entry, prop, em)
+            val se = DisplayHistoryEntry(userGroupCache, entry, prop, context.em)
             result.add(se)
         }
 
