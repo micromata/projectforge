@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
@@ -295,8 +296,8 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
-        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
+    public List<DisplayHistoryEntry> getDisplayHistoryEntries(PfPersistenceContext context, final HRPlanningDO obj) {
+        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(context, obj);
         if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
             return list;
         }
