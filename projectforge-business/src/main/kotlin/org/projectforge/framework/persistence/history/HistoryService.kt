@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.io.Serializable
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -46,22 +47,33 @@ class HistoryService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
+    init {
+        instance = this
+    }
+
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<Long>): List<PfHistoryMasterDO> {
-        val allHistoryEntries = mutableListOf<PfHistoryMasterDO>()
-        persistenceService.runReadOnly { context ->
-            loadAndAddHistory(context, allHistoryEntries, baseDO::class.java, baseDO.id)
+    fun loadHistory(baseDO: BaseDO<*>): List<PfHistoryMasterDO> {
+        return persistenceService.runReadOnly { context ->
+            loadHistory(context, baseDO)
         }
+    }
+
+    /**
+     * Loads all history entries for the given baseDO by class and id.
+     */
+    fun loadHistory(context: PfPersistenceContext, baseDO: BaseDO<*>): List<PfHistoryMasterDO> {
+        val allHistoryEntries = mutableListOf<PfHistoryMasterDO>()
+        loadAndAddHistory(context, allHistoryEntries, baseDO::class.java, baseDO.id)
         return allHistoryEntries
     }
 
     private fun loadAndAddHistory(
         context: PfPersistenceContext,
         allHistoryEntries: MutableList<PfHistoryMasterDO>,
-        entityClass: Class<out BaseDO<Long>>,
-        entityId: Long?
+        entityClass: Class<out BaseDO<*>>,
+        entityId: Serializable?
     ) {
         entityId ?: return
         val result = context.query(
@@ -84,7 +96,7 @@ class HistoryService {
                 val embeddedObjectsMap = mutableMapOf<String, MutableSet<Long>>()
                 // Check all result history entries for embedded objects:
                 result.forEach { master ->
-                    master.attributes?.forEach attributes@ { attr ->
+                    master.attributes?.forEach attributes@{ attr ->
                         attr.plainPropertyName?.let { propertyName ->
                             oneToManyProps.find { it.propertyName == propertyName } ?: return@attributes
                             attr.propertyTypeClass?.let { propertyTypeClass ->
@@ -140,7 +152,7 @@ class HistoryService {
                 embeddedObjectsMap.forEach { (propertyTypeClass, entityIds) ->
                     entityIds.forEach { entityId ->
                         try {
-                            val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<Long>>
+                            val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<*>>
                             loadAndAddHistory(context, allHistoryEntries, clazz, entityId)
                         } catch (ex: Exception) {
                             log.error(ex) { "Can't get class of name '$propertyTypeClass' (skipping): ${ex.message}" }
@@ -175,5 +187,11 @@ class HistoryService {
             em.persist(attr)
         }
         return master.id
+    }
+
+    companion object {
+        @JvmStatic
+        lateinit var instance: HistoryService
+            private set
     }
 }

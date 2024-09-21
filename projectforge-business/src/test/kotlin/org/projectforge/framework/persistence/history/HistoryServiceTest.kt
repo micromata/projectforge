@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.AuftragDO
 import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
@@ -42,11 +43,6 @@ private val log = KotlinLogging.logger {}
 class HistoryServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var historyService: HistoryService
-
-    /**
-     * Key is the parsed history master_fk id and value the generated PfHistoryAttrDO.
-     */
-    private val historyAttrMap = mutableMapOf<Long, MutableList<PfHistoryAttrDO>>()
 
     @Test
     fun testOldInvoiceHistory() {
@@ -68,13 +64,20 @@ class HistoryServiceTest : AbstractTestBase() {
         }
         persistenceService.runInTransaction { context ->
             val em = context.em
-            em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')").executeUpdate()
-            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)").executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,1)").executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,2)").executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,3)").executeUpdate()
-            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)").executeUpdate()
-            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,1)").executeUpdate()
+            em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
+                .executeUpdate()
+            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
+                .executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,1)")
+                .executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,2)")
+                .executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,3)")
+                .executeUpdate()
+            em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
+                .executeUpdate()
+            em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,1)")
+                .executeUpdate()
         }
         invoice.id = 351958
         historyService.loadHistory(invoice).let { historyEntries ->
@@ -200,83 +203,6 @@ class HistoryServiceTest : AbstractTestBase() {
         return newMaster!!.id!!
     }
 
-    private fun ensureSetup() {
-        if (historyMasterMap.isNotEmpty()) {
-            return // Already done.
-        }
-        parseFile(getUri("/history/pf_history-testentries.csv")).forEach { map ->
-            // pk, modifiedby, entity_id, entity_name, entity_optype
-            val pk = map["pk"]!!.toLong()
-            val historyMaster = PfHistoryMasterDO()
-            historyMaster.modifiedBy = map["modifiedby"]
-            historyMaster.entityId = map["entity_id"]!!.toLong()
-            historyMaster.entityName = map["entity_name"]!!
-            historyMaster.entityOpType = EntityOpType.valueOf(map["entity_optype"]!!)
-            historyMasterMap[pk] = historyMaster
-        }
-        parseFile(getUri("/history/pf_history_attr-testentries.csv")).forEach { map ->
-            try {
-                // value, propertyname, type, property_type_class, old_value, optype, master_fk
-                val attr = PfHistoryAttrDO()
-                attr.value = map["value"]
-                attr.oldValue = map["old_alue"]
-                attr.propertyName = map["propertyname"]
-                attr.propertyTypeClass = map["property_type_class"]
-                map["optype"]?.let { optype ->
-                    if (optype.isNotEmpty()) {
-                        attr.optype = PropertyOpType.valueOf(optype)
-                    }
-                }
-                val masterFk = map["master_fk"]!!.toLong()
-                historyAttrMap.getOrPut(masterFk) { mutableListOf() }.add(attr)
-            } catch (ex: Exception) {
-                log.error {
-                    "Error while parsing map ${
-                        map.entries.joinToString(
-                            prefix = "{",
-                            postfix = "}"
-                        ) { (key, value) -> "\"$key\": \"$value\"" }
-                    }"
-                }
-                throw IllegalStateException("Error parsing map $map", ex)
-            }
-        }
-        persistenceService.runInTransaction { context ->
-            val em = context.em
-            historyMasterMap.entries.forEach { entry ->
-                val master = entry.value
-                val masterId = entry.key
-                val attrs = historyAttrMap[masterId]
-                historyService.save(em, master, attrs)
-            }
-        }
-
-        val user = getUser(TEST_USER)
-        // One group assigned:
-        addOldFormat(user, value = "1052256", propertyName = "assignedGroups", operationType = EntityOpType.Insert)
-        // Assigned: 34,101478,33 unassigned: 17,16,11,31
-        addOldFormat(
-            user,
-            value = "34,101478,33",
-            oldValue = "17,16,11,31",
-            propertyName = "assignedGroups",
-            operationType = EntityOpType.Insert
-        )
-        // U
-        addOldFormat(
-            user,
-            value = "Project manager",
-            oldValue = "Project assistant",
-            propertyName = "description",
-            operationType = EntityOpType.Update,
-        )
-        // Test entries generated with:
-        // \pset null 'NULL'
-        // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
-        // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (PK1,PK2,PK3);
-
-    }
-
     private fun assert(
         diffEntry: DiffEntry,
         propertyName: String,
@@ -324,78 +250,8 @@ class HistoryServiceTest : AbstractTestBase() {
         Assertions.assertEquals(master.id, attr1.master!!.id)
     }
 
-    /**
-     * Create entries in old mgc format:
-     */
-    private fun addOldFormat(
-        entity: BaseDO<Long>,
-        value: String?,
-        oldValue: String? = null,
-        propertyName: String,
-        operationType: EntityOpType
-    ) {
-        val master = HistoryCreateUtils.createMaster(entity, operationType)
-
-        val attr1 = HistoryCreateUtils.createAttr(GroupDO::class, propertyName = "$propertyName:nv", value = value)
-        val attr2 = HistoryCreateUtils.createAttr(oldPropertyClass, "$propertyName:op", value = operationType.name)
-        val attr3 = HistoryCreateUtils.createAttr(GroupDO::class, "$propertyName:ov", value = oldValue)
-        val attrs = mutableListOf(attr1, attr2, attr3)
-
-        val pk = historyService.save(master, attrs)!!
-
-        Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
-        Assertions.assertEquals(entity.id, master.entityId)
-        Assertions.assertEquals("anon", master.modifiedBy)
-        val createdAt = master.modifiedAt!!.time
-        Assertions.assertTrue(
-            Math.abs(System.currentTimeMillis() - createdAt) < 10000,
-            "createdAt should be near to now (10s)",
-        )
-
-        Assertions.assertEquals(master.id, attr1.master!!.id)
-    }
-
-    private fun parseFile(uri: URI): List<Map<String, String?>> {
-        val result = mutableListOf<Map<String, String?>>()
-        val columnNames = mutableListOf<String>()
-        var lineNo = 0
-        File(uri).readLines().forEach { line ->
-            ++lineNo
-            if (columnNames.isEmpty()) {
-                // First row:
-                columnNames.addAll(parseLine(line).map { it ?: "<unknown>" })
-            } else if (!line.contains('|') || line.startsWith("--")) {
-                // Ignore empty lines and second row.
-            } else {
-                val values = parseLine(line)
-                val map = mutableMapOf<String, String?>()
-                if (values.size != columnNames.size) {
-                    throw IllegalStateException("Values size ${values.size} != columnNames size ${columnNames.size} in line $lineNo: $line")
-                }
-                columnNames.forEachIndexed { index, name ->
-                    map[name] = values[index]
-                }
-                result.add(map)
-            }
-        }
-        return result
-    }
-
-    private fun parseLine(line: String): List<String?> {
-        val list = mutableListOf<String?>()
-        line.split("|").forEach { entry ->
-            val trimmed = entry.trim()
-            if (trimmed == "NULL") {
-                list.add(null)
-            } else {
-                list.add(trimmed)
-            }
-        }
-        return list
-    }
-
-    private fun getUri(path: String): URI {
-        return object {}.javaClass.getResource(path)!!.toURI()
+    private fun ensureSetup() {
+        ensureSetup(persistenceService, historyService)
     }
 
     companion object {
@@ -405,5 +261,173 @@ class HistoryServiceTest : AbstractTestBase() {
          * Key is the parsed history master entry id and value the database entry saved by this test case.
          */
         private val historyMasterMap = mutableMapOf<Long, PfHistoryMasterDO>()
+
+        /**
+         * Key is the parsed history master_fk id and value the generated PfHistoryAttrDO.
+         */
+        private val historyAttrMap = mutableMapOf<Long, MutableList<PfHistoryAttrDO>>()
+
+        internal fun ensureSetup(persistenceService: PfPersistenceService, historyService: HistoryService) {
+            if (historyMasterMap.isNotEmpty()) {
+                return // Already done.
+            }
+            parseFile(getUri("/history/pf_history-testentries.csv")).forEach { map ->
+                // pk, modifiedby, entity_id, entity_name, entity_optype
+                val pk = map["pk"]!!.toLong()
+                val historyMaster = PfHistoryMasterDO()
+                historyMaster.modifiedBy = map["modifiedby"]
+                historyMaster.entityId = map["entity_id"]!!.toLong()
+                historyMaster.entityName = map["entity_name"]!!
+                historyMaster.entityOpType = EntityOpType.valueOf(map["entity_optype"]!!)
+                historyMasterMap[pk] = historyMaster
+            }
+            parseFile(getUri("/history/pf_history_attr-testentries.csv")).forEach { map ->
+                try {
+                    // value, propertyname, type, property_type_class, old_value, optype, master_fk
+                    val attr = PfHistoryAttrDO()
+                    attr.value = map["value"]
+                    attr.oldValue = map["old_alue"]
+                    attr.propertyName = map["propertyname"]
+                    attr.propertyTypeClass = map["property_type_class"]
+                    map["optype"]?.let { optype ->
+                        if (optype.isNotEmpty()) {
+                            attr.optype = PropertyOpType.valueOf(optype)
+                        }
+                    }
+                    val masterFk = map["master_fk"]!!.toLong()
+                    historyAttrMap.getOrPut(masterFk) { mutableListOf() }.add(attr)
+                } catch (ex: Exception) {
+                    log.error {
+                        "Error while parsing map ${
+                            map.entries.joinToString(
+                                prefix = "{",
+                                postfix = "}"
+                            ) { (key, value) -> "\"$key\": \"$value\"" }
+                        }"
+                    }
+                    throw IllegalStateException("Error parsing map $map", ex)
+                }
+            }
+            persistenceService.runInTransaction { context ->
+                val em = context.em
+                historyMasterMap.entries.forEach { entry ->
+                    val master = entry.value
+                    val masterId = entry.key
+                    val attrs = historyAttrMap[masterId]
+                    if (em.find(PfHistoryMasterDO::class.java, masterId) == null) {
+                        // Entry not yet saved:
+                        historyService.save(em, master, attrs)
+                    }
+                }
+            }
+
+            val user = PFUserDO()
+            user.id = 42
+            // One group assigned:
+            addOldFormat(
+                historyService,
+                user,
+                value = "1052256",
+                propertyName = "assignedGroups",
+                operationType = EntityOpType.Insert
+            )
+            // Assigned: 34,101478,33 unassigned: 17,16,11,31
+            addOldFormat(
+                historyService,
+                user,
+                value = "34,101478,33",
+                oldValue = "17,16,11,31",
+                propertyName = "assignedGroups",
+                operationType = EntityOpType.Insert
+            )
+            addOldFormat(
+                historyService,
+                user,
+                value = "Project manager",
+                oldValue = "Project assistant",
+                propertyName = "description",
+                operationType = EntityOpType.Update,
+            )
+            // Test entries generated with:
+            // \pset null 'NULL'
+            // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
+            // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (PK1,PK2,PK3);
+
+        }
+
+        private fun parseFile(uri: URI): List<Map<String, String?>> {
+            val result = mutableListOf<Map<String, String?>>()
+            val columnNames = mutableListOf<String>()
+            var lineNo = 0
+            File(uri).readLines().forEach { line ->
+                ++lineNo
+                if (columnNames.isEmpty()) {
+                    // First row:
+                    columnNames.addAll(parseLine(line).map { it ?: "<unknown>" })
+                } else if (!line.contains('|') || line.startsWith("--")) {
+                    // Ignore empty lines and second row.
+                } else {
+                    val values = parseLine(line)
+                    val map = mutableMapOf<String, String?>()
+                    if (values.size != columnNames.size) {
+                        throw IllegalStateException("Values size ${values.size} != columnNames size ${columnNames.size} in line $lineNo: $line")
+                    }
+                    columnNames.forEachIndexed { index, name ->
+                        map[name] = values[index]
+                    }
+                    result.add(map)
+                }
+            }
+            return result
+        }
+
+        private fun parseLine(line: String): List<String?> {
+            val list = mutableListOf<String?>()
+            line.split("|").forEach { entry ->
+                val trimmed = entry.trim()
+                if (trimmed == "NULL") {
+                    list.add(null)
+                } else {
+                    list.add(trimmed)
+                }
+            }
+            return list
+        }
+
+        private fun getUri(path: String): URI {
+            return object {}.javaClass.getResource(path)!!.toURI()
+        }
+
+        /**
+         * Create entries in old mgc format:
+         */
+        private fun addOldFormat(
+            historyService: HistoryService,
+            entity: BaseDO<Long>,
+            value: String?,
+            oldValue: String? = null,
+            propertyName: String,
+            operationType: EntityOpType
+        ) {
+            val master = HistoryCreateUtils.createMaster(entity, operationType)
+
+            val attr1 = HistoryCreateUtils.createAttr(GroupDO::class, propertyName = "$propertyName:nv", value = value)
+            val attr2 = HistoryCreateUtils.createAttr(oldPropertyClass, "$propertyName:op", value = operationType.name)
+            val attr3 = HistoryCreateUtils.createAttr(GroupDO::class, "$propertyName:ov", value = oldValue)
+            val attrs = mutableListOf(attr1, attr2, attr3)
+
+            val pk = historyService.save(master, attrs)!!
+
+            Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
+            Assertions.assertEquals(entity.id, master.entityId)
+            Assertions.assertEquals("anon", master.modifiedBy)
+            val createdAt = master.modifiedAt!!.time
+            Assertions.assertTrue(
+                Math.abs(System.currentTimeMillis() - createdAt) < 10000,
+                "createdAt should be near to now (10s)",
+            )
+
+            Assertions.assertEquals(master.id, attr1.master!!.id)
+        }
     }
 }

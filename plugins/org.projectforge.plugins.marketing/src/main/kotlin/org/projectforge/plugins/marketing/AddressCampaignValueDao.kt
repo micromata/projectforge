@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistProp
 import org.projectforge.framework.persistence.history.HistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -137,14 +138,14 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         return map
     }
 
-    override fun convert(entry: HistoryEntry<*>, em: EntityManager): List<DisplayHistoryEntry> {
+    override fun convert(context: PfPersistenceContext, entry: HistoryEntry<*>): List<DisplayHistoryEntry> {
         if (entry.diffEntries!!.isEmpty()) {
             val se = DisplayHistoryEntry(userGroupCache, entry)
             return listOf(se)
         }
         val result: MutableList<DisplayHistoryEntry> = ArrayList()
         for (prop in entry.diffEntries!!) {
-            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(userGroupCache, entry, prop, em) {
+            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(userGroupCache, entry, prop, context.em) {
                 override fun getObjectValue(userGroupCache: UserGroupCache, em: EntityManager, prop: HistProp?): Any? {
                     if (prop == null) {
                         return null
