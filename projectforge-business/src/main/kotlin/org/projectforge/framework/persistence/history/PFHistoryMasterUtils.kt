@@ -29,10 +29,23 @@ package org.projectforge.framework.persistence.history
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object PFHistoryMasterUtils {
+    const val OP_SUFFIX: String = ":op"
+
+    /**
+     * The Constant OLDVAL_SUFFIX.
+     */
+    const val OLDVAL_SUFFIX: String = ":ov"
+
+    /**
+     * The Constant NEWVAL_SUFFIX.
+     */
+    const val NEWVAL_SUFFIX: String = ":nv"
+
     /**
      * Concatenates also history attributes from older MGC versions.
      */
-    fun createDiffEntries(attrs: Collection<PfHistoryAttrDO>): List<DiffEntry> {
+    fun createDiffEntries(attrs: Collection<PfHistoryAttrDO>?): List<DiffEntry>? {
+        attrs ?: return null
         val diffEntries = mutableListOf<DiffEntry>()
         var currentDiffEntry: DiffEntry? = null
         attrs.sortedBy { it.propertyName }.forEach { attr ->
@@ -57,11 +70,11 @@ object PFHistoryMasterUtils {
 
     private fun mergeDiffEntry(diffEntry: DiffEntry, attr: PfHistoryAttrDO) {
         diffEntry.propertyName = attr.plainPropertyName
-        if (attr.propertyName?.endsWith(":ov") == true) {
+        if (attr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
             diffEntry.oldProp = HistProp(value = attr.value)
-        } else if (attr.propertyName?.endsWith(":nv") == true) {
+        } else if (attr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
             diffEntry.newProp = HistProp(value = attr.value)
-        } else if (attr.propertyName?.endsWith(":op") == true) {
+        } else if (attr.propertyName?.endsWith(OP_SUFFIX) == true) {
             diffEntry.propertyOpType = when (attr.value) {
                 "Insert" -> PropertyOpType.Insert
                 "Update" -> PropertyOpType.Update

@@ -25,8 +25,6 @@ package org.projectforge.business.fibu
 
 import jakarta.persistence.Tuple
 import mu.KotlinLogging
-import org.apache.commons.collections4.CollectionUtils
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.fibu.kost.KostZuweisungDO
@@ -41,6 +39,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
@@ -141,51 +140,51 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onSaveOrModify(rechnung: RechnungDO) {
-        if (RechnungTyp.RECHNUNG == rechnung.typ && rechnung.id != null) {
-            val originValue = internalGetById(rechnung.id)
-            if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != rechnung.status) {
-                rechnung.nummer = getNextNumber(rechnung)
+    override fun onSaveOrModify(obj: RechnungDO) {
+        if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
+            val originValue = internalGetById(obj.id)
+            if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
+                obj.nummer = getNextNumber(obj)
 
                 val day = now()
-                rechnung.datum = day.localDate
+                obj.datum = day.localDate
 
-                val zahlungsZielInTagen = rechnung.zahlungsZielInTagen
+                val zahlungsZielInTagen = obj.zahlungsZielInTagen
                 if (zahlungsZielInTagen != null) {
                     val faelligkeitDay = day.plusDays(zahlungsZielInTagen.toLong())
-                    rechnung.faelligkeit = faelligkeitDay.localDate
+                    obj.faelligkeit = faelligkeitDay.localDate
                 }
             }
         }
 
-        AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung)
+        AuftragAndRechnungDaoHelper.onSaveOrModify(obj)
 
-        validate(rechnung)
+        validate(obj)
 
-        if (rechnung.typ == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
-            if (rechnung.nummer != null) {
+        if (obj.typ == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
+            if (obj.nummer != null) {
                 throw UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben")
             }
         } else {
-            if (RechnungStatus.GEPLANT != rechnung.status && rechnung.nummer == null) {
+            if (RechnungStatus.GEPLANT != obj.status && obj.nummer == null) {
                 throw UserException(
                     "validation.required.valueNotPresent",
                     MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY)
                 )
             }
-            if (RechnungStatus.GEPLANT != rechnung.status) {
-                if (rechnung.id == null) {
+            if (RechnungStatus.GEPLANT != obj.status) {
+                if (obj.id == null) {
                     // Neue Rechnung
-                    val next = getNextNumber(rechnung)
-                    if (next != rechnung.nummer) {
+                    val next = getNextNumber(obj)
+                    if (next != obj.nummer) {
                         throw UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend")
                     }
                 } else {
                     val other = persistenceService.selectNamedSingleResult(
                         RechnungDO.FIND_OTHER_BY_NUMMER,
                         RechnungDO::class.java,
-                        Pair("nummer", rechnung.nummer),
-                        Pair("id", rechnung.id)
+                        Pair("nummer", obj.nummer),
+                        Pair("id", obj.id)
                     )
                     if (other != null) {
                         throw UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben")
@@ -193,24 +192,24 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
                 }
             }
         }
-        if (rechnung.zahlBetrag != null) {
-            rechnung.zahlBetrag = rechnung.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
+        if (obj.zahlBetrag != null) {
+            obj.zahlBetrag = obj.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
         }
-        rechnung.recalculate()
-        if (CollectionUtils.isEmpty(rechnung.positionen)) {
+        obj.recalculate()
+        if (obj.positionen.isNullOrEmpty()) {
             throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen")
         }
-        val size = rechnung.positionen!!.size
+        val size = obj.positionen!!.size
         for (i in size - 1 downTo 1) {
             // Don't remove first position, remove only the last empty positions.
-            val position = rechnung.positionen!![i]
+            val position = obj.positionen!![i]
             if (position.id == null && position.isEmpty) {
-                rechnung.positionen!!.removeAt(i)
+                obj.positionen!!.removeAt(i)
             } else {
                 break
             }
         }
-        writeUiStatusToXml(rechnung)
+        writeUiStatusToXml(obj)
     }
 
     private fun validate(rechnung: RechnungDO) {
@@ -224,7 +223,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         val projektId = rechnung.projektId
         val kundeId = rechnung.kundeId
         val kundeText = rechnung.kundeText
-        if (projektId == null && kundeId == null && StringUtils.isEmpty(kundeText)) {
+        if (projektId == null && kundeId == null && kundeText.isNullOrEmpty()) {
             throw UserException("fibu.rechnung.error.kundeTextOderProjektRequired")
         }
     }
@@ -303,8 +302,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     override fun sorted(list: List<RechnungDO>): List<RechnungDO> {
-        Collections.sort(list)
-        return list
+        return list.sorted()
     }
 
     val nextNumber: Int?
@@ -334,40 +332,39 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun getDisplayHistoryEntries(obj: RechnungDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
-        if (!hasLoggedInUserHistoryAccess(obj, false)) {
-            return list
+    override fun getDisplayHistoryEntries(
+        context: PfPersistenceContext,
+        obj: RechnungDO
+    ): MutableList<DisplayHistoryEntry> {
+        if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
+            return mutableListOf()
         }
-        if (CollectionUtils.isNotEmpty(obj.positionen)) {
-            for (position in obj.positionen!!) {
-                val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position)
-                for (entry in entries) {
+        val list = mutableListOf<DisplayHistoryEntry>()
+        obj.positionen?.forEach { position ->
+            val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position)
+            entries.forEach { entry ->
+                val propertyName = entry.propertyName
+                if (propertyName != null) {
+                    entry.propertyName =
+                        "#" + position.number + ":" + entry.propertyName // Prepend number of positon.
+                } else {
+                    entry.propertyName = "#" + position.number
+                }
+            }
+            list.addAll(entries)
+            position.kostZuweisungen?.forEach { zuweisung ->
+                val kostEntries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(zuweisung)
+                kostEntries.forEach { entry ->
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
                         entry.propertyName =
-                            "#" + position.number + ":" + entry.propertyName // Prepend number of positon.
+                            "#" + position.number + ".kost#" + zuweisung.index + ":" + entry.propertyName // Prepend
+                        // number of positon and index of zuweisung.
                     } else {
-                        entry.propertyName = "#" + position.number
+                        entry.propertyName = "#" + position.number + ".kost#" + zuweisung.index
                     }
                 }
-                list.addAll(entries)
-                if (CollectionUtils.isNotEmpty(position.kostZuweisungen)) {
-                    for (zuweisung in position.kostZuweisungen!!) {
-                        val kostEntries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(zuweisung)
-                        for (entry in kostEntries) {
-                            val propertyName = entry.propertyName
-                            if (propertyName != null) {
-                                entry.propertyName =
-                                    "#" + position.number + ".kost#" + zuweisung.index + ":" + entry.propertyName // Prepend
-                                // number of positon and index of zuweisung.
-                            } else {
-                                entry.propertyName = "#" + position.number + ".kost#" + zuweisung.index
-                            }
-                        }
-                        list.addAll(kostEntries)
-                    }
-                }
+                list.addAll(kostEntries)
             }
         }
         list.sortWith(Comparator { o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })

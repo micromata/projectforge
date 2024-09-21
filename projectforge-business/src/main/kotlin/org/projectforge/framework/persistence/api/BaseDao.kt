@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api
 
-import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.PredicateUtils
@@ -371,35 +370,69 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the history entries of the object.
      */
-    fun getHistoryEntries(obj: O): List<HistoryEntry<*>> {
+    fun getHistoryEntries(context: PfPersistenceContext, obj: O): List<HistoryEntry<*>> {
         accessChecker.checkRestrictedUser()
         checkLoggedInUserHistoryAccess(obj)
-        return internalGetHistoryEntries(obj)
+        return internalGetHistoryEntries(context, obj)
     }
 
     fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry<*>> {
         accessChecker.checkRestrictedUser()
-        return historyService.loadHistory(obj)
+        return persistenceService.runReadOnly { context ->
+            historyService.loadHistory(obj)
+        }
+    }
+
+    fun internalGetHistoryEntries(context: PfPersistenceContext, obj: BaseDO<*>): List<HistoryEntry<*>> {
+        accessChecker.checkRestrictedUser()
+        return historyService.loadHistory(context, obj)
+    }
+
+    /**
+     * Will create a new EntityManager.
+     * Gets the history entries of the object in flat format.<br></br>
+     * Please note: If user has no access an empty list will be returned.
+     */
+    fun getDisplayHistoryEntries(obj: O): MutableList<DisplayHistoryEntry> {
+        return persistenceService.runReadOnly { context ->
+            getDisplayHistoryEntries(context, obj)
+        }
     }
 
     /**
      * Gets the history entries of the object in flat format.<br></br>
      * Please note: If user has no access an empty list will be returned.
      */
-    open fun getDisplayHistoryEntries(obj: O): MutableList<DisplayHistoryEntry> {
+    open fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: O): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
-        return internalGetDisplayHistoryEntries(obj)
+        return internalGetDisplayHistoryEntries(context, obj)
     }
 
-    protected fun internalGetDisplayHistoryEntries(obj: BaseDO<*>): MutableList<DisplayHistoryEntry> {
+    protected fun internalGetDisplayHistoryEntries(
+        obj: BaseDO<*>
+    ): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
-        val entries = internalGetHistoryEntries(obj)
-        return persistenceService.runReadOnly { context -> convertAll(context, entries) }
+        return persistenceService.runReadOnly { context ->
+            val entries = internalGetHistoryEntries(context, obj)
+            convertAll(context, entries)
+        }
     }
 
-    private fun convertAll(context: PfPersistenceContext, entries: List<HistoryEntry<*>>): MutableList<DisplayHistoryEntry> {
+    protected fun internalGetDisplayHistoryEntries(
+        context: PfPersistenceContext,
+        obj: BaseDO<*>
+    ): MutableList<DisplayHistoryEntry> {
+        accessChecker.checkRestrictedUser()
+        val entries = internalGetHistoryEntries(context, obj)
+        return convertAll(context, entries)
+    }
+
+    private fun convertAll(
+        context: PfPersistenceContext,
+        entries: List<HistoryEntry<*>>
+    ): MutableList<DisplayHistoryEntry> {
         val list = mutableListOf<DisplayHistoryEntry>()
         for (entry in entries) {
             val l = convert(context, entry)
@@ -410,10 +443,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
 
     open fun convert(context: PfPersistenceContext, entry: HistoryEntry<*>): List<DisplayHistoryEntry> {
         if (entry.diffEntries.isNullOrEmpty()) {
-            val se = DisplayHistoryEntry(userGroupCache, entry)
-            return listOf(se)
+            return listOf(DisplayHistoryEntry(userGroupCache, entry))
         }
-        val result: MutableList<DisplayHistoryEntry> = ArrayList()
+        val result = mutableListOf<DisplayHistoryEntry>()
         for (prop in entry.diffEntries!!) {
             val se = DisplayHistoryEntry(userGroupCache, entry, prop, context.em)
             result.add(se)

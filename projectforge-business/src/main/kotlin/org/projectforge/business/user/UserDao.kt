@@ -34,6 +34,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -269,8 +270,8 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: PFUserDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: PFUserDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(context, obj)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

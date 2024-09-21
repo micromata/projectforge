@@ -35,7 +35,7 @@ class PfHistoryMasterUtilsTest {
         attrs.add(createAttr("city:op", "Update"))
         // For real entries, old and new format isn't mixed:
         attrs.add(createAttr("street", "New Street", "Old Street", PropertyOpType.Update))
-        val entries = PFHistoryMasterUtils.createDiffEntries(attrs)
+        val entries = PFHistoryMasterUtils.createDiffEntries(attrs)!!
         Assertions.assertEquals(2, entries.size)
         Assertions.assertEquals("Old City", entries[0].oldValue)
         Assertions.assertEquals("New City", entries[0].newValue)

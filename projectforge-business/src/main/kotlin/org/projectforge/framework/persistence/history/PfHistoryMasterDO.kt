@@ -114,11 +114,20 @@ class PfHistoryMasterDO : HistoryEntry<Long> {
     var attributes: MutableSet<PfHistoryAttrDO>? = null
 
     @get:Transient
-    override val diffEntries: List<DiffEntry>?
+    override var diffEntries: List<DiffEntry>? = null
+        private set
         get() {
-            log.entry("******* diffEntries not yet implemented")
-            return null
+            if (diffEntriesDirty) {
+                diffEntriesDirty = false
+                field = PFHistoryMasterUtils.createDiffEntries(attributes)
+            }
+            return field
         }
+
+    /**
+     * For avoiding multiple calls of [PFHistoryMasterUtils.createDiffEntries]
+     */
+    private var diffEntriesDirty = true
 
     override fun toString(): String {
         return JsonUtils.toJson(this)
