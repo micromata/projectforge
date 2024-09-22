@@ -23,19 +23,20 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
-import java.lang.reflect.Field
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Used for java.util.Date.
  */
 class UtilDateHandler : DefaultHandler() {
-    override fun accept(field: Field): Boolean {
-        return field.type == java.util.Date::class.java
+    override fun accept(property: KMutableProperty1<*, *>): Boolean {
+        return property.returnType.jvmErasure == java.util.Date::class
     }
 
-    override fun fieldValuesEqual(srcFieldValue: Any, destFieldValue: Any): Boolean {
-        val srcTime = (srcFieldValue as java.util.Date).time
-        val destTime = (destFieldValue as java.util.Date).time
+    override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
+        val srcTime = (srcValue as java.util.Date).time
+        val destTime = (destValue as java.util.Date).time
         return srcTime == destTime
     }
 }

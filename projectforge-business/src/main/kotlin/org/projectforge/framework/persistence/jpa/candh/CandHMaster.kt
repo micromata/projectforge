@@ -32,9 +32,12 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import java.io.Serializable
-import java.lang.reflect.AccessibleObject
-import java.lang.reflect.Field
+import java.lang.reflect.Member
 import java.lang.reflect.Modifier
+import kotlin.reflect.KCallable
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KVisibility
 
 private val log = KotlinLogging.logger {}
 
@@ -89,7 +92,7 @@ object CandHMaster {
                 .implementation as BaseDO<*>
         }
         copyDeclaredFields(
-            useSrc.javaClass,
+            useSrc.javaClass.kotlin,
             src = src,
             dest = dest,
             context = context,
@@ -98,40 +101,44 @@ object CandHMaster {
     }
 
     fun <IdType : Serializable> copyDeclaredFields(
-        srcClazz: Class<*>,
+        kClass: KClass<*>,
         src: BaseDO<IdType>,
         dest: BaseDO<IdType>,
         context: CandHContext,
         vararg ignoreFields: String
     ) {
-        context.debugContext?.add(msg = "Processing class $srcClazz")
-        val fields = srcClazz.declaredFields
-        AccessibleObject.setAccessible(fields, true)
-        for (field in fields) {
-            val fieldName = field.name
-            if (ignoreFields.contains(fieldName)) {
-                context.debugContext?.add("$srcClazz.$fieldName", msg = "Ignoring field in list of ignoreFields.")
-                continue
+        context.debugContext?.add(msg = "Processing class $kClass")
+        kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
+            if (property.setter.visibility != KVisibility.PUBLIC || property.getter.visibility != KVisibility.PUBLIC) {
+                log.debug { "Getter and/or setter of property $kClass.${property.name} has not visibility 'public', ignoring it." }
+                return@forEach
             }
-            if (!accept(field)) {
-                context.debugContext?.add("$srcClazz.$fieldName", msg = "Ignoring field, not accepted.")
-                continue
+            property as KMutableProperty1<BaseDO<IdType>, Any?>
+            val propertyName = property.name
+            if (ignoreFields.contains(propertyName)) {
+                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring field in list of ignoreFields.")
+                return@forEach
+            }
+
+            if (!accept(property)) {
+                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring field, not accepted.")
+                return@forEach
             }
             try {
-                val srcFieldValue = field[src]
-                val destFieldValue = field[dest]
-                val fieldContext = FieldContext(
-                    srcClazz = srcClazz,
+                val srcFieldValue = property.get(src)
+                val destFieldValue = property.get(dest)
+                val fieldContext = PropertyContext(
+                    kClass = kClass,
                     src = src,
                     dest = dest,
-                    fieldName = fieldName,
-                    field = field,
-                    srcFieldValue = srcFieldValue,
-                    destFieldValue = destFieldValue,
+                    propertyName = propertyName,
+                    property = property,
+                    srcPropertyValue = srcFieldValue,
+                    destPropertyValue = destFieldValue,
                 )
                 var processed = false
                 for (handler in registeredHandlers) {
-                    if (handler.accept(field)) {
+                    if (handler.accept(property)) {
                         if (handler.process(fieldContext, context = context)
                         ) {
                             processed = true
@@ -140,15 +147,11 @@ object CandHMaster {
                     }
                 }
                 if (!processed) {
-                    log.error { "******** Oups, field $srcClazz.$fieldName not processed!" }
+                    log.error { "******** Oups, field $kClass.$propertyName not processed!" }
                 }
-            } catch (ex: IllegalAccessException) {
-                throw InternalError("Unexpected IllegalAccessException: " + ex.message)
+            } catch (ex: Exception) {
+                throw InternalError("Unexpected IllegalAccessException for property $kClass.$propertyName " + ex.message)
             }
-        }
-        val superClazz = srcClazz.superclass
-        if (superClazz != null) {
-            copyDeclaredFields(superClazz, src = src, dest = dest, context = context, ignoreFields = ignoreFields)
         }
     }
 
@@ -180,21 +183,23 @@ object CandHMaster {
      *  * Ignore inner class fields
      *
      *
-     * @param field The Field to test.
+     * @param member The Field to test.
      * @return Whether to consider the given `Field`.
      */
-    internal fun accept(field: Field): Boolean {
-        if (field.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
+    internal fun accept(member: KCallable<*>): Boolean {
+        if (member.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
             // Reject field from inner class.
             return false
         }
-        if (Modifier.isTransient(field.modifiers)) {
-            // transients.
-            return false
-        }
-        if (Modifier.isStatic(field.modifiers)) {
-            // transients.
-            return false
+        if (member is Member) {
+            if (Modifier.isTransient(member.modifiers)) {
+                // transients.
+                return false
+            }
+            if (Modifier.isStatic(member.modifiers)) {
+                // transients.
+                return false
+            }
         }
         return true
     }

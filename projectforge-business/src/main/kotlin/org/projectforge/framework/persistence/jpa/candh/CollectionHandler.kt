@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.jpa.candh
 import jakarta.persistence.JoinColumn
 import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
@@ -33,8 +34,11 @@ import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.setModificationStatusOnChange
 import java.io.Serializable
-import java.lang.reflect.Field
 import java.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmErasure
 
 private val log = KotlinLogging.logger {}
 
@@ -42,110 +46,116 @@ private val log = KotlinLogging.logger {}
  * Used for mutable collections. TreeSet, ArrayList, HashSet and PersistentSet are supported.
  */
 open class CollectionHandler : CandHIHandler {
-    override fun accept(field: Field): Boolean {
-        return Collection::class.java.isAssignableFrom(field.type)
+    override fun accept(property: KMutableProperty1<*, *>): Boolean {
+        return property.returnType.jvmErasure.isSubclassOf(Collection::class)
     }
 
     override fun process(
-        fieldContext: FieldContext<*>,
+        propertyContext: PropertyContext<*>,
         context: CandHContext,
     ): Boolean {
-        fieldContext.apply {
-            val srcFieldCollection = srcFieldValue as? MutableCollection<Any?>
-            var destFieldCollection = destFieldValue as? MutableCollection<Any?>
-            if (srcFieldCollection.isNullOrEmpty() && destFieldCollection.isNullOrEmpty()) {
+        propertyContext.apply {
+            @Suppress("UNCHECKED_CAST")
+            property as KMutableProperty1<BaseDO<*>, Any?>
+            @Suppress("UNCHECKED_CAST")
+            val srcCollection = srcPropertyValue as? MutableCollection<Any?>
+
+            @Suppress("UNCHECKED_CAST")
+            var destCollection = destPropertyValue as? MutableCollection<Any?>
+            if (srcCollection.isNullOrEmpty() && destCollection.isNullOrEmpty()) {
                 // Both collections are null or empty, so nothing to do.
                 return true
             }
-            if (srcFieldCollection.isNullOrEmpty()) {
-                field[dest] = null
+            if (srcCollection.isNullOrEmpty()) {
+                property.set(dest, null)
                 context.debugContext?.add(
-                    "$srcClazz.$fieldName",
-                    srcVal = srcFieldValue,
+                    "$kClass.$propertyName",
+                    srcVal = srcPropertyValue,
                     destVal = "<not empty collection>"
                 )
-                if (collectionManagedBySrcClazz(srcClazz, fieldName)) {
-                    context.addHistoryEntry(fieldName, "", "collection removed")
+                if (collectionManagedBySrcClazz(kClass, propertyName)) {
+                    context.addHistoryEntry(propertyName, "", "collection removed")
                 } else {
-                    context.addHistoryEntry(fieldName, "", "collection removed")
+                    context.addHistoryEntry(propertyName, "", "collection removed")
                 }
-                setModificationStatusOnChange(context, src, fieldName)
+                setModificationStatusOnChange(context, src, propertyName)
                 return true
             }
             val toRemove = mutableListOf<Any>()
-            if (destFieldCollection == null) {
-                if (srcFieldValue is TreeSet<*>) {
-                    destFieldCollection = TreeSet()
+            if (destCollection == null) {
+                if (srcPropertyValue is TreeSet<*>) {
+                    destCollection = TreeSet()
                     context.debugContext?.add(
-                        "$srcClazz.$fieldName",
-                        srcVal = srcFieldValue,
-                        msg = "Creating TreeSet as destFieldValue.",
+                        "$kClass.$propertyName",
+                        srcVal = srcPropertyValue,
+                        msg = "Creating TreeSet as destPropertyValue.",
                     )
-                } else if (srcFieldValue is HashSet<*>) {
-                    destFieldCollection = HashSet()
+                } else if (srcPropertyValue is HashSet<*>) {
+                    destCollection = HashSet()
                     context.debugContext?.add(
-                        "$srcClazz.$fieldName",
-                        srcVal = srcFieldValue,
-                        msg = "Creating HashSet as destFieldValue.",
+                        "$kClass.$propertyName",
+                        srcVal = srcPropertyValue,
+                        msg = "Creating HashSet as destPropertyValue.",
                     )
-                } else if (srcFieldValue is List<*>) {
-                    destFieldCollection = ArrayList()
+                } else if (srcPropertyValue is List<*>) {
+                    destCollection = ArrayList()
                     context.debugContext?.add(
-                        "$srcClazz.$fieldName",
-                        srcVal = srcFieldValue,
-                        msg = "Creating ArrayList as destFieldValue.",
+                        "$kClass.$propertyName",
+                        srcVal = srcPropertyValue,
+                        msg = "Creating ArrayList as destPropertyValue.",
                     )
-                } else if (srcFieldValue is PersistentSet<*>) {
-                    destFieldCollection = HashSet()
+                } else if (srcPropertyValue is PersistentSet<*>) {
+                    destCollection = HashSet()
                     context.debugContext?.add(
-                        "$srcClazz.$fieldName",
-                        srcVal = srcFieldValue,
-                        msg = "Creating HashSet as destFieldValue. srcFieldValue is PersistentSet.",
+                        "$kClass.$propertyName",
+                        srcVal = srcPropertyValue,
+                        msg = "Creating HashSet as destPropertyValue. srcPropertyValue is PersistentSet.",
                     )
                 } else {
-                    log.error("Unsupported collection type: " + srcFieldValue?.javaClass?.name)
+                    log.error("Unsupported collection type: " + srcPropertyValue?.javaClass?.name)
                     return true
                 }
-                field[dest] = destFieldCollection
+                property.set(dest, destCollection)
             }
-            destFieldCollection.filterNotNull().forEach { destColEntry ->
-                if (srcFieldCollection.none { it == destColEntry }) {
+            destCollection.filterNotNull().forEach { destColEntry ->
+                if (srcCollection.none { it == destColEntry }) {
                     toRemove.add(destColEntry)
                 }
             }
             toRemove.forEach { removeEntry ->
                 log.debug { "Removing collection entry: $removeEntry" }
-                destFieldCollection.remove(removeEntry)
+                destCollection.remove(removeEntry)
                 context.debugContext?.add(
-                    "$srcClazz.$fieldName",
-                    msg = "Removing entry $removeEntry from destFieldValue.",
+                    "$kClass.$propertyName",
+                    msg = "Removing entry $removeEntry from destPropertyValue.",
                 )
-                setModificationStatusOnChange(context, src, fieldName)
+                setModificationStatusOnChange(context, src, propertyName)
             }
-            srcFieldCollection.forEach { srcCollEntry ->
-                if (!destFieldCollection.contains(srcCollEntry)) {
+            srcCollection.forEach { srcCollEntry ->
+                if (!destCollection.contains(srcCollEntry)) {
                     log.debug { "Adding new collection entry: $srcCollEntry" }
-                    destFieldCollection.add(srcCollEntry)
+                    destCollection.add(srcCollEntry)
                     context.debugContext?.add(
-                        "$srcClazz.$fieldName",
-                        msg = "Adding entry $srcCollEntry to destFieldValue.",
+                        "$kClass.$propertyName",
+                        msg = "Adding entry $srcCollEntry to destPropertyValue.",
                     )
-                    setModificationStatusOnChange(context, src, fieldName)
+                    setModificationStatusOnChange(context, src, propertyName)
                 } else if (srcCollEntry is BaseDO<*>) {
-                    val behavior = field.getAnnotation(PFPersistancyBehavior::class.java)
+                    val behavior = AnnotationsUtils.getAnnotation(property, PFPersistancyBehavior::class.java)
                     context.debugContext?.add(
-                        "$srcClazz.$fieldName",
+                        "$kClass.$propertyName",
                         msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}"
                     )
                     if (behavior != null && behavior.autoUpdateCollectionEntries) {
                         var destEntry: BaseDO<*>? = null
-                        for (entry in destFieldCollection) {
+                        for (entry in destCollection) {
                             if (entry == srcCollEntry) {
                                 destEntry = entry as BaseDO<*>
                                 break
                             }
                         }
                         requireNotNull(destEntry)
+                        @Suppress("UNCHECKED_CAST")
                         copyValues(
                             srcCollEntry as BaseDO<Serializable>,
                             destEntry as BaseDO<Serializable>,
@@ -161,8 +171,8 @@ open class CollectionHandler : CandHIHandler {
     /**
      * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
      */
-    private fun collectionManagedBySrcClazz(srcClazz: Class<*>, fieldName: String): Boolean {
-        val annotations = AnnotationsUtils.getAnnotations(srcClazz, fieldName)
+    private fun collectionManagedBySrcClazz(srcClass: KClass<*>, propertyName: String): Boolean {
+        val annotations = AnnotationsUtils.getAnnotations(srcClass, propertyName)
         if (annotations.any { it.annotationClass == JoinColumn::class } &&
             annotations.none { it.annotationClass == NoHistory::class }) {
             return true

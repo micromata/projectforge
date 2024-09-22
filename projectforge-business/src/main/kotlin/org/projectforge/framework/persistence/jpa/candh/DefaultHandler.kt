@@ -23,52 +23,47 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.setModificationStatusOnChange
-import java.io.Serializable
-import java.lang.reflect.Field
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Used for primitive types, String, Integer, LocalDate etc. Simply sets the destFieldValue to srcFieldalue if not equals.
+ * Used for primitive types, String, Integer, LocalDate etc. Simply sets the destValue to srcValue if not equals.
  */
 open class DefaultHandler : CandHIHandler {
-    override fun accept(field: Field): Boolean {
+    override fun accept(property: KMutableProperty1<*, *>): Boolean {
         return true
     }
 
-    override fun process(fieldContext: FieldContext<*>, context: CandHContext): Boolean {
+    override fun process(propertyContext: PropertyContext<*>, context: CandHContext): Boolean {
         var modified = false
-        fieldContext.apply {
-            if (destFieldValue == null || srcFieldValue == null) {
-                if (destFieldValue != srcFieldValue) {
+        propertyContext.apply {
+            if (destPropertyValue == null || srcPropertyValue == null) {
+                if (destPropertyValue != srcPropertyValue) {
                     modified = true
                 }
-            } else if (!fieldValuesEqual(srcFieldValue!!, destFieldValue!!)) {
+            } else if (!propertyValuesEqual(srcPropertyValue, destPropertyValue)) {
                 modified = true
             }
             if (modified) {
                 context.debugContext?.add(
-                    "$srcClazz.$fieldName",
-                    srcVal = srcFieldValue,
-                    destVal = destFieldValue,
-                    msg = "Field of type ${field.type} modified.",
+                    "$kClass.$propertyName",
+                    srcVal = srcPropertyValue,
+                    destVal = destPropertyValue,
+                    msg = "Field of type ${property.returnType.jvmErasure} modified.",
                 )
-                context.addHistoryEntry(fieldContext)
-                synchronized(field) {
-                    val wasAccessible = field.canAccess(dest)
-                    try {
-                        field.isAccessible = true
-                        field[dest] = srcFieldValue
-                    } finally {
-                        field.isAccessible = wasAccessible
-                    }
-                }
-                setModificationStatusOnChange(context, src, fieldName)
+                context.addHistoryEntry(propertyContext)
+                @Suppress("UNCHECKED_CAST")
+                property as KMutableProperty1<BaseDO<*>, Any?>
+                property.set(dest, srcPropertyValue)
+                setModificationStatusOnChange(context, src, propertyName)
             }
         }
         return true
     }
 
-    open fun fieldValuesEqual(srcFieldValue: Any, destFieldValue: Any): Boolean {
-        return srcFieldValue == destFieldValue
+    open fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
+        return srcValue == destValue
     }
 }
