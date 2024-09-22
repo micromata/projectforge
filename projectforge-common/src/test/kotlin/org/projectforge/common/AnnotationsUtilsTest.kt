@@ -25,6 +25,7 @@ package org.projectforge.common
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import kotlin.reflect.full.memberProperties
 
 class AnnotationsUtilsTest {
     @Test
@@ -41,7 +42,7 @@ class AnnotationsUtilsTest {
         Assertions.assertEquals(1, annotations.size)
         val annotation = annotations.first() as MyAnnotation
         Assertions.assertEquals(expectedValue, annotation.name)
-
+        Assertions.assertNotNull(AnnotationsUtils.getAnnotation(Employee::class.memberProperties.filter { it.name == propertyName }.first(), MyAnnotation::class.java))
     }
 
     internal inner class Employee : Person() {

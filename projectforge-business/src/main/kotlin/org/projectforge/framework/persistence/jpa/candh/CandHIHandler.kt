@@ -23,16 +23,16 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
-import java.lang.reflect.Field
+import kotlin.reflect.KMutableProperty1
 
 interface CandHIHandler {
     /**
      * Checks if the field is accepted by this handler.
      */
-    fun accept(field: Field): Boolean
+    fun accept(property: KMutableProperty1<*, *>): Boolean
 
     /**
      * @return true if the field was process, false if the next handler should be tried.
      */
-    fun process(fieldContext: FieldContext<*>, context: CandHContext): Boolean
+    fun process(propertyContext: PropertyContext<*>, context: CandHContext): Boolean
 }

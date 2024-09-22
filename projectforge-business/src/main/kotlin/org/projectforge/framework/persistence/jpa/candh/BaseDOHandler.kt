@@ -25,19 +25,21 @@ package org.projectforge.framework.persistence.jpa.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
-import java.lang.reflect.Field
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmErasure
 
 /**
  * Used for objects of type BaseDO.
  */
 class BaseDOHandler : DefaultHandler() {
-    override fun accept(field: Field): Boolean {
-        return BaseDO::class.java.isAssignableFrom(field.type)
+    override fun accept(property: KMutableProperty1<*, *>): Boolean {
+        return property.returnType.jvmErasure.isSubclassOf(BaseDO::class)
     }
 
-    override fun fieldValuesEqual(srcFieldValue: Any, destFieldValue: Any): Boolean {
-        val srcFieldValueId = HibernateUtils.getIdentifier(srcFieldValue)
-        val destFieldValueId = HibernateUtils.getIdentifier(destFieldValue)
+    override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
+        val srcFieldValueId = HibernateUtils.getIdentifier(srcValue)
+        val destFieldValueId = HibernateUtils.getIdentifier(destValue)
         return srcFieldValueId == destFieldValueId
     }
 }

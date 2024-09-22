@@ -27,17 +27,62 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.superclasses
+import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object AnnotationsUtils {
+    fun <Ann : Annotation> getAnnotation(property: KProperty1<*, *>, annotationClass: Class<Ann>): Ann? {
+        property.annotations.filterIsInstance(annotationClass).firstOrNull()?.let { return it }
+        property.javaField?.let { field ->
+            field.annotations.filterIsInstance(annotationClass).firstOrNull()?.let { return it }
+        }
+        property.javaGetter?.let { getter ->
+            getter.annotations.filterIsInstance(annotationClass).firstOrNull()?.let { return it }
+        }
+        if (property is KMutableProperty1) {
+            property.javaSetter?.let { setter ->
+                setter.annotations.filterIsInstance(annotationClass).firstOrNull()?.let { return it }
+            }
+        }
+        return null
+    }
+
+    fun getAllAnnotations(property: KProperty1<*, *>): List<Annotation> {
+        val annotations = mutableListOf<Annotation>()
+        annotations.addAll(property.annotations)
+        property.javaField?.let { field ->
+            annotations.addAll(field.annotations)
+        }
+        property.javaGetter?.let { getter ->
+            annotations.addAll(getter.annotations)
+        }
+        if (property is KMutableProperty1) {
+            property.javaSetter?.let { setter ->
+                annotations.addAll(setter.annotations)
+            }
+        }
+        return annotations
+    }
+
     fun getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Annotation? {
         return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass }
     }
 
     fun hasAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Boolean {
         return getAnnotation(clazz, propertyName, annotationClass) != null
+    }
+
+    /**
+     * Get all annotations of field, getter and setter method.
+     */
+    fun getAnnotations(kClass: KClass<*>, propertyName: String): Set<Annotation> {
+        val set = mutableSetOf<Annotation>()
+        addAnnotations(kClass, propertyName, set)
+        return set
     }
 
     /**

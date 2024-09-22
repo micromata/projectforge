@@ -25,14 +25,15 @@ package org.projectforge.framework.persistence.jpa.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
 import java.io.Serializable
-import java.lang.reflect.Field
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 
-class FieldContext<IdType: Serializable>(
-    val srcClazz: Class<*>,
+class PropertyContext<IdType : Serializable>(
+    val kClass: KClass<*>,
     val src: BaseDO<IdType>,
     val dest: BaseDO<IdType>,
-    val fieldName: String,
-    val field: Field,
-    val srcFieldValue: Any?,
-    val destFieldValue: Any?,
+    val propertyName: String,
+    val property: KMutableProperty1<*, *>,
+    val srcPropertyValue: Any?,
+    val destPropertyValue: Any?,
 )

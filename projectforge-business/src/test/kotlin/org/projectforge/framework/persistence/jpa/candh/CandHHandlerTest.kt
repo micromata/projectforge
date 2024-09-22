@@ -34,20 +34,24 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 import java.util.*
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.memberProperties
 
 class CandHHandlerTest {
     @Test
     fun defaultHandlerTest() {
         val handler = DefaultHandler()
         // String tests:
-        assert(handler, TaskDO::class.java, "title", "", "title2")
-        assert(handler, TaskDO::class.java, "title", "title1", "")
-        assert(handler, TaskDO::class.java, "title", "title1", "title2")
+        assert(handler, TaskDO::class, "title", "", "title2")
+        assert(handler, TaskDO::class, "title", "title1", "")
+        assert(handler, TaskDO::class, "title", "title1", "title2")
 
         // LocalDate tests:
         assert(
             handler,
-            TaskDO::class.java,
+            TaskDO::class,
             "protectTimesheetsUntil",
             LocalDate.of(2024, Month.SEPTEMBER, 12),
             LocalDate.of(2024, Month.SEPTEMBER, 13),
@@ -56,7 +60,7 @@ class CandHHandlerTest {
         // Boolean tests.
         assert(
             handler,
-            VacationDO::class.java,
+            VacationDO::class,
             "special",
             true,
             false,
@@ -68,13 +72,13 @@ class CandHHandlerTest {
         val handler = BigDecimalHandler()
         assert(
             handler,
-            TaskDO::class.java,
+            TaskDO::class,
             "duration",
             BigDecimal.ONE,
             BigDecimal.TEN,
         )
         Assertions.assertTrue(
-            handler.fieldValuesEqual(BigDecimal.TEN.setScale(0), BigDecimal.TEN.setScale(2)),
+            handler.propertyValuesEqual(BigDecimal.TEN.setScale(0), BigDecimal.TEN.setScale(2)),
             "BigDecimalHandler should ignore scale.",
         )
     }
@@ -86,7 +90,7 @@ class CandHHandlerTest {
         val date2 = Date(date1.time - Constants.MILLIS_PER_DAY)
         assert(
             handler,
-            PFUserDO::class.java,
+            PFUserDO::class,
             "lastPasswordChange",
             date1,
             date2,
@@ -95,25 +99,25 @@ class CandHHandlerTest {
 
     private fun assert(
         handler: CandHIHandler,
-        clazz: Class<*>,
+        kClass: KClass<*>,
         fieldName: String,
         fieldValue1: Any, // first value for testing.
         fieldValue2: Any, // second value for testing (should be different to fieldValue1.‚
     ) {
-        val src = clazz.getDeclaredConstructor().newInstance() as BaseDO<Long>
-        val dest = clazz.getDeclaredConstructor().newInstance() as BaseDO<Long>
-        processAndCheckContext(handler, clazz, fieldName, src, dest, null, null, false)
-        processAndCheckContext(handler, clazz, fieldName, src, dest, fieldValue1, null, true)
-        processAndCheckContext(handler, clazz, fieldName, src, dest, null, fieldValue2, true)
-        processAndCheckContext(handler, clazz, fieldName, src, dest, fieldValue1, fieldValue2, true)
-        processAndCheckContext(handler, clazz, fieldName, src, dest, fieldValue1, fieldValue1, false)
-        processAndCheckContext(handler, clazz, fieldName, src, dest, fieldValue2, fieldValue2, false)
+        val src = kClass.createInstance() as BaseDO<Long>
+        val dest = kClass.createInstance() as BaseDO<Long>
+        processAndCheckContext(handler, kClass, fieldName, src, dest, null, null, false)
+        processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, null, true)
+        processAndCheckContext(handler, kClass, fieldName, src, dest, null, fieldValue2, true)
+        processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, fieldValue2, true)
+        processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, fieldValue1, false)
+        processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue2, fieldValue2, false)
     }
 
     private fun processAndCheckContext(
         handler: CandHIHandler,
-        clazz: Class<*>,
-        fieldName: String,
+        kClass: KClass<*>,
+        propertyName: String,
         src: BaseDO<Long>,
         dest: BaseDO<Long>,
         srcFieldValue: Any?,
@@ -121,21 +125,22 @@ class CandHHandlerTest {
         modificationExpected: Boolean,
     ) {
         val context = CandHContext(debug = true)
-        val field = clazz.getDeclaredField(fieldName)
-        field.isAccessible = true
-        field[src] = srcFieldValue
-        field[dest] = destFieldValue
-        val fieldContext = FieldContext(
-            srcClazz = clazz,
+        val property = kClass.memberProperties.find { it.name == propertyName }!!
+        @Suppress("UNCHECKED_CAST")
+        property as KMutableProperty1<BaseDO<*>, Any?>
+        property.set(src, srcFieldValue)  // Setzt den neuen Wert
+        property.set(dest, destFieldValue)
+        val fieldContext = PropertyContext(
+            kClass = kClass,
             src = src,
             dest = dest,
-            fieldName = fieldName,
-            field = field,
-            srcFieldValue = srcFieldValue,
-            destFieldValue = destFieldValue,
+            propertyName = propertyName,
+            property = property,
+            srcPropertyValue = srcFieldValue,
+            destPropertyValue = destFieldValue,
         )
         handler.process(fieldContext, context = context)
-        Assertions.assertEquals(field[src], field[dest])
+        Assertions.assertEquals(property.get(src), property.get(dest))
         val debugEntries = context.debugContext!!.entries
         if (modificationExpected) {
             Assertions.assertTrue(debugEntries.isNotEmpty())
