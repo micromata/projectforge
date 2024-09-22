@@ -23,15 +23,16 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
-import org.projectforge.framework.persistence.history.PropertyOpType
+import org.projectforge.framework.persistence.api.BaseDO
+import java.io.Serializable
+import java.lang.reflect.Field
 
-internal class HistoryContext {
-    private val entries = mutableListOf<Entry>()
-
-    fun add(type: PropertyOpType, fieldName: String, newValue: Any? = null, oldValue: Any? = null) {
-        entries.add(Entry(type = type, fieldName = fieldName, newValue = newValue, oldValue = oldValue))
-    }
-
-    class Entry(val type: PropertyOpType, val fieldName: String, val oldValue: Any?, val newValue: Any?) {
-    }
-}
+class FieldContext<IdType: Serializable>(
+    val srcClazz: Class<*>,
+    val src: BaseDO<IdType>,
+    val dest: BaseDO<IdType>,
+    val fieldName: String,
+    val field: Field,
+    val srcFieldValue: Any?,
+    val destFieldValue: Any?,
+)

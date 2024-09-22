@@ -120,19 +120,19 @@ object CandHMaster {
             try {
                 val srcFieldValue = field[src]
                 val destFieldValue = field[dest]
+                val fieldContext = FieldContext(
+                    srcClazz = srcClazz,
+                    src = src,
+                    dest = dest,
+                    fieldName = fieldName,
+                    field = field,
+                    srcFieldValue = srcFieldValue,
+                    destFieldValue = destFieldValue,
+                )
                 var processed = false
                 for (handler in registeredHandlers) {
                     if (handler.accept(field)) {
-                        if (handler.process(
-                                srcClazz = srcClazz,
-                                src = src,
-                                dest = dest,
-                                field = field,
-                                fieldName = fieldName,
-                                srcFieldValue = srcFieldValue,
-                                destFieldValue = destFieldValue,
-                                context = context,
-                            )
+                        if (handler.process(fieldContext, context = context)
                         ) {
                             processed = true
                             break
@@ -153,7 +153,8 @@ object CandHMaster {
     }
 
     /**
-     * Field was modified, so set the modification status to MAJOR or, if not historizable to MINOR.
+     * Field was modified, so set the modification status to MAJOR or, if not historizable to MINOR
+     *
      */
     internal fun <IdType : Serializable> setModificationStatusOnChange(
         context: CandHContext,

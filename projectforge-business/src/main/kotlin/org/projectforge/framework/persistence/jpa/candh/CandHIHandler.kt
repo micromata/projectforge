@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
-import org.projectforge.framework.persistence.api.BaseDO
-import java.io.Serializable
 import java.lang.reflect.Field
 
 interface CandHIHandler {
@@ -36,14 +34,5 @@ interface CandHIHandler {
     /**
      * @return true if the field was process, false if the next handler should be tried.
      */
-    fun <IdType : Serializable> process(
-        srcClazz: Class<*>,
-        src: BaseDO<IdType>,
-        dest: BaseDO<IdType>,
-        field: Field,
-        fieldName: String,
-        srcFieldValue: Any?,
-        destFieldValue: Any?,
-        context: CandHContext,
-    ): Boolean
+    fun process(fieldContext: FieldContext<*>, context: CandHContext): Boolean
 }

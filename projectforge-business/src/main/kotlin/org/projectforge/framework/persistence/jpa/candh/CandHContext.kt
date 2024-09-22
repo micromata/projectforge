@@ -28,24 +28,33 @@ import org.projectforge.framework.persistence.history.PropertyOpType
 
 class CandHContext(
     var currentCopyStatus: EntityCopyStatus = EntityCopyStatus.NONE,
-    // On top-level the field name and for nested fields the path, such as "address.street".
-    var currentObjectPath: String = "",
     createHistory: Boolean = true,
     debug: Boolean = false,
 ) {
     internal val debugContext = if (debug) DebugContext() else null
     internal val historyContext = if (createHistory) HistoryContext() else null
     internal fun addHistoryEntry(
-        fieldName: String,
-        newValue: Any?,
-        oldValue: Any?,
+        fieldContext: FieldContext<*>,
         type: PropertyOpType = PropertyOpType.Update
     ) {
         historyContext?.add(
-            path = "${currentObjectPath}$fieldName",
             type = type,
+            fieldName = fieldContext.fieldName,
+            newValue = fieldContext.destFieldValue,
+            oldValue = fieldContext.srcFieldValue
+        )
+    }
+    internal fun addHistoryEntry(
+        fieldName: String,
+        oldValue: Any?,
+        newValue: Any?,
+        type: PropertyOpType = PropertyOpType.Update
+    ) {
+        historyContext?.add(
+            type = type,
+            fieldName = fieldName,
             newValue = newValue,
-            oldValue = oldValue
+            oldValue = oldValue,
         )
     }
 
