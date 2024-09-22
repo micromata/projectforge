@@ -29,12 +29,12 @@ internal class DebugContext {
     val entries = mutableListOf<Entry>()
 
     fun add(
-        field: String? = null,
+        property: String? = null,
         srcVal: Any? = null,
         destVal: Any? = null,
         msg: String? = "copied",
     ) {
-        entries.add(Entry(fieldName = field, srcValue = srcVal, destValue = destVal, message = msg))
+        entries.add(Entry(propertyName = property, srcValue = srcVal, destValue = destVal, message = msg))
     }
 
     override fun toString(): String {
@@ -42,7 +42,7 @@ internal class DebugContext {
     }
 
     class Entry(
-        val fieldName: String? = null,
+        val propertyName: String? = null,
         val srcValue: Any? = null,
         val destValue: Any? = null,
         val message: String? = null,

@@ -78,7 +78,7 @@ open class CollectionHandler : CandHIHandler {
                 } else {
                     context.addHistoryEntry(propertyName, "", "collection removed")
                 }
-                setModificationStatusOnChange(context, src, propertyName)
+                setModificationStatusOnChange(context, propertyContext)
                 return true
             }
             val toRemove = mutableListOf<Any>()
@@ -129,7 +129,7 @@ open class CollectionHandler : CandHIHandler {
                     "$kClass.$propertyName",
                     msg = "Removing entry $removeEntry from destPropertyValue.",
                 )
-                setModificationStatusOnChange(context, src, propertyName)
+                setModificationStatusOnChange(context, propertyContext)
             }
             srcCollection.forEach { srcCollEntry ->
                 if (!destCollection.contains(srcCollEntry)) {
@@ -139,7 +139,7 @@ open class CollectionHandler : CandHIHandler {
                         "$kClass.$propertyName",
                         msg = "Adding entry $srcCollEntry to destPropertyValue.",
                     )
-                    setModificationStatusOnChange(context, src, propertyName)
+                    setModificationStatusOnChange(context, propertyContext)
                 } else if (srcCollEntry is BaseDO<*>) {
                     val behavior = AnnotationsUtils.getAnnotation(property, PFPersistancyBehavior::class.java)
                     context.debugContext?.add(
