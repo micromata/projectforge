@@ -24,18 +24,18 @@
 package org.projectforge.framework.persistence.jpa.candh
 
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
 import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.copyValues
-import org.projectforge.framework.persistence.jpa.candh.CandHMaster.setModificationStatusOnChange
+import org.projectforge.framework.persistence.jpa.candh.CandHMaster.propertyWasModified
 import java.io.Serializable
 import java.util.*
-import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -55,6 +55,10 @@ open class CollectionHandler : CandHIHandler {
         context: CandHContext,
     ): Boolean {
         propertyContext.apply {
+            if (!collectionManagedBySrcClazz(property)) {
+                // Collection isn't managed by this class, therefore do nothing.
+                return true
+            }
             @Suppress("UNCHECKED_CAST")
             property as KMutableProperty1<BaseDO<*>, Any?>
             @Suppress("UNCHECKED_CAST")
@@ -73,15 +77,12 @@ open class CollectionHandler : CandHIHandler {
                     srcVal = srcPropertyValue,
                     destVal = "<not empty collection>"
                 )
-                if (collectionManagedBySrcClazz(kClass, propertyName)) {
-                    context.addHistoryEntry(propertyName, "", "collection removed")
-                } else {
-                    context.addHistoryEntry(propertyName, "", "collection removed")
-                }
-                setModificationStatusOnChange(context, propertyContext)
+                context.addHistoryEntry(propertyName, "", indexToStringList(destCollection))
+                propertyWasModified(context, propertyContext, null)
                 return true
             }
             val toRemove = mutableListOf<Any>()
+            val toAdd = mutableListOf<Any>()
             if (destCollection == null) {
                 if (srcPropertyValue is TreeSet<*>) {
                     destCollection = TreeSet()
@@ -129,17 +130,16 @@ open class CollectionHandler : CandHIHandler {
                     "$kClass.$propertyName",
                     msg = "Removing entry $removeEntry from destPropertyValue.",
                 )
-                setModificationStatusOnChange(context, propertyContext)
             }
-            srcCollection.forEach { srcCollEntry ->
+            srcCollection.filterNotNull().forEach { srcCollEntry ->
                 if (!destCollection.contains(srcCollEntry)) {
                     log.debug { "Adding new collection entry: $srcCollEntry" }
                     destCollection.add(srcCollEntry)
+                    toAdd.add(srcCollEntry)
                     context.debugContext?.add(
                         "$kClass.$propertyName",
                         msg = "Adding entry $srcCollEntry to destPropertyValue.",
                     )
-                    setModificationStatusOnChange(context, propertyContext)
                 } else if (srcCollEntry is BaseDO<*>) {
                     val behavior = AnnotationsUtils.getAnnotation(property, PFPersistancyBehavior::class.java)
                     context.debugContext?.add(
@@ -163,6 +163,20 @@ open class CollectionHandler : CandHIHandler {
                         )
                     }
                 }
+                if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
+                    context.addHistoryEntry(
+                        propertyName,
+                        indexToStringList(toRemove),
+                        indexToStringList(toAdd),
+                        PropertyOpType.Update
+                    )
+                    context.addHistoryEntry(
+                        propertyName,
+                        oldValue = indexToStringList(toRemove),
+                        newValue = indexToStringList(toAdd),
+                    )
+                    propertyWasModified(context, propertyContext, null)
+                }
             }
         }
         return true
@@ -171,12 +185,19 @@ open class CollectionHandler : CandHIHandler {
     /**
      * If collection is declared as OneToMany and not marked as @NoHistory, the collection is managed by the source class.
      */
-    private fun collectionManagedBySrcClazz(srcClass: KClass<*>, propertyName: String): Boolean {
-        val annotations = AnnotationsUtils.getAnnotations(srcClass, propertyName)
-        if (annotations.any { it.annotationClass == JoinColumn::class } &&
-            annotations.none { it.annotationClass == NoHistory::class }) {
+    private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
+        val annotations = AnnotationsUtils.getAnnotations(property)
+        if ((annotations.any { it.annotationClass == JoinColumn::class } ||
+                    annotations.any { it.annotationClass == JoinTable::class })
+            && annotations.none { it.annotationClass == NoHistory::class }
+        ) {
             return true
         }
         return false
+    }
+
+    private fun indexToStringList(coll: Collection<*>?): String {
+        coll ?: return ""
+        return coll.joinToString { (it as? BaseDO<*>)?.id?.toString() ?: "" }
     }
 }

@@ -51,7 +51,7 @@ object AnnotationsUtils {
         return null
     }
 
-    fun getAllAnnotations(property: KProperty1<*, *>): List<Annotation> {
+    fun getAnnotations(property: KProperty1<*, *>): List<Annotation> {
         val annotations = mutableListOf<Annotation>()
         annotations.addAll(property.annotations)
         property.javaField?.let { field ->

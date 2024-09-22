@@ -26,12 +26,20 @@ package org.projectforge.framework.persistence.jpa.candh
 import org.projectforge.framework.persistence.history.PropertyOpType
 
 internal class HistoryContext {
-    private val entries = mutableListOf<Entry>()
+    internal val entries = mutableListOf<Entry>()
 
-    fun add(type: PropertyOpType, fieldName: String, newValue: Any? = null, oldValue: Any? = null) {
-        entries.add(Entry(type = type, fieldName = fieldName, newValue = newValue, oldValue = oldValue))
+    fun add(propertyContext: PropertyContext<*>, type: PropertyOpType) {
+        add(
+            type,
+            propertyName = propertyContext.propertyName,
+            newValue = propertyContext.srcPropertyValue,
+            oldValue = propertyContext.destPropertyValue,
+        )
     }
 
-    class Entry(val type: PropertyOpType, val fieldName: String, val oldValue: Any?, val newValue: Any?) {
+    fun add(type: PropertyOpType, propertyName: String, newValue: Any? = null, oldValue: Any? = null) {
+        entries.add(Entry(type = type, propertyName = propertyName, newValue = newValue, oldValue = oldValue))
     }
+
+    class Entry(val type: PropertyOpType, val propertyName: String, val oldValue: Any?, val newValue: Any?)
 }

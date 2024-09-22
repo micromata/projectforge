@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
+import org.projectforge.framework.persistence.history.PropertyOpType
 import java.io.Serializable
 import java.lang.reflect.Member
 import java.lang.reflect.Modifier
@@ -125,7 +126,10 @@ object CandHMaster {
             property as KMutableProperty1<BaseDO<IdType>, Any?>
             val propertyName = property.name
             if (ignoreProperties.contains(propertyName)) {
-                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring property in list of ignoreProperties.")
+                context.debugContext?.add(
+                    "$kClass.$propertyName",
+                    msg = "Ignoring property in list of ignoreProperties."
+                )
                 return@forEach
             }
 
@@ -166,11 +170,13 @@ object CandHMaster {
 
     /**
      * Property was modified, so set the modification status to MAJOR or, if not historizable to MINOR
-     *
+     * Will also handle the history entries, if required.
+     * @param type If null, no history handling is done (was handled by caller).
      */
-    internal fun <IdType : Serializable> setModificationStatusOnChange(
+    internal fun <IdType : Serializable> propertyWasModified(
         context: CandHContext,
         propertyContext: PropertyContext<IdType>,
+        type: PropertyOpType?,
     ) {
         propertyContext.apply {
             if (HistoryServiceUtils.get().isNoHistoryProperty(src.javaClass, propertyName)) {
@@ -179,9 +185,26 @@ object CandHMaster {
                 return
             }
             if (context.currentCopyStatus == EntityCopyStatus.MAJOR || src !is AbstractHistorizableBaseDO<*> || src !is HibernateProxy) {
+                if (type != null) {
+                    handleHistoryEntry(context, propertyContext, type)
+                }
                 context.combine(EntityCopyStatus.MAJOR) // equals to context.currentCopyStatus=MAJOR.
             }
             context.combine(EntityCopyStatus.NONE)
+        }
+    }
+
+    internal fun <IdType : Serializable> handleHistoryEntry(
+        context: CandHContext,
+        propertyContext: PropertyContext<IdType>,
+        type: PropertyOpType,
+    ) {
+        if (context.historyContext == null) {
+            // No history required.
+            return
+        }
+        propertyContext.apply {
+            context.historyContext.add(propertyContext, type)
         }
     }
 

@@ -16,6 +16,7 @@
 - ConfigurationParam: Integer -> Long, OK?
 - StringHelper: splitToLongs/LongObjects OK?
 - HighlightedRow: Int or Long? (Wicket, Rest), see DefaultTreeTablePanel.java
+- History: Groups, users
 
 
 Migration employee timed attrs:

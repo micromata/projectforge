@@ -24,7 +24,8 @@
 package org.projectforge.framework.persistence.jpa.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.jpa.candh.CandHMaster.setModificationStatusOnChange
+import org.projectforge.framework.persistence.history.PropertyOpType
+import org.projectforge.framework.persistence.jpa.candh.CandHMaster.propertyWasModified
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.jvmErasure
 
@@ -57,7 +58,7 @@ open class DefaultHandler : CandHIHandler {
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
                 property.set(dest, srcPropertyValue)
-                setModificationStatusOnChange(context, propertyContext)
+                propertyWasModified(context, propertyContext, PropertyOpType.Update)
             }
         }
         return true
