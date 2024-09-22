@@ -57,7 +57,7 @@ open class DefaultHandler : CandHIHandler {
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
                 property.set(dest, srcPropertyValue)
-                setModificationStatusOnChange(context, src, propertyName)
+                setModificationStatusOnChange(context, propertyContext)
             }
         }
         return true

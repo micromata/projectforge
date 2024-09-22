@@ -46,7 +46,7 @@ private val log = KotlinLogging.logger {}
  */
 object CandHMaster {
     /**
-     * List of all registeredAdapters. For every field the first matching
+     * List of all registeredAdapters. For every property the first matching handler is used.
      */
     private val registeredHandlers = mutableListOf<CandHIHandler>()
 
@@ -60,21 +60,29 @@ object CandHMaster {
         registeredHandlers.add(DefaultHandler()) // Handles everything else.
     }
 
+    /**
+     * @param ignoreProperties The names of the properties to ignore.
+     */
     fun <IdType : Serializable> copyValues(
         src: BaseDO<IdType>,
         dest: BaseDO<IdType>,
-        vararg ignoreFields: String,
+        vararg ignoreProperties: String,
     ): CandHContext {
         val context = CandHContext()
-        copyValues(src = src, dest = dest, context = context, ignoreFields = ignoreFields)
+        copyValues(src = src, dest = dest, context = context, ignoreProperties = ignoreProperties)
         return context
     }
 
+    /**
+    /**
+     * @param ignoreProperties The names of the properties to ignore.
+    */
+     */
     fun <T : Serializable> copyValues(
         src: BaseDO<T>,
         dest: BaseDO<T>,
         context: CandHContext,
-        vararg ignoreFields: String
+        vararg ignoreProperties: String
     ) {
         if (!ClassUtils.isAssignable(src.javaClass, dest.javaClass)) {
             throw RuntimeException(
@@ -91,21 +99,21 @@ object CandHMaster {
             useSrc = (src as HibernateProxy).hibernateLazyInitializer
                 .implementation as BaseDO<*>
         }
-        copyDeclaredFields(
+        copyProperties(
             useSrc.javaClass.kotlin,
             src = src,
             dest = dest,
             context = context,
-            ignoreFields = ignoreFields,
+            ignoreProperties = ignoreProperties,
         )
     }
 
-    fun <IdType : Serializable> copyDeclaredFields(
+    private fun <IdType : Serializable> copyProperties(
         kClass: KClass<*>,
         src: BaseDO<IdType>,
         dest: BaseDO<IdType>,
         context: CandHContext,
-        vararg ignoreFields: String
+        vararg ignoreProperties: String
     ) {
         context.debugContext?.add(msg = "Processing class $kClass")
         kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
@@ -113,33 +121,34 @@ object CandHMaster {
                 log.debug { "Getter and/or setter of property $kClass.${property.name} has not visibility 'public', ignoring it." }
                 return@forEach
             }
+            @Suppress("UNCHECKED_CAST")
             property as KMutableProperty1<BaseDO<IdType>, Any?>
             val propertyName = property.name
-            if (ignoreFields.contains(propertyName)) {
-                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring field in list of ignoreFields.")
+            if (ignoreProperties.contains(propertyName)) {
+                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring property in list of ignoreProperties.")
                 return@forEach
             }
 
             if (!accept(property)) {
-                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring field, not accepted.")
+                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring property, not accepted.")
                 return@forEach
             }
             try {
-                val srcFieldValue = property.get(src)
-                val destFieldValue = property.get(dest)
-                val fieldContext = PropertyContext(
+                val srcValue = property.get(src)
+                val destValue = property.get(dest)
+                val propertyContext = PropertyContext(
                     kClass = kClass,
                     src = src,
                     dest = dest,
                     propertyName = propertyName,
                     property = property,
-                    srcPropertyValue = srcFieldValue,
-                    destPropertyValue = destFieldValue,
+                    srcPropertyValue = srcValue,
+                    destPropertyValue = destValue,
                 )
                 var processed = false
                 for (handler in registeredHandlers) {
                     if (handler.accept(property)) {
-                        if (handler.process(fieldContext, context = context)
+                        if (handler.process(propertyContext, context = context)
                         ) {
                             processed = true
                             break
@@ -147,7 +156,7 @@ object CandHMaster {
                     }
                 }
                 if (!processed) {
-                    log.error { "******** Oups, field $kClass.$propertyName not processed!" }
+                    log.error { "******** Oups, property $kClass.$propertyName not processed!" }
                 }
             } catch (ex: Exception) {
                 throw InternalError("Unexpected IllegalAccessException for property $kClass.$propertyName " + ex.message)
@@ -156,47 +165,48 @@ object CandHMaster {
     }
 
     /**
-     * Field was modified, so set the modification status to MAJOR or, if not historizable to MINOR
+     * Property was modified, so set the modification status to MAJOR or, if not historizable to MINOR
      *
      */
     internal fun <IdType : Serializable> setModificationStatusOnChange(
         context: CandHContext,
-        src: BaseDO<IdType>,
-        modifiedField: String
+        propertyContext: PropertyContext<IdType>,
     ) {
-        if (HistoryServiceUtils.get().isNoHistoryProperty(src.javaClass, modifiedField)) {
-            // This field is not historized, so no major update:
-            context.combine(EntityCopyStatus.MINOR)
-            return
+        propertyContext.apply {
+            if (HistoryServiceUtils.get().isNoHistoryProperty(src.javaClass, propertyName)) {
+                // This property is not historized, so no major update:
+                context.combine(EntityCopyStatus.MINOR)
+                return
+            }
+            if (context.currentCopyStatus == EntityCopyStatus.MAJOR || src !is AbstractHistorizableBaseDO<*> || src !is HibernateProxy) {
+                context.combine(EntityCopyStatus.MAJOR) // equals to context.currentCopyStatus=MAJOR.
+            }
+            context.combine(EntityCopyStatus.NONE)
         }
-        if (context.currentCopyStatus == EntityCopyStatus.MAJOR || src !is AbstractHistorizableBaseDO<*> || src !is HibernateProxy) {
-            context.combine(EntityCopyStatus.MAJOR) // equals to context.currentCopyStatus=MAJOR.
-        }
-        context.combine(EntityCopyStatus.NONE)
     }
 
     /**
-     * Returns whether to append the given `Field`.
+     * Returns whether to append the given `Property`.
      *
-     *  * Ignore transient fields
-     *  * Ignore static fields
-     *  * Ignore inner class fields
+     *  * Ignore transient properties
+     *  * Ignore static properties
+     *  * Ignore inner class properties
      *
      *
-     * @param member The Field to test.
-     * @return Whether to consider the given `Field`.
+     * @param property The property to test.
+     * @return Whether to consider the given `Property`.
      */
-    internal fun accept(member: KCallable<*>): Boolean {
-        if (member.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
-            // Reject field from inner class.
+    internal fun accept(property: KCallable<*>): Boolean {
+        if (property.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
+            // Reject properties from inner class.
             return false
         }
-        if (member is Member) {
-            if (Modifier.isTransient(member.modifiers)) {
+        if (property is Member) {
+            if (Modifier.isTransient(property.modifiers)) {
                 // transients.
                 return false
             }
-            if (Modifier.isStatic(member.modifiers)) {
+            if (Modifier.isStatic(property.modifiers)) {
                 // transients.
                 return false
             }
