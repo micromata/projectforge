@@ -66,15 +66,21 @@ class CandHTest : AbstractTestBase() {
         val debug = false // For user in debugging-mode
         val src = GroupDO()
         val dest = GroupDO()
-        copyValues(src, dest, EntityCopyStatus.NONE, debug)
+        copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
+            Assertions.assertEquals(0, context.historyContext!!.entries.size)
+        }
         dest.assignedUsers = mutableSetOf()
-        copyValues(src, dest, EntityCopyStatus.NONE, debug)
+        copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
+            Assertions.assertEquals(0, context.historyContext!!.entries.size)
+        }
 
         val user1 = createUser(1, "user1")
         val user2 = createUser(2, "user2")
         val user3 = createUser(3, "user3")
         dest.assignedUsers = mutableSetOf(user1, user2)
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, EntityCopyStatus.MAJOR, debug).let { context ->
+            Assertions.assertEquals(1, context.historyContext!!.entries.size)
+        }
         Assertions.assertNull(dest.assignedUsers)
 
         src.assignedUsers = mutableSetOf(user1, user2)
@@ -155,14 +161,15 @@ class CandHTest : AbstractTestBase() {
         dest: BaseDO<IdType>,
         expectedStatus: EntityCopyStatus,
         debug: Boolean,
-        createHistory: Boolean = false,
+        createHistory: Boolean = true,
     ): CandHContext {
-        var context = CandHContext(debug = debug, createHistory = createHistory)
-        CandHMaster.copyValues(src, dest, context)
-        Assertions.assertEquals(expectedStatus, context.currentCopyStatus)
-        context = CandHContext(debug = debug, createHistory = createHistory)
-        CandHMaster.copyValues(src, dest, context)
-        Assertions.assertEquals(EntityCopyStatus.NONE, context.currentCopyStatus)
-        return context
+        val resultContext = CandHContext(debug = debug, createHistory = createHistory)
+        CandHMaster.copyValues(src, dest, resultContext)
+        Assertions.assertEquals(expectedStatus, resultContext.currentCopyStatus)
+        CandHContext(debug = debug, createHistory = createHistory).let { context ->
+            CandHMaster.copyValues(src, dest, context)
+            Assertions.assertEquals(EntityCopyStatus.NONE, context.currentCopyStatus)
+        }
+        return resultContext
     }
 }

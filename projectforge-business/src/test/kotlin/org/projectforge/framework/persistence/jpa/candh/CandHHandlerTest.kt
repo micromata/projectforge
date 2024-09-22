@@ -104,7 +104,9 @@ class CandHHandlerTest {
         fieldValue1: Any, // first value for testing.
         fieldValue2: Any, // second value for testing (should be different to fieldValue1.‚
     ) {
+        @Suppress("UNCHECKED_CAST")
         val src = kClass.createInstance() as BaseDO<Long>
+        @Suppress("UNCHECKED_CAST")
         val dest = kClass.createInstance() as BaseDO<Long>
         processAndCheckContext(handler, kClass, fieldName, src, dest, null, null, false)
         processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, null, true)
