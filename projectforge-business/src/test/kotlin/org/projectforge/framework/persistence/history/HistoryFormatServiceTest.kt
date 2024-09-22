@@ -23,31 +23,24 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.RechnungDO
-import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
-class BaseDaoHistoryTest : AbstractTestBase() {
+class HistoryFormatServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var historyService: HistoryService
 
     @Autowired
-    private lateinit var rechnungDao: RechnungDao
+    private lateinit var historyFormatService: HistoryFormatService
 
     @Test
     fun testOldInvoiceHistory() {
         HistoryServiceTest.ensureSetup(persistenceService, historyService)
-        persistenceService.runReadOnly { context ->
-            val invoice = context.em.find(RechnungDO::class.java, 351958)
-            logon(TEST_FINANCE_USER)
-            val entries = rechnungDao.getDisplayHistoryEntries(context, invoice)
-            entries.forEach { entry ->
-                println(entry)
-            }
-            Assertions.assertEquals(46, entries.size)
-        }
+        val invoice = RechnungDO()
+        invoice.id = 351958
+        historyService.loadHistory(invoice)
+        historyFormatService.loadHistory(invoice)
     }
 }

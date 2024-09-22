@@ -125,16 +125,16 @@ class CandHHandlerTest {
         field.isAccessible = true
         field[src] = srcFieldValue
         field[dest] = destFieldValue
-        handler.process(
-            clazz,
+        val fieldContext = FieldContext(
+            srcClazz = clazz,
             src = src,
             dest = dest,
-            field = field,
             fieldName = fieldName,
+            field = field,
             srcFieldValue = srcFieldValue,
             destFieldValue = destFieldValue,
-            context = context,
         )
+        handler.process(fieldContext, context = context)
         Assertions.assertEquals(field[src], field[dest])
         val debugEntries = context.debugContext!!.entries
         if (modificationExpected) {
