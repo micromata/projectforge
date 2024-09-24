@@ -340,7 +340,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                     UIInput(
                                         "customemailsubject",
                                         required = false,
-                                        label = "email-subject-field",
+                                        label = "poll.email-subject-field",
                                         tooltip = "poll.email-subject-tooltip"
                                     )
                                 )
@@ -359,7 +359,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                                 .add(
                                     UITextArea (
                                         "customemailcontent",
-                                        label = "email-content-field",
+                                        label = "poll.email-content-field",
                                         tooltip = "poll.email-content-tooltip",
                                         rows = 12,
                                         maxRows = 60
