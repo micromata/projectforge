@@ -37,11 +37,12 @@ private val log = KotlinLogging.logger {}
 /**
  * A wrapper for EntityManager with some convenience methods. The EntityManager is created by the given entityManagerFactory.
  */
-class PfPersistenceContext(
+class PfPersistenceContext internal constructor(
     entityManagerFactory: EntityManagerFactory,
+    readonly: Boolean = false,
 ) : AutoCloseable {
     val em: EntityManager = entityManagerFactory.createEntityManager()
-/*
+
     private var threadLocalContextSet = false
 
     init {
@@ -56,7 +57,7 @@ class PfPersistenceContext(
         //    openEntityManagers.add(em)
         //    log.info { "Created EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
     }
-*/
+
     fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,
@@ -260,7 +261,7 @@ class PfPersistenceContext(
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
-        return EntityManagerUtil.executeNativeQueryUpdate(em, sql, keyValues = keyValues)
+        return EntityManagerUtil.executeNativeUpdate(em, sql, keyValues = keyValues)
     }
 
     /**
@@ -276,10 +277,10 @@ class PfPersistenceContext(
             //openEntityManagers.remove(em)
             //log.info { "Closed EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
         }
-/*        if (threadLocalContextSet) {
+        if (threadLocalContextSet) {
             ThreadLocalPersistenceContext.remove()
             threadLocalContextSet = false // Paranoia setting ;-)
-        }*/
+        }
     }
 
     /**
@@ -302,7 +303,7 @@ class PfPersistenceContext(
     //companion object {
     //    private val openEntityManagers = mutableSetOf<EntityManager>()
     //}
-/*
+
     internal object ThreadLocalPersistenceContext {
         private val threadLocal = ThreadLocal<PfPersistenceContext?>()
 
@@ -317,5 +318,5 @@ class PfPersistenceContext(
         fun remove() {
             threadLocal.remove()
         }
-    }*/
+    }
 }

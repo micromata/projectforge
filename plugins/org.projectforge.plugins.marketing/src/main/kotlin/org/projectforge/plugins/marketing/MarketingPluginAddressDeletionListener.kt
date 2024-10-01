@@ -34,10 +34,12 @@ private val log = KotlinLogging.logger {}
  */
 class MarketingPluginAddressDeletionListener(val addressCampaignDao: AddressCampaignDao) : AddressDeletionListener {
     override fun onDelete(address: AddressDO) {
-        val counter = addressCampaignDao.persistenceService.executeNamedUpdate(
-            AddressCampaignValueDO.DELETE_BY_ADDRESS,
-            Pair("addressId", address.id)
-        )
+        val counter = addressCampaignDao.persistenceService.runInTransaction { context ->
+            context.executeNamedUpdate(
+                AddressCampaignValueDO.DELETE_BY_ADDRESS,
+                Pair("addressId", address.id)
+            )
+        }
         if (counter > 0) {
             log.info("Removed #$counter address campaign value entries of deleted address: $address")
         }

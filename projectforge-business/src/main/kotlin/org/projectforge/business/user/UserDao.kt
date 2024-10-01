@@ -189,17 +189,21 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      * @param user the user
      */
     fun updateUserAfterLoginSuccess(user: PFUserDO) {
-        persistenceService.criteriaUpdate(PFUserDO::class.java) { cb, root, update ->
-            update.set(root.get("lastLogin"), Date())
-            update.set(root.get("loginFailures"), 0)
-            update.where(cb.equal(root.get<Long>("id"), user.id));
+        persistenceService.runInTransaction { context ->
+            context.criteriaUpdate(PFUserDO::class.java) { cb, root, update ->
+                update.set(root.get("lastLogin"), Date())
+                update.set(root.get("loginFailures"), 0)
+                update.where(cb.equal(root.get<Long>("id"), user.id));
+            }
         }
     }
 
     fun updateIncrementLoginFailure(username: String) {
-        persistenceService.criteriaUpdate(PFUserDO::class.java) { cb, root, update ->
-            update.set(root.get<Int>("loginFailures"), cb.sum(root.get("loginFailures"), 1))
-            update.where(cb.equal(root.get<String>("username"), username));
+        persistenceService.runInTransaction { context ->
+            context.criteriaUpdate(PFUserDO::class.java) { cb, root, update ->
+                update.set(root.get<Int>("loginFailures"), cb.sum(root.get("loginFailures"), 1))
+                update.where(cb.equal(root.get<String>("username"), username));
+            }
         }
     }
 
@@ -270,7 +274,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: PFUserDO, context: PfPersistenceContext): MutableList<DisplayHistoryEntry> {
+    override fun getDisplayHistoryEntries(
+        obj: PFUserDO,
+        context: PfPersistenceContext
+    ): MutableList<DisplayHistoryEntry> {
         val list = super.getDisplayHistoryEntries(obj, context)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list

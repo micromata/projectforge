@@ -65,11 +65,13 @@ class DataTransferAuditDao {
      * Set the notificationsSent=true for the given auditEntries.
      */
     internal fun removeFromQueue(auditEntries: Collection<DataTransferAuditDO>) {
-        auditEntries.chunked(50).forEach { subList ->
-            persistenceService.executeNamedUpdate(
-                DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS,
-                Pair("idList", subList.map { it.id })
-            )
+        persistenceService.runInTransaction { context ->
+            auditEntries.chunked(50).forEach { subList ->
+                context.executeNamedUpdate(
+                    DataTransferAuditDO.UPDATE_NOTIFICATION_STATUS,
+                    Pair("idList", subList.map { it.id })
+                )
+            }
         }
     }
 
@@ -138,10 +140,12 @@ class DataTransferAuditDao {
     }
 
     internal fun deleteOldEntries(beforeDate: PFDateTime): Int {
-        val deletedAuditEntries = persistenceService.executeNamedUpdate(
-            DataTransferAuditDO.DELETE_OLD_ENTRIES,
-            Pair("timestamp", beforeDate.utilDate),
-        )
+        val deletedAuditEntries = persistenceService.runReadOnly { context ->
+            context.executeNamedUpdate(
+                DataTransferAuditDO.DELETE_OLD_ENTRIES,
+                Pair("timestamp", beforeDate.utilDate),
+            )
+        }
         if (deletedAuditEntries > 0) {
             log.info { "$deletedAuditEntries outdated audit entries deleted (before ${beforeDate.isoStringSeconds})." }
         }

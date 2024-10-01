@@ -94,9 +94,9 @@ open class UserXmlPreferencesMigrationDao {
      * @param key Key of the entries to delete.
      */
     protected fun deleteOldKeys(key: String) {
-        val numberOfUpdatedEntries = persistenceService.executeUpdate(
-            "delete from " + UserXmlPreferencesDO::class.java.simpleName + " where key = '" + key + "'",
-        )
+        val numberOfUpdatedEntries = persistenceService.runInTransaction { context ->
+            context.executeUpdate("delete from ${UserXmlPreferencesDO::class.java.simpleName} where key = '$key'")
+        }
         log.info("$numberOfUpdatedEntries '$key' entries deleted.")
     }
 

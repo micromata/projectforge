@@ -93,10 +93,13 @@ class PersonalAddressDao {
      * @return the generated identifier.
      */
     fun saveOrUpdate(obj: PersonalAddressDO): Serializable? {
-        if (internalUpdateNewTrans(obj)) {
-            return obj.id
+        return persistenceService.runInTransaction { context ->
+            if (internalUpdate(obj, context)) {
+                obj.id
+            } else {
+                internalSave(obj, context)
+            }
         }
-        return internalSave(obj)
     }
 
     private fun checkAccess(obj: PersonalAddressDO, throwException: Boolean = true): Boolean {
@@ -138,7 +141,7 @@ class PersonalAddressDao {
         return abIdSet
     }
 
-    private fun internalSave(obj: PersonalAddressDO): Serializable? {
+    private fun internalSave(obj: PersonalAddressDO, context: PfPersistenceContext): Serializable? {
         if (isEmpty(obj)) {
             // No entry, so we do not need to save this entry.
             return null
@@ -146,7 +149,7 @@ class PersonalAddressDao {
         checkAccess(obj)
         obj.setCreated()
         obj.setLastUpdate()
-        persistenceService.insert(obj)
+        context.insert(obj)
         personalAddressCache!!.setAsExpired(obj.ownerId!!)
         log.info("New object added (${obj.id}): $obj")
         return obj.id
@@ -175,36 +178,34 @@ class PersonalAddressDao {
      * @param obj
      * @return true, if already existing entry was updated, otherwise false (e. g. if no entry exists for update).
      */
-    private fun internalUpdateNewTrans(obj: PersonalAddressDO): Boolean {
-        return persistenceService.runInTransaction { context ->
-            var dbObj: PersonalAddressDO? = null
-            if (obj.id != null) {
-                dbObj = context.selectById(
-                    PersonalAddressDO::class.java,
-                    obj.id,
-                    attached = true,
-                    lockModeType = LockModeType.PESSIMISTIC_WRITE,
-                )
-            }
-            if (dbObj == null) {
-                dbObj = getByAddressId(obj.addressId, requiredLoggedInUser, attached = true)
-            }
-            if (dbObj == null) {
-                return@runInTransaction false
-            }
-            checkAccess(dbObj)
-            Validate.isTrue(dbObj.addressId == obj.addressId)
-            obj.id = dbObj.id
-            // Copy all values of modified user to database object.
-            val modified = dbObj.copyValuesFrom(obj, "owner", "address", "id")
-            if (modified == EntityCopyStatus.MAJOR) {
-                dbObj.setLastUpdate()
-                context.update(dbObj)
-                personalAddressCache!!.setAsExpired(dbObj.ownerId!!)
-                log.info("Object updated: $dbObj")
-            }
-            true
+    private fun internalUpdate(obj: PersonalAddressDO, context: PfPersistenceContext): Boolean {
+        var dbObj: PersonalAddressDO? = null
+        if (obj.id != null) {
+            dbObj = context.selectById(
+                PersonalAddressDO::class.java,
+                obj.id,
+                attached = true,
+                lockModeType = LockModeType.PESSIMISTIC_WRITE,
+            )
         }
+        if (dbObj == null) {
+            dbObj = getByAddressId(obj.addressId, requiredLoggedInUser, attached = true)
+        }
+        if (dbObj == null) {
+            return false
+        }
+        checkAccess(dbObj)
+        Validate.isTrue(dbObj.addressId == obj.addressId)
+        obj.id = dbObj.id
+        // Copy all values of modified user to database object.
+        val modified = dbObj.copyValuesFrom(obj, "owner", "address", "id")
+        if (modified == EntityCopyStatus.MAJOR) {
+            dbObj.setLastUpdate()
+            context.update(dbObj)
+            personalAddressCache!!.setAsExpired(dbObj.ownerId!!)
+            log.info("Object updated: $dbObj")
+        }
+        return true
     }
 
 

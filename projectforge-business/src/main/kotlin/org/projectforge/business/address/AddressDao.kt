@@ -370,7 +370,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     override fun onDelete(obj: AddressDO, context: PfPersistenceContext) {
         personalAddressDao.internalDeleteAll(obj, context)
         teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj, context)
-        val counter = persistenceService.executeNamedUpdate(
+        val counter = context.executeNamedUpdate(
             AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
             Pair("addressId", obj.id)
         )
