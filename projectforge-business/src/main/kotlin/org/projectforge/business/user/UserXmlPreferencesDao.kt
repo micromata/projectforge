@@ -36,7 +36,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.GZIPHelper
@@ -152,10 +152,10 @@ class UserXmlPreferencesDao {
      * @param userId
      */
     fun checkAccess(userId: Long) {
-        Validate.notNull(userId)
-        val user = user
-        if (userId != user!!.id) {
-            accessChecker!!.checkIsLoggedInUserMemberOfAdminGroup()
+        requireNotNull(userId)
+        val user = requiredLoggedInUser
+        if (userId != user.id) {
+            accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         }
     }
 
@@ -180,11 +180,10 @@ class UserXmlPreferencesDao {
                 xml = uncompressed
             }
             val sourceClassName = getSourceClassName(xml)
-            var value: Any? = null
             if (log.isDebugEnabled) {
                 log.debug("UserId: $userId Object to deserialize: $xml")
             }
-            value = fromXml(xstream, xml)
+            val value = fromXml(xstream, xml)
             return value
         } catch (ex: Throwable) {
             if (logError) {
@@ -263,7 +262,7 @@ class UserXmlPreferencesDao {
             isNew = true
             userPrefs = UserXmlPreferencesDO()
             userPrefs.created = date
-            userPrefs.user = userDao!!.internalGetById(userId)
+            userPrefs.user = userDao.internalGetById(userId)
             userPrefs.key = key
         }
         val xml = serialize(userPrefs, entry)
@@ -273,16 +272,16 @@ class UserXmlPreferencesDao {
         userPrefs.lastUpdate = date
         userPrefs.setVersion()
         val userPrefsForDB: UserXmlPreferencesDO = userPrefs
-        if (isNew) {
-            if (log.isDebugEnabled) {
-                log.debug("Storing new user preference for user '$userId': $xml")
-            }
-            persistenceService.insert(userPrefsForDB)
-        } else {
-            if (log.isDebugEnabled) {
-                log.debug("Updating user preference for user '" + userPrefs.userId + "': " + xml)
-            }
-            persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { context ->
+            if (isNew) {
+                if (log.isDebugEnabled) {
+                    log.debug("Storing new user preference for user '$userId': $xml")
+                }
+                context.insert(userPrefsForDB)
+            } else {
+                if (log.isDebugEnabled) {
+                    log.debug("Updating user preference for user '" + userPrefs.userId + "': " + xml)
+                }
                 context.selectById(
                     UserXmlPreferencesDO::class.java,
                     userPrefsForDB.id,
@@ -299,13 +298,15 @@ class UserXmlPreferencesDao {
     }
 
     fun remove(userId: Long, key: String?) {
-        if (accessChecker!!.isDemoUser(userId)) {
+        if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return
         }
         val userPreferencesDO = getUserPreferencesByUserId(userId, key, true)
         userPreferencesDO?.id?.let { id ->
-            persistenceService.delete(UserXmlPreferencesDO::class.java, id)
+            persistenceService.runInTransaction { context ->
+                context.delete(UserXmlPreferencesDO::class.java, id)
+            }
         }
     }
 }

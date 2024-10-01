@@ -54,28 +54,16 @@ open class PfPersistenceService {
         HibernateUtils.internalInit(entityManagerFactory)
     }
 
-    /**
-     * @param readonly If true, no transaction is used.
-     */
     open fun <T> runInTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
-        return runInTransaction(readonly = false) { run(it) }
-    }
-    
-    /**
-     * @param readonly If true, no transaction is used.
-     */
-    open fun <T> runInTransaction(
-        readonly: Boolean = false, run: (context: PfPersistenceContext) -> T
-    ): T {
-        return EntityManagerUtil.runInTransaction(entityManagerFactory, readonly, run)
+        return EntityManagerUtil.runInTransaction(entityManagerFactory, run)
     }
 
     open fun <T> runReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
-        return runInTransaction(true, block)
+        return EntityManagerUtil.runReadonly(entityManagerFactory, block)
     }
 
     /**
@@ -205,41 +193,6 @@ open class PfPersistenceService {
         )
     }
 
-    open fun insert(dbObj: Any) {
-        EntityManagerUtil.insert(entityManagerFactory, dbObj)
-    }
-
-    /**
-     * Calls Query(sql, params).executeUpdate()
-     */
-    open fun executeUpdate(
-        sql: String,
-        vararg keyValues: Pair<String, Any?>,
-        namedQuery: Boolean = false,
-    ): Int {
-        return EntityManagerUtil.executeUpdate(entityManagerFactory, sql, *keyValues, namedQuery = namedQuery)
-    }
-
-    /**
-     * Convenience call for executeUpdate() with namedQuery = true.
-     */
-    open fun executeNamedUpdate(
-        sql: String,
-        vararg keyValues: Pair<String, Any?>,
-    ): Int {
-        return executeUpdate(sql, *keyValues, namedQuery = true)
-    }
-
-    /**
-     * Calls Query(sql, params).executeUpdate()
-     */
-    open fun executeNativeQueryUpdate(
-        sql: String,
-        vararg keyValues: Pair<String, Any?>,
-    ): Int {
-        return EntityManagerUtil.executeNativeQueryUpdate(entityManagerFactory, sql, *keyValues)
-    }
-
     /**
      * Calls Query(sql, params).executeUpdate()
      */
@@ -248,20 +201,6 @@ open class PfPersistenceService {
         vararg keyValues: Pair<String, Any?>,
     ): List<*> {
         return EntityManagerUtil.executeNativeQuery(entityManagerFactory, sql, *keyValues)
-    }
-
-    open fun delete(dbObj: Any) {
-        EntityManagerUtil.delete(entityManagerFactory, dbObj)
-    }
-
-    open fun <T> delete(entityClass: Class<T>, id: Any) {
-        EntityManagerUtil.delete(entityManagerFactory, entityClass, id)
-    }
-
-    open fun <T> criteriaUpdate(
-        entityClass: Class<T>, update: (cb: CriteriaBuilder, root: Root<T>, criteriaUpdate: CriteriaUpdate<T>) -> Unit
-    ) {
-        EntityManagerUtil.criteriaUpdate(entityManagerFactory, entityClass, update)
     }
 
     open fun <T> getReference(

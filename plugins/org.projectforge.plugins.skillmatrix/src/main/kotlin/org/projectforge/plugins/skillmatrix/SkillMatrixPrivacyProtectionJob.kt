@@ -63,10 +63,11 @@ class SkillMatrixPrivacyProtectionJob : IPrivacyProtectionJob {
             if (user.deactivated || user.deleted) {
                 val lastUpdate = user.lastUpdate
                 if (lastUpdate != null && lastUpdate < date.utilDate) {
-                    val counter = persistenceService.executeNamedUpdate(
-                        SkillEntryDO.DELETE_ALL_OF_USER,
-                        Pair("userId", user.id)
-                    )
+                    val counter = persistenceService.runInTransaction { context ->
+                        context.executeNamedUpdate(
+                            SkillEntryDO.DELETE_ALL_OF_USER, Pair("userId", user.id)
+                        )
+                    }
                     if (counter > 0) {
                         log.info { "Deleted $counter entries of the skill matrix of user '${user.username}' with id ${user.id}." }
                     }

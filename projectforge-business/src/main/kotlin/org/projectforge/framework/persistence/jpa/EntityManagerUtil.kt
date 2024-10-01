@@ -31,7 +31,6 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.NonUniqueResultException
 import org.hibernate.Session
-import org.hibernate.Transaction
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
 
@@ -44,25 +43,32 @@ internal object EntityManagerUtil {
     // private val openedTransactions = mutableSetOf<EntityTransaction>()
 
     /**
-     * @param readonly If true, no transaction is used.
      */
     fun <T> runInTransaction(
         entityManagerFactory: EntityManagerFactory,
-        readonly: Boolean = false,
         run: (context: PfPersistenceContext) -> T
     ): T {
         return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context, readonly = readonly) {
+            runInTransaction(context) {
                 run(context)
             }
         }
     }
 
+    /**
+     * Without transaction and marks session as readonly.
+     */
     fun <T> runReadonly(
         entityManagerFactory: EntityManagerFactory,
-        block: (context: PfPersistenceContext) -> T
+        run: (context: PfPersistenceContext) -> T
     ): T {
-        return runInTransaction(entityManagerFactory, true, block)
+        PfPersistenceContext(entityManagerFactory, readonly = true).use { context ->
+            val em = context.em
+            // log.info { "Running read only" }
+            em.unwrap(Session::class.java).isDefaultReadOnly = true
+            // No transaction in readonly mode.
+            return run(context)
+        }
     }
 
     fun <T> selectById(
@@ -113,8 +119,8 @@ internal object EntityManagerUtil {
         attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            return selectSingleResult(
+        return runReadonly(entityManagerFactory) { context ->
+            selectSingleResult(
                 context.em,
                 sql = sql,
                 resultClass = resultClass,
@@ -175,8 +181,8 @@ internal object EntityManagerUtil {
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
     ): List<T?> {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            return queryNullable(
+        return runReadonly(entityManagerFactory) { context ->
+            queryNullable(
                 context.em,
                 sql = sql,
                 resultClass = resultClass,
@@ -227,8 +233,8 @@ internal object EntityManagerUtil {
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
     ): List<T> {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            return query(
+        return runReadonly(entityManagerFactory) { context ->
+            query(
                 context.em,
                 sql = sql,
                 resultClass = resultClass,
@@ -297,8 +303,8 @@ internal object EntityManagerUtil {
         entityManagerFactory: EntityManagerFactory,
         dbObj: Any,
     ) {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+        return runInTransaction(entityManagerFactory) { context ->
+            runInTransaction(context) {
                 insert(context.em, dbObj)
             }
         }
@@ -322,7 +328,7 @@ internal object EntityManagerUtil {
         dbObj: Any,
     ) {
         PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 update(context.em, dbObj)
             }
         }
@@ -343,7 +349,7 @@ internal object EntityManagerUtil {
         dbObj: Any,
     ) {
         PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 delete(context.em, dbObj)
             }
         }
@@ -362,7 +368,7 @@ internal object EntityManagerUtil {
         id: Any,
     ) {
         PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 delete(context.em, entityClass, id)
             }
         }
@@ -384,7 +390,7 @@ internal object EntityManagerUtil {
         update: (cb: CriteriaBuilder, root: Root<T>, update: CriteriaUpdate<T>) -> Unit
     ) {
         PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 criteriaUpdate(context.em, entityClass, update)
             }
         }
@@ -413,7 +419,7 @@ internal object EntityManagerUtil {
         namedQuery: Boolean = false,
     ): Int {
         return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 executeUpdate(context.em, sql, *keyValues, namedQuery = namedQuery)
             }
         }
@@ -442,14 +448,14 @@ internal object EntityManagerUtil {
     /**
      * Calls Query(sql, params).executeUpdate()
      */
-    fun executeNativeQueryUpdate(
+    fun executeNativeUpdate(
         entityManagerFactory: EntityManagerFactory,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
         return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
-                executeNativeQueryUpdate(context.em, sql, *keyValues)
+            runInTransaction(context) {
+                executeNativeUpdate(context.em, sql, *keyValues)
             }
         }
     }
@@ -457,7 +463,7 @@ internal object EntityManagerUtil {
     /**
      * Calls Query(sql, params).executeUpdate()
      */
-    fun executeNativeQueryUpdate(
+    fun executeNativeUpdate(
         em: EntityManager,
         sql: String,
         vararg keyValues: Pair<String, Any?>,
@@ -478,7 +484,7 @@ internal object EntityManagerUtil {
         vararg keyValues: Pair<String, Any?>,
     ): List<*> {
         return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 executeNativeQuery(context.em, sql, *keyValues)
             }
         }
@@ -505,7 +511,7 @@ internal object EntityManagerUtil {
         id: Any
     ): T {
         return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransactionIfNotReadonly(context) {
+            runInTransaction(context) {
                 context.em.getReference(entityClass, id)
             }
         }
@@ -513,36 +519,27 @@ internal object EntityManagerUtil {
 
     /**
      * Encapsulates the run statement in a transaction begin and commit. Rollback on error.
-     * @param readonly If true, the session will set as readonly and only the run statement will be executed.
      */
-    private fun <T> runInTransactionIfNotReadonly(
+    private fun <T> runInTransaction(
         context: PfPersistenceContext,
-        readonly: Boolean = false,
         execute: (context: PfPersistenceContext) -> T,
     ): T {
         val em = context.em
-        if (readonly) {
-            // log.info { "Running read only" }
-            em.unwrap(Session::class.java).isDefaultReadOnly = true
-            // No transaction in readonly mode.
-            return execute(context)
-        } else {
-            em.transaction.begin()
-            // openedTransactions.add(em.transaction)
-            //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
-            try {
-                val ret = execute(context)
-                em.transaction.commit()
-                //openedTransactions.remove(em.transaction)
-                //log.info { "Commit transaction ${em.transaction}..." }
-                return ret
-            } catch (ex: Exception) {
-                em.transaction.rollback()
-                //openedTransactions.remove(em.transaction)
-                //log.info { "Rollback transaction ${em.transaction}..." }
-                log.error(ex.message, ex)
-                throw ex
-            }
+        em.transaction.begin()
+        // openedTransactions.add(em.transaction)
+        //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
+        try {
+            val ret = execute(context)
+            em.transaction.commit()
+            //openedTransactions.remove(em.transaction)
+            //log.info { "Commit transaction ${em.transaction}..." }
+            return ret
+        } catch (ex: Exception) {
+            em.transaction.rollback()
+            //openedTransactions.remove(em.transaction)
+            //log.info { "Rollback transaction ${em.transaction}..." }
+            log.error(ex.message, ex)
+            throw ex
         }
     }
 
