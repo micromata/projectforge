@@ -50,6 +50,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.json.*;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
@@ -196,16 +197,16 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     @Override
-    public List<UserPrefDO> getList(final BaseSearchFilter filter) {
+    public List<UserPrefDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
         final UserPrefFilter myFilter = (UserPrefFilter) filter;
         final QueryFilter queryFilter = new QueryFilter(filter);
         if (myFilter.getArea() != null) {
             queryFilter.add(QueryFilter.eq("area", myFilter.getArea().getId()));
         }
-        queryFilter.add(QueryFilter.eq("user.id", ThreadLocalUserContext.getUserId()));
+        queryFilter.add(QueryFilter.eq("user.id", ThreadLocalUserContext.getRequiredLoggedInUser()));
         queryFilter.addOrder(SortProperty.asc("area"));
         queryFilter.addOrder(SortProperty.asc("name"));
-        return getList(queryFilter);
+        return getList(queryFilter, context);
     }
 
     /**
@@ -214,7 +215,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     @Deprecated
     public UserPrefDO getUserPref(final UserPrefArea area, final String name) {
         final Long userId = ThreadLocalUserContext.getUserId();
-        return internalQuery(userId, area.getId(), name);
+        return persistenceService.runReadOnly((context) -> internalQuery(userId, area.getId(), name, context));
     }
 
     /**
@@ -485,8 +486,8 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     @Override
-    public UserPrefDO internalGetById(final Serializable id) {
-        final UserPrefDO userPref = super.internalGetById(id);
+    public UserPrefDO internalGetById(final Serializable id, final PfPersistenceContext context) {
+        final UserPrefDO userPref = super.internalGetById(id, context);
         if (userPref == null) {
             return null;
         }
@@ -531,7 +532,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     @Override
-    public void onSaveOrModify(UserPrefDO obj) {
+    public void onSaveOrModify(UserPrefDO obj, final PfPersistenceContext context) {
         if (obj.getValueObject() == null) {
             obj.setValueString(null);
             obj.setValueTypeString(null);
@@ -548,17 +549,17 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
      * @param area   Must be not blank.
      * @param name   Optional, may-be null.
      */
-    public UserPrefDO internalQuery(Long userId, String area, String name) {
+    public UserPrefDO internalQuery(Long userId, String area, String name, final PfPersistenceContext context) {
         Validate.notNull(userId);
         Validate.notBlank(area);
         if (name == null) {
-            return persistenceService.selectNamedSingleResult(
+            return context.selectNamedSingleResult(
                     UserPrefDO.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME,
                     UserPrefDO.class,
                     new Pair<>("userId", userId),
                     new Pair<>("area", area));
         } else {
-            return persistenceService.selectNamedSingleResult(
+            return context.selectNamedSingleResult(
                     UserPrefDO.FIND_BY_USER_AND_AREA_AND_NAME,
                     UserPrefDO.class,
                     new Pair<>("userId", userId),
@@ -572,16 +573,16 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
      * The id of the given obj is ignored.
      */
     @Override
-    public Serializable internalSaveOrUpdate(UserPrefDO obj) {
+    public Serializable internalSaveOrUpdate(UserPrefDO obj, final PfPersistenceContext context) {
         if (obj.getUser() == null) {
             log.warn("User of UserPrefDO is null (can't save it): " + obj);
             return null;
         }
         synchronized (this) { // Avoid parallel insert, update, delete operations.
-            final UserPrefDO dbUserPref = (UserPrefDO) internalQuery(obj.getUser().getId(), obj.getArea(), obj.getName());
+            final UserPrefDO dbUserPref = (UserPrefDO) internalQuery(obj.getUser().getId(), obj.getArea(), obj.getName(), context);
             if (dbUserPref == null) {
                 obj.setId(null); // Add new entry (ignore id of any previous existing entry).
-                return super.internalSaveOrUpdate(obj);
+                return super.internalSaveOrUpdate(obj, context);
             } else {
                 obj.setId(dbUserPref.getId());
                 dbUserPref.setValueObject(obj.getValueObject());
@@ -619,7 +620,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
                         }
                     }
                 }
-                super.internalUpdate(dbUserPref);
+                super.internalUpdate(dbUserPref, context);
                 obj.setId(dbUserPref.getId());
                 return obj.getId();
             }
@@ -627,15 +628,15 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     /**
-     * Only for synchronization with {@link #internalSaveOrUpdate(UserPrefDO)}.
+     * Only for synchronization with {@link #internalSaveOrUpdateNewTrans(UserPrefDO)}.
      *
      * @param obj
      * @throws AccessException
      */
     @Override
-    public void delete(UserPrefDO obj) throws AccessException {
+    public void delete(UserPrefDO obj, final PfPersistenceContext context) throws AccessException {
         synchronized (this) {
-            super.delete(obj);
+            super.delete(obj, context);
         }
     }
 

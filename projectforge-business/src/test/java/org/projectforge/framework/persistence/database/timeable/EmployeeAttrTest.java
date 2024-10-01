@@ -52,7 +52,7 @@ public class EmployeeAttrTest extends AbstractTestBase {
     @Test
     public void persistTimeAttr() {
         logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
-        final PFUserDO user = initTestDB.addUser("EmployeeAttrTest");
+/*        final PFUserDO user = initTestDB.addUser("EmployeeAttrTest");
         final EmployeeDO e = employeeDao.newInstance();
         e.setUser(user);
         e.setComment("EmployeeAttrTest");

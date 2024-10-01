@@ -24,7 +24,6 @@
 package org.projectforge.web.teamcal.dialog;
 
 import org.apache.wicket.injection.Injector;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;

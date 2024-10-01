@@ -41,7 +41,6 @@ import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
 import org.apache.wicket.markup.repeater.util.ModelIteratorAdapter;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.gantt.*;
 import org.projectforge.business.task.TaskDO;
@@ -505,7 +504,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
                 final TaskDO rootTask = form.getData().getTask();
                 if (rootTask != null && task != null) {
                   task.setParentTask(rootTask);
-                  taskDao.update(task);
+                  taskDao.updateNewTrans(task);
                 }
               } else {
                 // Move as a child of this Gantt activity:
@@ -513,7 +512,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
                 final TaskDO parentTask = taskDao.getTaskTree().getTaskById((Long) ganttObject.getId());
                 if (parentTask != null && task != null) {
                   task.setParentTask(parentTask);
-                  taskDao.update(task);
+                  taskDao.updateNewTrans(task);
                 }
                 getOpenNodes().add(ganttObject.getId());
               }
@@ -581,7 +580,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
                 }
               }
               final Set<Serializable> openNodes = getOpenNodes();
-              final Serializable id = WicketSupport.getTaskDao().save(task);
+              final Serializable id = WicketSupport.getTaskDao().saveNewTrans(task);
               openNodes.remove(ganttObject.getId());
               ganttObject.setId(id);
               openNodes.add(id);
@@ -726,7 +725,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setTitle(ganttObject.getTitle());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -754,7 +753,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setStartDate(ganttObject.getStartDate());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -783,7 +782,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setDuration(ganttObject.getDuration());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -811,7 +810,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setEndDate(ganttObject.getEndDate());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -846,7 +845,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setProgress(ganttObject.getProgress());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -924,7 +923,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       {
         TaskDao taskDao = WicketSupport.getTaskDao();
         taskDao.setGanttPredecessor(task, (Long) ganttObject.getPredecessorId());
-        taskDao.update(task);
+        taskDao.updateNewTrans(task);
       }
 
       @Override
@@ -953,7 +952,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setGanttPredecessorOffset(ganttObject.getPredecessorOffset());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -991,7 +990,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setGanttRelationType(ganttObject.getRelationType());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override
@@ -1027,7 +1026,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       protected void onSave()
       {
         task.setGanttObjectType(ganttObject.getType());
-        WicketSupport.getTaskDao().update(task);
+        WicketSupport.getTaskDao().updateNewTrans(task);
       }
 
       @Override

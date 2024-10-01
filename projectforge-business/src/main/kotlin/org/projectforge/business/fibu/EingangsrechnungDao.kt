@@ -97,7 +97,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onSaveOrModify(rechnung: EingangsrechnungDO) {
+    override fun onSaveOrModify(rechnung: EingangsrechnungDO, context: PfPersistenceContext) {
         AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung)
 
         if (rechnung.zahlBetrag != null) {
@@ -120,7 +120,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         RechnungDao.writeUiStatusToXml(rechnung)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<EingangsrechnungDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<EingangsrechnungDO> {
         val myFilter = if (filter is EingangsrechnungListFilter) {
             filter
         } else {
@@ -136,7 +136,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("kreditor"))
 
-        val list = getList(queryFilter)
+        val list = getList(queryFilter, context)
         if (myFilter.isShowAll || myFilter.isDeleted) {
             return list
         }
@@ -167,14 +167,14 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: EingangsrechnungDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(context, obj)
+    override fun getDisplayHistoryEntries(obj: EingangsrechnungDO, context: PfPersistenceContext): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, context)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.positionen)) {
             for (position in obj.positionen!!) {
-                val entries = internalGetDisplayHistoryEntries(position)
+                val entries = internalGetDisplayHistoryEntries(position, context)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -187,7 +187,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                 list.addAll(entries)
                 if (CollectionUtils.isNotEmpty(position.kostZuweisungen)) {
                     for (zuweisung in position.kostZuweisungen!!) {
-                        val kostEntries = internalGetDisplayHistoryEntries(zuweisung)
+                        val kostEntries = internalGetDisplayHistoryEntries(zuweisung, context)
                         for (entry in kostEntries) {
                             val propertyName = entry.propertyName
                             if (propertyName != null) {
@@ -216,7 +216,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.contains
      */
-    fun contains(idSet: Set<Long?>, entry: EingangsrechnungDO): Boolean {
+    fun contains(idSet: Set<Long>, entry: EingangsrechnungDO): Boolean {
         if (super.contains(idSet, entry)) {
             return true
         }

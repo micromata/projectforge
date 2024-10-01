@@ -25,70 +25,76 @@ package org.projectforge.business.timesheet
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import java.io.Serializable
 import java.time.Month
 
 class TimesheetReferenceListTest : AbstractTestBase() {
-  @Autowired
-  private lateinit var timesheetDao: TimesheetDao
+    @Autowired
+    private lateinit var timesheetDao: TimesheetDao
 
-  @Test
-  fun testTimesheetReferenceLists() {
-    logon(ADMIN)
-    initTestDB.addUser(user)
-    initTestDB.addTask(prefix, "root")
-    initTestDB.addTask("$prefix.1", prefix)
-    initTestDB.addTask("$prefix.1.1", "$prefix.1")
-    initTestDB.addTask("$prefix.1.1.1", "$prefix.1.1")
-    initTestDB.addTask("$prefix.1.1.2", "$prefix.1.1")
-    initTestDB.addTask("$prefix.1.2", "$prefix.1")
-    initTestDB.addTask("$prefix.2", prefix)
+    @Test
+    fun testTimesheetReferenceLists() {
+        logon(ADMIN)
+        persistenceService.runInTransaction { context ->
+            initTestDB.addUser(user, context)
+            initTestDB.addTask(prefix, "root", context)
+            initTestDB.addTask("$prefix.1", prefix, context)
+            initTestDB.addTask("$prefix.1.1", "$prefix.1", context)
+            initTestDB.addTask("$prefix.1.1.1", "$prefix.1.1", context)
+            initTestDB.addTask("$prefix.1.1.2", "$prefix.1.1", context)
+            initTestDB.addTask("$prefix.1.2", "$prefix.1", context)
+            initTestDB.addTask("$prefix.2", prefix, context)
+        }
 
-    Assertions.assertEquals(0, timesheetDao.getUsedReferences(getTaskId("1")).size)
+        Assertions.assertEquals(0, timesheetDao.getUsedReferences(getTaskId("1")).size)
 
-    var day = 1
-    createTimesheet("1", day++, "Reference 1")
-    createTimesheet("1", day++, "Reference 1")
+        var day = 1
+        persistenceService.runInTransaction { context ->
+            createTimesheet("1", day++, "Reference 1", context)
+            createTimesheet("1", day++, "Reference 1", context)
+        }
+        Assertions.assertEquals(1, timesheetDao.getUsedReferences(getTaskId("1")).size)
 
-    Assertions.assertEquals(1, timesheetDao.getUsedReferences(getTaskId("1")).size)
+        persistenceService.runInTransaction { context ->
+            createTimesheet("1", day++, "Reference 1a", context)
+            createTimesheet("1", day++, "Reference 1b", context)
+            createTimesheet("1.1", day++, "Reference 1.1a", context)
+            createTimesheet("1.1", day++, "Reference 1.1b", context)
+            createTimesheet("1.2", day++, "Reference 1.2a", context)
+            createTimesheet("1.2", day, "Reference 1.2b", context)
+        }
 
-    createTimesheet("1", day++, "Reference 1a")
-    createTimesheet("1", day++, "Reference 1b")
-    createTimesheet("1.1", day++, "Reference 1.1a")
-    createTimesheet("1.1", day++, "Reference 1.1b")
-    createTimesheet("1.2", day++, "Reference 1.2a")
-    createTimesheet("1.2", day, "Reference 1.2b")
+        //println(timesheetDao.getUsedReferences(getTaskId("1.1")).joinToString { it })
+        Assertions.assertEquals(7, timesheetDao.getUsedReferences(getTaskId("1")).size)
+        Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1")).size)
+        Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1.1")).size)
+    }
 
-    //println(timesheetDao.getUsedReferences(getTaskId("1.1")).joinToString { it })
-    Assertions.assertEquals(7, timesheetDao.getUsedReferences(getTaskId("1")).size)
-    Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1")).size)
-    Assertions.assertEquals(5, timesheetDao.getUsedReferences(getTaskId("1.1.1")).size)
-  }
+    private fun getTaskId(name: String): Long {
+        return initTestDB.getTask("$prefix.$name")!!.id!!
+    }
 
-  private fun getTaskId(name: String): Long {
-    return initTestDB.getTask("$prefix.$name").id!!
-  }
+    private fun createTimesheet(
+        taskName: String,
+        day: Int,
+        reference: String,
+        context: PfPersistenceContext,
+    ) {
+        val ts = TimesheetDO()
+        ts.startTime = withDate(2021, Month.MARCH, day, 8, 0, 0).utilDate
+        ts.stopTime = withDate(2021, Month.MARCH, day, 9, 0, 0).utilDate
+        ts.task = initTestDB.getTask("$prefix.$taskName")
+        Assertions.assertNotNull(ts.task, "Task $prefix.$taskName not found.")
+        ts.user = getUser(user)
+        ts.reference = reference
+        timesheetDao.internalSave(ts, context)
+    }
 
-  private fun createTimesheet(
-    taskName: String,
-    day: Int,
-    reference: String
-  ) {
-    val ts = TimesheetDO()
-    ts.startTime = withDate(2021, Month.MARCH, day, 8, 0, 0).utilDate
-    ts.stopTime = withDate(2021, Month.MARCH, day, 9, 0, 0).utilDate
-    ts.task = initTestDB.getTask("$prefix.$taskName")
-    Assertions.assertNotNull(ts.task, "Task $prefix.$taskName not found.")
-    ts.user = getUser(user)
-    ts.reference = reference
-    timesheetDao.internalSave(ts)
-  }
-
-  companion object {
-    const val prefix = "trt"
-    const val user = "$prefix-user"
-  }
+    companion object {
+        const val prefix = "trt"
+        const val user = "$prefix-user"
+    }
 }

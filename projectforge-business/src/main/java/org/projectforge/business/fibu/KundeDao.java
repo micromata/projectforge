@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
 
@@ -46,10 +47,10 @@ public class KundeDao extends BaseDao<KundeDO> {
     }
 
     @Override
-    public List<KundeDO> getList(final BaseSearchFilter filter) {
+    public List<KundeDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
         final QueryFilter queryFilter = new QueryFilter(filter);
         queryFilter.addOrder(SortProperty.asc("nummer"));
-        return getList(queryFilter);
+        return getList(queryFilter, context);
     }
 
     /**
@@ -106,7 +107,7 @@ public class KundeDao extends BaseDao<KundeDO> {
     }
 
     @Override
-    public void onSave(KundeDO obj) {
+    public void onSave(KundeDO obj, final PfPersistenceContext context) {
         if (doesNumberAlreadyExist(obj)) {
             obj.setCreated(null);
             throw new UserException("fibu.kunde.validation.existingCustomerNr");

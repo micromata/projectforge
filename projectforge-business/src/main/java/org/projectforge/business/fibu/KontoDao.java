@@ -24,9 +24,11 @@
 package org.projectforge.business.fibu;
 
 import kotlin.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +37,7 @@ public class KontoDao extends BaseDao<KontoDO> {
     public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_ACCOUNTS;
 
     @Autowired
-    KontoCache kontoCache;
+    private KontoCache kontoCache;
 
     public KontoDao() {
         super(KontoDO.class);
@@ -43,21 +45,26 @@ public class KontoDao extends BaseDao<KontoDO> {
     }
 
     @Override
-    public void afterSaveOrModify(final KontoDO obj) {
+    public void afterSaveOrModify(@NotNull final KontoDO obj, @NotNull final PfPersistenceContext context) {
         getKontoCache().refresh();
     }
 
-    @SuppressWarnings("unchecked")
     public KontoDO getKonto(final Integer kontonummer) {
+        return persistenceService.runReadOnly(context -> getKonto(kontonummer, context));
+    }
+
+        @SuppressWarnings("unchecked")
+    public KontoDO getKonto(final Integer kontonummer, final PfPersistenceContext context) {
         if (kontonummer == null) {
             return null;
         }
-        return persistenceService.selectNamedSingleResult(
+        return context.selectNamedSingleResult(
                 KontoDO.FIND_BY_NUMMER,
                 KontoDO.class,
                 new Pair<>("nummer", kontonummer));
     }
 
+    @NotNull
     @Override
     public KontoDO newInstance() {
         return new KontoDO();
@@ -71,9 +78,9 @@ public class KontoDao extends BaseDao<KontoDO> {
     }
 
     @Override
-    public void onSaveOrModify(final KontoDO obj) {
+    public void onSaveOrModify(final KontoDO obj, @NotNull final PfPersistenceContext context) {
         if (obj.getNummer() != null && obj.getNummer() > 0) {
-            KontoDO existingAccount = getKonto(obj.getNummer());
+            KontoDO existingAccount = getKonto(obj.getNummer(), context);
             //Insert case
             if (existingAccount != null && (obj.getId() == null || !obj.getId().equals(existingAccount.getId()))) {
                 throw new UserException("fibu.konto.validate.duplicate");

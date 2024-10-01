@@ -56,10 +56,10 @@ class BaseDOTest : AbstractTestBase() {
     Assertions.assertEquals(EntityCopyStatus.MAJOR, contractA.copyValuesFrom(contractB))
 
     logon(TEST_FINANCE_USER)
-    contractDao.save(contractA)
-    Assertions.assertEquals(EntityCopyStatus.NONE, contractDao.update(contractA))
+    contractDao.saveNewTrans(contractA)
+    Assertions.assertEquals(EntityCopyStatus.NONE, contractDao.updateNewTrans(contractA))
     contractA.title = "Something new"
-    Assertions.assertEquals(EntityCopyStatus.MAJOR, contractDao.update(contractA))
+    Assertions.assertEquals(EntityCopyStatus.MAJOR, contractDao.updateNewTrans(contractA))
 
     val invoice = EingangsrechnungDO()
     invoice.datum = LocalDate.of(2022, Month.FEBRUARY, 17)
@@ -86,7 +86,7 @@ class BaseDOTest : AbstractTestBase() {
     pos.eingangsrechnung = invoice
     invoice.ensureAndGetPositionen()
     invoice.positionen!!.add(pos)
-    eingangsrechnungDao.save(invoice)
+    eingangsrechnungDao.saveNewTrans(invoice)
     // Doesn't work due to zahlungsZiel: Assertions.assertEquals(ModificationStatus.NONE, eingangsrechnungDao.update(invoice))
   }
 }

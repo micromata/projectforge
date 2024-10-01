@@ -186,7 +186,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
       massUpdateContext.commitUpdate(
         identifier4Message = "${invoice.datum} ${invoice.kreditor}-${invoice.referenz}",
         invoice,
-        update = { eingangsrechnungDao.update(invoice) },
+        update = { eingangsrechnungDao.updateNewTrans(invoice) },
       )
     }
     return null

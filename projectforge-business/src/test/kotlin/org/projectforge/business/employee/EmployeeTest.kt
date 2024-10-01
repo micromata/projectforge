@@ -35,6 +35,7 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -62,11 +63,13 @@ class EmployeeTest : AbstractTestBase() {
         baseLog.info("Cleanup deleted employess -> undelete")
         baseLog.info("Count employees: " + employeeList.size)
         Assertions.assertTrue(employeeList.isNotEmpty())
-        for (e in employeeList) {
-            baseLog.info("Employee: $e")
-            if (e.deleted) {
-                //Undelete
-                employeeDao.internalUndelete(e)
+        persistenceService.runInTransaction {  context ->
+            for (e in employeeList) {
+                baseLog.info("Employee: $e")
+                if (e.deleted) {
+                    //Undelete
+                    employeeDao.internalUndelete(e, context)
+                }
             }
         }
     }
@@ -80,12 +83,12 @@ class EmployeeTest : AbstractTestBase() {
         baseLog.info("Employee: $e")
 
         //Mark as deleted
-        employeeDao.markAsDeleted(e)
+        employeeDao.markAsDeletedNewTrans(e)
 
         //Check updates
         val updatdEmployee = employeeDao.getById(e.id)
         Assertions.assertTrue(updatdEmployee!!.deleted)
-        employeeDao.update(e)
+        employeeDao.updateNewTrans(e)
     }
 
     @Test
@@ -96,7 +99,7 @@ class EmployeeTest : AbstractTestBase() {
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
         Assertions.assertEquals(e.staffNumber, staffNumber)
-        employeeDao.update(e)
+        employeeDao.updateNewTrans(e)
 
         // test history
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
@@ -117,7 +120,8 @@ class EmployeeTest : AbstractTestBase() {
             employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String,
             hrAccess: Boolean = false,
             groupDao: GroupDao? = null,
-            email: String? = null
+            email: String? = null,
+            context: PfPersistenceContext,
         ): EmployeeDO {
             val loggedInUser = ThreadLocalUserContext.user
             test.logon(TEST_ADMIN_USER)
@@ -130,15 +134,15 @@ class EmployeeTest : AbstractTestBase() {
             if (hrAccess) {
                 user.addRight(UserRightDO(UserRightId.HR_VACATION, UserRightValue.READWRITE))
             }
-            test.initTestDB.addUser(user)
+            test.initTestDB.addUser(user, context)
             if (hrAccess) {
                 val group = test.getGroup(ProjectForgeGroup.HR_GROUP.toString())
                 group.assignedUsers!!.add(user)
-                groupDao!!.update(group)
+                groupDao!!.update(group, context)
             }
             val employee = EmployeeDO()
             employee.user = user
-            employeeDao.internalSave(employee)
+            employeeDao.internalSave(employee, context)
             employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             test.logon(loggedInUser)
             return employee

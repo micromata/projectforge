@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.UserRightService
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,88 +45,101 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         get() = ADDITIONAL_SEARCH_FIELDS
 
     fun getList(user: PFUserDO?): List<UserRightDO> {
-        val filter = UserRightFilter()
-        filter.user = user
-        return getList(filter)
+        return persistenceService.runReadOnly { context ->
+            getList(user, context)
+        }
     }
 
-    fun internalGetAllOrdered(): List<UserRightDO> {
-        return persistenceService.namedQuery(
+    fun getList(user: PFUserDO?, context: PfPersistenceContext): List<UserRightDO> {
+        val filter = UserRightFilter()
+        filter.user = user
+        return getList(filter, context)
+    }
+
+    fun internalGetAllOrdered(context: PfPersistenceContext): List<UserRightDO> {
+        return context.namedQuery(
             UserRightDO.FIND_ALL_ORDERED,
             UserRightDO::class.java
         )
     }
 
     @JvmOverloads
-    fun updateUserRights(user: PFUserDO, list: List<UserRightVO>, updateUserGroupCache: Boolean = true) {
-        val dbList = getList(user)
-        // evict all entities from the session cache to avoid that the update is already done in the copy method
-        val userGroupCache = userGroupCache
-        val userGroups = userGroupCache.getUserGroupDOs(user)
-        list.forEach { rightVO ->
-            var rightDO: UserRightDO? = null
-            dbList?.forEach { dbItem ->
-                val rightid = userRightService.getRightId(dbItem?.rightIdString)
-                if (rightid === rightVO.right.id) {
-                    rightDO = dbItem
+    fun updateUserRightsNewTrans(user: PFUserDO, list: List<UserRightVO>, updateUserGroupCache: Boolean = true) {
+        persistenceService.runInTransaction { context ->
+            val dbList = getList(user, context)
+            // evict all entities from the session cache to avoid that the update is already done in the copy method
+            val userGroupCache = userGroupCache
+            val userGroups = userGroupCache.getUserGroupDOs(user)
+            list.forEach { rightVO ->
+                var rightDO: UserRightDO? = null
+                dbList?.forEach { dbItem ->
+                    val rightid = userRightService.getRightId(dbItem?.rightIdString)
+                    if (rightid === rightVO.right.id) {
+                        rightDO = dbItem
+                    }
                 }
-            }
-            if (rightDO == null) {
-                if ((rightVO.isBooleanValue && rightVO.value == UserRightValue.FALSE)
-                    || rightVO.value == null
-                ) {
-                    // Right has no value and is not yet in data base.
-                    // Do nothing.
+                if (rightDO == null) {
+                    if ((rightVO.isBooleanValue && rightVO.value == UserRightValue.FALSE)
+                        || rightVO.value == null
+                    ) {
+                        // Right has no value and is not yet in data base.
+                        // Do nothing.
+                    } else {
+                        // Create new right instead of updating an existing one.
+                        rightDO = UserRightDO(user, rightVO.right.id).setUser(user)
+                        rightDO?.let {
+                            copy(it, rightVO)
+                            save(it, context)
+                        }
+                    }
                 } else {
-                    // Create new right instead of updating an existing one.
-                    rightDO = UserRightDO(user, rightVO.right.id).setUser(user)
                     rightDO?.let {
                         copy(it, rightVO)
-                        save(it)
+                        val rightId = userRightService.getRightId(it.rightIdString)
+                        val right = userRightService.getRight(rightId)
+                        if (!right.isAvailable(user, userGroups)
+                            || !right.isAvailable(user, userGroups, it.value)
+                        ) {
+                            it.setValue(null)
+                        }
+                        update(it, context)
                     }
                 }
-            } else {
+            }
+            // Set unavailable rights to null (if exists):
+            dbList?.forEach { rightDO ->
                 rightDO?.let {
-                    copy(it, rightVO)
-                    val rightId = userRightService.getRightId(it.rightIdString)
+                    val rightId = it.rightIdString
                     val right = userRightService.getRight(rightId)
-                    if (!right.isAvailable(user, userGroups)
-                        || !right.isAvailable(user, userGroups, it.value)
+                    if (right != null && (!right.isAvailable(user, userGroups)
+                                || !right.isAvailable(user, userGroups, it.value))
                     ) {
                         it.setValue(null)
+                        update(it, context)
                     }
-                    update(it)
                 }
             }
-        }
-        // Set unavailable rights to null (if exists):
-        dbList?.forEach { rightDO ->
-            rightDO?.let {
-                val rightId = it.rightIdString
-                val right = userRightService.getRight(rightId)
-                if (right != null && (!right.isAvailable(user, userGroups)
-                            || !right.isAvailable(user, userGroups, it.value))
-                ) {
-                    it.setValue(null)
-                    update(it)
-                }
+            if (updateUserGroupCache) {
+                userGroupCache.setExpired()
             }
         }
-        if (updateUserGroupCache) {
+    }
+
+    override fun afterUpdate(
+        obj: UserRightDO,
+        dbObj: UserRightDO?,
+        isModified: Boolean,
+        context: PfPersistenceContext
+    ) {
+        super.afterUpdate(obj, dbObj, isModified, context)
+        if (isModified) {
             userGroupCache.setExpired()
         }
     }
 
-    override fun afterUpdate(obj: UserRightDO, dbObj: UserRightDO?, isModified: Boolean) {
-        super.afterUpdate(obj, dbObj, isModified)
-        if (isModified) {
-            userGroupCache!!.setExpired()
-        }
-    }
-
-    override fun afterSave(obj: UserRightDO) {
-        super.afterSave(obj)
-        userGroupCache!!.setExpired()
+    override fun afterSave(obj: UserRightDO, context: PfPersistenceContext) {
+        super.afterSave(obj, context)
+        userGroupCache.setExpired()
     }
 
     private fun copy(dest: UserRightDO, src: UserRightVO) {
@@ -145,7 +159,9 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         if (user?.id == null) {
             return list
         }
-        val dbList = getList(user)
+        val dbList = persistenceService.runReadOnly { context ->
+            getList(user, context)
+        }
         val userGroupCache = userGroupCache
         val userGroups = userGroupCache.getUserGroupDOs(user)
         for (right in userRightService.orderedRights) {
@@ -165,7 +181,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         return list
     }
 
-    override fun getList(filter: BaseSearchFilter): List<UserRightDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<UserRightDO> {
         val queryFilter = QueryFilter(filter)
         val myFilter = filter as UserRightFilter
         if (myFilter.user != null) {
@@ -173,7 +189,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         }
         queryFilter.createJoin("user")
         queryFilter.addOrder(asc("user.username")).addOrder(asc("rightIdString"))
-        val list = getList(queryFilter)
+        val list = getList(queryFilter, context)
         return list
     }
 

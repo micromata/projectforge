@@ -27,6 +27,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
   }
 
   @Override
-  public List<VisitorbookDO> getList(final BaseSearchFilter filter) {
+  public List<VisitorbookDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
     final VisitorbookFilter myFilter;
     if (filter instanceof VisitorbookFilter) {
       myFilter = (VisitorbookFilter) filter;
@@ -55,7 +56,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
     }
 
     final QueryFilter queryFilter = createQueryFilter(myFilter);
-    final List<VisitorbookDO> resultList = getList(queryFilter);
+    final List<VisitorbookDO> resultList = getList(queryFilter, context);
 /*
     final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
             .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getUTCStartTime())); // before() == false -> after or same day

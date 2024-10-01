@@ -90,7 +90,7 @@ public interface IEditPage<O extends AbstractBaseDO<Long>, D extends BaseDao<O>>
    *
    * @param modificationStatus MINOR or MAJOR, if the object was modified, otherwise NONE. If a not null web page is
    *          returned, then the web page will be set as response page.
-   * @see BaseDao#update(ExtendedBaseDO)
+   * @see BaseDao#updateNewTrans(ExtendedBaseDO)
    */
   public WebPage afterUpdate(EntityCopyStatus modificationStatus);
 

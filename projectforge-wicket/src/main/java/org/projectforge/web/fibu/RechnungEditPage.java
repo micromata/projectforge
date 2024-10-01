@@ -27,7 +27,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.*;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.WicketSupport;

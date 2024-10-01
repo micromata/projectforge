@@ -26,6 +26,7 @@ package org.projectforge.plugins.memo;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
@@ -59,9 +60,9 @@ public class MemoDao extends BaseDao<MemoDO> {
   }
 
   @Override
-  public void onSaveOrModify(final MemoDO obj) {
-    super.onSaveOrModify(obj);
-    obj.setOwner(ThreadLocalUserContext.getUser()); // Set always the logged-in user as owner.
+  public void onSaveOrModify(final MemoDO obj, final PfPersistenceContext context) {
+    super.onSaveOrModify(obj, context);
+    obj.setOwner(ThreadLocalUserContext.getRequiredLoggedInUser()); // Set always the logged-in user as owner.
   }
 
   @Override

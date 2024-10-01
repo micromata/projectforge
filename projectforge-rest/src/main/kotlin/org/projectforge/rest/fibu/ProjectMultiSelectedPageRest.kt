@@ -119,7 +119,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
       massUpdateContext.commitUpdate(
         identifier4Message = project.displayName,
         project,
-        update = { projektDao.update(project) },
+        update = { projektDao.updateNewTrans(project) },
       )
     }
     return null

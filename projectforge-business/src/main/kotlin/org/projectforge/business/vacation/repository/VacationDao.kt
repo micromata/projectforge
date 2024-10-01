@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortOrder
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -220,7 +221,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return statusValues.filterNotNull().distinct().sortedBy { it.ordinal }
     }
 
-    override fun afterLoad(obj: VacationDO) {
+    override fun afterLoad(obj: VacationDO, context: PfPersistenceContext) {
         if (StringUtils.isNotBlank(obj.comment)) {
             val user = ThreadLocalUserContext.user!!
             if (!isOwnEntry(user, obj) && !hasUpdateAccess(user, obj, obj, false)) {
@@ -322,50 +323,63 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return false
     }
 
-    override fun onSaveOrModify(obj: VacationDO) {
-        super.onSaveOrModify(obj)
+    override fun onSaveOrModify(obj: VacationDO, context: PfPersistenceContext) {
+        super.onSaveOrModify(obj, context)
         if (obj.special == null) {
             obj.special = false // Avoid null value of special.
         }
     }
 
-    override fun onSave(obj: VacationDO) {
-        super.onSave(obj)
+    override fun onSave(obj: VacationDO, context: PfPersistenceContext) {
+        super.onSave(obj, context)
         val service = applicationContext.getBean(VacationService::class.java)
         service.validate(obj, null, true)
     }
 
-    override fun onChange(obj: VacationDO, dbObj: VacationDO) {
-        super.onChange(obj, dbObj)
+    override fun onChange(obj: VacationDO, dbObj: VacationDO, context: PfPersistenceContext) {
+        super.onChange(obj, dbObj, context)
         val service = applicationContext.getBean(VacationService::class.java)
         service.validate(obj, dbObj, true)
     }
 
-    override fun afterSave(obj: VacationDO) {
-        super.afterSave(obj)
+    override fun afterSave(obj: VacationDO, context: PfPersistenceContext) {
+        super.afterSave(obj, context)
         vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT)
     }
 
-    override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?) {
-        super.afterUpdate(obj, dbObj)
+    override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?, context: PfPersistenceContext) {
+        super.afterUpdate(obj, dbObj, context)
         vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj)
     }
 
-    override fun afterDelete(obj: VacationDO) {
-        super.afterDelete(obj)
+    override fun afterDelete(obj: VacationDO, context: PfPersistenceContext) {
+        super.afterDelete(obj, context)
         vacationSendMailService.checkAndSendMail(obj, OperationType.DELETE)
     }
 
-    override fun afterUndelete(obj: VacationDO) {
-        super.afterDelete(obj)
+    override fun afterUndelete(obj: VacationDO, context: PfPersistenceContext) {
+        super.afterDelete(obj, context)
         vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE)
+    }
+
+
+    open fun getVacationForPeriod(
+        employeeId: Long?,
+        startVacationDate: LocalDate?,
+        endVacationDate: LocalDate?,
+        withSpecial: Boolean,
+    ): List<VacationDO> {
+        return persistenceService.runReadOnly { context ->
+            getVacationForPeriod(employeeId, startVacationDate, endVacationDate, withSpecial, context)
+        }
     }
 
     open fun getVacationForPeriod(
         employeeId: Long?,
         startVacationDate: LocalDate?,
         endVacationDate: LocalDate?,
-        withSpecial: Boolean
+        withSpecial: Boolean,
+        context: PfPersistenceContext,
     ): List<VacationDO> {
         val baseSQL =
             "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate"
@@ -389,7 +403,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return getVacationForPeriod(employee.id, startVacationDate, endVacationDate, withSpecial)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<VacationDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<VacationDO> {
         val myFilter: VacationFilter = if (filter is VacationFilter) {
             filter
         } else {
@@ -417,7 +431,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             queryFilter.add(eq("status", myFilter.vacationstatus))
         }
         queryFilter.addOrder(asc("startDate"))
-        var resultList = getList(queryFilter)
+        var resultList = getList(queryFilter, context)
         if (myFilter.vacationmode != null) {
             resultList =
                 resultList.stream().filter { vac: VacationDO? -> vac!!.getVacationmode() == myFilter.vacationmode }
@@ -442,9 +456,9 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         )
     }
 
-    open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?): Int {
+    open fun getOpenLeaveApplicationsForEmployee(employee: EmployeeDO?, context: PfPersistenceContext): Int {
         val sql = "SELECT COUNT(*) FROM VacationDO v WHERE v.manager = :employee AND v.status = :status AND v.deleted = false"
-        return persistenceService.selectSingleResult(
+        return context.selectSingleResult(
             sql,
             java.lang.Long::class.java,
             Pair("employee", employee),

@@ -72,7 +72,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return AddressbookDO()
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressbookDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<AddressbookDO> {
         val myFilter = if (filter is AddressbookFilter) filter
         else {
             AddressbookFilter(filter)
@@ -80,7 +80,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         val user = user
         val queryFilter = QueryFilter(myFilter)
         queryFilter.addOrder(asc("title"))
-        val list = getList(queryFilter)
+        val list = getList(queryFilter, context)
         if (myFilter.isDeleted) {
             // No further filtering, show all deleted calendars.
             return list
@@ -99,7 +99,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
                 }
                 if (myFilter.isAll || myFilter.isOwn) {
                     // Calendar matches the filter:
-                    result.add(ab!!)
+                    result.add(ab)
                 }
             } else {
                 // User is not owner.
@@ -109,10 +109,10 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
                     ) {
                         // Calendar matches the filter:
                         if (!adminAccessOnly) {
-                            result.add(ab!!)
+                            result.add(ab)
                         }
                     } else if (adminAccessOnly) {
-                        result.add(ab!!)
+                        result.add(ab)
                     }
                 }
             }
@@ -131,7 +131,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
             val filter = AddressbookFilter()
             filter.setOwnerType(AddressbookFilter.OwnerType.ALL)
             filter.setFullAccess(true).setReadonlyAccess(false)
-            val resultList = getList(filter)?.toMutableList() ?: mutableListOf()
+            val resultList = getList(filter).toMutableList()
             if (resultList.none { it.id == GLOBAL_ADDRESSBOOK_ID }) {
                 // Add global addressbook if not already in list.
                 resultList.add(globalAddressbook)
@@ -141,6 +141,10 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
 
     val globalAddressbook: AddressbookDO
         get() = internalGetById(GLOBAL_ADDRESSBOOK_ID)!!
+
+    fun getGlobalAddressbook(context: PfPersistenceContext): AddressbookDO? {
+        return internalGetById(GLOBAL_ADDRESSBOOK_ID, context)
+    }
 
     /**
      * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
@@ -198,8 +202,11 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return userService!!.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: AddressbookDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(context, obj)
+    override fun getDisplayHistoryEntries(
+        obj: AddressbookDO,
+        context: PfPersistenceContext
+    ): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, context)
         if (CollectionUtils.isEmpty(list)) {
             return list
         }
@@ -233,29 +240,28 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return list
     }
 
-    override fun onDelete(obj: AddressbookDO) {
-        super.onDelete(obj)
-        persistenceService.runInTransaction { context ->
-            val addressList = context.query(
-                "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList",
-                AddressDO::class.java,
-                Pair("addressbook", obj),
-                attached = true,
-            )
-            addressList.forEach { address ->
-                if (address.addressbookList!!.size == 1 && address.addressbookList!!.contains(obj)) {
-                    // Add global address book, if no other address book is left:
-                    address.addressbookList!!.add(globalAddressbook)
-                }
-                address.addressbookList!!.remove(obj)
-                context.update(address)
+    override fun onDelete(obj: AddressbookDO, context: PfPersistenceContext) {
+        super.onDelete(obj, context)
+        val addressList = context.query(
+            "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList",
+            AddressDO::class.java,
+            Pair("addressbook", obj),
+            attached = true,
+        )
+        addressList.forEach { address ->
+            if (address.addressbookList!!.size == 1 && address.addressbookList!!.contains(obj)) {
+                // Add global address book, if no other address book is left:
+                address.addressbookList!!.add(globalAddressbook)
             }
-            addressList
+            address.addressbookList!!.remove(obj)
+            context.update(address)
         }
     }
 
     companion object {
         const val GLOBAL_ADDRESSBOOK_ID: Long = 1
+        const val GLOBAL_ADDRESSBOOK_TITLE = "Global"
+        const val GLOBAL_ADDRESSBOOK_DESCRIPTION = "The global addressbook"
         val ADDITIONAL_SEARCH_FIELDS = arrayOf("usersgroups", "owner.username", "owner.firstname", "owner.lastname")
     }
 }

@@ -34,6 +34,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +62,7 @@ public class ContractDao extends BaseDao<ContractDO> {
     }
 
     @Override
-    public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException {
+    public List<ContractDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) throws AccessException {
         final ContractFilter myFilter;
         if (filter instanceof ContractFilter) {
             myFilter = (ContractFilter) filter;
@@ -79,7 +80,7 @@ public class ContractDao extends BaseDao<ContractDO> {
         if (log.isDebugEnabled()) {
             log.debug(myFilter.toString());
         }
-        return getList(queryFilter);
+        return getList(queryFilter, context);
     }
 
     /**
@@ -96,7 +97,7 @@ public class ContractDao extends BaseDao<ContractDO> {
      * A given contract number must be consecutively numbered.
      */
     @Override
-    public void onSaveOrModify(final ContractDO obj) {
+    public void onSaveOrModify(final ContractDO obj, final PfPersistenceContext context) {
         if (obj.getId() == null) {
             // New contract
             final Integer next = getNextNumber(obj);

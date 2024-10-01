@@ -36,7 +36,6 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
@@ -219,7 +218,7 @@ class AddressPagesRest
     val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
     if (bytes != null && bytes is ByteArray) {
       // The user uploaded an image, so
-      addressImageDao.saveOrUpdate(obj.id!!, bytes)
+      addressImageDao.saveOrUpdateNewTrans(obj.id!!, bytes)
       ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     }
   }

@@ -24,13 +24,11 @@
 package org.projectforge.web.user;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.PFUserDOConverter;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightVO;
-import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.sipgate.SipgateDirectCallService;
@@ -85,7 +83,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       log.info("Start updating user rights");
       start = System.currentTimeMillis();
       final List<UserRightVO> list = form.rightsData.getRights();
-      WicketSupport.get(UserRightDao.class).updateUserRights(getData(), list, false);
+      WicketSupport.get(UserRightDao.class).updateUserRightsNewTrans(getData(), list, false);
       end = System.currentTimeMillis();
       log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.");
     }

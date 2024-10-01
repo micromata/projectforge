@@ -23,12 +23,15 @@
 
 package org.projectforge.framework.persistence.api;
 
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import java.util.List;
 
 public interface IDao<O> {
     public List<O> getList(final BaseSearchFilter filter);
+
+    public List<O> getList(final BaseSearchFilter filter, final PfPersistenceContext context);
 
     public boolean isHistorizable();
 

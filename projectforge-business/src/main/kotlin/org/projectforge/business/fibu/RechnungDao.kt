@@ -140,11 +140,11 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onSaveOrModify(obj: RechnungDO) {
+    override fun onSaveOrModify(obj: RechnungDO, context: PfPersistenceContext) {
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
-            val originValue = internalGetById(obj.id)
+            val originValue = internalGetById(obj.id, context)
             if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
-                obj.nummer = getNextNumber(obj)
+                obj.nummer = getNextNumber(obj, context)
 
                 val day = now()
                 obj.datum = day.localDate
@@ -175,7 +175,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             if (RechnungStatus.GEPLANT != obj.status) {
                 if (obj.id == null) {
                     // Neue Rechnung
-                    val next = getNextNumber(obj)
+                    val next = getNextNumber(obj, context)
                     if (next != obj.nummer) {
                         throw UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend")
                     }
@@ -228,13 +228,13 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(obj: RechnungDO) {
+    override fun afterSaveOrModify(obj: RechnungDO, context: PfPersistenceContext) {
         rechnungCache.setExpired() // Expire the cache because assignments to order position may be changed.
         auftragsCache.setExpired()
     }
 
-    override fun prepareHibernateSearch(obj: RechnungDO, operationType: OperationType) {
-        projektDao.initializeProjektManagerGroup(obj.projekt)
+    override fun prepareHibernateSearch(obj: RechnungDO, operationType: OperationType, context: PfPersistenceContext) {
+        projektDao.initializeProjektManagerGroup(obj.projekt, context)
     }
 
     /**
@@ -243,8 +243,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @see org.projectforge.framework.persistence.api.BaseDao.getById
      */
     @Throws(AccessException::class)
-    override fun getById(id: Serializable?): RechnungDO? {
-        val rechnung = super.getById(id)
+    override fun getById(id: Serializable?, context: PfPersistenceContext): RechnungDO? {
+        val rechnung = super.getById(id, context)
         for (pos in rechnung!!.positionen!!) {
             val list: List<KostZuweisungDO>? = pos.kostZuweisungen
             if (list != null && list.size > 0) {
@@ -254,7 +254,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return rechnung
     }
 
-    override fun getList(filter: BaseSearchFilter): List<RechnungDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<RechnungDO> {
         val myFilter = if (filter is RechnungListFilter) {
             filter
         } else {
@@ -274,7 +274,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             )
         }
 
-        val list = getList(queryFilter)
+        val list = getList(queryFilter, context)
         if (myFilter.isShowAll || myFilter.isDeleted) {
             return list
         }
@@ -319,29 +319,42 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * Rechnung bekommt die alte Nummer wieder zugeordnet.
      */
     fun getNextNumber(rechnung: RechnungDO?): Int? {
+        return persistenceService.runReadOnly { context ->
+            getNextNumber(rechnung, context)
+        }
+    }
+
+    /**
+     * Gets the highest Rechnungsnummer.
+     *
+     * @param rechnung wird benötigt, damit geschaut werden kann, ob diese Rechnung ggf. schon existiert. Wenn sie schon
+     * eine Nummer hatte, so kann verhindert werden, dass sie eine nächst höhere Nummer bekommt. Eine solche
+     * Rechnung bekommt die alte Nummer wieder zugeordnet.
+     */
+    fun getNextNumber(rechnung: RechnungDO?, context: PfPersistenceContext): Int? {
         if (rechnung?.id != null) {
-            val orig = internalGetById(rechnung.id)
+            val orig = internalGetById(rechnung.id, context)
             if (orig!!.nummer != null) {
                 rechnung.nummer = orig.nummer
                 return orig.nummer
             }
         }
-        return persistenceService.getNextNumber("RechnungDO", "nummer", START_NUMBER)
+        return context.getNextNumber("RechnungDO", "nummer", START_NUMBER)
     }
 
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun getDisplayHistoryEntries(
+        obj: RechnungDO,
         context: PfPersistenceContext,
-        obj: RechnungDO
     ): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
         val list = mutableListOf<DisplayHistoryEntry>()
         obj.positionen?.forEach { position ->
-            val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position)
+            val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position, context)
             entries.forEach { entry ->
                 val propertyName = entry.propertyName
                 if (propertyName != null) {
@@ -353,7 +366,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             }
             list.addAll(entries)
             position.kostZuweisungen?.forEach { zuweisung ->
-                val kostEntries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(zuweisung)
+                val kostEntries: List<DisplayHistoryEntry> =
+                    internalGetDisplayHistoryEntries(zuweisung, context)
                 kostEntries.forEach { entry ->
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -374,7 +388,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Returns also true, if idSet contains the id of any order position.
      */
-    override fun contains(idSet: Set<Long?>?, entry: RechnungDO): Boolean {
+    override fun contains(idSet: Set<Long>?, entry: RechnungDO): Boolean {
         idSet ?: return false
         if (super.contains(idSet, entry)) {
             return true

@@ -28,6 +28,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,18 +50,18 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO>
   }
 
   @Override
-  public void afterSaveOrModify(final Kost2ArtDO obj)
+  public void afterSaveOrModify(final Kost2ArtDO obj, final PfPersistenceContext context)
   {
-    super.afterSaveOrModify(obj);
-    kostCache.updateKost2Arts();
+    super.afterSaveOrModify(obj, context);
+    kostCache.updateKost2Arts(context);
   }
 
   @Override
-  public List<Kost2ArtDO> getList(final BaseSearchFilter filter)
+  public List<Kost2ArtDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context)
   {
     final QueryFilter queryFilter = new QueryFilter(filter);
     queryFilter.addOrder(SortProperty.asc("id"));
-    return getList(queryFilter);
+    return getList(queryFilter, context);
   }
 
   /**

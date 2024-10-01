@@ -25,10 +25,8 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.user.service.UserPrefService;
@@ -75,7 +73,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
           final Kost2DO kost2 = new Kost2DO();
           kost2Dao.setProjekt(kost2, getData().getId());
           kost2Dao.setKost2Art(kost2, art.getId());
-          kost2Dao.save(kost2);
+          kost2Dao.saveNewTrans(kost2);
         }
       }
     }

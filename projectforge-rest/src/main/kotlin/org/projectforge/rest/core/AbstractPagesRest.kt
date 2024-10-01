@@ -63,7 +63,6 @@ import org.springframework.web.bind.annotation.*
 import java.io.Serializable
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
-import org.jetbrains.kotlin.util.collectionUtils.listOfNonEmptyScopes
 import javax.validation.Valid
 
 private val log = KotlinLogging.logger {}

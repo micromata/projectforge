@@ -31,6 +31,7 @@ import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -541,7 +542,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                                 )
                                             }: Updating local address: $address, was: $oldAddress"
                                         }
-                                        addressDao.internalUpdate(address)
+                                        addressDao.internalUpdateNewTrans(address)
                                     } else {
                                         log.info {
                                             "${
@@ -615,7 +616,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                 val address = from(contact)
                                 if (configuration.updateLocalAddresses) {
                                     log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
-                                    addressDao.internalSave(address)
+                                    addressDao.internalSaveNewTrans(address)
                                 } else {
                                     log.info {
                                         "${
@@ -891,7 +892,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         return "address '${SipgateContactSyncDO.getName(address)}' (id=${address.id}, contact-id=${contact.id})"
     }
 
-    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType, context: PfPersistenceContext) {
         sync()
     }
 }

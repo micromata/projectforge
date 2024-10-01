@@ -31,9 +31,6 @@ import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -55,7 +52,7 @@ public class PersonalAddressTest extends AbstractTestBase {
     address.setFax("+49 561 316793-11");
     address.setBusinessPhone("+49 561 316793-0");
     address.setPrivatePhone("+49 561 12345678");
-    addressIds[0] = (Long) addressDao.save(address);
+    addressIds[0] = (Long) addressDao.saveNewTrans(address);
 
     PersonalAddressDO personalAddress = new PersonalAddressDO();
     AddressDO a = addressDao.getOrLoad(addressIds[0]);

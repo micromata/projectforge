@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -214,7 +215,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void onSave(final ToDoDO obj) {
+    public void onSave(final ToDoDO obj, final PfPersistenceContext context) {
         if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
             // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
             obj.setRecent(true);
@@ -222,7 +223,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void onChange(final ToDoDO obj, final ToDoDO dbObj) {
+    public void onChange(final ToDoDO obj, final ToDoDO dbObj, final PfPersistenceContext context) {
         if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
             // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
             final ToDoDO copyOfDBObj = new ToDoDO();
@@ -235,7 +236,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void afterSaveOrModify(final ToDoDO obj) {
+    public void afterSaveOrModify(final ToDoDO obj, final PfPersistenceContext context) {
         toDoCache.setExpired(); // Force reload of the menu item counters for open to-do entrie.
     }
 

@@ -266,7 +266,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                     && pollResponse.poll?.id == postData.data.poll?.id
         }?.let {
             it.responses = pollResponseDO.responses
-            pollResponseDao.update(it)
+            pollResponseDao.updateNewTrans(it)
             return ResponseEntity.ok(
                 ResponseAction(
                     targetType = TargetType.REDIRECT,
@@ -275,7 +275,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             )
         }
 
-        pollResponseDao.saveOrUpdate(pollResponseDO)
+        pollResponseDao.saveOrUpdateNewTrans(pollResponseDO)
 
         if (ThreadLocalUserContext.user != pollResponseDO.owner) {
             sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.user!!)

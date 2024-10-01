@@ -263,7 +263,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
       massUpdateContext.commitUpdate(
         identifier4Message = "${timesheet.user?.getFullname()} ${timesheet.timePeriod.formattedString}",
         timesheet,
-        update = { timesheetDao.update(timesheet) },
+        update = { timesheetDao.updateNewTrans(timesheet) },
       )
     }
     return null

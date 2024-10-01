@@ -36,6 +36,7 @@ import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.mail.Mail
@@ -55,11 +56,18 @@ class VacationSendMailServiceTest : AbstractTestBase() {
 
     @Test
     fun mailTest() {
-        val vacationer = createEmployee("vacationer")
-        val manager = createEmployee("manager")
-        val replacement = createEmployee("replacement")
-        val otherReplacement = createEmployee("otherReplacement")
-        val otherReplacement2 = createEmployee("otherReplacement2")
+        lateinit var vacationer: EmployeeDO
+        lateinit var manager: EmployeeDO
+        lateinit var replacement: EmployeeDO
+        lateinit var otherReplacement: EmployeeDO
+        lateinit var otherReplacement2: EmployeeDO
+        persistenceService.runInTransaction { context ->
+             vacationer = createEmployee("vacationer", context)
+             manager = createEmployee("manager", context)
+             replacement = createEmployee("replacement", context)
+             otherReplacement = createEmployee("otherReplacement", context)
+             otherReplacement2 = createEmployee("otherReplacement2", context)
+        }
         val vacation = createVacation(vacationer, manager, replacement, VacationStatus.APPROVED, otherReplacement)
         vacation.otherReplacements!!.add(otherReplacement2)
         vacation.id = 47114711
@@ -170,8 +178,8 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         )
     }
 
-    private fun createEmployee(name: String): EmployeeDO {
-        return EmployeeTest.createEmployee(employeeService, employeeDao, this, name, email = "$name@acme.com")
+    private fun createEmployee(name: String, context: PfPersistenceContext): EmployeeDO {
+        return EmployeeTest.createEmployee(employeeService, employeeDao, this, name, email = "$name@acme.com", context = context)
     }
 
     private fun getNextPeriod(): Pair<LocalDate, LocalDate> {

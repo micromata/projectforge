@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.DatabaseDialect;
@@ -42,7 +41,6 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.login.LoginService;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.rest.dto.Task;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
@@ -110,18 +108,18 @@ public class SetupPage extends AbstractUnsecureBasePage {
     adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
     if (StringUtils.isNotBlank(setupForm.getPassword())) {
       char[] clearTextPassword = setupForm.getPassword().toCharArray();
-      WicketSupport.get(UserService.class).encryptAndSavePassword(adminUser, clearTextPassword);
+      WicketSupport.get(UserService.class).encryptAndSavePasswordNewTrans(adminUser, clearTextPassword);
     }
 
     WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
     loginAdminUser(adminUser);
 
-    configurationDao.checkAndUpdateDatabaseEntries();
+    configurationDao.checkAndUpdateDatabaseEntriesNewTrans();
     if (setupForm.getTimeZone() != null) {
       final ConfigurationDO configurationDO = getConfigurationDO(ConfigurationParam.DEFAULT_TIMEZONE);
       if (configurationDO != null) {
         configurationDO.setTimeZone(setupForm.getTimeZone());
-        configurationDao.update(configurationDO);
+        configurationDao.updateNewTrans(configurationDO);
       }
     }
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
@@ -155,7 +153,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
     final ConfigurationDO configurationDO = getConfigurationDO(param);
     if (configurationDO != null) {
       configurationDO.setStringValue(value);
-      WicketSupport.get(ConfigurationDao.class).update(configurationDO);
+      WicketSupport.get(ConfigurationDao.class).updateNewTrans(configurationDO);
     }
   }
 

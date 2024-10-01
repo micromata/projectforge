@@ -37,82 +37,85 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RechnungCacheTest extends AbstractTestBase {
-  @Autowired
-  private AuftragDao auftragDao;
+    @Autowired
+    private AuftragDao auftragDao;
 
-  @Autowired
-  private RechnungDao rechnungDao;
+    @Autowired
+    private RechnungDao rechnungDao;
 
-  @Test
-  public void baseTest() {
-    final PFDay today = PFDay.now();
-    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
-    final AuftragDO auftrag = new AuftragDO();
-    AuftragsPositionDO auftragsPosition = new AuftragsPositionDO();
-    auftragsPosition.setTitel("Pos 1");
-    auftrag.addPosition(auftragsPosition);
-    auftragsPosition = new AuftragsPositionDO();
-    auftragsPosition.setTitel("Pos 2");
-    auftrag.addPosition(auftragsPosition);
-    auftrag.setNummer(auftragDao.getNextNumber(auftrag));
-    auftragDao.save(auftrag);
+    @Test
+    public void baseTest() {
+        persistenceService.runInTransaction(context ->
+        {
+            final PFDay today = PFDay.now();
+            logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
+            final AuftragDO auftrag = new AuftragDO();
+            AuftragsPositionDO auftragsPosition = new AuftragsPositionDO();
+            auftragsPosition.setTitel("Pos 1");
+            auftrag.addPosition(auftragsPosition);
+            auftragsPosition = new AuftragsPositionDO();
+            auftragsPosition.setTitel("Pos 2");
+            auftrag.addPosition(auftragsPosition);
+            auftrag.setNummer(auftragDao.getNextNumber(auftrag));
+            auftragDao.save(auftrag, context);
 
-    final RechnungDO rechnung1 = new RechnungDO();
-    RechnungsPositionDO position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 1));
-    position.setEinzelNetto(new BigDecimal("100"));
-    position.setText("1.1");
-    rechnung1.addPosition(position);
-    position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 2));
-    position.setEinzelNetto(new BigDecimal("200"));
-    position.setText("1.2");
-    rechnung1.addPosition(position);
-    rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1));
-    rechnung1.setDatum(today.getLocalDate());
-    rechnung1.setFaelligkeit(LocalDate.now());
-    rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
-    rechnungDao.save(rechnung1);
+            final RechnungDO rechnung1 = new RechnungDO();
+            RechnungsPositionDO position = new RechnungsPositionDO();
+            position.setAuftragsPosition(auftrag.getPosition((short) 1));
+            position.setEinzelNetto(new BigDecimal("100"));
+            position.setText("1.1");
+            rechnung1.addPosition(position);
+            position = new RechnungsPositionDO();
+            position.setAuftragsPosition(auftrag.getPosition((short) 2));
+            position.setEinzelNetto(new BigDecimal("200"));
+            position.setText("1.2");
+            rechnung1.addPosition(position);
+            rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1, context));
+            rechnung1.setDatum(today.getLocalDate());
+            rechnung1.setFaelligkeit(LocalDate.now());
+            rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo", context));
+            rechnungDao.save(rechnung1, context);
 
-    final RechnungDO rechnung2 = new RechnungDO();
-    position = new RechnungsPositionDO();
-    position.setAuftragsPosition(auftrag.getPosition((short) 1));
-    position.setEinzelNetto(new BigDecimal("400"));
-    position.setText("2.1");
-    rechnung2.addPosition(position);
-    rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2));
-    rechnung2.setDatum(today.getLocalDate());
-    rechnung2.setFaelligkeit(LocalDate.now());
-    rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
-    rechnungDao.save(rechnung2);
+            final RechnungDO rechnung2 = new RechnungDO();
+            position = new RechnungsPositionDO();
+            position.setAuftragsPosition(auftrag.getPosition((short) 1));
+            position.setEinzelNetto(new BigDecimal("400"));
+            position.setText("2.1");
+            rechnung2.addPosition(position);
+            rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2, context));
+            rechnung2.setDatum(today.getLocalDate());
+            rechnung2.setFaelligkeit(LocalDate.now());
+            rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo", context));
+            rechnungDao.save(rechnung2, context);
 
-    Set<RechnungsPositionVO> set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
-    assertEquals(3, set.size(), "3 invoice positions expected.");
-    final Iterator<RechnungsPositionVO> it = set.iterator();
-    RechnungsPositionVO posVO = it.next(); // Positions are ordered.
-    assertEquals("1.1", posVO.getText());
-    posVO = it.next();
-    assertEquals("1.2", posVO.getText());
-    posVO = it.next();
-    assertEquals("2.1", posVO.getText());
-    assertEquals(0, new BigDecimal("700").compareTo(RechnungDao.getNettoSumme(set)));
+            Set<RechnungsPositionVO> set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
+            assertEquals(3, set.size(), "3 invoice positions expected.");
+            final Iterator<RechnungsPositionVO> it = set.iterator();
+            RechnungsPositionVO posVO = it.next(); // Positions are ordered.
+            assertEquals("1.1", posVO.getText());
+            posVO = it.next();
+            assertEquals("1.2", posVO.getText());
+            posVO = it.next();
+            assertEquals("2.1", posVO.getText());
+            assertEquals(0, new BigDecimal("700").compareTo(RechnungDao.getNettoSumme(set)));
 
-    set = rechnungDao.rechnungCache
-            .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 1).getId());
-    assertEquals( 2, set.size(),"2 invoice positions expected.");
-    assertEquals(0, new BigDecimal("500").compareTo(RechnungDao.getNettoSumme(set)));
+            set = rechnungDao.rechnungCache
+                    .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 1).getId());
+            assertEquals(2, set.size(), "2 invoice positions expected.");
+            assertEquals(0, new BigDecimal("500").compareTo(RechnungDao.getNettoSumme(set)));
 
-    set = rechnungDao.rechnungCache
-            .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 2).getId());
-    assertEquals( 1, set.size(),"1 invoice positions expected.");
-    assertEquals(0, new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)));
+            set = rechnungDao.rechnungCache
+                    .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 2).getId());
+            assertEquals(1, set.size(), "1 invoice positions expected.");
+            assertEquals(0, new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)));
 
-    final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
-    rechnung.getPositionen().get(0).setAuftragsPosition(null);
-    rechnungDao.update(rechnung);
-    set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
-    assertEquals( 2, set.size(),"2 invoice positions expected.");
-    assertEquals(0, new BigDecimal("300").compareTo(RechnungDao.getNettoSumme(set)));
-  }
-
+            final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId(), context);
+            rechnung.getPositionen().get(0).setAuftragsPosition(null);
+            rechnungDao.update(rechnung, context);
+            set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
+            assertEquals(2, set.size(), "2 invoice positions expected.");
+            assertEquals(0, new BigDecimal("300").compareTo(RechnungDao.getNettoSumme(set)));
+            return null;
+        });
+    }
 }

@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.stereotype.Service
@@ -48,7 +49,7 @@ open class ScriptDao : AbstractScriptDao() {
    *
    * @see org.projectforge.framework.persistence.api.BaseDao.onChange
    */
-  override fun onChange(obj: ScriptDO, dbObj: ScriptDO) {
+  override fun onChange(obj: ScriptDO, dbObj: ScriptDO, context: PfPersistenceContext) {
     if (!Arrays.equals(dbObj.script, obj.script)) {
       obj.scriptBackup = dbObj.script
       val suffix = getScriptSuffix(obj)

@@ -28,7 +28,6 @@ import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStatus
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
-import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.KontoDO
 import org.projectforge.business.fibu.KontoDao
 import org.projectforge.business.fibu.kost.BuchungssatzDO
@@ -39,6 +38,7 @@ import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import org.slf4j.LoggerFactory
@@ -108,7 +108,7 @@ class DatevImportDao {
                 Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO,
                 "'$filename':", log
             )
-            val imp = BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao)
+            val imp = BuchungssatzExcelImporter(storage, kontoDao, kost1Dao, kost2Dao, persistenceService)
             imp.doImport(workbook)
             return storage
         }
@@ -126,11 +126,13 @@ class DatevImportDao {
         checkLoggeinUserRight(accessChecker)
         requireNotNull(storage.getSheets())
         val sheet = storage.getNamedSheet(sheetName)
-        Validate.notNull(sheet)
-        if (storage.id === Type.KONTENPLAN) {
-            reconcileKontenplan(sheet as ImportedSheet<KontoDO>)
-        } else {
-            reconcileBuchungsdaten(sheet as ImportedSheet<BuchungssatzDO>)
+        requireNotNull(sheet)
+        persistenceService.runReadOnly { context ->
+            if (storage.id === Type.KONTENPLAN) {
+                reconcileKontenplan(sheet as ImportedSheet<KontoDO>, context)
+            } else {
+                reconcileBuchungsdaten(sheet as ImportedSheet<BuchungssatzDO>, context)
+            }
         }
         sheet.numberOfCommittedElements = -1
     }
@@ -153,11 +155,11 @@ class DatevImportDao {
         sheet.setStatus(ImportStatus.IMPORTED)
     }
 
-    private fun reconcileKontenplan(sheet: ImportedSheet<KontoDO>) {
+    private fun reconcileKontenplan(sheet: ImportedSheet<KontoDO>, context: PfPersistenceContext) {
         log.info("Reconcile Kontenplan called")
         sheet.getElements()?.forEach { el ->
             val konto = el.value
-            val dbKonto = kontoDao.getKonto(konto!!.nummer)
+            val dbKonto = kontoDao.getKonto(konto!!.nummer, context)
             if (dbKonto != null) {
                 el.oldValue = dbKonto
             }
@@ -166,14 +168,15 @@ class DatevImportDao {
         sheet.calculateStatistics()
     }
 
-    private fun reconcileBuchungsdaten(sheet: ImportedSheet<BuchungssatzDO>) {
+    private fun reconcileBuchungsdaten(sheet: ImportedSheet<BuchungssatzDO>, context: PfPersistenceContext) {
         log.info("Reconcile Buchungsdaten called")
         sheet.getElements()?.forEach { el ->
             val satz = el.value
             if (satz!!.year != null && satz.month != null && satz.satznr != null) {
                 val dbSatz = buchungssatzDao.getBuchungssatz(
                     satz.year!!, satz.month!!,
-                    satz.satznr!!
+                    satz.satznr!!,
+                    context,
                 )
                 if (dbSatz != null) {
                     el.oldValue = dbSatz
@@ -195,7 +198,7 @@ class DatevImportDao {
                 col.add(konto)
             }
         }
-        kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE)
+        kontoDao.internalSaveOrUpdateNewTrans(col, KONTO_INSERT_BLOCK_SIZE)
         return col.size
     }
 
@@ -210,7 +213,7 @@ class DatevImportDao {
                 col.add(satz)
             }
         }
-        buchungssatzDao.internalSaveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE)
+        buchungssatzDao.internalSaveOrUpdateNewTrans(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE)
         return col.size
     }
 

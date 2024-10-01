@@ -36,6 +36,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -44,16 +45,16 @@ import org.springframework.stereotype.Service
 @Service
 open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     @Autowired
-    private val kundeDao: KundeDao? = null
+    private lateinit var kundeDao: KundeDao
 
     @Autowired
-    private val groupDao: GroupDao? = null
+    private lateinit var groupDao: GroupDao
 
     @Autowired
-    private val taskDao: TaskDao? = null
+    private lateinit var taskDao: TaskDao
 
     @Autowired
-    private val taskTree: TaskTree? = null
+    private lateinit var taskTree: TaskTree
 
     init {
         this.supportAfterUpdate = true
@@ -69,10 +70,21 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     fun setKunde(projekt: ProjektDO, kundeId: Long?) {
+        persistenceService.runReadOnly { context ->
+            setKunde(projekt, kundeId, context)
+        }
+    }
+
+    /**
+     * @param projekt
+     * @param kundeId If null, then kunde will be set to null;
+     * @see BaseDao.getOrLoad
+     */
+    fun setKunde(projekt: ProjektDO, kundeId: Long?, context: PfPersistenceContext) {
         if (kundeId == null) {
             projekt.kunde = null
         } else {
-            val kunde = kundeDao!!.getOrLoad(kundeId)
+            val kunde = kundeDao.getOrLoad(kundeId, context)
             projekt.kunde = kunde
         }
     }
@@ -83,19 +95,36 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      * @see BaseDao.getOrLoad
      */
     fun setTask(projekt: ProjektDO, taskId: Long?) {
+        return persistenceService.runReadOnly { context ->
+            setTask(projekt, taskId, context)
+        }
+    }
+
+    /**
+     * @param projekt
+     * @param taskId  If null, then task will be set to null;
+     * @see BaseDao.getOrLoad
+     */
+    fun setTask(projekt: ProjektDO, taskId: Long?, context: PfPersistenceContext) {
         if (taskId == null) {
             projekt.task = null
         } else {
-            val task = taskDao!!.getOrLoad(taskId)
+            val task = taskDao.getOrLoad(taskId, context)
             projekt.task = task
         }
     }
 
     fun setProjektManagerGroup(projekt: ProjektDO, groupId: Long?) {
+        return persistenceService.runReadOnly { context ->
+            setProjektManagerGroup(projekt, groupId, context)
+        }
+    }
+
+    fun setProjektManagerGroup(projekt: ProjektDO, groupId: Long?, context: PfPersistenceContext) {
         if (groupId == null) {
             projekt.projektManagerGroup = null
         } else {
-            val group = groupDao!!.getOrLoad(groupId)
+            val group = groupDao.getOrLoad(groupId, context)
             projekt.projektManagerGroup = group
         }
     }
@@ -105,7 +134,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
      *
      * @param projekt Null safe.
      */
-    fun initializeProjektManagerGroup(projekt: ProjektDO?) {
+    fun initializeProjektManagerGroup(projekt: ProjektDO?, context: PfPersistenceContext) {
         if (projekt == null) {
             return
         }
@@ -113,14 +142,20 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         Hibernate.initialize(projekt)
         val projectManagerGroup = projekt.projektManagerGroup
         if (projectManagerGroup != null) {
-            val group = groupDao!!.internalGetById(projectManagerGroup.id)
+            val group = groupDao.internalGetById(projectManagerGroup.id, context)
             projekt.projektManagerGroup = group
             //Hibernate.initialize(projectManagerGroup); // Does not work.
         }
     }
 
     fun getProjekt(kunde: KundeDO?, nummer: Long): ProjektDO? {
-        return persistenceService.selectSingleResult(
+        return persistenceService.runReadOnly { context ->
+            getProjekt(kunde, nummer, context)
+        }
+    }
+
+    fun getProjekt(kunde: KundeDO?, nummer: Long, context: PfPersistenceContext): ProjektDO? {
+        return context.selectSingleResult(
             "SELECT p FROM ProjektDO p WHERE p.kunde = :kunde and p.nummer = :nummer",
             ProjektDO::class.java,
             Pair("kunde", kunde),
@@ -129,7 +164,13 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     fun getProjekt(intern_kost2_4: Int, nummer: Int): ProjektDO? {
-        return persistenceService.selectNamedSingleResult(
+        return persistenceService.runReadOnly { context ->
+            getProjekt(intern_kost2_4, nummer, context)
+        }
+    }
+
+    fun getProjekt(intern_kost2_4: Int, nummer: Int, context: PfPersistenceContext): ProjektDO? {
+        return context.selectNamedSingleResult(
             ProjektDO.FIND_BY_INTERNKOST24_AND_NUMMER,
             ProjektDO::class.java,
             Pair("internKost24", intern_kost2_4),
@@ -137,7 +178,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         )
     }
 
-    override fun getList(filter: BaseSearchFilter): List<ProjektDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<ProjektDO> {
         val myFilter = if (filter is ProjektFilter) {
             filter
         } else {
@@ -150,20 +191,20 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
             queryFilter.add(or(ne("status", ProjektStatus.ENDED), isNull("status")))
         }
         queryFilter.addOrder(asc("internKost2_4")).addOrder(asc("kunde.nummer")).addOrder(asc("nummer"))
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
-    fun getKundenProjekte(kundeId: Int?): List<ProjektDO?>? {
+    fun getKundenProjekte(kundeId: Int?, context: PfPersistenceContext): List<ProjektDO?>? {
         if (kundeId == null) {
             return null
         }
         val queryFilter = QueryFilter()
         queryFilter.add(eq("kunde.id", kundeId))
         queryFilter.addOrder(asc("nummer"))
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
-    override fun onSaveOrModify(obj: ProjektDO) {
+    override fun onSaveOrModify(obj: ProjektDO, context: PfPersistenceContext) {
         if (obj.kunde != null) {
             // Ein Kundenprojekt kann keine interne Kundennummer haben:
             obj.internKost2_4 = null
@@ -171,22 +212,22 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         if (obj.status == ProjektStatus.NONE) {
             obj.status = null
         }
-        super.onSaveOrModify(obj)
+        super.onSaveOrModify(obj, context)
     }
 
-    override fun afterSaveOrModify(obj: ProjektDO) {
+    override fun afterSaveOrModify(obj: ProjektDO, context: PfPersistenceContext) {
         if (obj.taskId != null) {
-            taskTree!!.internalSetProject(obj.taskId, obj)
+            taskTree.internalSetProject(obj.taskId, obj)
         }
-        super.afterSaveOrModify(obj)
+        super.afterSaveOrModify(obj, context)
     }
 
-    override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?) {
+    override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?, context: PfPersistenceContext) {
         if (dbObj?.taskId != null && obj.taskId == null) {
             // Project task was removed:
-            taskTree!!.internalSetProject(dbObj.taskId, null)
+            taskTree.internalSetProject(dbObj.taskId, null)
         }
-        super.afterUpdate(obj, dbObj)
+        super.afterUpdate(obj, dbObj, context)
     }
 
     override fun newInstance(): ProjektDO {

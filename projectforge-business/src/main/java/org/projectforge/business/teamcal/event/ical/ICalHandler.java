@@ -264,12 +264,12 @@ public class ICalHandler
       final boolean isDeleted = eventInDB.getDeleted();
       if (isDeleted) {
         // event is deleted, restore
-        eventService.undelete(eventInDB);
+        eventService.undeleteNewTrans(eventInDB);
       }
 
       // update attendees & event
       eventService.updateAttendees(event, eventInDB.getAttendees());
-      eventService.update(event);
+      eventService.updateNewTrans(event);
 
       // send notification mail
       if (isDeleted) {
@@ -284,7 +284,7 @@ public class ICalHandler
       event.setAttendees(null);
 
       // save event & set attendees
-      eventService.save(event);
+      eventService.saveNewTrans(event);
       eventService.assignAttendees(event, attendees, null);
 
       // send notification mail
@@ -299,7 +299,7 @@ public class ICalHandler
     if (event == null)
       return;
 
-    eventService.markAsDeleted(event);
+    eventService.markAsDeletedNewTrans(event);
     eventService.checkAndSendMail(event, TeamEventDiffType.DELETED);
   }
 

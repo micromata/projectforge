@@ -55,13 +55,13 @@ internal class LogQueue(val maxSize: Int) {
     //I18n i18n = CoreI18n.getDefault().get(locale);
     if (filter.isAscendingOrder) {
       for (i in 0 until queue.size) {
-        val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
+        val resultEvent = getResultEvent(filter, queue[i]) ?: continue
         result.add(resultEvent)
         if (++counter > filter.maxSize) break
       }
     } else {
       for (i in queue.size - 1 downTo 0) {
-        val resultEvent = getResultEvent(filter, queue[i], locale) ?: continue
+        val resultEvent = getResultEvent(filter, queue[i]) ?: continue
         result.add(resultEvent)
         if (++counter > filter.maxSize) break
       }
@@ -69,7 +69,7 @@ internal class LogQueue(val maxSize: Int) {
     return result
   }
 
-  private fun getResultEvent(filter: LogFilter, event: LoggingEventData?, locale: Locale?): LoggingEventData? {
+  private fun getResultEvent(filter: LogFilter, event: LoggingEventData?): LoggingEventData? {
     if (event == null) {
       return null
     }

@@ -25,6 +25,7 @@ package org.projectforge.business.orga
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.IDao
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -36,6 +37,10 @@ class VisitorbookService : IDao<VisitorbookDO?> {
 
     override fun getList(filter: BaseSearchFilter): List<VisitorbookDO> {
         return visitorbookDao.getList(filter)
+    }
+
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<VisitorbookDO> {
+        return visitorbookDao.getList(filter, context)
     }
 
     override fun isHistorizable(): Boolean {

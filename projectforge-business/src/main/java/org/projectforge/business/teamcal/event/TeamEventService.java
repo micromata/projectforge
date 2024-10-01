@@ -57,9 +57,9 @@ public interface TeamEventService
 
   TeamEventAttendeeDO findByAttendeeId(Long attendeeId);
 
-  void update(TeamEventDO event);
+  void updateNewTrans(TeamEventDO event);
 
-  void update(TeamEventDO event, boolean checkAccess);
+  void updateNewTrans(TeamEventDO event, boolean checkAccess);
 
   List<ICalendarEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents);
 
@@ -67,17 +67,17 @@ public interface TeamEventService
 
   TeamEventDO getById(Long teamEventId);
 
-  void saveOrUpdate(TeamEventDO teamEvent);
+  void saveOrUpdateNewTrans(TeamEventDO teamEvent);
 
-  void markAsDeleted(TeamEventDO teamEvent);
+  void markAsDeletedNewTrans(TeamEventDO teamEvent);
 
-  void undelete(TeamEventDO teamEvent);
+  void undeleteNewTrans(TeamEventDO teamEvent);
 
-  void save(TeamEventDO newEvent);
+  void saveNewTrans(TeamEventDO newEvent);
 
   TeamEventDao getTeamEventDao();
 
-  void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
+  void updateAttendeeNewTrans(TeamEventAttendeeDO attendee, boolean accessCheck);
 
   List<Long> getCalIdList(Collection<TeamCalDO> teamCals);
 

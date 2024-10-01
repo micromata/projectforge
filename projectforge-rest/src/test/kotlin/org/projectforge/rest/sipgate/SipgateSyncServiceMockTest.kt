@@ -36,6 +36,7 @@ import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.test.AbstractTestBase
 import jakarta.persistence.EntityManager
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -49,17 +50,17 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
     // Configuration(configurationService)
     val addressDao = object : AddressDao() {
       val addressList = createAddressList()
-      override fun internalLoadAll(): MutableList<AddressDO> {
+      override fun internalLoadAll(context: PfPersistenceContext): MutableList<AddressDO> {
         return addressList
       }
 
-      override fun internalSave(obj: AddressDO): Long {
+      override fun internalSave(obj: AddressDO, context: PfPersistenceContext): Long {
         obj.id = ++addressCounter
         addressList.add(obj)
         return obj.id!!
       }
 
-      override fun internalUpdate(obj: AddressDO): EntityCopyStatus {
+      override fun internalUpdate(obj: AddressDO, context: PfPersistenceContext): EntityCopyStatus {
         // Nothing to do, address values are already updated.
         return EntityCopyStatus.MAJOR
       }

@@ -36,6 +36,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
@@ -99,7 +100,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
   }
 
   @Override
-  public void onSaveOrModify(final GanttChartDO obj) {
+  public void onSaveOrModify(final GanttChartDO obj, final PfPersistenceContext context) {
     final String styleAsXml = XmlObjectWriter.writeAsXml(obj.getStyle());
     obj.setStyleAsXml(styleAsXml);
     final String settingsAsXml = XmlObjectWriter.writeAsXml(obj.getSettings());
@@ -285,7 +286,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
   }
 
   @Override
-  public void afterLoad(final GanttChartDO obj) {
+  public void afterLoad(final GanttChartDO obj, final PfPersistenceContext context) {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.setXmlRegistry(createXmlRegistry());
     reader.initialize(GanttChartStyle.class);

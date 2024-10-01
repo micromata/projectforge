@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -39,7 +38,6 @@ import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -48,7 +46,6 @@ import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditPage> {

@@ -98,7 +98,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
   }
 
   @Override
-  public List<TeamCalDO> getList(final BaseSearchFilter filter) {
+  public List<TeamCalDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
     TeamCalFilter myFilter;
     if (filter instanceof TeamCalFilter)
       myFilter = (TeamCalFilter) filter;
@@ -108,7 +108,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     queryFilter.addOrder(SortProperty.asc("title"));
-    final List<TeamCalDO> list = getList(queryFilter);
+    final List<TeamCalDO> list = getList(queryFilter, context);
     if (myFilter.isDeleted()) {
       // No further filtering, show all deleted calendars.
       return list;
@@ -149,8 +149,8 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
   }
 
   @Override
-  public void onSaveOrModify(TeamCalDO obj) {
-    super.onSaveOrModify(obj);
+  public void onSaveOrModify(TeamCalDO obj, final PfPersistenceContext context) {
+    super.onSaveOrModify(obj, context);
     Integer interval = obj.getExternalSubscriptionUpdateInterval();
     if (interval != null && interval < SubscriptionUpdateInterval.FIFTEEN_MINUTES.getInterval()) {
       // Ensures a minimal interval length of 15 minutes.
@@ -259,8 +259,8 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(PfPersistenceContext context, final TeamCalDO obj) {
-    final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(context, obj);
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamCalDO obj, final PfPersistenceContext context) {
+    final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj, context);
     if (CollectionUtils.isEmpty(list)) {
       return list;
     }
@@ -300,22 +300,22 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  public void afterSaveOrModify(final TeamCalDO obj) {
-    super.afterSaveOrModify(obj);
+  public void afterSaveOrModify(final TeamCalDO obj, final PfPersistenceContext context) {
+    super.afterSaveOrModify(obj, context);
     teamCalCache.setExpired();
   }
 
   @Override
-  public void afterSave(final TeamCalDO obj) {
-    super.afterSave(obj);
+  public void afterSave(final TeamCalDO obj, final PfPersistenceContext context) {
+    super.afterSave(obj, context);
     if (obj.getExternalSubscription()) {
       getTeamEventExternalSubscriptionCache().updateCache(obj);
     }
   }
 
   @Override
-  public void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj) {
-    super.afterUpdate(obj, dbObj);
+  public void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj, final PfPersistenceContext context) {
+    super.afterUpdate(obj, dbObj, context);
     if (obj != null
             && dbObj != null
             && obj.getExternalSubscription()

@@ -232,7 +232,7 @@ class UserXmlPreferencesDao {
         for ((key, value) in data.persistentData) {
             if (data.isModified(key)) {
                 try {
-                    saveOrUpdate(userId, key, value, checkAccess)
+                    saveOrUpdateNewTrans(userId, key, value, checkAccess)
                 } catch (ex: Throwable) {
                     log.warn(ex.message, ex)
                 }
@@ -251,7 +251,7 @@ class UserXmlPreferencesDao {
         userPrefs.user = user
     }
 
-    fun saveOrUpdate(userId: Long, key: String?, entry: Any?, checkAccess: Boolean) {
+    fun saveOrUpdateNewTrans(userId: Long, key: String?, entry: Any?, checkAccess: Boolean) {
         if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return

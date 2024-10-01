@@ -45,117 +45,120 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AccessTestFork extends AbstractTestBase
-{
-  private static final Logger log = LoggerFactory.getLogger(AccessTestFork.class);
+public class AccessTestFork extends AbstractTestBase {
+    private static final Logger log = LoggerFactory.getLogger(AccessTestFork.class);
 
-  @Autowired
-  private AccessDao accessDao;
+    @Autowired
+    private AccessDao accessDao;
 
-  @Autowired
-  private TaskDao taskDao;
+    @Autowired
+    private TaskDao taskDao;
 
-  @Autowired
-  private TimesheetDao timesheetDao;
+    @Autowired
+    private TimesheetDao timesheetDao;
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  @Test
-  public void testAccessDO()
-  {
-    logon(AbstractTestBase.TEST_ADMIN_USER);
-    final List<GroupTaskAccessDO> list = accessDao.internalLoadAll();
-    for (final GroupTaskAccessDO access : list) {
-      log.info(access.toString());
+    @Test
+    public void testAccessDO() {
+        logon(AbstractTestBase.TEST_ADMIN_USER);
+        final List<GroupTaskAccessDO> list = accessDao.internalLoadAll();
+        for (final GroupTaskAccessDO access : list) {
+            log.info(access.toString());
+        }
+        final Serializable id = persistenceService.runInTransaction(context -> {
+            initTestDB.addTask("accesstest", "root", context);
+            GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();
+            accessDao.setTask(groupTaskAccess, getTask("accesstest").getId(), context);
+            groupTaskAccess.setGroup(getGroup(AbstractTestBase.TEST_GROUP));
+            final AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TASKS);
+            taskEntry.setAccess(true, true, true, true);
+            final AccessEntryDO timesheetEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS);
+            timesheetEntry.setAccess(false, false, false, false);
+            return accessDao.save(groupTaskAccess, context);
+        });
+
+        GroupTaskAccessDO groupTaskAccess = accessDao.getById(id);
+        checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
+        checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), false, false, false, false);
+        groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS).setAccessSelect(true);
+        accessDao.updateNewTrans(groupTaskAccess);
+        groupTaskAccess = accessDao.getById(id);
+        checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
+        checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), true, false, false, false);
     }
-    initTestDB.addTask("accesstest", "root");
-    GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();
-    accessDao.setTask(groupTaskAccess, getTask("accesstest").getId());
-    groupTaskAccess.setGroup(getGroup(AbstractTestBase.TEST_GROUP));
-    final AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TASKS);
-    taskEntry.setAccess(true, true, true, true);
-    final AccessEntryDO timesheetEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS);
-    timesheetEntry.setAccess(false, false, false, false);
-    final Serializable id = accessDao.save(groupTaskAccess);
-    groupTaskAccess = accessDao.getById(id);
-    checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
-    checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), false, false, false, false);
-    groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS).setAccessSelect(true);
-    accessDao.update(groupTaskAccess);
-    groupTaskAccess = accessDao.getById(id);
-    checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
-    checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), true, false, false, false);
-  }
 
-  /**
-   * Moves task and checks after moving, if the group task access for the moved tasks are updated.
-   */
-  @Test
-  public void checkTaskMoves()
-  {
-    logon(AbstractTestBase.TEST_ADMIN_USER);
-    // First check initialization:
-    final PFUserDO user1 = getUser("user1");
-    assertTrue(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()),
-            "user1 should be member of group1");
-    assertFalse(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group3").getId()),
-            "user1 should not be member of group3");
-    initTestDB.addTask("checkTaskMoves", "root");
-    initTestDB.addTask("cTm.1", "checkTaskMoves");
-    initTestDB.addTask("cTm.child", "cTm.1");
-    initTestDB.addTask("cTm.2", "checkTaskMoves");
-    // Full access in task cTm.1
-    GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();
-    accessDao.setTask(groupTaskAccess, getTask("cTm.1").getId());
-    groupTaskAccess.setGroup(getGroup("group1"));
-    AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS);
-    taskEntry.setAccess(true, true, true, true);
-    accessDao.save(groupTaskAccess);
-    // No access in task cTm.1
-    groupTaskAccess = new GroupTaskAccessDO();
-    accessDao.setTask(groupTaskAccess, getTask("cTm.2").getId());
-    groupTaskAccess.setGroup(getGroup("group3"));
+    /**
+     * Moves task and checks after moving, if the group task access for the moved tasks are updated.
+     */
+    @Test
+    public void checkTaskMoves() {
+        logon(AbstractTestBase.TEST_ADMIN_USER);
+        // First check initialization:
+        final PFUserDO user1 = getUser("user1");
+        assertTrue(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()),
+                "user1 should be member of group1");
+        assertFalse(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group3").getId()),
+                "user1 should not be member of group3");
+        Serializable id = persistenceService.runInTransaction(context -> {
+            initTestDB.addTask("checkTaskMoves", "root", context);
+            initTestDB.addTask("cTm.1", "checkTaskMoves", context);
+            initTestDB.addTask("cTm.child", "cTm.1", context);
+            initTestDB.addTask("cTm.2", "checkTaskMoves", context);
 
-    taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS);
-    taskEntry.setAccess(false, false, false, false);
-    accessDao.save(groupTaskAccess);
+            // Full access in task cTm.1
+            GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();
+            accessDao.setTask(groupTaskAccess, getTask("cTm.1").getId(), context);
+            groupTaskAccess.setGroup(getGroup("group1"));
+            AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS);
+            taskEntry.setAccess(true, true, true, true);
+            accessDao.save(groupTaskAccess, context);
+            // No access in task cTm.1
+            groupTaskAccess = new GroupTaskAccessDO();
+            accessDao.setTask(groupTaskAccess, getTask("cTm.2").getId(), context);
+            groupTaskAccess.setGroup(getGroup("group3"));
 
-    TimesheetDO timesheet = new TimesheetDO();
-    timesheet.setTask(initTestDB.getTask("cTm.child"));
-    timesheet.setUser(getUser("user1"));
-    timesheet.setLocation("Office");
-    timesheet.setDescription("A lot of stuff done and more.");
-    final long current = System.currentTimeMillis();
-    timesheet.setStartTime(new Date(current));
-    timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-    final Serializable id = timesheetDao.internalSave(timesheet);
+            taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS);
+            taskEntry.setAccess(false, false, false, false);
+            accessDao.save(groupTaskAccess, context);
 
-    logon(user1); // user1 is in group1, but not in group3
-    timesheet = timesheetDao.getById(id); // OK, because is selectable for group1
-    // Move task ctm.child to cTm.2 with no access to user1:
-    final TaskDO childTask = getTask("cTm.child");
-    childTask.setParentTask(getTask("cTm.2"));
-    taskDao.internalUpdate(childTask);
-    // try {
-    timesheet = timesheetDao.getById(id); // AccessException, because is not selectable for group1
-    // User has no access, but is owner of this timesheet, so the following properties are empty:
-    assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getShortDescription());
-    assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getDescription());
-    assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getLocation());
-    // fail("Timesheet should not be accessable for user1 (because he is not member of group3)");
-    // } catch (AccessException ex) {
-    // OK
-    // }
-  }
+            TimesheetDO timesheet = new TimesheetDO();
+            timesheet.setTask(initTestDB.getTask("cTm.child"));
+            timesheet.setUser(getUser("user1"));
+            timesheet.setLocation("Office");
+            timesheet.setDescription("A lot of stuff done and more.");
+            final long current = System.currentTimeMillis();
+            timesheet.setStartTime(new Date(current));
+            timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
+            final Serializable timesheetId = timesheetDao.internalSave(timesheet, context);
+            logon(user1); // user1 is in group1, but not in group3
+            timesheet = timesheetDao.getById(timesheetId, context); // OK, because is selectable for group1
+            // Move task ctm.child to cTm.2 with no access to user1:
+            final TaskDO childTask = getTask("cTm.child");
+            childTask.setParentTask(getTask("cTm.2"));
+            taskDao.internalUpdate(childTask, context);
+            return timesheetId;
+        });
 
-  private void checkAccessEntry(final AccessEntryDO entry, final boolean accessSelect, final boolean accessInsert,
-      final boolean accessUpdate, final boolean accessDelete)
-  {
-    assertNotNull(entry);
-    assertEquals(accessSelect, entry.getAccessSelect());
-    assertEquals(accessInsert, entry.getAccessInsert());
-    assertEquals(accessUpdate, entry.getAccessUpdate());
-    assertEquals(accessDelete, entry.getAccessDelete());
-  }
+        // try {
+        TimesheetDO timesheet = timesheetDao.getById(id); // AccessException, because is not selectable for group1
+        // User has no access, but is owner of this timesheet, so the following properties are empty:
+        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getShortDescription());
+        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getDescription());
+        assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getLocation());
+        // fail("Timesheet should not be accessable for user1 (because he is not member of group3)");
+        // } catch (AccessException ex) {
+        // OK
+        // }
+    }
+
+    private void checkAccessEntry(final AccessEntryDO entry, final boolean accessSelect, final boolean accessInsert,
+                                  final boolean accessUpdate, final boolean accessDelete) {
+        assertNotNull(entry);
+        assertEquals(accessSelect, entry.getAccessSelect());
+        assertEquals(accessInsert, entry.getAccessInsert());
+        assertEquals(accessUpdate, entry.getAccessUpdate());
+        assertEquals(accessDelete, entry.getAccessDelete());
+    }
 }

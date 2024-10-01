@@ -72,14 +72,14 @@ open class AddressImageDao {
     /**
      * Does the access checking. The user may only modify images, if he has the access to modify the given address.
      */
-    open fun saveOrUpdate(addressId: Long, image: ByteArray): Boolean {
+    open fun saveOrUpdateNewTrans(addressId: Long, image: ByteArray): Boolean {
         val address = addressDao.getById(addressId)
         if (address == null) {
             log.error("Can't save or update immage of address. Address #$addressId not found.")
             return false
         }
         addressDao.internalModifyImageData(address, true)
-        addressDao.update(address) // Throws an exception if the logged-in user has now access.
+        addressDao.updateNewTrans(address) // Throws an exception if the logged-in user has now access.
 
         persistenceService.runInTransaction { context ->
             val addressImage = context.selectSingleResult(
@@ -113,7 +113,7 @@ open class AddressImageDao {
             return false
         }
         addressDao.internalModifyImageData(address, false)
-        addressDao.update(address) // Throws an exception if the logged-in user has now access.
+        addressDao.updateNewTrans(address) // Throws an exception if the logged-in user has now access.
         var success = false
         persistenceService.runInTransaction { context ->
             // Should be only one image. But for safety reasons we delete all images.

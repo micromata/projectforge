@@ -103,9 +103,9 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         isForceDeletionSupport = true
     }
 
-    override fun internalUpdate(obj: TeamEventDO, checkAccess: Boolean): EntityCopyStatus? {
+    override fun internalUpdate(obj: TeamEventDO, checkAccess: Boolean, context: PfPersistenceContext): EntityCopyStatus? {
         logReminderChange(obj)
-        return super.internalUpdate(obj, checkAccess)
+        return super.internalUpdate(obj, checkAccess, context)
     }
 
     private fun logReminderChange(newObj: TeamEventDO) {
@@ -219,7 +219,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
     }
 
-    override fun onChange(obj: TeamEventDO, dbObj: TeamEventDO) {
+    override fun onChange(obj: TeamEventDO, dbObj: TeamEventDO, context: PfPersistenceContext) {
         handleSeriesUpdates(obj)
         // only increment sequence if PF has ownership!
         if (obj.ownership != null && !obj.ownership!!) {
@@ -267,7 +267,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             // Set the end date of the master date one day before current date and save this event.
             recurrenceData.setUntil(getUntilDate(selectedEvent.startDate!!))
             event.setRecurrence(recurrenceData)
-            save(newEvent)
+            saveNewTrans(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
                     "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
@@ -284,7 +284,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.")
             }
             newEvent.setRecurrence(null as RRule?) // User only wants to modify single event, ignore recurrence.
-            save(newEvent)
+            saveNewTrans(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
                     ("Recurrency ex date of master entry is now added: "
@@ -300,31 +300,31 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Handles deletion of series element (if any) for future and single events of a series.
      */
-    override fun internalMarkAsDeleted(obj: TeamEventDO) {
+    override fun internalMarkAsDeleted(obj: TeamEventDO, context: PfPersistenceContext) {
         val selectedEvent =
             obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT) as ICalendarEvent? // Must be removed, otherwise update below will handle this attrs again.
         val mode = obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE) as SeriesModificationMode?
         if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
             // Nothing to do special:
-            super.internalMarkAsDeleted(obj)
+            super.internalMarkAsDeleted(obj, context)
             return
         }
-        val masterEvent = getById(obj.id)
+        val masterEvent = getById(obj.id, context)
         obj.copyValuesFrom(masterEvent!!) // Restore db fields of master event. Do only modify single or future events.
         if (mode == SeriesModificationMode.FUTURE) {
             val recurrenceData = obj.getRecurrenceData(timeZone)
             val recurrenceUntil = getUntilDate(selectedEvent.startDate!!)
             recurrenceData.setUntil(recurrenceUntil)
             obj.setRecurrence(recurrenceData)
-            update(obj)
+            update(obj, context)
         } else if (mode == SeriesModificationMode.SINGLE) { // only current date
             requireNotNull(selectedEvent)
             obj.addRecurrenceExDate(selectedEvent.startDate)
-            update(obj)
+            update(obj, context)
         }
     }
 
-    override fun onSave(obj: TeamEventDO) {
+    override fun onSave(obj: TeamEventDO, context: PfPersistenceContext) {
         // set ownership if empty
         if (obj.ownership == null) {
             obj.ownership = true
@@ -344,8 +344,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Sets midnight (UTC) of all day events.
      */
-    override fun onSaveOrModify(obj: TeamEventDO) {
-        super.onSaveOrModify(obj)
+    override fun onSaveOrModify(obj: TeamEventDO, context: PfPersistenceContext) {
+        super.onSaveOrModify(obj, context)
         requireNotNull(obj.calendar)
 
         if (obj.allDay) {
@@ -432,7 +432,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.getListForSearchDao
      */
-    override fun getListForSearchDao(filter: BaseSearchFilter): List<TeamEventDO>? {
+    override fun getListForSearchDao(filter: BaseSearchFilter, context: PfPersistenceContext): List<TeamEventDO>? {
         val teamEventFilter = TeamEventFilter(filter) // May-be called by SeachPage
         val allAccessibleCalendars = teamCalCache!!.allAccessibleCalendars
         if (CollectionUtils.isEmpty(allAccessibleCalendars)) {
@@ -440,13 +440,13 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             return ArrayList()
         }
         teamEventFilter.setTeamCals(getCalIdList(allAccessibleCalendars))
-        return getList(teamEventFilter)
+        return getList(teamEventFilter, context)
     }
 
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.getList
      */
-    override fun getList(filter: BaseSearchFilter): List<TeamEventDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<TeamEventDO> {
         val teamEventFilter = if (filter is TeamEventFilter) {
             filter.clone()
         } else {
@@ -456,7 +456,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             return ArrayList()
         }
         val qFilter = buildQueryFilter(teamEventFilter)
-        val list = getList(qFilter)
+        val list = getList(qFilter, context)
         val result: MutableList<TeamEventDO> = ArrayList()
         for (event in list) {
             if (matches(event.startDate!!, event.endDate!!, event.allDay, teamEventFilter)) {
@@ -632,14 +632,14 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: TeamEventDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(context, obj)
+    override fun getDisplayHistoryEntries(obj: TeamEventDO, context: PfPersistenceContext): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, context)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.attendees)) {
             for (attendee in obj.attendees!!) {
-                val entries = internalGetDisplayHistoryEntries(attendee)
+                val entries = internalGetDisplayHistoryEntries(attendee, context)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -661,7 +661,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.contains
      */
-    override fun contains(idSet: Set<Long?>?, entry: TeamEventDO): Boolean {
+    override fun contains(idSet: Set<Long>?, entry: TeamEventDO): Boolean {
         idSet ?: return false
         if (super.contains(idSet, entry)) {
             return true
@@ -805,9 +805,9 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      *
      * @param addressDO
      */
-    fun removeAttendeeByAddressIdFromAllEvents(addressDO: AddressDO) {
+    fun removeAttendeeByAddressIdFromAllEvents(addressDO: AddressDO, context: PfPersistenceContext) {
         val addressId = addressDO.id ?: return
-        val counter: Int = persistenceService.executeNamedUpdate(
+        val counter: Int = context.executeNamedUpdate(
             TeamEventAttendeeDO.DELETE_ATTENDEE_BY_ADDRESS_ID_FROM_ALL_EVENTS,
             Pair("addressId", addressId),
         )

@@ -198,6 +198,6 @@ open class CollectionHandler : CandHIHandler {
 
     private fun indexToStringList(coll: Collection<*>?): String {
         coll ?: return ""
-        return coll.joinToString { (it as? BaseDO<*>)?.id?.toString() ?: "" }
+        return coll.joinToString(separator = ",") { (it as? BaseDO<*>)?.id?.toString() ?: "" }
     }
 }

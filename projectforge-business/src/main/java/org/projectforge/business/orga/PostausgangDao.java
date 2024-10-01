@@ -30,6 +30,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +62,7 @@ public class PostausgangDao extends BaseDao<PostausgangDO> {
     }
 
     @Override
-    public List<PostausgangDO> getList(final BaseSearchFilter filter) {
+    public List<PostausgangDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
         final PostFilter myFilter;
         if (filter instanceof PostFilter) {
             myFilter = (PostFilter) filter;
@@ -72,7 +73,7 @@ public class PostausgangDao extends BaseDao<PostausgangDO> {
         queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
         queryFilter.addOrder(SortProperty.desc("datum"));
         queryFilter.addOrder(SortProperty.asc("empfaenger"));
-        final List<PostausgangDO> list = getList(queryFilter);
+        final List<PostausgangDO> list = getList(queryFilter, context);
         return list;
     }
 

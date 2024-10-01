@@ -44,6 +44,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.not
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
@@ -74,9 +75,9 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * Checks constraint violation.
      */
-    override fun onSaveOrModify(obj: TaskDO) {
+    override fun onSaveOrModify(obj: TaskDO, context: PfPersistenceContext) {
         synchronized(this) {
-            checkConstraintVioloation(obj)
+            checkConstraintVioloation(obj, context)
         }
     }
 
@@ -197,7 +198,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: BaseSearchFilter): List<TaskDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<TaskDO> {
         val myFilter = if (filter is TaskFilter) {
             filter
         } else {
@@ -226,7 +227,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         if (log.isDebugEnabled) {
             log.debug(myFilter.toString())
         }
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
     /**
@@ -236,7 +237,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
      * @throws UserException
      */
     @Throws(UserException::class)
-    fun checkConstraintVioloation(task: TaskDO) {
+    private fun checkConstraintVioloation(task: TaskDO, context: PfPersistenceContext) {
         if (task.parentTaskId == null) {
             // Root task or task without parent task.
             if (!taskTree.isRootNode(task)) {
@@ -245,7 +246,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             }
         } else {
             val others = if (task.id != null) {
-                persistenceService.namedQuery(
+                context.namedQuery(
                     TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
                     TaskDO::class.java,
                     Pair("parentTaskId", task.parentTaskId),
@@ -253,7 +254,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
                     Pair("id", task.id),
                 )// Find other (different from this id).
             } else {
-                persistenceService.namedQuery(
+                context.namedQuery(
                     TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
                     TaskDO::class.java,
                     Pair("parentTaskId", task.parentTaskId),
@@ -266,7 +267,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         }
     }
 
-    override fun afterSaveOrModify(obj: TaskDO) {
+    override fun afterSaveOrModify(obj: TaskDO, context: PfPersistenceContext) {
         taskTree.addOrUpdateTaskNode(obj)
     }
 
@@ -491,7 +492,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * Checks only root task (can't be deleted).
      */
-    override fun onDelete(obj: TaskDO) {
+    override fun onDelete(obj: TaskDO, context: PfPersistenceContext) {
         if (taskTree.isRootNode(obj)) {
             throw UserException("task.error.couldNotDeleteRootTask")
         }

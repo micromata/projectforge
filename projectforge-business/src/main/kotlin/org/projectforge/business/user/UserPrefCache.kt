@@ -152,7 +152,7 @@ class UserPrefCache : AbstractCache() {
         }
         data.removeEntry(area, name)
         if (cacheEntry.persistant && cacheEntry.userPrefDO.id != null)
-            userPrefDao.delete(cacheEntry.userPrefDO)
+            userPrefDao.deleteNewTrans(cacheEntry.userPrefDO)
         checkRefresh()
     }
 
@@ -224,7 +224,7 @@ class UserPrefCache : AbstractCache() {
             if (log.isDebugEnabled) {
                 log.debug { "Persisting entry to data base: ${ToStringUtil.toJsonString(it.userPrefDO)}" }
             }
-            userPrefDao.internalSaveOrUpdate(it.userPrefDO)
+            userPrefDao.internalSaveOrUpdateNewTrans(it.userPrefDO)
         }
     }
 

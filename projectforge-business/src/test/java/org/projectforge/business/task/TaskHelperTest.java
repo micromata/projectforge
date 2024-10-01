@@ -34,59 +34,59 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class TaskHelperTest extends AbstractTestBase
-{
-  @Autowired
-  private ProjektDao projektDao;
+public class TaskHelperTest extends AbstractTestBase {
+    @Autowired
+    private ProjektDao projektDao;
 
-  @Autowired
-  private TaskTree taskTree;
+    @Autowired
+    private TaskTree taskTree;
 
-  @Test
-  public void normalizeKost2BlackWhiteList()
-  {
-    final TaskDO task = new TaskDO();
-    task.setKost2BlackWhiteList(null);
-    assertNull(TaskHelper.normalizeKost2BlackWhiteList(task));
-    task.setKost2BlackWhiteList("");
-    assertEquals("", TaskHelper.normalizeKost2BlackWhiteList(task));
-    task.setKost2BlackWhiteList("1");
-    assertEquals("1", TaskHelper.normalizeKost2BlackWhiteList(task));
-    task.setKost2BlackWhiteList("5.212.01.12, 45;  .89");
-    assertEquals(".89,45,5.212.01.12",
-        TaskHelper.normalizeKost2BlackWhiteList(task));
-    task.setKost2BlackWhiteList("5.212.01.12,, 45;  .89");
-    assertEquals(".89,45,5.212.01.12",
-        TaskHelper.normalizeKost2BlackWhiteList(task));
-    task.setKost2BlackWhiteList("5.212.01.12, , 45;  .89,45");
-    assertEquals(".89,45,5.212.01.12",
-        TaskHelper.normalizeKost2BlackWhiteList(task));
-  }
+    @Test
+    public void normalizeKost2BlackWhiteList() {
+        final TaskDO task = new TaskDO();
+        task.setKost2BlackWhiteList(null);
+        assertNull(TaskHelper.normalizeKost2BlackWhiteList(task));
+        task.setKost2BlackWhiteList("");
+        assertEquals("", TaskHelper.normalizeKost2BlackWhiteList(task));
+        task.setKost2BlackWhiteList("1");
+        assertEquals("1", TaskHelper.normalizeKost2BlackWhiteList(task));
+        task.setKost2BlackWhiteList("5.212.01.12, 45;  .89");
+        assertEquals(".89,45,5.212.01.12",
+                TaskHelper.normalizeKost2BlackWhiteList(task));
+        task.setKost2BlackWhiteList("5.212.01.12,, 45;  .89");
+        assertEquals(".89,45,5.212.01.12",
+                TaskHelper.normalizeKost2BlackWhiteList(task));
+        task.setKost2BlackWhiteList("5.212.01.12, , 45;  .89,45");
+        assertEquals(".89,45,5.212.01.12",
+                TaskHelper.normalizeKost2BlackWhiteList(task));
+    }
 
-  @Test
-  public void addKost2()
-  {
-    logon(AbstractTestBase.TEST_FINANCE_USER);
-    final TaskDO task1 = initTestDB.addTask("addKost2", "root");
-    final ProjektDO projekt = new ProjektDO();
-    projekt.setName("addKost2");
-    projekt.setInternKost2_4(128);
-    projekt.setNummer(5);
-    projekt.setTask(task1);
-    projektDao.save(projekt);
-    final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42L);
-    final Kost2DO kost = new Kost2DO();
-    kost.setNummernkreis(4);
-    kost.setBereich(128);
-    kost.setTeilbereich(5);
-    kost.setKost2Art(kost2Art);
-    assertEquals("42", TaskHelper.addKost2(taskTree, task1, kost));
-    task1.setKost2BlackWhiteList("12,6.001.02.89,12");
-    assertEquals("12,42,6.001.02.89",
-        TaskHelper.addKost2(taskTree, task1, kost));
-    final TaskDO task2 = new TaskDO();
-    assertEquals("4.128.05.42", TaskHelper.addKost2(taskTree, task2, kost));
-    task2.setKost2BlackWhiteList("12,6.001.02.89");
-    assertEquals("12,4.128.05.42,6.001.02.89", TaskHelper.addKost2(taskTree, task2, kost));
-  }
+    @Test
+    public void addKost2() {
+        logon(AbstractTestBase.TEST_FINANCE_USER);
+        persistenceService.runInTransaction(context -> {
+            final TaskDO task1 = initTestDB.addTask("addKost2", "root", context);
+            final ProjektDO projekt = new ProjektDO();
+            projekt.setName("addKost2");
+            projekt.setInternKost2_4(128);
+            projekt.setNummer(5);
+            projekt.setTask(task1);
+            projektDao.save(projekt, context);
+            final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42L);
+            final Kost2DO kost = new Kost2DO();
+            kost.setNummernkreis(4);
+            kost.setBereich(128);
+            kost.setTeilbereich(5);
+            kost.setKost2Art(kost2Art);
+            assertEquals("42", TaskHelper.addKost2(taskTree, task1, kost));
+            task1.setKost2BlackWhiteList("12,6.001.02.89,12");
+            assertEquals("12,42,6.001.02.89",
+                    TaskHelper.addKost2(taskTree, task1, kost));
+            final TaskDO task2 = new TaskDO();
+            assertEquals("4.128.05.42", TaskHelper.addKost2(taskTree, task2, kost));
+            task2.setKost2BlackWhiteList("12,6.001.02.89");
+            assertEquals("12,4.128.05.42,6.001.02.89", TaskHelper.addKost2(taskTree, task2, kost));
+            return null;
+        });
+    }
 }

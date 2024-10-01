@@ -28,7 +28,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
@@ -302,10 +301,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
       form.recurrenceData.setUntil(recurrenceUntil);
       masterEvent.setRecurrence(form.recurrenceData);
-      getBaseDao().update(masterEvent);
+      getBaseDao().updateNewTrans(masterEvent);
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
       masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
-      getBaseDao().update(masterEvent);
+      getBaseDao().updateNewTrans(masterEvent);
     }
     return (AbstractSecuredBasePage) getReturnToPage();
   }
@@ -389,7 +388,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       // changed one element of an recurring event
       newEvent.setSequence(0);
       newEvent.getAttendees().clear();
-      teamEventService.save(newEvent);
+      teamEventService.saveNewTrans(newEvent);
 
       Set<TeamEventAttendeeDO> toAssign = new HashSet<>();
       form.assignAttendeesListHelper.getAssignedItems().stream().forEach(a -> toAssign.add(a.clone()));
