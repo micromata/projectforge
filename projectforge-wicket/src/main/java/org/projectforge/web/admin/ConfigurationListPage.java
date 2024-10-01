@@ -31,7 +31,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -58,7 +57,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
   protected void init()
   {
     newItemMenuEntry.setVisible(false);
-    getBaseDao().checkAndUpdateDatabaseEntries();
+    getBaseDao().checkAndUpdateDatabaseEntriesNewTrans();
     final List<IColumn<ConfigurationDO, String>> columns = new ArrayList<IColumn<ConfigurationDO, String>>();
     final CellItemListener<ConfigurationDO> cellItemListener = new CellItemListener<ConfigurationDO>()
     {

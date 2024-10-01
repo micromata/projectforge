@@ -26,7 +26,6 @@ package org.projectforge.rest.dto
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeStatus
-import org.projectforge.business.fibu.IsoGender
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import java.math.BigDecimal

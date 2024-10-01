@@ -51,171 +51,187 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class HRPlanningTest extends AbstractTestBase {
-  private static ProjektDO projekt1, projekt2;
+    private static ProjektDO projekt1, projekt2;
 
-  @Autowired
-  private GroupDao groupDao;
+    @Autowired
+    private GroupDao groupDao;
 
-  @Autowired
-  private HRPlanningDao hrPlanningDao;
+    @Autowired
+    private HRPlanningDao hrPlanningDao;
 
-  @Autowired
-  private KundeDao kundeDao;
+    @Autowired
+    private KundeDao kundeDao;
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  @Autowired
-  private UserRightDao userRightDao;
+    @Autowired
+    private UserRightDao userRightDao;
 
-  @Autowired
-  UserRightService userRights;
+    @Autowired
+    UserRightService userRights;
 
-  @Override
-  protected void beforeAll() {
-    logon(AbstractTestBase.TEST_FINANCE_USER);
-    final KundeDO kunde = new KundeDO();
-    kunde.setName("ACME ltd.");
-    kunde.setId(59L);
-    kundeDao.save(kunde);
-    projekt1 = initTestDB.addProjekt(kunde, 0, "Web portal");
-    projekt2 = initTestDB.addProjekt(kunde, 1, "Order management");
-  }
-
-  @Test
-  public void testUserRights() {
-    PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
-    final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
-    assertFalse(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)));
-    final HRPlanningDO planning = new HRPlanningDO();
-    planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    logon(user1);
-    assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
-    try {
-      hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, true);
-      fail("AccessException excepted.");
-    } catch (final AccessException ex) {
-      // OK
+    @Override
+    protected void beforeAll() {
+        persistenceService.runInTransaction(context ->
+        {
+            logon(AbstractTestBase.TEST_FINANCE_USER);
+            final KundeDO kunde = new KundeDO();
+            kunde.setName("ACME ltd.");
+            kunde.setId(59L);
+            kundeDao.save(kunde, context);
+            projekt1 = initTestDB.addProjekt(kunde, 0, "Web portal", context);
+            projekt2 = initTestDB.addProjekt(kunde, 1, "Order management", context);
+            return null;
+        });
     }
-    logon(AbstractTestBase.TEST_ADMIN_USER);
-    final GroupDO group = initTestDB.getGroup(AbstractTestBase.ORGA_GROUP);
-    group.getAssignedUsers().add(user1);
-    groupDao.update(group);
-    assertTrue(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)));
-    logon(user1);
-    assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
-    assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, false));
-    assertFalse(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    assertFalse(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    logon(AbstractTestBase.TEST_ADMIN_USER);
-    user1.addRight(new UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY));
-    userRightDao.save(new ArrayList<>(user1.getRights()));
-    userService.update(user1);
-    logon(user1);
-    assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
-    assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    assertTrue(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    logon(AbstractTestBase.TEST_ADMIN_USER);
-    user1 = userService.getById(user1.getId());
-    final UserRightDO userRight = user1.getRight(UserRightId.PM_HR_PLANNING);
-    userRight.setValue(UserRightValue.READWRITE);
-    userRightDao.update(userRight);
-    logon(user1);
-    assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
-    assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    assertTrue(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    assertTrue(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
-  }
 
-  @Test
-  public void getFirstDayOfWeek() {
-    final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
-    assertEquals("2010-01-04", HRPlanningDO.Companion.getFirstDayOfWeek(date).toString());
-  }
+    @Test
+    public void testUserRights() {
+        persistenceService.runInTransaction(context ->
+        {
+            PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1", context);
+            final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
+            assertFalse(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)));
+            final HRPlanningDO planning = new HRPlanningDO();
+            planning.setUser(getUser(AbstractTestBase.TEST_USER));
+            logon(user1);
+            assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
+            try {
+                hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, true);
+                fail("AccessException excepted.");
+            } catch (final AccessException ex) {
+                // OK
+            }
+            logon(AbstractTestBase.TEST_ADMIN_USER);
+            final GroupDO group = initTestDB.getGroup(AbstractTestBase.ORGA_GROUP);
+            group.getAssignedUsers().add(user1);
+            groupDao.update(group, context);
+            assertTrue(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)));
+            logon(user1);
+            assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
+            assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, false));
+            assertFalse(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            assertFalse(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            logon(AbstractTestBase.TEST_ADMIN_USER);
+            user1.addRight(new UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY));
+            userRightDao.save(new ArrayList<>(user1.getRights()), context);
+            userService.updateNewTrans(user1);
+            logon(user1);
+            assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
+            assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            assertTrue(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            logon(AbstractTestBase.TEST_ADMIN_USER);
+            user1 = userService.getById(user1.getId());
+            final UserRightDO userRight = user1.getRight(UserRightId.PM_HR_PLANNING);
+            userRight.setValue(UserRightValue.READWRITE);
+            userRightDao.update(userRight, context);
+            logon(user1);
+            assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
+            assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            assertTrue(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            assertTrue(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
+            return null;
+        });
+    }
 
-  @Test
-  public void testBeginOfWeek() {
-    logon(AbstractTestBase.TEST_FINANCE_USER);
-    HRPlanningDO planning = new HRPlanningDO();
-    final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
-    planning.setFirstDayOfWeek(date);
-    assertEquals("2010-01-04", planning.getWeek().toString());
-    planning.setWeek(date);
-    planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    assertEquals("2010-01-09", planning.getWeek().toString());
-    final Serializable id = hrPlanningDao.save(planning);
-    planning = hrPlanningDao.getById(id);
-    assertEquals("2010-01-04", planning.getWeek().toString());
-  }
+    @Test
+    public void getFirstDayOfWeek() {
+        final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
+        assertEquals("2010-01-04", HRPlanningDO.Companion.getFirstDayOfWeek(date).toString());
+    }
 
-  @Test
-  public void overwriteDeletedEntries() {
-    logon(AbstractTestBase.TEST_FINANCE_USER);
-    // Create planning:
-    HRPlanningDO planning = new HRPlanningDO();
-    planning.setUser(getUser(AbstractTestBase.TEST_USER));
-    planning.setWeek(LocalDate.of(2010, Month.JANUARY, 11));
-    assertLocalDate(planning.getWeek(), 2010, Month.JANUARY, 11);
-    HRPlanningEntryDO entry = new HRPlanningEntryDO();
-    setHours(entry, 1, 2, 3, 4, 5, 6);
-    entry.setProjekt(projekt1);
-    planning.addEntry(entry);
-    entry = new HRPlanningEntryDO();
-    setHours(entry, 2, 4, 6, 8, 10, 12);
-    entry.setStatus(HRPlanningEntryStatus.OTHER);
-    planning.addEntry(entry);
-    entry = new HRPlanningEntryDO();
-    setHours(entry, 6, 5, 4, 3, 2, 1);
-    entry.setProjekt(projekt2);
-    planning.addEntry(entry);
-    final Serializable id = hrPlanningDao.save(planning);
-    // Check saved planning
-    planning = hrPlanningDao.getById(id);
-    PFDay day = new PFDay(planning.getWeek());
-    assertLocalDate(day.getLocalDate(), 2010, Month.JANUARY, 11);
-    assertEquals(3, planning.getEntries().size());
-    assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
-    assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
-    assertHours(planning.getStatusEntry(HRPlanningEntryStatus.OTHER), 2, 4, 6, 8, 10, 12);
-    // Delete entry
-    planning.getProjectEntry(projekt1).setDeleted(true);
-    hrPlanningDao.update(planning);
-    // Check deleted entry and re-adding it
-    planning = hrPlanningDao.getById(id);
-    assertTrue(planning.getProjectEntry(projekt1).getDeleted());
-    entry = new HRPlanningEntryDO();
-    setHours(entry, 7, 9, 11, 1, 3, 5);
-    entry.setProjekt(projekt1);
-    planning.addEntry(entry);
-    hrPlanningDao.update(planning);
-  }
+    @Test
+    public void testBeginOfWeek() {
+        persistenceService.runInTransaction(context ->
+        {
+            logon(AbstractTestBase.TEST_FINANCE_USER);
+            HRPlanningDO planning = new HRPlanningDO();
+            final LocalDate date = LocalDate.of(2010, Month.JANUARY, 9);
+            planning.setFirstDayOfWeek(date);
+            assertEquals("2010-01-04", planning.getWeek().toString());
+            planning.setWeek(date);
+            planning.setUser(getUser(AbstractTestBase.TEST_USER));
+            assertEquals("2010-01-09", planning.getWeek().toString());
+            final Serializable id = hrPlanningDao.save(planning, context);
+            planning = hrPlanningDao.getById(id, context);
+            assertEquals("2010-01-04", planning.getWeek().toString());
+            return null;
+        });
+    }
 
-  private void setHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
-                        final int thursday,
-                        final int friday, final int weekend) {
-    entry.setMondayHours(new BigDecimal(monday));
-    entry.setTuesdayHours(new BigDecimal(tuesday));
-    entry.setWednesdayHours(new BigDecimal(wednesday));
-    entry.setThursdayHours(new BigDecimal(thursday));
-    entry.setFridayHours(new BigDecimal(friday));
-    entry.setWeekendHours(new BigDecimal(weekend));
-  }
+    @Test
+    public void overwriteDeletedEntries() {
+        persistenceService.runInTransaction(context ->
+        {
+            logon(AbstractTestBase.TEST_FINANCE_USER);
+            // Create planning:
+            HRPlanningDO planning = new HRPlanningDO();
+            planning.setUser(getUser(AbstractTestBase.TEST_USER));
+            planning.setWeek(LocalDate.of(2010, Month.JANUARY, 11));
+            assertLocalDate(planning.getWeek(), 2010, Month.JANUARY, 11);
+            HRPlanningEntryDO entry = new HRPlanningEntryDO();
+            setHours(entry, 1, 2, 3, 4, 5, 6);
+            entry.setProjekt(projekt1);
+            planning.addEntry(entry);
+            entry = new HRPlanningEntryDO();
+            setHours(entry, 2, 4, 6, 8, 10, 12);
+            entry.setStatus(HRPlanningEntryStatus.OTHER);
+            planning.addEntry(entry);
+            entry = new HRPlanningEntryDO();
+            setHours(entry, 6, 5, 4, 3, 2, 1);
+            entry.setProjekt(projekt2);
+            planning.addEntry(entry);
+            final Serializable id = hrPlanningDao.save(planning, context);
+            // Check saved planning
+            planning = hrPlanningDao.getById(id, context);
+            PFDay day = new PFDay(planning.getWeek());
+            assertLocalDate(day.getLocalDate(), 2010, Month.JANUARY, 11);
+            assertEquals(3, planning.getEntries().size());
+            assertHours(planning.getProjectEntry(projekt1), 1, 2, 3, 4, 5, 6);
+            assertHours(planning.getProjectEntry(projekt2), 6, 5, 4, 3, 2, 1);
+            assertHours(planning.getStatusEntry(HRPlanningEntryStatus.OTHER), 2, 4, 6, 8, 10, 12);
+            // Delete entry
+            planning.getProjectEntry(projekt1).setDeleted(true);
+            hrPlanningDao.update(planning, context);
+            // Check deleted entry and re-adding it
+            planning = hrPlanningDao.getById(id, context);
+            assertTrue(planning.getProjectEntry(projekt1).getDeleted());
+            entry = new HRPlanningEntryDO();
+            setHours(entry, 7, 9, 11, 1, 3, 5);
+            entry.setProjekt(projekt1);
+            planning.addEntry(entry);
+            hrPlanningDao.update(planning, context);
+            return null;
+        });
+    }
 
-  private void assertHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
-                           final int thursday,
-                           final int friday, final int weekend) {
-    assertBigDecimal(monday, entry.getMondayHours());
-    assertBigDecimal(tuesday, entry.getTuesdayHours());
-    assertBigDecimal(wednesday, entry.getWednesdayHours());
-    assertBigDecimal(thursday, entry.getThursdayHours());
-    assertBigDecimal(friday, entry.getFridayHours());
-    assertBigDecimal(weekend, entry.getWeekendHours());
-  }
+    private void setHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
+                          final int thursday,
+                          final int friday, final int weekend) {
+        entry.setMondayHours(new BigDecimal(monday));
+        entry.setTuesdayHours(new BigDecimal(tuesday));
+        entry.setWednesdayHours(new BigDecimal(wednesday));
+        entry.setThursdayHours(new BigDecimal(thursday));
+        entry.setFridayHours(new BigDecimal(friday));
+        entry.setWeekendHours(new BigDecimal(weekend));
+    }
 
-  private LocalDate createDate(final int year, final Month month, final int day, final int hour, final int minute,
-                                   final int second, final int millisecond) {
-    return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getLocalDate();
-  }
+    private void assertHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
+                             final int thursday,
+                             final int friday, final int weekend) {
+        assertBigDecimal(monday, entry.getMondayHours());
+        assertBigDecimal(tuesday, entry.getTuesdayHours());
+        assertBigDecimal(wednesday, entry.getWednesdayHours());
+        assertBigDecimal(thursday, entry.getThursdayHours());
+        assertBigDecimal(friday, entry.getFridayHours());
+        assertBigDecimal(weekend, entry.getWeekendHours());
+    }
+
+    private LocalDate createDate(final int year, final Month month, final int day, final int hour, final int minute,
+                                 final int second, final int millisecond) {
+        return PFDateTime.withDate(year, month, day, hour, minute, second, millisecond, ZoneId.of("UTC"), Locale.GERMAN).getLocalDate();
+    }
 }

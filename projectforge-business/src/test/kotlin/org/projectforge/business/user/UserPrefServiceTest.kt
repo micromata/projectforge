@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.projectforge.business.user.service.UserPrefService
-import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired

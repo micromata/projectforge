@@ -17,6 +17,8 @@
 - StringHelper: splitToLongs/LongObjects OK?
 - HighlightedRow: Int or Long? (Wicket, Rest), see DefaultTreeTablePanel.java
 - History: Groups, users
+- Search and fix ***NewTrans
+- SetupPage testen
 
 
 Migration employee timed attrs:

@@ -33,7 +33,6 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
@@ -47,7 +46,6 @@ import org.projectforge.business.sipgate.SipgateConfiguration;
 import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
@@ -789,7 +787,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         } else {
           passwordUser = new PFUserDO();
           char[] pw = passwordInput.toCharArray();
-          WicketSupport.get(UserService.class).encryptAndSavePassword(passwordUser, pw);
+          WicketSupport.get(UserService.class).encryptAndSavePasswordNewTrans(passwordUser, pw);
           LoginHandler.clearPassword(pw);
         }
       }

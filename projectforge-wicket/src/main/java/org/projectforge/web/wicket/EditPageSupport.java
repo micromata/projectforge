@@ -102,7 +102,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     return;
                 }
                 try {
-                    baseDao.save(editPage.getData());
+                    baseDao.saveNewTrans(editPage.getData());
                 } catch (final DataIntegrityViolationException ex) {
                     log.error(ex.getMessage(), ex);
                     throw new UserException("exception.constraintViolation");
@@ -144,7 +144,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                 }
                 EntityCopyStatus modified = EntityCopyStatus.NONE;
                 try {
-                    modified = baseDao.update(editPage.getData());
+                    modified = baseDao.updateNewTrans(editPage.getData());
                 } catch (final DataIntegrityViolationException ex) {
                     log.error(ex.getMessage(), ex);
                     throw new UserException("exception.constraintViolation");
@@ -209,7 +209,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     editPage.setResponsePageAndHighlightedRow(page);
                     return;
                 }
-                baseDao.undelete(editPage.getData());
+                baseDao.undeleteNewTrans(editPage.getData());
             }
         }
         editPage.afterUndelete();
@@ -233,7 +233,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     editPage.setResponsePageAndHighlightedRow(page);
                     return;
                 }
-                baseDao.markAsDeleted(editPage.getData());
+                baseDao.markAsDeletedNewTrans(editPage.getData());
                 editPage.afterDelete();
                 editPage.setResponsePage();
             }
@@ -257,7 +257,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     editPage.setResponsePageAndHighlightedRow(page);
                     return;
                 }
-                baseDao.delete(editPage.getData());
+                baseDao.deleteNewTrans(editPage.getData());
                 editPage.afterDelete();
                 editPage.setResponsePage();
             }

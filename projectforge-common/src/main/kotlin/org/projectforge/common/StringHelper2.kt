@@ -63,7 +63,7 @@ object StringHelper2 {
     /**
      * @param addNullValues If true, not parseable values or empty values are added as null. Default is false.
      */
-    fun splitToListOfLongValues(str: String?, vararg delimiters: String, addNullValues: Boolean = false): List<Long> {
+    fun splitToListOfLongValues(str: String?, vararg delimiters: String): List<Long> {
         if (str.isNullOrEmpty()) {
             return emptyList()
         }

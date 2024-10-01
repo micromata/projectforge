@@ -39,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 
 private val log = KotlinLogging.logger {}
 
@@ -57,6 +59,9 @@ internal class My2FABruteForceProtection {
   @Autowired
   internal lateinit var userDao: UserDao
 
+  @Autowired
+  private lateinit var persistenceService: PfPersistenceService
+
   private class OTPCheckData {
     var counter: Int = 0
     var lastFailedTry: Long? = null
@@ -67,7 +72,7 @@ internal class My2FABruteForceProtection {
    * an user and this listener will be notified in this case.
    */
   internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
-    override fun afterSaveOrModify(changedObject: PFUserDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: PFUserDO, operationType: OperationType, context: PfPersistenceContext) {
       val data = protection.getData(changedObject.id!!) ?: return
       if (operationType == OperationType.UPDATE && !changedObject.deactivated && data.counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
         // User is probably changed from deactivated to activated again (by an admin user).
@@ -103,13 +108,15 @@ internal class My2FABruteForceProtection {
       data.lastFailedTry = System.currentTimeMillis()
     }
     if (counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
-      val user = userDao.internalGetById(userId)
-      if (user == null) {
-        log.error { "Internal error: Oups, user with id $userId not found in the data base. Can't deactivate user!!!!" }
-      } else {
-        user.deactivated = true
-        log.warn { "Deactivating user '${user.username}' after $MAX_RETRIES_BEFORE_DEACTIVATING_USER OTP failures." }
-        userDao.internalUpdate(user)
+      persistenceService.runInTransaction { context ->
+        val user = userDao.internalGetById(userId, context)
+        if (user == null) {
+          log.error { "Internal error: Oups, user with id $userId not found in the data base. Can't deactivate user!!!!" }
+        } else {
+          user.deactivated = true
+          log.warn { "Deactivating user '${user.username}' after $MAX_RETRIES_BEFORE_DEACTIVATING_USER OTP failures." }
+          userDao.internalUpdate(user, context)
+        }
       }
     }
   }

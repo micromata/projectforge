@@ -256,7 +256,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.REST_CLIENT)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.STAY_LOGGED_IN_KEY)
             if (changed) {
-                internalUpdate(authentications, checkAccess)
+                internalUpdateNewTrans(authentications, checkAccess)
             }
         }
     }
@@ -282,7 +282,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             return
         }
         authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
-        update(authentications)
+        updateNewTrans(authentications)
         log.info("Authentication token '$type' renewed for user: $userId")
     }
 
@@ -297,7 +297,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val authentications = ensureAuthentications(loggedInUser.id, false)
         authentications.authenticatorToken = encryptToken(TimeBased2FA.standard.generateSecretKey())
         authentications.authenticatorTokenCreationDate = Date()
-        update(authentications)
+        updateNewTrans(authentications)
         ThreadLocalUserContext.userContext!!
             .updateLastSuccessful2FA() // Otherwise user will not see his authentication key.
         log.info("Authenticator token created for user '${loggedInUser.username}'.")
@@ -312,7 +312,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
         val authentications = ensureAuthentications(loggedInUser.id, false)
         authentications.authenticatorToken = null
         authentications.authenticatorTokenCreationDate = null
-        update(authentications)
+        updateNewTrans(authentications)
         log.info("Authenticator token deleted for user '${loggedInUser.username}'.")
     }
 
@@ -374,9 +374,9 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
                 authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             }
             if (checkAccess) {
-                save(authentications)
+                this.saveNewTrans(authentications)
             } else {
-                internalSave(authentications)
+                internalSaveNewTrans(authentications)
             }
         } else {
             checkAndFixAuthenticationTokens(authentications, checkAccess)

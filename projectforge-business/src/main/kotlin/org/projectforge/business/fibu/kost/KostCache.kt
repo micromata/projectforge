@@ -27,6 +27,7 @@ import jakarta.persistence.LockModeType
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper.greaterZero
 import org.projectforge.reporting.Kost2Art
@@ -205,7 +206,13 @@ class KostCache : AbstractCache() {
     }
 
     fun updateKost2Arts() {
-        val result = persistenceService.query(
+        return persistenceService.runReadOnly { context ->
+            updateKost2Arts(context)
+        }
+    }
+
+    fun updateKost2Arts(context: PfPersistenceContext) {
+        val result = context.query(
             "from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO::class.java, lockModeType = LockModeType.NONE
         )

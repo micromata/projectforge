@@ -25,14 +25,12 @@ package org.projectforge.web.admin;
 
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.SystemAlertMessage;
 import org.projectforge.SystemStatus;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.systeminfo.SystemService;
-import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -46,7 +44,6 @@ import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
-import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -55,12 +52,10 @@ import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 public class AdminPage extends AbstractStandardFormPage implements ISelectCallerPage {
   private static final long serialVersionUID = 8345068133036236305L;
@@ -503,7 +498,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       book.setYearOfPublishing("2001");
       list.add(book);
     }
-    WicketSupport.get(BookDao.class).save(list);
+    WicketSupport.get(BookDao.class).saveNewTrans(list);
     setResponsePage(
         new MessagePage("system.admin.development.testObjectsCreated", String.valueOf(NUMBER_OF_TEST_OBJECTS_TO_CREATE),
             "BookDO"));

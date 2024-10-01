@@ -26,13 +26,11 @@ package org.projectforge.business.fibu
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
-import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.service.VacationService
-import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
@@ -43,7 +41,6 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
@@ -77,7 +74,7 @@ class EmployeeService {
     private lateinit var persistenceService: PfPersistenceService
 
     @PostConstruct
-    private fun postConstruc() {
+    private fun postConstruct() {
         employeeDao.employeeService = this
     }
 
@@ -85,18 +82,14 @@ class EmployeeService {
         return employeeDao.getList(filter)
     }
 
-    fun setPfUser(employee: EmployeeDO, userId: Long?) {
-        val user = userDao.getOrLoad(userId)
-        employee.user = user
-    }
-
     fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
-        return employeeDao.findByUserId(userId)
+        return persistenceService.runReadOnly { context ->
+            getEmployeeByUserId(userId, context)
+        }
     }
 
-    fun setKost1(employee: EmployeeDO, kost1Id: Long?) {
-        val kost1 = kost1Dao.getOrLoad(kost1Id)
-        employee.kost1 = kost1
+    fun getEmployeeByUserId(userId: Long?, context: PfPersistenceContext): EmployeeDO? {
+        return employeeDao.findByUserId(userId, context)
     }
 
     fun hasLoggedInUserInsertAccess(): Boolean {
@@ -119,17 +112,12 @@ class EmployeeService {
         return employeeDao.hasDeleteAccess(user, obj, dbObj, throwException)
     }
 
-    @Throws(AccessException::class)
-    fun getById(id: Serializable?): EmployeeDO? {
-        return employeeDao.getById(id)
-    }
-
     fun getAutocompletion(property: String, searchString: String): List<String> {
         return employeeDao.getAutocompletion(property, searchString)
     }
 
-    fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: EmployeeDO): List<DisplayHistoryEntry> {
-        return employeeDao.getDisplayHistoryEntries(context, obj)
+    fun getDisplayHistoryEntries(obj: EmployeeDO, context: PfPersistenceContext): List<DisplayHistoryEntry> {
+        return employeeDao.getDisplayHistoryEntries(obj, context)
     }
 
     fun isEmployeeActive(employee: EmployeeDO): Boolean {
@@ -162,10 +150,11 @@ class EmployeeService {
 
     private fun getValidityPeriodAttrs(
         employee: EmployeeDO,
-        type: EmployeeValidityPeriodAttrType
+        type: EmployeeValidityPeriodAttrType,
+        context: PfPersistenceContext,
     ): List<EmployeeValidityPeriodAttrDO> {
         requireNotNull(employee.id) { "Employee id must not be null." }
-        val list = persistenceService.query(
+        val list = context.query(
             "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.attribute = :attribute order by a.validFrom desc",
             EmployeeValidityPeriodAttrDO::class.java,
             Pair("employeeId", employee.id),
@@ -175,7 +164,13 @@ class EmployeeService {
     }
 
     fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
-        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS)
+        return persistenceService.runReadOnly { context ->
+            getEmployeeStatus(employee, context)
+        }
+    }
+
+    fun getEmployeeStatus(employee: EmployeeDO, context: PfPersistenceContext): EmployeeStatus? {
+        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS, context)
         val validEntry = getActiveEntry(list)
         val status = validEntry?.value
         if (status != null) {
@@ -188,15 +183,15 @@ class EmployeeService {
         return null
     }
 
-    fun getAnnualLeaveDays(employee: EmployeeDO?): BigDecimal? {
-        return getAnnualLeaveDays(employee, LocalDate.now())
+    fun getAnnualLeaveDays(employee: EmployeeDO?, context: PfPersistenceContext): BigDecimal? {
+        return getAnnualLeaveDays(employee, LocalDate.now(), context)
     }
 
-    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?): BigDecimal? {
+    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?, context: PfPersistenceContext): BigDecimal? {
         if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
             return null
         }
-        return getActiveEntry(getAnnualLeaveDayEntries(employee), validAtDate)?.value?.toBigDecimal()
+        return getActiveEntry(getAnnualLeaveDayEntries(employee, context), validAtDate)?.value?.toBigDecimal()
     }
 
     private fun ensure(validAtDate: LocalDate?): LocalDate {
@@ -225,8 +220,11 @@ class EmployeeService {
         return found
     }
 
-    fun getAnnualLeaveDayEntries(employee: EmployeeDO): List<EmployeeValidityPeriodAttrDO> {
-        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
+    fun getAnnualLeaveDayEntries(
+        employee: EmployeeDO,
+        context: PfPersistenceContext
+    ): List<EmployeeValidityPeriodAttrDO> {
+        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE, context)
         return list
     }
 

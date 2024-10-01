@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.springframework.stereotype.Service
@@ -61,8 +62,8 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
             return SQLHelper.getYearsByTupleOfYears(list)
         }
 
-    open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {
-        return persistenceService.selectNamedSingleResult(
+    open fun getBuchungssatz(year: Int, month: Int, satznr: Int, context: PfPersistenceContext): BuchungssatzDO? {
+        return context.selectNamedSingleResult(
             BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
             BuchungssatzDO::class.java,
             Pair("year", year),
@@ -89,7 +90,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         // No year or one year is given.
     }
 
-    open override fun getList(filter: BaseSearchFilter): List<BuchungssatzDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<BuchungssatzDO> {
         accessChecker.checkIsLoggedInUserMemberOfGroup(
             ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
@@ -201,7 +202,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
             }
         } // else: nothing given: no time period range.
         queryFilter.addOrder(asc("year")).addOrder(asc("month")).addOrder(asc("satznr"))
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
     /**

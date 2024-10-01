@@ -24,11 +24,12 @@
 package org.projectforge.framework.persistence.api
 
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 /**
  * BaseDOChangedListener may registered at BaseDao and will be called every time an object was changed (added, modified or deleted).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 interface BaseDOChangedListener<O : ExtendedBaseDO<Long>> {
-    fun afterSaveOrModify(changedObject: O, operationType: OperationType)
+    fun afterSaveOrModify(changedObject: O, operationType: OperationType, context: PfPersistenceContext)
 }

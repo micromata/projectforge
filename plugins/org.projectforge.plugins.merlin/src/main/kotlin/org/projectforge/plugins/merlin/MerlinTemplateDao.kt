@@ -28,6 +28,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Service
 import java.util.*
@@ -81,14 +82,14 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
     return MerlinTemplateDO()
   }
 
-  override fun onSave(obj: MerlinTemplateDO) {
+  override fun onSave(obj: MerlinTemplateDO, context: PfPersistenceContext) {
     if (!obj.variables.isNullOrBlank() || !obj.dependentVariables.isNullOrBlank()) {
       // Variables were changed:
       obj.lastVariableUpdate = Date()
     }
   }
 
-  override fun onChange(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO) {
+  override fun onChange(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO, context: PfPersistenceContext) {
     if (obj.variables != dbObj.variables || obj.dependentVariables != dbObj.dependentVariables) {
       // Variables were changed:
       obj.lastVariableUpdate = Date()

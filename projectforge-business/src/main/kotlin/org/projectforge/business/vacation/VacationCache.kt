@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -102,7 +103,7 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
     return result
   }
 
-  override fun afterSaveOrModify(changedObject: VacationDO, operationType: OperationType) {
+  override fun afterSaveOrModify(changedObject: VacationDO, operationType: OperationType, context: PfPersistenceContext) {
     synchronized(vacationMap) {
       vacationMap[changedObject.id] = changedObject
       vacations = vacationMap.values.toList()

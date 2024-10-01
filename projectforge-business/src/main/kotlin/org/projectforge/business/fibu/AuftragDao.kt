@@ -275,9 +275,11 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         val filter = AuftragFilter()
         filter.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ZU_FAKTURIEREN
         try {
-            val list = getList(filter, false)
-            toBeInvoicedCounter = list.size
-            return toBeInvoicedCounter!!
+            return persistenceService.runReadOnly { context ->
+                val list = getList(filter, false, context)
+                toBeInvoicedCounter = list.size
+                toBeInvoicedCounter!!
+            }
         } catch (ex: Exception) {
             log.error("Exception occured while getting number of closed and not invoiced orders: " + ex.message, ex)
             // Exception e. g. if data-base update is needed.
@@ -285,11 +287,15 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AuftragDO> {
-        return getList(filter, true)
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<AuftragDO> {
+        return getList(filter, true, context)
     }
 
-    private fun getList(filter: BaseSearchFilter, checkAccess: Boolean): List<AuftragDO> {
+    private fun getList(
+        filter: BaseSearchFilter,
+        checkAccess: Boolean,
+        context: PfPersistenceContext
+    ): List<AuftragDO> {
         val myFilter = if (filter is AuftragFilter) {
             filter
         } else {
@@ -345,9 +351,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         var list: List<AuftragDO>
         if (checkAccess) {
-            list = getList(queryFilter)
+            list = getList(queryFilter, context)
         } else {
-            list = internalGetList(queryFilter)
+            list = internalGetList(queryFilter, context)
         }
 
         list = myFilter.filterFakturiert(list)
@@ -455,7 +461,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun onSaveOrModify(obj: AuftragDO) {
+    override fun onSaveOrModify(obj: AuftragDO, context: PfPersistenceContext) {
         if (obj.nummer == null) {
             throw UserException(
                 "validation.required.valueNotPresent",
@@ -464,12 +470,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         if (obj.id == null) {
             // Neuer Auftrag/Angebot
-            val next = getNextNumber(obj)
+            val next = getNextNumber(obj, context)
             if (next != obj.nummer) {
                 throw UserException("fibu.auftrag.error.nummerIstNichtFortlaufend")
             }
         } else {
-            val other = persistenceService.selectNamedSingleResult(
+            val other = context.selectNamedSingleResult(
                 AuftragDO.FIND_OTHER_BY_NUMMER,
                 AuftragDO::class.java,
                 Pair("nummer", obj.nummer),
@@ -570,8 +576,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?) {
-        super.afterUpdate(obj, dbObj)
+    override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?, context: PfPersistenceContext) {
+        super.afterUpdate(obj, dbObj, context)
         auftragsCache.setExpired(obj)
     }
 
@@ -603,16 +609,16 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(obj: AuftragDO) {
-        super.afterSaveOrModify(obj)
+    override fun afterSaveOrModify(obj: AuftragDO, context: PfPersistenceContext) {
+        super.afterSaveOrModify(obj, context)
         taskTree.refreshOrderPositionReferences()
     }
 
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.prepareHibernateSearch
      */
-    override fun prepareHibernateSearch(obj: AuftragDO, operationType: OperationType) {
-        projektDao.initializeProjektManagerGroup(obj.projekt)
+    override fun prepareHibernateSearch(obj: AuftragDO, operationType: OperationType, context: PfPersistenceContext) {
+        projektDao.initializeProjektManagerGroup(obj.projekt, context)
     }
 
     /**
@@ -676,6 +682,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
          */
         get() = getNextNumber(null)
 
+    fun getNextNumber(auftrag: AuftragDO?): Int? {
+        return persistenceService.runReadOnly { context ->
+            getNextNumber(auftrag, context)
+        }
+    }
+
     /**
      * Gets the highest Auftragsnummer.
      *
@@ -683,16 +695,16 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * eine Nummer hatte, so kann verhindert werden, dass er eine nächst höhere Nummer bekommt. Ein solcher
      * Auftrag bekommt die alte Nummer wieder zugeordnet.
      */
-    fun getNextNumber(auftrag: AuftragDO?): Int? {
+    fun getNextNumber(auftrag: AuftragDO?, context: PfPersistenceContext): Int? {
         if (auftrag?.id != null) {
-            val orig = internalGetById(auftrag.id)
+            val orig = internalGetById(auftrag.id, context)
             if (orig!!.nummer != null) {
                 auftrag.nummer = orig.nummer
                 return orig.nummer
             }
         }
         // val list: List<Int?> = em.createQuery("select max(t.nummer) from AuftragDO t").getResultList()
-        return persistenceService.getNextNumber("AuftragDO", "nummer", START_NUMBER)
+        return context.getNextNumber("AuftragDO", "nummer", START_NUMBER)
     }
 
     /**
@@ -700,14 +712,18 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: AuftragDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(context, obj)
+    override fun getDisplayHistoryEntries(
+        obj: AuftragDO,
+        context: PfPersistenceContext
+    ): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, context)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
             for (position in obj.positionenIncludingDeleted!!) {
-                val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position)
+                val entries: List<DisplayHistoryEntry> =
+                    internalGetDisplayHistoryEntries(position, context)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -722,7 +738,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         if (CollectionUtils.isNotEmpty(obj.paymentSchedules)) {
             for (schedule in obj.paymentSchedules!!) {
-                val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(schedule)
+                val entries: List<DisplayHistoryEntry> =
+                    internalGetDisplayHistoryEntries(schedule, context)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -744,7 +761,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.contains
      */
-    override fun contains(idSet: Set<Long?>?, entry: AuftragDO): Boolean {
+    override fun contains(idSet: Set<Long>?, entry: AuftragDO): Boolean {
         idSet ?: return false
         if (super.contains(idSet, entry)) {
             return true

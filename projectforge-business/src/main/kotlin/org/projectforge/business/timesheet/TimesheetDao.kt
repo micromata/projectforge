@@ -58,6 +58,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfDate
@@ -214,23 +215,36 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.getListForSearchDao
      */
-    override fun getListForSearchDao(filter: BaseSearchFilter): List<TimesheetDO>? {
+    override fun getListForSearchDao(filter: BaseSearchFilter, context: PfPersistenceContext): List<TimesheetDO>? {
         val timesheetFilter = TimesheetFilter(filter)
         if (filter.modifiedByUserId == null) {
             timesheetFilter.userId = ThreadLocalUserContext.userId
         }
-        return getList(timesheetFilter)
+        return getList(timesheetFilter, context)
     }
 
     /**
      * Gets the list filtered by the given filter.
      */
     @Throws(AccessException::class)
-    override fun getList(filter: BaseSearchFilter): List<TimesheetDO> {
-        return internalGetList(filter, true)
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<TimesheetDO> {
+        return internalGetList(filter, true, context)
     }
 
-    open fun internalGetList(filter: BaseSearchFilter?, checkAccess: Boolean): List<TimesheetDO> {
+    fun internalGetList(
+        filter: BaseSearchFilter?,
+        checkAccess: Boolean,
+    ): List<TimesheetDO> {
+        return persistenceService.runReadOnly { context ->
+            internalGetList(filter, checkAccess, context)
+        }
+    }
+
+    fun internalGetList(
+        filter: BaseSearchFilter?,
+        checkAccess: Boolean,
+        context: PfPersistenceContext
+    ): List<TimesheetDO> {
         val myFilter = if (filter is TimesheetFilter) {
             filter
         } else {
@@ -249,9 +263,9 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         }
         val queryFilter = buildQueryFilter(myFilter)
         var result = if (checkAccess) {
-            getList(queryFilter)
+            getList(queryFilter, context)
         } else {
-            internalGetList(queryFilter)
+            internalGetList(queryFilter, context)
         }
         if (myFilter.isOnlyBillable) {
             val list: List<TimesheetDO> = result
@@ -268,15 +282,15 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * Rechecks the time sheet overlaps.
      */
-    override fun afterSaveOrModify(obj: TimesheetDO) {
-        super.afterSaveOrModify(obj)
+    override fun afterSaveOrModify(obj: TimesheetDO, context: PfPersistenceContext) {
+        super.afterSaveOrModify(obj, context)
         taskTree.resetTotalDuration(obj.taskId)
     }
 
     /**
      * Checks the start and stop time. If seconds or millis is not null, a RuntimeException will be thrown.
      */
-    override fun onSaveOrModify(obj: TimesheetDO) {
+    override fun onSaveOrModify(obj: TimesheetDO, context: PfPersistenceContext) {
         validateTimestamp(obj.startTime, "startTime")
         validateTimestamp(obj.stopTime, "stopTime")
         if (obj.getDuration() < 60000) {
@@ -325,13 +339,13 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         }
     }
 
-    override fun onChange(obj: TimesheetDO, dbObj: TimesheetDO) {
+    override fun onChange(obj: TimesheetDO, dbObj: TimesheetDO, context: PfPersistenceContext) {
         if (compareValues(obj.taskId, dbObj.taskId) != 0) {
             taskTree.resetTotalDuration(dbObj.taskId)
         }
     }
 
-    override fun prepareHibernateSearch(obj: TimesheetDO, operationType: OperationType) {
+    override fun prepareHibernateSearch(obj: TimesheetDO, operationType: OperationType, context: PfPersistenceContext) {
         val user = obj.user
         if (user != null && !Hibernate.isInitialized(user)) {
             obj.user = userGroupCache.getUser(user.id)

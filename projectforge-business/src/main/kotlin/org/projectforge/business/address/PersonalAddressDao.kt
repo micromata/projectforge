@@ -32,6 +32,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.UserRightService
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
@@ -92,7 +93,7 @@ class PersonalAddressDao {
      * @return the generated identifier.
      */
     fun saveOrUpdate(obj: PersonalAddressDO): Serializable? {
-        if (internalUpdate(obj)) {
+        if (internalUpdateNewTrans(obj)) {
             return obj.id
         }
         return internalSave(obj)
@@ -156,11 +157,10 @@ class PersonalAddressDao {
      *
      * @param addressDO
      */
-    fun internalDeleteAll(addressDO: AddressDO) {
-        val counter = persistenceService.executeUpdate(
+    fun internalDeleteAll(addressDO: AddressDO, context: PfPersistenceContext) {
+        val counter = context.executeNamedUpdate(
             PersonalAddressDO.DELETE_ALL_BY_ADDRESS_ID,
             Pair("addressId", addressDO.id),
-            namedQuery = true,
         )
         if (counter > 0) {
             log.info("Removed #$counter personal address book entries of deleted address: $addressDO")
@@ -175,7 +175,7 @@ class PersonalAddressDao {
      * @param obj
      * @return true, if already existing entry was updated, otherwise false (e. g. if no entry exists for update).
      */
-    private fun internalUpdate(obj: PersonalAddressDO): Boolean {
+    private fun internalUpdateNewTrans(obj: PersonalAddressDO): Boolean {
         return persistenceService.runInTransaction { context ->
             var dbObj: PersonalAddressDO? = null
             if (obj.id != null) {

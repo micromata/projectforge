@@ -33,7 +33,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
@@ -480,14 +479,14 @@ public class CalendarPanel extends Panel {
         try {
             switch (dropMode) {
                 case MOVE_SAVE:
-                    timesheetDao.update(timesheet);
+                    timesheetDao.updateNewTrans(timesheet);
                     setResponsePage(getPage());
                     break;
                 case MOVE_EDIT:
                     setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
                     break;
                 case COPY_SAVE:
-                    timesheetDao.save(timesheet);
+                    timesheetDao.saveNewTrans(timesheet);
                     setResponsePage(getPage());
                     break;
                 case COPY_EDIT:

@@ -25,7 +25,6 @@ package org.projectforge.business.vacation.service
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
@@ -119,12 +118,12 @@ class VacationValidatorTest : AbstractTestBase() {
         user.firstname = name
         user.lastname = name
         user.username = "$name.$name"
-        userDao.internalSave(user)
+        userDao.internalSaveNewTrans(user)
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeDao.internalSave(employee)
+        employeeDao.internalSaveNewTrans(employee)
         employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         return employee
     }

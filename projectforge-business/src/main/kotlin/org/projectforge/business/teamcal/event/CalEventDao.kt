@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.time.PFDateTimeUtils.Companion.getUTCBeginOfDayTimestamp
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -88,7 +89,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         )
     }
 
-    override fun onChange(obj: CalEventDO, dbObj: CalEventDO) {
+    override fun onChange(obj: CalEventDO, dbObj: CalEventDO, context: PfPersistenceContext) {
         handleSeriesUpdates(obj)
         // only increment sequence if PF has ownership!
         /*if (obj.getOwnership() != null && obj.getOwnership() == false) {
@@ -165,13 +166,13 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     /**
      * Handles deletion of series element (if any) for future and single events of a series.
      */
-    override fun internalMarkAsDeleted(obj: CalEventDO) {
+    override fun internalMarkAsDeleted(obj: CalEventDO, context: PfPersistenceContext) {
         val selectedEvent =
             obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT) as ICalendarEvent? // Must be removed, otherwise update below will handle this attrs again.
         val mode = obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE) as SeriesModificationMode?
         if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
             // Nothing to do special:
-            super.internalMarkAsDeleted(obj)
+            super.internalMarkAsDeleted(obj, context)
             return
         }
         val masterEvent = getById(obj.id)
@@ -233,8 +234,8 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     /**
      * Sets midnight (UTC) of all day events.
      */
-    override fun onSaveOrModify(obj: CalEventDO) {
-        super.onSaveOrModify(obj)
+    override fun onSaveOrModify(obj: CalEventDO, context: PfPersistenceContext) {
+        super.onSaveOrModify(obj, context)
         requireNotNull(obj.calendar)
 
         if (obj.allDay) {
@@ -260,7 +261,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         }
     }
 
-    override fun onSave(obj: CalEventDO) {
+    override fun onSave(obj: CalEventDO, context: PfPersistenceContext) {
         // create uid if empty
         if (StringUtils.isBlank(obj.uid)) {
             obj.setUid(TeamCalConfig.get().createEventUid())

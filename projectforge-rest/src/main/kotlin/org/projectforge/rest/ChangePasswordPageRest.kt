@@ -66,7 +66,7 @@ class ChangePasswordPageRest : AbstractDynamicPageRest() {
     return internalSave(request, postData) { data, changeOwn ->
       if (changeOwn) {
         log.info { "The user wants to change his password." }
-        userService.changePassword(data.userId, data.loginPassword, data.newPassword)
+        userService.changePasswordNewTrans(data.userId, data.loginPassword, data.newPassword)
       } else {
         log.info { "Admin user wants to change password of user '${data.userDisplayName}' with id ${data.userId}." }
         userService.changePasswordByAdmin(data.userId, data.newPassword)

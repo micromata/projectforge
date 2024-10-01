@@ -75,7 +75,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return QueryFilter(filter)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<PFUserDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<PFUserDO> {
         val myFilter = if (filter is PFUserFilter) {
             filter
         } else {
@@ -98,7 +98,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         if (myFilter.hrPlanning != null) {
             queryFilter.add(eq("hrPlanning", myFilter.hrPlanning))
         }
-        var list = getList(queryFilter)
+        var list = getList(queryFilter, context)
         if (myFilter.isAdminUser != null) {
             val origList = list
             list = LinkedList()
@@ -122,14 +122,14 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.onChange
      */
-    override fun onChange(obj: PFUserDO, dbObj: PFUserDO) {
-        super.onChange(obj, dbObj)
+    override fun onChange(obj: PFUserDO, dbObj: PFUserDO, context: PfPersistenceContext) {
+        super.onChange(obj, dbObj, context)
     }
 
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.afterSaveOrModify
      */
-    override fun afterSaveOrModify(obj: PFUserDO) {
+    override fun afterSaveOrModify(obj: PFUserDO, context: PfPersistenceContext) {
         if (!obj.isMinorChange) {
             userGroupCache.setExpired()
         }
@@ -255,7 +255,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         dbUser.description = user.description
         dbUser.gpgPublicKey = user.gpgPublicKey
         dbUser.sshPublicKey = user.sshPublicKey
-        val result = internalUpdate(dbUser)
+        val result = internalUpdateNewTrans(dbUser)
         if (result != EntityCopyStatus.NONE) {
             log.info("Object updated: $dbUser")
             copyValues(user, contextUser)
@@ -270,8 +270,8 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: PFUserDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(context, obj)
+    override fun getDisplayHistoryEntries(obj: PFUserDO, context: PfPersistenceContext): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, context)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

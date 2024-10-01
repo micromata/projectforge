@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 /**
  * Open needed by Wicket's SpringBean.
@@ -156,7 +157,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
   /**
    * Set order as expired, if any invoice on this order was changed.
    */
-  override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType) {
+  override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType, context: PfPersistenceContext) {
     changedObject.positionen?.forEach { pos ->
       pos.auftragsPosition?.auftrag?.let {
         setExpired(it)

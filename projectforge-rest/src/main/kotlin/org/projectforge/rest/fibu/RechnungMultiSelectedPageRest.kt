@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.rest.config.Rest
-import org.projectforge.rest.core.AbstractPagesRest
 import org.projectforge.rest.multiselect.AbstractMultiSelectedPage
 import org.projectforge.rest.multiselect.MassUpdateContext
 import org.projectforge.rest.multiselect.MassUpdateParameter
@@ -136,7 +135,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       massUpdateContext.commitUpdate(
         identifier4Message = "${invoice.datum} #${NumberFormatter.format(invoice.nummer)}",
         invoice,
-        update = { rechnungDao.update(invoice) },
+        update = { rechnungDao.updateNewTrans(invoice) },
       )
     }
     return null

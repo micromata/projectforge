@@ -90,7 +90,7 @@ class AddressImageServicesRest {
       val session = request.getSession(false)
       ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
     } else {
-      addressImageDao.saveOrUpdate(id, bytes)
+      addressImageDao.saveOrUpdateNewTrans(id, bytes)
     }
     return ResponseEntity("OK", HttpStatus.OK)
   }

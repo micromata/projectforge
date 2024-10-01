@@ -24,9 +24,7 @@
 package org.projectforge.web.admin;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.access.AccessDao;
@@ -84,7 +82,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       accessDao.setGroup(access, group.getId());
     } else {
       if (access.getDeleted() == true) {
-        accessDao.undelete(access);
+        accessDao.undeleteNewTrans(access);
       }
     }
     if (isLeaf == false) {
@@ -97,7 +95,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       access.employee();
       access.setRecursive(true);
     }
-    accessDao.saveOrUpdate(access);
+    accessDao.saveOrUpdateNewTrans(access);
     createAccessRights(taskNode.getParent(), group, isManagerGroup, false);
   }
 

@@ -24,7 +24,6 @@
 package org.projectforge.plugins.marketing
 
 import jakarta.persistence.EntityManager
-import org.jetbrains.kotlin.builtins.StandardNames.FqNames.list
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.user.UserGroupCache
@@ -138,7 +137,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         return map
     }
 
-    override fun convert(context: PfPersistenceContext, entry: HistoryEntry<*>): List<DisplayHistoryEntry> {
+    override fun convert(entry: HistoryEntry<*>, context: PfPersistenceContext): List<DisplayHistoryEntry> {
         if (entry.diffEntries!!.isEmpty()) {
             val se = DisplayHistoryEntry(userGroupCache, entry)
             return listOf(se)

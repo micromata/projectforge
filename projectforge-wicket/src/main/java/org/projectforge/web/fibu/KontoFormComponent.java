@@ -25,13 +25,13 @@ package org.projectforge.web.fibu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.Collections;
@@ -43,8 +43,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
 {
   private static final long serialVersionUID = -9086404806066376969L;
 
-  @SpringBean
-  private KontoDao kontoDao;
+  private KontoDao kontoDao = WicketSupport.get(KontoDao.class);
 
   class KontoConverter implements IConverter
   {

@@ -30,6 +30,9 @@ import jakarta.persistence.TypedQuery
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger {}
 
 /**
  * A wrapper for EntityManager with some convenience methods. The EntityManager is created by the given entityManagerFactory.
@@ -38,7 +41,22 @@ class PfPersistenceContext(
     entityManagerFactory: EntityManagerFactory,
 ) : AutoCloseable {
     val em: EntityManager = entityManagerFactory.createEntityManager()
+/*
+    private var threadLocalContextSet = false
 
+    init {
+        ThreadLocalPersistenceContext.get().let { existingContext ->
+            if (existingContext != null) {
+                log.debug { "ThreadLocalPersistenceContext already set: $existingContext" }
+            } else {
+                threadLocalContextSet = true
+                ThreadLocalPersistenceContext.set(this)
+            }
+        }
+        //    openEntityManagers.add(em)
+        //    log.info { "Created EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
+    }
+*/
     fun <T> selectById(
         entityClass: Class<T>,
         id: Any?,
@@ -53,6 +71,32 @@ class PfPersistenceContext(
      * @param errorMessage If not null, this message is used in the exception.
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
+    @JvmOverloads
+    fun <T> selectNamedSingleResult(
+        sql: String,
+        resultClass: Class<T>,
+        vararg keyValues: Pair<String, Any?>,
+        nullAllowed: Boolean = true,
+        errorMessage: String? = null,
+        attached: Boolean = false,
+    ): T? {
+        return selectSingleResult(
+            sql = sql,
+            resultClass = resultClass,
+            keyValues = keyValues,
+            nullAllowed = nullAllowed,
+            errorMessage = errorMessage,
+            attached = attached,
+            namedQuery = true,
+        )
+    }
+
+    /**
+     * @param nullAllowed If false, an exception is thrown if no result is found.
+     * @param errorMessage If not null, this message is used in the exception.
+     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
+     */
+    @JvmOverloads
     fun <T> selectSingleResult(
         sql: String,
         resultClass: Class<T>,
@@ -194,8 +238,29 @@ class PfPersistenceContext(
     fun executeUpdate(
         sql: String,
         vararg keyValues: Pair<String, Any?>,
+        namedQuery: Boolean = false,
     ): Int {
-        return EntityManagerUtil.executeUpdate(em, sql, *keyValues)
+        return EntityManagerUtil.executeUpdate(em, sql, keyValues = keyValues, namedQuery = namedQuery)
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNamedUpdate(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        return EntityManagerUtil.executeUpdate(em, sql, keyValues = keyValues, namedQuery = true)
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNativeUpdate(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): Int {
+        return EntityManagerUtil.executeNativeQueryUpdate(em, sql, keyValues = keyValues)
     }
 
     /**
@@ -208,6 +273,49 @@ class PfPersistenceContext(
     override fun close() {
         if (em.isOpen) {
             em.close()
+            //openEntityManagers.remove(em)
+            //log.info { "Closed EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
         }
+/*        if (threadLocalContextSet) {
+            ThreadLocalPersistenceContext.remove()
+            threadLocalContextSet = false // Paranoia setting ;-)
+        }*/
     }
+
+    /**
+     * Gets the next number for a new entity. The next number is the maximum number of the attribute + 1.
+     * @param table The name of the table (e. g. RechnungDO).
+     * @param attribute The name of the attribute (e. g. rechnungsnummer).
+     * @param startNumber The number to start with if no entry is found.
+     */
+    fun getNextNumber(table: String, attribute: String, startNumber: Int = 0): Int {
+        val maxNumber = selectSingleResult(
+            "select max(t.$attribute) from $table t",
+            Int::class.java,
+        ) ?: run {
+            log.info("First entry of $table")
+            startNumber
+        }
+        return maxNumber + 1
+    }
+
+    //companion object {
+    //    private val openEntityManagers = mutableSetOf<EntityManager>()
+    //}
+/*
+    internal object ThreadLocalPersistenceContext {
+        private val threadLocal = ThreadLocal<PfPersistenceContext?>()
+
+        fun get(): PfPersistenceContext? {
+            return threadLocal.get()
+        }
+
+        fun set(context: PfPersistenceContext) {
+            threadLocal.set(context)
+        }
+
+        fun remove() {
+            threadLocal.remove()
+        }
+    }*/
 }

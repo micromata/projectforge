@@ -31,6 +31,7 @@ import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractStatus
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
@@ -80,6 +81,7 @@ class CandHTest : AbstractTestBase() {
         dest.assignedUsers = mutableSetOf(user1, user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug).let { context ->
             Assertions.assertEquals(1, context.historyContext!!.entries.size)
+            assertHistoryEntry(context, 0, "assignedUsers", "", "1,2")
         }
         Assertions.assertNull(dest.assignedUsers)
 
@@ -154,6 +156,22 @@ class CandHTest : AbstractTestBase() {
         Assertions.assertEquals(src.attachmentsCounter, dest.attachmentsCounter)
         Assertions.assertEquals(src.validFrom, dest.validFrom)
         Assertions.assertEquals(src.status, dest.status)
+    }
+
+    private fun assertHistoryEntry(
+        context: CandHContext,
+        index: Int,
+        propertyName: String,
+        oldValue: Any?,
+        newValue: Any?,
+        type: PropertyOpType = PropertyOpType.Update,
+    ) {
+        context.historyContext!!.entries[index].apply {
+            Assertions.assertEquals(type, type)
+            Assertions.assertEquals(propertyName, propertyName)
+            Assertions.assertEquals(oldValue, oldValue)
+            Assertions.assertEquals(newValue, newValue)
+        }
     }
 
     private fun <IdType : Serializable> copyValues(

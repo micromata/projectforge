@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDayUtils
 import org.springframework.stereotype.Service
@@ -70,13 +71,14 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
 
     override fun getList(
         queryFilter: QueryFilter,
-        customResultFilters: List<CustomResultFilter<LeaveAccountEntryDO>>?
+        customResultFilters: List<CustomResultFilter<LeaveAccountEntryDO>>?,
+        context: PfPersistenceContext,
     ): List<LeaveAccountEntryDO> {
         if (queryFilter.sortProperties.isNullOrEmpty()) {
             queryFilter.addOrder(desc("date"))
             queryFilter.addOrder(asc("employee.user.firstname"))
         }
-        return super.getList(queryFilter, customResultFilters)
+        return super.getList(queryFilter, customResultFilters, context)
     }
 
     override fun hasAccess(

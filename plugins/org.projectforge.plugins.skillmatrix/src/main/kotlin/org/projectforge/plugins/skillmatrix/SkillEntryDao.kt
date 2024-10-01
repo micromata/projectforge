@@ -25,6 +25,7 @@ package org.projectforge.plugins.skillmatrix
 
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
@@ -52,8 +53,8 @@ class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override fun onSaveOrModify(obj: SkillEntryDO) {
-        super.onSaveOrModify(obj)
+    override fun onSaveOrModify(obj: SkillEntryDO, context: PfPersistenceContext) {
+        super.onSaveOrModify(obj, context)
         if (obj.owner == null) {
             obj.owner = ThreadLocalUserContext.user // Set always the logged-in user as owner.
         }

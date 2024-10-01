@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -110,7 +111,7 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEn
         skillEntryDao.register(this)
     }
 
-    override fun afterSaveOrModify(changedObject: SkillEntryDO, operationType: OperationType) {
+    override fun afterSaveOrModify(changedObject: SkillEntryDO, operationType: OperationType, context: PfPersistenceContext) {
         setExpired()
     }
 

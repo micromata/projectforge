@@ -324,7 +324,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     dbObj.observerIds = User.toLongList(newObservers)
     // InternalSave, because user must not be admin to observe this area. Read access is given, because data transfer
     // area was already gotten by user in [DataTransferPageRest#convertData]
-    dataTransferAreaDao.internalUpdate(dbObj)
+    dataTransferAreaDao.internalUpdateNewTrans(dbObj)
     return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", convertData(id).second))
   }
 

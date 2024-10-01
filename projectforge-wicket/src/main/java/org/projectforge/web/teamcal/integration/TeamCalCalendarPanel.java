@@ -37,7 +37,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateTime;
 import org.projectforge.business.calendar.event.model.ICalendarEvent;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
@@ -47,7 +46,6 @@ import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
-import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
@@ -296,7 +294,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       teamEventDO.setOwnership(true);
 
       // and save the new event -> correct time is set already
-      teamEventDao.save(teamEventDO);
+      teamEventDao.saveNewTrans(teamEventDO);
     }
 
     if (dropMode == null || CalendarDropMode.MOVE_EDIT.equals(dropMode)
@@ -318,7 +316,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       // second mode: "quick save mode"
       if (CalendarDropMode.MOVE_SAVE.equals(dropMode)) {
         // we need update only in "move" mode, in "copy" mode it was saved a few lines above
-        teamEventDao.update(teamEventDO);
+        teamEventDao.updateNewTrans(teamEventDO);
       }
       setResponsePage(getWebPage().getClass(), getWebPage().getPageParameters());
     } else {

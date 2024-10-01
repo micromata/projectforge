@@ -41,7 +41,6 @@ import org.projectforge.rest.multiselect.MultiSelectionSupport
 import org.projectforge.ui.LayoutUtils
 import org.projectforge.ui.UILabel
 import org.projectforge.ui.UILayout
-import org.projectforge.ui.UITable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController

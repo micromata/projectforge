@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,7 +64,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         this.supportAfterUpdate = true
     }
 
-    override fun getList(filter: BaseSearchFilter): List<GroupDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<GroupDO> {
         val myFilter = if (filter is GroupFilter) {
             filter
         } else {
@@ -77,7 +78,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 queryFilter.add(eq("localGroup", myFilter.localGroup))
             }
         }
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
     /**
@@ -134,7 +135,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     /**
      * Creates for every user an history entry if the user is part of this new group.
      */
-    override fun afterSave(group: GroupDO) {
+    override fun afterSave(group: GroupDO, context: PfPersistenceContext) {
         val groupList: MutableCollection<GroupDO> = ArrayList()
         groupList.add(group)
         if (group.assignedUsers != null) {
@@ -203,7 +204,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 groupIdsToUnassign.add(group.id)
             }
         }
-        assignGroupByIds(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache)
+        assignGroupByIdsNewTrans(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache)
     }
 
     /**
@@ -213,7 +214,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      * @param groupIdsToUnassign Groups to unassign (nullable).
      * @throws AccessException
      */
-    fun assignGroupByIds(
+    fun assignGroupByIdsNewTrans(
         user: PFUserDO,
         groupIdsToAssign: Set<Long?>?,
         groupIdsToUnassign: Set<Long?>?,
@@ -294,7 +295,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     /**
      * Prevents changing the group name for ProjectForge groups.
      */
-    override fun onChange(obj: GroupDO, dbObj: GroupDO) {
+    override fun onChange(obj: GroupDO, dbObj: GroupDO, context: PfPersistenceContext) {
         for (group in ProjectForgeGroup.entries) {
             if (group.getName() == dbObj.name) {
                 // A group of ProjectForge will be changed.
@@ -310,11 +311,11 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(group: GroupDO) {
+    override fun afterSaveOrModify(group: GroupDO, context: PfPersistenceContext) {
         userGroupCache.setExpired()
     }
 
-    override fun afterDelete(obj: GroupDO) {
+    override fun afterDelete(obj: GroupDO, context: PfPersistenceContext) {
         userGroupCache.setExpired()
     }
 

@@ -29,6 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +63,7 @@ public class PosteingangDao extends BaseDao<PosteingangDO> {
   }
 
   @Override
-  public List<PosteingangDO> getList(final BaseSearchFilter filter) {
+  public List<PosteingangDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
     final PostFilter myFilter;
     if (filter instanceof PostFilter) {
       myFilter = (PostFilter) filter;
@@ -73,7 +74,7 @@ public class PosteingangDao extends BaseDao<PosteingangDO> {
     queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
     queryFilter.addOrder(SortProperty.desc("datum"));
     queryFilter.addOrder(SortProperty.asc("absender"));
-    final List<PosteingangDO> list = getList(queryFilter);
+    final List<PosteingangDO> list = getList(queryFilter, context);
     return list;
   }
 

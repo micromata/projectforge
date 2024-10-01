@@ -56,24 +56,30 @@ class HistoryService {
      */
     fun loadHistory(baseDO: BaseDO<*>): List<PfHistoryMasterDO> {
         return persistenceService.runReadOnly { context ->
-            loadHistory(context, baseDO)
+            loadHistory(baseDO, context)
         }
     }
 
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(context: PfPersistenceContext, baseDO: BaseDO<*>): List<PfHistoryMasterDO> {
+    fun loadHistory(baseDO: BaseDO<*>, context: PfPersistenceContext? = null): List<PfHistoryMasterDO> {
         val allHistoryEntries = mutableListOf<PfHistoryMasterDO>()
-        loadAndAddHistory(context, allHistoryEntries, baseDO::class.java, baseDO.id)
+        if (context != null) {
+            loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
+        } else {
+            persistenceService.runReadOnly { ctx ->
+                loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, ctx)
+            }
+        }
         return allHistoryEntries
     }
 
     private fun loadAndAddHistory(
-        context: PfPersistenceContext,
         allHistoryEntries: MutableList<PfHistoryMasterDO>,
         entityClass: Class<out BaseDO<*>>,
-        entityId: Serializable?
+        entityId: Serializable?,
+        context: PfPersistenceContext,
     ) {
         entityId ?: return
         val result = context.query(
@@ -152,8 +158,9 @@ class HistoryService {
                 embeddedObjectsMap.forEach { (propertyTypeClass, entityIds) ->
                     entityIds.forEach { entityId ->
                         try {
+                            @Suppress("UNCHECKED_CAST")
                             val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<*>>
-                            loadAndAddHistory(context, allHistoryEntries, clazz, entityId)
+                            loadAndAddHistory(allHistoryEntries, clazz, entityId, context)
                         } catch (ex: Exception) {
                             log.error(ex) { "Can't get class of name '$propertyTypeClass' (skipping): ${ex.message}" }
                         }

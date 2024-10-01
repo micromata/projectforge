@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay.Companion.from
@@ -128,18 +129,18 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     /**
      * Get the newest address entries (by time of creation).
      */
-    fun getNewest(filter: BaseSearchFilter): List<AddressDO> {
+    fun getNewest(filter: BaseSearchFilter, context: PfPersistenceContext): List<AddressDO> {
         val queryFilter = QueryFilter()
         queryFilter.addOrder(desc("created"))
         addAddressbookRestriction(queryFilter, null)
         if (filter.maxRows > 0) {
             filter.isSortAndLimitMaxRowsWhileSelect = true
         }
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: QueryFilter): List<AddressDO> {
+    override fun getList(filter: QueryFilter, context: PfPersistenceContext): List<AddressDO> {
         val filters: MutableList<CustomResultFilter<AddressDO>> = ArrayList()
         if (filter.getExtendedBooleanValue("doublets")) {
             filters.add(DoubletsResultFilter())
@@ -147,10 +148,10 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (filter.getExtendedBooleanValue("favorites")) {
             filters.add(FavoritesResultFilter(personalAddressDao))
         }
-        return super.getList(filter, filters)
+        return super.getList(filter, filters, context)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressDO> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<AddressDO> {
         val myFilter = if (filter is AddressFilter) {
             filter
         } else {
@@ -160,7 +161,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (StringUtils.isBlank(myFilter.searchString)) {
             if (!myFilter.isDeleted) {
                 if (myFilter.isNewest) {
-                    return getNewest(myFilter)
+                    return getNewest(myFilter, context)
                 }
                 if (myFilter.isMyFavorites) {
                     // Show only favorites.
@@ -220,7 +221,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             addAddressbookRestriction(queryFilter, myFilter)
         }
         queryFilter.addOrder(asc("name"))
-        val result = getList(queryFilter)
+        val result = getList(queryFilter, context)
         if (myFilter.isDoublets) {
             return filterDoublets(result)
         }
@@ -325,7 +326,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun beforeSaveOrModify(obj: AddressDO) {
+    override fun beforeSaveOrModify(obj: AddressDO, context: PfPersistenceContext) {
         if (obj.id == null) {
             if (obj.addressbookList == null) {
                 val addressbookSet = mutableSetOf<AddressbookDO>()
@@ -336,7 +337,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             }
         } else {
             //Check addressbook changes
-            val dbAddress = internalGetById(obj.id)
+            val dbAddress = internalGetById(obj.id, context)
             val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             for (dbAddressbook in dbAddress!!.addressbookList!!) {
                 //If user has no right for assigned addressbook, it could not be removed
@@ -349,26 +350,26 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun onSaveOrModify(obj: AddressDO) {
-        beforeSaveOrModify(obj)
+    override fun onSaveOrModify(obj: AddressDO, context: PfPersistenceContext) {
+        beforeSaveOrModify(obj, context)
     }
 
-    override fun onChange(obj: AddressDO, dbObj: AddressDO) {
+    override fun onChange(obj: AddressDO, dbObj: AddressDO, context: PfPersistenceContext) {
         // Don't modify the following fields:
         if (obj.getTransientAttribute("Modify image modification data") !== "true") {
             obj.image = dbObj.image
             obj.imageLastUpdate = dbObj.imageLastUpdate
         }
-        super.onChange(obj, dbObj)
+        super.onChange(obj, dbObj, context)
     }
 
     /**
      * On force deletion all personal address references has to be deleted.
      * @param obj The deleted object.
      */
-    override fun onDelete(obj: AddressDO) {
-        personalAddressDao.internalDeleteAll(obj)
-        teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj)
+    override fun onDelete(obj: AddressDO, context: PfPersistenceContext) {
+        personalAddressDao.internalDeleteAll(obj, context)
+        teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj, context)
         val counter = persistenceService.executeNamedUpdate(
             AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
             Pair("addressId", obj.id)
@@ -397,7 +398,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         address.imageLastUpdate = Date()
     }
 
-    override fun onSave(obj: AddressDO) {
+    override fun onSave(obj: AddressDO, context: PfPersistenceContext) {
         // create uid if empty
         if (StringUtils.isBlank(obj.uid)) {
             obj.uid = UUID.randomUUID().toString()
@@ -409,7 +410,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      *
      * @param obj
      */
-    override fun afterSaveOrModify(obj: AddressDO) {
+    override fun afterSaveOrModify(obj: AddressDO, context: PfPersistenceContext) {
         birthdayCache.setExpired()
     }
 

@@ -35,12 +35,6 @@ import org.projectforge.common.mgc.ClassUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.api.BaseDaoSupport.internalForceDelete
-import org.projectforge.framework.persistence.api.BaseDaoSupport.internalMarkAsDeleted
-import org.projectforge.framework.persistence.api.BaseDaoSupport.internalSave
-import org.projectforge.framework.persistence.api.BaseDaoSupport.internalSaveOrUpdate
-import org.projectforge.framework.persistence.api.BaseDaoSupport.internalUndelete
-import org.projectforge.framework.persistence.api.BaseDaoSupport.internalUpdate
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getClassInfo
@@ -133,6 +127,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     @JvmField
     var supportAfterUpdate: Boolean = false
 
+    @JvmField
+    protected var idProperty: String = "id"
+
     /**
      * If true, deletion of historizable objects is supported (including any history entry) due to privacy protection (e. g. addresses).
      * Otherwise, objects may only be marked as deleted (default).
@@ -174,15 +171,21 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return (id != null && id > 0)
     }
 
+    fun getOrLoad(id: Long?): O? {
+        return persistenceService.runReadOnly { context ->
+            getOrLoad(id, context)
+        }
+    }
+
     /**
      * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
      * getSession().load();
      */
-    fun getOrLoad(id: Long?): O? {
+    fun getOrLoad(id: Long?, context: PfPersistenceContext): O? {
         if (!isIdValid(id)) {
             return null
         }
-        val obj = internalGetById(id)
+        val obj = internalGetById(id, context)
         if (obj == null) {
             log.error("Can't load object of type " + doClass.name + ". Object with given id #" + id + " not found.")
             return null
@@ -190,47 +193,68 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         if (hasLoggedInUserSelectAccess(obj, false)) {
             return obj
         }
-        return persistenceService.runReadOnly { context ->
-            context.em.getReference(doClass, id)
-        }
+        return context.em.getReference(doClass, id)
     }
 
     fun internalLoadAllNotDeleted(): List<O> {
-        return internalLoadAll().stream().filter { o: O -> !o.deleted }.collect(Collectors.toList())
+        return persistenceService.runReadOnly { context ->
+            internalLoadAllNotDeleted(context)
+        }
     }
 
-    open fun internalLoadAll(): List<O> {
+    fun internalLoadAllNotDeleted(context: PfPersistenceContext): List<O> {
+        return internalLoadAll(context).stream().filter { o: O -> !o.deleted }.collect(Collectors.toList())
+    }
+
+    fun internalLoadAll(): List<O> {
         return persistenceService.runReadOnly { context ->
-            val em = context.em
-            val cb = em.criteriaBuilder
-            val cq = cb.createQuery(doClass)
-            val query = cq.select(cq.from(doClass))
-            em.createQuery(query).resultList
+            internalLoadAll(context)
         }
+    }
+
+    open fun internalLoadAll(context: PfPersistenceContext): List<O> {
+        val em = context.em
+        val cb = em.criteriaBuilder
+        val cq = cb.createQuery(doClass)
+        val query = cq.select(cq.from(doClass))
+        return em.createQuery(query).resultList
     }
 
     fun internalLoad(idList: Collection<Serializable>?): List<O>? {
         if (idList == null) {
             return null
         }
-        return persistenceService.runReadOnly { context ->
-            val em = context.em
-            val cr = em.criteriaBuilder.createQuery(doClass)
-            val root = cr.from(doClass)
-            cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
-            em.createQuery(cr).resultList
+        return persistenceService.runReadOnly { ctx ->
+            internalLoad(idList, ctx)
         }
     }
 
-    @JvmField
-    protected var idProperty: String = "id"
-
-    fun getListByIds(idList: Collection<Serializable>?): List<O>? {
+    fun internalLoad(idList: Collection<Serializable>?, context: PfPersistenceContext): List<O>? {
         if (idList == null) {
             return null
         }
-        val list = internalLoad(idList)
-        return extractEntriesWithSelectAccess(list!!)
+        val em = context.em
+        val cr = em.criteriaBuilder.createQuery(doClass)
+        val root = cr.from(doClass)
+        cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
+        return em.createQuery(cr).resultList
+    }
+
+    fun getListByIds(idList: Collection<Serializable>?): List<O>? {
+        if (idList.isNullOrEmpty()) {
+            return null
+        }
+        return persistenceService.runReadOnly { context ->
+            getListByIds(idList, context)
+        }
+    }
+
+    fun getListByIds(idList: Collection<Serializable>?, context: PfPersistenceContext): List<O>? {
+        if (idList.isNullOrEmpty()) {
+            return null
+        }
+        val list = internalLoad(idList, context)
+        return extractEntriesWithSelectAccess(list!!, context)
     }
 
     /**
@@ -239,8 +263,20 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      * @see .getList
      */
-    open fun getListForSearchDao(filter: BaseSearchFilter): List<O>? {
-        return getList(filter)
+    fun getListForSearchDao(filter: BaseSearchFilter): List<O>? {
+        return persistenceService.runReadOnly { context ->
+            getListForSearchDao(filter, context)
+        }
+    }
+
+    open fun getListForSearchDao(filter: BaseSearchFilter, context: PfPersistenceContext): List<O>? {
+        return getList(filter, context)
+    }
+
+    override fun getList(filter: BaseSearchFilter): List<O> {
+        return persistenceService.runReadOnly { context ->
+            getList(filter, context)
+        }
     }
 
     /**
@@ -249,49 +285,77 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      */
-    override fun getList(filter: BaseSearchFilter): List<O> {
+    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<O> {
         val queryFilter = createQueryFilter(filter)
-        return getList(queryFilter)
+        return getList(queryFilter, context)
     }
 
     open fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
         return QueryFilter(filter)
     }
 
-    /**
-     * Gets the list filtered by the given filter.
-     */
-    @Throws(
-        AccessException::class
-    )
-    open fun getList(filter: QueryFilter): List<O> {
-        return getList(filter, null)
+    @Throws(AccessException::class)
+    fun getList(filter: QueryFilter): List<O> {
+        return persistenceService.runReadOnly { context ->
+            getList(filter, null, context)
+        }
     }
 
     /**
      * Gets the list filtered by the given filter.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun getList(filter: QueryFilter, customResultFilters: List<CustomResultFilter<O>>?): List<O> {
-        return dbQuery.getList<O>(this, filter, customResultFilters, true)
+    @Throws(AccessException::class)
+    open fun getList(filter: QueryFilter, context: PfPersistenceContext): List<O> {
+        return getList(filter, null, context)
     }
 
     /**
      * Gets the list filtered by the given filter.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun internalGetList(filter: QueryFilter): List<O> {
-        return dbQuery.getList<O>(this, filter, null, false)
+    @Throws(AccessException::class)
+    fun getList(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+    ): List<O> {
+        return persistenceService.runReadOnly { context ->
+            getList(filter, customResultFilters = customResultFilters, context = context)
+        }
+    }
+
+    /**
+     * Gets the list filtered by the given filter.
+     */
+    @Throws(AccessException::class)
+    open fun getList(
+        filter: QueryFilter,
+        customResultFilters: List<CustomResultFilter<O>>?,
+        context: PfPersistenceContext,
+    ): List<O> {
+        return dbQuery.getList<O>(this, filter, customResultFilters, true, context)
+    }
+
+    /**
+     * Gets the list filtered by the given filter.
+     */
+    @Throws(AccessException::class)
+    fun internalGetList(filter: QueryFilter): List<O> {
+        return persistenceService.runReadOnly { context ->
+            internalGetList(filter, context)
+        }
+    }
+
+    /**
+     * Gets the list filtered by the given filter.
+     */
+    @Throws(AccessException::class)
+    open fun internalGetList(filter: QueryFilter, context: PfPersistenceContext): List<O> {
+        return dbQuery.getList<O>(this, filter, null, false, context)
     }
 
     /**
      * idSet.contains(entry.getId()) at default.
      */
-    open fun contains(idSet: Set<Long?>?, entry: O): Boolean {
+    open fun contains(idSet: Set<Long>?, entry: O): Boolean {
         if (idSet == null) {
             return false
         }
@@ -313,12 +377,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return result
     }
 
-    fun extractEntriesWithSelectAccess(origList: List<O>): List<O> {
+    fun extractEntriesWithSelectAccess(origList: List<O>, context: PfPersistenceContext): List<O> {
         val result: MutableList<O> = ArrayList()
         for (obj in origList) {
             if (hasSelectAccess(obj, requiredLoggedInUser)) {
                 result.add(obj)
-                afterLoad(obj)
+                afterLoad(obj, context)
             }
         }
         return result
@@ -345,47 +409,74 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param id primary key of the base object.
      */
     @Throws(AccessException::class)
-    open fun getById(id: Serializable?): O? {
+    fun getById(id: Serializable?): O? {
+        return persistenceService.runReadOnly { context ->
+            getById(id, context)
+        }
+    }
+
+    /**
+     * @param id primary key of the base object.
+     */
+    @Throws(AccessException::class)
+    open fun getById(id: Serializable?, context: PfPersistenceContext): O? {
         id ?: return null
         accessChecker.checkRestrictedUser()
         checkLoggedInUserSelectAccess()
-        val obj = internalGetById(id) ?: return null
+        val obj = internalGetById(id, context) ?: return null
         checkLoggedInUserSelectAccess(obj)
         return obj
     }
 
-    open fun internalGetById(id: Serializable?): O? {
+    fun internalGetById(id: Serializable?): O? {
         if (id == null) {
             return null
         }
-        val obj = persistenceService.selectSingleResult(
+        return persistenceService.runReadOnly { context ->
+            internalGetById(id, context)
+        }
+    }
+
+    open fun internalGetById(id: Serializable?, context: PfPersistenceContext): O? {
+        if (id == null) {
+            return null
+        }
+        val obj = context.selectSingleResult(
             "select t from ${doClass.name} t where t.id = :id",
             doClass,
             Pair("id", id),
         ) ?: return null
-        afterLoad(obj)
+        afterLoad(obj, context)
         return obj
     }
 
     /**
      * Gets the history entries of the object.
      */
-    fun getHistoryEntries(context: PfPersistenceContext, obj: O): List<HistoryEntry<*>> {
-        accessChecker.checkRestrictedUser()
-        checkLoggedInUserHistoryAccess(obj)
-        return internalGetHistoryEntries(context, obj)
-    }
-
-    fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry<*>> {
-        accessChecker.checkRestrictedUser()
+    fun getHistoryEntries(obj: O): List<HistoryEntry<*>> {
         return persistenceService.runReadOnly { context ->
-            historyService.loadHistory(obj)
+            getHistoryEntries(obj, context)
         }
     }
 
-    fun internalGetHistoryEntries(context: PfPersistenceContext, obj: BaseDO<*>): List<HistoryEntry<*>> {
+    /**
+     * Gets the history entries of the object.
+     */
+    fun getHistoryEntries(obj: O, context: PfPersistenceContext): List<HistoryEntry<*>> {
         accessChecker.checkRestrictedUser()
-        return historyService.loadHistory(context, obj)
+        checkLoggedInUserHistoryAccess(obj)
+        return internalGetHistoryEntries(obj, context)
+    }
+
+    fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry<*>> {
+        return persistenceService.runReadOnly { context ->
+            historyService.loadHistory(obj, context)
+        }
+    }
+
+    fun internalGetHistoryEntries(obj: BaseDO<*>, context: PfPersistenceContext): List<HistoryEntry<*>> {
+        accessChecker.checkRestrictedUser()
+        return historyService.loadHistory(obj, context)
     }
 
     /**
@@ -395,7 +486,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     fun getDisplayHistoryEntries(obj: O): MutableList<DisplayHistoryEntry> {
         return persistenceService.runReadOnly { context ->
-            getDisplayHistoryEntries(context, obj)
+            getDisplayHistoryEntries(obj, context)
         }
     }
 
@@ -403,45 +494,37 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Gets the history entries of the object in flat format.<br></br>
      * Please note: If user has no access an empty list will be returned.
      */
-    open fun getDisplayHistoryEntries(context: PfPersistenceContext, obj: O): MutableList<DisplayHistoryEntry> {
+    open fun getDisplayHistoryEntries(obj: O, context: PfPersistenceContext): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
-        return internalGetDisplayHistoryEntries(context, obj)
+        return internalGetDisplayHistoryEntries(obj, context)
     }
 
     protected fun internalGetDisplayHistoryEntries(
-        obj: BaseDO<*>
+        obj: BaseDO<*>,
     ): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
         return persistenceService.runReadOnly { context ->
-            val entries = internalGetHistoryEntries(context, obj)
-            convertAll(context, entries)
+            internalGetDisplayHistoryEntries(obj, context)
         }
     }
 
     protected fun internalGetDisplayHistoryEntries(
+        obj: BaseDO<*>,
         context: PfPersistenceContext,
-        obj: BaseDO<*>
     ): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
-        val entries = internalGetHistoryEntries(context, obj)
-        return convertAll(context, entries)
-    }
-
-    private fun convertAll(
-        context: PfPersistenceContext,
-        entries: List<HistoryEntry<*>>
-    ): MutableList<DisplayHistoryEntry> {
+        val entries = internalGetHistoryEntries(obj, context)
         val list = mutableListOf<DisplayHistoryEntry>()
         for (entry in entries) {
-            val l = convert(context, entry)
+            val l = convert(entry, context)
             list.addAll(l)
         }
         return list
     }
 
-    open fun convert(context: PfPersistenceContext, entry: HistoryEntry<*>): List<DisplayHistoryEntry> {
+    open fun convert(entry: HistoryEntry<*>, context: PfPersistenceContext): List<DisplayHistoryEntry> {
         if (entry.diffEntries.isNullOrEmpty()) {
             return listOf(DisplayHistoryEntry(userGroupCache, entry))
         }
@@ -455,78 +538,114 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     /**
+     * @param context If given, the entity manager is used. Otherwise a new entity manager and transaction
+     * will be created.
      * @return the generated identifier, if save method is used, otherwise null.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun saveOrUpdate(obj: O): Serializable? {
+    @Throws(AccessException::class)
+    fun saveOrUpdateNewTrans(obj: O): Serializable? {
+        return persistenceService.runInTransaction { context ->
+            saveOrUpdate(obj, context)
+        }
+    }
+
+    /**
+     * @param context If given, the entity manager is used. Otherwise a new entity manager and transaction
+     * will be created.
+     * @return the generated identifier, if save method is used, otherwise null.
+     */
+    @Throws(AccessException::class)
+    open fun saveOrUpdate(obj: O, context: PfPersistenceContext): Serializable? {
         var id: Serializable? = null
         if (obj.id != null && obj.created != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
-            update(obj)
+            update(obj, context)
         } else {
-            id = save(obj)
+            id = save(obj, context)
         }
         return id
+    }
+
+    fun internalSaveOrUpdateNewTrans(obj: O): Serializable? {
+        return persistenceService.runInTransaction { context ->
+            internalSaveOrUpdate(obj, context)
+        }
     }
 
     /**
      * @return the generated identifier, if save method is used, otherwise null.
      */
-    open fun internalSaveOrUpdate(obj: O): Serializable? {
+    open fun internalSaveOrUpdate(obj: O, context: PfPersistenceContext): Serializable? {
         var id: Serializable? = null
         if (obj.id != null) {
-            internalUpdate(obj)
+            internalUpdate(obj, context)
         } else {
-            id = internalSave(obj)
+            id = internalSave(obj, context)
         }
         return id
+    }
+
+    @Throws(AccessException::class)
+    fun saveNewTrans(objects: List<O>) {
+        return persistenceService.runInTransaction { context ->
+            save(objects, context)
+        }
     }
 
     /**
      * Call save(O) for every object in the given list.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun save(objects: List<O>) {
+    @Throws(AccessException::class)
+    open fun save(objects: List<O>, context: PfPersistenceContext) {
         for (obj in objects) {
-            save(obj)
+            save(obj, context)
         }
     }
 
     /**
      * @return the generated identifier.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun save(obj: O): Long {
+    @Throws(AccessException::class)
+    fun saveNewTrans(obj: O): Long {
+        return persistenceService.runInTransaction { context ->
+            save(obj, context)
+        }
+    }
+
+    /**
+     * @return the generated identifier.
+     */
+    @Throws(AccessException::class)
+    open fun save(obj: O, context: PfPersistenceContext): Long {
         //long begin = System.currentTimeMillis();
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        beforeSaveOrModify(obj)
+        beforeSaveOrModify(obj, context)
         checkLoggedInUserInsertAccess(obj)
-        val result = internalSave(obj)
+        val result = internalSave(obj, context)
         //long end = System.currentTimeMillis();
         //log.info("BaseDao.save took: " + (end - begin) + " ms.");
         return result!!
     }
 
-    @Throws(
-        AccessException::class
-    )
-    open fun insert(obj: O): Long {
-        return save(obj)
+    @Throws(AccessException::class)
+    fun insertNewTrans(obj: O): Long {
+        return persistenceService.runInTransaction { context ->
+            insert(obj, context)
+        }
+    }
+
+    @Throws(AccessException::class)
+    open fun insert(obj: O, context: PfPersistenceContext): Long {
+        return save(obj, context)
     }
 
     /**
      * This method will be called after loading an object from the data base. Does nothing at default. This method is not
      * called by internalLoadAll.
      */
-    open fun afterLoad(obj: O) {
+    open fun afterLoad(obj: O, context: PfPersistenceContext) {
     }
 
     /**
@@ -534,7 +653,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * is for example needed for expiring the UserGroupCache after inserting or updating a user or group data object. Does
      * nothing at default.
      */
-    open fun afterSaveOrModify(obj: O) {
+    open fun afterSaveOrModify(obj: O, context: PfPersistenceContext) {
     }
 
     /**
@@ -542,28 +661,28 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param obj The inserted object
      */
-    open fun afterSave(obj: O) {
-        callObjectChangedListeners(obj, OperationType.INSERT)
+    open fun afterSave(obj: O, context: PfPersistenceContext) {
+        callObjectChangedListeners(obj, OperationType.INSERT, context)
     }
 
     /**
      * This method will be called before inserting. Does nothing at default.
      */
-    open fun onSave(obj: O) {
+    open fun onSave(obj: O, context: PfPersistenceContext) {
     }
 
     /**
      * This method will be called before inserting, updating, deleting or marking the data object as deleted. Does nothing
      * at default.
      */
-    open fun onSaveOrModify(obj: O) {
+    open fun onSaveOrModify(obj: O, context: PfPersistenceContext) {
     }
 
     /**
      * This method will be called before access check of inserting and updating the object. Does nothing
      * at default.
      */
-    open fun beforeSaveOrModify(obj: O) {
+    open fun beforeSaveOrModify(obj: O, context: PfPersistenceContext) {
     }
 
     /**
@@ -573,8 +692,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param obj   The modified object
      * @param dbObj The object from data base before modification.
      */
-    open fun afterUpdate(obj: O, dbObj: O?) {
-        callObjectChangedListeners(obj, OperationType.UPDATE)
+    open fun afterUpdate(obj: O, dbObj: O?, context: PfPersistenceContext) {
+        callObjectChangedListeners(obj, OperationType.UPDATE, context)
     }
 
     /**
@@ -585,8 +704,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param dbObj      The object from data base before modification.
      * @param isModified is true if the object was changed, false if the object wasn't modified.
      */
-    open fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean) {
-        callObjectChangedListeners(obj, OperationType.UPDATE)
+    open fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean, context: PfPersistenceContext) {
+        callObjectChangedListeners(obj, OperationType.UPDATE, context)
     }
 
     /**
@@ -596,7 +715,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param obj   The changed object.
      * @param dbObj The current database version of this object.
      */
-    open fun onChange(obj: O, dbObj: O) {
+    open fun onChange(obj: O, dbObj: O, context: PfPersistenceContext) {
     }
 
     /**
@@ -604,7 +723,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param obj The deleted object.
      */
-    open fun onDelete(obj: O) {
+    open fun onDelete(obj: O, context: PfPersistenceContext) {
     }
 
     /**
@@ -612,8 +731,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param obj The deleted object.
      */
-    open fun afterDelete(obj: O) {
-        callObjectChangedListeners(obj, OperationType.DELETE)
+    open fun afterDelete(obj: O, context: PfPersistenceContext) {
+        callObjectChangedListeners(obj, OperationType.DELETE, context)
     }
 
     /**
@@ -621,13 +740,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param obj The deleted object.
      */
-    open fun afterUndelete(obj: O) {
-        callObjectChangedListeners(obj, OperationType.UNDELETE)
+    open fun afterUndelete(obj: O, context: PfPersistenceContext) {
+        callObjectChangedListeners(obj, OperationType.UNDELETE, context)
     }
 
-    fun callObjectChangedListeners(obj: O, operationType: OperationType) {
+    fun callObjectChangedListeners(obj: O, operationType: OperationType, context: PfPersistenceContext) {
         for (objectChangedListener in objectChangedListeners) {
-            objectChangedListener.afterSaveOrModify(obj, operationType)
+            objectChangedListener.afterSaveOrModify(obj, operationType, context)
         }
     }
 
@@ -636,28 +755,51 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return the generated identifier.
      */
-    open fun internalSave(obj: O): Long? {
-        return internalSave(this, obj)
-    }
-
-    open fun saveOrUpdate(col: Collection<O>) {
-        for (obj in col) {
-            saveOrUpdate(obj)
+    fun internalSaveNewTrans(obj: O): Long? {
+        return persistenceService.runInTransaction { context ->
+            internalSave(obj, context)
         }
     }
 
-    open fun saveOrUpdate(col: Collection<O>, blockSize: Int) {
+    /**
+     * This method is for internal use e. g. for updating objects without check access.
+     *
+     * @return the generated identifier.
+     */
+    open fun internalSave(obj: O, context: PfPersistenceContext): Long? {
+        return BaseDaoSupport.internalSave(this, obj, context)
+    }
+
+    fun saveOrUpdateNewTrans(col: Collection<O>) {
+        persistenceService.runInTransaction { context ->
+            saveOrUpdate(col, context)
+        }
+    }
+
+    open fun saveOrUpdate(col: Collection<O>, context: PfPersistenceContext) {
+        for (obj in col) {
+            saveOrUpdate(obj, context)
+        }
+    }
+
+    fun saveOrUpdateNewTrans(col: Collection<O>, blockSize: Int) {
         val list: MutableList<O> = ArrayList()
         var counter = 0
         for (obj in col) {
             list.add(obj)
             if (++counter >= blockSize) {
                 counter = 0
-                saveOrUpdate(list)
+                saveOrUpdateNewTrans(list)
                 list.clear()
             }
         }
-        saveOrUpdate(list)
+        saveOrUpdateNewTrans(list)
+    }
+
+    fun internalSaveOrUpdateNewTrans(col: Collection<O>) {
+        persistenceService.runInTransaction { context ->
+            internalSaveOrUpdate(col, context)
+        }
     }
 
     /**
@@ -665,8 +807,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param col Entries to save or update without check access.
      */
-    open fun internalSaveOrUpdate(col: Collection<O>) {
-        internalSaveOrUpdate(this, col)
+    open fun internalSaveOrUpdate(col: Collection<O>, context: PfPersistenceContext) {
+        BaseDaoSupport.internalSaveOrUpdate(this, col, context)
     }
 
     /**
@@ -675,25 +817,34 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param col       Entries to save or update without check access.
      * @param blockSize The block size of commit blocks.
      */
-    open fun internalSaveOrUpdate(col: Collection<O>, blockSize: Int) {
-        internalSaveOrUpdate(this, col, blockSize)
+    fun internalSaveOrUpdateNewTrans(col: Collection<O>, blockSize: Int) {
+        BaseDaoSupport.internalSaveOrUpdate(this, col, blockSize, persistenceService)
     }
 
     /**
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun update(obj: O): EntityCopyStatus {
+    @Throws(AccessException::class)
+    fun updateNewTrans(obj: O): EntityCopyStatus {
+        return persistenceService.runInTransaction { context ->
+            update(obj, context)
+        }
+    }
+
+    /**
+     * @return true, if modifications were done, false if no modification detected.
+     * @see .internalUpdate
+     */
+    @Throws(AccessException::class)
+    open fun update(obj: O, context: PfPersistenceContext): EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not update object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        return internalUpdate(obj, true)!!
+        return internalUpdate(obj, true, context)!!
     }
 
     /**
@@ -702,12 +853,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun updateAny(obj: Any): EntityCopyStatus {
-        @Suppress("UNCHECKED_CAST")
-        return update(obj as O)
+    @Throws(AccessException::class)
+    fun updateAnyNewTrans(obj: Any): EntityCopyStatus {
+        return persistenceService.runInTransaction { context ->
+            updateAny(obj, context)
+        }
     }
 
     /**
@@ -716,12 +866,35 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun internalUpdateAny(obj: Any): EntityCopyStatus? {
+    @Throws(AccessException::class)
+    open fun updateAny(obj: Any, context: PfPersistenceContext): EntityCopyStatus {
         @Suppress("UNCHECKED_CAST")
-        return internalUpdate(obj as O)
+        return update(obj as O, context)
+    }
+
+    /**
+     * Thin wrapper for generic usage.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see .internalUpdate
+     */
+    @Throws(AccessException::class)
+    fun internalUpdateAnyNewTrans(obj: Any): EntityCopyStatus? {
+        return persistenceService.runInTransaction { context ->
+            internalUpdateAny(obj, context)
+        }
+    }
+
+    /**
+     * Thin wrapper for generic usage.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see .internalUpdate
+     */
+    @Throws(AccessException::class)
+    open fun internalUpdateAny(obj: Any, context: PfPersistenceContext): EntityCopyStatus? {
+        @Suppress("UNCHECKED_CAST")
+        return internalUpdate(obj as O, context)
     }
 
     /**
@@ -730,8 +903,20 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    open fun internalUpdate(obj: O): EntityCopyStatus? {
-        return internalUpdate(obj, false)
+    fun internalUpdateNewTrans(obj: O): EntityCopyStatus? {
+        return persistenceService.runInTransaction { context ->
+            internalUpdate(obj, context)
+        }
+    }
+
+    /**
+     * This method is for internal use e. g. for updating objects without check access.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see .internalUpdate
+     */
+    open fun internalUpdate(obj: O, context: PfPersistenceContext): EntityCopyStatus? {
+        return internalUpdate(obj, false, context)
     }
 
     /**
@@ -741,8 +926,21 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param checkAccess If false, any access check will be ignored.
      * @return true, if modifications were done, false if no modification detected.
      */
-    open fun internalUpdate(obj: O, checkAccess: Boolean): EntityCopyStatus? {
-        return internalUpdate(this, obj, checkAccess)
+    fun internalUpdateNewTrans(obj: O, checkAccess: Boolean): EntityCopyStatus? {
+        return persistenceService.runInTransaction { context ->
+            internalUpdate(obj, checkAccess, context)
+        }
+    }
+
+    /**
+     * This method is for internal use e. g. for updating objects without check access.<br></br>
+     * Please note: update ignores the field deleted. Use markAsDeleted, delete and undelete methods instead.
+     *
+     * @param checkAccess If false, any access check will be ignored.
+     * @return true, if modifications were done, false if no modification detected.
+     */
+    open fun internalUpdate(obj: O, checkAccess: Boolean, context: PfPersistenceContext): EntityCopyStatus? {
+        return BaseDaoSupport.internalUpdate(this, obj, checkAccess, context)
     }
 
     /**
@@ -768,76 +966,121 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Overwrite this method if you have lazy exceptions while Hibernate-Search re-indexes. See e. g. AuftragDao.
      */
-    open fun prepareHibernateSearch(obj: O, operationType: OperationType) {
+    open fun prepareHibernateSearch(obj: O, operationType: OperationType, context: PfPersistenceContext) {
     }
 
     /**
      * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun markAsDeleted(obj: O) {
+    @Throws(AccessException::class)
+    fun markAsDeletedNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            markAsDeleted(obj, context)
+        }
+    }
+
+    /**
+     * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
+     */
+    @Throws(AccessException::class)
+    open fun markAsDeleted(obj: O, context: PfPersistenceContext) {
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        val dbObj = persistenceService.selectById(doClass, obj.id)!!
+        val dbObj = context.selectById(doClass, obj.id)!!
         checkLoggedInUserDeleteAccess(obj, dbObj)
-        internalMarkAsDeleted(obj)
+        internalMarkAsDeleted(obj, context)
     }
 
-    open fun internalMarkAsDeleted(obj: O) {
-        internalMarkAsDeleted(this, obj)
+    fun internalMarkAsDeletedNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            internalMarkAsDeleted(obj, context)
+        }
+    }
+
+    open fun internalMarkAsDeleted(obj: O, context: PfPersistenceContext) {
+        BaseDaoSupport.internalMarkAsDeleted(this, obj, context)
     }
 
     /**
      * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
      * privacy protection rules.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun forceDelete(obj: O) {
+    @Throws(AccessException::class)
+    fun forceDeleteNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            forceDelete(obj, context)
+        }
+    }
+
+    /**
+     * Historizable objects will be deleted (including all history entries). This option is used to fullfill the
+     * privacy protection rules.
+     */
+    @Throws(AccessException::class)
+    open fun forceDelete(obj: O, context: PfPersistenceContext) {
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        val dbObj = persistenceService.selectById(doClass, obj.id)
+        val dbObj = context.selectById(doClass, obj.id)
         if (dbObj == null) {
             log.error("Oups, can't delete $doClass #${obj.id}, because database object doesn't exist.")
             return
         }
         checkLoggedInUserDeleteAccess(obj, dbObj)
-        internalForceDelete(obj)
+        internalForceDelete(obj, context)
     }
 
-    open fun internalForceDelete(obj: O) {
-        internalForceDelete(this, obj)
+    fun internalForceDeleteNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            internalForceDelete(obj, context)
+        }
+    }
+
+    open fun internalForceDelete(obj: O, context: PfPersistenceContext) {
+        BaseDaoSupport.internalForceDelete(this, obj, context)
     }
 
     /**
      * Object will be deleted finally out of the data base.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun delete(obj: O) {
+    @Throws(AccessException::class)
+    fun deleteNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            delete(obj, context)
+        }
+    }
+
+    /**
+     * Object will be deleted finally out of the data base.
+     */
+    @Throws(AccessException::class)
+    open fun delete(obj: O, context: PfPersistenceContext) {
         accessChecker.checkRestrictedOrDemoUser()
-        internalDelete(obj)
+        internalDelete(obj, context)
     }
 
     /**
      * Object will be deleted finally out of the data base.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun internalDelete(obj: O) {
+    @Throws(AccessException::class)
+    fun internalDeleteNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            internalDelete(obj, context)
+        }
+    }
+
+    /**
+     * Object will be deleted finally out of the data base.
+     */
+    @Throws(AccessException::class)
+    open fun internalDelete(obj: O, context: PfPersistenceContext) {
         if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
             val msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString()
             log.error(msg)
@@ -848,31 +1091,27 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             log.error(msg)
             throw RuntimeException(msg)
         }
-        onDelete(obj)
+        onDelete(obj, context)
 
-        persistenceService.runInTransaction { context ->
-            val dbObj = context.selectById(doClass, obj.id, attached = true)
-            if (dbObj != null) {
-                checkLoggedInUserDeleteAccess(obj, dbObj)
-                context.em.remove(dbObj)
-                if (logDatabaseActions) {
-                    log.info(doClass.simpleName + " deleted: " + obj.toString())
-                }
-            } else {
-                log.error("Oups, can't delete $doClass #${obj.id}, not found in database!")
+        val dbObj = context.selectById(doClass, obj.id, attached = true)
+        if (dbObj != null) {
+            checkLoggedInUserDeleteAccess(obj, dbObj)
+            context.em.remove(dbObj)
+            if (logDatabaseActions) {
+                log.info(doClass.simpleName + " deleted: " + obj.toString())
             }
+        } else {
+            log.error("Oups, can't delete $doClass #${obj.id}, not found in database!")
         }
-        afterSaveOrModify(obj)
-        afterDelete(obj)
+        afterSaveOrModify(obj, context)
+        afterDelete(obj, context)
     }
 
     /**
      * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
      */
-    @Throws(
-        AccessException::class
-    )
-    open fun undelete(obj: O) {
+    @Throws(AccessException::class)
+    open fun undeleteNewTrans(obj: O) {
         if (obj.id == null) {
             val msg = "Could not undelete object unless id is not given:$obj"
             log.error(msg)
@@ -880,11 +1119,17 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         }
         accessChecker.checkRestrictedOrDemoUser()
         checkLoggedInUserInsertAccess(obj)
-        internalUndelete(obj)
+        internalUndeleteNewTrans(obj)
     }
 
-    open fun internalUndelete(obj: O) {
-        internalUndelete(this, obj)
+    open fun internalUndeleteNewTrans(obj: O) {
+        persistenceService.runInTransaction { context ->
+            internalUndelete(obj, context)
+        }
+    }
+
+    open fun internalUndelete(obj: O, context: PfPersistenceContext) {
+        BaseDaoSupport.internalUndelete(this, obj, context)
     }
 
     /**
@@ -1287,9 +1532,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @Throws(AccessException::class)
-    open fun selectByPkDetached(pk: Long): O? {
+    fun selectByPkDetached(pk: Long): O? {
+        return persistenceService.runReadOnly { context ->
+            selectByPkDetached(pk, context)
+        }
+    }
+
+    @Throws(AccessException::class)
+    open fun selectByPkDetached(pk: Long, context: PfPersistenceContext): O? {
         // TODO RK not detached here
-        return getById(pk)
+        return getById(pk, context)
     }
 
     /**

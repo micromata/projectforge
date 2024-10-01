@@ -98,7 +98,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             it.poll?.id == obj.id
         }
         responsesToDelete.forEach {
-            pollResponseDao.markAsDeleted(it)
+            pollResponseDao.markAsDeletedNewTrans(it)
         }
         super.onBeforeMarkAsDeleted(request, obj, postData)
     }

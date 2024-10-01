@@ -31,6 +31,7 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.NonUniqueResultException
 import org.hibernate.Session
+import org.hibernate.Transaction
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
 
@@ -40,6 +41,8 @@ private val log = KotlinLogging.logger {}
  * Only for internal usage. Please use [PfPersistenceService] and [PfPersistenceContext] instead.
  */
 internal object EntityManagerUtil {
+    // private val openedTransactions = mutableSetOf<EntityTransaction>()
+
     /**
      * @param readonly If true, no transaction is used.
      */
@@ -519,17 +522,24 @@ internal object EntityManagerUtil {
     ): T {
         val em = context.em
         if (readonly) {
+            // log.info { "Running read only" }
             em.unwrap(Session::class.java).isDefaultReadOnly = true
             // No transaction in readonly mode.
             return execute(context)
         } else {
             em.transaction.begin()
+            // openedTransactions.add(em.transaction)
+            //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
             try {
                 val ret = execute(context)
                 em.transaction.commit()
+                //openedTransactions.remove(em.transaction)
+                //log.info { "Commit transaction ${em.transaction}..." }
                 return ret
             } catch (ex: Exception) {
                 em.transaction.rollback()
+                //openedTransactions.remove(em.transaction)
+                //log.info { "Rollback transaction ${em.transaction}..." }
                 log.error(ex.message, ex)
                 throw ex
             }

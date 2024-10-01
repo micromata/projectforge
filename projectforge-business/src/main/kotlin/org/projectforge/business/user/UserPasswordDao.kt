@@ -32,6 +32,7 @@ import org.projectforge.business.login.PasswordCheckResult
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -100,21 +101,17 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         return UserPasswordDO()
     }
 
+    /**
+     * Encrypts the password with a new generated salt string and the pepper string if configured any.
+     *
+     * @param user     The user to user.
+     * @param clearTextPassword as clear text.
+     * @see Crypt.digest
+     */
     @JvmOverloads
-    open fun saveOrUpdate(userId: Long, passwords: UserPasswordDO, throwException: Boolean = true) {
-        if (!hasLoggedInUserAccess(userId)) {
-            if (throwException) {
-                throw AccessException("access.exception.violation", "AccessToken")
-            }
-            return
-        }
-        val dbEntry = internalGetByUserId(userId)
-        if (dbEntry != null) {
-            passwords.id = dbEntry.id
-            internalUpdate(passwords)
-        } else {
-            if (!passwords.passwordHash.isNullOrBlank())
-                internalSave(passwords)
+    open fun encryptAndSavePasswordNewTrans(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
+        return persistenceService.runInTransaction { context ->
+            encryptAndSavePassword(userId, clearTextPassword, checkAccess, context)
         }
     }
 
@@ -126,16 +123,21 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      * @see Crypt.digest
      */
     @JvmOverloads
-    open fun encryptAndSavePassword(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
-        val passwords = ensurePassword(userId, checkAccess)
+    open fun encryptAndSavePassword(
+        userId: Long,
+        clearTextPassword: CharArray,
+        checkAccess: Boolean = true,
+        context: PfPersistenceContext
+    ) {
+        val passwords = ensurePassword(userId, checkAccess, context)
         newSaltString.let { salt ->
             passwords.passwordSalt = salt
             passwords.passwordHash = encryptAndClear(pepperString, salt, clearTextPassword)
         }
         if (passwords.id == null) {
-            internalSave(passwords)
+            internalSave(passwords, context)
         } else {
-            internalUpdate(passwords)
+            internalUpdate(passwords, context)
         }
     }
 
@@ -145,25 +147,35 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      * @return Stored or created passwords object for given user.
      * @throws AccessException if the logged-in user neither doesn't match the given user nor is admin user.
      */
-    private fun ensurePassword(userId: Long, checkAccess: Boolean = true): UserPasswordDO {
+    private fun ensurePassword(
+        userId: Long,
+        checkAccess: Boolean = true,
+        context: PfPersistenceContext
+    ): UserPasswordDO {
         if (checkAccess) {
             hasLoggedInUserAccess(userId)
         }
-        var passwordObj = internalGetByUserId(userId)
+        var passwordObj = internalGetByUserId(userId, context)
         if (passwordObj == null) {
             passwordObj = UserPasswordDO()
-            val user = userDao.internalGetById(userId)
+            val user = userDao.internalGetById(userId, context)
             passwordObj.user = user
         }
         return passwordObj
     }
 
-    override fun onSaveOrModify(obj: UserPasswordDO) {
+    override fun onSaveOrModify(obj: UserPasswordDO, context: PfPersistenceContext) {
         obj.checkAndFixPassword()
     }
 
     open fun internalGetByUserId(userId: Long): UserPasswordDO? {
-        return persistenceService.selectNamedSingleResult(
+        return persistenceService.runReadOnly { context ->
+            internalGetByUserId(userId, context)
+        }
+    }
+
+    open fun internalGetByUserId(userId: Long, context: PfPersistenceContext): UserPasswordDO? {
+        return context.selectNamedSingleResult(
             UserPasswordDO.FIND_BY_USER_ID,
             UserPasswordDO::class.java,
             Pair("userId", userId),

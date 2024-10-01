@@ -43,7 +43,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         persistenceService.runReadOnly { context ->
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)
-            val entries = rechnungDao.getDisplayHistoryEntries(context, invoice)
+            val entries = rechnungDao.getDisplayHistoryEntries(invoice, context)
             entries.forEach { entry ->
                 println(entry)
             }

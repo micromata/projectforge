@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
@@ -233,6 +234,16 @@ public class HRViewDao implements IDao<HRViewData> {
    */
   @Override
   public List<HRViewData> getList(final BaseSearchFilter filter) {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Throws UnsupportedOperationException.
+   *
+   * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
+   */
+  @Override
+  public List<HRViewData> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
     throw new UnsupportedOperationException();
   }
 

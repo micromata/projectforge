@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
@@ -84,7 +85,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
   }
 
   @Override
-  public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter) {
+  public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
     final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
     if (myFilter.getStopDay() != null) {
       final PFDateTime date = PFDateTime.from(myFilter.getStopDay()).getEndOfDay();
@@ -97,7 +98,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
     } else {
       queryFilter.add(QueryFilter.and(QueryFilter.eq("deleted", false), QueryFilter.eq("planning.deleted", false)));
     }
-    final List<HRPlanningEntryDO> list = getList(queryFilter);
+    final List<HRPlanningEntryDO> list = getList(queryFilter, context);
     if (list == null) {
       return null;
     }
@@ -193,14 +194,14 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
    * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
    */
   @Override
-  public void onSaveOrModify(final HRPlanningEntryDO obj) {
+  public void onSaveOrModify(final HRPlanningEntryDO obj, final PfPersistenceContext context) {
     throw new UnsupportedOperationException(
             "Please do not save or HRPlanningEntryDO directly, save or update HRPlanningDO instead.");
   }
 
   @Override
-  public void prepareHibernateSearch(final HRPlanningEntryDO obj, final OperationType operationType) {
-    projektDao.initializeProjektManagerGroup(obj.getProjekt());
+  public void prepareHibernateSearch(final HRPlanningEntryDO obj, final OperationType operationType, final PfPersistenceContext context) {
+    projektDao.initializeProjektManagerGroup(obj.getProjekt(), context);
   }
 
   /**

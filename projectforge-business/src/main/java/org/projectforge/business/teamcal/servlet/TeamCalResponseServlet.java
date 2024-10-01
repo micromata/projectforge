@@ -165,7 +165,7 @@ public class TeamCalResponseServlet extends HttpServlet
     if (eventAttendee != null) {
       try {
         eventAttendee.setStatus(statusFinal);
-        teamEventService.updateAttendee(eventAttendee, false);
+        teamEventService.updateAttendeeNewTrans(eventAttendee, false);
       } catch (Exception e) {
         log.error("Bad request, exception while updating event: " + e.getMessage());
         resp.sendError(HttpStatus.SC_BAD_REQUEST);

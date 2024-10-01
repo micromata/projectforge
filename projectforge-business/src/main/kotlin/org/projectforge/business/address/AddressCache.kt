@@ -28,6 +28,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -78,7 +79,7 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
     addressDao.register(this)
   }
 
-  override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
+  override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType, context: PfPersistenceContext) {
     synchronized(addressMap) {
       addressMap.remove(changedObject.id)
     }

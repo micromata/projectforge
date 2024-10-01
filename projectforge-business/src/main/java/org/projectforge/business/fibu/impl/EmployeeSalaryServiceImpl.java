@@ -70,7 +70,7 @@ public class EmployeeSalaryServiceImpl implements EmployeeSalaryService
   @Override
   public void saveOrUpdate(EmployeeSalaryDO employeeSalaryDO)
   {
-    employeeSalaryDao.saveOrUpdate(employeeSalaryDO);
+    employeeSalaryDao.saveOrUpdateNewTrans(employeeSalaryDO);
   }
 
   @Override

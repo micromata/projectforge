@@ -58,6 +58,15 @@ open class PfPersistenceService {
      * @param readonly If true, no transaction is used.
      */
     open fun <T> runInTransaction(
+        run: (context: PfPersistenceContext) -> T
+    ): T {
+        return runInTransaction(readonly = false) { run(it) }
+    }
+    
+    /**
+     * @param readonly If true, no transaction is used.
+     */
+    open fun <T> runInTransaction(
         readonly: Boolean = false, run: (context: PfPersistenceContext) -> T
     ): T {
         return EntityManagerUtil.runInTransaction(entityManagerFactory, readonly, run)
