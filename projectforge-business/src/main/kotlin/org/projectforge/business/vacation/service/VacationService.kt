@@ -156,14 +156,15 @@ open class VacationService {
         baseDate: LocalDate = LocalDate.now(),
         vacationEntries: List<VacationDO>? = null
     ): VacationStats {
-        return persistenceService.runReadOnly { context ->
+        // Transaction needed, because RemainingLeaveDao.internalSaveOrUpdate is called.
+        return persistenceService.runInTransaction { context ->
             val stats = VacationStats(employee, year, baseDate)
             // Get employee from database if not initialized (user not given).
             val employeeDO =
                 if (employee.userId == null) employeeDao.internalGetById(employee.id, context) else employee
             if (employeeDO == null) {
                 log.warn("Shouldn't occur: employee not found by id #${employee.id}")
-                return@runReadOnly stats
+                return@runInTransaction stats
             }
             stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employeeDO, year, context)
             stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)

@@ -106,7 +106,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "label.position.short")
     @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(includeDepth = 1)
-    @get:OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     open var positionen: MutableList<AuftragsPositionDO>? = null
