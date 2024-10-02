@@ -195,7 +195,7 @@ public class TaskTest extends AbstractTestBase {
             tu_2_3.setTitle("u.1.1");
             logon(AbstractTestBase.ADMIN);
             taskDao.setParentTask(tu_2_3, getTask("u.1").getId());
-            taskDao.internalUpdateNewTrans(tu_2_3);
+            taskDao.internalUpdateInTrans(tu_2_3);
             assertEquals(2, u2.getChildren().size(), "Should have exact 2 children");
             assertEquals(1, u1.getChildren().size(), "Should have exact 1 child");
             final TaskDO tu_1_1 = taskDao.internalGetById(getTask("u.2.3").getId());
@@ -240,7 +240,7 @@ public class TaskTest extends AbstractTestBase {
             assertEquals("a.1.1", task.getTitle(), "Also child tasks are now readable.");
             taskDao.setParentTask(task, getTask("a.2").getId());
             try {
-                taskDao.updateNewTrans(task);
+                taskDao.updateInTrans(task);
                 fail("User has no access to insert task as child of a.2");
             } catch (final AccessException ex) {
                 assertAccessException(ex, getTask("a.2").getId(), AccessType.TASKS, OperationType.INSERT);
@@ -250,7 +250,7 @@ public class TaskTest extends AbstractTestBase {
             task = taskDao.getById(getTask("a.2.1").getId());
             task.setTitle("a.2.1test");
             try {
-                taskDao.updateNewTrans(task);
+                taskDao.updateInTrans(task);
                 fail("User has no access to update child task of a.2");
             } catch (final AccessException ex) {
                 assertAccessException(ex, getTask("a.2.1").getId(), AccessType.TASKS, OperationType.UPDATE);
@@ -264,7 +264,7 @@ public class TaskTest extends AbstractTestBase {
             task = taskDao.getById(getTask("a.2.1").getId());
             taskDao.setParentTask(task, getTask("a.1").getId());
             try {
-                taskDao.updateNewTrans(task);
+                taskDao.updateInTrans(task);
                 fail("User has no access to delete child task from a.2");
             } catch (final AccessException ex) {
                 assertAccessException(ex, getTask("a.2").getId(), AccessType.TASKS, OperationType.DELETE);
@@ -287,17 +287,17 @@ public class TaskTest extends AbstractTestBase {
             final Kost2ArtDO kost2Art = new Kost2ArtDO();
             kost2Art.setId(42L);
             kost2Art.setName("Test");
-            kost2ArtDao.saveNewTrans(kost2Art);
+            kost2ArtDao.saveInTrans(kost2Art);
             final Kost2DO kost2 = new Kost2DO();
             kost2.setNummernkreis(3);
             kost2.setBereich(0);
             kost2.setTeilbereich(42);
             kost2.setKost2Art(kost2Art);
-            kost2Dao.saveNewTrans(kost2);
+            kost2Dao.saveInTrans(kost2);
             final ProjektDO projekt = new ProjektDO();
             projekt.setInternKost2_4(123);
             projekt.setName("Testprojekt");
-            projektDao.saveNewTrans(projekt);
+            projektDao.saveInTrans(projekt);
             checkAccess(AbstractTestBase.TEST_ADMIN_USER, task.getId(), projekt, kost2, context);
             checkAccess(AbstractTestBase.TEST_USER, task.getId(), projekt, kost2, context);
             return null;
@@ -322,14 +322,14 @@ public class TaskTest extends AbstractTestBase {
             projekt.setNummer(1);
             projekt.setProjektManagerGroup(projectManagers);
             projekt.setTask(task);
-            projektDao.saveNewTrans(projekt);
+            projektDao.saveInTrans(projekt);
             logon(AbstractTestBase.TEST_USER);
             TaskDO task1 = new TaskDO();
             task1.setParentTask(task);
             task1.setTitle("Task 1");
             task1.setKost2BlackWhiteList("Hurzel");
             try {
-                taskDao.saveNewTrans(task1);
+                taskDao.saveInTrans(task1);
                 fail("AccessException expected.");
             } catch (final AccessException ex) {
                 assertEquals("task.error.kost2Readonly", ex.getI18nKey()); // OK
@@ -337,7 +337,7 @@ public class TaskTest extends AbstractTestBase {
             try {
                 task1.setKost2BlackWhiteList(null);
                 task1.setKost2IsBlackList(true);
-                taskDao.saveNewTrans(task1);
+                taskDao.saveInTrans(task1);
                 fail("AccessException expected.");
             } catch (final AccessException ex) {
                 assertEquals("task.error.kost2Readonly", ex.getI18nKey()); // OK
@@ -345,7 +345,7 @@ public class TaskTest extends AbstractTestBase {
             try {
                 task1.setKost2IsBlackList(false);
                 task1.setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS);
-                taskDao.saveNewTrans(task1);
+                taskDao.saveInTrans(task1);
                 fail("AccessException expected.");
             } catch (final AccessException ex) {
                 assertEquals("task.error.timesheetBookingStatus2Readonly", ex.getI18nKey()); // OK
@@ -353,11 +353,11 @@ public class TaskTest extends AbstractTestBase {
             logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
             task1.setKost2IsBlackList(true);
             task1.setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS);
-            task1 = taskDao.getById(taskDao.saveNewTrans(task1));
+            task1 = taskDao.getById(taskDao.saveInTrans(task1));
             logon(AbstractTestBase.TEST_USER);
             task1.setKost2BlackWhiteList("123456");
             try {
-                taskDao.updateNewTrans(task1);
+                taskDao.updateInTrans(task1);
                 fail("AccessException expected.");
             } catch (final AccessException ex) {
                 assertEquals("task.error.kost2Readonly", ex.getI18nKey()); // OK
@@ -365,7 +365,7 @@ public class TaskTest extends AbstractTestBase {
             try {
                 task1.setKost2BlackWhiteList(null);
                 task1.setKost2IsBlackList(false);
-                taskDao.updateNewTrans(task1);
+                taskDao.updateInTrans(task1);
                 fail("AccessException expected.");
             } catch (final AccessException ex) {
                 assertEquals("task.error.kost2Readonly", ex.getI18nKey()); // OK
@@ -373,7 +373,7 @@ public class TaskTest extends AbstractTestBase {
             try {
                 task1.setKost2IsBlackList(true);
                 task1.setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT);
-                taskDao.updateNewTrans(task1);
+                taskDao.updateInTrans(task1);
                 fail("AccessException expected.");
             } catch (final AccessException ex) {
                 assertEquals("task.error.timesheetBookingStatus2Readonly", ex.getI18nKey()); // OK
@@ -382,7 +382,7 @@ public class TaskTest extends AbstractTestBase {
             task1.setKost2BlackWhiteList("123456");
             task1.setKost2IsBlackList(false);
             task1.setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT);
-            taskDao.updateNewTrans(task1);
+            taskDao.updateInTrans(task1);
             return null;
         });
     }
@@ -452,7 +452,7 @@ public class TaskTest extends AbstractTestBase {
             task.setTitle("dT.1.1");
             try {
                 // Try to rename task to same name as a sister task:
-                taskDao.internalUpdateNewTrans(task);
+                taskDao.internalUpdateInTrans(task);
                 fail("Duplicate task was not detected.");
             } catch (final UserException ex) {
                 assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.getI18nKey());
@@ -461,13 +461,13 @@ public class TaskTest extends AbstractTestBase {
             task.setParentTask(initTestDB.getTask("dT.1"));
             try {
                 // Try to move task from dT.1.2 to dT.1.1 where already a task with the same name exists.
-                taskDao.internalUpdateNewTrans(task);
+                taskDao.internalUpdateInTrans(task);
                 fail("Duplicate task was not detected.");
             } catch (final UserException ex) {
                 assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.getI18nKey());
             }
             task.setParentTask(initTestDB.getTask("dT.2"));
-            taskDao.internalUpdateNewTrans(task);
+            taskDao.internalUpdateInTrans(task);
             return null;
         });
     }
@@ -486,7 +486,7 @@ public class TaskTest extends AbstractTestBase {
             ts.setUser(getUser(AbstractTestBase.TEST_USER));
             ts.setStartDate(dt.getUtilDate()).setStopTime(dt.plus(4, ChronoUnit.HOURS).getSqlTimestamp());
             ts.setTask(task);
-            timesheetDao.saveNewTrans(ts);
+            timesheetDao.saveInTrans(ts);
             assertEquals(4 * 3600, taskDao.readTotalDuration(task.getId()));
             assertEquals(4 * 3600, getTotalDuration(taskTree, task.getId()));
             ts = new TimesheetDO();
@@ -494,7 +494,7 @@ public class TaskTest extends AbstractTestBase {
             ts.setStartDate(dt.plus(5, ChronoUnit.HOURS).getUtilDate())
                     .setStopTime(dt.plus(9, ChronoUnit.HOURS).getSqlTimestamp());
             ts.setTask(task);
-            timesheetDao.saveNewTrans(ts);
+            timesheetDao.saveInTrans(ts);
             assertEquals(8 * 3600, taskDao.readTotalDuration(task.getId()));
             assertEquals(8 * 3600, getTotalDuration(taskTree, task.getId()));
             ts = new TimesheetDO();
@@ -502,7 +502,7 @@ public class TaskTest extends AbstractTestBase {
             ts.setStartDate(dt.plus(10, ChronoUnit.HOURS).getUtilDate())
                     .setStopTime(dt.plus(14, ChronoUnit.HOURS).getSqlTimestamp());
             ts.setTask(subTask1);
-            timesheetDao.saveNewTrans(ts);
+            timesheetDao.saveInTrans(ts);
             final List<Object[]> list = taskDao.readTotalDurations();
             boolean taskFound = false;
             boolean subtask1Found = false;

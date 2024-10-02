@@ -628,7 +628,7 @@ public class UserPrefDao extends BaseDao<UserPrefDO> {
     }
 
     /**
-     * Only for synchronization with {@link #internalSaveOrUpdateNewTrans(UserPrefDO)}.
+     * Only for synchronization with {@link #internalSaveOrUpdateInTrans(UserPrefDO)}.
      *
      * @param obj
      * @throws AccessException

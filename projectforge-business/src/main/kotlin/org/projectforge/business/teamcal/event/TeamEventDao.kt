@@ -267,7 +267,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             // Set the end date of the master date one day before current date and save this event.
             recurrenceData.setUntil(getUntilDate(selectedEvent.startDate!!))
             event.setRecurrence(recurrenceData)
-            saveNewTrans(newEvent)
+            saveInTrans(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
                     "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
@@ -284,7 +284,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.")
             }
             newEvent.setRecurrence(null as RRule?) // User only wants to modify single event, ignore recurrence.
-            saveNewTrans(newEvent)
+            saveInTrans(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
                     ("Recurrency ex date of master entry is now added: "

@@ -498,7 +498,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       book.setYearOfPublishing("2001");
       list.add(book);
     }
-    WicketSupport.get(BookDao.class).saveNewTrans(list);
+    WicketSupport.get(BookDao.class).saveInTrans(list);
     setResponsePage(
         new MessagePage("system.admin.development.testObjectsCreated", String.valueOf(NUMBER_OF_TEST_OBJECTS_TO_CREATE),
             "BookDO"));

@@ -193,7 +193,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         )
         if (dbo != null) {
             securePersonalBox(dbo)
-            internalUpdateNewTrans(dbo)
+            internalUpdateInTrans(dbo)
             return dbo
         }
         dbo = DataTransferAreaDO()
@@ -201,7 +201,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         dbo.adminIds = "$userId"
         dbo.observerIds = "$userId"
         dbo.modifyPersonalBox = true
-        internalSaveNewTrans(dbo)
+        internalSaveInTrans(dbo)
         return dbo
     }
 

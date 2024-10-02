@@ -543,7 +543,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return the generated identifier, if save method is used, otherwise null.
      */
     @Throws(AccessException::class)
-    fun saveOrUpdateNewTrans(obj: O): Serializable? {
+    fun saveOrUpdateInTrans(obj: O): Serializable? {
         return persistenceService.runInTransaction { context ->
             saveOrUpdate(obj, context)
         }
@@ -565,7 +565,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return id
     }
 
-    fun internalSaveOrUpdateNewTrans(obj: O): Serializable? {
+    fun internalSaveOrUpdateInTrans(obj: O): Serializable? {
         return persistenceService.runInTransaction { context ->
             internalSaveOrUpdate(obj, context)
         }
@@ -585,7 +585,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @Throws(AccessException::class)
-    fun saveNewTrans(objects: List<O>) {
+    fun saveInTrans(objects: List<O>) {
         return persistenceService.runInTransaction { context ->
             save(objects, context)
         }
@@ -605,7 +605,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return the generated identifier.
      */
     @Throws(AccessException::class)
-    fun saveNewTrans(obj: O): Long {
+    fun saveInTrans(obj: O): Long {
         return persistenceService.runInTransaction { context ->
             save(obj, context)
         }
@@ -630,7 +630,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @Throws(AccessException::class)
-    fun insertNewTrans(obj: O): Long {
+    fun insertInTrans(obj: O): Long {
         return persistenceService.runInTransaction { context ->
             insert(obj, context)
         }
@@ -755,7 +755,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return the generated identifier.
      */
-    fun internalSaveNewTrans(obj: O): Long? {
+    fun internalSaveInTrans(obj: O): Long? {
         return persistenceService.runInTransaction { context ->
             internalSave(obj, context)
         }
@@ -770,7 +770,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return BaseDaoSupport.internalSave(this, obj, context)
     }
 
-    fun saveOrUpdateNewTrans(col: Collection<O>) {
+    fun saveOrUpdateInTrans(col: Collection<O>) {
         persistenceService.runInTransaction { context ->
             saveOrUpdate(col, context)
         }
@@ -782,21 +782,21 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         }
     }
 
-    fun saveOrUpdateNewTrans(col: Collection<O>, blockSize: Int) {
+    fun saveOrUpdateInTrans(col: Collection<O>, blockSize: Int) {
         val list: MutableList<O> = ArrayList()
         var counter = 0
         for (obj in col) {
             list.add(obj)
             if (++counter >= blockSize) {
                 counter = 0
-                saveOrUpdateNewTrans(list)
+                saveOrUpdateInTrans(list)
                 list.clear()
             }
         }
-        saveOrUpdateNewTrans(list)
+        saveOrUpdateInTrans(list)
     }
 
-    fun internalSaveOrUpdateNewTrans(col: Collection<O>) {
+    fun internalSaveOrUpdateInTrans(col: Collection<O>) {
         persistenceService.runInTransaction { context ->
             internalSaveOrUpdate(col, context)
         }
@@ -817,7 +817,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param col       Entries to save or update without check access.
      * @param blockSize The block size of commit blocks.
      */
-    fun internalSaveOrUpdateNewTrans(col: Collection<O>, blockSize: Int) {
+    fun internalSaveOrUpdateInTrans(col: Collection<O>, blockSize: Int) {
         BaseDaoSupport.internalSaveOrUpdate(this, col, blockSize, persistenceService)
     }
 
@@ -826,7 +826,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see .internalUpdate
      */
     @Throws(AccessException::class)
-    fun updateNewTrans(obj: O): EntityCopyStatus {
+    fun updateInTrans(obj: O): EntityCopyStatus {
         return persistenceService.runInTransaction { context ->
             update(obj, context)
         }
@@ -854,7 +854,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see .internalUpdate
      */
     @Throws(AccessException::class)
-    fun updateAnyNewTrans(obj: Any): EntityCopyStatus {
+    fun updateAnyInTrans(obj: Any): EntityCopyStatus {
         return persistenceService.runInTransaction { context ->
             updateAny(obj, context)
         }
@@ -879,7 +879,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see .internalUpdate
      */
     @Throws(AccessException::class)
-    fun internalUpdateAnyNewTrans(obj: Any): EntityCopyStatus? {
+    fun internalUpdateAnyInTrans(obj: Any): EntityCopyStatus? {
         return persistenceService.runInTransaction { context ->
             internalUpdateAny(obj, context)
         }
@@ -903,7 +903,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return true, if modifications were done, false if no modification detected.
      * @see .internalUpdate
      */
-    fun internalUpdateNewTrans(obj: O): EntityCopyStatus? {
+    fun internalUpdateInTrans(obj: O): EntityCopyStatus? {
         return persistenceService.runInTransaction { context ->
             internalUpdate(obj, context)
         }
@@ -926,7 +926,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param checkAccess If false, any access check will be ignored.
      * @return true, if modifications were done, false if no modification detected.
      */
-    fun internalUpdateNewTrans(obj: O, checkAccess: Boolean): EntityCopyStatus? {
+    fun internalUpdateInTrans(obj: O, checkAccess: Boolean): EntityCopyStatus? {
         return persistenceService.runInTransaction { context ->
             internalUpdate(obj, checkAccess, context)
         }
@@ -973,7 +973,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
      */
     @Throws(AccessException::class)
-    fun markAsDeletedNewTrans(obj: O) {
+    fun markAsDeletedInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             markAsDeleted(obj, context)
         }
@@ -995,7 +995,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         internalMarkAsDeleted(obj, context)
     }
 
-    fun internalMarkAsDeletedNewTrans(obj: O) {
+    fun internalMarkAsDeletedInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             internalMarkAsDeleted(obj, context)
         }
@@ -1010,7 +1010,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * privacy protection rules.
      */
     @Throws(AccessException::class)
-    fun forceDeleteNewTrans(obj: O) {
+    fun forceDeleteInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             forceDelete(obj, context)
         }
@@ -1037,7 +1037,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         internalForceDelete(obj, context)
     }
 
-    fun internalForceDeleteNewTrans(obj: O) {
+    fun internalForceDeleteInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             internalForceDelete(obj, context)
         }
@@ -1051,7 +1051,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be deleted finally out of the data base.
      */
     @Throws(AccessException::class)
-    fun deleteNewTrans(obj: O) {
+    fun deleteInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             delete(obj, context)
         }
@@ -1070,7 +1070,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be deleted finally out of the data base.
      */
     @Throws(AccessException::class)
-    fun internalDeleteNewTrans(obj: O) {
+    fun internalDeleteInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             internalDelete(obj, context)
         }
@@ -1111,7 +1111,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
      */
     @Throws(AccessException::class)
-    open fun undeleteNewTrans(obj: O) {
+    open fun undeleteInTrans(obj: O) {
         if (obj.id == null) {
             val msg = "Could not undelete object unless id is not given:$obj"
             log.error(msg)
@@ -1119,10 +1119,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         }
         accessChecker.checkRestrictedOrDemoUser()
         checkLoggedInUserInsertAccess(obj)
-        internalUndeleteNewTrans(obj)
+        internalUndeleteInTrans(obj)
     }
 
-    open fun internalUndeleteNewTrans(obj: O) {
+    open fun internalUndeleteInTrans(obj: O) {
         persistenceService.runInTransaction { context ->
             internalUndelete(obj, context)
         }

@@ -105,7 +105,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
       postData,
       if (obj.id != null) OperationType.UPDATE else OperationType.INSERT
     )
-    baseDao.saveOrUpdateNewTrans(obj) ?: obj.id
+    baseDao.saveOrUpdateInTrans(obj) ?: obj.id
     pagesRest.onAfterSaveOrUpdate(request, obj, postData)
     if (isNew) {
       return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)
@@ -131,7 +131,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     if (validationErrorsList.isNullOrEmpty()) {
       pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.UNDELETE)
       pagesRest.onBeforeUndelete(request, obj, postData)
-      baseDao.undeleteNewTrans(obj)
+      baseDao.undeleteInTrans(obj)
       return ResponseEntity(pagesRest.onAfterUndelete(obj, postData), HttpStatus.OK)
     }
     // Validation error occurred:
@@ -155,7 +155,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     if (validationErrorsList.isNullOrEmpty()) {
       pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
       pagesRest.onBeforeMarkAsDeleted(request, obj, postData)
-      baseDao.markAsDeletedNewTrans(obj)
+      baseDao.markAsDeletedInTrans(obj)
       return ResponseEntity(pagesRest.onAfterMarkAsDeleted(obj, postData), HttpStatus.OK)
     }
     // Validation error occurred:
@@ -177,7 +177,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
   try {
     pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
     pagesRest.onBeforeDelete(request, obj, postData)
-    baseDao.forceDeleteNewTrans(obj)
+    baseDao.forceDeleteInTrans(obj)
     return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
   } catch (ex: Exception) {
     return handleException("Error while trying to forced deleting object '${obj::class.java}' with id #${obj.id}", ex)
@@ -198,7 +198,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
     if (validationErrorsList.isNullOrEmpty()) {
       pagesRest.onBeforeDatabaseAction(request, obj, postData, OperationType.DELETE)
       pagesRest.onBeforeDelete(request, obj, postData)
-      baseDao.deleteNewTrans(obj)
+      baseDao.deleteInTrans(obj)
       return ResponseEntity(pagesRest.onAfterDelete(obj, postData), HttpStatus.OK)
     }
     // Validation error occurred:

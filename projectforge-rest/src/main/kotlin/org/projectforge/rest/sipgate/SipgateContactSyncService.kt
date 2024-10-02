@@ -542,7 +542,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                                 )
                                             }: Updating local address: $address, was: $oldAddress"
                                         }
-                                        addressDao.internalUpdateNewTrans(address)
+                                        addressDao.internalUpdateInTrans(address)
                                     } else {
                                         log.info {
                                             "${
@@ -616,7 +616,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                 val address = from(contact)
                                 if (configuration.updateLocalAddresses) {
                                     log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
-                                    addressDao.internalSaveNewTrans(address)
+                                    addressDao.internalSaveInTrans(address)
                                 } else {
                                     log.info {
                                         "${

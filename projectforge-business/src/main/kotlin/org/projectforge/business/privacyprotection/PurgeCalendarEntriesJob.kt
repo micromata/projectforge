@@ -104,7 +104,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
                         .resultList
                     eventsToPurge.forEach { event ->
                         ++counter
-                        teamEventDao.internalForceDeleteNewTrans(event)
+                        teamEventDao.internalForceDeleteInTrans(event)
                     }
                     if (counter > 0) {
                         log.info("Removed $counter calendar entries in calendar #${it.calendarId} '${calendar.title}' in the past (before ${expiryDate.isoString}Z).")

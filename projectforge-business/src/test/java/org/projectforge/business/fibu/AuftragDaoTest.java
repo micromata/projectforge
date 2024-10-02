@@ -76,12 +76,12 @@ public class AuftragDaoTest extends AbstractTestBase {
         AuftragDO auftrag = new AuftragDO();
         auftrag.setNummer(auftragDao.getNextNumber(auftrag));
         auftrag.addPosition(new AuftragsPositionDO());
-        auftragDao.saveNewTrans(auftrag);
+        auftragDao.saveInTrans(auftrag);
         assertEquals(dbNumber++, auftrag.getNummer().intValue());
         auftrag = new AuftragDO();
         auftrag.setNummer(auftragDao.getNextNumber(auftrag));
         auftrag.addPosition(new AuftragsPositionDO());
-        auftragDao.saveNewTrans(auftrag);
+        auftragDao.saveInTrans(auftrag);
         assertEquals(dbNumber++, auftrag.getNummer().intValue());
     }
 
@@ -93,13 +93,13 @@ public class AuftragDaoTest extends AbstractTestBase {
         auftragDao.setContactPerson(auftrag1, getUserId(AbstractTestBase.TEST_FINANCE_USER));
         Serializable id1;
         try {
-            id1 = auftragDao.saveNewTrans(auftrag1);
+            id1 = auftragDao.saveInTrans(auftrag1);
             fail("UserException expected: Order should have positions.");
         } catch (final UserException ex) {
             assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.getI18nKey());
         }
         auftrag1.addPosition(new AuftragsPositionDO());
-        id1 = auftragDao.saveNewTrans(auftrag1);
+        id1 = auftragDao.saveInTrans(auftrag1);
         dbNumber++; // Needed for getNextNumber test;
         auftrag1 = auftragDao.getById(id1);
 
@@ -107,7 +107,7 @@ public class AuftragDaoTest extends AbstractTestBase {
         auftrag2.setNummer(auftragDao.getNextNumber(auftrag2));
         auftragDao.setContactPerson(auftrag2, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
         auftrag2.addPosition(new AuftragsPositionDO());
-        final Serializable id2 = auftragDao.saveNewTrans(auftrag2);
+        final Serializable id2 = auftragDao.saveInTrans(auftrag2);
         dbNumber++; // Needed for getNextNumber test;
 
         AuftragDO auftrag3 = new AuftragDO();
@@ -120,7 +120,7 @@ public class AuftragDaoTest extends AbstractTestBase {
         position.setVollstaendigFakturiert(true);
         position.setStatus(AuftragsPositionsStatus.ABGESCHLOSSEN);
         auftrag3.addPosition(position);
-        final Serializable id3 = auftragDao.saveNewTrans(auftrag3);
+        final Serializable id3 = auftragDao.saveInTrans(auftrag3);
         dbNumber++; // Needed for getNextNumber test;
 
         logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
@@ -247,7 +247,7 @@ public class AuftragDaoTest extends AbstractTestBase {
             logon(AbstractTestBase.TEST_ADMIN_USER);
             user.addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)); //
             userRightDao.save(new ArrayList<>(user.getRights()), context);
-            userService.updateNewTrans(user);
+            userService.updateInTrans(user);
             user = userService.getById(user.getId());
             logon(user);
             try {

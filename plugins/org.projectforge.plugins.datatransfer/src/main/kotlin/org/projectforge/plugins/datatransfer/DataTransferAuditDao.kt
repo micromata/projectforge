@@ -48,7 +48,7 @@ class DataTransferAuditDao {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    internal fun insertNewTrans(audit: DataTransferAuditDO) {
+    internal fun insertInTrans(audit: DataTransferAuditDO) {
         if (audit.timestamp == null) {
             // Should only be preset for test cases.
             audit.timestamp = Date()
@@ -170,7 +170,7 @@ class DataTransferAuditDao {
         timestamp4TestCase?.let {
             audit.timestamp = it.utilDate
         }
-        insertNewTrans(audit)
+        insertInTrans(audit)
     }
 
     companion object {

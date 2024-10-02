@@ -58,20 +58,20 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setParameter("unknown");
     config.setValue("Hurzel");
     assertNotNull(config);
-    configurationDao.internalSaveNewTrans(config);
+    configurationDao.internalSaveInTrans(config);
     List<ConfigurationDO> list = persistenceService.query(
             "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);
     assertEquals("Hurzel", config.getStringValue());
-    configurationDao.checkAndUpdateDatabaseEntriesNewTrans();
+    configurationDao.checkAndUpdateDatabaseEntriesInTrans();
     list = persistenceService.query(
             "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);
     assertEquals(true, config.getDeleted(), "Entry should be deleted.");
 
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
-    configurationDao.internalMarkAsDeletedNewTrans(config);
-    configurationDao.checkAndUpdateDatabaseEntriesNewTrans();
+    configurationDao.internalMarkAsDeletedInTrans(config);
+    configurationDao.checkAndUpdateDatabaseEntriesInTrans();
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     assertEquals(false, config.getDeleted(), "Object should be restored.");
   }

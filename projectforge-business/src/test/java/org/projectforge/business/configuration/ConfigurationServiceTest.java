@@ -55,12 +55,12 @@ public class ConfigurationServiceTest extends AbstractTestBase
 
     final ConfigurationDO minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
     minPwLenEntry.setLongValue(16L);
-    configurationDao.internalUpdateNewTrans(minPwLenEntry);
+    configurationDao.internalUpdateInTrans(minPwLenEntry);
     assertEquals(16, configurationService.getMinPasswordLength());
 
     // null -> use default
     minPwLenEntry.setLongValue(null);
-    configurationDao.internalUpdateNewTrans(minPwLenEntry);
+    configurationDao.internalUpdateInTrans(minPwLenEntry);
     assertEquals(defaultMinPwLen, configurationService.getMinPasswordLength());
   }
 
@@ -77,7 +77,7 @@ public class ConfigurationServiceTest extends AbstractTestBase
 
     final ConfigurationDO flagPwChange = configurationDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE);
     flagPwChange.setBooleanValue(false);
-    configurationDao.internalUpdateNewTrans(flagPwChange);
+    configurationDao.internalUpdateInTrans(flagPwChange);
     assertEquals(false, configurationService.getFlagCheckPasswordChange());
   }
 }

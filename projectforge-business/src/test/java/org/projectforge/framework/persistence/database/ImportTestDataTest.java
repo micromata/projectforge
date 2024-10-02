@@ -61,7 +61,7 @@ public class ImportTestDataTest extends AbstractTestBase {
   @Test
   public void testImport() {
     clearDatabase();
-    PFUserDO admin = initTestDB.addUserNewTrans(AbstractTestBase.ADMIN);
+    PFUserDO admin = initTestDB.addUserInTrans(AbstractTestBase.ADMIN);
     databaseService.insertGlobalAddressbook(admin);
     //jpaXmlDumpService.createTestDatabase();
   }

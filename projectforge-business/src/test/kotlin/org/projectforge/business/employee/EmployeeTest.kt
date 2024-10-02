@@ -83,12 +83,12 @@ class EmployeeTest : AbstractTestBase() {
         baseLog.info("Employee: $e")
 
         //Mark as deleted
-        employeeDao.markAsDeletedNewTrans(e)
+        employeeDao.markAsDeletedInTrans(e)
 
         //Check updates
         val updatdEmployee = employeeDao.getById(e.id)
         Assertions.assertTrue(updatdEmployee!!.deleted)
-        employeeDao.updateNewTrans(e)
+        employeeDao.updateInTrans(e)
     }
 
     @Test
@@ -99,7 +99,7 @@ class EmployeeTest : AbstractTestBase() {
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
         Assertions.assertEquals(e.staffNumber, staffNumber)
-        employeeDao.updateNewTrans(e)
+        employeeDao.updateInTrans(e)
 
         // test history
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)

@@ -280,7 +280,7 @@ class VacationServiceTest : AbstractTestBase() {
         lastStoredVacation!!.startDate = lastStoredVacation!!.startDate!!.plusDays(1)
         lastStoredVacation!!.endDate = lastStoredVacation!!.endDate!!.plusDays(1)
         try {
-            vacationDao.updateNewTrans(lastStoredVacation!!)
+            vacationDao.updateInTrans(lastStoredVacation!!)
             fail("UserException expected due to not enough left vacation days.")
         } catch (ex: Exception) {
             Assertions.assertTrue(ex is UserException)
@@ -607,7 +607,7 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.manager = manager
         vacation.replacement = replacement
         vacation.special = special
-        vacationDao.saveNewTrans(vacation)
+        vacationDao.saveInTrans(vacation)
         lastStoredVacation = vacation
         return VacationService.getVacationDays(vacation).toDouble()
     }
@@ -624,12 +624,12 @@ class VacationServiceTest : AbstractTestBase() {
         user.lastname = name
         user.username = "$name.$name"
         user.email = "$name@devnull.com"
-        userDao.internalSaveNewTrans(user)
+        userDao.internalSaveInTrans(user)
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeDao.internalSaveNewTrans(employee)
+        employeeDao.internalSaveInTrans(employee)
         employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays))
         annualLeaveDayEntries?.forEach {
             employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value))

@@ -161,7 +161,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
           }
 
           for (final AddressDO address : newAddresses) {
-            getBaseDao().saveNewTrans(address);
+            getBaseDao().saveInTrans(address);
           }
 
           // /// CHECK FOR EXISTING ENTRIES

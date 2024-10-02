@@ -632,13 +632,13 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void updateNewTrans(TeamEventDO event) {
-        updateNewTrans(event, true);
+    public void updateInTrans(TeamEventDO event) {
+        updateInTrans(event, true);
     }
 
     @Override
-    public void updateNewTrans(TeamEventDO event, boolean checkAccess) {
-        teamEventDao.internalUpdateNewTrans(event, checkAccess);
+    public void updateInTrans(TeamEventDO event, boolean checkAccess) {
+        teamEventDao.internalUpdateInTrans(event, checkAccess);
     }
 
     @Override
@@ -657,23 +657,23 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void saveOrUpdateNewTrans(TeamEventDO teamEvent) {
-        teamEventDao.saveOrUpdateNewTrans(teamEvent);
+    public void saveOrUpdateInTrans(TeamEventDO teamEvent) {
+        teamEventDao.saveOrUpdateInTrans(teamEvent);
     }
 
     @Override
-    public void markAsDeletedNewTrans(TeamEventDO teamEvent) {
-        teamEventDao.markAsDeletedNewTrans(teamEvent);
+    public void markAsDeletedInTrans(TeamEventDO teamEvent) {
+        teamEventDao.markAsDeletedInTrans(teamEvent);
     }
 
     @Override
-    public void undeleteNewTrans(TeamEventDO teamEvent) {
-        teamEventDao.undeleteNewTrans(teamEvent);
+    public void undeleteInTrans(TeamEventDO teamEvent) {
+        teamEventDao.undeleteInTrans(teamEvent);
     }
 
     @Override
-    public void saveNewTrans(TeamEventDO newEvent) {
-        teamEventDao.saveNewTrans(newEvent);
+    public void saveInTrans(TeamEventDO newEvent) {
+        teamEventDao.saveInTrans(newEvent);
     }
 
     @Override
@@ -682,11 +682,11 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void updateAttendeeNewTrans(TeamEventAttendeeDO attendee, boolean accesscheck) {
+    public void updateAttendeeInTrans(TeamEventAttendeeDO attendee, boolean accesscheck) {
         if (accesscheck) {
-            teamEventAttendeeDao.updateNewTrans(attendee);
+            teamEventAttendeeDao.updateInTrans(attendee);
         } else {
-            teamEventAttendeeDao.internalUpdateNewTrans(attendee);
+            teamEventAttendeeDao.internalUpdateInTrans(attendee);
         }
     }
 

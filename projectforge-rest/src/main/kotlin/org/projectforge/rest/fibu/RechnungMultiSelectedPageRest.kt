@@ -135,7 +135,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       massUpdateContext.commitUpdate(
         identifier4Message = "${invoice.datum} #${NumberFormatter.format(invoice.nummer)}",
         invoice,
-        update = { rechnungDao.updateNewTrans(invoice) },
+        update = { rechnungDao.updateInTrans(invoice) },
       )
     }
     return null

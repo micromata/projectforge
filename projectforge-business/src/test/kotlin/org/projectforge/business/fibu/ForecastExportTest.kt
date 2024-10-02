@@ -65,7 +65,7 @@ class ForecastExportTest : AbstractTestBase() {
                 today.plusMonths(1), today.plusMonths(5))
         //order1.addPaymentSchedule()
         addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
-        auftragDao.saveNewTrans(order3)
+        auftragDao.saveInTrans(order3)
 
         val filter = AuftragFilter()
         filter.periodOfPerformanceStartDate = baseDate.localDate
@@ -95,13 +95,13 @@ class ForecastExportTest : AbstractTestBase() {
         var order = createOrder(date, orderStatus, periodStart, periodEnd)
         //order1.addPaymentSchedule()
         addPosition(order, 1, posStatus, monthlyAmount * (1 + periodStart.monthsBetween(periodEnd)), AuftragsPositionsPaymentType.TIME_AND_MATERIALS)
-        val id = auftragDao.saveNewTrans(order)
+        val id = auftragDao.saveInTrans(order)
         order = auftragDao.getById(id)!!
         val pos1_1 = order.getPosition(1)!!
         invoiceMonth.forEach {
             val invoice1 = createInvoice(it)
             addPosition(invoice1, monthlyAmount, pos1_1)
-            rechnungDao.saveNewTrans(invoice1)
+            rechnungDao.saveInTrans(invoice1)
         }
         return order
     }

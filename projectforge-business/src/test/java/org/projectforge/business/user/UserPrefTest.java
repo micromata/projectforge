@@ -77,7 +77,7 @@ public class UserPrefTest extends AbstractTestBase {
         userPref.setValueObject(user);
         userPref.setArea("TEST_AREA");
         userPref.setName("");
-        Long id = userPrefDao.saveNewTrans(userPref);
+        Long id = userPrefDao.saveInTrans(userPref);
         userPref = userPrefDao.internalGetById(id);
         User user2 = (User) userPrefDao.deserizalizeValueObject(userPref);
         assertEquals(User.class.getName(), userPref.getValueTypeString());
@@ -167,14 +167,14 @@ public class UserPrefTest extends AbstractTestBase {
         userPref.setValueObject(user);
         userPref.setArea("TEST_AREA2");
         userPref.setName(name);
-        userPrefDao.internalSaveOrUpdateNewTrans(userPref);
+        userPrefDao.internalSaveOrUpdateInTrans(userPref);
         Long id = userPref.getId();
         userPref = new UserPrefDO();
         userPref.setUser(loggedInUser);
         userPref.setValueObject(user);
         userPref.setArea("TEST_AREA2");
         userPref.setName(name);
-        userPrefDao.internalSaveOrUpdateNewTrans(userPref);
+        userPrefDao.internalSaveOrUpdateInTrans(userPref);
         assertEquals(id, userPref.getId(), "Object should be updated not inserted.");
     }
 

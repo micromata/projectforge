@@ -66,7 +66,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     /**
      * Checks and creates missing database entries. Updates also out-dated descriptions.
      */
-    fun checkAndUpdateDatabaseEntriesNewTrans() {
+    fun checkAndUpdateDatabaseEntriesInTrans() {
         return persistenceService.runInTransaction { context ->
             checkAndUpdateDatabaseEntries(context)
         }

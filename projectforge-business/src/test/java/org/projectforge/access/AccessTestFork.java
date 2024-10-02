@@ -83,7 +83,7 @@ public class AccessTestFork extends AbstractTestBase {
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), false, false, false, false);
         groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS).setAccessSelect(true);
-        accessDao.updateNewTrans(groupTaskAccess);
+        accessDao.updateInTrans(groupTaskAccess);
         groupTaskAccess = accessDao.getById(id);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), true, false, false, false);

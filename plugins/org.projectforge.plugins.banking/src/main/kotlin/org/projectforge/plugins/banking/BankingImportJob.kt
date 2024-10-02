@@ -90,7 +90,7 @@ class BankingImportJob(
           readEntry.copyTo(dbEntry)
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
-          bankAccountRecordDao.internalSaveNewTrans(dbEntry)
+          bankAccountRecordDao.internalSaveInTrans(dbEntry)
           result.inserted += 1
         }
       } else {
@@ -101,7 +101,7 @@ class BankingImportJob(
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
           dbEntry.deleted = false
-          val modStatus = bankAccountRecordDao.updateNewTrans(dbEntry)
+          val modStatus = bankAccountRecordDao.updateInTrans(dbEntry)
           if (modStatus != EntityCopyStatus.NONE) {
             result.updated += 1
           } else {
@@ -109,7 +109,7 @@ class BankingImportJob(
           }
         } else {
           if (!dbEntry.deleted) {
-            bankAccountRecordDao.markAsDeletedNewTrans(dbEntry)
+            bankAccountRecordDao.markAsDeletedInTrans(dbEntry)
           }
           result.deleted += 1
         }

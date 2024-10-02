@@ -160,7 +160,7 @@ public class TeamEventSubscription implements Serializable {
         teamCalDO.setExternalSubscriptionCalendarBinary(bytes);
         teamCalDO.setMinorChange(true); // Don't need to re-index (failed).
         // internalUpdate is valid at this point, because we are calling this method in an async thread
-        teamCalDao.internalUpdateNewTrans(teamCalDO);
+        teamCalDao.internalUpdateInTrans(teamCalDO);
       }
     } catch (final Exception e) {
       bytes = teamCalDO.getExternalSubscriptionCalendarBinary();
