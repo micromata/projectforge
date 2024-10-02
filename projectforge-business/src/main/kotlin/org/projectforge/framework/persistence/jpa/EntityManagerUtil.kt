@@ -48,7 +48,7 @@ internal object EntityManagerUtil {
         entityManagerFactory: EntityManagerFactory,
         run: (context: PfPersistenceContext) -> T
     ): T {
-        return PfPersistenceContext(entityManagerFactory).use { context ->
+        return PfPersistenceContext(entityManagerFactory, withTransaction = true).use { context ->
             runInTransaction(context) {
                 run(context)
             }
@@ -62,7 +62,7 @@ internal object EntityManagerUtil {
         entityManagerFactory: EntityManagerFactory,
         run: (context: PfPersistenceContext) -> T
     ): T {
-        PfPersistenceContext(entityManagerFactory, readonly = true).use { context ->
+        PfPersistenceContext(entityManagerFactory, withTransaction = false).use { context ->
             val em = context.em
             // log.info { "Running read only" }
             em.unwrap(Session::class.java).isDefaultReadOnly = true
@@ -304,9 +304,7 @@ internal object EntityManagerUtil {
         dbObj: Any,
     ) {
         return runInTransaction(entityManagerFactory) { context ->
-            runInTransaction(context) {
-                insert(context.em, dbObj)
-            }
+            insert(context.em, dbObj)
         }
     }
 
@@ -327,10 +325,8 @@ internal object EntityManagerUtil {
         entityManagerFactory: EntityManagerFactory,
         dbObj: Any,
     ) {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                update(context.em, dbObj)
-            }
+        return runInTransaction(entityManagerFactory) { context ->
+            update(context.em, dbObj)
         }
     }
 
@@ -348,10 +344,8 @@ internal object EntityManagerUtil {
         entityManagerFactory: EntityManagerFactory,
         dbObj: Any,
     ) {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                delete(context.em, dbObj)
-            }
+        return runInTransaction(entityManagerFactory) { context ->
+            delete(context.em, dbObj)
         }
     }
 
@@ -367,10 +361,8 @@ internal object EntityManagerUtil {
         entityClass: Class<T>,
         id: Any,
     ) {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                delete(context.em, entityClass, id)
-            }
+        return runInTransaction(entityManagerFactory) { context ->
+            delete(context.em, entityClass, id)
         }
     }
 
@@ -389,10 +381,8 @@ internal object EntityManagerUtil {
         entityClass: Class<T>,
         update: (cb: CriteriaBuilder, root: Root<T>, update: CriteriaUpdate<T>) -> Unit
     ) {
-        PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                criteriaUpdate(context.em, entityClass, update)
-            }
+        return runInTransaction(entityManagerFactory) { context ->
+            criteriaUpdate(context.em, entityClass, update)
         }
     }
 
@@ -418,10 +408,8 @@ internal object EntityManagerUtil {
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): Int {
-        return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                executeUpdate(context.em, sql, *keyValues, namedQuery = namedQuery)
-            }
+        return runInTransaction(entityManagerFactory) { context ->
+            executeUpdate(context.em, sql, *keyValues, namedQuery = namedQuery)
         }
     }
 
@@ -453,10 +441,8 @@ internal object EntityManagerUtil {
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
-        return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                executeNativeUpdate(context.em, sql, *keyValues)
-            }
+        return runInTransaction(entityManagerFactory) { context ->
+            executeNativeUpdate(context.em, sql, *keyValues)
         }
     }
 
@@ -483,10 +469,8 @@ internal object EntityManagerUtil {
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): List<*> {
-        return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                executeNativeQuery(context.em, sql, *keyValues)
-            }
+        return runReadonly(entityManagerFactory) { context ->
+            executeNativeQuery(context.em, sql, *keyValues)
         }
     }
 
@@ -510,10 +494,8 @@ internal object EntityManagerUtil {
         entityClass: Class<T>,
         id: Any
     ): T {
-        return PfPersistenceContext(entityManagerFactory).use { context ->
-            runInTransaction(context) {
-                context.em.getReference(entityClass, id)
-            }
+        return runReadonly(entityManagerFactory) { context ->
+            context.em.getReference(entityClass, id)
         }
     }
 

@@ -39,7 +39,10 @@ private val log = KotlinLogging.logger {}
  */
 class PfPersistenceContext internal constructor(
     entityManagerFactory: EntityManagerFactory,
-    readonly: Boolean = false,
+    /**
+     * If true all actions are done in a transaction. Default is false.
+     */
+    var withTransaction: Boolean = false,
 ) : AutoCloseable {
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
@@ -51,7 +54,7 @@ class PfPersistenceContext internal constructor(
                 log.debug { "ThreadLocalPersistenceContext already set: $existingContext" }
             } else {
                 threadLocalContextSet = true
-                ThreadLocalPersistenceContext.set(this)
+                ThreadLocalPersistenceContext.setIfNotGiven(this)
             }
         }
         //    openEntityManagers.add(em)
@@ -305,14 +308,47 @@ class PfPersistenceContext internal constructor(
     //}
 
     internal object ThreadLocalPersistenceContext {
-        private val threadLocal = ThreadLocal<PfPersistenceContext?>()
+        private class ContextHolder {
+            var transactionContext: PfPersistenceContext? = null
+                private set
+            var readonlyContext: PfPersistenceContext? = null
+                private set
 
-        fun get(): PfPersistenceContext? {
-            return threadLocal.get()
+            fun setIfNotGiven(context: PfPersistenceContext) {
+                if (context.withTransaction) {
+                    if (transactionContext == null) {
+                        transactionContext = context
+                    }
+                } else {
+                    if (readonlyContext == null) {
+                        readonlyContext = context
+                    }
+                }
+            }
         }
 
-        fun set(context: PfPersistenceContext) {
-            threadLocal.set(context)
+        private val threadLocal = ThreadLocal<ContextHolder?>()
+
+        /**
+         * Gets context of ThreadLocal with transaction, if exists, or readonly context, if exists. Null, if no context exist.
+         */
+        fun get(): PfPersistenceContext? {
+            threadLocal.get().let { holder ->
+                return holder?.transactionContext ?: holder?.readonlyContext
+            }
+        }
+
+        fun getWithTrans(): PfPersistenceContext? {
+            return ensureContext().transactionContext
+        }
+
+        fun setIfNotGiven(context: PfPersistenceContext) {
+            ensureContext().setIfNotGiven(context)
+        }
+
+        private fun ensureContext(): ContextHolder {
+            threadLocal.get() ?: threadLocal.set(ContextHolder())
+            return threadLocal.get()!!
         }
 
         fun remove() {

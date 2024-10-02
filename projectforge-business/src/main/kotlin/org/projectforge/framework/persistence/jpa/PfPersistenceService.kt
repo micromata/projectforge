@@ -26,9 +26,6 @@ package org.projectforge.framework.persistence.jpa
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.LockModeType
-import jakarta.persistence.criteria.CriteriaBuilder
-import jakarta.persistence.criteria.CriteriaUpdate
-import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -54,17 +51,51 @@ open class PfPersistenceService {
         HibernateUtils.internalInit(entityManagerFactory)
     }
 
+    /**
+     * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
+     */
     open fun <T> runInTransaction(
+        run: (context: PfPersistenceContext) -> T
+    ): T {
+        val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
+        if (context == null) {
+            return EntityManagerUtil.runInTransaction(entityManagerFactory, run)
+        } else {
+            return context.run(run)
+        }
+    }
+
+    /**
+     * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
+     */
+    open fun <T> runInIsolatedTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
         return EntityManagerUtil.runInTransaction(entityManagerFactory, run)
     }
 
+    /**
+     * Uses the current EntityManager for the block or a new one, if no EntityManager is set in ThreadLocal before.
+     */
     open fun <T> runReadOnly(
+        block: (context: PfPersistenceContext) -> T
+    ): T {
+        val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
+        if (context != null) {
+            return context.run(block)
+        }
+        return EntityManagerUtil.runReadonly(entityManagerFactory, block)
+    }
+
+    /**
+     * Uses a new EntityManager for the block.
+     */
+    open fun <T> runIsolatedReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
         return EntityManagerUtil.runReadonly(entityManagerFactory, block)
     }
+
 
     /**
      * @see EntityManagerUtil.selectById
