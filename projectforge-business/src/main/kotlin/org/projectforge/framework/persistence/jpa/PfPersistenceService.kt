@@ -66,7 +66,7 @@ open class PfPersistenceService {
     }
 
     /**
-     * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
+     * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
      */
     open fun <T> runInIsolatedTransaction(
         run: (context: PfPersistenceContext) -> T
@@ -88,7 +88,7 @@ open class PfPersistenceService {
     }
 
     /**
-     * Uses a new EntityManager for the block.
+     * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
      */
     open fun <T> runIsolatedReadOnly(
         block: (context: PfPersistenceContext) -> T
