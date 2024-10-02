@@ -401,9 +401,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
      * @return this for chaining.
      */
     fun addRight(right: UserRightDO): PFUserDO {
-        if (this.rights == null) {
-            this.rights = HashSet()
-        }
+        this.rights = this.rights ?: mutableSetOf()
         this.rights!!.add(right)
         right.setUser(this)
         return this
