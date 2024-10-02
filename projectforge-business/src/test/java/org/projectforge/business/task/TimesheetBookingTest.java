@@ -156,8 +156,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
 
     @Test
     public void testOrderPositions() {
-        persistenceService.runInTransaction(context ->
-        {
+        persistenceService.runInTransaction(context -> {
             logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
             AuftragsPositionDO pos1 = new AuftragsPositionDO();
             pos1.setTask(getTask("TBT-5.1"));
@@ -170,6 +169,9 @@ public class TimesheetBookingTest extends AbstractTestBase {
                     .addPosition(pos2);
             auftrag.setNummer(auftragDao.getNextNumber(auftrag));
             auftragDao.save(auftrag, context);
+            return null;
+        });
+        persistenceService.runInTransaction(context -> {
             logon(getUser(AbstractTestBase.TEST_USER));
             TimesheetDO sheet = createNewSheet();
             sheet.setTask(getTask("TBT-5"));

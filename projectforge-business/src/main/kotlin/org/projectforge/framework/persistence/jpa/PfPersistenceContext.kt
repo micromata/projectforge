@@ -381,7 +381,7 @@ class PfPersistenceContext internal constructor(
             "select max(t.$attribute) from $table t",
             Int::class.java,
         ) ?: run {
-            log.info("First entry of $table")
+            log.info("First entry of $table, starting with number ${startNumber + 1}.")
             startNumber
         }
         return maxNumber + 1
