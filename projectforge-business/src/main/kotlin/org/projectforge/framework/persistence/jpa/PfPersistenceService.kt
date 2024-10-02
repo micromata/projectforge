@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
+import org.hibernate.Session
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -36,6 +37,8 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class PfPersistenceService {
+    // private val openedTransactions = mutableSetOf<EntityTransaction>()
+
     companion object {
         @JvmStatic
         lateinit var instance: PfPersistenceService
@@ -59,7 +62,7 @@ open class PfPersistenceService {
     ): T {
         val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
         if (context == null) {
-            return EntityManagerUtil.runInTransaction(entityManagerFactory, run)
+            return runInIsolatedTransaction(run)
         } else {
             return context.run(run)
         }
@@ -71,7 +74,25 @@ open class PfPersistenceService {
     open fun <T> runInIsolatedTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
-        return EntityManagerUtil.runInTransaction(entityManagerFactory, run)
+        PfPersistenceContext(entityManagerFactory, withTransaction = true).use { context ->
+            val em = context.em
+            em.transaction.begin()
+            // openedTransactions.add(em.transaction)
+            //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
+            try {
+                val ret = run(context)
+                em.transaction.commit()
+                //openedTransactions.remove(em.transaction)
+                //log.info { "Commit transaction ${em.transaction}..." }
+                return ret
+            } catch (ex: Exception) {
+                em.transaction.rollback()
+                //openedTransactions.remove(em.transaction)
+                //log.info { "Rollback transaction ${em.transaction}..." }
+                log.error(ex.message, ex)
+                throw ex
+            }
+        }
     }
 
     /**
@@ -84,7 +105,7 @@ open class PfPersistenceService {
         if (context != null) {
             return context.run(block)
         }
-        return EntityManagerUtil.runReadonly(entityManagerFactory, block)
+        return runIsolatedReadOnly(block)
     }
 
     /**
@@ -93,22 +114,32 @@ open class PfPersistenceService {
     open fun <T> runIsolatedReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
-        return EntityManagerUtil.runReadonly(entityManagerFactory, block)
+        PfPersistenceContext(entityManagerFactory, withTransaction = false).use { context ->
+            val em = context.em
+            // log.info { "Running read only" }
+            em.unwrap(Session::class.java).isDefaultReadOnly = true
+            // No transaction in readonly mode.
+            return block(context)
+        }
     }
 
 
     /**
-     * @see EntityManagerUtil.selectById
+     * Encapsulated in [runReadOnly].
+     * @see PfPersistenceContext.selectById
      */
     @JvmOverloads
     open fun <T> selectById(
         entityClass: Class<T>, id: Any?, attached: Boolean = false
     ): T? {
-        return EntityManagerUtil.selectById(entityManagerFactory, entityClass, id, attached = attached)
+        return runReadOnly { context ->
+            context.selectById(entityClass, id, attached)
+        }
     }
 
     /**
-     * @see EntityManagerUtil.selectSingleResult
+     * Encapsulated in [runReadOnly].
+     * @see PfPersistenceContext.selectSingleResult
      */
     @JvmOverloads
     fun <T> selectSingleResult(
@@ -120,21 +151,21 @@ open class PfPersistenceService {
         attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
-        return EntityManagerUtil.selectSingleResult(
-            entityManagerFactory,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            nullAllowed = nullAllowed,
-            errorMessage = errorMessage,
-            attached = attached,
-            namedQuery = namedQuery,
-        )
+        return runReadOnly { context ->
+            context.selectSingleResult(
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = keyValues,
+                nullAllowed = nullAllowed,
+                errorMessage = errorMessage,
+                attached = attached,
+                namedQuery = namedQuery,
+            )
+        }
     }
 
     /**
-     * Convenience call for selectSingleResult() with namedQuery = true.
-     * @see EntityManagerUtil.selectSingleResult
+     * Convenience call for [selectSingleResult] with namedQuery = true. Encapsulated in [runReadOnly].
      */
     @JvmOverloads
     fun <T> selectNamedSingleResult(
@@ -157,25 +188,8 @@ open class PfPersistenceService {
     }
 
     /**
-     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
-     */
-    @JvmOverloads
-    open fun <T> queryNullable(
-        sql: String,
-        resultClass: Class<T>,
-        vararg keyValues: Pair<String, Any?>,
-        attached: Boolean = false,
-    ): List<T?> {
-        return EntityManagerUtil.queryNullable(
-            entityManagerFactory,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            attached = attached,
-        )
-    }
-
-    /**
+     * Encapsulated in [runReadOnly].
+     * @see PfPersistenceContext.query
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     @JvmOverloads
@@ -188,21 +202,22 @@ open class PfPersistenceService {
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
     ): List<T> {
-        return EntityManagerUtil.query(
-            entityManagerFactory,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            attached = attached,
-            namedQuery = namedQuery,
-            maxResults = maxResults,
-            lockModeType = lockModeType,
-        )
+        return runReadOnly { context ->
+            context.query(
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = keyValues,
+                attached = attached,
+                namedQuery = namedQuery,
+                maxResults = maxResults,
+                lockModeType = lockModeType,
+            )
+        }
     }
 
     /**
-     * Convenience call for query() with namedQuery = true.
-     * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
+     * Convenience call for [query] with namedQuery = true. Encapsulated in [runReadOnly].
+     * @see query
      */
     @JvmOverloads
     open fun <T> namedQuery(
@@ -225,19 +240,15 @@ open class PfPersistenceService {
     }
 
     /**
-     * Calls Query(sql, params).executeUpdate()
+     * Encapsulated in [runReadOnly].
+     * @see PfPersistenceContext.getReference
      */
-    open fun executeNativeQuery(
-        sql: String,
-        vararg keyValues: Pair<String, Any?>,
-    ): List<*> {
-        return EntityManagerUtil.executeNativeQuery(entityManagerFactory, sql, *keyValues)
-    }
-
     open fun <T> getReference(
         entityClass: Class<T>, id: Any
     ): T {
-        return EntityManagerUtil.getReference(entityManagerFactory, entityClass, id)
+        return runReadOnly { context ->
+            context.getReference(entityClass, id)
+        }
     }
 
     /**
@@ -255,6 +266,5 @@ open class PfPersistenceService {
             startNumber
         }
         return maxNumber + 1
-
     }
 }
