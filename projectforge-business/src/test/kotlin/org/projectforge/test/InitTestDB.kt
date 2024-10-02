@@ -148,7 +148,7 @@ class InitTestDB {
             savedSet.addAll(userRights)
             userRights.clear()
             userService.save(user, context) // Save user without rights
-            savedSet.forEach { right ->
+            userRights.forEach { right ->
                 // Now, save the rights.
                 userRightDao.internalSave(right, context)
             }

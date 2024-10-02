@@ -23,14 +23,14 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.EntityManagerFactory
-import jakarta.persistence.LockModeType
-import jakarta.persistence.TypedQuery
+import jakarta.persistence.*
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaUpdate
 import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
+import org.hibernate.NonUniqueResultException
+import org.projectforge.framework.i18n.InternalErrorException
+import org.projectforge.framework.persistence.api.HibernateUtils
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +67,17 @@ class PfPersistenceContext internal constructor(
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
     ): T? {
-        return EntityManagerUtil.selectById(em, entityClass, id = id, attached = attached, lockModeType = lockModeType)
+        id ?: return null
+        val entity = if (lockModeType != null) {
+            em.find(entityClass, id, lockModeType)
+        } else {
+            em.find(entityClass, id)
+        }
+        entity ?: return null
+        if (!attached && em.contains(entity)) {
+            em.detach(entity)
+        }
+        return entity
     }
 
     /**
@@ -110,16 +120,25 @@ class PfPersistenceContext internal constructor(
         attached: Boolean = false,
         namedQuery: Boolean = false,
     ): T? {
-        return EntityManagerUtil.selectSingleResult(
-            em,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            nullAllowed = nullAllowed,
-            errorMessage = errorMessage,
-            attached = attached,
-            namedQuery = namedQuery,
-        )
+        val result = try {
+            createQuery(
+                sql = sql,
+                resultClass = resultClass,
+                keyValues = keyValues,
+                namedQuery = namedQuery
+            ).singleResult
+        } catch (ex: NoResultException) {
+            if (!nullAllowed) {
+                throw InternalErrorException("${ex.message}: $sql ${errorMessage ?: ""}")
+            }
+            return null
+        } catch (ex: NonUniqueResultException) {
+            throw InternalErrorException("${ex.message}: $sql ${errorMessage ?: ""}")
+        }
+        if (!attached && HibernateUtils.isEntity(resultClass) && em.contains(result)) {
+            em.detach(result)
+        }
+        return result
     }
 
     /**
@@ -132,14 +151,19 @@ class PfPersistenceContext internal constructor(
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
     ): List<T?> {
-        return EntityManagerUtil.queryNullable(
-            em,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            attached = attached,
-            lockModeType = lockModeType,
-        )
+        val q = createQuery(sql = sql, resultClass = resultClass, keyValues = keyValues)
+        if (lockModeType != null) {
+            q.lockMode = lockModeType
+        }
+        val ret = q.resultList
+        if (!attached && HibernateUtils.isEntity(resultClass)) {
+            ret.forEach { obj ->
+                if (obj != null && em.contains(obj)) {
+                    em.detach(obj)
+                }
+            }
+        }
+        return ret
     }
 
     /**
@@ -155,16 +179,22 @@ class PfPersistenceContext internal constructor(
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
     ): List<T> {
-        return EntityManagerUtil.query(
-            em,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            attached = attached,
-            namedQuery = namedQuery,
-            maxResults = maxResults,
-            lockModeType = lockModeType,
-        )
+        val q = createQuery(sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery)
+        if (lockModeType != null) {
+            q.lockMode = lockModeType
+        }
+        if (maxResults != null) {
+            q.maxResults = maxResults
+        }
+        val ret = q.resultList
+        if (!attached && HibernateUtils.isEntity(resultClass)) {
+            ret.forEach { obj ->
+                if (obj != null && em.contains(obj)) {
+                    em.detach(obj)
+                }
+            }
+        }
+        return ret
     }
 
     /**
@@ -195,56 +225,86 @@ class PfPersistenceContext internal constructor(
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): TypedQuery<T> {
-        return EntityManagerUtil.createQuery(
-            em,
-            sql = sql,
-            resultClass = resultClass,
-            keyValues = keyValues,
-            namedQuery = namedQuery,
-        )
+        val query: TypedQuery<T> = if (namedQuery) {
+            em.createNamedQuery(sql, resultClass)
+        } else {
+            em.createQuery(sql, resultClass)
+        }
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query
     }
 
+    /**
+     * em.persist() is used.
+     */
     fun insert(
         dbObj: Any,
     ) {
-        return EntityManagerUtil.insert(em, dbObj)
+        em.persist(dbObj)
     }
 
+    /**
+     * Calls [EntityManager.merge].
+     */
     fun update(
         dbObj: Any,
     ) {
-        return EntityManagerUtil.update(em, dbObj)
+        em.merge(dbObj)
     }
 
+    /**
+     * Calls [EntityManager.remove].
+     */
     fun delete(
         dbObj: Any,
     ) {
-        return EntityManagerUtil.delete(em, dbObj)
+        em.remove(dbObj)
     }
 
+    /**
+     * First selects the entity by id via [selectById] and then calls [EntityManager.remove].
+     */
     fun <T> delete(
         entityClass: Class<T>,
         id: Any,
     ) {
-        return EntityManagerUtil.delete(em, entityClass, id = id)
+        selectById(entityClass, id, attached = true)?.let { dbObj ->
+            em.remove(dbObj)
+        }
     }
 
     fun <T> criteriaUpdate(
         entityClass: Class<T>,
         update: (cb: CriteriaBuilder, root: Root<T>, update: CriteriaUpdate<T>) -> Unit
     ) {
-        return EntityManagerUtil.criteriaUpdate(em, entityClass, update)
+        val cb = em.criteriaBuilder
+        val criteriaUpdate = cb.createCriteriaUpdate(entityClass)
+        // define root-Instanz
+        val root = criteriaUpdate.from(entityClass)
+        update(cb, root, criteriaUpdate)
+        em.createQuery(criteriaUpdate).executeUpdate()
     }
 
     /**
-     * Calls Query(sql, params).executeUpdate()
+     * Calls [EntityManager.createQuery] or, for named queries [EntityManager.createNamedQuery] and then [Query.executeUpdate]
+     * after setting all parameters.
      */
     fun executeUpdate(
         sql: String,
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
     ): Int {
-        return EntityManagerUtil.executeUpdate(em, sql, keyValues = keyValues, namedQuery = namedQuery)
+        val query = if (namedQuery) {
+            em.createNamedQuery(sql)
+        } else {
+            em.createQuery(sql)
+        }
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query.executeUpdate()
     }
 
     /**
@@ -254,7 +314,7 @@ class PfPersistenceContext internal constructor(
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
-        return EntityManagerUtil.executeUpdate(em, sql, keyValues = keyValues, namedQuery = true)
+        return executeUpdate(sql, keyValues = keyValues, namedQuery = true)
     }
 
     /**
@@ -264,7 +324,31 @@ class PfPersistenceContext internal constructor(
         sql: String,
         vararg keyValues: Pair<String, Any?>,
     ): Int {
-        return EntityManagerUtil.executeNativeUpdate(em, sql, keyValues = keyValues)
+        val query = em.createNativeQuery(sql)
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query.executeUpdate()
+    }
+
+    /**
+     * Calls Query(sql, params).executeUpdate()
+     */
+    fun executeNativeQuery(
+        sql: String,
+        vararg keyValues: Pair<String, Any?>,
+    ): List<*> {
+        val query = em.createNativeQuery(sql)
+        for ((key, value) in keyValues) {
+            query.setParameter(key, value)
+        }
+        return query.resultList
+    }
+
+    fun <T> getReference(
+        entityClass: Class<T>, id: Any
+    ): T {
+        return em.getReference(entityClass, id)
     }
 
     /**
