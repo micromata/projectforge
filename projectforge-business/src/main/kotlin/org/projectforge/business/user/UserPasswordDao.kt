@@ -109,7 +109,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      * @see Crypt.digest
      */
     @JvmOverloads
-    open fun encryptAndSavePasswordNewTrans(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
+    open fun encryptAndSavePasswordInTrans(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
         return persistenceService.runInTransaction { context ->
             encryptAndSavePassword(userId, clearTextPassword, checkAccess, context)
         }

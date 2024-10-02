@@ -77,8 +77,8 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts.setDescription("A lot of stuff done and more.");
             ts.setStartTime(new Date(current));
             ts.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-            id[0] = timesheetDao.internalSaveNewTrans(ts);
-            timesheetDao.internalSaveNewTrans(ts);
+            id[0] = timesheetDao.internalSaveInTrans(ts);
+            timesheetDao.internalSaveInTrans(ts);
 
             logon(getUser("ts-hasSelectAccess-user"));
             ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
@@ -106,27 +106,27 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts1.setStartTime(new Date(current));
             ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
             try {
-                timesheetDao.internalSaveNewTrans(ts1);
+                timesheetDao.internalSaveInTrans(ts1);
                 fail("timesheet without task and/or user should not be possible.");
             } catch (final Exception ex) {
             }
             ts1.setTask(getTask("saveAndModify-task"));
             try {
-                timesheetDao.internalSaveNewTrans(ts1);
+                timesheetDao.internalSaveInTrans(ts1);
                 fail("timesheet without user should not be possible.");
             } catch (final Exception ex) {
             }
             ts1.setTask(null);
             ts1.setUser(getUser("saveAndModify-user"));
             try {
-                timesheetDao.internalSaveNewTrans(ts1);
+                timesheetDao.internalSaveInTrans(ts1);
                 fail("timesheet without task and/or user should not be possible.");
             } catch (final Exception ex) {
             }
             ts1.setTask(getTask("saveAndModify-task"));
             ts1.setStartTime(new Date(current));
             ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-            timesheetDao.internalSaveNewTrans(ts1);
+            timesheetDao.internalSaveInTrans(ts1);
             // ToDo: Check onSaveOrUpdate: kost2Id vs. task!
             return null;
         });
@@ -144,7 +144,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts1.setTask(getTask("timesheet"));
             ts1.setUser(getUser("timesheet-user"));
             setTimeperiod(ts1, 21, 8, 0, 21, 16, 0); // 11/21 from 8:00 to 16:00
-            Serializable id = timesheetDao.saveNewTrans(ts1);
+            Serializable id = timesheetDao.saveInTrans(ts1);
             ts1 = timesheetDao.internalGetById(id);
 
             final TimesheetDO ts2 = new TimesheetDO();
@@ -152,39 +152,39 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts2.setUser(getUser("timesheet-user"));
             setTimeperiod(ts2, 21, 15, 52, 21, 18, 0); // 11/21 from 15:45 to 18:00
             try {
-                timesheetDao.saveNewTrans(ts2); // Overlap with ts1!
+                timesheetDao.saveInTrans(ts2); // Overlap with ts1!
                 fail();
             } catch (final UserException ex) {
                 assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
             }
             setTimeperiod(ts2, 21, 7, 0, 21, 8, 15); // 11/21 from 07:00 to 08:15
             try {
-                timesheetDao.saveNewTrans(ts2); // Overlap with ts1!
+                timesheetDao.saveInTrans(ts2); // Overlap with ts1!
                 fail();
             } catch (final UserException ex) {
                 assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
             }
             setTimeperiod(ts2, 21, 16, 0, 21, 18, 0); // 11/21 from 16:00 to 18:00
-            final Serializable id2 = timesheetDao.saveNewTrans(ts2); // No overlap, OK.
+            final Serializable id2 = timesheetDao.saveInTrans(ts2); // No overlap, OK.
 
             TimesheetDO ts3 = new TimesheetDO();
             ts3.setTask(getTask("timesheet"));
             ts3.setUser(getUser("timesheet-user"));
             setTimeperiod(ts3, 21, 16, 0, 21, 18, 0); // 11/21 from 16:00 to 18:00
             try {
-                timesheetDao.saveNewTrans(ts3); // Overlap with ts1!
+                timesheetDao.saveInTrans(ts3); // Overlap with ts1!
                 fail();
             } catch (final UserException ex) {
                 assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
             }
 
             final TimesheetDO t = timesheetDao.internalGetById(id2);
-            timesheetDao.markAsDeletedNewTrans(t); // Delete conflicting time sheet
+            timesheetDao.markAsDeletedInTrans(t); // Delete conflicting time sheet
 
-            id = timesheetDao.saveNewTrans(ts3); // No overlap, OK.
+            id = timesheetDao.saveInTrans(ts3); // No overlap, OK.
             ts3 = timesheetDao.getById(id);
             try {
-                timesheetDao.undeleteNewTrans(ts2); // Overlap with ts1!
+                timesheetDao.undeleteInTrans(ts2); // Overlap with ts1!
                 fail();
             } catch (final UserException ex) {
                 assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
@@ -208,7 +208,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             task = initTestDB.addTask("tpt.2", "tpt", context);
             date = date.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
             task.setProtectTimesheetsUntil(date.getLocalDate());
-            taskDao.internalUpdateNewTrans(task); // Without check access.
+            taskDao.internalUpdateInTrans(task); // Without check access.
             task = initTestDB.addTask("tpt.2.1", "tpt.2", context);
             TimesheetDO sheet = new TimesheetDO();
             sheet.setUser(getUser("tpt-user"));
@@ -216,25 +216,25 @@ public class TimesheetTestFork extends AbstractTestBase {
             sheet.setTask(getTask("tpt.2.1"));
             setTimeperiod(sheet, 2008, Month.OCTOBER, 1, 7, 0, 21, 8, 15); // 10/01 from 07:00 to 08:15
             try {
-                timesheetDao.saveNewTrans(sheet);
+                timesheetDao.saveInTrans(sheet);
                 fail("AccessException caused by time sheet violation expected.");
             } catch (final AccessException ex) {
                 // OK
             }
             setTimeperiod(sheet, 2008, Month.OCTOBER, 31, 23, 45, 31, 0, 15); // 10/30 from 23:45 to 00:15
             try {
-                timesheetDao.saveNewTrans(sheet);
+                timesheetDao.saveInTrans(sheet);
                 fail("AccessException caused by time sheet violation expected.");
             } catch (final AccessException ex) {
                 // OK
             }
             setTimeperiod(sheet, 2008, Month.NOVEMBER, 1, 0, 0, 1, 2, 15); // 11/01 from 00:00 to 02:15
-            final Serializable id = timesheetDao.saveNewTrans(sheet);
+            final Serializable id = timesheetDao.saveInTrans(sheet);
             sheet = timesheetDao.getById(id);
             date = date.withDate(2008, Month.OCTOBER, 31, 23, 45, 0);
             sheet.setStartTime(date.getSqlTimestamp());
             try {
-                timesheetDao.updateNewTrans(sheet);
+                timesheetDao.updateInTrans(sheet);
                 fail("AccessException caused by time sheet violation expected.");
             } catch (final AccessException ex) {
                 // OK
@@ -242,22 +242,22 @@ public class TimesheetTestFork extends AbstractTestBase {
             task = getTask("tpt.2");
             date.withDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
             task.setProtectTimesheetsUntil(date.getLocalDate());
-            taskDao.internalUpdateNewTrans(task); // Without check access.
+            taskDao.internalUpdateInTrans(task); // Without check access.
             sheet = timesheetDao.getById(id);
             sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.
-            timesheetDao.updateNewTrans(sheet);
+            timesheetDao.updateInTrans(sheet);
             date.withDate(2008, Month.NOVEMBER, 1, 2, 0, 0);
             sheet = timesheetDao.getById(id);
             sheet.setStopTime(date.getSqlTimestamp());
             try {
-                timesheetDao.updateNewTrans(sheet);
+                timesheetDao.updateInTrans(sheet);
                 fail("AccessException caused by time sheet violation expected.");
             } catch (final AccessException ex) {
                 // OK
             }
             sheet = timesheetDao.getById(id);
             try {
-                timesheetDao.markAsDeletedNewTrans(sheet);
+                timesheetDao.markAsDeletedInTrans(sheet);
                 fail("AccessException caused by time sheet violation expected.");
             } catch (final AccessException ex) {
                 // OK
@@ -279,24 +279,24 @@ public class TimesheetTestFork extends AbstractTestBase {
             sheet.setUser(getUser("ttb-user"));
             sheet.setTask(getTask("dB.1.1"));
             setTimeperiod(sheet, 2009, Month.OCTOBER, 1, 7, 0, 1, 8, 15); // 10/01 from 07:00 to 08:15
-            timesheetDao.saveNewTrans(sheet);
+            timesheetDao.saveInTrans(sheet);
             task1.setStatus(TaskStatus.C);
-            taskDao.internalUpdateNewTrans(task1);
+            taskDao.internalUpdateInTrans(task1);
             task2.setStatus(TaskStatus.C);
-            taskDao.internalUpdateNewTrans(task2);
+            taskDao.internalUpdateInTrans(task2);
             sheet = new TimesheetDO();
             sheet.setUser(getUser("ttb-user"));
             sheet.setTask(getTask("dB.1.1"));
             setTimeperiod(sheet, 2009, Month.OCTOBER, 2, 7, 0, 2, 8, 15); // 10/02 from 07:00 to 08:15
             try {
-                timesheetDao.saveNewTrans(sheet);
+                timesheetDao.saveInTrans(sheet);
                 fail("Exception expected: Task should not be bookable because parent task is closed.");
             } catch (final AccessException ex) {
                 // OK
             }
             sheet.setTask(getTask("dB.1"));
             try {
-                timesheetDao.saveNewTrans(sheet);
+                timesheetDao.saveInTrans(sheet);
                 fail("Exception expected: Task should not be bookable because parent task is closed.");
             } catch (final AccessException ex) {
                 // OK

@@ -218,7 +218,7 @@ class AddressPagesRest
     val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
     if (bytes != null && bytes is ByteArray) {
       // The user uploaded an image, so
-      addressImageDao.saveOrUpdateNewTrans(obj.id!!, bytes)
+      addressImageDao.saveOrUpdateInTrans(obj.id!!, bytes)
       ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     }
   }

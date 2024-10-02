@@ -79,7 +79,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
       // OK, user has now seen this to-do: delete recent flag:
       if (!isNew() && getData().getRecent()) {
         getData().setRecent(false);
-        toDoDao.updateNewTrans(getData());
+        toDoDao.updateInTrans(getData());
       }
     }
   }

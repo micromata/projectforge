@@ -848,7 +848,7 @@ public class TaskTree extends AbstractCache implements Serializable {
       final TaskDO rootTask = new TaskDO();
       rootTask.setShortDescription("ProjectForge root task");
       rootTask.setTitle("root");
-      taskDao.internalSaveNewTrans(rootTask);
+      taskDao.internalSaveInTrans(rootTask);
       newRoot = new TaskNode();
       newRoot.setTask(rootTask);
       taskMap.put(newRoot.getTaskId(), newRoot);

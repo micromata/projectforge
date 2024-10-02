@@ -296,7 +296,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
    *
    * @param modificationStatus MINOR or MAJOR, if the object was modified, otherwise NONE. If a not null web page is
    *                           returned, then the web page will be set as response page.
-   * @see BaseDao#updateNewTrans(ExtendedBaseDO)
+   * @see BaseDao#updateInTrans(ExtendedBaseDO)
    */
   @Override
   public AbstractSecuredBasePage afterUpdate(final EntityCopyStatus modificationStatus)

@@ -59,7 +59,7 @@ public class DatabaseServiceTestFork extends AbstractTestBase
     final PFUserDO admin = new PFUserDO();
     admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     admin.setId(1L);
-    userService.encryptAndSavePasswordNewTrans(admin, DEFAULT_ADMIN_PASSWORD);
+    userService.encryptAndSavePasswordInTrans(admin, DEFAULT_ADMIN_PASSWORD);
     ThreadLocalUserContext.setUser(admin);
     //pfJpaXmlDumpService.createTestDatabase();
     databaseService.updateAdminUser(admin, null);

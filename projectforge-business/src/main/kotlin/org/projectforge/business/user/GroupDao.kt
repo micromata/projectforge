@@ -204,7 +204,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 groupIdsToUnassign.add(group.id)
             }
         }
-        assignGroupByIdsNewTrans(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache)
+        assignGroupByIdsInTrans(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache)
     }
 
     /**
@@ -214,7 +214,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      * @param groupIdsToUnassign Groups to unassign (nullable).
      * @throws AccessException
      */
-    fun assignGroupByIdsNewTrans(
+    fun assignGroupByIdsInTrans(
         user: PFUserDO,
         groupIdsToAssign: Set<Long?>?,
         groupIdsToUnassign: Set<Long?>?,

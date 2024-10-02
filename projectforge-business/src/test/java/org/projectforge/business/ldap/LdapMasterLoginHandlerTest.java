@@ -210,8 +210,8 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     user.setUsername("kai");
     user.setFirstname("Kai");
     user.setLastname("Reinhard");
-    userService.encryptAndSavePasswordNewTrans(user, "successful".toCharArray());
-    userService.saveNewTrans(user);
+    userService.encryptAndSavePasswordInTrans(user, "successful".toCharArray());
+    userService.saveInTrans(user);
     Assertions.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful".toCharArray()).getLoginResultStatus());
 
     final ArgumentCaptor<LdapUser> argumentCaptor = ArgumentCaptor.forClass(LdapUser.class);
@@ -323,15 +323,15 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase {
     user.setUsername(username);
     user.setFirstname(firstname);
     user.setLastname(lastname);
-    userService.encryptAndSavePasswordNewTrans(user, password);
-    return (Long) userService.saveNewTrans(user);
+    userService.encryptAndSavePasswordInTrans(user, password);
+    return (Long) userService.saveInTrans(user);
   }
 
   private Long createGroup(final String name, final String description) {
     final GroupDO group = new GroupDO();
     group.setName(name);
     group.setDescription(description);
-    return (Long) groupDao.internalSaveNewTrans(group);
+    return (Long) groupDao.internalSaveInTrans(group);
   }
 
   private LdapMasterLoginHandler createLoginHandler() {

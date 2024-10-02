@@ -30,6 +30,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 class My2FABruteForceProtectionTest {
@@ -69,7 +70,7 @@ class My2FABruteForceProtectionTest {
             protection.registerOTPFailure(42)
         }
         Mockito.verify(userDao, Mockito.times(1)).internalGetById(42L)
-        Mockito.verify(userDao, Mockito.times(1)).internalUpdateNewTrans(user)
+        Mockito.verify(userDao, Mockito.times(1)).internalUpdateInTrans(user)
         Assertions.assertTrue(user.deactivated) // User should now be deactivated.
         // Simulate activation of user by an admin:
         user.deactivated = false
@@ -114,6 +115,7 @@ class My2FABruteForceProtectionTest {
     private fun initProtection(): My2FABruteForceProtection {
         val protection = My2FABruteForceProtection()
         protection.userDao = Mockito.mock(UserDao::class.java)
+        protection.persistenceService = Mockito.mock(PfPersistenceService::class.java)
         protection.initialize()
         return protection
     }

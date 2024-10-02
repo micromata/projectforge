@@ -209,10 +209,10 @@ public class UserService {
      *
      * @param user              The user to user.
      * @param clearTextPassword as clear text.
-     * @see UserPasswordDao#encryptAndSavePasswordNewTrans(long, char[])
+     * @see UserPasswordDao#encryptAndSavePasswordInTrans(long, char[])
      */
-    public void encryptAndSavePasswordNewTrans(final PFUserDO user, final char[] clearTextPassword) {
-        encryptAndSavePasswordNewTrans(user, clearTextPassword, true);
+    public void encryptAndSavePasswordInTrans(final PFUserDO user, final char[] clearTextPassword) {
+        encryptAndSavePasswordInTrans(user, clearTextPassword, true);
     }
 
     /**
@@ -220,7 +220,7 @@ public class UserService {
      *
      * @param user              The user to user.
      * @param clearTextPassword as clear text.
-     * @see UserPasswordDao#encryptAndSavePasswordNewTrans(long, char[])
+     * @see UserPasswordDao#encryptAndSavePasswordInTrans(long, char[])
      */
     public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword, final PfPersistenceContext context) {
         encryptAndSavePassword(user, clearTextPassword, true, context);
@@ -232,8 +232,8 @@ public class UserService {
      * @param user              The user to user.
      * @param clearTextPassword as clear text.
      */
-    public void encryptAndSavePasswordNewTrans(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess) {
-        userPasswordDao.encryptAndSavePasswordNewTrans(user.getId(), clearTextPassword, checkAccess);
+    public void encryptAndSavePasswordInTrans(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess) {
+        userPasswordDao.encryptAndSavePasswordInTrans(user.getId(), clearTextPassword, checkAccess);
     }
 
     /**
@@ -255,7 +255,7 @@ public class UserService {
      * @param newPassword Will be cleared at the end of this method due to security reasons.
      * @return Error message key if any check failed or null, if successfully changed.
      */
-    public List<I18nKeyAndParams> changePasswordNewTrans(final Long userId, final char[] oldPassword, final char[] newPassword) {
+    public List<I18nKeyAndParams> changePasswordInTrans(final Long userId, final char[] oldPassword, final char[] newPassword) {
         try {
             return persistenceService.runInTransaction(context -> {
                 Validate.notNull(userId);
@@ -396,7 +396,7 @@ public class UserService {
     private List<I18nKeyAndParams> doWlanPasswordChange(final PFUserDO user, final char[] newWlanPassword) {
         Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
         user.setLastWlanPasswordChange(new Date());
-        userDao.internalUpdateNewTrans(user);
+        userDao.internalUpdateInTrans(user);
         log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
         return Collections.emptyList();
     }
@@ -425,8 +425,8 @@ public class UserService {
         }
         if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
             log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
-            encryptAndSavePasswordNewTrans(user, password, false);
-            userDao.internalUpdateNewTrans(user);
+            encryptAndSavePasswordInTrans(user, password, false);
+            userDao.internalUpdateInTrans(user);
         }
         return user;
     }
@@ -483,16 +483,16 @@ public class UserService {
         return userDao.internalGetById(id);
     }
 
-    public Long saveNewTrans(PFUserDO user) {
-        return userDao.internalSaveNewTrans(user);
+    public Long saveInTrans(PFUserDO user) {
+        return userDao.internalSaveInTrans(user);
     }
 
     public Long save(PFUserDO user, PfPersistenceContext context) {
         return userDao.internalSave(user, context);
     }
 
-    public void markAsDeletedNewTrans(PFUserDO user) {
-        userDao.internalMarkAsDeletedNewTrans(user);
+    public void markAsDeletedInTrans(PFUserDO user) {
+        userDao.internalMarkAsDeletedInTrans(user);
     }
 
     public void markAsDeleted(PFUserDO user, PfPersistenceContext context) {
@@ -503,8 +503,8 @@ public class UserService {
         return userDao.doesUsernameAlreadyExist(user);
     }
 
-    public EntityCopyStatus updateNewTrans(PFUserDO user) {
-        return userDao.updateNewTrans(user);
+    public EntityCopyStatus updateInTrans(PFUserDO user) {
+        return userDao.updateInTrans(user);
     }
 
     /**
@@ -524,8 +524,8 @@ public class UserService {
         userDao.updateMyAccount(data);
     }
 
-    public void undeleteNewTrans(PFUserDO dbUser) {
-        userDao.internalUndeleteNewTrans(dbUser);
+    public void undeleteInTrans(PFUserDO dbUser) {
+        userDao.internalUndeleteInTrans(dbUser);
     }
 
     public List<PFUserDO> findUserByMail(String email) {

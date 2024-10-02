@@ -101,7 +101,7 @@ class PollCronJobs {
                         val mailSubject = translateMsg("poll.mail.ended.subject")
                         val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
 
-                        pollDao.internalSaveOrUpdateNewTrans(pollDO)
+                        pollDao.internalSaveOrUpdateInTrans(pollDO)
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED")
                         pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
@@ -148,9 +148,9 @@ class PollCronJobs {
                 response.poll?.id == poll.id
             }
             pollResponses.forEach {
-                pollResponseDao.internalMarkAsDeletedNewTrans(it)
+                pollResponseDao.internalMarkAsDeletedInTrans(it)
             }
-            pollDao.internalMarkAsDeletedNewTrans(poll)
+            pollDao.internalMarkAsDeletedInTrans(poll)
         }
     }
 }

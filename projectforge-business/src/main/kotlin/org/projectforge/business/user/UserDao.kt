@@ -259,7 +259,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         dbUser.description = user.description
         dbUser.gpgPublicKey = user.gpgPublicKey
         dbUser.sshPublicKey = user.sshPublicKey
-        val result = internalUpdateNewTrans(dbUser)
+        val result = internalUpdateInTrans(dbUser)
         if (result != EntityCopyStatus.NONE) {
             log.info("Object updated: $dbUser")
             copyValues(user, contextUser)

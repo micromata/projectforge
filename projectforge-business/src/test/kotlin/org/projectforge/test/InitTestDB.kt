@@ -115,7 +115,7 @@ class InitTestDB {
         userMap[user.username!!] = user
     }
 
-    fun addUserNewTrans(username: String?): PFUserDO {
+    fun addUserInTrans(username: String?): PFUserDO {
         return persistenceService.runInTransaction { context: PfPersistenceContext ->
             addUser(
                 username,
@@ -148,7 +148,7 @@ class InitTestDB {
             savedSet.addAll(userRights)
             userRights.clear()
             userService.save(user, context) // Save user without rights
-            userRights.forEach { right ->
+            savedSet.forEach { right ->
                 // Now, save the rights.
                 userRightDao.internalSave(right, context)
             }

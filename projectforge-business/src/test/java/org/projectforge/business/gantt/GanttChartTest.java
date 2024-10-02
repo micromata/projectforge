@@ -63,18 +63,18 @@ public class GanttChartTest extends AbstractTestBase {
             task.setStartDate(dt.getLocalDate());
             task.setDuration(BigDecimal.TEN);
 
-            taskDao.updateNewTrans(task);
+            taskDao.updateInTrans(task);
             initTestDB.addTask(prefix + "1.1", prefix + "1", context);
             task = initTestDB.addTask(prefix + "2", prefix, context);
             task.setGanttPredecessor(getTask(prefix + "1"));
             task.setDuration(BigDecimal.ONE);
-            taskDao.updateNewTrans(task);
+            taskDao.updateInTrans(task);
 
             task = initTestDB.addTask(prefix + "3", prefix, context);
             task.setGanttPredecessor(getTask(prefix + "2"));
             task.setGanttPredecessorOffset(10);
             task.setDuration(BigDecimal.TEN);
-            taskDao.updateNewTrans(task);
+            taskDao.updateInTrans(task);
             final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
             final GanttTask rootObject = data.getRootObject();
             final GanttChartDO ganttChartDO = new GanttChartDO();
@@ -106,17 +106,17 @@ public class GanttChartTest extends AbstractTestBase {
             task = getTask(prefix + "1.1");
             task.setParentTask(getTask(prefix));
 
-            taskDao.updateNewTrans(task); // One level higher
+            taskDao.updateInTrans(task); // One level higher
 
             task = getTask(prefix + "2");
             task.setParentTask(getTask(prefix + "II"));
 
-            taskDao.updateNewTrans(task); // Moved anywhere.
+            taskDao.updateInTrans(task); // Moved anywhere.
 
             task = getTask(prefix + "3");
             task.setParentTask(getTask(prefix + "II"));
 
-            taskDao.updateNewTrans(task); // Moved anywhere.
+            taskDao.updateInTrans(task); // Moved anywhere.
 
             ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
             ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);

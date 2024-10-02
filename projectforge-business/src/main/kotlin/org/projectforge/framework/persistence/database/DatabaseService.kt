@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.database
 
 import jakarta.persistence.Persistence
 import mu.KotlinLogging
-import org.bouncycastle.asn1.x500.style.RFC4519Style.owner
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.address.AddressbookDao
 import org.projectforge.business.login.Login
@@ -187,7 +186,7 @@ class DatabaseService {
             "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, owner_fk) VALUES (:id, :created, :deleted, :lastUpdate, :description, :title, :owner)"
         val ownerId = user?.id ?: ThreadLocalUserContext.userId
         val now = Date()
-        context.executeNativeUpdate(
+        val result = context.executeNativeUpdate(
             insertGlobal,
             Pair("id", AddressbookDao.GLOBAL_ADDRESSBOOK_ID),
             Pair("created", now),
@@ -197,7 +196,7 @@ class DatabaseService {
             Pair("title", AddressbookDao.GLOBAL_ADDRESSBOOK_TITLE),
             Pair("owner", ownerId),
         );
-        log.info("Adding global addressbook finished: $insertGlobal")
+        log.info("Adding global addressbook finished: $insertGlobal, result: $result")
         return addressbookDao.getGlobalAddressbook(context)
     }
 
@@ -265,7 +264,7 @@ class DatabaseService {
         adminUser!!.username = user.username
         adminUser.localUser = true
         adminUser.timeZone = adminUserTimezone
-        userDao.internalUpdateNewTrans(adminUser)
+        userDao.internalUpdateInTrans(adminUser)
         setUser(adminUser)
         userGroupCache.forceReload()
         return adminUser

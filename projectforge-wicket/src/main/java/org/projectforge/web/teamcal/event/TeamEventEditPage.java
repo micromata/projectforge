@@ -301,10 +301,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
       form.recurrenceData.setUntil(recurrenceUntil);
       masterEvent.setRecurrence(form.recurrenceData);
-      getBaseDao().updateNewTrans(masterEvent);
+      getBaseDao().updateInTrans(masterEvent);
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
       masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
-      getBaseDao().updateNewTrans(masterEvent);
+      getBaseDao().updateInTrans(masterEvent);
     }
     return (AbstractSecuredBasePage) getReturnToPage();
   }
@@ -388,7 +388,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       // changed one element of an recurring event
       newEvent.setSequence(0);
       newEvent.getAttendees().clear();
-      teamEventService.saveNewTrans(newEvent);
+      teamEventService.saveInTrans(newEvent);
 
       Set<TeamEventAttendeeDO> toAssign = new HashSet<>();
       form.assignAttendeesListHelper.getAssignedItems().stream().forEach(a -> toAssign.add(a.clone()));

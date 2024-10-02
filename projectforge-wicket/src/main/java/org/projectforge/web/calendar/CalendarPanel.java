@@ -479,14 +479,14 @@ public class CalendarPanel extends Panel {
         try {
             switch (dropMode) {
                 case MOVE_SAVE:
-                    timesheetDao.updateNewTrans(timesheet);
+                    timesheetDao.updateInTrans(timesheet);
                     setResponsePage(getPage());
                     break;
                 case MOVE_EDIT:
                     setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
                     break;
                 case COPY_SAVE:
-                    timesheetDao.saveNewTrans(timesheet);
+                    timesheetDao.saveInTrans(timesheet);
                     setResponsePage(getPage());
                     break;
                 case COPY_EDIT:

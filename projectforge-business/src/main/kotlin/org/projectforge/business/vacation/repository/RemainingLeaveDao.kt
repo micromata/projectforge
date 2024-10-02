@@ -47,7 +47,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      */
     open fun internalMarkAsDeleted(employeeId: Long, year: Int) {
         val entry = internalGet(employeeId, year, false) ?: return
-        internalMarkAsDeletedNewTrans(entry)
+        internalMarkAsDeletedInTrans(entry)
     }
 
     open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
@@ -60,9 +60,9 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
         entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
         entry.deleted = false
         if (entry.id == null) {
-            internalSaveNewTrans(entry)
+            internalSaveInTrans(entry)
         } else {
-            internalUpdateNewTrans(entry)
+            internalUpdateInTrans(entry)
         }
     }
 

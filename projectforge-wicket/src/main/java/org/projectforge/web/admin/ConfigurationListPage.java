@@ -57,7 +57,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
   protected void init()
   {
     newItemMenuEntry.setVisible(false);
-    getBaseDao().checkAndUpdateDatabaseEntriesNewTrans();
+    getBaseDao().checkAndUpdateDatabaseEntriesInTrans();
     final List<IColumn<ConfigurationDO, String>> columns = new ArrayList<IColumn<ConfigurationDO, String>>();
     final CellItemListener<ConfigurationDO> cellItemListener = new CellItemListener<ConfigurationDO>()
     {

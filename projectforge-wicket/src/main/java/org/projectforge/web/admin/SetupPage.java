@@ -108,18 +108,18 @@ public class SetupPage extends AbstractUnsecureBasePage {
     adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
     if (StringUtils.isNotBlank(setupForm.getPassword())) {
       char[] clearTextPassword = setupForm.getPassword().toCharArray();
-      WicketSupport.get(UserService.class).encryptAndSavePasswordNewTrans(adminUser, clearTextPassword);
+      WicketSupport.get(UserService.class).encryptAndSavePasswordInTrans(adminUser, clearTextPassword);
     }
 
     WicketSupport.getSystemStatus().setSetupRequiredFirst(false);
     loginAdminUser(adminUser);
 
-    configurationDao.checkAndUpdateDatabaseEntriesNewTrans();
+    configurationDao.checkAndUpdateDatabaseEntriesInTrans();
     if (setupForm.getTimeZone() != null) {
       final ConfigurationDO configurationDO = getConfigurationDO(ConfigurationParam.DEFAULT_TIMEZONE);
       if (configurationDO != null) {
         configurationDO.setTimeZone(setupForm.getTimeZone());
-        configurationDao.updateNewTrans(configurationDO);
+        configurationDao.updateInTrans(configurationDO);
       }
     }
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
@@ -153,7 +153,7 @@ public class SetupPage extends AbstractUnsecureBasePage {
     final ConfigurationDO configurationDO = getConfigurationDO(param);
     if (configurationDO != null) {
       configurationDO.setStringValue(value);
-      WicketSupport.get(ConfigurationDao.class).updateNewTrans(configurationDO);
+      WicketSupport.get(ConfigurationDao.class).updateInTrans(configurationDO);
     }
   }
 

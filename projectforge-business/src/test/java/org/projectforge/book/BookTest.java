@@ -43,15 +43,15 @@ public class BookTest extends AbstractTestBase {
         final Serializable[] ids = new Long[3];
 
         BookDO book = createTestBook("42");
-        ids[0] = bookDao.internalSaveNewTrans(book);
+        ids[0] = bookDao.internalSaveInTrans(book);
         book = createTestBook(null);
-        ids[1] = bookDao.internalSaveNewTrans(book);
+        ids[1] = bookDao.internalSaveInTrans(book);
 
         book = createTestBook("42");
         assertTrue(bookDao.doesSignatureAlreadyExist(book), "Signature should already exist.");
         book.setSignature("5");
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
-        bookDao.internalSaveNewTrans(book);
+        bookDao.internalSaveInTrans(book);
 
         BookDO dbBook = bookDao.internalGetById(ids[1]);
         book = new BookDO();
@@ -61,13 +61,13 @@ public class BookTest extends AbstractTestBase {
         assertTrue(bookDao.doesSignatureAlreadyExist(book), "Signature should already exist.");
         book.setSignature("4711");
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
-        bookDao.internalUpdateNewTrans(book);
+        bookDao.internalUpdateInTrans(book);
 
         book = bookDao.internalGetById(ids[1]);
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
         book.setSignature(null);
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
-        bookDao.internalUpdateNewTrans(book);
+        bookDao.internalUpdateInTrans(book);
     }
 
     @Test

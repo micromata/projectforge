@@ -787,7 +787,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage> {
         } else {
           passwordUser = new PFUserDO();
           char[] pw = passwordInput.toCharArray();
-          WicketSupport.get(UserService.class).encryptAndSavePasswordNewTrans(passwordUser, pw);
+          WicketSupport.get(UserService.class).encryptAndSavePasswordInTrans(passwordUser, pw);
           LoginHandler.clearPassword(pw);
         }
       }

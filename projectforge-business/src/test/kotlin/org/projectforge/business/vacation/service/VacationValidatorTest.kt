@@ -118,12 +118,12 @@ class VacationValidatorTest : AbstractTestBase() {
         user.firstname = name
         user.lastname = name
         user.username = "$name.$name"
-        userDao.internalSaveNewTrans(user)
+        userDao.internalSaveInTrans(user)
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeDao.internalSaveNewTrans(employee)
+        employeeDao.internalSaveInTrans(employee)
         employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
         return employee
     }

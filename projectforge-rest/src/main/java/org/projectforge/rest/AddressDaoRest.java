@@ -229,9 +229,9 @@ public class AddressDaoRest {
       addressDORequest.setForm(FormOfAddress.UNKNOWN);
     }
 
-    addressDao.saveOrUpdateNewTrans(addressDORequest);
+    addressDao.saveOrUpdateInTrans(addressDORequest);
 
-    addressImageDao.saveOrUpdateNewTrans(addressDORequest.getId(), image);
+    addressImageDao.saveOrUpdateInTrans(addressDORequest.getId(), image);
 
     AddressDO dbAddress = addressDao.findByUid(uid);
 

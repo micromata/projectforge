@@ -83,7 +83,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       log.info("Start updating user rights");
       start = System.currentTimeMillis();
       final List<UserRightVO> list = form.rightsData.getRights();
-      WicketSupport.get(UserRightDao.class).updateUserRightsNewTrans(getData(), list, false);
+      WicketSupport.get(UserRightDao.class).updateUserRightsInTrans(getData(), list, false);
       end = System.currentTimeMillis();
       log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.");
     }
