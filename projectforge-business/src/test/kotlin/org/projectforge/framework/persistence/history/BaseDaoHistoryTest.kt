@@ -62,7 +62,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             }
             entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(6191673L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
-                assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "167040")
+                assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "12202 - ACME Int.")
             }
             // 4 main entries in t_pf_history
             entries.forEach { entry ->

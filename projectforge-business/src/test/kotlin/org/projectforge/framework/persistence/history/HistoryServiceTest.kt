@@ -33,7 +33,6 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -339,21 +338,14 @@ class HistoryServiceTest : AbstractTestBase() {
             // select pk,entity_id,entity_name,entity_optype from t_pf_history where entity_id = <ENTITY_ID>
             // select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (PK1,PK2,PK3);
             persistenceService.runInTransaction { context ->
-                val em = context.em
-                em.createNativeQuery("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
-                    .executeUpdate()
-                em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
-                    .executeUpdate()
-                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,0)")
-                    .executeUpdate()
-                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,1)")
-                    .executeUpdate()
-                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,2)")
-                    .executeUpdate()
-                em.createNativeQuery("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
-                    .executeUpdate()
-                em.createNativeQuery("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,0)")
-                    .executeUpdate()
+                context.executeNativeUpdate("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
+                context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,0)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,1)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,2)")
+                context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,0)")
+                context.executeNativeUpdate("insert into t_fibu_konto (pk,deleted,bezeichnung,nummer) values (167040,false,'ACME Int.',12202)")
             }
         }
 
@@ -413,9 +405,21 @@ class HistoryServiceTest : AbstractTestBase() {
         ) {
             val master = HistoryCreateUtils.createMaster(entity, operationType)
 
-            val attr1 = HistoryCreateUtils.createAttr(GroupDO::class, propertyName = "$propertyName${PFHistoryMasterUtils.NEWVAL_SUFFIX}", value = value)
-            val attr2 = HistoryCreateUtils.createAttr(oldPropertyClass, "$propertyName${PFHistoryMasterUtils.OP_SUFFIX}", value = operationType.name)
-            val attr3 = HistoryCreateUtils.createAttr(GroupDO::class, "$propertyName${PFHistoryMasterUtils.OLDVAL_SUFFIX}", value = oldValue)
+            val attr1 = HistoryCreateUtils.createAttr(
+                GroupDO::class,
+                propertyName = "$propertyName${PFHistoryMasterUtils.NEWVAL_SUFFIX}",
+                value = value
+            )
+            val attr2 = HistoryCreateUtils.createAttr(
+                oldPropertyClass,
+                "$propertyName${PFHistoryMasterUtils.OP_SUFFIX}",
+                value = operationType.name
+            )
+            val attr3 = HistoryCreateUtils.createAttr(
+                GroupDO::class,
+                "$propertyName${PFHistoryMasterUtils.OLDVAL_SUFFIX}",
+                value = oldValue
+            )
             val attrs = mutableListOf(attr1, attr2, attr3)
 
             val pk = historyService.save(master, attrs)!!
