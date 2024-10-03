@@ -519,19 +519,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         val entries = internalGetHistoryEntries(obj, context)
         val list = mutableListOf<DisplayHistoryEntry>()
         for (entry in entries) {
-            val l = convert(entry, context)
+            val l = convert(entry)
             list.addAll(l)
         }
         return list
     }
 
-    open fun convert(entry: HistoryEntry, context: PfPersistenceContext): List<DisplayHistoryEntry> {
+    open fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
         if (entry.diffEntries.isNullOrEmpty()) {
-            return listOf(DisplayHistoryEntry(userGroupCache, entry))
+            return listOf(DisplayHistoryEntry(entry))
         }
         val result = mutableListOf<DisplayHistoryEntry>()
         for (prop in entry.diffEntries!!) {
-            val se = DisplayHistoryEntry(userGroupCache, entry, prop, context.em)
+            val se = DisplayHistoryEntry(entry, prop)
             result.add(se)
         }
 

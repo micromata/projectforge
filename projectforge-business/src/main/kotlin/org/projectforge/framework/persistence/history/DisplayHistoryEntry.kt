@@ -23,28 +23,19 @@
 
 package org.projectforge.framework.persistence.history
 
-import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.projectforge.business.address.AddressbookDO
 import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.user.UserGroupCache
-import org.projectforge.common.BeanHelper
-import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
-import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.DateHelper
-import org.projectforge.framework.utils.NumberHelper.parseLong
 import java.io.Serializable
-import java.lang.reflect.Field
 import java.math.BigDecimal
 import java.sql.Date
 import java.sql.Timestamp
 import java.util.*
-import java.util.function.Consumer
 
 private val log = KotlinLogging.logger {}
 
@@ -53,7 +44,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
-open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEntry) : Serializable {
+open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     /**
      * For information / testing purposes: the id of the PfHistoryMasterDO (t_pf_history)
      */
@@ -98,180 +89,90 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
      */
     var newValue: String? = null
     val timestamp: java.util.Date
-    private fun getUser(userGroupCache: UserGroupCache, userId: String): PFUserDO? {
-        if (StringUtils.isBlank(userId)) {
-            return null
-        }
-        val id = parseLong(userId) ?: return null
-        return userGroupCache.getUser(id)
+
+    private fun getUser(userId: String?): PFUserDO? {
+        return HistoryValueService.instance.getUser(userId)
     }
 
     constructor(
-        userGroupCache: UserGroupCache, entry: HistoryEntry, diffEntry: DiffEntry,
-        em: EntityManager
-    ) : this(userGroupCache, entry) {
+        entry: HistoryEntry, diffEntry: DiffEntry,
+    ) : this(entry) {
+        val historyValueService = HistoryValueService.instance
         diffEntry.newProp?.let {
-            propertyType = it.type
+            propertyType = HistoryValueService.getUnifiedTypeName(it.type)
         }
         diffEntry.oldProp?.let {
-            propertyType = it.type
+            propertyType = HistoryValueService.getUnifiedTypeName(it.type)
         }
-        newValue = diffEntry.newValue
-        oldValue = diffEntry.oldValue
-        var processed = false
+        val oldObjectValue = getObjectValue(diffEntry.oldProp)
+        val newObjectValue = getObjectValue(diffEntry.newProp)
+        val clazz = historyValueService.getClass(propertyType)
+        if (oldObjectValue != null) {
+            oldValue = formatObject(oldObjectValue, clazz, propertyType)
+        } else {
+            oldValue = historyValueService.format(diffEntry.oldValue, propertyType)
+        }
+        if (newObjectValue != null) {
+            newValue = formatObject(newObjectValue, clazz, propertyType)
+        } else {
+            newValue = historyValueService.format(diffEntry.newValue, propertyType)
+        }
 
-        val type = entry.entityName
-        var clazz: Class<*>? = null
-        try {
-            clazz = Class.forName(type)
-        } catch (ex: ClassNotFoundException) {
-            log.warn("Class '$type' not found.")
-        }
-        if (clazz != null && !diffEntry.propertyName.isNullOrBlank()) {
-            val field = BeanHelper.getDeclaredField(clazz, diffEntry.propertyName)
-            if (field == null) {
-                if (log.isDebugEnabled) {
-                    log.debug("No such field '${diffEntry.propertyName}.${diffEntry.propertyName}'.")
-                }
-            } else {
-                field.isAccessible = true
-                if (field.type.isEnum) {
-                    oldValue = getI18nEnumTranslation(field, diffEntry.oldValue)
-                    newValue = getI18nEnumTranslation(field, diffEntry.newValue)
-                    processed = true // Nothing to convert.
-                }
-            }
+        if (clazz != null) {
             propertyName = translateProperty(diffEntry, clazz)
         } else {
             propertyName = diffEntry.propertyName
         }
-        if (!processed) {
-            var oldObjectValue: Any?
-            var newObjectValue: Any?
-            try {
-                oldObjectValue = getObjectValue(userGroupCache, em, diffEntry.oldProp)
-            } catch (ex: Exception) {
-                oldObjectValue = "???"
-                log.warn(
-                    "Error while try to parse old object value '"
-                            + diffEntry.oldValue
-                            + "' of prop-type '"
-                            + diffEntry.javaClass.name
-                            + "': "
-                            + ex.message, ex
-                )
-            }
-            try {
-                newObjectValue = getObjectValue(userGroupCache, em, diffEntry.newProp)
-            } catch (ex: Exception) {
-                newObjectValue = "???"
-                log.warn(
-                    "Error while try to parse new object value '"
-                            + diffEntry.newValue
-                            + "' of prop-type '"
-                            + diffEntry.javaClass.name
-                            + "': "
-                            + ex.message, ex
-                )
-            }
-            if (oldObjectValue != null) {
-                oldValue = objectValueToDisplay(oldObjectValue)
-            }
-            if (newObjectValue != null) {
-                newValue = objectValueToDisplay(newObjectValue)
-            }
-        }
     }
 
-    private fun objectValueToDisplay(value: Any): String {
-        return if (value is java.util.Date || value is Date || value is Timestamp) {
-            formatDate(value)
-        } else toShortNames(value)
-    }
-
-    protected open fun getObjectValue(userGroupCache: UserGroupCache, em: EntityManager, prop: HistProp?): Any? {
-        if (prop == null) {
+    /**
+     * You may overwrite this method to provide a custom formatting for the object value.
+     * @return null if nothing done and nothing to proceed.
+     */
+    protected open fun getObjectValue(prop: HistProp?): Any? {
+        val value = prop?.value ?: return null
+        val valueType = HistoryValueService.instance.getValueType(prop?.type)
+        if (valueType != HistoryValueService.ValueType.ENTITY) {
             return null
         }
-        if (StringUtils.isBlank(prop.value)) {
-            return prop.value
-        }
-        val type = prop.type
-        if (String::class.java.name == type || BigDecimal::class.java.name == type) {
-            return prop.value
-        }
-        if (PFUserDO::class.java.name == type) {
-            val value = prop.value
+        val entityClass = HistoryValueService.instance.getClass(prop?.type) ?: return null
+        if (entityClass == PFUserDO::class.java) {
             if (!value.isNullOrBlank() && !value.contains(",")) {
                 // Single user expected.
-                val user = getUser(userGroupCache, prop.value ?: "###")
+                val user = getUser(prop.value ?: "###")
                 if (user != null) {
                     return user
                 }
             }
         }
-        if (EmployeeDO::class.java.name == type || AddressbookDO::class.java.name == type) {
-            val sb = StringBuffer()
-            getDBObjects(em, prop).forEach(Consumer { dbObject: Any? ->
+        if (entityClass == EmployeeDO::class.java || entityClass == AddressbookDO::class.java) {
+            val sb = StringBuilder()
+            getDBObjects(prop, entityClass).forEach { dbObject ->
                 if (dbObject is EmployeeDO) {
-                    sb.append(dbObject.user!!.getFullname() + ";")
+                    sb.append("${dbObject.user?.getFullname() ?: "???"};")
                 }
                 if (dbObject is AddressbookDO) {
-                    sb.append(dbObject.title + ";")
+                    sb.append("${dbObject.title};")
                 }
-            })
+            }
             sb.deleteCharAt(sb.length - 1)
             return sb.toString()
         }
-        return getDBObjects(em, prop)
+        return HistoryValueService.instance.getDBObjects(prop, entityClass)
     }
 
-    private fun getDBObjects(em: EntityManager, prop: HistProp): List<Any> {
-        val ret: MutableList<Any> = ArrayList()
-        /*val emd = PfEmgrFactory.get().metadataRepository.findEntityMetadata(prop.type)
-        if (emd == null) {
-          ret.add(prop.value)
-          return ret
-        }
-        val sa = StringUtils.split(prop.value, ", ")
-        if (sa == null || sa.size == 0) {
-          return emptyList()
-        }
-        for (pks in sa) {
-          try {
-            val pk = pks.toInt()
-            val ent = em.find(emd.javaType, pk)
-            if (ent != null) {
-              ret.add(ent)
-            }
-          } catch (ex: NumberFormatException) {
-            log.warn("Cannot parse pk: $prop")
-          }
-        }*/
-        return ret
+    /**
+     * Loads the DB objects for the given property. The objects are given as coma separated id list.
+     */
+    protected fun getDBObjects(prop: HistProp, entityClass: Class<*>): List<Any> {
+        return HistoryValueService.instance.getDBObjects(prop, entityClass)
     }
 
-    private fun formatDate(objectValue: Any?): String {
-        if (objectValue == null) {
-            return ""
-        }
-        if (objectValue is Date) {
-            return DateHelper.formatIsoDate(objectValue as java.util.Date?)
-        } else if (objectValue is java.util.Date) {
-            return DateHelper.formatIsoTimestamp(objectValue as java.util.Date?)
-        }
-        return objectValue.toString()
-    }
-
-    private fun toShortNames(value: Any): String {
-        return if (value is Collection<*>) {
-            value.map { input -> toShortName(input) }.sorted().joinToString()
-        } else toShortName(value)
-    }
-
-    fun toShortName(obj: Any?): String {
-        obj ?: return ""
-        return if (obj is DisplayNameCapable) obj.displayName ?: "---" else obj.toString()
+    /**
+     * You may overwrite this method to provide a custom formatting for the object value.
+     */
+    protected open fun formatObject(valueObject: Any?, entityClass: Class<*>?, propertyName: String?): String {
+        return HistoryValueService.instance.toShortNames(valueObject)
     }
 
     /**
@@ -287,10 +188,7 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
         timestamp = entry.modifiedAt!!
         val str = entry.modifiedBy
         if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
-            val userId = parseLong(entry.modifiedBy)
-            if (userId != null) {
-                user = userGroupCache.getUser(userId)
-            }
+            user = getUser(entry.modifiedBy)
         }
         // entry.getClassName();
         // entry.getComment();
@@ -305,15 +203,6 @@ open class DisplayHistoryEntry(userGroupCache: UserGroupCache, entry: HistoryEnt
      */
     private fun translateProperty(diffEntry: DiffEntry, clazz: Class<*>): String? {
         return Companion.translateProperty(clazz, diffEntry.propertyName)
-    }
-
-
-    private fun getI18nEnumTranslation(field: Field, value: String?): String {
-        if (value == null) {
-            return ""
-        }
-        val i18nEnum = I18nEnum.create(field.type, value) as? I18nEnum ?: return value
-        return translate(i18nEnum.i18nKey)
     }
 
     companion object {
