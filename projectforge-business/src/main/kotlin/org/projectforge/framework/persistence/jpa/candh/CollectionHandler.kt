@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.jpa.candh
 
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
+import jakarta.persistence.OneToMany
 import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
@@ -187,11 +188,20 @@ open class CollectionHandler : CandHIHandler {
      */
     private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
         val annotations = AnnotationsUtils.getAnnotations(property)
-        if ((annotations.any { it.annotationClass == JoinColumn::class } ||
-                    annotations.any { it.annotationClass == JoinTable::class })
-            && annotations.none { it.annotationClass == NoHistory::class }
+        if (annotations.any { it.annotationClass == NoHistory::class }) {
+            // No history for this collection, so nothing to do by this src class.
+            return false
+        }
+        if (annotations.any { it.annotationClass == JoinColumn::class } ||
+            annotations.any { it.annotationClass == JoinTable::class }
         ) {
+            // There is a join table or column for this entity, so we're assuming to manage this collection.
             return true
+        }
+        annotations.firstOrNull { it.annotationClass == OneToMany::class }?.let { annotation ->
+            annotation as OneToMany
+            // There is a mappedBy column for this entity, so we're assuming to manage this collection.
+            return annotation.mappedBy.isNotEmpty()
         }
         return false
     }
