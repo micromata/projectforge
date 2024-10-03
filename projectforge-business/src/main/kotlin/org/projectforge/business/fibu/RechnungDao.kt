@@ -353,6 +353,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             return mutableListOf()
         }
         val list = mutableListOf<DisplayHistoryEntry>()
+        super.getDisplayHistoryEntries(obj, context).let { list.addAll(it) }
         obj.positionen?.forEach { position ->
             val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position, context)
             entries.forEach { entry ->

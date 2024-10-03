@@ -137,7 +137,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         return map
     }
 
-    override fun convert(entry: HistoryEntry<*>, context: PfPersistenceContext): List<DisplayHistoryEntry> {
+    override fun convert(entry: HistoryEntry, context: PfPersistenceContext): List<DisplayHistoryEntry> {
         if (entry.diffEntries!!.isEmpty()) {
             val se = DisplayHistoryEntry(userGroupCache, entry)
             return listOf(se)

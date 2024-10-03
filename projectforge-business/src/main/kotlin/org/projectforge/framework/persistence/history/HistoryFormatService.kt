@@ -106,7 +106,7 @@ class HistoryFormatService {
     fun <O : BaseDO<*>> convertAsFormatted(
         context: PfPersistenceContext,
         item: O,
-        orig: List<HistoryEntry<*>>
+        orig: List<HistoryEntry>
     ): List<DisplayHistoryEntryDTO> {
         val entries = mutableListOf<DisplayHistoryEntryDTO>()
         orig.forEach { historyEntry ->
@@ -120,7 +120,7 @@ class HistoryFormatService {
     fun <O : BaseDO<*>> convert(
         context: PfPersistenceContext,
         item: O,
-        historyEntry: HistoryEntry<*>
+        historyEntry: HistoryEntry
     ): DisplayHistoryEntryDTO {
         val adapter = historyServiceAdapters[item::class.java]
         return adapter?.convert(context, item, historyEntry) ?: stdHistoryFormatAdapter.convert(

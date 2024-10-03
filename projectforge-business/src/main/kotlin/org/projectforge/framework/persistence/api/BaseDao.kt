@@ -454,7 +454,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the history entries of the object.
      */
-    fun getHistoryEntries(obj: O): List<HistoryEntry<*>> {
+    fun getHistoryEntries(obj: O): List<HistoryEntry> {
         return persistenceService.runReadOnly { context ->
             getHistoryEntries(obj, context)
         }
@@ -463,19 +463,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     /**
      * Gets the history entries of the object.
      */
-    fun getHistoryEntries(obj: O, context: PfPersistenceContext): List<HistoryEntry<*>> {
+    fun getHistoryEntries(obj: O, context: PfPersistenceContext): List<HistoryEntry> {
         accessChecker.checkRestrictedUser()
         checkLoggedInUserHistoryAccess(obj)
         return internalGetHistoryEntries(obj, context)
     }
 
-    fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry<*>> {
+    fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry> {
         return persistenceService.runReadOnly { context ->
             historyService.loadHistory(obj, context)
         }
     }
 
-    fun internalGetHistoryEntries(obj: BaseDO<*>, context: PfPersistenceContext): List<HistoryEntry<*>> {
+    fun internalGetHistoryEntries(obj: BaseDO<*>, context: PfPersistenceContext): List<HistoryEntry> {
         accessChecker.checkRestrictedUser()
         return historyService.loadHistory(obj, context)
     }
@@ -525,7 +525,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return list
     }
 
-    open fun convert(entry: HistoryEntry<*>, context: PfPersistenceContext): List<DisplayHistoryEntry> {
+    open fun convert(entry: HistoryEntry, context: PfPersistenceContext): List<DisplayHistoryEntry> {
         if (entry.diffEntries.isNullOrEmpty()) {
             return listOf(DisplayHistoryEntry(userGroupCache, entry))
         }
