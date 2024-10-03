@@ -25,11 +25,22 @@ package org.projectforge.framework.persistence.history
 
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
+import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
+import java.sql.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -37,9 +48,12 @@ private val log = KotlinLogging.logger {}
  * Service for deserializing history values.
  */
 @Service
-class HistoryValueService {
+class HistoryValueService private constructor() {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
     /**
      * Key is the property type in history attr table, value is the class.
@@ -53,7 +67,7 @@ class HistoryValueService {
 
     internal val unknownPropertyTypes = mutableSetOf<String>()
 
-    enum class ValueType {
+    internal enum class ValueType {
         ENTITY,
         ENUM,
         I18N_ENUM,
@@ -69,11 +83,46 @@ class HistoryValueService {
     }
 
     /**
+     * @param propertyType The property type in the history table (must be unified before!).
+     */
+    fun format(valueString: String?, propertyType: String?): String {
+        valueString ?: return ""
+        if (valueString.isBlank() || propertyType.isNullOrBlank()) {
+            return valueString
+        }
+        return when (getValueType(propertyType)) {
+            ValueType.BASE_TYPE -> formatBaseType(valueString)
+            ValueType.ENTITY -> formatEntity(valueString, propertyType)
+            ValueType.ENUM -> formatEnum(valueString)
+            ValueType.I18N_ENUM -> formatI18nEnum(valueString, propertyType)
+            ValueType.BINARY -> formatBinary(valueString)
+            ValueType.UNKNOWN -> valueString
+        }
+    }
+
+    internal fun getUser(userId: String?): PFUserDO? {
+        if (userId.isNullOrBlank()) {
+            return null
+        }
+        val id = parseLong(userId) ?: return null
+        return userGroupCache.getUser(id)
+    }
+
+    /**
+     * @param propertyType The property type in the history table (must be unified before!).
+     */
+    internal fun getClass(propertyType: String?): Class<*>? {
+        propertyType ?: return null
+        return typeClassMapping[propertyType]
+    }
+
+    /**
      * If return value is [ValueType.BASE_TYPE], the value for displaying should be formatted by [formatBaseType].
      * This type may differ from the property type of the entity (due to migration issues).
+     * @param typeString The property type in the history table (must be unified before!).
      */
-    fun getValueType(dbTypeString: String): ValueType {
-        val typeString = getTypeClassName(dbTypeString)
+    internal fun getValueType(typeString: String?): ValueType {
+        typeString ?: return ValueType.UNKNOWN
         synchronized(typeMapping) {
             typeMapping[typeString]?.let { return it }
         }
@@ -131,7 +180,7 @@ class HistoryValueService {
     /**
      * Formats the value for displaying.
      */
-    fun formatBaseType(type: String, valueString: String?): String {
+    internal fun formatBaseType(valueString: String?): String {
         if (valueString.isNullOrBlank()) {
             return ""
         }
@@ -142,6 +191,62 @@ class HistoryValueService {
             return valueString
         }
     }
+
+    internal fun formatEnum(valueString: String): String {
+        return valueString
+    }
+
+    internal fun formatI18nEnum(valueString: String, propertyType: String): String {
+        val type = typeClassMapping[propertyType] ?: return valueString
+        val i18nEnum = I18nEnum.create(type, valueString) as? I18nEnum ?: return valueString
+        return translate(i18nEnum.i18nKey)
+    }
+
+    internal fun formatBinary(valueString: String): String {
+        return "[...]"
+    }
+
+    internal fun formatEntity(valueString: String, propertyType: String): String {
+        val clazz = getClass(propertyType) ?: return valueString
+        return valueString
+    }
+
+    internal fun getDBObjects(prop: HistProp, entityClass: Class<*>): List<Any> {
+        val ret =  mutableListOf<Any>()
+        val ids = StringUtils.split(prop.value, ", ")
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        persistenceService.runReadOnly { context ->
+            val em = context.em
+            ids.forEach { idString ->
+                try {
+                    val id = idString.toLong()
+                    val ent = em.find(entityClass, id)
+                    if (ent != null) {
+                        ret.add(ent)
+                    }
+                } catch (ex: NumberFormatException) {
+                    log.warn("Cannot parse id for property ${prop.name}: $idString")
+                }
+            }
+        }
+        return ret
+    }
+
+
+    internal fun toShortNames(value: Any?): String {
+        value ?: return ""
+        return if (value is Collection<*>) {
+            value.map { input -> toShortName(input) }.sorted().joinToString()
+        } else toShortName(value)
+    }
+
+    internal fun toShortName(obj: Any?): String {
+        obj ?: return ""
+        return if (obj is DisplayNameCapable) obj.displayName ?: "---" else obj.toString()
+    }
+
 
     private fun getDBObjects(em: EntityManager, prop: HistProp): List<Any> {
         val ret: MutableList<Any> = ArrayList()
@@ -180,7 +285,8 @@ class HistoryValueService {
          * - org.projectforge.business.address.AddressDO$HibernateProxy$En8hKwh8 -> org.projectforge.business.address.AddressDO
          * - org.projectforge.business.address.AddressDO_$$_jvst148_2f -> org.projectforge.business.address.AddressDO
          */
-        internal fun getTypeClassName(propertyType: String): String {
+        internal fun getUnifiedTypeName(propertyType: String?): String {
+            propertyType ?: return ""
             return propertyType.substringBefore("_$$").substringBefore("$")
         }
 

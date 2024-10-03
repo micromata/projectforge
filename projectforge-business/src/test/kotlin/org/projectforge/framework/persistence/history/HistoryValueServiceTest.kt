@@ -108,10 +108,11 @@ class HistoryValueServiceTest : AbstractTestBase() {
     }
 
     private fun assertTypeClassName(expected: String, propertyType: String) {
-        Assertions.assertEquals(expected, HistoryValueService.getTypeClassName(propertyType))
+        Assertions.assertEquals(expected, HistoryValueService.getUnifiedTypeName(propertyType))
     }
 
-    private fun assertValueType(expected: HistoryValueService.ValueType, propertyType: String) {
+    private fun assertValueType(expected: HistoryValueService.ValueType, dbPropertyType: String) {
+        val propertyType = HistoryValueService.getUnifiedTypeName(dbPropertyType)
         Assertions.assertEquals(expected, historyValueService.getValueType(propertyType))
     }
 }

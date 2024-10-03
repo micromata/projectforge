@@ -23,10 +23,8 @@
 
 package org.projectforge.plugins.marketing
 
-import jakarta.persistence.EntityManager
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -105,7 +103,8 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         val list: List<AddressCampaignValueDO> = persistenceService.namedQuery(
             AddressCampaignValueDO.FIND_BY_CAMPAIGN,
             AddressCampaignValueDO::class.java,
-            Pair("addressCampaignId", searchFilter.addressCampaignId))
+            Pair("addressCampaignId", searchFilter.addressCampaignId)
+        )
         if (CollectionUtils.isEmpty(list)) {
             return map
         }
@@ -137,15 +136,15 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         return map
     }
 
-    override fun convert(entry: HistoryEntry, context: PfPersistenceContext): List<DisplayHistoryEntry> {
+    override fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
         if (entry.diffEntries!!.isEmpty()) {
-            val se = DisplayHistoryEntry(userGroupCache, entry)
+            val se = DisplayHistoryEntry(entry)
             return listOf(se)
         }
         val result: MutableList<DisplayHistoryEntry> = ArrayList()
         for (prop in entry.diffEntries!!) {
-            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(userGroupCache, entry, prop, context.em) {
-                override fun getObjectValue(userGroupCache: UserGroupCache, em: EntityManager, prop: HistProp?): Any? {
+            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(entry, prop) {
+                override fun getObjectValue(prop: HistProp?): Any? {
                     if (prop == null) {
                         return null
                     }
@@ -159,7 +158,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
                         return prop.value
                     }
 
-                    return super.getObjectValue(userGroupCache, em, prop)
+                    return super.getObjectValue(prop)
                 }
             }
             result.add(se)

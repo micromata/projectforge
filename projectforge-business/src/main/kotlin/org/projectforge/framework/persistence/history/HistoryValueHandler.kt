@@ -23,6 +23,10 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.projectforge.framework.time.DateHelper
+import java.sql.Timestamp
+import java.util.*
+
 /**
  * Deserializes values of the history attr table and format the values for displaying.
  */
@@ -41,6 +45,37 @@ class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
     }
 }
 
+/*
+class DateHistoryValueHandler : HistoryValueHandler<Date> {
+    override fun deserialize(value: String): Date {
+        return Date(value.toLong())
+    }
+
+    override fun format(value: Date): String {
+        return DateHelper.formatIsoDate(value)
+    }
+}
+
+class SqlDateHistoryValueHandler : HistoryValueHandler<java.sql.Date> {
+    override fun deserialize(value: String): java.sql.Date {
+        return Date(value.toLong())
+    }
+
+    override fun format(value: java.sql.Date): String {
+        return DateHelper.formatIsoDate(value)
+    }
+}
+
+class TimestampHistoryValueHandler : HistoryValueHandler<Timestamp> {
+    override fun deserialize(value: String): Timestamp {
+        return Date(value.toLong())
+    }
+
+    override fun format(value: Timestamp): String {
+        return DateHelper.formatIsoDate(value)
+    }
+}
+*/
 /*
 // boolean, java.lang.Boolean
 class BooleanHistoryValueDeserializer : HistoryValueDeserializer<Boolean> {
