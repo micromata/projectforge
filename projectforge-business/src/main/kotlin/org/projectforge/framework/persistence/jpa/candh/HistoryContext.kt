@@ -23,23 +23,62 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
+import org.projectforge.framework.persistence.history.PfHistoryAttrDO
 import org.projectforge.framework.persistence.history.PropertyOpType
+import kotlin.reflect.KClass
 
 internal class HistoryContext {
-    internal val entries = mutableListOf<Entry>()
+    /*private val masterStack = mutableListOf<PfHistoryMasterDO>()
 
-    fun add(propertyContext: PropertyContext<*>, type: PropertyOpType) {
-        add(
-            type,
-            propertyName = propertyContext.propertyName,
-            newValue = propertyContext.srcPropertyValue,
-            oldValue = propertyContext.destPropertyValue,
+    private val currentMaster: PfHistoryMasterDO
+        get() = masterStack.last()
+
+    /**
+     * Push a new master of type [PfHistoryMasterDO] to the stack. Don't forget to call [popHistoryMaster] when you're done.
+     */
+    fun pushHistoryMaster(
+        entity: IdObject<Long>,
+        entityOpType: EntityOpType = EntityOpType.Update,
+    ) {
+        masterStack.add(PfHistoryMasterDO.create(entity = entity, entityOpType = entityOpType))
+    }
+
+    /**
+     * Pop the last master from the stack. Throws an exception if the stack is empty.
+     */
+    fun popHistoryMaster(): PfHistoryMasterDO {
+        return masterStack.removeAt(masterStack.size - 1)
+    }*/
+
+    internal val entries = mutableListOf<PfHistoryAttrDO>()
+
+    fun add(propertyContext: PropertyContext<*>, optype: PropertyOpType) {
+        propertyContext.apply {
+            add(
+                propertyTypeClass = (property.returnType.classifier as KClass<*>).java.name,
+                optype = optype,
+                oldValue = destPropertyValue?.toString(),
+                value = srcPropertyValue?.toString(),
+                propertyName = propertyName,
+            )
+        }
+    }
+
+    fun add(
+        propertyTypeClass: String?,
+        optype: PropertyOpType,
+        oldValue: String?,
+        value: String?,
+        propertyName: String?,
+    ) {
+        entries.add(
+            PfHistoryAttrDO.create(
+                propertyTypeClass = propertyTypeClass,
+                optype = optype,
+                oldValue = oldValue,
+                value = value,
+                propertyName = propertyName,
+            )
         )
     }
-
-    fun add(type: PropertyOpType, propertyName: String, newValue: Any? = null, oldValue: Any? = null) {
-        entries.add(Entry(type = type, propertyName = propertyName, newValue = newValue, oldValue = oldValue))
-    }
-
-    class Entry(val type: PropertyOpType, val propertyName: String, val oldValue: Any?, val newValue: Any?)
 }

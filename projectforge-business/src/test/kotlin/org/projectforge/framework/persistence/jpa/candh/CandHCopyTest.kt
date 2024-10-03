@@ -40,7 +40,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 
-class CandHTest : AbstractTestBase() {
+class CandHCopyTest : AbstractTestBase() {
     @Test
     fun baseTests() {
         val src = ContractDO()

@@ -29,6 +29,8 @@ import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -53,7 +55,7 @@ private val log = KotlinLogging.logger {}
 @NamedQueries(
     NamedQuery(
         name = PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
-        query = "from PfHistoryMasterDO as m left join fetch m.attributes where m.entityId=:entityId and m.entityName=:entityName order by m.modifiedAt desc"
+        query = "from PfHistoryMasterDO as m left join fetch m.attributes where m.entityId=:entityId and m.entityName=:entityName order by m.id desc"
     ),
 )
 @Entity
@@ -113,6 +115,12 @@ class PfHistoryMasterDO : HistoryEntry {
     )
     var attributes: MutableSet<PfHistoryAttrDO>? = null
 
+    fun add(attrDO: PfHistoryAttrDO) {
+        attributes = attributes ?: mutableSetOf()
+        attributes!!.add(attrDO)
+        attrDO.master = this
+    }
+
     @get:Transient
     override var diffEntries: List<DiffEntry>? = null
         private set
@@ -135,6 +143,22 @@ class PfHistoryMasterDO : HistoryEntry {
 
     companion object {
         internal const val SELECT_HISTORY_FOR_BASEDO = "PfHistoryMasterDO_SelectForBaseDO"
+
+        @JvmOverloads
+        fun create(
+            entity: IdObject<Long>,
+            entityOpType: EntityOpType,
+            entityName: String? = entity::class.qualifiedName,
+            modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
+        ): PfHistoryMasterDO {
+            val ret = PfHistoryMasterDO()
+            ret.entityName = entityName
+            ret.entityId = entity.id
+            ret.entityOpType = entityOpType
+            ret.modifiedBy = modifiedBy
+            ret.modifiedAt = Date()
+            return ret
+        }
     }
 }
 

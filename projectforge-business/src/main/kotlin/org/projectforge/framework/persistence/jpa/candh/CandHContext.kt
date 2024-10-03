@@ -23,7 +23,9 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
+import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.history.PfHistoryAttrDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 
 class CandHContext(
@@ -31,25 +33,30 @@ class CandHContext(
     createHistory: Boolean = true,
     debug: Boolean = false,
 ) {
+    val historyEntries: List<PfHistoryAttrDO>?
+        get() = historyContext?.entries?.toImmutableList()
+
     internal val debugContext = if (debug) DebugContext() else null
     internal val historyContext = if (createHistory) HistoryContext() else null
     internal fun addHistoryEntry(
         propertyContext: PropertyContext<*>,
-        type: PropertyOpType = PropertyOpType.Update
+        optype: PropertyOpType = PropertyOpType.Update
     ) {
-        historyContext?.add(propertyContext = propertyContext, type = type)
+        historyContext?.add(propertyContext = propertyContext, optype = optype)
     }
 
     internal fun addHistoryEntry(
-        propertyName: String,
-        oldValue: Any?,
-        newValue: Any?,
-        type: PropertyOpType = PropertyOpType.Update
+        propertyTypeClass: String?,
+        optype: PropertyOpType = PropertyOpType.Update,
+        oldValue: String?,
+        value: String?,
+        propertyName: String?,
     ) {
         historyContext?.add(
-            type = type,
+            propertyTypeClass = propertyTypeClass,
+            optype = optype,
             propertyName = propertyName,
-            newValue = newValue,
+            value = value,
             oldValue = oldValue,
         )
     }
