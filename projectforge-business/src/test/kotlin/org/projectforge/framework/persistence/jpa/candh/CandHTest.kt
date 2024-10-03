@@ -115,7 +115,7 @@ class CandHTest : AbstractTestBase() {
         pos1.auftrag = src
         pos1.nettoSumme = BigDecimal.valueOf(2590, 2)
         src.addPosition(pos1)
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, expectedStatus = EntityCopyStatus.MAJOR, debug)
         Assertions.assertEquals(1, dest.positionen!!.size)
         Assertions.assertEquals("25.90", dest.positionen!![0].nettoSumme!!.toString())
         val destPos1 = AuftragsPositionDO()
