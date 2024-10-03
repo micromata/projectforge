@@ -68,9 +68,15 @@ object CandHMaster {
         src: BaseDO<IdType>,
         dest: BaseDO<IdType>,
         vararg ignoreProperties: String,
+        createHistory: Boolean = true,
     ): CandHContext {
-        val context = CandHContext()
-        copyValues(src = src, dest = dest, context = context, ignoreProperties = ignoreProperties)
+        val context = CandHContext(createHistory = createHistory)
+        copyValues(
+            src = src,
+            dest = dest,
+            context = context,
+            ignoreProperties = ignoreProperties,
+        )
         return context
     }
 
@@ -94,8 +100,10 @@ object CandHMaster {
                         + "!")
             )
         }
+        //try {
         Hibernate.initialize(src)
         var useSrc: BaseDO<out Serializable> = src
+        //  context.historyContext?.pushHistoryMaster(useSrc as BaseDO<Long>)
         if (src is HibernateProxy) {
             useSrc = (src as HibernateProxy).hibernateLazyInitializer
                 .implementation as BaseDO<*>
@@ -107,6 +115,9 @@ object CandHMaster {
             context = context,
             ignoreProperties = ignoreProperties,
         )
+        //} finally {
+        //    context.historyContext?.popHistoryMaster()
+        //}
     }
 
     private fun <IdType : Serializable> copyProperties(

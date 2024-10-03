@@ -78,7 +78,12 @@ open class CollectionHandler : CandHIHandler {
                     srcVal = srcPropertyValue,
                     destVal = "<not empty collection>"
                 )
-                context.addHistoryEntry(propertyName, "", indexToStringList(destCollection))
+                context.addHistoryEntry(
+                    propertyTypeClass = destCollection!!.first()!!::class.java.name,
+                    propertyName = propertyName,
+                    value = "",
+                    oldValue = indexToStringList(destCollection)
+                )
                 propertyWasModified(context, propertyContext, null)
                 return true
             }
@@ -166,15 +171,10 @@ open class CollectionHandler : CandHIHandler {
                 }
                 if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
                     context.addHistoryEntry(
-                        propertyName,
-                        indexToStringList(toRemove),
-                        indexToStringList(toAdd),
-                        PropertyOpType.Update
-                    )
-                    context.addHistoryEntry(
-                        propertyName,
-                        oldValue = indexToStringList(toRemove),
-                        newValue = indexToStringList(toAdd),
+                        propertyTypeClass = destCollection!!.first()!!::class.java.name,
+                        propertyName = propertyName,
+                        value = indexToStringList(toAdd),
+                        oldValue = indexToStringList(toRemove)
                     )
                     propertyWasModified(context, propertyContext, null)
                 }

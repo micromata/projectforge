@@ -38,6 +38,8 @@ private val log = KotlinLogging.logger {}
 /**
  * For storing the hibernate history entries in flat format.
  *
+ * TODO: Instead of overwriting getObjectValue() and formatObject() we should use a registry with handler for entity classes.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
 open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {

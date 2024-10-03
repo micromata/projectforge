@@ -23,18 +23,13 @@
 
 package org.projectforge.framework.persistence.history
 
-import de.micromata.hibernate.history.delta.PropertyDelta
-import de.micromata.hibernate.history.delta.SimplePropertyDelta
 import mu.KotlinLogging
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.mgc.ClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
-import org.projectforge.framework.persistence.history.HistoryService.Companion.instance
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import java.util.*
-import java.util.stream.Collectors
 
 private val log = KotlinLogging.logger {}
 
@@ -63,129 +58,31 @@ object HistoryBaseDaoAdapter {
     }
 
 
-    private val HISTORY_ARR_TEMPL = arrayOf<HistoryEntry>()
+    fun createHistoryEntry(
+        entity: IdObject<Long>, opType: EntityOpType, context: PfPersistenceContext,
+    ): PfHistoryMasterDO {
+        val historyEntry = PfHistoryMasterDO.create(entity, opType)
+        context.insert(historyEntry)
+        return historyEntry
+    }
+
+    fun inserted(obj: BaseDO<Long>, context: PfPersistenceContext) {
+        createHistoryEntry(obj, EntityOpType.Insert, context)
+    }
+
+    fun updated(obj: BaseDO<Long>, historyEntries: List<PfHistoryAttrDO>?, context: PfPersistenceContext) {
+        if (historyEntries.isNullOrEmpty()) {
+            return
+        }
+        val master = createHistoryEntry(obj, EntityOpType.Update, context)
+        historyEntries.forEach { attr ->
+            master.add(attr)
+            context.insert(attr)
+        }
+        //createHistoryEntry(obj, EntityOpType.Insert, context)
+    }
 
     /*
-    fun getHistoryFor(obj: BaseDO<Long>): Array<HistoryEntry<*>> {
-        //long begin = System.currentTimeMillis();
-        val result = getHistoryEntries(obj).toArray<HistoryEntry<*>>(HISTORY_ARR_TEMPL)
-        //long end = System.currentTimeMillis();
-        //log.info("HistoryBaseDaoAdapter.getHistoryFor took: " + (end - begin) + " ms.");
-        return result
-    }*/
-
-    fun getHistoryEntries(ob: BaseDO<Long>): List<HistoryEntry> {
-        //long begin = System.currentTimeMillis();xx
-        val histservice = instance
-        val ret: List<HistoryEntry> = histservice.loadHistory(ob)
-        val nret = ret.stream()
-            .sorted { e1: HistoryEntry, e2: HistoryEntry -> e2.modifiedAt!!.compareTo(e1.modifiedAt) }
-            .collect(Collectors.toList())
-        //long end = System.currentTimeMillis();
-        //log.info("HistoryBaseDaoAdapter.getHistoryEntries took: " + (end - begin) + " ms.");
-        return nret
-    }
-
-    fun diffEntryToPropertyDelta(de: DiffEntry): PropertyDelta {
-        //long begin = System.currentTimeMillis();
-        val ret = SimplePropertyDelta(
-            de.propertyName, String::class.java, de.oldValue,
-            de.newValue
-        )
-        //long end = System.currentTimeMillis();
-        //log.info("HistoryBaseDaoAdapter.diffEntryToPropertyDelta took: " + (end - begin) + " ms.");
-        return ret
-    }
-
-    fun getSimpleHistoryEntries(ob: BaseDO<Long>, userGroupCache: UserGroupCache?): List<SimpleHistoryEntry> {
-        //long begin = System.currentTimeMillis();
-        val ret: MutableList<SimpleHistoryEntry> = ArrayList()
-        val hel = getHistoryEntries(ob)
-
-        for (he in hel) {
-            val deltas = he.diffEntries
-            if (deltas!!.isEmpty()) {
-                val se = SimpleHistoryEntry(userGroupCache, he)
-                ret.add(se)
-            } else {
-                for (de in deltas) {
-                    val se = SimpleHistoryEntry(userGroupCache, he, diffEntryToPropertyDelta(de))
-                    ret.add(se)
-                }
-            }
-        }
-        //long end = System.currentTimeMillis();
-        //log.info("HistoryBaseDaoAdapter.getSimpleHistoryEntries took: " + (end - begin) + " ms.");
-        return ret
-    }
-
-    private fun histCollectionValueToString(valueClass: Class<*>, value: Collection<*>): String {
-        val sb = StringBuilder()
-        for (ob in value) {
-            if (sb.length > 0) {
-                sb.append(",")
-            }
-            if (ob is BaseDO<*>) {
-                sb.append(ob.id)
-            } else {
-                sb.append(ob)
-            }
-        }
-        return sb.toString()
-    }
-
-    private fun histValueToString(valueClass: Class<*>, value: Any?): String? {
-        if (value == null) {
-            return null
-        }
-        if (value is Collection<*>) {
-            return histCollectionValueToString(valueClass, value)
-        }
-        return Objects.toString(value)
-    }
-
-    fun createHistoryEntry(
-        entity: Any?, id: Number?, user: String?, property: String?,
-        valueClass: Class<*>, oldValue: Any?, newValue: Any?
-    ) {
-        createHistoryEntry(entity, id, EntityOpType.Update, user, property, valueClass, oldValue, newValue)
-    }
-
-    fun createHistoryEntry(
-        entity: Any?, id: Number?, opType: EntityOpType?, user: String?, property: String?,
-        valueClass: Class<*>, oldValue: Any?, newValue: Any?
-    ) {
-        //long begin = System.currentTimeMillis();
-        val oldVals = histValueToString(valueClass, oldValue)
-        val newVals = histValueToString(valueClass, newValue)
-        throw IllegalArgumentException("Not yet implemented!")
-        /*
-        PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
-        emf.runInTrans((emgr) -> {
-            HistoryServiceManager.get().getHistoryService().insertManualEntry(emgr, opType,
-                    entity.getClass().getName(),
-                    id, user, property, valueClass.getName(), oldVals, newVals);
-            return null;
-        });*/
-        //long end = System.currentTimeMillis();
-        //log.info("HistoryBaseDaoAdapter.createHistoryEntry took: " + (end - begin) + " ms.");
-    } /*    public static void inserted(BaseDO<?> ob) {
-        throw new IllegalArgumentException("Not yet implemented!");
-        //long begin = System.currentTimeMillis();
-        PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
-        emf.runInTrans((emgr) -> {
-            inserted(emgr, ob);
-            return null;
-        });
-        //long end = System.currentTimeMillis();
-        //log.info("HistoryBaseDaoAdapter.inserted took: " + (end - begin) + " ms.");
-    }
-
-    public static void inserted(PfEmgr emgr, BaseDO<?> ob) {
-        EmgrAfterInsertedEvent event = new EmgrAfterInsertedEvent(emgr, ob);
-        new HistoryEmgrAfterInsertedEventHandler().onEvent(event);
-    }
-
     public static ModificationStatus wrapHistoryUpdate(BaseDO<?> dbo, Supplier<ModificationStatus> callback) {
         final HistoryService historyService = HistoryServiceManager.get().getHistoryService();
         final List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);

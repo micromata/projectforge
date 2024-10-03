@@ -29,8 +29,10 @@ import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.jpa.candh.CandHMaster
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 
@@ -67,6 +69,7 @@ object BaseDaoSupport {
         }
         baseDao.prepareHibernateSearch(obj, OperationType.INSERT, context)
         em.merge(obj)
+        HistoryBaseDaoAdapter.inserted(obj, context)
         try {
             em.flush()
         } catch (ex: Exception) {
@@ -75,8 +78,6 @@ object BaseDaoSupport {
             log.error("${ex.message} while saving object: ${ToStringUtil.toJsonString(obj)}", ex)
             throw ex
         }
-
-        // HistoryBaseDaoAdapter.inserted(emgr, obj)
     }
 
     private fun <O : ExtendedBaseDO<Long>> preInternalSave(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext) {
@@ -142,9 +143,11 @@ object BaseDaoSupport {
             res.dbObjBackup = null
         }
         res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
-        val result = baseDao.copyValues(obj, dbObj)
-        res.modStatus = result
-        if (result != EntityCopyStatus.NONE) {
+        // val result = baseDao.copyValues(obj, dbObj)
+        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj)
+        val modStatus = candHContext.currentCopyStatus
+        res.modStatus = modStatus
+        if (modStatus != EntityCopyStatus.NONE) {
             log.error("*********** To fix: BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj) and history")
             //BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj)
             dbObj.setLastUpdate()
@@ -152,6 +155,7 @@ object BaseDaoSupport {
             //   log.info("No modifications detected (no update needed): " + dbObj.toString());
             baseDao.prepareHibernateSearch(obj, OperationType.UPDATE, context)
             em.merge(dbObj)
+            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
             try {
                 em.flush()
             } catch (ex: Exception) {

@@ -54,7 +54,6 @@ open class DefaultHandler : CandHIHandler {
                     destVal = destPropertyValue,
                     msg = "Field of type ${property.returnType.jvmErasure} modified.",
                 )
-                context.addHistoryEntry(propertyContext)
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
                 property.set(dest, srcPropertyValue)
