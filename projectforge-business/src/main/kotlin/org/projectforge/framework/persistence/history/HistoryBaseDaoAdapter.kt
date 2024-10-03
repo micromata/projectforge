@@ -63,7 +63,7 @@ object HistoryBaseDaoAdapter {
     }
 
 
-    private val HISTORY_ARR_TEMPL = arrayOf<HistoryEntry<*>>()
+    private val HISTORY_ARR_TEMPL = arrayOf<HistoryEntry>()
 
     /*
     fun getHistoryFor(obj: BaseDO<Long>): Array<HistoryEntry<*>> {
@@ -74,12 +74,12 @@ object HistoryBaseDaoAdapter {
         return result
     }*/
 
-    fun getHistoryEntries(ob: BaseDO<Long>): List<HistoryEntry<*>> {
+    fun getHistoryEntries(ob: BaseDO<Long>): List<HistoryEntry> {
         //long begin = System.currentTimeMillis();xx
         val histservice = instance
-        val ret: List<HistoryEntry<*>> = histservice.loadHistory(ob)
+        val ret: List<HistoryEntry> = histservice.loadHistory(ob)
         val nret = ret.stream()
-            .sorted { e1: HistoryEntry<*>, e2: HistoryEntry<*> -> e2.modifiedAt!!.compareTo(e1.modifiedAt) }
+            .sorted { e1: HistoryEntry, e2: HistoryEntry -> e2.modifiedAt!!.compareTo(e1.modifiedAt) }
             .collect(Collectors.toList())
         //long end = System.currentTimeMillis();
         //log.info("HistoryBaseDaoAdapter.getHistoryEntries took: " + (end - begin) + " ms.");

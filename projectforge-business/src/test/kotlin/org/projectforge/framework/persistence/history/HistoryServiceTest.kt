@@ -182,12 +182,6 @@ class HistoryServiceTest : AbstractTestBase() {
         }
     }
 
-    private fun getNewMasterId(origMasterId: Long): Long {
-        val newMaster = historyMasterMap[origMasterId]
-        Assertions.assertNotNull(newMaster, "Master with id $origMasterId not found!")
-        return newMaster!!.id!!
-    }
-
     private fun assert(
         diffEntry: DiffEntry,
         propertyName: String,
@@ -251,6 +245,12 @@ class HistoryServiceTest : AbstractTestBase() {
          * Key is the parsed history master_fk id and value the generated PfHistoryAttrDO.
          */
         private val historyAttrMap = mutableMapOf<Long, MutableList<PfHistoryAttrDO>>()
+
+        internal fun getNewMasterId(origMasterId: Long): Long {
+            val newMaster = historyMasterMap[origMasterId]
+            Assertions.assertNotNull(newMaster, "Master with id $origMasterId not found!")
+            return newMaster!!.id!!
+        }
 
         internal fun ensureSetup(persistenceService: PfPersistenceService, historyService: HistoryService) {
             if (historyMasterMap.isNotEmpty()) {

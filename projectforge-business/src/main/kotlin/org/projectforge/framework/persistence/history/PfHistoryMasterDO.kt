@@ -66,7 +66,7 @@ private val log = KotlinLogging.logger {}
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-class PfHistoryMasterDO : HistoryEntry<Long> {
+class PfHistoryMasterDO : HistoryEntry {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id

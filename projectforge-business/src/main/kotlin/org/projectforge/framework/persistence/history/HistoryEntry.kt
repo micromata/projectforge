@@ -32,7 +32,7 @@ import java.util.*
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-interface HistoryEntry<I : Serializable> : IdObject<I> {
+interface HistoryEntry : IdObject<Long> {
     /**
      * Gets the modified at.
      *

@@ -44,7 +44,7 @@ open class HistoryFormatAdapter {
     }
 
     open fun convert(
-        context: PfPersistenceContext, item: Any, historyEntry: HistoryEntry<*>
+        context: PfPersistenceContext, item: Any, historyEntry: HistoryEntry
     ): HistoryFormatService.DisplayHistoryEntryDTO {
         var user: PFUserDO? = null
         try {
