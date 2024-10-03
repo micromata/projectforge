@@ -71,9 +71,9 @@ object PFHistoryMasterUtils {
     private fun mergeDiffEntry(diffEntry: DiffEntry, attr: PfHistoryAttrDO) {
         diffEntry.propertyName = attr.plainPropertyName
         if (attr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
-            diffEntry.oldProp = HistProp(value = attr.value)
+            diffEntry.oldProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
         } else if (attr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
-            diffEntry.newProp = HistProp(value = attr.value)
+            diffEntry.newProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
         } else if (attr.propertyName?.endsWith(OP_SUFFIX) == true) {
             diffEntry.propertyOpType = when (attr.value) {
                 "Insert" -> PropertyOpType.Insert
@@ -82,8 +82,8 @@ object PFHistoryMasterUtils {
             }
         } else {
             diffEntry.propertyOpType = attr.optype
-            diffEntry.oldProp = HistProp(value = attr.oldValue)
-            diffEntry.newProp = HistProp(value = attr.value)
+            diffEntry.oldProp = HistProp(value = attr.oldValue, type = attr.propertyTypeClass)
+            diffEntry.newProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
         }
     }
 

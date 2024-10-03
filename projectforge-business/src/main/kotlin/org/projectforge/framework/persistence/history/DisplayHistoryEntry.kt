@@ -98,28 +98,28 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         entry: HistoryEntry, diffEntry: DiffEntry,
     ) : this(entry) {
         val historyValueService = HistoryValueService.instance
-        diffEntry.newProp?.let {
+        diffEntry.oldProp?.let {
             propertyType = HistoryValueService.getUnifiedTypeName(it.type)
         }
-        diffEntry.oldProp?.let {
+        diffEntry.newProp?.let {
             propertyType = HistoryValueService.getUnifiedTypeName(it.type)
         }
         val oldObjectValue = getObjectValue(diffEntry.oldProp)
         val newObjectValue = getObjectValue(diffEntry.newProp)
-        val clazz = historyValueService.getClass(propertyType)
+        val valueClazz = historyValueService.getClass(propertyType)
         if (oldObjectValue != null) {
-            oldValue = formatObject(oldObjectValue, clazz, propertyType)
+            oldValue = formatObject(oldObjectValue, valueClazz, propertyType)
         } else {
             oldValue = historyValueService.format(diffEntry.oldValue, propertyType)
         }
         if (newObjectValue != null) {
-            newValue = formatObject(newObjectValue, clazz, propertyType)
+            newValue = formatObject(newObjectValue, valueClazz, propertyType)
         } else {
             newValue = historyValueService.format(diffEntry.newValue, propertyType)
         }
-
-        if (clazz != null) {
-            propertyName = translateProperty(diffEntry, clazz)
+        val entityClass = historyValueService.getClass(HistoryValueService.getUnifiedTypeName(entry.entityName))
+        if (entityClass != null) {
+            propertyName = translateProperty(diffEntry, entityClass)
         } else {
             propertyName = diffEntry.propertyName
         }

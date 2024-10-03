@@ -26,8 +26,6 @@ package org.projectforge.framework.persistence.history
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.projectforge.business.address.AddressbookDO
-import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.DisplayNameCapable
@@ -35,12 +33,9 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
-import java.sql.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -113,7 +108,11 @@ class HistoryValueService private constructor() {
      */
     internal fun getClass(propertyType: String?): Class<*>? {
         propertyType ?: return null
-        return typeClassMapping[propertyType]
+        getValueType(propertyType) // Ensure that the mapping is set.
+        synchronized(typeClassMapping) {
+            typeClassMapping[propertyType]?.let { return it }
+        }
+        return null
     }
 
     /**
@@ -197,7 +196,7 @@ class HistoryValueService private constructor() {
     }
 
     internal fun formatI18nEnum(valueString: String, propertyType: String): String {
-        val type = typeClassMapping[propertyType] ?: return valueString
+        val type = getClass(propertyType) ?: return valueString
         val i18nEnum = I18nEnum.create(type, valueString) as? I18nEnum ?: return valueString
         return translate(i18nEnum.i18nKey)
     }
@@ -212,7 +211,7 @@ class HistoryValueService private constructor() {
     }
 
     internal fun getDBObjects(prop: HistProp, entityClass: Class<*>): List<Any> {
-        val ret =  mutableListOf<Any>()
+        val ret = mutableListOf<Any>()
         val ids = StringUtils.split(prop.value, ", ")
         if (ids.isEmpty()) {
             return emptyList()
