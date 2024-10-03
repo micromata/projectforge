@@ -320,7 +320,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
                         }
                     }
                 }
-                list.addAll(entries);
+                mergeList(list, entries);
             }
         }
         list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));

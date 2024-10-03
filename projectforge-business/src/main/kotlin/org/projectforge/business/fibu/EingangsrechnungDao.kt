@@ -184,7 +184,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                         entry.propertyName = "#" + position.number
                     }
                 }
-                list.addAll(entries)
+                mergeList(list, entries)
                 if (CollectionUtils.isNotEmpty(position.kostZuweisungen)) {
                     for (zuweisung in position.kostZuweisungen!!) {
                         val kostEntries = internalGetDisplayHistoryEntries(zuweisung, context)

@@ -50,6 +50,12 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
      */
     var masterId: Long? = null
 
+    /**
+     * For information / testing purposes and for avoiding multiple entries in the result list:
+     * the id of the PfHistoryAttrDO (t_pf_history_attr)
+     */
+    var attributeId: Long? = null
+
     var user: PFUserDO? = null
 
     /**
@@ -104,6 +110,7 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         diffEntry.newProp?.let {
             propertyType = HistoryValueService.getUnifiedTypeName(it.type)
         }
+        attributeId = diffEntry.attributeId
         val oldObjectValue = getObjectValue(diffEntry.oldProp)
         val newObjectValue = getObjectValue(diffEntry.newProp)
         val valueClazz = historyValueService.getClass(propertyType)
