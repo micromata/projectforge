@@ -288,10 +288,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
-                        entry.propertyName =
+                        entry.displayPropertyName =
                             right.rightIdString + ":" + entry.propertyName // Prepend number of positon.
                     } else {
-                        entry.propertyName = right.rightIdString.toString()
+                        entry.displayPropertyName = right.rightIdString.toString()
                     }
                 }
                 mergeList(list, entries)

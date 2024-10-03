@@ -31,7 +31,6 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper.parseLong
@@ -211,26 +210,28 @@ class HistoryValueService private constructor() {
         return valueString
     }
 
-    internal fun getDBObjects(prop: HistProp, entityClass: Class<*>): List<Any> {
+    internal fun getDBObjects(context: DisplayHistoryEntry.Context): List<Any> {
+        val propertyClass = context.propertyClass ?: return emptyList()
+        val propertyName = context.propertyName
         val ret = mutableListOf<Any>()
-        val ids = StringUtils.split(prop.value, ", ")
+        val ids = StringUtils.split(context.value, ", ")
         if (ids.isEmpty()) {
             return emptyList()
         }
-        persistenceService.runReadOnly { context ->
-            val em = context.em
+        persistenceService.runReadOnly { persistenceContext ->
+            val em = persistenceContext.em
             ids.forEach { idString ->
                 try {
                     val id = idString.toLong()
-                    val ent = em.find(entityClass, id)
+                    val ent = em.find(propertyClass, id)
                     if (ent != null) {
                         ret.add(ent)
                     } else {
-                        log.warn("Cannot find object of entity $entityClass with id for property ${prop.name} (should only occur in test cases): $idString")
-                        ret.add("${entityClass.simpleName}#$id")
+                        log.warn("Cannot find object of entity $propertyClass with id for property $propertyName (should only occur in test cases): $idString")
+                        ret.add("${propertyClass.simpleName}#$id")
                     }
                 } catch (ex: NumberFormatException) {
-                    log.warn("Cannot parse id for property ${prop.name}: $idString")
+                    log.warn("Cannot parse id for property $propertyName: $idString")
                 }
             }
         }
