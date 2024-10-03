@@ -140,7 +140,7 @@ class DataTransferAuditDao {
     }
 
     internal fun deleteOldEntries(beforeDate: PFDateTime): Int {
-        val deletedAuditEntries = persistenceService.runReadOnly { context ->
+        val deletedAuditEntries = persistenceService.runInTransaction { context ->
             context.executeNamedUpdate(
                 DataTransferAuditDO.DELETE_OLD_ENTRIES,
                 Pair("timestamp", beforeDate.utilDate),
