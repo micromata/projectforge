@@ -24,7 +24,7 @@
 package org.projectforge.business.jobs
 
 import mu.KotlinLogging
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

@@ -21,24 +21,30 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.history
+package org.projectforge.framework.persistence.search
 
+import jakarta.annotation.PostConstruct
+import jakarta.persistence.EntityManagerFactory
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.search.mapper.orm.Search
+import org.hibernate.search.mapper.orm.entity.SearchIndexedEntity
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.mail.Mail
 import org.projectforge.mail.SendMail
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class HibernateSearchReindexer {
@@ -52,6 +58,16 @@ class HibernateSearchReindexer {
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var entityManagerFactory: EntityManagerFactory
+
+    private lateinit var indexedEntities: Collection<SearchIndexedEntity<*>>
+
+    @PostConstruct
+    private fun postConstruct() {
+        indexedEntities = Search.mapping(entityManagerFactory).allIndexedEntities()
+    }
 
     fun execute() {
         log.info("Re-index job started.")
@@ -76,7 +92,7 @@ class HibernateSearchReindexer {
                     $result
                     """.trimIndent()
                 msg.contentType = Mail.CONTENTTYPE_TEXT
-                sendMail!!.send(msg, null, null)
+                sendMail.send(msg, null, null)
             }
         }
         log.info("Re-index job finished successfully.")
@@ -105,26 +121,25 @@ class HibernateSearchReindexer {
         synchronized(this) {
             try {
                 currentReindexRun = Date()
-                val buf = StringBuffer()
+                val sb = StringBuilder()
                 if (classes != null && classes.size > 0) {
                     for (cls in classes) {
-                        reindex(cls, settings, buf)
+                        reindex(cls, settings, sb)
                     }
                 } else {
                     // Re-index of all ProjectForge entities:
-                    /*Set<Class<?>> clsses = persistenceService.getSearchableEntities();
-          for (Class<?> clz : clsses) {
-            reindex(clz, settings, buf);
-          }*/
+                    indexedEntities.forEach { entity ->
+                        reindex(entity.javaClass, settings, sb)
+                    }
                 }
-                return buf.toString()
+                return sb.toString()
             } finally {
                 currentReindexRun = null
             }
         }
     }
 
-    private fun reindex(clazz: Class<*>, settings: ReindexSettings, buf: StringBuffer) {
+    private fun reindex(clazz: Class<*>, settings: ReindexSettings, sb: StringBuilder) {
         try {
             // Try to check, if class is available (entity of ProjectForge's core or of active plugin).
             persistenceService.selectSingleResult(
@@ -142,9 +157,9 @@ class HibernateSearchReindexer {
         // PF-378: Performance of run of full re-indexing the data-base is very slow for large data-bases
         // Single transactions needed, otherwise the full run will be very slow for large data-bases.
         try {
-            databaseDao.reindex(clazz, settings, buf)
+            databaseDao.reindex(clazz, settings, sb)
         } catch (ex: Exception) {
-            buf.append(" (an error occured, see log file for further information.), ")
+            sb.append(" (an error occured, see log file for further information.), ")
             log.error("While rebuilding data-base-search-index for '" + clazz.name + "': " + ex.message, ex)
         }
     }
@@ -154,8 +169,6 @@ class HibernateSearchReindexer {
     }
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(HibernateSearchReindexer::class.java)
-
         private const val ERROR_MSG =
             ("Error while re-indexing data base: found lock files while re-indexing data-base. "
                     + "Try to run re-index manually in the web administration menu and if occured again, "

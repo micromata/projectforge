@@ -46,7 +46,7 @@ import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.persistence.database.DatabaseDao;
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.jcr.JCRCheckSanityJob;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.plugins.core.PluginAdminService;

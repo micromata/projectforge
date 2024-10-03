@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.history
+package org.projectforge.framework.persistence.search
 
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.EntityManager
@@ -35,7 +35,6 @@ import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.util.CollectionUtils
 import java.lang.reflect.ParameterizedType
 
 private val log = KotlinLogging.logger {}

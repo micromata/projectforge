@@ -24,8 +24,7 @@
 package org.projectforge.business.jobs;
 
 import org.projectforge.framework.persistence.api.ReindexSettings;
-import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +39,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CronReindexingHourlyJob {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronReindexingHourlyJob.class);
-
-  @Autowired
-  private DatabaseService databaseService;
 
   @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
