@@ -23,19 +23,22 @@
 
 package org.projectforge.framework.persistence.database
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.TypedQuery
+import jakarta.persistence.EntityManagerFactory
+import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
+import org.hibernate.search.mapper.orm.Search
+import org.hibernate.search.mapper.orm.session.SearchSession
+import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.framework.persistence.api.ReindexSettings
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.DayHolder
-import org.slf4j.LoggerFactory
+import org.projectforge.framework.utils.NumberFormatter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.lang.RuntimeException
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Creates index creation script and re-indexes data-base.
@@ -49,30 +52,31 @@ open class DatabaseDao {
     private var currentReindexRun: Date? = null
 
     @Autowired
-    private lateinit var persistencyService: PfPersistenceService
+    private lateinit var entityManagerFactory: EntityManagerFactory
 
-    fun <T> rebuildDatabaseSearchIndices(clazz: Class<T>, settings: ReindexSettings): String {
+    @JvmOverloads
+    fun <T> rebuildDatabaseSearchIndices(clazz: Class<T>, settings: ReindexSettings = ReindexSettings()): String {
         if (currentReindexRun != null) {
             val otherJobStarted =
                 DateTimeFormatter.instance().getFormattedDateTime(currentReindexRun, Locale.ENGLISH, DateHelper.UTC)
             return ("Another re-index job is already running. The job was started at: $otherJobStarted (UTC)")
         }
-        val buf = StringBuffer()
-        reindex(clazz, settings, buf)
-        return buf.toString()
+        val sb = StringBuilder()
+        reindex(clazz, settings, sb)
+        return sb.toString()
     }
 
-    fun <T> reindex(clazz: Class<T>, settings: ReindexSettings, buf: StringBuffer) {
+    fun <T> reindex(clazz: Class<T>, settings: ReindexSettings, sb: StringBuilder) {
         if (currentReindexRun != null) {
-            buf.append(" (cancelled due to another running index-job)")
+            sb.append(" (cancelled due to another running index-job)")
             return
         }
         synchronized(this) {
             try {
                 currentReindexRun = Date()
-                buf.append(ClassUtils.getShortClassName(clazz))
+                sb.append(ClassUtils.getShortClassName(clazz))
                 reindex(clazz, settings)
-                buf.append(", ")
+                sb.append(", ")
             } finally {
                 currentReindexRun = null
             }
@@ -100,104 +104,25 @@ open class DatabaseDao {
     }
 
     private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings?) {
-        throw RuntimeException("Not yet implemented")
-/*        persistencyService.runInReadOnlyTransaction() { em: EntityManager ->
-            val number = getRowCount(em, clazz, settings) // Get number of objects to re-index (select count(*) from).
-            if (number == 0L) {
-                log.info("Reindexing [${clazz.simpleName}]: 0 entries found. Nothing to-do.")
-                return@runInReadOnlyTransaction 0L
+        entityManagerFactory.createEntityManager().use { em ->
+            // totalEntries are given by Hibernate search to MassIndexingMonitor.
+            // val totalEntries = em.createQuery("SELECT COUNT(u) FROM ${clazz.simpleName} u", Long::class.java).singleResult
+            val searchSession: SearchSession = Search.session(em)
+            try {
+                // Starte den MassIndexer für eine bestimmte Entität (z.B. EmployeeDO)
+                searchSession.massIndexer(clazz)
+                    .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
+                    .batchSizeToLoadObjects(25) // Batch-Größe
+                    .idFetchSize(150) // Größe des ID-Fetch
+                    .monitor(MyProgressMonitor(clazz)) // Fortschrittsmonitor hinzufügen
+                    .startAndWait() // Blockiert, bis die Indizierung abgeschlossen ist
+            } catch (ex: InterruptedException) {
+                log.error(ex.message, ex)
             }
-            log.info("Reindexing [${clazz.simpleName}]: Starting reindexing of $number entries with scrollMode=true...")
-
-            val idsQuery = createQuery(em, clazz, Number::class.java, settings, QueryMode.SELECT_IDS_ONLY)
-            val session = em.unwrap(Session::class.java)//.delegate as Session
-            val bigResultSetHandler = BigResultSetHandler<T>(em, clazz, idsQuery)
-            val fullTextSession = Search.getFullTextSession(session)
-            fullTextSession.flushMode = FlushModeType.COMMIT
-            val monitor = IndexProgressMonitor("Reindexing [" + clazz.simpleName + "]", number)
-            var blockCounter = 0
-            val batchSize = 10000 // NumberUtils.createInteger(System.getProperty("hibernate.search.worker.batch_size")
-            var index: Long = 0
-            //val set= mutableSetOf<Long>()
-            while (true) {
-                val obj = bigResultSetHandler.next() ?: break
-                /* if (obj is PfHistoryMasterDO) {
-                     if (set.contains(obj.pk)) {
-                         log.error("Duplicate object id: ${obj.pk}")
-                     } else {
-                         set.add(obj.pk)
-                     }
-                 }*/
-                if (obj is ExtendedBaseDO<*>) {
-                    obj.recalculate()
-                }
-                fullTextSession.index(obj)
-                session.evict(obj)
-                monitor.documentsAdded(1)
-                if (++blockCounter >= batchSize) {
-                    fullTextSession.flushToIndexes() // clear every batchSize since the queue is processed
-                    blockCounter = 0
-                }
-                ++index
-            }
-            //log.info("******** ${set.size}")
-            if (bigResultSetHandler.totalRead != number) {
-                log.error("Oups, number of elements was $number, but read ${bigResultSetHandler.totalRead}.")
-            }
-            log.info("Reindexing [${clazz.simpleName}]: optimizing of " + number + " objects...")
-            val searchFactory = fullTextSession.searchFactory
-            searchFactory.optimize(clazz)
-            log.info("Reindexing [${clazz.simpleName}]: reindexing done.")
-            return@runInReadOnlyTransaction index
         }
-        */
-    }
-
-    private fun <T> getRowCount(entityManager: EntityManager, clazz: Class<T>, settings: ReindexSettings?): Long {
-        val result = createQuery(entityManager, clazz, Number::class.java, settings, QueryMode.ROW_COUNT)
-            .singleResult as Long
-        if (settings?.lastNEntries != null) {
-            return minOf(result, settings.lastNEntries.toLong())
-        }
-        return result
-    }
-
-    private fun <T> createQuery(
-        entityManager: EntityManager,
-        clazz: Class<*>,
-        resultClazz: Class<T>,
-        settings: ReindexSettings?,
-        queryMode: QueryMode
-    )
-            : TypedQuery<T> {
-        val rowCountOnly = queryMode == QueryMode.ROW_COUNT
-        val strategy = ReindexerRegistry.get(clazz)
-        val idsOnly = if (queryMode == QueryMode.SELECT_IDS_ONLY) "select ${strategy.idProperty} " else ""
-        val join =
-            if (queryMode == QueryMode.NORMAL && settings?.lastNEntries == null) strategy.join else "" // Don't join for last n entries (not supported by Hibernate).
-        val select =
-            if (rowCountOnly) "select count(*) from ${clazz.simpleName} as t" else "${idsOnly}from ${clazz.simpleName} as t$join"
-        if (settings?.fromDate != null) {
-            if (strategy.modifiedAtProperty != null) {
-                val query = entityManager.createQuery(
-                    "$select where t.${strategy.modifiedAtProperty} > :modifiedAt",
-                    resultClazz
-                )
-                query.setParameter("modifiedAt", settings.fromDate)
-                return query
-            }
-            log.warn("Modified since '${settings.fromDate}' not supported for entities of type '${clazz.simpleName}'. Database column to use is unknown. Selecting all entities for indexing")
-        } else if (!rowCountOnly && settings?.lastNEntries != null) {
-            val query = entityManager.createQuery("$select order by t.${strategy.idProperty} desc", resultClazz)
-            query.maxResults = settings.lastNEntries
-            return query
-        }
-        return entityManager.createQuery(select, resultClazz)
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(DatabaseDao::class.java)
-
         /**
          * Since yesterday and 1,000 newest entries at maximimum.
          */
@@ -213,5 +138,63 @@ open class DatabaseDao {
         }
     }
 
-    enum class QueryMode { NORMAL, ROW_COUNT, SELECT_IDS_ONLY }
+    class MyProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
+        private var totalEntities: Long = 0
+        private var indexedEntities: Long = 0
+        private var lastReportedProgress = 0
+        private var step = 50 // 50% steps at default
+
+        override fun documentsAdded(increment: Long) {
+            synchronized(this) {
+                indexedEntities += increment
+            }
+            printProgress()
+        }
+
+        override fun entitiesLoaded(increment: Long) {
+            // Diese Methode wird aufgerufen, wenn Entitäten aus der Datenbank geladen werden
+        }
+
+        override fun addToTotalCount(count: Long) {
+            synchronized(this) {
+                totalEntities += count
+            }
+            if (totalEntities > 1000000) {
+                step = 5 // 5% steps for more than 1,000,000 entities
+            } else if (totalEntities > 100000) {
+                step = 10 // 10% steps for more than 100,000 entities
+            } else if (totalEntities > 10000) {
+                step = 20 // 20% steps for more than 10,000 entities
+            } else if (totalEntities > 1000) {
+                step = 25 // 25% steps for more than 1,000 entities
+            }
+        }
+
+        override fun indexingCompleted() {
+            log.info { "${entityClass.simpleName}: Indexing completed." }
+        }
+
+        override fun documentsBuilt(increment: Long) {
+            // Diese Methode wird aufgerufen, wenn Dokumente für die Indizierung erstellt werden
+        }
+
+        private fun printProgress() {
+            if (totalEntities > 0) {
+                // Berechne den aktuellen Fortschritt als ganzzahligen Wert
+                val progress = (indexedEntities * step / totalEntities).toInt() // Fortschritt in 10%-Schritten
+
+                // Logge nur, wenn sich der Fortschritt geändert hat
+                if (progress > lastReportedProgress) {
+                    lastReportedProgress = progress
+                    log.info(
+                        "${entityClass.simpleName}: Indexing ${progress * 10}% (${
+                            NumberFormatter.format(
+                                indexedEntities
+                            )
+                        }/${NumberFormatter.format(totalEntities)})..."
+                    )
+                }
+            }
+        }
+    }
 }

@@ -23,18 +23,26 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import mu.KotlinLogging
 import org.apache.commons.lang3.builder.CompareToBuilder
+import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
+import org.apache.lucene.queryparser.classic.QueryParser
+import org.apache.lucene.search.Query
 import org.hibernate.search.engine.search.common.BooleanOperator
 import org.hibernate.search.engine.search.query.dsl.SearchQueryOptionsStep
 import org.hibernate.search.mapper.orm.session.SearchSession
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.slf4j.LoggerFactory
 import java.text.Collator
+
+
+private val log = KotlinLogging.logger {}
 
 private const val MAX_RESULTS = 100
 
@@ -50,7 +58,6 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     //val buildSearchQuery: ((searchQuerySelectStep: SearchQuerySelectStep<*, *, *, *, *, *>) -> SearchQuery<*>)? = null,
     private var searchQueryOptionsStep: SearchQueryOptionsStep<*, *, *, *, *>? = null,
 ) : DBResultIterator<O> {
-    private val log = LoggerFactory.getLogger(DBFullTextResultIterator::class.java)
     private var result: List<O>
     private var resultIndex = -1
     private var firstIndex = 0
@@ -72,7 +79,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     override fun next(): O? {
         while (true) {
             val next = internalNext() ?: return null
-            if (!resultMatchers.isNullOrEmpty()) {
+            if (resultMatchers.isNotEmpty()) {
                 var matches = true
                 for (matcher in resultMatchers) {
                     if (!matcher.match(next)) {
@@ -93,7 +100,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
         val errorProperties = mutableListOf<String>()
         return list.sortedWith(object : Comparator<O> {
             override fun compare(o1: O, o2: O): Int {
-                if (sortProperties.isNullOrEmpty()) {
+                if (sortProperties.isEmpty()) {
                     return 0
                 }
                 val ctb = CompareToBuilder()
@@ -150,6 +157,41 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     }
 
     private fun nextResultBlock(): List<O> {
+        val optionsStep: SearchQueryOptionsStep<*, *, *, *, *> = if (searchQueryOptionsStep != null) {
+            searchQueryOptionsStep!!
+        } else {
+            val parser = MultiFieldQueryParser(searchFields, StandardAnalyzer()) // Oder ClassicAnalyzer()
+            parser.defaultOperator = QueryParser.Operator.AND
+            parser.allowLeadingWildcard = true
+            val queryString = multiFieldQuery?.joinToString(" ") ?: ""
+            val luceneQuery: Query
+            try {
+                luceneQuery = parser.parse(queryString) // Test: .removeSuffix("*"))
+                log.info { "Lucene Query: $luceneQuery" }
+            } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
+                log.error { "Lucene error message: '${ex.message}'  (for ${baseDao.doClass.simpleName}: '$queryString')." }
+                throw ex
+            }
+            HibernateSearchKotlinWorkarround.luceneExtension(searchSession, baseDao.doClass, luceneQuery)
+        }
+        try {
+            val searchResult = optionsStep.toQuery().fetch(
+                firstIndex,
+                MAX_RESULTS
+            ) // fetch(offset, limit) Methode, um Abfrageoptionen wie Pagination zu setzen
+                .hits()
+            // Verarbeitung der Ergebnisse
+            firstIndex += MAX_RESULTS
+            @Suppress("UNCHECKED_CAST")
+            return searchResult as List<O>
+        } catch (ex: Exception) {
+            val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
+            log.error(errorMsg)
+            return emptyList()
+        }
+    }
+
+    private fun nextResultBlockOld(): List<O> {
         val optionsStep = if (searchQueryOptionsStep != null) {
             searchQueryOptionsStep!!
         } else {
@@ -162,6 +204,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
                     .defaultOperator(BooleanOperator.AND)
             }
         }
+
         /*
         Alt:
 
@@ -197,4 +240,24 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
         // fullTextQuery.firstResult = firstIndex
         // fullTextQuery.maxResults = MAX_RESULTS
     }
+
+    /*
+    private fun chatGPT(queryString: String) {
+        // Class EmployeeDO has embedded object UserDO as field user. The following fields are annotated with @FullTextField.
+        val parser = MultiFieldQueryParser(arrayOf("user.firstname", "user.lastname", "user.username"), ClassicAnalyzer()) // Oder ClassicAnalyzer()
+        parser.defaultOperator = QueryParser.Operator.AND
+        parser.allowLeadingWildcard = true
+        val luceneQuery: Query
+        try {
+            luceneQuery = parser.parse(queryString)
+        } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
+            log.error(ex.message, ex)
+            throw ex
+        }
+        searchSession.search(EmployeeDO::class.java)
+            .extension(LuceneExtension.get())
+            .where { lucene -> lucene.fromLuceneQuery(luceneQuery) }
+            .fetchAll()
+            .hits()
+    }*/
 }

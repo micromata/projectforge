@@ -36,7 +36,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.database.DatabaseInitTestDataService;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.login.LoginService;

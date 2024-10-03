@@ -41,7 +41,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessCheckerImpl
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext

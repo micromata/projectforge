@@ -19,6 +19,7 @@
 - History: Groups, users
 - Search and fix ***NewTrans
 - SetupPage testen
+- reindexing settings implementieren. Aktuell wird nur komplett gemass-indexed.
 
 
 Migration employee timed attrs:

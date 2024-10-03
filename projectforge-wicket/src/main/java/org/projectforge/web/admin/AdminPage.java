@@ -40,7 +40,7 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeysUsageInterface;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseService;
-import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.jcr.JCRCheckSanityJob;
