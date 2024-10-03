@@ -497,52 +497,131 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     fun sync(resetContacts: Boolean = false): SyncContext {
         log.info { "Syncing local addresses and remote Sipgate contacts..." }
         synchronized(this) {
-            val syncContext = SipgateContactSyncService.SyncContext()
-            syncContext.addressList =
-                addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
+            val syncContext = SyncContext()
+            persistenceService.runReadOnly { context ->
+                syncContext.addressList =
+                    addressDao.internalLoadAll(context) // Need all for matching contacts, but only active will be used for syncing to Sipgate.
+            }
             updateSyncObjects(syncContext)
 
             // Handle doublets from Sipgate
             // Gelöschte Adressen in Sipgate?
 
             syncContext.localCounter.total = syncContext.addressList.size
-            syncContext.addressList.forEach { address ->
-                val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
-                val contactId = syncDO?.sipgateContactId
-                // log.debug { "sync: Processing address #${address.id}: syncObj=$syncDO" }
-                if (contactId != null) {
-                    val contact = syncContext.remoteContacts.find { it.id == contactId }
-                    if (isAddressActive(address)) {
-                        // log.debug { "sync: address #${address.id} is active. Remote contact=$contact" }
-                        if (contact != null) {
-                            // Update if active
-                            val oldContact = contact.toString()
-                            val oldAddress = address.toString()
-                            val syncResult = sync(contact, address, syncDO.syncInfo)
-                            if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
+            persistenceService.runInTransaction { context ->
+                syncContext.addressList.forEach { address ->
+                    val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
+                    val contactId = syncDO?.sipgateContactId
+                    // log.debug { "sync: Processing address #${address.id}: syncObj=$syncDO" }
+                    if (contactId != null) {
+                        val contact = syncContext.remoteContacts.find { it.id == contactId }
+                        if (isAddressActive(address)) {
+                            // log.debug { "sync: address #${address.id} is active. Remote contact=$contact" }
+                            if (contact != null) {
+                                // Update if active
+                                val oldContact = contact.toString()
+                                val oldAddress = address.toString()
+                                val syncResult = sync(contact, address, syncDO.syncInfo)
+                                if (syncResult.contactOutdated || syncResult.addressDOOutdated) {
+                                    log.info {
+                                        "${
+                                            getLogInfo(
+                                                address,
+                                                contact
+                                            )
+                                        }: Updating address and/or contact: $syncResult"
+                                    }
+                                } else {
+                                    // log.debug { "sync: ${getLogInfo(address, contact)} is up-to-date." }
+                                }
+                                if (syncResult.addressDOOutdated) {
+                                    try {
+                                        if (configuration.updateLocalAddresses) {
+                                            log.info {
+                                                "${
+                                                    getLogInfo(
+                                                        address,
+                                                        contact
+                                                    )
+                                                }: Updating local address: $address, was: $oldAddress"
+                                            }
+                                            addressDao.internalUpdate(address, context)
+                                        } else {
+                                            log.info {
+                                                "${
+                                                    getLogInfo(
+                                                        address,
+                                                        contact
+                                                    )
+                                                }: NOT updating local address (see projectforge.properties): $address, was: $oldAddress"
+                                            }
+                                        }
+                                        syncContext.localCounter.updated++
+                                    } catch (ex: Exception) {
+                                        log.error("${getLogInfo(address, contact)}: ${ex.message}", ex)
+                                        syncContext.localCounter.failed++
+                                    }
+                                }
+                                if (resetContacts || syncResult.contactOutdated) {
+                                    log.info {
+                                        "${
+                                            getLogInfo(
+                                                address,
+                                                contact
+                                            )
+                                        }: Updating remote contact: $contact, was: $oldContact"
+                                    }
+                                    updateRemoteContact(contact, syncDO, syncContext, oldContact)
+                                }
+                            } else {
+                                // Create
                                 log.info {
                                     "${
                                         getLogInfo(
                                             address,
                                             contact
                                         )
-                                    }: Updating address and/or contact: $syncResult"
+                                    }: Creating remote contact (doesn't yet exist): $address"
                                 }
-                            } else {
-                                // log.debug { "sync: ${getLogInfo(address, contact)} is up-to-date." }
+                                createRemoteContact(address, syncContext)
                             }
-                            if (syncResult.addressDOOutdated) {
+                        } else if (contact != null) {
+                            // Delete if not active
+                            log.info {
+                                "${
+                                    getLogInfo(
+                                        address,
+                                        contact
+                                    )
+                                }: Delete remote contact (address is deleted or not active): $contact"
+                            }
+                            deleteRemoteContact(contact, syncDO, syncContext)
+                        }
+                    } else if (isAddressActive(address)) {
+                        // Create if active
+                        log.info { "${getLogInfo(address, null)}: Creating remote contact: ${from(address)}" }
+                        createRemoteContact(address, syncContext)
+                    } else {
+                        // log.debug { "sync: address #${address.id} isn't active and no remote contact exists: Nothing to do." }
+                        // Ignore if not active
+                    }
+                }
+            }
+            log.debug { "sync: Processing all remote ${syncContext.remoteContacts.size} contacts..." }
+            persistenceService.runInTransaction { context ->
+                syncContext.remoteContacts.forEach { contact ->
+                    // log.debug { "sync: Processing remote contact: $contact" }
+                    syncContext.syncDOList.find { it.sipgateContactId == contact.id }.let { syncDO ->
+                        // log.debug { "sync: syncDO found: $syncDO" }
+                        val contactId = syncDO?.sipgateContactId
+                        if (contactId == null) {
+                            if (isContactValid(contact)) {
                                 try {
+                                    // Remote contact seems to be a new contact.
+                                    val address = from(contact)
                                     if (configuration.updateLocalAddresses) {
-                                        log.info {
-                                            "${
-                                                getLogInfo(
-                                                    address,
-                                                    contact
-                                                )
-                                            }: Updating local address: $address, was: $oldAddress"
-                                        }
-                                        addressDao.internalUpdateInTrans(address)
+                                        log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
+                                        addressDao.internalSave(address, context)
                                     } else {
                                         log.info {
                                             "${
@@ -550,98 +629,25 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                                     address,
                                                     contact
                                                 )
-                                            }: NOT updating local address (see projectforge.properties): $address, was: $oldAddress"
+                                            }: NOT creating address (see projectforge.properties): $address"
                                         }
                                     }
-                                    syncContext.localCounter.updated++
+                                    syncContext.localCounter.inserted++
                                 } catch (ex: Exception) {
-                                    log.error("${getLogInfo(address, contact)}: ${ex.message}", ex)
+                                    log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
                                     syncContext.localCounter.failed++
                                 }
-                            }
-                            if (resetContacts || syncResult.contactOutdated) {
+                            } else {
                                 log.info {
                                     "${
                                         getLogInfo(
-                                            address,
+                                            null,
                                             contact
                                         )
-                                    }: Updating remote contact: $contact, was: $oldContact"
+                                    }; Ignoring contact (not enough information such as numbers, organization and/or division: $contact"
                                 }
-                                updateRemoteContact(contact, syncDO, syncContext, oldContact)
+                                syncContext.remoteCounter.ignored++
                             }
-                        } else {
-                            // Create
-                            log.info {
-                                "${
-                                    getLogInfo(
-                                        address,
-                                        contact
-                                    )
-                                }: Creating remote contact (doesn't yet exist): $address"
-                            }
-                            createRemoteContact(address, syncContext)
-                        }
-                    } else if (contact != null) {
-                        // Delete if not active
-                        log.info {
-                            "${
-                                getLogInfo(
-                                    address,
-                                    contact
-                                )
-                            }: Delete remote contact (address is deleted or not active): $contact"
-                        }
-                        deleteRemoteContact(contact, syncDO, syncContext)
-                    }
-                } else if (isAddressActive(address)) {
-                    // Create if active
-                    log.info { "${getLogInfo(address, null)}: Creating remote contact: ${from(address)}" }
-                    createRemoteContact(address, syncContext)
-                } else {
-                    // log.debug { "sync: address #${address.id} isn't active and no remote contact exists: Nothing to do." }
-                    // Ignore if not active
-                }
-            }
-            log.debug { "sync: Processing all remote ${syncContext.remoteContacts.size} contacts..." }
-            syncContext.remoteContacts.forEach { contact ->
-                // log.debug { "sync: Processing remote contact: $contact" }
-                syncContext.syncDOList.find { it.sipgateContactId == contact.id }.let { syncDO ->
-                    // log.debug { "sync: syncDO found: $syncDO" }
-                    val contactId = syncDO?.sipgateContactId
-                    if (contactId == null) {
-                        if (isContactValid(contact)) {
-                            try {
-                                // Remote contact seems to be a new contact.
-                                val address = from(contact)
-                                if (configuration.updateLocalAddresses) {
-                                    log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
-                                    addressDao.internalSaveInTrans(address)
-                                } else {
-                                    log.info {
-                                        "${
-                                            getLogInfo(
-                                                address,
-                                                contact
-                                            )
-                                        }: NOT creating address (see projectforge.properties): $address"
-                                    }
-                                }
-                                syncContext.localCounter.inserted++
-                            } catch (ex: Exception) {
-                                log.error("${getLogInfo(null, contact)}: ${ex.message}", ex)
-                                syncContext.localCounter.failed++
-                            }
-                        } else {
-                            log.info {
-                                "${
-                                    getLogInfo(
-                                        null,
-                                        contact
-                                    )
-                                }; Ignoring contact (not enough information such as numbers, organization and/or division: $contact"
-                            }
-                            syncContext.remoteCounter.ignored++
                         }
                     }
                 }
@@ -892,7 +898,11 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         return "address '${SipgateContactSyncDO.getName(address)}' (id=${address.id}, contact-id=${contact.id})"
     }
 
-    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType, context: PfPersistenceContext) {
+    override fun afterSaveOrModify(
+        changedObject: AddressDO,
+        operationType: OperationType,
+        context: PfPersistenceContext
+    ) {
         sync()
     }
 }

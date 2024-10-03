@@ -81,20 +81,18 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
 
     @BeforeEach
     fun setUp() {
-        persistenceService.runInTransaction { context ->
-            date = from(Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15)
-            Configuration.instance.isCostConfigured
-            val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED, context)
-            costConfigured.booleanValue = true
-            configurationDao.internalUpdate(costConfigured, context)
-        }
+        date = from(Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15)
+        Configuration.instance.isCostConfigured
+        val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)
+        costConfigured.booleanValue = true
+        configurationDao.internalUpdateInTrans(costConfigured)
     }
 
     @Test
     fun massUpdate() {
+        val prefix = "ts-mu1-"
+        val list = mutableListOf<TimesheetDO>()
         persistenceService.runInTransaction { context ->
-            val prefix = "ts-mu1-"
-            val list: MutableList<TimesheetDO> = ArrayList()
             initTestDB.addTask(prefix + "1", "root", context)
             initTestDB.addTask(prefix + "1.1", prefix + "1", context)
             initTestDB.addTask(prefix + "1.2", prefix + "1", context)
@@ -135,20 +133,20 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     context = context,
                 )
             )
-            val master = TimesheetDO()
-            master.task = initTestDB.getTask(prefix + "2")
-            master.location = "Headquarter"
-            val dbList = massUpdate(list, master, context)
-            assertAll(dbList, master)
         }
+        val master = TimesheetDO()
+        master.task = initTestDB.getTask(prefix + "2")
+        master.location = "Headquarter"
+        val dbList = massUpdate(list, master)
+        assertAll(dbList, master)
     }
 
     @Test
     fun massUpdateWithKost2Transformation() {
+        val prefix = "ts-mu50-"
+        val list = mutableListOf<TimesheetDO>()
         persistenceService.runInTransaction { context ->
             logon(getUser(TEST_FINANCE_USER))
-            val prefix = "ts-mu50-"
-            val list: MutableList<TimesheetDO> = ArrayList()
             val kunde = KundeDO()
             kunde.name = "ACME"
             kunde.id = 50
@@ -187,27 +185,26 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     context = context,
                 )
             )
-
-            val master = TimesheetDO()
-            master.task = initTestDB.getTask(prefix + "2")
-            master.location = "Headquarter"
-
-            val dbList = massUpdate(list, master, context)
-            assertSheet(dbList.find { it.description == "TS#0" }!!, master)
-            assertKost2(dbList.find { it.description == "TS#0" }!!, 5, 50, 2, 0) // Kost2 transformed.
-            assertSheet(dbList.find { it.description == "TS#1" }!!, master)
-            assertKost2(dbList.find { it.description == "TS#1" }!!, 5, 50, 2, 1) // Kost2 transformed.
-            assertKost2(dbList.find { it.description == "TS#2" }!!, 5, 50, 1, 2) // Kost2 not transformed.
-            Assertions.assertEquals(getTask(prefix + "1.2").id, dbList.find { it.description == "TS#2" }!!.taskId)
         }
+        val master = TimesheetDO()
+        master.task = initTestDB.getTask(prefix + "2")
+        master.location = "Headquarter"
+
+        val dbList = massUpdate(list, master)
+        assertSheet(dbList.find { it.description == "TS#0" }!!, master)
+        assertKost2(dbList.find { it.description == "TS#0" }!!, 5, 50, 2, 0) // Kost2 transformed.
+        assertSheet(dbList.find { it.description == "TS#1" }!!, master)
+        assertKost2(dbList.find { it.description == "TS#1" }!!, 5, 50, 2, 1) // Kost2 transformed.
+        assertKost2(dbList.find { it.description == "TS#2" }!!, 5, 50, 1, 2) // Kost2 not transformed.
+        Assertions.assertEquals(getTask(prefix + "1.2").id, dbList.find { it.description == "TS#2" }!!.taskId)
     }
 
     @Test
     fun massUpdateWithKost2() {
+        val prefix = "ts-mu51-"
+        val list = mutableListOf<TimesheetDO>()
         persistenceService.runInTransaction { context ->
             logon(getUser(TEST_FINANCE_USER))
-            val prefix = "ts-mu51-"
-            val list: MutableList<TimesheetDO> = ArrayList()
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 51
@@ -243,46 +240,47 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     "TS#2", 5, 51, 1, 2, context
                 )
             )
-            val master = TimesheetDO()
-            master.task = initTestDB.getTask(prefix + "2")
-            master.location = "Headquarter"
-            var kost2 = kost2Dao.getKost2(5, 51, 1, 0, context) // Kost2 is not supported by destination task.
-            Assertions.assertNotNull(kost2)
-            master.kost2 = kost2
-
-            var dbList = massUpdate(list, master, context)
-            Assertions.assertEquals(
-                getTask(prefix + "1.1").id,
-                dbList.find { it.description == "TS#0" }?.taskId
-            ) // Not moved.
-            Assertions.assertEquals(
-                getTask(prefix + "1.2").id,
-                dbList.find { it.description == "TS#1" }?.taskId
-            ) // Not moved.
-            Assertions.assertEquals(
-                getTask(prefix + "1.2").id,
-                dbList.find { it.description == "TS#2" }?.taskId
-            ) // Not moved.
-            assertKost2(dbList[0], 5, 51, 1, 0) // Kost2 not transformed.
-            assertKost2(dbList[1], 5, 51, 1, 1) // Kost2 not transformed.
-            assertKost2(dbList[2], 5, 51, 1, 2) // Kost2 not transformed.
-            kost2 = kost2Dao.getKost2(5, 51, 2, 0, context) // Kost2 supported by destination task.
-            Assertions.assertNotNull(kost2)
-            master.kost2 = kost2
-            dbList = massUpdate(dbList, master, context)
-            assertAll(dbList, master) // All sheets moved.
-            assertKost2(dbList[0], 5, 51, 2, 0) // Kost2 transformed.
-            assertKost2(dbList[1], 5, 51, 2, 0) // Kost2 transformed.
-            assertKost2(dbList[2], 5, 51, 2, 0) // Kost2 transformed.
         }
+        val master = TimesheetDO()
+        master.task = initTestDB.getTask(prefix + "2")
+        master.location = "Headquarter"
+        var kost2 = kost2Dao.getKost2(5, 51, 1, 0) // Kost2 is not supported by destination task.
+        Assertions.assertNotNull(kost2)
+        master.kost2 = kost2
+
+        var dbList = massUpdate(list, master)
+        Assertions.assertEquals(
+            getTask(prefix + "1.1").id,
+            dbList.find { it.description == "TS#0" }?.taskId
+        ) // Not moved.
+        Assertions.assertEquals(
+            getTask(prefix + "1.2").id,
+            dbList.find { it.description == "TS#1" }?.taskId
+        ) // Not moved.
+        Assertions.assertEquals(
+            getTask(prefix + "1.2").id,
+            dbList.find { it.description == "TS#2" }?.taskId
+        ) // Not moved.
+        assertKost2(dbList[0], 5, 51, 1, 0) // Kost2 not transformed.
+        assertKost2(dbList[1], 5, 51, 1, 1) // Kost2 not transformed.
+        assertKost2(dbList[2], 5, 51, 1, 2) // Kost2 not transformed.
+        kost2 = kost2Dao.getKost2(5, 51, 2, 0) // Kost2 supported by destination task.
+        kost2 = kost2Dao.getKost2(5, 51, 2, 0) // Kost2 supported by destination task.
+        Assertions.assertNotNull(kost2)
+        master.kost2 = kost2
+        dbList = massUpdate(dbList, master)
+        assertAll(dbList, master) // All sheets moved.
+        assertKost2(dbList[0], 5, 51, 2, 0) // Kost2 transformed.
+        assertKost2(dbList[1], 5, 51, 2, 0) // Kost2 transformed.
+        assertKost2(dbList[2], 5, 51, 2, 0) // Kost2 transformed.
     }
 
     @Test
     fun massUpdateMixedKost2() {
+        val list = mutableListOf<TimesheetDO>()
+        val prefix = "ts-mu52-"
         persistenceService.runInTransaction { context ->
             logon(getUser(TEST_FINANCE_USER))
-            val prefix = "ts-mu52-"
-            val list: MutableList<TimesheetDO> = ArrayList()
             val kunde = KundeDO()
             kunde.name = "ACME International"
             kunde.id = 52
@@ -345,35 +343,35 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     "A lot of stuff done and more.", context = context
                 )
             )
-            val master = TimesheetDO()
-            master.task = initTestDB.getTask(prefix + "2")
-            master.location = "Headquarter"
-
-            var dbList = massUpdate(list, master, context)
-
-            Assertions.assertEquals(getTask(prefix + "1.1").id, dbList[0].taskId) // Not moved.
-            Assertions.assertEquals(getTask(prefix + "1.2").id, dbList[1].taskId) // Not moved.
-            Assertions.assertEquals(getTask(prefix + "1.2").id, dbList[2].taskId) // Not moved.
-            Assertions.assertNull(dbList[0].kost2Id) // Kost2 not set.
-            Assertions.assertNull(dbList[1].kost2Id) // Kost2 not set.
-            Assertions.assertNull(dbList[2].kost2Id) // Kost2 not set.
-            val kost2 = kost2Dao.getKost2(5, 52, 1, 0, context) // Kost2 supported by destination task.
-            Assertions.assertNotNull(kost2)
-            master.kost2 = kost2
-            dbList = massUpdate(list, master, context)
-            assertAll(dbList, master) // All sheets moved.
-            assertKost2(dbList[0], 5, 52, 1, 0) // Kost2 set.
-            assertKost2(dbList[1], 5, 52, 1, 0) // Kost2 set.
-            assertKost2(dbList[2], 5, 52, 1, 0) // Kost2 set.
         }
+        val master = TimesheetDO()
+        master.task = initTestDB.getTask(prefix + "2")
+        master.location = "Headquarter"
+
+        var dbList = massUpdate(list, master)
+
+        Assertions.assertEquals(getTask(prefix + "1.1").id, dbList[0].taskId) // Not moved.
+        Assertions.assertEquals(getTask(prefix + "1.2").id, dbList[1].taskId) // Not moved.
+        Assertions.assertEquals(getTask(prefix + "1.2").id, dbList[2].taskId) // Not moved.
+        Assertions.assertNull(dbList[0].kost2Id) // Kost2 not set.
+        Assertions.assertNull(dbList[1].kost2Id) // Kost2 not set.
+        Assertions.assertNull(dbList[2].kost2Id) // Kost2 not set.
+        val kost2 = kost2Dao.getKost2(5, 52, 1, 0) // Kost2 supported by destination task.
+        Assertions.assertNotNull(kost2)
+        master.kost2 = kost2
+        dbList = massUpdate(list, master)
+        assertAll(dbList, master) // All sheets moved.
+        assertKost2(dbList[0], 5, 52, 1, 0) // Kost2 set.
+        assertKost2(dbList[1], 5, 52, 1, 0) // Kost2 set.
+        assertKost2(dbList[2], 5, 52, 1, 0) // Kost2 set.
     }
 
     @Test
     fun checkMassUpdateWithTimesheetProtection() {
+        val prefix = "ts-mu53-"
+        val list = mutableListOf<TimesheetDO>()
         persistenceService.runInTransaction { context ->
             logon(getUser(TEST_FINANCE_USER))
-            val prefix = "ts-mu53-"
-            val list: MutableList<TimesheetDO> = ArrayList()
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 53
@@ -394,59 +392,60 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             initTestDB.addTask(prefix + "2.1", prefix + "2", context)
             initTestDB.addTask(prefix + "2.2", prefix + "2", context)
             initTestDB.addUser(prefix + "user", context)
-            val ts1 = createTimesheet(
-                prefix, "2.1", "user", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
-                "TS#1",
-                5, 53, 2, 0, context
+            list.add(
+                createTimesheet(
+                    prefix, "2.1", "user", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
+                    "TS#1",
+                    5, 53, 2, 0, context
+                )
             )
-            list.add(ts1)
-            val ts2 = createTimesheet(
-                prefix, "1.1", "user", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
-                "TS#2", 5,
-                53, 1, 0, context
+            list.add(
+                createTimesheet(
+                    prefix, "1.1", "user", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
+                    "TS#2", 5,
+                    53, 1, 0, context
+                )
             )
-            list.add(ts2)
-            val ts3 = createTimesheet(
-                prefix, "1.2", "user", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
-                "TS#3",
-                5, 53, 1, 1, context
+            list.add(
+                createTimesheet(
+                    prefix, "1.2", "user", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
+                    "TS#3",
+                    5, 53, 1, 1, context
+                )
             )
-            list.add(ts3)
-            logon(getUser(TEST_ADMIN_USER))
-            val master = TimesheetDO()
-            master.task = initTestDB.getTask(prefix + "2.2")
-
-            val dbList = massUpdate(list, master, context)
-            var ts = dbList.find { it.description == "TS#1" }!!
-            assertSheet(ts, ts1, "Task not changed due to protectionUntil")
-            assertKost2(ts, 5, 53, 2, 0) // Kost2 unmodified.
-            ts = timesheetDao.getById(ts2.id, context)!!
-            Assertions.assertEquals(getTask(prefix + "1.1").id, ts.taskId) // Not moved.
-            assertKost2(ts, 5, 53, 1, 0) // Kost2 unmodified.
-            ts = timesheetDao.getById(ts3.id, context)!!
-            Assertions.assertEquals(getTask(prefix + "1.2").id, ts.taskId) // Not moved.
-            assertKost2(ts, 5, 53, 1, 1) // Kost2 unmodified.
         }
+        logon(getUser(TEST_ADMIN_USER))
+        val master = TimesheetDO()
+        master.task = initTestDB.getTask(prefix + "2.2")
+
+        val dbList = massUpdate(list, master)
+        var ts = dbList.find { it.description == "TS#1" }!!
+        assertSheet(ts, list[0], "Task not changed due to protectionUntil")
+        assertKost2(ts, 5, 53, 2, 0) // Kost2 unmodified.
+        ts = timesheetDao.getById(list[1].id)!!
+        Assertions.assertEquals(getTask(prefix + "1.1").id, ts.taskId) // Not moved.
+        assertKost2(ts, 5, 53, 1, 0) // Kost2 unmodified.
+        ts = timesheetDao.getById(list[2].id)!!
+        Assertions.assertEquals(getTask(prefix + "1.2").id, ts.taskId) // Not moved.
+        assertKost2(ts, 5, 53, 1, 1) // Kost2 unmodified.
     }
 
     @Test
     fun checkMaxMassUpdateNumber() {
-        persistenceService.runInTransaction { context ->
-            val list = mutableListOf<TimesheetDO>()
-            for (i in 0L..BaseDao.MAX_MASS_UPDATE) {
-                val ts = TimesheetDO()
-                ts.id = i
-                list.add(ts)
-            }
-            try {
-                val master = TimesheetDO()
-                master.location = "test"
-                massUpdate(list, master, context)
-                Assertions.fail<Any>("Maximum number of allowed mass updates exceeded. Not detected!")
-            } catch (ex: UserException) {
-                Assertions.assertEquals(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, ex.i18nKey)
-                // OK.
-            }
+        val list = mutableListOf<TimesheetDO>()
+        for (i in 0L..BaseDao.MAX_MASS_UPDATE) {
+            val ts = TimesheetDO()
+            ts.id = i
+            list.add(ts)
+        }
+        try {
+            val master = TimesheetDO()
+            master.location = "test"
+            massUpdate(list, master)
+            Assertions.fail<Any>("Maximum number of allowed mass updates exceeded. Not detected!")
+        } catch (ex: UserException) {
+            Assertions.assertEquals(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, ex.i18nKey)
+            // OK.
         }
     }
 
@@ -533,7 +532,6 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     private fun massUpdate(
         list: List<TimesheetDO>,
         master: TimesheetDO,
-        context: PfPersistenceContext
     ): List<TimesheetDO> {
         val massUpdateData = mutableMapOf<String, MassUpdateParameter>()
         if (master.location != null) {
@@ -571,7 +569,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
         }
 
-        val dbList = timesheetDao.getListByIds(selectedIds, context)
+        val dbList = timesheetDao.getListByIds(selectedIds)
         return dbList!!
     }
 }
