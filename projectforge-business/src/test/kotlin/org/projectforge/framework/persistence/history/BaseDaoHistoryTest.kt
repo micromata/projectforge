@@ -52,9 +52,9 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             }
             entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(3042917L) }.let { list ->
                 Assertions.assertEquals(3, list.size)
-                assertHistoryEntry(list[0], RechnungDO::class.java, "bezahlDatum", null, "2010-02-22")
+                assertHistoryEntry(list[0], RechnungDO::class.java, "bezahlDatum", "", "2010-02-22")
                 assertHistoryEntry(list[1], RechnungDO::class.java, "status", "GESTELLT", "BEZAHLT")
-                assertHistoryEntry(list[2], RechnungDO::class.java, "zahlBetrag", null, "4455.00")
+                assertHistoryEntry(list[2], RechnungDO::class.java, "zahlBetrag", "", "4455.00")
             }
             entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(3062919L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
@@ -62,7 +62,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             }
             entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(6191673L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
-                assertHistoryEntry(list[0], RechnungDO::class.java, "konto", null, "167040")
+                assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "167040")
             }
             // 4 main entries in t_pf_history
             entries.forEach { entry ->
