@@ -56,7 +56,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
   @Test
   public void test()
           throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-    WicketTester wicketTester = new WicketTester();
+    new WicketTester();
 
     EmployeeSalaryDO data = new EmployeeSalaryDO();
     EmployeeSelectPanel selectPanel = new EmployeeSelectPanel("1", new PropertyModel<EmployeeDO>(data,
@@ -65,7 +65,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     pfUserDO.setUsername("EmployeeSelectFilterTestuser1");
     userDao.saveInTrans(pfUserDO);
     pfUserDO.setFirstname("1");
-    pfUserDO.setLastname("user1");
+    pfUserDO.setLastname("userOne");
     userDao.updateInTrans(pfUserDO);
     EmployeeDO employeeDO = new EmployeeDO();
     employeeDO.setUser(pfUserDO);
@@ -75,7 +75,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
     pfUserDO1.setUsername("EmployeeSelectFilterTestuser2");
     userDao.saveInTrans(pfUserDO1);
     pfUserDO1.setFirstname("2");
-    pfUserDO1.setLastname("user2");
+    pfUserDO1.setLastname("userTwo");
     userDao.updateInTrans(pfUserDO1);
     EmployeeDO employeeDO1 = new EmployeeDO();
     employeeDO1.setUser(pfUserDO1);
@@ -86,7 +86,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
 
     pfUserDO2.setUsername("EmployeeSelectFilterTestuser3");
     pfUserDO2.setFirstname("3");
-    pfUserDO2.setLastname("user3");
+    pfUserDO2.setLastname("userThree");
     userDao.saveInTrans(pfUserDO2);
     EmployeeDO employeeDO2 = new EmployeeDO();
     employeeDO2.setUser(pfUserDO2);
@@ -97,13 +97,13 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
 
     getChoices.setAccessible(true);
     List<EmployeeDO> employeeDOList = (List<EmployeeDO>) getChoices
-            .invoke(selectPanel, "user1");
+            .invoke(selectPanel, "userOne");
     Assertions.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO.getUsername()));
 
-    employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "user2");
-    Assertions.assertTrue(employeeDOList.isEmpty());
+    employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "userTwo");
+    Assertions.assertTrue(employeeDOList.isEmpty(), "UserTwo left the company, so no much expected.");
 
-    employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "user3");
+    employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "userThree");
     Assertions.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO2.getUsername()));
   }
 }
