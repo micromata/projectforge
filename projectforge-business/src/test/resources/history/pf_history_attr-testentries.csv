@@ -230,7 +230,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
 --     KostZuweisung 382507, 382508, 382509
 --   Position 351960
 --     KostZuweisung 382506
--- RechnungDO 351958:
+-- RechnungDO 351958: (6 entries)
 -- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (2972182,3042917,3062919,6191673);
 --                    value                       |  propertyname  | type |                    property_type_class                     | old_value | optype | master_fk
 --------------------------------------------------+----------------+------+------------------------------------------------------------+-----------+--------+-----------
@@ -252,7 +252,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
  167040       | konto:nv       | V    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   6191673
  Update       | konto:op       | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   6191673
  NULL         | konto:ov       | N    | org.projectforge.business.fibu.KontoDO                     | NULL      | NULL   |   6191673
--- RechnungsPositionDO 351960 #1:
+-- RechnungsPositionDO 351960 #1: (4 entries)
 -- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (2972178,2985201,3026625,3062923);
 --      value         |    propertyname     | type |                    property_type_class                     | old_value | optype | master_fk
 ----------------------+---------------------+------+------------------------------------------------------------+-----------+--------+-----------
@@ -269,7 +269,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
  Update               | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062923
  NULL                 | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062923
 
--- RechnungsPositionDO 351960 #2:
+-- RechnungsPositionDO 351960 #2:  (4 entries)
 -- value |    propertyname     | type |                    property_type_class                     | old_value | optype | master_fk
 ---------+---------------------+------+------------------------------------------------------------+-----------+--------+-----------
          | :nv                 | V    | java.lang.String                                           | NULL      | NULL   |   2972186
@@ -285,7 +285,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
  Update  | auftragsPosition:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3062915
  NULL    | auftragsPosition:ov | N    | org.projectforge.business.fibu.AuftragsPositionDO          | NULL      | NULL   |   3062915
 
--- KostZuweisungDO: 382506
+-- KostZuweisungDO: 382506 (2 entries)
 -- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024280,3026609);
 -- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
@@ -295,7 +295,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
         | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026609
  Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026609
         | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026609
--- KostZuweisungDO: 382507
+-- KostZuweisungDO: 382507 (2 entries)
 -- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024288,3026613);
 --value | propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
@@ -305,7 +305,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
         | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026613
  Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026613
         | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026613
--- KostZuweisungDO: 382508
+-- KostZuweisungDO: 382508 (2 entries)
 -- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024284,3026617);
 -- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------
@@ -315,7 +315,7 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
         | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026617
  Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026617
         | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026617
--- KostZuweisungDO: 382509
+-- KostZuweisungDO: 382509 (2 entries)
 -- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (3024276,3026605);
 -- value| propertyname | type |                    property_type_class                     | old_value | optype | master_fk
 --------+--------------+------+------------------------------------------------------------+-----------+--------+-----------

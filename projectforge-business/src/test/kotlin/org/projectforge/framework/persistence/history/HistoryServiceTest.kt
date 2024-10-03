@@ -335,9 +335,9 @@ class HistoryServiceTest : AbstractTestBase() {
             persistenceService.runInTransaction { context ->
                 context.executeNativeUpdate("insert into t_fibu_rechnung (pk,deleted,datum) values (351958,false,'2023-12-29')")
                 context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351959,false,351958,1)")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382507,false,351959,0)")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382508,false,351959,1)")
-                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382509,false,351959,2)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (382507,false,351959,0,10.10)")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (382508,false,351959,1),20.20")
+                context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index,netto) values (382509,false,351959,2),30.30")
                 context.executeNativeUpdate("insert into t_fibu_rechnung_position (pk,deleted,rechnung_fk,number) values (351960,false,351958,2)")
                 context.executeNativeUpdate("insert into t_fibu_kost_zuweisung (pk,deleted,rechnungs_pos_fk,index) values (382506,false,351960,0)")
                 context.executeNativeUpdate("insert into t_fibu_konto (pk,deleted,bezeichnung,nummer) values (167040,false,'ACME Int.',12202)")
