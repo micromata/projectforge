@@ -47,6 +47,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)
             val entries = rechnungDao.getDisplayHistoryEntries(invoice, context)
+            // 6 entries for RechnungDO: 351958
             entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(2972182L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 list[0].apply { Assertions.assertEquals(EntityOpType.Insert, entryType) }
@@ -65,27 +66,38 @@ class BaseDaoHistoryTest : AbstractTestBase() {
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "12202 - ACME Int.")
             }
+
+           // 4 entries for RechnungsPositionDO 351960: 2972178,2985201,3026625,3062923
             entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(3026625L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
-                assertHistoryEntry(list[0], org.projectforge.business.fibu.kost.KostZuweisungDO::class.java, "kostZuweisungen", "", "382508,382509,382507")
+                assertHistoryEntry(list[0],RechnungsPositionDO::class.java, "kostZuweisungen", "", "0:null|null:10.10, 1:null|null:20.20, 2:null|null:30.30")
             }
 
-            // 4 main entries in t_pf_history
-            entries.forEach { entry ->
-                println(entry)
+            // 4 entries for RechnungsPositionDO 351960: 2972186,2988849,3026621,3062915
+            entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(2988849L) }.let { list ->
+                Assertions.assertEquals(1, list.size)
+                assertHistoryEntry(list[0], RechnungsPositionDO::class.java, "vat", "0.19000", "0.19")
             }
-            Assertions.assertEquals(46, entries.size)
+
+            // 2 entries for KostZuweisungDO: 382506
+            // 2 entries for KostZuweisungDO: 382507
+            // 2 entries for KostZuweisungDO: 382508
+            // 2 entries for KostZuweisungDO: 382509
+            // 22 in total
+            Assertions.assertEquals(22, entries.size)
         }
     }
 
     private fun assertHistoryEntry(
         entry: DisplayHistoryEntry,
-        clazz: Class<*>,
+        clazz: Class<*>?,
         propertyName: String,
         oldValue: String?,
         newValue: String?,
     ) {
-        Assertions.assertEquals(translateProperty(clazz, propertyName), entry.propertyName, "$clazz.$propertyName")
+        clazz?.let { cls ->
+            Assertions.assertEquals(translateProperty(cls, propertyName), entry.propertyName, "$cls.$propertyName")
+        }
         Assertions.assertEquals(EntityOpType.Update,  entry.entryType, "$clazz.$propertyName")
         Assertions.assertEquals(oldValue, entry.oldValue, "$clazz.$propertyName")
         Assertions.assertEquals(newValue, entry.newValue, "$clazz.$propertyName")

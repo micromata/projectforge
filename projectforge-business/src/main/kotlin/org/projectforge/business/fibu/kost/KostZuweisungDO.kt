@@ -43,6 +43,7 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.utils.NumberFormatter
 
 /**
  * Rechnungen (Ein- und Ausgang) sowie Gehaltssonderzahlungen werden auf Kost1 und Kost2 aufgeteilt. Einer Rechnung
@@ -77,7 +78,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
 
   override val displayName: String
     @Transient
-    get() = "$index"
+    get() = "$index:${kost1?.displayName}|${kost2?.displayName}:${NumberFormatter.formatCurrency(netto)}"
 
   /**
    * Die Kostzuweisungen sind als Array organisiert. Dies stellt den Index der Kostzuweisung dar. Der Index ist für
