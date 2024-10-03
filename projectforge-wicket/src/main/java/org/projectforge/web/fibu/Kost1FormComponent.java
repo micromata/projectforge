@@ -33,6 +33,7 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.KostFilter;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 import java.util.Collections;
@@ -44,9 +45,6 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
 {
   private static final long serialVersionUID = -5900055958356749220L;
 
-  @SpringBean
-  private Kost1Dao kost1Dao;
-
   class Kost1Converter implements IConverter<Kost1DO>
   {
     private static final long serialVersionUID = 5770334618044073827L;
@@ -55,7 +53,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     public Kost1DO convertToObject(String value, final Locale locale)
     {
       value = StringUtils.trimToEmpty(value);
-      return kost1Dao.getKost1(value);
+      return WicketSupport.get(Kost1Dao.class).getKost1(value);
     }
 
     @Override
@@ -110,7 +108,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
       filter.setSearchString(input + "*");
     }
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
-    final List<Kost1DO> list = kost1Dao.getList(filter);
+    final List<Kost1DO> list = WicketSupport.get(Kost1Dao.class).getList(filter);
     Collections.sort(list, new Comparator<Kost1DO>()
     {
       @Override

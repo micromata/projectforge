@@ -59,84 +59,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     super(parentPage, data);
   }
 
-  public static void generateCountryStateFields(GridBuilder gridBuilder, EmployeeDO data) {
-    {
-      // country
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "country");
-      final MaxLengthTextField textField = new MaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<>(data, "country"));
-      textField.setMarkupId("country").setOutputMarkupId(true);
-      fs.add(textField);
-    }
-
-    {
-      // state
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "state");
-      final MaxLengthTextField textField = new MaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<>(data, "state"));
-      textField.setMarkupId("state").setOutputMarkupId(true);
-      fs.add(textField);
-    }
-  }
-
-  public static void generateStreetZipCityFields(GridBuilder gridBuilder, EmployeeDO data) {
-    {
-      // street
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "street");
-      final MaxLengthTextField textField = new MaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<>(data, "street"));
-      textField.setMarkupId("street").setOutputMarkupId(true);
-      fs.add(textField);
-    }
-
-    {
-      // zip code
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "zipCode");
-      final MaxLengthTextField textField = new MaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<>(data, "zipCode"));
-      textField.setMarkupId("zipCode").setOutputMarkupId(true);
-      fs.add(textField);
-    }
-
-    {
-      // city
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "city");
-      final MaxLengthTextField textField = new MaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<>(data, "city"));
-      textField.setMarkupId("city").setOutputMarkupId(true);
-      fs.add(textField);
-    }
-  }
-
-  public static void createBankingDetails(final GridBuilder gridBuilder, EmployeeDO data) {
-    // bank account: account holder
-    final FieldsetPanel accountHolderFs = gridBuilder.newFieldset(EmployeeDO.class, "accountHolder");
-    final MaxLengthTextFieldWithRequiredSupplier accountHolderTextField = new MaxLengthTextFieldWithRequiredSupplier(
-        InputPanel.WICKET_ID,
-        new PropertyModel<>(data, "accountHolder"));
-    accountHolderTextField.setMarkupId("accountHolder").setOutputMarkupId(true);
-    accountHolderFs.add(accountHolderTextField);
-
-    // bank account: IBAN
-    final FieldsetPanel ibanFs = gridBuilder.newFieldset(EmployeeDO.class, "iban");
-    final MaxLengthTextFieldWithRequiredSupplier ibanTextField = new MaxLengthTextFieldWithRequiredSupplier(
-        InputPanel.WICKET_ID, new PropertyModel<>(data, "iban"));
-    ibanTextField.setMarkupId("iban").setOutputMarkupId(true);
-    ibanTextField.add(new IbanValidator());
-    ibanFs.add(ibanTextField);
-
-    // validation: if one of account holder or IBAN is set, the other one has also to be set
-    ibanTextField.setRequiredSupplier(() -> StringUtils.isNotBlank(accountHolderTextField.getValue()));
-    accountHolderTextField.setRequiredSupplier(() -> StringUtils.isNotBlank(ibanTextField.getValue()));
-
-    // bank account: BIC
-    final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "bic");
-    final MaxLengthTextField textField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "bic"));
-    textField.setMarkupId("bic").setOutputMarkupId(true);
-    textField.add(new BicValidator());
-    fs.add(textField);
-  }
-
   @Override
   protected void init() {
     super.init();
@@ -239,33 +161,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       fs.add(austrittsDatum);
     }
 
-    gridBuilder.newSplitPanel(GridSize.COL50, true);
-    gridBuilder.newSubSplitPanel(GridSize.COL50);
-    generateStreetZipCityFields(gridBuilder, data);
-
-    gridBuilder.newSubSplitPanel(GridSize.COL50);
-    generateCountryStateFields(gridBuilder, data);
-
-    gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
-
-    {
-      // DropDownChoice gender
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "gender");
-      final LabelValueChoiceRenderer<IsoGender> genderChoiceRenderer = new LabelValueChoiceRenderer<>(this,
-          IsoGender.values());
-      final DropDownChoice<IsoGender> statusChoice = new DropDownChoice<>(
-          fs.getDropDownChoiceId(),
-          new PropertyModel<>(data, "gender"),
-          genderChoiceRenderer.getValues(),
-          genderChoiceRenderer);
-      statusChoice.setNullValid(false).setRequired(true);
-      statusChoice.setMarkupId("gender").setOutputMarkupId(true);
-      fs.add(statusChoice);
-    }
-    gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
-    createBankingDetails(gridBuilder, data);
-
-    gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
  /*   {
       // AttrPanels
       final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService
