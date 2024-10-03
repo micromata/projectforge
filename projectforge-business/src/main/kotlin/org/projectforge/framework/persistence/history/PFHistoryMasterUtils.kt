@@ -70,6 +70,7 @@ object PFHistoryMasterUtils {
 
     private fun mergeDiffEntry(diffEntry: DiffEntry, attr: PfHistoryAttrDO) {
         diffEntry.propertyName = attr.plainPropertyName
+        diffEntry.attributeId = attr.id
         if (attr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
             diffEntry.oldProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
         } else if (attr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {

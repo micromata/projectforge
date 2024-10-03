@@ -733,7 +733,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                         entry.propertyName = "Pos#" + position.number
                     }
                 }
-                list.addAll(entries)
+                mergeList(list, entries)
             }
         }
         if (CollectionUtils.isNotEmpty(obj.paymentSchedules)) {

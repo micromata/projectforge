@@ -518,11 +518,22 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         accessChecker.checkRestrictedUser()
         val entries = internalGetHistoryEntries(obj, context)
         val list = mutableListOf<DisplayHistoryEntry>()
-        for (entry in entries) {
-            val l = convert(entry)
-            list.addAll(l)
+        entries.forEach { entry ->
+            val displayEntries = convert(entry)
+            mergeList(list, displayEntries)
         }
         return list
+    }
+
+    /**
+     * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
+     */
+    fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
+        for (entry in entries) {
+            if (list.none { it.masterId == entry.masterId && it.attributeId == entry.attributeId }) {
+                list.add(entry)
+            }
+        }
     }
 
     open fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {

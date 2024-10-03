@@ -294,7 +294,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
                         entry.propertyName = right.rightIdString.toString()
                     }
                 }
-                list.addAll(entries)
+                mergeList(list, entries)
             }
         }
         list.sortWith({ o1, o2 ->

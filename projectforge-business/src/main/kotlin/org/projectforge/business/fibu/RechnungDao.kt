@@ -356,30 +356,11 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         super.getDisplayHistoryEntries(obj, context).let { list.addAll(it) }
         obj.positionen?.forEach { position ->
             val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position, context)
-            entries.forEach { entry ->
-                val propertyName = entry.propertyName
-                if (propertyName != null) {
-                    entry.propertyName =
-                        "#" + position.number + ":" + entry.propertyName // Prepend number of positon.
-                } else {
-                    entry.propertyName = "#" + position.number
-                }
-            }
-            list.addAll(entries)
+            mergeList(list, entries)
             position.kostZuweisungen?.forEach { zuweisung ->
                 val kostEntries: List<DisplayHistoryEntry> =
                     internalGetDisplayHistoryEntries(zuweisung, context)
-                kostEntries.forEach { entry ->
-                    val propertyName = entry.propertyName
-                    if (propertyName != null) {
-                        entry.propertyName =
-                            "#" + position.number + ".kost#" + zuweisung.index + ":" + entry.propertyName // Prepend
-                        // number of positon and index of zuweisung.
-                    } else {
-                        entry.propertyName = "#" + position.number + ".kost#" + zuweisung.index
-                    }
-                }
-                list.addAll(kostEntries)
+                mergeList(list, kostEntries)
             }
         }
         list.sortWith(Comparator { o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })

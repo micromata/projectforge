@@ -649,7 +649,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                         entry.propertyName = attendee.toString()
                     }
                 }
-                list.addAll(entries)
+                mergeList(list, entries)
             }
         }
         list.sortWith(Comparator { o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })

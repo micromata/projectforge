@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry.Companion.translateProperty
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,6 +65,11 @@ class BaseDaoHistoryTest : AbstractTestBase() {
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "12202 - ACME Int.")
             }
+            entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(3026625L) }.let { list ->
+                Assertions.assertEquals(1, list.size)
+                assertHistoryEntry(list[0], org.projectforge.business.fibu.kost.KostZuweisungDO::class.java, "kostZuweisungen", "", "382508,382509,382507")
+            }
+
             // 4 main entries in t_pf_history
             entries.forEach { entry ->
                 println(entry)

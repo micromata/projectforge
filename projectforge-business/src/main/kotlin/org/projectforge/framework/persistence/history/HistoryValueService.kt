@@ -31,6 +31,7 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper.parseLong
@@ -224,6 +225,9 @@ class HistoryValueService private constructor() {
                     val ent = em.find(entityClass, id)
                     if (ent != null) {
                         ret.add(ent)
+                    } else {
+                        log.warn("Cannot find object of entity $entityClass with id for property ${prop.name} (should only occur in test cases): $idString")
+                        ret.add("${entityClass.simpleName}#$id")
                     }
                 } catch (ex: NumberFormatException) {
                     log.warn("Cannot parse id for property ${prop.name}: $idString")

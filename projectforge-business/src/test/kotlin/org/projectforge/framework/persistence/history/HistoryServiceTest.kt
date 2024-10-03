@@ -182,11 +182,7 @@ class HistoryServiceTest : AbstractTestBase() {
     }
 
     private fun assert(
-        diffEntry: DiffEntry,
-        propertyName: String,
-        value: String?,
-        oldValue: String?,
-        operationType: PropertyOpType
+        diffEntry: DiffEntry, propertyName: String, value: String?, oldValue: String?, operationType: PropertyOpType
     ) {
         Assertions.assertEquals(propertyName, diffEntry.propertyName)
         Assertions.assertEquals(value, diffEntry.newValue)
@@ -285,8 +281,7 @@ class HistoryServiceTest : AbstractTestBase() {
                     log.error {
                         "Error while parsing map ${
                             map.entries.joinToString(
-                                prefix = "{",
-                                postfix = "}"
+                                prefix = "{", postfix = "}"
                             ) { (key, value) -> "\"$key\": \"$value\"" }
                         }"
                     }
@@ -406,25 +401,21 @@ class HistoryServiceTest : AbstractTestBase() {
             val master = HistoryCreateUtils.createMaster(entity, operationType)
 
             val attr1 = HistoryCreateUtils.createAttr(
-                GroupDO::class,
-                propertyName = "$propertyName${PFHistoryMasterUtils.NEWVAL_SUFFIX}",
-                value = value
+                GroupDO::class, propertyName = "$propertyName${PFHistoryMasterUtils.NEWVAL_SUFFIX}", value = value
             )
             val attr2 = HistoryCreateUtils.createAttr(
-                oldPropertyClass,
-                "$propertyName${PFHistoryMasterUtils.OP_SUFFIX}",
-                value = operationType.name
+                oldPropertyClass, "$propertyName${PFHistoryMasterUtils.OP_SUFFIX}", value = operationType.name
             )
             val attr3 = HistoryCreateUtils.createAttr(
-                GroupDO::class,
-                "$propertyName${PFHistoryMasterUtils.OLDVAL_SUFFIX}",
-                value = oldValue
+                GroupDO::class, "$propertyName${PFHistoryMasterUtils.OLDVAL_SUFFIX}", value = oldValue
             )
             val attrs = mutableListOf(attr1, attr2, attr3)
 
             val pk = historyService.save(master, attrs)!!
 
-            Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
+            Assertions.assertEquals(
+                "org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName
+            )
             Assertions.assertEquals(entity.id, master.entityId)
             Assertions.assertEquals("anon", master.modifiedBy)
             val createdAt = master.modifiedAt!!.time

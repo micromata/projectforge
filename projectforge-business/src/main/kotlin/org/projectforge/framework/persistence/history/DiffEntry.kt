@@ -29,6 +29,12 @@ package org.projectforge.framework.persistence.history
  */
 class DiffEntry {
     /**
+     * For information / testing purposes and for avoiding multiple entries in the result list:
+     * the id of the PfHistoryAttrDO (t_pf_history_attr)
+     */
+    var attributeId: Long? = null
+
+    /**
      * The property op type.
      */
     var propertyOpType: PropertyOpType? = null
