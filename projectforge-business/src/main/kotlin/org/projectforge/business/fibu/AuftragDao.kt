@@ -727,10 +727,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
-                        entry.propertyName =
+                        entry.displayPropertyName =
                             "Pos#" + position.number + ":" + entry.propertyName // Prepend number of positon.
                     } else {
-                        entry.propertyName = "Pos#" + position.number
+                        entry.displayPropertyName = "Pos#" + position.number
                     }
                 }
                 mergeList(list, entries)

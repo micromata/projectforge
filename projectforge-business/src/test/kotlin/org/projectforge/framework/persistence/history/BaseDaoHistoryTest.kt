@@ -23,13 +23,13 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.jetbrains.kotlin.builtins.StandardNames.FqNames.list
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungsPositionDO
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry.Companion.translateProperty
+import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry.Companion.translatePropertyName
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -78,11 +78,16 @@ class BaseDaoHistoryTest : AbstractTestBase() {
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(list[0], RechnungsPositionDO::class.java, "vat", "0.19000", "0.19")
             }
-
             // 2 entries for KostZuweisungDO: 382506
+            entries.filter { it.masterId == HistoryServiceTest.getNewMasterId(3024280L) }.let { list ->
+                Assertions.assertEquals(1, list.size)
+                // Kost2DO#166807 and Kost2DO#331838 aren't in the database.
+                assertHistoryEntry(list[0], KostZuweisungDO::class.java, "kost2", "Kost2DO#166807", "Kost2DO#331838")
+            }
             // 2 entries for KostZuweisungDO: 382507
             // 2 entries for KostZuweisungDO: 382508
             // 2 entries for KostZuweisungDO: 382509
+
             // 22 in total
             Assertions.assertEquals(22, entries.size)
         }
@@ -96,8 +101,9 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         newValue: String?,
     ) {
         clazz?.let { cls ->
-            Assertions.assertEquals(translateProperty(cls, propertyName), entry.propertyName, "$cls.$propertyName")
+            Assertions.assertEquals(translatePropertyName(cls, propertyName), entry.displayPropertyName, "$cls.$propertyName")
         }
+        Assertions.assertEquals(propertyName, entry.propertyName, "$clazz.$propertyName")
         Assertions.assertEquals(EntityOpType.Update,  entry.entryType, "$clazz.$propertyName")
         Assertions.assertEquals(oldValue, entry.oldValue, "$clazz.$propertyName")
         Assertions.assertEquals(newValue, entry.newValue, "$clazz.$propertyName")

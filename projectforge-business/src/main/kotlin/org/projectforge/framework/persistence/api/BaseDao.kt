@@ -543,6 +543,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         val result = mutableListOf<DisplayHistoryEntry>()
         for (prop in entry.diffEntries!!) {
             val se = DisplayHistoryEntry(entry, prop)
+            se.initialize(DisplayHistoryEntry.Context(entry.entityName, se))
             result.add(se)
         }
 

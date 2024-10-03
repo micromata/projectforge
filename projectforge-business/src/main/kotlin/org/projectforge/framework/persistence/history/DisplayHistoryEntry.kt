@@ -32,10 +32,6 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
-import java.math.BigDecimal
-import java.sql.Date
-import java.sql.Timestamp
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -45,6 +41,28 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
 open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
+    class Context(val entityName: String?, entry: DisplayHistoryEntry) {
+        val propertyName: String? = entry.propertyName
+        val propertyType: String? = entry.propertyType
+        val historyValueService: HistoryValueService = HistoryValueService.instance
+
+        val entityClass: Class<*>? = historyValueService.getClass(entityName)
+        val propertyClass = historyValueService.getClass(propertyType)
+        var value: String? = null
+            private set
+
+        internal fun setProp(value: String?): Context {
+            this.value = value
+            return this
+        }
+
+        init {
+            if (entityClass != null) {
+                entry.displayPropertyName = translatePropertyName(entityClass, propertyName)
+            }
+        }
+    }
+
     /**
      * For information / testing purposes: the id of the PfHistoryMasterDO (t_pf_history)
      */
@@ -62,73 +80,83 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
      * @return the entryType
      */
     val entryType: EntityOpType
+
     /**
      * @return the propertyName
      */
-    /**
-     * Use-full for prepending id of children (e. g. entries in a collection displayed in the history table of the parent
-     * object). Example: AuftragDO -> AuftragsPositionDO.
-     *
-     * @param propertyName
-     */
     var propertyName: String? = null
+
+    /**
+     * The property name to display (i18n). If not set, the propertyName will be used.
+     */
+    var displayPropertyName: String? = null
 
     /**
      * @return the propertyType
      */
     var propertyType: String? = null
         private set
+
     /**
      * @return the oldValue
      */
-    /**
-     * @param oldValue the oldValue to set
-     * @return this for chaining.
-     */
     var oldValue: String? = null
+
     /**
      * @return the newValue
      */
-    /**
-     * @param newValue the newValue to set
-     * @return this for chaining.
-     */
     var newValue: String? = null
+
+    /**
+     * Timestamp of the history entry.
+     */
     val timestamp: java.util.Date
 
     private fun getUser(userId: String?): PFUserDO? {
         return HistoryValueService.instance.getUser(userId)
     }
 
+    init {
+        timestamp = entry.modifiedAt!!
+        val str = entry.modifiedBy
+        if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
+            user = getUser(entry.modifiedBy)
+        }
+        // entry.getClassName();
+        // entry.getComment();
+        entryType = entry.entityOpType!!
+        masterId = entry.id
+        // entry.getEntityId();
+    }
+
     constructor(
         entry: HistoryEntry, diffEntry: DiffEntry,
     ) : this(entry) {
-        val historyValueService = HistoryValueService.instance
+        attributeId = diffEntry.attributeId
+        propertyName = diffEntry.propertyName
         diffEntry.oldProp?.let {
-            propertyType = HistoryValueService.getUnifiedTypeName(it.type)
+            propertyType = propertyType ?: HistoryValueService.getUnifiedTypeName(it.type)
+            oldValue = oldValue ?: it.value
         }
         diffEntry.newProp?.let {
-            propertyType = HistoryValueService.getUnifiedTypeName(it.type)
+            propertyType = propertyType ?: HistoryValueService.getUnifiedTypeName(it.type)
+            newValue = newValue ?: it.value
         }
-        attributeId = diffEntry.attributeId
-        val oldObjectValue = getObjectValue(diffEntry.oldProp)
-        val newObjectValue = getObjectValue(diffEntry.newProp)
-        val valueClazz = historyValueService.getClass(propertyType)
+    }
+
+    fun initialize(context: Context) {
+        val oldObjectValue = getObjectValue(context.setProp(oldValue))
+        val newObjectValue = getObjectValue(context.setProp(newValue))
+        val propertyClass = context.historyValueService.getClass(propertyType)
         if (oldObjectValue != null) {
-            oldValue = formatObject(oldObjectValue, valueClazz, propertyType)
+            oldValue = formatObject(oldObjectValue, propertyClass, propertyType)
         } else {
-            oldValue = historyValueService.format(diffEntry.oldValue, propertyType)
+            oldValue = context.historyValueService.format(oldValue, propertyType)
         }
         if (newObjectValue != null) {
-            newValue = formatObject(newObjectValue, valueClazz, propertyType)
+            newValue = formatObject(newObjectValue, propertyClass, propertyType)
         } else {
-            newValue = historyValueService.format(diffEntry.newValue, propertyType)
-        }
-        val entityClass = historyValueService.getClass(HistoryValueService.getUnifiedTypeName(entry.entityName))
-        if (entityClass != null) {
-            propertyName = translateProperty(diffEntry, entityClass)
-        } else {
-            propertyName = diffEntry.propertyName
+            newValue = context.historyValueService.format(newValue, propertyType)
         }
     }
 
@@ -136,25 +164,22 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
      * You may overwrite this method to provide a custom formatting for the object value.
      * @return null if nothing done and nothing to proceed.
      */
-    protected open fun getObjectValue(prop: HistProp?): Any? {
-        val value = prop?.value ?: return null
-        val valueType = HistoryValueService.instance.getValueType(prop?.type)
+    protected open fun getObjectValue(context: Context): Any? {
+        val value = context.value ?: return null
+        val valueType = HistoryValueService.instance.getValueType(propertyType)
         if (valueType != HistoryValueService.ValueType.ENTITY) {
             return null
         }
-        val entityClass = HistoryValueService.instance.getClass(prop?.type) ?: return null
-        if (entityClass == PFUserDO::class.java) {
-            if (!value.isNullOrBlank() && !value.contains(",")) {
+        val propertyClass = context.propertyClass ?: return null
+        if (propertyClass == PFUserDO::class.java) {
+            if (!value.isBlank() && !value.contains(",")) {
                 // Single user expected.
-                val user = getUser(prop.value ?: "###")
-                if (user != null) {
-                    return user
-                }
+                return getUser(value) ?: "###"
             }
         }
-        if (entityClass == EmployeeDO::class.java || entityClass == AddressbookDO::class.java) {
+        if (propertyClass == EmployeeDO::class.java || propertyClass == AddressbookDO::class.java) {
             val sb = StringBuilder()
-            getDBObjects(prop, entityClass).forEach { dbObject ->
+            getDBObjects(context).forEach { dbObject ->
                 if (dbObject is EmployeeDO) {
                     sb.append("${dbObject.user?.getFullname() ?: "???"};")
                 }
@@ -165,14 +190,14 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
             sb.deleteCharAt(sb.length - 1)
             return sb.toString()
         }
-        return HistoryValueService.instance.getDBObjects(prop, entityClass)
+        return HistoryValueService.instance.getDBObjects(context)
     }
 
     /**
      * Loads the DB objects for the given property. The objects are given as coma separated id list.
      */
-    protected fun getDBObjects(prop: HistProp, entityClass: Class<*>): List<Any> {
-        return HistoryValueService.instance.getDBObjects(prop, entityClass)
+    protected fun getDBObjects(context: Context): List<Any> {
+        return HistoryValueService.instance.getDBObjects(context)
     }
 
     /**
@@ -191,31 +216,10 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         return ReflectionToStringBuilder(this).toString()
     }
 
-    init {
-        timestamp = entry.modifiedAt!!
-        val str = entry.modifiedBy
-        if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
-            user = getUser(entry.modifiedBy)
-        }
-        // entry.getClassName();
-        // entry.getComment();
-        entryType = entry.entityOpType!!
-        masterId = entry.id
-        // entry.getEntityId();
-    }
-
-    /**
-     * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
-     * If found, the property name will be returned translated, if not, the property will be returned unmodified.
-     */
-    private fun translateProperty(diffEntry: DiffEntry, clazz: Class<*>): String? {
-        return Companion.translateProperty(clazz, diffEntry.propertyName)
-    }
-
     companion object {
         private const val serialVersionUID = 3900345445639438747L
 
-        private val basicDateTypes = arrayOf(
+        /*private val basicDateTypes = arrayOf(
             String::class.java.name,
             Date::class.java.name,
             java.sql.Date::class.java,
@@ -223,13 +227,13 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
             BigDecimal::class.java.name,
             Long::class.java.name,
             Int::class.java.name,
-        )
+        )*/
 
         /**
          * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
          * If found, the property name will be returned translated, if not, the property will be returned unmodified.
          */
-        internal fun translateProperty(clazz: Class<*>, propertyName: String?): String? {
+        internal fun translatePropertyName(clazz: Class<*>, propertyName: String?): String? {
             // Try to get the PropertyInfo containing the i18n key of the property for translation.
             var usePropertyName = PropUtils.get(clazz, propertyName)?.i18nKey
             if (usePropertyName != null) {

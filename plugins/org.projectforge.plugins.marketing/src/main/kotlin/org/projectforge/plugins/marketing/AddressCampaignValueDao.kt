@@ -144,21 +144,21 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         val result: MutableList<DisplayHistoryEntry> = ArrayList()
         for (prop in entry.diffEntries!!) {
             val se: DisplayHistoryEntry = object : DisplayHistoryEntry(entry, prop) {
-                override fun getObjectValue(prop: HistProp?): Any? {
-                    if (prop == null) {
+                override fun getObjectValue(context: Context): Any? {
+                    if (context.propertyName == null) {
                         return null
                     }
 
-                    val type = prop.type
+                    val type = context.propertyType
 
                     if (AddressDO::class.java.name == type) {
-                        return prop.value
+                        return context.value
                     }
                     if (AddressCampaignDO::class.java.name == type) {
-                        return prop.value
+                        return context.value
                     }
 
-                    return super.getObjectValue(prop)
+                    return super.getObjectValue(context)
                 }
             }
             result.add(se)

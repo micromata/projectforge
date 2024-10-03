@@ -308,15 +308,15 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
                     final String propertyName = entry.getPropertyName();
                     if (propertyName != null) {
                         if (position.getProjekt() != null) {
-                            entry.setPropertyName(position.getProjektName() + ":" + entry.getPropertyName()); // Prepend name of project
+                            entry.setDisplayPropertyName(position.getProjektName() + ":" + entry.getPropertyName()); // Prepend name of project
                         } else {
-                            entry.setPropertyName(position.getStatus() + ":" + entry.getPropertyName()); // Prepend status
+                            entry.setDisplayPropertyName(position.getStatus() + ":" + entry.getPropertyName()); // Prepend status
                         }
                     } else {
                         if (position.getProjekt() != null) {
-                            entry.setPropertyName(position.getProjektName());
+                            entry.setDisplayPropertyName(position.getProjektName());
                         } else {
-                            entry.setPropertyName(String.valueOf(position.getStatus()));
+                            entry.setDisplayPropertyName(String.valueOf(position.getStatus()));
                         }
                     }
                 }
