@@ -31,6 +31,7 @@ import mu.KotlinLogging
 import org.hibernate.Hibernate
 import org.hibernate.dialect.HSQLDialect
 import org.hibernate.engine.spi.SessionFactoryImplementor
+import org.hibernate.proxy.HibernateProxy
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.kost.Kost2ArtDO
 import org.projectforge.common.BeanHelper
@@ -57,6 +58,16 @@ object HibernateUtils {
     @JvmStatic
     lateinit var databaseDialect: DatabaseDialect
         private set
+
+    fun getRealClass(obj: Any): Class<*> {
+        return if (obj is HibernateProxy) {
+            // Proxy auflösen und die eigentliche Klasse bekommen
+            obj.hibernateLazyInitializer.persistentClass
+        } else {
+            // Kein Proxy, daher einfach die Klasse des Objekts zurückgeben
+            obj.javaClass
+        }
+    }
 
     /**
      * Called by [PfPersistenceService] after construction.

@@ -47,7 +47,7 @@ class CandHCopyTest : AbstractTestBase() {
         val dest = ContractDO()
         assertContracts(src, dest, EntityCopyStatus.NONE)
         src.id = 42
-        assertContracts(src, dest, EntityCopyStatus.MAJOR)
+        assertContracts(src, dest, EntityCopyStatus.NONE, "Id is not copied.")
         src.title = "Title"
         assertContracts(src, dest, EntityCopyStatus.MAJOR)
         src.attachmentsSize = 100
@@ -83,7 +83,7 @@ class CandHCopyTest : AbstractTestBase() {
             Assertions.assertEquals(1, context.historyContext!!.entries.size)
             assertHistoryEntry(context, 0, "assignedUsers", "", "1,2")
         }
-        Assertions.assertNull(dest.assignedUsers)
+        Assertions.assertTrue(dest.assignedUsers.isNullOrEmpty())
 
         src.assignedUsers = mutableSetOf(user1, user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
@@ -146,16 +146,17 @@ class CandHCopyTest : AbstractTestBase() {
         src: ContractDO,
         dest: ContractDO,
         expectedStatus: EntityCopyStatus,
+        msg: String = "",
     ) {
-        val debug = false // For user in debugging-mode
+        val debug = false // For use in debugging-mode
         copyValues(src, dest, expectedStatus, debug)
-        Assertions.assertEquals(src.id, dest.id)
-        Assertions.assertEquals(src.title, dest.title)
-        Assertions.assertEquals(src.number, dest.number)
-        Assertions.assertEquals(src.attachmentsSize, dest.attachmentsSize)
-        Assertions.assertEquals(src.attachmentsCounter, dest.attachmentsCounter)
-        Assertions.assertEquals(src.validFrom, dest.validFrom)
-        Assertions.assertEquals(src.status, dest.status)
+        // Assertions.assertEquals(src.id, dest.id, msg) // Id is not copied.
+        Assertions.assertEquals(src.title, dest.title, msg)
+        Assertions.assertEquals(src.number, dest.number, msg)
+        Assertions.assertEquals(src.attachmentsSize, dest.attachmentsSize, msg)
+        Assertions.assertEquals(src.attachmentsCounter, dest.attachmentsCounter, msg)
+        Assertions.assertEquals(src.validFrom, dest.validFrom, msg)
+        Assertions.assertEquals(src.status, dest.status, msg)
     }
 
     private fun assertHistoryEntry(

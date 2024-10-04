@@ -32,6 +32,7 @@ import org.hibernate.proxy.HibernateProxy
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.persistence.history.PropertyOpType
@@ -94,12 +95,14 @@ object CandHMaster {
         context: CandHContext,
         vararg ignoreProperties: String
     ) {
-        if (!ClassUtils.isAssignable(src.javaClass, dest.javaClass)) {
+        val srcClass = HibernateUtils.getRealClass(src)
+        val destClass = HibernateUtils.getRealClass(dest)
+        if (!ClassUtils.isAssignable(srcClass, destClass)) {
             throw RuntimeException(
                 ("Try to copyValues from different BaseDO classes: this from type "
-                        + dest.javaClass.name
+                        + destClass.name
                         + " and src from type"
-                        + src.javaClass.name
+                        + srcClass.name
                         + "!")
             )
         }
