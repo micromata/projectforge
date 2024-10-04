@@ -313,6 +313,70 @@ class HistoryValueService private constructor() {
         )
     }
 }
+// All used entity_name since 2001:
+// org.projectforge.business.address.AddressbookDO
+// org.projectforge.business.address.AddressDO
+// org.projectforge.business.book.BookDO
+// org.projectforge.business.fibu.AuftragDO
+// org.projectforge.business.fibu.AuftragsPositionDO
+// org.projectforge.business.fibu.EingangsrechnungDO
+// org.projectforge.business.fibu.EingangsrechnungsPositionDO
+// org.projectforge.business.fibu.EmployeeDO
+// org.projectforge.business.fibu.EmployeeSalaryDO
+// org.projectforge.business.fibu.KontoDO
+// org.projectforge.business.fibu.kost.BuchungssatzDO
+// org.projectforge.business.fibu.kost.Kost1DO
+// org.projectforge.business.fibu.kost.Kost2ArtDO
+// org.projectforge.business.fibu.kost.Kost2DO
+// org.projectforge.business.fibu.kost.KostZuweisungDO
+// org.projectforge.business.fibu.KundeDO
+// org.projectforge.business.fibu.PaymentScheduleDO
+// org.projectforge.business.fibu.ProjektDO
+// org.projectforge.business.fibu.RechnungDO
+// org.projectforge.business.fibu.RechnungsPositionDO
+// org.projectforge.business.humanresources.HRPlanningDO
+// org.projectforge.business.humanresources.HRPlanningEntryDO
+// org.projectforge.business.orga.ContractDO
+// org.projectforge.business.orga.PostausgangDO
+// org.projectforge.business.orga.PosteingangDO
+// org.projectforge.business.orga.VisitorbookDO
+// org.projectforge.business.poll.PollDO
+// org.projectforge.business.poll.PollResponseDO
+// org.projectforge.business.scripting.ScriptDO
+// org.projectforge.business.task.TaskDO
+// org.projectforge.business.teamcal.admin.model.TeamCalDO
+// org.projectforge.business.teamcal.event.model.CalEventDO
+// org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO
+// org.projectforge.business.teamcal.event.model.TeamEventDO
+// org.projectforge.business.timesheet.TimesheetDO
+// org.projectforge.business.vacation.model.LeaveAccountEntryDO
+// org.projectforge.business.vacation.model.RemainingLeaveDO
+// org.projectforge.business.vacation.model.VacationCalendarDO
+// org.projectforge.business.vacation.model.VacationDO
+// org.projectforge.framework.access.GroupTaskAccessDO
+// org.projectforge.framework.configuration.entities.ConfigurationDO
+// org.projectforge.framework.persistence.user.entities.GroupDO
+// org.projectforge.framework.persistence.user.entities.PFUserDO
+// org.projectforge.framework.persistence.user.entities.UserAuthenticationsDO
+// org.projectforge.framework.persistence.user.entities.UserPasswordDO
+// org.projectforge.framework.persistence.user.entities.UserRightDO
+// org.projectforge.plugins.banking.BankAccountDO
+// org.projectforge.plugins.banking.BankAccountRecordDO
+// org.projectforge.plugins.eed.model.EmployeeConfigurationDO
+// org.projectforge.plugins.ffp.model.FFPAccountingDO
+// org.projectforge.plugins.ffp.model.FFPDebtDO
+// org.projectforge.plugins.ffp.model.FFPEventDO
+// org.projectforge.plugins.licensemanagement.LicenseDO
+// org.projectforge.plugins.liquidityplanning.LiquidityEntryDO
+// org.projectforge.plugins.marketing.AddressCampaignDO
+// org.projectforge.plugins.marketing.AddressCampaignValueDO
+// org.projectforge.plugins.skillmatrix.SkillDO
+// org.projectforge.plugins.skillmatrix.SkillEntryDO
+// org.projectforge.plugins.skillmatrix.SkillRatingDO
+// org.projectforge.plugins.skillmatrix.TrainingAttendeeDO
+// org.projectforge.plugins.skillmatrix.TrainingDO
+// org.projectforge.plugins.to do.To DoDO
+
 // All used property_type_class since 2001:
 //  [B
 // boolean
