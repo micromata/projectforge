@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import mu.KotlinLogging
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.KundeDO
@@ -270,7 +269,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
                 if (userPrefEntry.orderString == null) {
                     userPrefEntry.orderString = "ZZZ" + StringHelper.format2DigitNumber(no++)
                 }
-                userPref.addUserPrefEntry(userPrefEntry)
+                userPref.addOrUpdateUserPrefEntry(userPrefEntry)
             }
         }
     }
@@ -293,7 +292,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
                 if (userPrefEntry == null) {
                     userPrefEntry = UserPrefEntryDO()
                     evaluateAnnotation(userPrefEntry, beanType, field)
-                    userPref.addUserPrefEntry(userPrefEntry)
+                    userPref.addOrUpdateUserPrefEntry(userPrefEntry)
                 } else {
                     evaluateAnnotation(userPrefEntry, beanType, field)
                 }
@@ -562,45 +561,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
                 return super.internalSaveOrUpdate(obj, context)
             } else {
                 obj.id = dbUserPref.id
-                dbUserPref.valueObject = obj.valueObject
-                if (dbUserPref.userPrefEntries != null ||
-                    obj.userPrefEntries != null
-                ) {
-                    // Legacy entries:
-                    if (obj.userPrefEntries.isNullOrEmpty()) {
-                        // All existing entries are deleted, so clear db entries:
-                        dbUserPref.userPrefEntries!!.clear()
-                    } else {
-                        // New entries exists, so we've to add them:
-                        if (dbUserPref.userPrefEntries == null) {
-                            dbUserPref.userPrefEntries = HashSet()
-                        } else {
-                            // Remove entries in db not existing anymore in given obj:
-                            val it = dbUserPref.userPrefEntries!!.iterator()
-                            while (it.hasNext()) {
-                                val entry = it.next()
-                                if (obj.getUserPrefEntry(entry.parameter!!) == null) {
-                                    // This entry was removed (it's not present in the given object anymore:
-                                    it.remove()
-                                }
-                            }
-                        }
-                        // Now we've to add / update all entries in the db of given obj:
-                        for (newEntry in obj.userPrefEntries!!) {
-                            val dbEntry = dbUserPref.getUserPrefEntry(newEntry.parameter!!)
-                            if (dbEntry == null) {
-                                // New entry:
-                                dbUserPref.userPrefEntries!!.add(newEntry)
-                                newEntry.id = null
-                            } else {
-                                // Update current entry:
-                                dbEntry.copyValuesFrom(newEntry, "id")
-                            }
-                        }
-                    }
-                }
-                super.internalUpdate(dbUserPref, context)
-                obj.id = dbUserPref.id
+                super.internalUpdate(obj, context)
                 return obj.id
             }
         }

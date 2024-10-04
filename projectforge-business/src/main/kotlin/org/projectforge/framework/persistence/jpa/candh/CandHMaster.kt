@@ -23,10 +23,13 @@
 
 package org.projectforge.framework.persistence.jpa.candh
 
+import jakarta.persistence.Id
 import mu.KotlinLogging
+import org.apache.commons.lang3.AnnotationUtils
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.Hibernate
 import org.hibernate.proxy.HibernateProxy
+import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
@@ -233,6 +236,10 @@ object CandHMaster {
     internal fun accept(property: KCallable<*>): Boolean {
         if (property.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
             // Reject properties from inner class.
+            return false
+        }
+        if (AnnotationsUtils.hasAnnotation(property, Id::class.java)) {
+            // Ignore id properties (dest is loaded from database, and the id can't be changed).
             return false
         }
         if (property is Member) {

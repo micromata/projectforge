@@ -23,6 +23,8 @@
 
 package org.projectforge.common
 
+import mu.KotlinLogging
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
@@ -30,6 +32,8 @@ import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaSetter
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -70,6 +74,21 @@ object AnnotationsUtils {
 
     fun getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Annotation? {
         return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass }
+    }
+
+    fun hasAnnotation(property: KProperty1<*, *>, annotationClass: Class<out Annotation>): Boolean {
+        return getAnnotation(property, annotationClass) != null
+    }
+
+    /**
+     * @param property The property to check. Must be of type KProperty1, otherwise false is returned.
+     */
+    fun hasAnnotation(property: KCallable<*>, annotationClass: Class<out Annotation>): Boolean {
+        if (property is KProperty1<*, *>) {
+            return hasAnnotation(property, annotationClass)
+        }
+        log.warn{ "hasAnnotation is called, but property is not of type KProperty1: $property" }
+        return false
     }
 
     fun hasAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Boolean {

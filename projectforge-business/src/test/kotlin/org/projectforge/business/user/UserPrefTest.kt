@@ -110,8 +110,9 @@ class UserPrefTest : AbstractTestBase() {
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
-
-            userPref = UserPrefDO()
+        }
+        persistenceService.runInTransaction { context ->
+            val userPref = UserPrefDO()
             userPref.user = loggedInUser
             userPref.area = "TEST_AREA3"
             userPref.name = ""
@@ -120,13 +121,14 @@ class UserPrefTest : AbstractTestBase() {
             userPrefDao.internalSaveOrUpdate(userPref, context)
         }
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
-        persistenceService.runInTransaction { context ->
-            var userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
+        persistenceService.runReadOnly { context ->
+            val userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value3", userPref.getUserPrefEntryAsString("param3"))
-
-            userPref = UserPrefDO()
+        }
+        persistenceService.runInTransaction { context ->
+            var userPref = UserPrefDO()
             userPref.user = loggedInUser
             userPref.area = "TEST_AREA3"
             userPref.name = ""
@@ -165,7 +167,7 @@ class UserPrefTest : AbstractTestBase() {
         val entry = UserPrefEntryDO()
         entry.parameter = parameter
         entry.value = value
-        userPref.addUserPrefEntry(entry)
+        userPref.addOrUpdateUserPrefEntry(entry)
     }
 
 
