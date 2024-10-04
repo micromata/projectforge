@@ -238,7 +238,7 @@
         <flyway.version>10.17.0</flyway.version> <!-- Last check: 11.08.2024 Flyway Engine -->
         <fop.version>2.9</fop.version> <!-- Check 11.08.2024 -->
         <groovy.version>4.0.22</groovy.version> <!-- Check 11.08.2024: moved to org.apache.groovy -->
-        <ical4j.version>3.2.19</ical4j.version> <!-- Check 11.08.2024 -->
+        <ical4j.version>3.2.2</ical4j.version> <!-- Check 11.08.2024: 3.2.19 doesn't work (alarms etc.). -->
         <ical4j-vcard.version>1.0.7</ical4j-vcard.version> <!-- Check 11.08.2024 -->
         <itext.version>5.5.13.4</itext.version> <!-- Check 11.08.2024 -->
         <jakarta.activation.version>2.1.3</jakarta.activation.version> <!-- Check 11.08.2024 -->
