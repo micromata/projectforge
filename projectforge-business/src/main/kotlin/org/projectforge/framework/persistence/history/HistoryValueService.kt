@@ -184,7 +184,7 @@ class HistoryValueService private constructor() {
             return ""
         }
         try {
-            val value = defaultHandler.deserialize(valueString)
+            val value = defaultHandler.deserialize(valueString) ?: return ""
             return defaultHandler.format(value)
         } catch (ex: Exception) {
             return valueString
