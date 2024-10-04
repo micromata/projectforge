@@ -32,7 +32,6 @@ import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.history.NoHistory
-import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.jpa.candh.CandHMaster.propertyWasModified
 import java.io.Serializable
@@ -72,7 +71,6 @@ open class CollectionHandler : CandHIHandler {
                 return true
             }
             if (srcCollection.isNullOrEmpty()) {
-                property.set(dest, null)
                 context.debugContext?.add(
                     "$kClass.$propertyName",
                     srcVal = srcPropertyValue,
@@ -84,6 +82,7 @@ open class CollectionHandler : CandHIHandler {
                     value = "",
                     oldValue = indexToStringList(destCollection)
                 )
+                destCollection.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
                 propertyWasModified(context, propertyContext, null)
                 return true
             }
@@ -153,14 +152,7 @@ open class CollectionHandler : CandHIHandler {
                         msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}"
                     )
                     if (behavior != null && behavior.autoUpdateCollectionEntries) {
-                        var destEntry: BaseDO<*>? = null
-                        for (entry in destCollection) {
-                            if (entry == srcCollEntry) {
-                                destEntry = entry as BaseDO<*>
-                                break
-                            }
-                        }
-                        requireNotNull(destEntry)
+                        val destEntry = destCollection.first { it == srcCollEntry }
                         @Suppress("UNCHECKED_CAST")
                         copyValues(
                             srcCollEntry as BaseDO<Serializable>,

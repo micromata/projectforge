@@ -108,7 +108,7 @@ open class Favorites<T : AbstractFavorite>() {
     userPrefEntry.parameter = parameter
     userPrefEntry.value = value
     @Suppress("DEPRECATION")
-    userPref.addUserPrefEntry(userPrefEntry)
+    userPref.addOrUpdateUserPrefEntry(userPrefEntry)
     userPrefDao.saveInTrans(userPref)
   }
 

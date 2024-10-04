@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.user.entities
 
 import jakarta.persistence.*
-import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
@@ -130,25 +129,19 @@ class UserPrefEntryDO : BaseDO<Long>, Serializable {
             throw UnsupportedOperationException()
         }
 
-    override fun equals(o: Any?): Boolean {
-        if (o is UserPrefEntryDO) {
-            val other = o
-            if (this.parameter != other.parameter) {
-                return false
-            }
-            if (this.id != other.id) {
-                return false
-            }
-            return true
+    /**
+     * UserPrefEntryDO is equal to another UserPrefEntryDO if their parameters are equal.
+     */
+    override fun equals(other: Any?): Boolean {
+        return if (other is UserPrefEntryDO) {
+            this.parameter == other.parameter
+        } else {
+            false
         }
-        return false
     }
 
     override fun hashCode(): Int {
-        val hcb = HashCodeBuilder()
-        hcb.append(parameter)
-        hcb.append(id)
-        return hcb.toHashCode()
+        return parameter.hashCode()
     }
 
     override fun toString(): String {
