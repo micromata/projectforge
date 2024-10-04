@@ -41,7 +41,9 @@ class CandHHistoryTest : AbstractTestBase() {
         logon(ADMIN_USER)
         val user = PFUserDO()
         user.username = "${PREFIX}test"
+        var lastStats = countHistoryEntries()
         userDao.saveInTrans(user)
+        assertNumberOfNewHistoryEntries(lastStats, 1, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
@@ -50,7 +52,9 @@ class CandHHistoryTest : AbstractTestBase() {
         user.username = "${PREFIX}test_changed"
         user.firstname = "Horst"
         user.lastname = "Schlemmer"
+        lastStats = countHistoryEntries()
         userDao.updateInTrans(user)
+        assertNumberOfNewHistoryEntries(lastStats, 1, 4)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(2, entries.size)
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, entries[0], 4)
@@ -130,6 +134,37 @@ class CandHHistoryTest : AbstractTestBase() {
         Assertions.assertEquals(optype, attr.optype)
 
     }
+
+    private fun assertNumberOfNewHistoryEntries(
+        lastStats: Pair<Long, Long>,
+        expectedNumberOfNewMasterEntries: Long,
+        expectedNumberOfNewAttrEntries: Long,
+    ) {
+        val count = countHistoryEntries()
+        Assertions.assertEquals(
+            expectedNumberOfNewMasterEntries,
+            count.first - lastStats.first,
+            "Number of master entries"
+        )
+        Assertions.assertEquals(
+            expectedNumberOfNewAttrEntries,
+            count.second - lastStats.second,
+            "Number of attr entries"
+        )
+    }
+
+    private fun countHistoryEntries(): Pair<Long, Long> {
+        val countMasterEntries = persistenceService.selectSingleResult(
+            "select count(*) from PfHistoryMasterDO",
+            Long::class.java,
+        )
+        val countAttrEntries = persistenceService.selectSingleResult(
+            "select count(*) from PfHistoryAttrDO",
+            Long::class.java,
+        )
+        return Pair(countMasterEntries!!, countAttrEntries!!)
+    }
+
 
     companion object {
         private const val PREFIX = "CandHHistoryTest_"

@@ -104,7 +104,7 @@ class EmployeeTest : AbstractTestBase() {
         // test history
         val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
-        assertHistoryEntry(historyEntriesAfter[0], "Staff number", staffNumber)
+        assertHistoryEntry(historyEntriesAfter[0], "staffNumber", staffNumber)
     }
 
     private fun assertHistoryEntry(historyEntry: DisplayHistoryEntry, propertyName: String, newValue: String) {
