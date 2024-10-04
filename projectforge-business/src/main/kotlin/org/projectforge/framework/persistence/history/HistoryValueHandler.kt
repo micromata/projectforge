@@ -23,7 +23,13 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.projectforge.framework.time.DateHelper
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
+import org.projectforge.framework.time.PFDay
+import org.projectforge.framework.time.PFDayUtils
+import org.projectforge.framework.utils.NumberFormatter
+import java.math.BigDecimal
 import java.sql.Timestamp
 import java.util.*
 
@@ -31,80 +37,142 @@ import java.util.*
  * Deserializes values of the history attr table and format the values for displaying.
  */
 interface HistoryValueHandler<T> {
+    fun serialize(value: T): String {
+        return value.toString()
+    }
+
     fun deserialize(value: String): T?
     fun format(value: T): String
+    //fun accept(propertyType: Class<*>): Boolean
 }
 
-class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
-    override fun deserialize(value: String): Any {
+open class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
+    override fun deserialize(value: String): Any? {
         return value
     }
 
     override fun format(value: Any): String {
         return value.toString()
     }
+
+    /*    override fun accept(propertyType: Class<*>): Boolean {
+            return propertyType == Any::class.java
+        }*/
 }
 
-/*
+// java.util.Date, net.fortuna.ical4j.model.Date, net.fortuna.ical4j.model.DateTime
 class DateHistoryValueHandler : HistoryValueHandler<Date> {
-    override fun deserialize(value: String): Date {
-        return Date(value.toLong())
+    override fun serialize(value: Date): String {
+        return PFDateTimeUtils.formatUTCDate(value)
+    }
+
+    override fun deserialize(value: String): Date? {
+        return PFDateTimeUtils.parse(value)?.utilDate
     }
 
     override fun format(value: Date): String {
-        return DateHelper.formatIsoDate(value)
+        return PFDateTime.from(value).format()
     }
 }
 
 class SqlDateHistoryValueHandler : HistoryValueHandler<java.sql.Date> {
-    override fun deserialize(value: String): java.sql.Date {
-        return Date(value.toLong())
+    override fun serialize(value: java.sql.Date): String {
+        return value.toLocalDate().toString()
+    }
+
+    override fun deserialize(value: String): java.sql.Date? {
+        if (value.length > 10 && value.contains(':')) {
+            // Format: 2017-03-16 23:00:00:000
+            PFDateTimeUtils.parse(value)?.let { date ->
+                return date.sqlDate
+            }
+        }
+        val localDate = PFDayUtils.parseDate(value) ?: return null
+        return java.sql.Date.valueOf(localDate)
     }
 
     override fun format(value: java.sql.Date): String {
-        return DateHelper.formatIsoDate(value)
+        return PFDay.from(value).format()
     }
 }
 
 class TimestampHistoryValueHandler : HistoryValueHandler<Timestamp> {
-    override fun deserialize(value: String): Timestamp {
-        return Date(value.toLong())
+    override fun serialize(value: Timestamp): String {
+        return PFDateTimeUtils.formatUTCDate(value)
+    }
+
+    override fun deserialize(value: String): Timestamp? {
+        return PFDateTimeUtils.parse(value)?.sqlTimestamp
     }
 
     override fun format(value: Timestamp): String {
-        return DateHelper.formatIsoDate(value)
+        return PFDateTime.from(value).format()
     }
 }
-*/
-/*
+
 // boolean, java.lang.Boolean
-class BooleanHistoryValueDeserializer : HistoryValueDeserializer<Boolean> {
-    override fun deserialize(value: String): Boolean {
-        return value == "true"
+class BooleanHistoryValueHandler : HistoryValueHandler<Boolean> {
+    override fun deserialize(value: String): Boolean? {
+        // Only three entries do exist in the data base: NULL, false, true
+        return when (value) {
+            "true" -> true
+            "NULL" -> null
+            else -> false
+        }
+    }
+
+    override fun format(value: Boolean): String {
+        return translate(value)
     }
 }
 
 // int, java.lang.Integer
-class IntHistoryValueDeserializer : HistoryValueDeserializer<Int> {
-    override fun deserialize(value: String): Int {
-        return value.toInt()
+class IntHistoryValueHandler : HistoryValueHandler<Int> {
+    override fun deserialize(value: String): Int? {
+        return value.toIntOrNull()
+    }
+
+    override fun format(value: Int): String {
+        return NumberFormatter.format(value)
     }
 }
 
 // java.lang.Short
-class ShortHistoryValueDeserializer : HistoryValueDeserializer<Short> {
-    override fun deserialize(value: String): Short {
-        return value.toShort()
+class ShortHistoryValueHandler : HistoryValueHandler<Short> {
+    override fun deserialize(value: String): Short? {
+        return value.toShortOrNull()
+    }
+
+    override fun format(value: Short): String {
+        return NumberFormatter.format(value)
     }
 }
 
 // java.math.BigDecimal
-class BigDecimalValueDeserializer : HistoryValueDeserializer<BigDecimal> {
-    override fun deserialize(value: String): BigDecimal {
-        return BigDecimal(value)
+class BigDecimalHistoryValueHandler : HistoryValueHandler<BigDecimal> {
+    override fun deserialize(value: String): BigDecimal? {
+        return value.toBigDecimalOrNull()
+    }
+
+    override fun format(value: BigDecimal): String {
+        return NumberFormatter.format(value)
     }
 }
-*/
+
+// [B Was only use by accident.
+class ByteArrayHistoryValueHandler : HistoryValueHandler<ByteArray> {
+    override fun serialize(value: ByteArray): String {
+        return "byte[${value.size}]" // Don't serialize the content.
+    }
+
+    override fun deserialize(value: String): ByteArray? {
+        return null
+    }
+
+    override fun format(value: ByteArray): String {
+        return "[...]" // Don't serialize the content.
+    }
+}
 
 // All used property_type_class since 2001:
 //  [B
