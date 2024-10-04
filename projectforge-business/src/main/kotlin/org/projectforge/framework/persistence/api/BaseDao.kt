@@ -456,7 +456,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     fun getHistoryEntries(obj: O): List<HistoryEntry> {
         return persistenceService.runReadOnly { context ->
-            getHistoryEntries(obj, context)
+            getHistoryEntries(obj, context).sortedByDescending { it.id }
         }
     }
 
