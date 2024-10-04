@@ -25,10 +25,13 @@ package org.projectforge.framework.persistence.metamodel
 
 import jakarta.persistence.Column
 import mu.KotlinLogging
+import org.apache.poi.ss.formula.functions.T
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.metamodel.spi.MetamodelImplementor
 import org.hibernate.persister.entity.SingleTableEntityPersister
 import org.projectforge.framework.persistence.api.BaseDO
+import kotlin.reflect.KCallable
+import kotlin.reflect.KMutableProperty1
 
 private val log = KotlinLogging.logger {}
 
@@ -63,6 +66,14 @@ object HibernateMetaModel {
 
     fun allEntityInfos(): List<EntityInfo> {
         return entityInfoByName.values.toList()
+    }
+
+    fun isPersistedProperty(entityClass: Class<T>, property: KCallable<*>): Boolean {
+        return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
+    }
+
+    fun isPersistedProperty(entityClass: Class<T>, property: KMutableProperty1<*, *>): Boolean {
+        return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
     }
 
     @JvmStatic

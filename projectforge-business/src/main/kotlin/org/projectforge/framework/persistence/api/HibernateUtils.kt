@@ -23,11 +23,9 @@
 
 package org.projectforge.framework.persistence.api
 
-import jakarta.persistence.Column
-import jakarta.persistence.EntityManagerFactory
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.Id
+import jakarta.persistence.*
 import mu.KotlinLogging
+import org.apache.poi.ss.formula.functions.T
 import org.hibernate.Hibernate
 import org.hibernate.dialect.HSQLDialect
 import org.hibernate.engine.spi.SessionFactoryImplementor
@@ -39,8 +37,11 @@ import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
+import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getEntityInfo
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import java.io.Serializable
+import kotlin.reflect.KCallable
+import kotlin.reflect.KMutableProperty1
 
 
 private val log = KotlinLogging.logger {}
@@ -94,6 +95,15 @@ object HibernateUtils {
     fun isEntity(entity: Class<*>): Boolean {
         return HibernateMetaModel.isEntity(entity)
     }
+
+    fun isPersistedProperty(entityClass: Class<*>, property: KCallable<*>): Boolean {
+        return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
+    }
+
+    fun isPersistedProperty(entityClass: Class<*>, property: KMutableProperty1<*, *>): Boolean {
+        return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
+    }
+
 
     private var TEST_MODE = false
 

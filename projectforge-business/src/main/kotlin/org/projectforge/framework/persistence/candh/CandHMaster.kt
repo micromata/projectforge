@@ -149,7 +149,7 @@ object CandHMaster {
                 return@forEach
             }
 
-            if (!accept(property)) {
+            if (!accept(property, kClass)) {
                 context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring property, not accepted.")
                 return@forEach
             }
@@ -235,7 +235,7 @@ object CandHMaster {
      * @param property The property to test.
      * @return Whether to consider the given `Property`.
      */
-    internal fun accept(property: KCallable<*>): Boolean {
+    internal fun accept(property: KCallable<*>, kClass: KClass<*>): Boolean {
         if (property.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
             // Reject properties from inner class.
             return false
@@ -244,16 +244,6 @@ object CandHMaster {
             // Ignore id properties (dest is loaded from database, and the id can't be changed).
             return false
         }
-        if (property is Member) {
-            if (Modifier.isTransient(property.modifiers)) {
-                // transients.
-                return false
-            }
-            if (Modifier.isStatic(property.modifiers)) {
-                // transients.
-                return false
-            }
-        }
-        return true
+        return HibernateUtils.isPersistedProperty(kClass.java, property)
     }
 }

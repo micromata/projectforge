@@ -26,8 +26,9 @@ package org.projectforge.framework.persistence.metamodel
 import jakarta.persistence.Column
 import jakarta.persistence.metamodel.EntityType
 import org.hibernate.query.sqm.tree.SqmNode.log
-import org.projectforge.framework.json.JsonUtils
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 
 
 /**
@@ -53,6 +54,19 @@ class EntityInfo(
                 )
             )
         }
+    }
+
+    fun isPersistedProperty(property: KCallable<*>): Boolean {
+        return if (property is KMutableProperty1<*, *>) {
+            isPersistedProperty(property)
+        } else {
+            false
+        }
+    }
+
+    fun isPersistedProperty(property: KMutableProperty1<*, *>): Boolean {
+        return propertyInfos.any { it.propertyName == property.name }
+        // return entityType.attributes.any { it.javaMember == property.javaField }
     }
 
     fun getPropertyInfo(propertyName: String): EntityPropertyInfo? {
