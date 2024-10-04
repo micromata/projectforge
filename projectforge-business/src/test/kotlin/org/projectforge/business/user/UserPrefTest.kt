@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.timesheet.TimesheetDO
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
@@ -93,6 +92,7 @@ class UserPrefTest : AbstractTestBase() {
     fun saveAndUpdateTest() {
         val loggedInUser = getUser(TEST_USER)
         logon(loggedInUser)
+        var lastStats = countHistoryEntries()
         persistenceService.runInTransaction { context ->
             saveAndUpdateTest("", loggedInUser)
             saveAndUpdateTest("test", loggedInUser)
@@ -103,8 +103,10 @@ class UserPrefTest : AbstractTestBase() {
             userPref.name = ""
             addEntry(userPref, "param1", "value1")
             addEntry(userPref, "param2", "value2")
+            lastStats = countHistoryEntries()
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            userPref = userPrefDao.internalQuery(loggedInUser.id, "TEST_AREA3", "", context)
+            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
@@ -117,8 +119,9 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param3", "value3")
             userPrefDao.internalSaveOrUpdate(userPref, context)
         }
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
         persistenceService.runInTransaction { context ->
-            var userPref = userPrefDao.internalQuery(loggedInUser.id, "TEST_AREA3", "", context)
+            var userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value3", userPref.getUserPrefEntryAsString("param3"))
@@ -128,7 +131,8 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA3"
             userPref.name = ""
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            userPref = userPrefDao.internalQuery(loggedInUser.id, "TEST_AREA3", "", context)
+            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
 
             userPref = UserPrefDO()
@@ -136,7 +140,8 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA4"
             userPref.name = ""
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            userPref = userPrefDao.internalQuery(loggedInUser.id, "TEST_AREA4", "", context)
+            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "", context)!!
             Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
 
             userPref = UserPrefDO()
@@ -146,12 +151,14 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param1", "value1")
             addEntry(userPref, "param2", "value2")
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            userPref = userPrefDao.internalQuery(loggedInUser.id, "TEST_AREA4", "", context)
+            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
             null
         }
+        assertNumberOfNewHistoryEntries(lastStats, 0, 0)
     }
 
     private fun addEntry(userPref: UserPrefDO, parameter: String, value: String) {
@@ -164,12 +171,14 @@ class UserPrefTest : AbstractTestBase() {
 
     private fun saveAndUpdateTest(name: String, loggedInUser: PFUserDO) {
         val user = User.createTestUser()
+        val lastStats = countHistoryEntries()
         var userPref = UserPrefDO()
         userPref.user = loggedInUser
         userPref.valueObject = user
         userPref.area = "TEST_AREA2"
         userPref.name = name
         userPrefDao.internalSaveOrUpdateInTrans(userPref)
+        assertNumberOfNewHistoryEntries(lastStats, 0, 0)
         val id = userPref.id
         userPref = UserPrefDO()
         userPref.user = loggedInUser
@@ -177,6 +186,7 @@ class UserPrefTest : AbstractTestBase() {
         userPref.area = "TEST_AREA2"
         userPref.name = name
         userPrefDao.internalSaveOrUpdateInTrans(userPref)
+        assertNumberOfNewHistoryEntries(lastStats, 0, 0)
         Assertions.assertEquals(id, userPref.id, "Object should be updated not inserted.")
     }
 
@@ -186,8 +196,8 @@ class UserPrefTest : AbstractTestBase() {
         logon(user)
         persistenceService.runInTransaction { context ->
             val user2 = getUser(TEST_USER2)
-            val task = initTestDB.addTask("UserPrefTest", "root", context!!)
-            var userPref: UserPrefDO? = createUserPref(user, UserPrefArea.TIMESHEET_TEMPLATE, "test")
+            val task = initTestDB.addTask("UserPrefTest", "root", context)
+            var userPref = createUserPref(user, UserPrefArea.TIMESHEET_TEMPLATE, "test")
             var timesheet = createTimesheet(user2, task, "Micromata", "Wrote a test case...")
             userPrefDao.addUserPrefParameters(userPref, timesheet)
             Assertions.assertFalse(
@@ -215,8 +225,8 @@ class UserPrefTest : AbstractTestBase() {
                     "test"
                 )
             )
-            userPref = userPrefDao.getById(id, context)
-            Assertions.assertEquals(5, userPref!!.userPrefEntries!!.size) // user, task, kost2, location, description.
+            userPref = userPrefDao.getById(id, context)!!
+            Assertions.assertEquals(5, userPref.userPrefEntries!!.size) // user, task, kost2, location, description.
             run {
                 val it = userPref.sortedUserPrefEntries.iterator()
                 var entry = it.next()

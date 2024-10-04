@@ -360,7 +360,7 @@ abstract class AbstractTestBase protected constructor() {
         lastStats: Pair<Long, Long>,
         expectedNumberOfNewMasterEntries: Long,
         expectedNumberOfNewAttrEntries: Long,
-    ) {
+    ): Pair<Long, Long> {
         val count = countHistoryEntries()
         Assertions.assertEquals(
             expectedNumberOfNewMasterEntries,
@@ -372,6 +372,7 @@ abstract class AbstractTestBase protected constructor() {
             count.second - lastStats.second,
             "Number of attr entries"
         )
+        return count
     }
 
     fun countHistoryEntries(): Pair<Long, Long> {

@@ -48,6 +48,7 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * Stores preferences of the user for any objects such as list filters or templates for adding new objects (time sheets
@@ -55,6 +56,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@NoHistory
 @Entity
 @Indexed
 @Table(name = "T_USER_PREF",

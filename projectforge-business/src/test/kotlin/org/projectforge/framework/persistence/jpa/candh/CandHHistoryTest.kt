@@ -43,7 +43,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.username = "${PREFIX}test"
         var lastStats = countHistoryEntries()
         userDao.saveInTrans(user)
-        assertNumberOfNewHistoryEntries(lastStats, 1, 0)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
@@ -52,7 +52,6 @@ class CandHHistoryTest : AbstractTestBase() {
         user.username = "${PREFIX}test_changed"
         user.firstname = "Horst"
         user.lastname = "Schlemmer"
-        lastStats = countHistoryEntries()
         userDao.updateInTrans(user)
         assertNumberOfNewHistoryEntries(lastStats, 1, 4)
         userDao.getHistoryEntries(user).let { entries ->

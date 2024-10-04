@@ -67,11 +67,15 @@ object HistoryBaseDaoAdapter {
     }
 
     fun inserted(obj: BaseDO<Long>, context: PfPersistenceContext) {
+        if (!isHistorizable(obj)) {
+            // not historizable
+            return
+        }
         createHistoryEntry(obj, EntityOpType.Insert, context)
     }
 
     fun updated(obj: BaseDO<Long>, historyEntries: List<PfHistoryAttrDO>?, context: PfPersistenceContext) {
-        if (historyEntries.isNullOrEmpty()) {
+        if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
         val master = createHistoryEntry(obj, EntityOpType.Update, context)
