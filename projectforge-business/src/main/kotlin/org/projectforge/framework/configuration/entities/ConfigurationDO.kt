@@ -181,13 +181,13 @@ open class ConfigurationDO : DefaultBaseDO {
         @Transient
         get() {
             if (longValue != null) {
-                checkType(ConfigurationType.CALENDAR)
+                checkType(ConfigurationType.LONG)
             }
             return longValue
         }
         set(calendarId) {
             if (calendarId != null) {
-                checkType(ConfigurationType.CALENDAR)
+                checkType(ConfigurationType.LONG)
             }
             longValue = calendarId
         }

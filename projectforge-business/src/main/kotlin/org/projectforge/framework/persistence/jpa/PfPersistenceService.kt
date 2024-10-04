@@ -57,7 +57,7 @@ open class PfPersistenceService {
     /**
      * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
      */
-    open fun <T> runInTransaction(
+    fun <T> runInTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
         val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
@@ -71,7 +71,7 @@ open class PfPersistenceService {
     /**
      * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
      */
-    open fun <T> runInIsolatedTransaction(
+    fun <T> runInIsolatedTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
         PfPersistenceContext(entityManagerFactory, withTransaction = true).use { context ->
@@ -98,7 +98,7 @@ open class PfPersistenceService {
     /**
      * Uses the current EntityManager for the block or a new one, if no EntityManager is set in ThreadLocal before.
      */
-    open fun <T> runReadOnly(
+    fun <T> runReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
         val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
@@ -111,7 +111,7 @@ open class PfPersistenceService {
     /**
      * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
      */
-    open fun <T> runIsolatedReadOnly(
+    fun <T> runIsolatedReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
         PfPersistenceContext(entityManagerFactory, withTransaction = false).use { context ->
@@ -129,7 +129,7 @@ open class PfPersistenceService {
      * @see PfPersistenceContext.selectById
      */
     @JvmOverloads
-    open fun <T> selectById(
+    fun <T> selectById(
         entityClass: Class<T>, id: Any?, attached: Boolean = false
     ): T? {
         return runReadOnly { context ->
@@ -193,7 +193,7 @@ open class PfPersistenceService {
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     @JvmOverloads
-    open fun <T> query(
+    fun <T> query(
         sql: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
@@ -220,7 +220,7 @@ open class PfPersistenceService {
      * @see query
      */
     @JvmOverloads
-    open fun <T> namedQuery(
+    fun <T> namedQuery(
         sql: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
@@ -243,7 +243,7 @@ open class PfPersistenceService {
      * Encapsulated in [runReadOnly].
      * @see PfPersistenceContext.getReference
      */
-    open fun <T> getReference(
+    fun <T> getReference(
         entityClass: Class<T>, id: Any
     ): T {
         return runReadOnly { context ->
@@ -257,7 +257,7 @@ open class PfPersistenceService {
      * @param attribute The name of the attribute (e. g. rechnungsnummer).
      * @param startNumber The number to start with if no entry is found.
      */
-    open fun getNextNumber(table: String, attribute: String, startNumber: Int = 0): Int {
+    fun getNextNumber(table: String, attribute: String, startNumber: Int = 0): Int {
         val maxNumber = selectSingleResult(
             "select max(t.$attribute) from $table t",
             Int::class.java,
