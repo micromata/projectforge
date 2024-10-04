@@ -31,6 +31,7 @@ import org.projectforge.framework.time.PFDayUtils
 import org.projectforge.framework.utils.NumberFormatter
 import java.math.BigDecimal
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.util.*
 
 /**
@@ -72,6 +73,26 @@ class DateHistoryValueHandler : HistoryValueHandler<Date> {
 
     override fun format(value: Date): String {
         return PFDateTime.from(value).format()
+    }
+}
+
+class LocalDateHistoryValueHandler : HistoryValueHandler<LocalDate> {
+    override fun serialize(value: LocalDate): String {
+        return value.toString()
+    }
+
+    override fun deserialize(value: String): LocalDate? {
+        if (value.length > 10 && value.contains(':')) {
+            // Format: 2017-03-16 23:00:00:000
+            PFDateTimeUtils.parse(value)?.let { date ->
+                return date.localDate
+            }
+        }
+        return PFDayUtils.parseDate(value)
+    }
+
+    override fun format(value: LocalDate): String {
+        return PFDay.from(value).format()
     }
 }
 
@@ -171,6 +192,30 @@ class ByteArrayHistoryValueHandler : HistoryValueHandler<ByteArray> {
 
     override fun format(value: ByteArray): String {
         return "[...]" // Don't serialize the content.
+    }
+}
+
+class LocaleHistoryValueHandler : HistoryValueHandler<Locale> {
+    override fun deserialize(value: String): Locale? {
+        return Locale(value)
+    }
+
+    override fun format(value: Locale): String {
+        return value.toString()
+    }
+}
+
+class VoidHistoryValueHandler : HistoryValueHandler<Void> {
+    override fun serialize(value: Void): String {
+        return ""
+    }
+
+    override fun deserialize(value: String): Void? {
+        return null
+    }
+
+    override fun format(value: Void): String {
+        return ""
     }
 }
 

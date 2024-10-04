@@ -30,7 +30,9 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDay
 import org.projectforge.test.TestSetup
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.Month
+import java.util.*
 
 class HistoryValueHandlerTest {
     @Test
@@ -57,6 +59,14 @@ class HistoryValueHandlerTest {
             deserializeAndSerializeTest("2008-03-19 10:53:55.481", handler)
             deserializeAndSerializeTest("2007-04-22 17:00:00.0", handler, "2007-04-22 17:00:00.000")
             deserializeAndSerializeTest("2005-04-13 13:30:00.0", handler, "2005-04-13 13:30:00.000")
+        }
+        LocalDateHistoryValueHandler().let { handler ->
+            val localDate = LocalDate.of(2024, Month.OCTOBER, 5)
+            Assertions.assertEquals("2024-10-05", handler.serialize(localDate))
+            Assertions.assertEquals("05.10.2024", handler.format(localDate)) // CEST
+            deserializeAndSerializeTest("2017-03-16 23:00:00:000", handler, "2017-03-16")
+            deserializeAndSerializeTest("2014-10-16 10:48:41:358", handler, "2014-10-16")
+            deserializeAndSerializeTest("2005-04-13 13:30:00.0", handler, "2005-04-13")
         }
         SqlDateHistoryValueHandler().let { handler ->
             val sqlDate = PFDay.withDate(2024, Month.OCTOBER, 5).sqlDate
@@ -95,6 +105,16 @@ class HistoryValueHandlerTest {
             Assertions.assertEquals("byte[42]", handler.serialize(ByteArray(42)))
             Assertions.assertNull(handler.deserialize("42"))
             Assertions.assertEquals("[...]", handler.format(ByteArray(42)))
+        }
+        LocaleHistoryValueHandler().let { handler ->
+            Assertions.assertEquals("de", handler.serialize(Locale.GERMAN))
+            deserializeAndSerializeTest("de_AT", handler, "de_at")
+            deserializeAndSerializeTest("de_DE", handler, "de_de")
+            deserializeAndSerializeTest("default", handler)
+            deserializeAndSerializeTest("de_LU", handler, "de_lu")
+            deserializeAndSerializeTest("en", handler)
+            deserializeAndSerializeTest("en_GB", handler, "en_gb")
+            deserializeAndSerializeTest("en_US", handler, "en_us")
         }
     }
 
