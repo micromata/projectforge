@@ -21,11 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.history.PropertyOpType
-import org.projectforge.framework.persistence.jpa.candh.CandHMaster.propertyWasModified
+import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.jvmErasure
 

@@ -21,18 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.jvm.jvmErasure
 
-interface CandHIHandler {
-    /**
-     * Checks if the field is accepted by this handler.
-     */
-    fun accept(property: KMutableProperty1<*, *>): Boolean
+/**
+ * Used for java.util.Date.
+ */
+class UtilDateHandler : DefaultHandler() {
+    override fun accept(property: KMutableProperty1<*, *>): Boolean {
+        return property.returnType.jvmErasure == java.util.Date::class
+    }
 
-    /**
-     * @return true if the field was process, false if the next handler should be tried.
-     */
-    fun process(propertyContext: PropertyContext<*>, context: CandHContext): Boolean
+    override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
+        val srcTime = (srcValue as java.util.Date).time
+        val destTime = (destValue as java.util.Date).time
+        return srcTime == destTime
+    }
 }

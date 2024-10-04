@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -106,6 +106,7 @@ class CandHHandlerTest {
     ) {
         @Suppress("UNCHECKED_CAST")
         val src = kClass.createInstance() as BaseDO<Long>
+
         @Suppress("UNCHECKED_CAST")
         val dest = kClass.createInstance() as BaseDO<Long>
         processAndCheckContext(handler, kClass, fieldName, src, dest, null, null, false)

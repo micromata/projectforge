@@ -21,25 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.HibernateUtils
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Used for objects of type BaseDO.
+ * Used for java.sql.Date.
  */
-class BaseDOHandler : DefaultHandler() {
+class SqlDateHandler : DefaultHandler() {
     override fun accept(property: KMutableProperty1<*, *>): Boolean {
-        return property.returnType.jvmErasure.isSubclassOf(BaseDO::class)
+        return property.returnType.jvmErasure == java.sql.Date::class
     }
 
     override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
-        val srcFieldValueId = HibernateUtils.getIdentifier(srcValue)
-        val destFieldValueId = HibernateUtils.getIdentifier(destValue)
-        return srcFieldValueId == destFieldValueId
+        val srcDay = (srcValue as java.sql.Date).toLocalDate()
+        val destDay = (destValue as java.sql.Date).toLocalDate()
+        return srcDay == destDay
     }
 }

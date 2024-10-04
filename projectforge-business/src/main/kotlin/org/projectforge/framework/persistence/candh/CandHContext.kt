@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
 import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.EntityCopyStatus

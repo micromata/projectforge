@@ -21,19 +21,30 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.persistence.api.BaseDO
-import java.io.Serializable
-import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
+import org.projectforge.framework.json.JsonUtils
 
-class PropertyContext<IdType : Serializable>(
-    val kClass: KClass<*>,
-    val src: BaseDO<IdType>,
-    val dest: BaseDO<IdType>,
-    val propertyName: String,
-    val property: KMutableProperty1<*, *>,
-    val srcPropertyValue: Any?,
-    val destPropertyValue: Any?,
-)
+internal class DebugContext {
+    val entries = mutableListOf<Entry>()
+
+    fun add(
+        property: String? = null,
+        srcVal: Any? = null,
+        destVal: Any? = null,
+        msg: String? = "copied",
+    ) {
+        entries.add(Entry(propertyName = property, srcValue = srcVal, destValue = destVal, message = msg))
+    }
+
+    override fun toString(): String {
+        return JsonUtils.toJson(this)
+    }
+
+    class Entry(
+        val propertyName: String? = null,
+        val srcValue: Any? = null,
+        val destValue: Any? = null,
+        val message: String? = null,
+    )
+}
