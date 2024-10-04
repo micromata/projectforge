@@ -25,22 +25,29 @@ package org.projectforge.framework.persistence.candh
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserRightDao
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.DayOfWeek
 import java.util.*
 import kotlin.reflect.KClass
 
 class CandHHistoryTest : AbstractTestBase() {
     @Autowired
     private lateinit var userDao: UserDao
+
+    @Autowired
+    private lateinit var userRightDao: UserRightDao
 
     @Autowired
     private lateinit var rechnungDao: RechnungDao
@@ -56,7 +63,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.timeNotation = TimeNotation.H24
         user.restrictedUser = false
         user.firstDayOfWeekValue = 1
-        user.locale= Locale.GERMAN
+        user.locale = Locale.GERMAN
         var lastStats = countHistoryEntries()
         userDao.saveInTrans(user)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
@@ -70,7 +77,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.lastname = "Schlemmer"
         user.timeNotation = TimeNotation.H12
         user.firstDayOfWeekValue = 7
-        user.locale= Locale.FRENCH
+        user.locale = Locale.FRENCH
         userDao.updateInTrans(user)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 7)
         userDao.getHistoryEntries(user).let { entries ->
@@ -140,6 +147,32 @@ class CandHHistoryTest : AbstractTestBase() {
 
     @Test
     fun userRightsTests() {
+        logon(ADMIN_USER)
+        var user = PFUserDO()
+        user.username = "${PREFIX}rightsTest"
+        var lastStats = countHistoryEntries()
+        try {
+            user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
+            userDao.saveInTrans(user)
+            fail { "Cascade on saving rights shouldn't work." }
+        } catch (ex: Exception) {
+            // OK, expected exception.
+        }
+        user.rights = null
+        user.id = null
+        userDao.saveInTrans(user)
+        user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
+        user.addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE))
+        userRightDao.internalSaveOrUpdateInTrans(user.rights!!)
+        val rights = userRightDao.getList(user)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 0)
+        userDao.getHistoryEntries(user).let { entries ->
+            Assertions.assertEquals(3, entries.size)
+            assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
+            assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
+            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
+        }
+        // Add, remove and change rights and test history entries...
         //user.rights
     }
 
@@ -148,54 +181,54 @@ class CandHHistoryTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val invoice = RechnungDO()
         // kunde, projekt, status
-/*        invoice.apply {
-             = "12345"
-            invoiceDate = "2020-01-01"
-            invoiceAmount = 123.45
-        }
-        var lastStats = countHistoryEntries()
-        rechnungDao.saveInTrans(invoice)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
-        userDao.getHistoryEntries(invoice).let { entries ->
-            Assertions.assertEquals(1, entries.size)
-            assertMasterEntry(invoice::class, invoice.id, EntityOpType.Insert, ADMIN_USER, entries[0])
-        }
-        invoice.invoiceNumber = "123456"
-        invoice.invoiceDate = "2021-01-01"
-        invoice.invoiceAmount = 123.45
-        userDao.updateInTrans(invoice)
-        assertNumberOfNewHistoryEntries(lastStats, 1, 3)
-        userDao.getHistoryEntries(invoice).let { entries ->
-            Assertions.assertEquals(2, entries.size)
-            assertMasterEntry(invoice::class, invoice.id, EntityOpType.Update, ADMIN_USER, entries[0], 3)
-            (entries[0] as PfHistoryMasterDO).let { entry ->
-                assertAttrEntry(
-                    "java.lang.String",
-                    "123456",
-                    null,
-                    "invoiceNumber",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-                assertAttrEntry(
-                    "java.lang.String",
-                    "2021-01-01",
-                    null,
-                    "invoiceDate",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-                assertAttrEntry(
-                    "java.lang.Double",
-                    "123.45",
-                    null,
-                    "invoiceAmount",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-            }
-            assertMasterEntry(invoice::class, invoice.id, EntityOpType.Insert, ADMIN_USER, entries[1])
-        }*/
+        /*        invoice.apply {
+                     = "12345"
+                    invoiceDate = "2020-01-01"
+                    invoiceAmount = 123.45
+                }
+                var lastStats = countHistoryEntries()
+                rechnungDao.saveInTrans(invoice)
+                lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
+                userDao.getHistoryEntries(invoice).let { entries ->
+                    Assertions.assertEquals(1, entries.size)
+                    assertMasterEntry(invoice::class, invoice.id, EntityOpType.Insert, ADMIN_USER, entries[0])
+                }
+                invoice.invoiceNumber = "123456"
+                invoice.invoiceDate = "2021-01-01"
+                invoice.invoiceAmount = 123.45
+                userDao.updateInTrans(invoice)
+                assertNumberOfNewHistoryEntries(lastStats, 1, 3)
+                userDao.getHistoryEntries(invoice).let { entries ->
+                    Assertions.assertEquals(2, entries.size)
+                    assertMasterEntry(invoice::class, invoice.id, EntityOpType.Update, ADMIN_USER, entries[0], 3)
+                    (entries[0] as PfHistoryMasterDO).let { entry ->
+                        assertAttrEntry(
+                            "java.lang.String",
+                            "123456",
+                            null,
+                            "invoiceNumber",
+                            PropertyOpType.Update,
+                            entry.attributes,
+                        )
+                        assertAttrEntry(
+                            "java.lang.String",
+                            "2021-01-01",
+                            null,
+                            "invoiceDate",
+                            PropertyOpType.Update,
+                            entry.attributes,
+                        )
+                        assertAttrEntry(
+                            "java.lang.Double",
+                            "123.45",
+                            null,
+                            "invoiceAmount",
+                            PropertyOpType.Update,
+                            entry.attributes,
+                        )
+                    }
+                    assertMasterEntry(invoice::class, invoice.id, EntityOpType.Insert, ADMIN_USER, entries[1])
+                }*/
     }
 
     private fun assertMasterEntry(
@@ -207,7 +240,9 @@ class CandHHistoryTest : AbstractTestBase() {
         numberOfAttributes: Int = 0,
     ) {
         Assertions.assertEquals(entityClass.java.name, entry.entityName)
-        Assertions.assertEquals(id, entry.entityId)
+        if (id != null) {
+            Assertions.assertEquals(id, entry.entityId)
+        }
         Assertions.assertEquals(opType, entry.entityOpType)
         Assertions.assertEquals(modUser.id?.toString(), entry.modifiedBy)
         Assertions.assertTrue(
