@@ -71,7 +71,7 @@ import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.fromOrNull
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.projectforge.framework.time.PFDateTimeUtils
-import org.projectforge.framework.time.PFDateTimeUtils.Companion.getUTCBeginOfDayTimestamp
+import org.projectforge.framework.time.PFDateTimeUtils.getUTCBeginOfDayTimestamp
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*

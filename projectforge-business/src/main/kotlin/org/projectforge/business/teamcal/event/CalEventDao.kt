@@ -42,7 +42,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.time.PFDateTimeUtils.Companion.getUTCBeginOfDayTimestamp
+import org.projectforge.framework.time.PFDateTimeUtils.getUTCBeginOfDayTimestamp
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
