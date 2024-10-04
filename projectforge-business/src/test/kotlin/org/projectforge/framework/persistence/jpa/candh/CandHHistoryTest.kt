@@ -135,37 +135,6 @@ class CandHHistoryTest : AbstractTestBase() {
 
     }
 
-    private fun assertNumberOfNewHistoryEntries(
-        lastStats: Pair<Long, Long>,
-        expectedNumberOfNewMasterEntries: Long,
-        expectedNumberOfNewAttrEntries: Long,
-    ) {
-        val count = countHistoryEntries()
-        Assertions.assertEquals(
-            expectedNumberOfNewMasterEntries,
-            count.first - lastStats.first,
-            "Number of master entries"
-        )
-        Assertions.assertEquals(
-            expectedNumberOfNewAttrEntries,
-            count.second - lastStats.second,
-            "Number of attr entries"
-        )
-    }
-
-    private fun countHistoryEntries(): Pair<Long, Long> {
-        val countMasterEntries = persistenceService.selectSingleResult(
-            "select count(*) from PfHistoryMasterDO",
-            Long::class.java,
-        )
-        val countAttrEntries = persistenceService.selectSingleResult(
-            "select count(*) from PfHistoryAttrDO",
-            Long::class.java,
-        )
-        return Pair(countMasterEntries!!, countAttrEntries!!)
-    }
-
-
     companion object {
         private const val PREFIX = "CandHHistoryTest_"
     }

@@ -25,20 +25,13 @@ package org.projectforge.menu.builder
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class FavoritesMenuTest : AbstractTestBase() {
 
     @Autowired
-    private lateinit var menuCreator: MenuCreator
-
-    @Autowired
     private lateinit var favoritesMenuCreator: FavoritesMenuCreator
-
-    @Autowired
-    private val accessChecker: AccessChecker? = null
 
     @Test
     fun setFavoritesMenuTest() {
