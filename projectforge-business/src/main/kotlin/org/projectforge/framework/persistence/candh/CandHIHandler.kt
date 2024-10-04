@@ -21,30 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.json.JsonUtils
+import kotlin.reflect.KMutableProperty1
 
-internal class DebugContext {
-    val entries = mutableListOf<Entry>()
+interface CandHIHandler {
+    /**
+     * Checks if the field is accepted by this handler.
+     */
+    fun accept(property: KMutableProperty1<*, *>): Boolean
 
-    fun add(
-        property: String? = null,
-        srcVal: Any? = null,
-        destVal: Any? = null,
-        msg: String? = "copied",
-    ) {
-        entries.add(Entry(propertyName = property, srcValue = srcVal, destValue = destVal, message = msg))
-    }
-
-    override fun toString(): String {
-        return JsonUtils.toJson(this)
-    }
-
-    class Entry(
-        val propertyName: String? = null,
-        val srcValue: Any? = null,
-        val destValue: Any? = null,
-        val message: String? = null,
-    )
+    /**
+     * @return true if the field was process, false if the next handler should be tried.
+     */
+    fun process(propertyContext: PropertyContext<*>, context: CandHContext): Boolean
 }

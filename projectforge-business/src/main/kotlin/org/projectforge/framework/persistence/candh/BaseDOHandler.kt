@@ -21,23 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
-import java.math.BigDecimal
+import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.HibernateUtils
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Used for BigDecimal, ignores the scale on comparison.
+ * Used for objects of type BaseDO.
  */
-class BigDecimalHandler : DefaultHandler() {
+class BaseDOHandler : DefaultHandler() {
     override fun accept(property: KMutableProperty1<*, *>): Boolean {
-        return property.returnType.jvmErasure == BigDecimal::class
+        return property.returnType.jvmErasure.isSubclassOf(BaseDO::class)
     }
 
     override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
-        srcValue as BigDecimal
-        destValue as BigDecimal
-        return srcValue.compareTo(destValue) == 0
+        val srcFieldValueId = HibernateUtils.getIdentifier(srcValue)
+        val destFieldValueId = HibernateUtils.getIdentifier(destValue)
+        return srcFieldValueId == destFieldValueId
     }
 }

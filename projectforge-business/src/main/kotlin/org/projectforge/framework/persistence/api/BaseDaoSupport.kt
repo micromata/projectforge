@@ -32,7 +32,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.persistence.jpa.candh.CandHMaster
+import org.projectforge.framework.persistence.candh.CandHMaster
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 

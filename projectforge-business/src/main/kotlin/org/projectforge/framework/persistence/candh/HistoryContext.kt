@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.history.PfHistoryAttrDO
 import org.projectforge.framework.persistence.history.PropertyOpType

@@ -21,22 +21,19 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
+import org.projectforge.framework.persistence.api.BaseDO
+import java.io.Serializable
+import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.jvm.jvmErasure
 
-/**
- * Used for java.util.Date.
- */
-class UtilDateHandler : DefaultHandler() {
-    override fun accept(property: KMutableProperty1<*, *>): Boolean {
-        return property.returnType.jvmErasure == java.util.Date::class
-    }
-
-    override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
-        val srcTime = (srcValue as java.util.Date).time
-        val destTime = (destValue as java.util.Date).time
-        return srcTime == destTime
-    }
-}
+class PropertyContext<IdType : Serializable>(
+    val kClass: KClass<*>,
+    val src: BaseDO<IdType>,
+    val dest: BaseDO<IdType>,
+    val propertyName: String,
+    val property: KMutableProperty1<*, *>,
+    val srcPropertyValue: Any?,
+    val destPropertyValue: Any?,
+)

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

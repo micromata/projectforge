@@ -21,22 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.jpa.candh
+package org.projectforge.framework.persistence.candh
 
+import java.math.BigDecimal
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.jvmErasure
 
 /**
- * Used for java.sql.Date.
+ * Used for BigDecimal, ignores the scale on comparison.
  */
-class SqlDateHandler : DefaultHandler() {
+class BigDecimalHandler : DefaultHandler() {
     override fun accept(property: KMutableProperty1<*, *>): Boolean {
-        return property.returnType.jvmErasure == java.sql.Date::class
+        return property.returnType.jvmErasure == BigDecimal::class
     }
 
     override fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
-        val srcDay = (srcValue as java.sql.Date).toLocalDate()
-        val destDay = (destValue as java.sql.Date).toLocalDate()
-        return srcDay == destDay
+        srcValue as BigDecimal
+        destValue as BigDecimal
+        return srcValue.compareTo(destValue) == 0
     }
 }
