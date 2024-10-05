@@ -42,6 +42,7 @@ internal object HistoryValueHandlerRegistry {
         // Register all handlers here.
         registerHandler(BigDecimalHistoryValueHandler(), BigDecimal::class.java.name)
         registerHandler(BooleanHistoryValueHandler(), "boolean", java.lang.Boolean::class.java.name)
+        registerHandler(LongHistoryValueHandler(), "long", java.lang.Long::class.java.name)
         registerHandler(IntHistoryValueHandler(), "int", java.lang.Integer::class.java.name)
         registerHandler(ShortHistoryValueHandler(), java.lang.Short::class.java.name)
         registerHandler(DateHistoryValueHandler(), java.util.Date::class.java.name, "net.fortuna.ical4j.model.DateTime")

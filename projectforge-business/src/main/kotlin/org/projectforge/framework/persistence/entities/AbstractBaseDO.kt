@@ -39,7 +39,9 @@ import java.util.*
 import jakarta.persistence.Basic
 import jakarta.persistence.Column
 import jakarta.persistence.MappedSuperclass
+import org.apache.poi.ss.formula.functions.T
 import org.projectforge.framework.persistence.api.BaseDOSupport
+import org.projectforge.framework.persistence.candh.CandHMaster
 import org.projectforge.framework.persistence.history.NoHistory
 
 /**
@@ -124,10 +126,10 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
          * @param src
          * @param dest
          * @param ignoreFields Does not copy these properties (by field name).
-         * @return true, if any modifications are detected, otherwise false;
+         * @return EntityCopyStatus: NONE, MINOR or MAJOR dependent on if any modifications are detected, otherwise false;
          */
         @JvmStatic
-        fun copyValues(src: BaseDO<*>, dest: BaseDO<*>, vararg ignoreFields: String?): EntityCopyStatus {
+        fun copyValues(src: BaseDO<*>, dest: BaseDO<*>, vararg ignoreFields: String): EntityCopyStatus {
             if (dest is AbstractBaseDO<*> && src is AbstractBaseDO<*>) {
                 val srcObj = src
                 val destObj = dest
@@ -136,6 +138,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
                 destObj.created = srcObj.created
                 destObj.lastUpdate = srcObj.lastUpdate
                 val modificationStatus = BaseDaoJpaAdapter.copyValues(src, dest, *ignoreFields)
+                // val modificationStatus = CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
                 // Preserve original dest values:
                 if (created != null) {
                     destObj.created = created
@@ -146,6 +149,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
                 return modificationStatus
             }
             return BaseDaoJpaAdapter.copyValues(src, dest, *ignoreFields)
+            // return CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
         }
 
         @JvmStatic
