@@ -36,8 +36,6 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.persistence.history.PropertyOpType
 import java.io.Serializable
-import java.lang.reflect.Member
-import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1

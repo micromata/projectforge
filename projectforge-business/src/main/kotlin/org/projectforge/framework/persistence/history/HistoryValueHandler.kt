@@ -38,8 +38,8 @@ import java.util.*
  * Deserializes values of the history attr table and format the values for displaying.
  */
 interface HistoryValueHandler<T> {
-    fun serialize(value: T): String {
-        return value.toString()
+    fun serialize(value: Any?): String? {
+        return value?.toString()
     }
 
     fun deserialize(value: String): T?
@@ -63,8 +63,8 @@ open class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
 
 // java.util.Date, net.fortuna.ical4j.model.Date, net.fortuna.ical4j.model.DateTime
 class DateHistoryValueHandler : HistoryValueHandler<Date> {
-    override fun serialize(value: Date): String {
-        return PFDateTimeUtils.formatUTCDate(value)
+    override fun serialize(value: Any?): String {
+        return if (value is Date) PFDateTimeUtils.formatUTCDate(value, withMillis = false) else "???"
     }
 
     override fun deserialize(value: String): Date? {
@@ -77,7 +77,7 @@ class DateHistoryValueHandler : HistoryValueHandler<Date> {
 }
 
 class LocalDateHistoryValueHandler : HistoryValueHandler<LocalDate> {
-    override fun serialize(value: LocalDate): String {
+    override fun serialize(value: Any?): String {
         return value.toString()
     }
 
@@ -97,8 +97,8 @@ class LocalDateHistoryValueHandler : HistoryValueHandler<LocalDate> {
 }
 
 class SqlDateHistoryValueHandler : HistoryValueHandler<java.sql.Date> {
-    override fun serialize(value: java.sql.Date): String {
-        return value.toLocalDate().toString()
+    override fun serialize(value: Any?): String {
+        return if (value is java.sql.Date) value.toLocalDate().toString() else "???"
     }
 
     override fun deserialize(value: String): java.sql.Date? {
@@ -118,8 +118,8 @@ class SqlDateHistoryValueHandler : HistoryValueHandler<java.sql.Date> {
 }
 
 class TimestampHistoryValueHandler : HistoryValueHandler<Timestamp> {
-    override fun serialize(value: Timestamp): String {
-        return PFDateTimeUtils.formatUTCDate(value)
+    override fun serialize(value: Any?): String {
+        return if (value is Timestamp) PFDateTimeUtils.formatUTCDate(value) else "???"
     }
 
     override fun deserialize(value: String): Timestamp? {
@@ -169,6 +169,17 @@ class ShortHistoryValueHandler : HistoryValueHandler<Short> {
     }
 }
 
+// long, java.lang.Long
+class LongHistoryValueHandler : HistoryValueHandler<Long> {
+    override fun deserialize(value: String): Long? {
+        return value.toLongOrNull()
+    }
+
+    override fun format(value: Long): String {
+        return NumberFormatter.format(value)
+    }
+}
+
 // java.math.BigDecimal
 class BigDecimalHistoryValueHandler : HistoryValueHandler<BigDecimal> {
     override fun deserialize(value: String): BigDecimal? {
@@ -182,8 +193,8 @@ class BigDecimalHistoryValueHandler : HistoryValueHandler<BigDecimal> {
 
 // [B Was only use by accident.
 class ByteArrayHistoryValueHandler : HistoryValueHandler<ByteArray> {
-    override fun serialize(value: ByteArray): String {
-        return "byte[${value.size}]" // Don't serialize the content.
+    override fun serialize(value: Any?): String {
+        return if (value is ByteArray) "byte[${value.size}]" else "[...]" // Don't serialize the content.
     }
 
     override fun deserialize(value: String): ByteArray? {
@@ -206,7 +217,7 @@ class LocaleHistoryValueHandler : HistoryValueHandler<Locale> {
 }
 
 class VoidHistoryValueHandler : HistoryValueHandler<Void> {
-    override fun serialize(value: Void): String {
+    override fun serialize(value: Any?): String {
         return ""
     }
 

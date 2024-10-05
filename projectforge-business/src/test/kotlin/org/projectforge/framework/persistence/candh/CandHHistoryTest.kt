@@ -36,9 +36,11 @@ import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.Month
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -64,6 +66,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.restrictedUser = false
         user.firstDayOfWeekValue = 1
         user.locale = Locale.GERMAN
+        user.lastPasswordChange = PFDateTime.withDate(2021, Month.JANUARY, 1, 12, 17, 33, 763).utilDate
         var lastStats = countHistoryEntries()
         userDao.saveInTrans(user)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
@@ -78,11 +81,12 @@ class CandHHistoryTest : AbstractTestBase() {
         user.timeNotation = TimeNotation.H12
         user.firstDayOfWeekValue = 7
         user.locale = Locale.FRENCH
+        user.lastPasswordChange = PFDateTime.withDate(2024, Month.OCTOBER, 5, 8, 39, 12, 500).utilDate
         userDao.updateInTrans(user)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 7)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 8)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(2, entries.size)
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, entries[0], 7)
+            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, entries[0], 8)
             (entries[0] as PfHistoryMasterDO).let { entry ->
                 assertAttrEntry(
                     "java.lang.String",
@@ -140,8 +144,24 @@ class CandHHistoryTest : AbstractTestBase() {
                     PropertyOpType.Update,
                     entry.attributes,
                 )
+                assertAttrEntry(
+                    "java.util.Date",
+                    "2024-10-05 06:39:12",
+                    "2021-01-01 11:17:33",
+                    "lastPasswordChange",
+                    PropertyOpType.Update,
+                    entry.attributes,
+                )
             }
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[1])
+
+            user.description = "This is a deleted test user."
+            userDao.markAsDeletedInTrans(user)
+            lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
+
+            user.description = "This is a undeleted test user."
+            userDao.undeleteInTrans(user)
+            lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
         }
     }
 

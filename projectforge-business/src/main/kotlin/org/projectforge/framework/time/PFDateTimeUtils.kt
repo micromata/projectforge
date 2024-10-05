@@ -247,13 +247,18 @@ object PFDateTimeUtils {
         return null
     }
 
+    @JvmOverloads
     @JvmStatic
-    fun formatUTCDate(date: Date): String {
+    fun formatUTCDate(date: Date, withMillis: Boolean = true): String {
         return if (date is java.sql.Date) {
             PFDateTime.isoDateFormatter.format(date.toLocalDate())
         } else {
             val ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-            PFDateTime.isoDateTimeFormatterMilli.format(ldt)
+            if (withMillis) {
+                PFDateTime.isoDateTimeFormatterMilli.format(ldt)
+            } else {
+                PFDateTime.isoDateTimeFormatterSeconds.format(ldt)
+            }
         }
     }
 

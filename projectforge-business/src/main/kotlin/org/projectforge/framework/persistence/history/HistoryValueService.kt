@@ -294,6 +294,17 @@ class HistoryValueService private constructor() {
             return propertyType.substringBefore("_$$").substringBefore("$")
         }
 
+        /**
+         * Serializes the property value to a string for storing as old and new values in history.
+         */
+        fun serializeValue(propertyValue: Any?, propertyType: String): String? {
+            if (propertyValue == null) {
+                return null
+            }
+            val handler = HistoryValueHandlerRegistry.getHandler(propertyType)
+            return handler.serialize(propertyValue)
+        }
+
         private val baseTypes = arrayOf(
             "boolean",
             "int",

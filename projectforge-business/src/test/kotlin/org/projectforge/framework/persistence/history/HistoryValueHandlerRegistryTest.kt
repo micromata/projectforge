@@ -46,6 +46,12 @@ class HistoryValueHandlerRegistryTest {
         HistoryValueHandlerRegistry.getHandler("java.lang.Integer").let {
             Assertions.assertTrue(it is IntHistoryValueHandler)
         }
+        HistoryValueHandlerRegistry.getHandler("long").let {
+            Assertions.assertTrue(it is LongHistoryValueHandler)
+        }
+        HistoryValueHandlerRegistry.getHandler("java.lang.Long").let {
+            Assertions.assertTrue(it is LongHistoryValueHandler)
+        }
         HistoryValueHandlerRegistry.getHandler("java.util.Date").let {
             Assertions.assertTrue(it is DateHistoryValueHandler)
         }
