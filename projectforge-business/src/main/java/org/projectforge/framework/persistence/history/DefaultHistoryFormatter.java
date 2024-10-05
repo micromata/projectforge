@@ -138,10 +138,10 @@ public class DefaultHistoryFormatter implements HistoryFormatter
       PropertyDelta delta)
   {
     switch (historyEntry.getEntityOpType()) {
-      case MarkDeleted:
-      case Deleted:
+      case MarkAsDeleted:
+      case Delete:
         return getDeletedAction(locale);
-      case UmarkDeleted:
+      case Undelete:
       case Update:
         return getUpdatedAction(locale);
       case Insert:

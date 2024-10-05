@@ -1057,7 +1057,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     open fun internalForceDelete(obj: O, context: PfPersistenceContext) {
-        BaseDaoSupport.internalForceDelete(this, obj, context)
+        BaseDaoSupport.internalForceDelete(this, obj, context, historyService)
     }
 
     /**

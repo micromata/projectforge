@@ -135,9 +135,9 @@ class HistoryFormatService {
             return when (opType) {
                 EntityOpType.Insert -> translate("operation.inserted")
                 EntityOpType.Update -> translate("operation.updated")
-                EntityOpType.Deleted -> translate("operation.deleted")
-                EntityOpType.MarkDeleted -> translate("operation.markAsDeleted")
-                EntityOpType.UmarkDeleted -> translate("operation.undeleted")
+                EntityOpType.Delete -> translate("operation.deleted")
+                EntityOpType.MarkAsDeleted -> translate("operation.markAsDeleted")
+                EntityOpType.Undelete -> translate("operation.undeleted")
                 else -> ""
             }
         }

@@ -63,10 +63,18 @@ object TestSetup {
         ThreadLocalUserContext.userContext = createTestInstance(user)
         ConfigXmlTest.createTestConfiguration()
         ConfigurationServiceAccessor.internalInitJunitTestMode()
+        /*val configurationService = Mockito.mock(ConfigurationService::class.java)
+        val configList = mutableListOf<ConfigurationDO>()
+        Mockito.`when`(configurationService.daoInternalLoadAll()).thenReturn(configList)
+        Configuration.initializeForTestOnly(configurationService)*/
+        return user
+    }
+
+    @JvmStatic
+    fun mockConfigurationService() {
         val configurationService = Mockito.mock(ConfigurationService::class.java)
         val configList = mutableListOf<ConfigurationDO>()
         Mockito.`when`(configurationService.daoInternalLoadAll()).thenReturn(configList)
         Configuration.initializeForTestOnly(configurationService)
-        return user
     }
 }
