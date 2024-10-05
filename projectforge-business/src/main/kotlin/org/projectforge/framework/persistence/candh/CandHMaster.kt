@@ -114,20 +114,44 @@ object CandHMaster {
         // We have to ignore the id property in the ignoreProperties list. The id of the dest field can't be changed.
         val ignorePropertiesList = ignoreProperties.toMutableList()
         ignorePropertiesList.add("id")
+        val ignorePropertiesArray = ignorePropertiesList.toTypedArray()
+        val processedProperties =
+            mutableSetOf<String>() // Paranoi check for avoiding handling of the same property twice.
         copyProperties(
             useSrc.javaClass.kotlin,
             src = src,
             dest = dest,
             context = context,
-            ignoreProperties = ignorePropertiesList.toTypedArray(),
+            onlyPersistedProperties = true,
+            processedProperties = processedProperties,
+            ignoreProperties = ignorePropertiesArray,
+        )
+        copyProperties(
+            useSrc.javaClass.kotlin,
+            src = src,
+            dest = dest,
+            context = context,
+            onlyPersistedProperties = false,
+            processedProperties = processedProperties,
+            ignoreProperties = ignorePropertiesArray,
         )
         //} finally {
         //    context.historyContext?.popHistoryMaster()
         //}
     }
 
+    /**
+     * Persisted properties must be copied first, because they may be used in other properties (e. g. [org.projectforge.framework.persistence.user.entities.PFUserDO.firstDayOfWeekValue] is set by
+     * [org.projectforge.framework.persistence.user.entities.PFUserDO.firstDayOfWeek]).
+     */
     private fun copyProperties(
-        kClass: KClass<*>, src: BaseDO<*>, dest: BaseDO<*>, context: CandHContext, vararg ignoreProperties: String
+        kClass: KClass<*>,
+        src: BaseDO<*>,
+        dest: BaseDO<*>,
+        context: CandHContext,
+        onlyPersistedProperties: Boolean,
+        processedProperties: MutableSet<String>,
+        vararg ignoreProperties: String,
     ) {
         context.debugContext?.add(msg = "Processing class $kClass")
         kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
@@ -138,6 +162,14 @@ object CandHMaster {
             @Suppress("UNCHECKED_CAST")
             property as KMutableProperty1<BaseDO<*>, Any?>
             val propertyName = property.name
+            if (processedProperties.contains(propertyName)) {
+                // Don't process properties twice.
+                return@forEach
+            }
+            if (onlyPersistedProperties && !HibernateUtils.isPersistedProperty(kClass, propertyName)) {
+                return@forEach
+            }
+            processedProperties.add(propertyName)
             if (ignoreProperties.contains(propertyName)) {
                 context.debugContext?.add(
                     "$kClass.$propertyName", msg = "Ignoring property in list of ignoreProperties."
