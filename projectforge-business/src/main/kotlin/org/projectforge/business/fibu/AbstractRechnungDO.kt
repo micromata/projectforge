@@ -263,7 +263,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
     }
 
     /**
-     * @param idx
+     * @param idx (0 - based)
      * @return PositionDO with given index or null, if not exist.
      */
     fun getAbstractPosition(idx: Int): AbstractRechnungsPositionDO? {

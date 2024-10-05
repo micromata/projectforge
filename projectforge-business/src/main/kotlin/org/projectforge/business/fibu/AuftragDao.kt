@@ -676,13 +676,13 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         return sendMail.send(msg, null, null)
     }
 
-    val nextNumber: Int?
+    val nextNumber: Int
         /**
          * Gets the highest Auftragsnummer.
          */
         get() = getNextNumber(null)
 
-    fun getNextNumber(auftrag: AuftragDO?): Int? {
+    fun getNextNumber(auftrag: AuftragDO?): Int {
         return persistenceService.runReadOnly { context ->
             getNextNumber(auftrag, context)
         }
@@ -695,12 +695,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * eine Nummer hatte, so kann verhindert werden, dass er eine nächst höhere Nummer bekommt. Ein solcher
      * Auftrag bekommt die alte Nummer wieder zugeordnet.
      */
-    fun getNextNumber(auftrag: AuftragDO?, context: PfPersistenceContext): Int? {
+    fun getNextNumber(auftrag: AuftragDO?, context: PfPersistenceContext): Int {
         if (auftrag?.id != null) {
             val orig = internalGetById(auftrag.id, context)
             if (orig!!.nummer != null) {
                 auftrag.nummer = orig.nummer
-                return orig.nummer
+                return orig.nummer!!
             }
         }
         // val list: List<Int?> = em.createQuery("select max(t.nummer) from AuftragDO t").getResultList()
