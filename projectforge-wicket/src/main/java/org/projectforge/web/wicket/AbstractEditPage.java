@@ -112,7 +112,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
     final StringBuffer buf = new StringBuffer();
     buf.append("function showDeleteQuestionDialog() {\n").append("  return window.confirm('");
 
-    boolean entWithHistory = HistoryServiceUtils.isHistorizable(data.getClass());
+    boolean entWithHistory = data != null && HistoryServiceUtils.isHistorizable(data.getClass());
     showHistory = entWithHistory;
     if (entWithHistory == true) {
       buf.append(getString("question.markAsDeletedQuestion"));

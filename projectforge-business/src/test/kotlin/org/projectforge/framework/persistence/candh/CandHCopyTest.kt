@@ -31,6 +31,7 @@ import org.projectforge.business.orga.ContractDO
 import org.projectforge.business.orga.ContractStatus
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -68,11 +69,11 @@ class CandHCopyTest : AbstractTestBase() {
         val src = GroupDO()
         val dest = GroupDO()
         copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
-            Assertions.assertEquals(0, context.historyContext!!.entries.size)
+            Assertions.assertEquals(0, context.historyContext!!.masterEntries.size)
         }
         dest.assignedUsers = mutableSetOf()
         copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
-            Assertions.assertEquals(0, context.historyContext!!.entries.size)
+            Assertions.assertEquals(0, context.historyContext!!.masterEntries.size)
         }
 
         val user1 = createUser(1, "user1")
@@ -80,8 +81,8 @@ class CandHCopyTest : AbstractTestBase() {
         val user3 = createUser(3, "user3")
         dest.assignedUsers = mutableSetOf(user1, user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug).let { context ->
-            Assertions.assertEquals(1, context.historyContext!!.entries.size)
-            assertHistoryEntry(context, 0, "assignedUsers", "", "1,2")
+            Assertions.assertEquals(1, context.historyContext!!.masterEntries.size)
+            assertHistoryEntry(context, "assignedUsers", "", "1,2")
         }
         Assertions.assertTrue(dest.assignedUsers.isNullOrEmpty())
 
@@ -161,13 +162,12 @@ class CandHCopyTest : AbstractTestBase() {
 
     private fun assertHistoryEntry(
         context: CandHContext,
-        index: Int,
         propertyName: String,
         oldValue: Any?,
         newValue: Any?,
         type: PropertyOpType = PropertyOpType.Update,
     ) {
-        context.historyContext!!.entries[index].apply {
+        context.historyContext!!.masterEntries.flatMap { it.attributes ?: emptySet() }.find { it.propertyName == propertyName }.apply {
             Assertions.assertEquals(type, type)
             Assertions.assertEquals(propertyName, propertyName)
             Assertions.assertEquals(oldValue, oldValue)
@@ -180,12 +180,17 @@ class CandHCopyTest : AbstractTestBase() {
         dest: BaseDO<IdType>,
         expectedStatus: EntityCopyStatus,
         debug: Boolean,
-        createHistory: Boolean = true,
+        entityOpType: EntityOpType = EntityOpType.Update,
     ): CandHContext {
-        val resultContext = CandHContext(debug = debug, createHistory = createHistory)//, persistenceService = persistenceService)
+        val resultContext =
+            CandHContext(src, debug = debug, entityOpType = EntityOpType.Update)
         CandHMaster.copyValues(src, dest, resultContext)
         Assertions.assertEquals(expectedStatus, resultContext.currentCopyStatus)
-        CandHContext(debug = debug, createHistory = createHistory/*, persistenceService = persistenceService*/).let { context ->
+        CandHContext(
+            src,
+            debug = debug,
+            entityOpType = entityOpType,
+        ).let { context ->
             CandHMaster.copyValues(src, dest, context)
             Assertions.assertEquals(EntityCopyStatus.NONE, context.currentCopyStatus)
         }

@@ -47,9 +47,6 @@ public class CallAllPagesTest extends WicketPageTestBase {
   @Autowired
   private SystemInfoCache systemInfoCache;
 
-  @Autowired
-  private MenuCreator menuCreator;
-
   @SuppressWarnings("unchecked")
   private final Class<? extends WebPage>[] skipPages = new Class[]{ //
       // Not yet checked:

@@ -127,7 +127,7 @@ class CandHHandlerTest {
         destFieldValue: Any?,
         modificationExpected: Boolean,
     ) {
-        val context = CandHContext(debug = true)//, persistenceService = Mockito.mock(PfPersistenceService::class.java))
+        val context = CandHContext(src, debug = true)
         val property = kClass.memberProperties.find { it.name == propertyName }!!
         @Suppress("UNCHECKED_CAST")
         property as KMutableProperty1<BaseDO<*>, Any?>

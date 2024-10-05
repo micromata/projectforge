@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.BaseDOSupport
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.candh.CandHMaster
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.NoHistory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -136,7 +137,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
                 destObj.created = srcObj.created
                 destObj.lastUpdate = srcObj.lastUpdate
                 val modificationStatus =
-                    CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
+                    CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields, entityOpType = EntityOpType.Update).currentCopyStatus
                 // Preserve original dest values:
                 if (created != null) {
                     destObj.created = created
@@ -146,7 +147,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
                 }
                 return modificationStatus
             }
-            return CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
+            return CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields, entityOpType = EntityOpType.Update).currentCopyStatus
         }
 
         @JvmStatic
