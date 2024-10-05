@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getEn
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import java.io.Serializable
 import kotlin.reflect.KCallable
+import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 
 
@@ -104,10 +105,13 @@ object HibernateUtils {
         return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
     }
 
+    fun isPersistedProperty(entityClass: KClass<*>, property: String): Boolean {
+        return getEntityInfo(entityClass.java)?.isPersistedProperty(property) == true
+    }
+
     fun isPersistedProperty(entityClass: Class<*>, property: String): Boolean {
         return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
     }
-
 
     private var TEST_MODE = false
 
