@@ -27,7 +27,6 @@ import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.EntityOpType
-import org.projectforge.framework.persistence.history.PfHistoryAttrDO
 import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 
@@ -54,15 +53,15 @@ class CandHContext constructor(
     internal fun addHistoryEntry(
         propertyTypeClass: Class<*>,
         optype: PropertyOpType = PropertyOpType.Update,
-        oldValue: String?,
-        value: String?,
+        oldValue: Any?,
+        value: Any?,
         propertyName: String?,
     ) {
         historyContext?.add(
             propertyTypeClass = propertyTypeClass,
             optype = optype,
             propertyName = propertyName,
-            value = value,
+            newValue = value,
             oldValue = oldValue,
         )
     }

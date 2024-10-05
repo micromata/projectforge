@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.persistence.api.HibernateUtils
@@ -93,6 +94,20 @@ class PfHistoryAttrDO {
     var oldValue: String? = null
 
     /**
+     * Only used by CandH for temrporary storage of the new value object. Don't forget to call [internalSerializeValueObjects] before persisting.
+     */
+    @get:Transient
+    @JsonIgnore
+    var internalNewValueObject: Any? = null
+
+    /**
+     * Only used by CandH for temrporary storage of the old value object. Don't forget to call [internalSerializeValueObjects] before persisting.
+     */
+    @get:Transient
+    @JsonIgnore
+    var internalOldValueObject: Any? = null
+
+    /**
      * Insert, Update (new field after MGC migration). In MGC version it was one additional entry with property_type_class
      * de.micromata.genome.db.jpa.history.entities.PropertyOpType.
      */
@@ -133,25 +148,39 @@ class PfHistoryAttrDO {
     @get:Column(name = "property_type_class", length = 128)
     var propertyTypeClass: String? = null
 
+    fun internalSerializeValueObjects() {
+        if (internalOldValueObject != null) {
+            oldValue = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(internalOldValueObject)
+            internalOldValueObject = null
+        }
+        if (internalNewValueObject != null) {
+            value = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(internalNewValueObject)
+            internalNewValueObject = null
+        }
+    }
+
     companion object {
         internal const val SELECT_HISTORY_ATTR_FOR_BASEDO = "PfHistoryAttrDO_SelectForBaseDO"
 
         /**
          * Creates a new PfHistoryAttrDO. Reference master is set by [PfHistoryMasterDO.add].
+         * The old and new value should be serialized to a string by using [HistoryValueHandlerRegistry] before
+         * persisting. The serialization should be done after persist/merge of all database objects for getting the id values
+         * of new database objects.
          */
         fun create(
             propertyTypeClass: Class<*>,
-            optype: PropertyOpType,
-            oldValue: String?,
-            value: String?,
             propertyName: String?,
+            optype: PropertyOpType,
+            oldValue: Any? = null,
+            newValue: Any? = null,
             master: PfHistoryMasterDO? = null,
         ): PfHistoryAttrDO {
             val ret = PfHistoryAttrDO()
             ret.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
             ret.optype = optype
-            ret.oldValue = oldValue
-            ret.value = value
+            ret.internalNewValueObject = newValue
+            ret.internalOldValueObject = oldValue
             ret.propertyName = propertyName
             ret.master = master
             return ret

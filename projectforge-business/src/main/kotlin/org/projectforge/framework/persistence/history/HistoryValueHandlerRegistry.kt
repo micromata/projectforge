@@ -59,7 +59,8 @@ internal object HistoryValueHandlerRegistry {
     /**
      * @param propertyType The type of the property (as String and not as class due to older history entries (e. g. net.fortuna.ical4j.model.DateTime).
      */
-    fun getHandler(propertyType: String): HistoryValueHandler<*> {
+    fun getHandler(propertyType: String?): HistoryValueHandler<*> {
+        propertyType ?: return defaultHistoryValueHandler
         return registeredHandlers[propertyType] ?: defaultHistoryValueHandler
     }
 

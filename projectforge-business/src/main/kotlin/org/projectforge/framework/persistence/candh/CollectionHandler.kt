@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModif
 import org.projectforge.framework.persistence.history.NoHistory
 import java.io.Serializable
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -79,8 +78,8 @@ open class CollectionHandler : CandHIHandler {
             context.addHistoryEntry(
                 propertyTypeClass = destCollection!!.first()!!::class.java,
                 propertyName = pc.propertyName,
-                value = "",
-                oldValue = indexToStringList(destCollection)
+                value = null,
+                oldValue = destCollection
             )
             destCollection.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
             propertyWasModified(context, propertyContext, null)
@@ -104,6 +103,7 @@ open class CollectionHandler : CandHIHandler {
                 propertyContext, "Removing entry $removeEntry from destPropertyValue.",
             )
         }
+        var collectionManagedByThis = false
         srcCollection.filterNotNull().forEach { srcCollEntry ->
             if (!destCollection.contains(srcCollEntry)) {
                 log.debug { "Adding new collection entry: $srcCollEntry" }
@@ -117,6 +117,7 @@ open class CollectionHandler : CandHIHandler {
                     msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}",
                 )
                 if (behavior != null && behavior.autoUpdateCollectionEntries) {
+                    collectionManagedByThis = true
                     val destEntry = destCollection.first { it == srcCollEntry }
                     try {
                         context.historyContext?.pushHistoryMaster(srcCollEntry)
@@ -132,12 +133,16 @@ open class CollectionHandler : CandHIHandler {
                 }
             }
         }
-        if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
+        if (collectionManagedByThis) {
+            // If collection is managed by this class, we don't need to add a history entry of removed and added entries.
+            // The entries of managed collections will be handled by the managed class and result in history entries for Insert,
+            // Update, Delete and Undelete.
+        } else if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
             context.addHistoryEntry(
                 propertyTypeClass = destCollection.first()!!::class.java,
                 propertyName = pc.propertyName,
-                value = indexToStringList(toAdd),
-                oldValue = indexToStringList(toRemove)
+                value = toAdd,
+                oldValue = toRemove,
             )
             propertyWasModified(context, propertyContext, null)
         }

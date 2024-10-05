@@ -264,7 +264,6 @@ class CandHHistoryTest : AbstractTestBase() {
             pos.menge = BigDecimal("1.1")
             pos.einzelNetto = BigDecimal("11")
         }
-        //invoice.positionen!!.removeAt(1)
         RechnungsPositionDO().let { pos ->
             invoice.addPosition(pos)
             pos.text = "Test position 3"
@@ -274,7 +273,13 @@ class CandHHistoryTest : AbstractTestBase() {
         var lastStats = countHistoryEntries()
         rechnungDao.updateInTrans(invoice)
         invoice = rechnungDao.getById(id)!!
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 4)
+        val count = persistenceService.selectSingleResult(
+            "select count(*) from RechnungsPositionDO WHERE rechnung.id = :id",
+            Long::class.java,
+            Pair("id", id),
+        )
+        Assertions.assertEquals(3, count)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 3)
         rechnungDao.getHistoryEntries(invoice).let { entries ->
             Assertions.assertEquals(4, entries.size)
             //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])

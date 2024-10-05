@@ -152,7 +152,7 @@ object BaseDaoSupport {
             dbObj.setLastUpdate()
             baseDao.prepareHibernateSearch(obj, OperationType.UPDATE, context)
             em.merge(dbObj)
-            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, EntityOpType.Update, context)
+            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
             try {
                 em.flush()
             } catch (ex: Exception) {
@@ -207,7 +207,7 @@ object BaseDaoSupport {
         obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
         em.merge(dbObj) //
         em.flush()
-        HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, EntityOpType.Delete, context)
+        HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} marked as deleted: $dbObj")
         }
@@ -228,7 +228,7 @@ object BaseDaoSupport {
         obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
         em.merge(dbObj)
         em.flush()
-        HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, EntityOpType.Undelete, context)
+        HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} undeleted: $dbObj")
         }
