@@ -104,6 +104,10 @@ object HibernateUtils {
         return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
     }
 
+    fun isPersistedProperty(entityClass: Class<*>, property: String): Boolean {
+        return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
+    }
+
 
     private var TEST_MODE = false
 

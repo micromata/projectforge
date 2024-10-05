@@ -191,7 +191,9 @@ object CandHMaster {
         type: PropertyOpType?,
     ) {
         propertyContext.apply {
-            if (HistoryServiceUtils.get().isNoHistoryProperty(src.javaClass, propertyName)) {
+            if (HistoryServiceUtils.get().isNoHistoryProperty(src.javaClass, propertyName)
+                || !HibernateUtils.isPersistedProperty(src.javaClass, propertyName)
+            ) {
                 // This property is not historized, so no major update:
                 context.combine(EntityCopyStatus.MINOR)
                 return
@@ -246,10 +248,6 @@ object CandHMaster {
                 return false
             }
         }
-        return true/*if (AnnotationsUtils.hasAnnotation(property, Id::class.java)) {
-            // Ignore id properties (dest is loaded from database, and the id can't be changed).
-            return false
-        }
-        return HibernateUtils.isPersistedProperty(kClass.java, property)*/
+        return true
     }
 }
