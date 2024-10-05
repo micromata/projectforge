@@ -305,7 +305,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return list.sorted()
     }
 
-    val nextNumber: Int?
+    val nextNumber: Int
         /**
          * Gets the highest Rechnungsnummer.
          */
@@ -318,7 +318,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * eine Nummer hatte, so kann verhindert werden, dass sie eine nächst höhere Nummer bekommt. Eine solche
      * Rechnung bekommt die alte Nummer wieder zugeordnet.
      */
-    fun getNextNumber(rechnung: RechnungDO?): Int? {
+    fun getNextNumber(rechnung: RechnungDO?): Int {
         return persistenceService.runReadOnly { context ->
             getNextNumber(rechnung, context)
         }
@@ -331,12 +331,12 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * eine Nummer hatte, so kann verhindert werden, dass sie eine nächst höhere Nummer bekommt. Eine solche
      * Rechnung bekommt die alte Nummer wieder zugeordnet.
      */
-    fun getNextNumber(rechnung: RechnungDO?, context: PfPersistenceContext): Int? {
+    fun getNextNumber(rechnung: RechnungDO?, context: PfPersistenceContext): Int {
         if (rechnung?.id != null) {
             val orig = internalGetById(rechnung.id, context)
             if (orig!!.nummer != null) {
                 rechnung.nummer = orig.nummer
-                return orig.nummer
+                return orig.nummer!!
             }
         }
         return context.getNextNumber("RechnungDO", "nummer", START_NUMBER)
