@@ -24,17 +24,28 @@
 package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.json.JsonUtils
+import kotlin.reflect.KClass
 
 internal class DebugContext {
     val entries = mutableListOf<Entry>()
 
+    fun add(msg: String) {
+        entries.add(Entry(message = msg))
+    }
+
     fun add(
-        property: String? = null,
-        srcVal: Any? = null,
-        destVal: Any? = null,
+        propertyContext: PropertyContext,
         msg: String? = "copied",
     ) {
-        entries.add(Entry(propertyName = property, srcValue = srcVal, destValue = destVal, message = msg))
+        entries.add(
+            Entry(
+                kClass = propertyContext.kClass,
+                propertyName = propertyContext.propertyName,
+                srcValue = propertyContext.srcPropertyValue,
+                destValue = propertyContext.destPropertyValue,
+                message = msg,
+            )
+        )
     }
 
     override fun toString(): String {
@@ -42,6 +53,7 @@ internal class DebugContext {
     }
 
     class Entry(
+        val kClass: KClass<*>? = null,
         val propertyName: String? = null,
         val srcValue: Any? = null,
         val destValue: Any? = null,
