@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,7 +67,8 @@ class CandHHistoryTest : AbstractTestBase() {
         user.restrictedUser = false
         user.firstDayOfWeekValue = 1
         user.locale = Locale.GERMAN
-        user.lastPasswordChange = PFDateTime.withDate(2021, Month.JANUARY, 1, 12, 17, 33, 763).utilDate
+        user.lastPasswordChange =
+            PFDateTime.withDate(2021, Month.JANUARY, 1, 12, 17, 33, 763, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         var lastStats = countHistoryEntries()
         userDao.saveInTrans(user)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
@@ -81,7 +83,8 @@ class CandHHistoryTest : AbstractTestBase() {
         user.timeNotation = TimeNotation.H12
         user.firstDayOfWeekValue = 7
         user.locale = Locale.FRENCH
-        user.lastPasswordChange = PFDateTime.withDate(2024, Month.OCTOBER, 5, 8, 39, 12, 500).utilDate
+        user.lastPasswordChange =
+            PFDateTime.withDate(2024, Month.OCTOBER, 5, 8, 39, 12, 500, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         userDao.updateInTrans(user)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 8)
         userDao.getHistoryEntries(user).let { entries ->
@@ -146,22 +149,48 @@ class CandHHistoryTest : AbstractTestBase() {
                 )
                 assertAttrEntry(
                     "java.util.Date",
-                    "2024-10-05 06:39:12",
-                    "2021-01-01 11:17:33",
+                    "2024-10-05 08:39:12",
+                    "2021-01-01 12:17:33",
                     "lastPasswordChange",
                     PropertyOpType.Update,
                     entry.attributes,
                 )
             }
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[1])
-
-            user.description = "This is a deleted test user."
-            userDao.markAsDeletedInTrans(user)
-            lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
-
-            user.description = "This is a undeleted test user."
-            userDao.undeleteInTrans(user)
-            lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
+        }
+        user.description = "This is a deleted test user."
+        userDao.markAsDeletedInTrans(user)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
+        userDao.getHistoryEntries(user).let { entries ->
+            Assertions.assertEquals(3, entries.size)
+            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, entries[0], 1)
+            (entries[0] as PfHistoryMasterDO).let { entry ->
+                assertAttrEntry(
+                    "java.lang.String",
+                    "This is a deleted test user.",
+                    null,
+                    "description",
+                    PropertyOpType.Update,
+                    entry.attributes,
+                )
+            }
+        }
+        user.description = "This is a undeleted test user."
+        userDao.undeleteInTrans(user)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
+        userDao.getHistoryEntries(user).let { entries ->
+            Assertions.assertEquals(4, entries.size)
+            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, entries[0], 1)
+            (entries[0] as PfHistoryMasterDO).let { entry ->
+                assertAttrEntry(
+                    "java.lang.String",
+                    "This is a undeleted test user.",
+                    "This is a deleted test user.",
+                    "description",
+                    PropertyOpType.Update,
+                    entry.attributes,
+                )
+            }
         }
     }
 

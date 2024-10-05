@@ -29,8 +29,12 @@ import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.candh.CandHMaster
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -62,7 +66,6 @@ object BaseDaoSupport {
         context: PfPersistenceContext,
     ) {
         val em = context.em
-        // BaseDaoJpaAdapter.prepareInsert(em, obj)
         em.persist(obj)
         if (baseDao.logDatabaseActions) {
             log.info("New ${baseDao.doClass.simpleName} added (${obj.id}): $obj")
@@ -142,7 +145,6 @@ object BaseDaoSupport {
             res.dbObjBackup = null
         }
         res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
-        // val result = baseDao.copyValues(obj, dbObj)
         val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj)
         val modStatus = candHContext.currentCopyStatus
         res.modStatus = modStatus
@@ -150,7 +152,7 @@ object BaseDaoSupport {
             dbObj.setLastUpdate()
             baseDao.prepareHibernateSearch(obj, OperationType.UPDATE, context)
             em.merge(dbObj)
-            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
+            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, EntityOpType.Update, context)
             try {
                 em.flush()
             } catch (ex: Exception) {
@@ -164,31 +166,6 @@ object BaseDaoSupport {
             }
             flushSearchSession(em)
         }
-        /*
-        res.modStatus = HistoryBaseDaoAdapter.wrapHistoryUpdate(em, dbObj) {
-          val result = baseDao.copyValues(obj, dbObj)
-          if (result != ModificationStatus.NONE) {
-            BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj)
-            dbObj.setLastUpdate()
-            // } else {
-            //   log.info("No modifications detected (no update needed): " + dbObj.toString());
-            baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
-            em.merge(dbObj)
-            try {
-              em.flush()
-            } catch (ex: Exception) {
-              // Exception stack trace:
-              // org.postgresql.util.PSQLException: FEHLER: ungültige Byte-Sequenz für Kodierung »UTF8«: 0x00
-              log.error("${ex.message} while updating object: ${ToStringUtil.toJsonString(obj)}", ex)
-              throw ex
-            }
-            if (baseDao.logDatabaseActions) {
-              log.info("${baseDao.clazz.simpleName} updated: $dbObj")
-            }
-            baseDao.flushSearchSession(em)
-          }
-          result
-        }*/
     }
 
     private fun <O : ExtendedBaseDO<Long>> postInternalUpdate(
@@ -213,31 +190,24 @@ object BaseDaoSupport {
 
     @JvmStatic
     fun <O : ExtendedBaseDO<Long>> internalMarkAsDeleted(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext) {
-        /*if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
-          log.error(
-            "Object is not historizable. Therefore, marking as deleted is not supported. Please use delete instead."
-          )
-          throw InternalErrorException("exception.internalError")
-        }*/
+        if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
+            log.error(
+                "Object is not historizable. Therefore, marking as deleted is not supported. Please use delete instead."
+            )
+            throw InternalErrorException("exception.internalError")
+        }
         baseDao.onDelete(obj, context)
         val em = context.em
         val dbObj = em.find(baseDao.doClass, obj.id)
         baseDao.onSaveOrModify(obj, context)
-
-        /*
-        HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
-          BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj)*/
-        log.error("****** TODO: History stuff")
-        baseDao.copyValues(obj, dbObj) // If user has made additional changes.
+        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj) // If user has made additional changes.
         dbObj.deleted = true
         dbObj.setLastUpdate()
         obj.deleted = true                     // For callee having same object.
         obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
         em.merge(dbObj) //
-        em.flush()/*
-              baseDao.flushSearchSession(em)
-              null
-            }*/
+        em.flush()
+        HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, EntityOpType.Delete, context)
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} marked as deleted: $dbObj")
         }
@@ -250,17 +220,15 @@ object BaseDaoSupport {
         baseDao.onSaveOrModify(obj, context)
         val em = context.em
         val dbObj = em.find(baseDao.doClass, obj.id)
-        log.error("****** TODO: History stuff")
-        /* HistoryBaseDaoAdapter.wrapHistoryUpdate(emgr, dbObj) {
-          BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj)*/
-        baseDao.copyValues(obj, dbObj) // If user has made additional changes.
+        baseDao.onSaveOrModify(obj, context)
+        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj) // If user has made additional changes.
         dbObj.deleted = false
         dbObj.setLastUpdate()
         obj.deleted = false                   // For callee having same object.
         obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
         em.merge(dbObj)
         em.flush()
-        //baseDao.flushSearchSession(em)
+        HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, EntityOpType.Undelete, context)
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} undeleted: $dbObj")
         }
@@ -269,13 +237,18 @@ object BaseDaoSupport {
     }
 
     @JvmStatic
-    fun <O : ExtendedBaseDO<Long>> internalForceDelete(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext) {
-        /*if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
-          log.error(
-            "Object is not historizable. Therefore use normal delete instead."
-          )
-          throw InternalErrorException("exception.internalError")
-        }*/
+    fun <O : ExtendedBaseDO<Long>> internalForceDelete(
+        baseDao: BaseDao<O>,
+        obj: O,
+        context: PfPersistenceContext,
+        historyService: HistoryService
+    ) {
+        if (!HistoryBaseDaoAdapter.isHistorizable(obj)) {
+            log.error(
+                "Object is not historizable. Therefore use normal delete instead."
+            )
+            throw InternalErrorException("exception.internalError")
+        }
         if (!baseDao.isForceDeletionSupport) {
             val msg = "Force deletion not supported by '${baseDao.doClass.name}'. Use markAsDeleted instead for: $obj"
             log.error(msg)
@@ -287,35 +260,21 @@ object BaseDaoSupport {
             log.error(msg)
             throw RuntimeException(msg)
         }
-        throw RuntimeException("TODO: History stuff")
-        /*
-        baseDao.onDelete(obj)
-        val userGroupCache = UserGroupCache.getInstance()
-        baseDao.persistenceService.runInTransaction { em ->
-            val dbObj = em.find(baseDao.dOClass, id)
-            em.remove(dbObj)
-            val masterClass: Class<out HistoryMasterBaseDO<*, *>?> =
-              PfHistoryMasterDO::class.java //HistoryServiceImpl.getHistoryMasterClass()
-            emgr.selectAttached(
-              masterClass,
-              "select h from ${masterClass.name} h where h.entityName = :entityName and h.entityId = :entityId",
-              "entityName", baseDao.clazz.name, "entityId", id.toLong()
-            ).forEach { historyEntry ->
-              em.remove(historyEntry)
-              val displayHistoryEntry = if (historyEntry != null) {
-                ToStringUtil.toJsonString(DisplayHistoryEntry(userGroupCache, historyEntry))
-              } else {
-                "???"
-              }
-              log.info(
-                "${baseDao.clazz.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry"
-              )
-            }
-            if (baseDao.logDatabaseActions) {
-                log.info("${baseDao.dOClass.simpleName} (forced) deleted: $dbObj")
-            }
+        baseDao.onDelete(obj, context)
+        val em = context.em
+        val dbObj = context.selectById(baseDao.doClass, id)
+        em.remove(dbObj)
+        em.flush()
+        // Remove all history entries (including all attributes) from the database:
+        historyService.loadHistory(obj, context).forEach { historyEntry ->
+            em.remove(historyEntry)
+            val displayHistoryEntry = ToStringUtil.toJsonString(DisplayHistoryEntry(historyEntry))
+            log.info("${baseDao.doClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry")
         }
-        baseDao.afterDelete(obj)*/
+        if (baseDao.logDatabaseActions) {
+            log.info("${baseDao.doClass.simpleName} (forced) deleted: $dbObj")
+        }
+        baseDao.afterDelete(obj, context)
     }
 
     /**

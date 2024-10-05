@@ -35,17 +35,17 @@ enum class EntityOpType {
     Update,
 
     /**
-     * The Deleted.
+     * The Delete.
      */
-    Deleted,
+    Delete,
 
     /**
      * The Mark deleted.
      */
-    MarkDeleted,
+    MarkAsDeleted,
 
     /**
      * The Umark deleted.
      */
-    UmarkDeleted
+    Undelete
 }

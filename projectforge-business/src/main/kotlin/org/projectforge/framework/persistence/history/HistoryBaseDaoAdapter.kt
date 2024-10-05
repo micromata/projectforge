@@ -34,9 +34,10 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * Utility to provide compat with BaseDao.
+ * Utility to provide functionalities for BaseDao.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Kai Reinhard
  */
 object HistoryBaseDaoAdapter {
     fun isHistorizable(bean: Any?): Boolean {
@@ -74,16 +75,15 @@ object HistoryBaseDaoAdapter {
         createHistoryEntry(obj, EntityOpType.Insert, context)
     }
 
-    fun updated(obj: BaseDO<Long>, historyEntries: List<PfHistoryAttrDO>?, context: PfPersistenceContext) {
+    fun updated(obj: BaseDO<Long>, historyEntries: List<PfHistoryAttrDO>?, entityOpType: EntityOpType, context: PfPersistenceContext) {
         if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
-        val master = createHistoryEntry(obj, EntityOpType.Update, context)
+        val master = createHistoryEntry(obj, entityOpType, context)
         historyEntries.forEach { attr ->
             master.add(attr)
             context.insert(attr)
         }
-        //createHistoryEntry(obj, EntityOpType.Insert, context)
     }
 
     /*
