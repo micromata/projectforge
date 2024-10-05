@@ -190,6 +190,11 @@ class Configuration(private val configurationService: ConfigurationService) : Ab
     fun isDomainValid(domain: String?): Boolean {
       return (!domain.isNullOrBlank() && domain.matches("^[a-zA-Z]+[a-zA-Z0-9\\.\\-]*[a-zA-Z0-9]+$".toRegex()))
     }
+
+    fun initializeForTestOnly(configurationService: ConfigurationService) {
+        instance = Configuration(configurationService)
+        initialized = true
+    }
   }
 
   init {
