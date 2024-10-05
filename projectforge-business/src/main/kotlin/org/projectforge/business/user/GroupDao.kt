@@ -141,39 +141,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (group.assignedUsers != null) {
             // Create history entry of PFUserDO for all assigned users:
             for (user in group.assignedUsers!!) {
-                createHistoryEntry(user, null, groupList)
-            }
-        }
-    }
-
-    /**
-     * Creates for every user an history if the user is assigned or unassigned from this updated group.
-     */
-    fun afterUpdate(group: GroupDO, dbGroup: GroupDO) {
-        if (doHistoryUpdate) {
-            val origAssignedUsers: Set<PFUserDO>? = dbGroup.assignedUsers
-            val assignedUsers: Set<PFUserDO>? = group.assignedUsers
-            val assignedList: MutableCollection<PFUserDO> = ArrayList() // List of new assigned users.
-            val unassignedList: MutableCollection<PFUserDO> = ArrayList() // List of unassigned users.
-            for (user in group.assignedUsers!!) {
-                if (!origAssignedUsers!!.contains(user)) {
-                    assignedList.add(user)
-                }
-            }
-            for (user in dbGroup.assignedUsers!!) {
-                if (!assignedUsers!!.contains(user)) {
-                    unassignedList.add(user)
-                }
-            }
-            val groupList: MutableCollection<GroupDO> = ArrayList()
-            groupList.add(group)
-            // Create history entry of PFUserDO for all new assigned users:
-            for (user in assignedList) {
-                createHistoryEntry(user, null, groupList)
-            }
-            // Create history entry of PFUserDO for all unassigned users:
-            for (user in unassignedList) {
-                createHistoryEntry(user, groupList, null)
+                insertHistoryEntry(user, null, groupList, context)
             }
         }
     }
@@ -267,16 +235,17 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 }
             }
 
-            createHistoryEntry(user, unassignedGroups, assignedGroups)
+            insertHistoryEntry(user, unassignedGroups, assignedGroups, context)
             if (updateUserGroupCache) {
                 userGroupCache.setExpired()
             }
         }
     }
 
-    private fun createHistoryEntry(
+    private fun insertHistoryEntry(
         user: PFUserDO, unassignedList: Collection<GroupDO>?,
-        assignedList: Collection<GroupDO>?
+        assignedList: Collection<GroupDO>?,
+        context: PfPersistenceContext,
     ) {
         var unassignedList = unassignedList
         var assignedList = assignedList
@@ -289,7 +258,15 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (unassignedList == null && assignedList == null) {
             return
         }
-        createHistoryEntry(user, user.id, "assignedGroups", GroupDO::class.java, unassignedList, assignedList)
+        insertUpdateHistoryEntry(
+            user,
+            user.id,
+            "assignedGroups",
+            GroupDO::class.java,
+            oldValue = unassignedList,
+            newValue = assignedList,
+            context,
+        )
     }
 
     /**

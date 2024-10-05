@@ -36,6 +36,7 @@ import org.projectforge.common.BeanHelper
 import org.projectforge.common.DatabaseDialect
 import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.HistoryValueService
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getEntityInfo
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
@@ -69,6 +70,14 @@ object HibernateUtils {
             // Kein Proxy, daher einfach die Klasse des Objekts zurückgeben
             obj.javaClass
         }
+    }
+
+    /**
+     * Removes any suffixes from the class name, such as $HibernateProxy.
+     * @see HistoryValueService.getUnifiedTypeName
+     */
+    fun getUnifiedClassname(cls: Class<*>): String {
+        return HistoryValueService.getUnifiedTypeName(cls.name)
     }
 
     /**

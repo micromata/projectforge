@@ -41,7 +41,7 @@ class CandHContext(
     internal val historyContext = if (createHistory) HistoryContext() else null
 
     internal fun addHistoryEntry(
-        propertyTypeClass: String?,
+        propertyTypeClass: Class<*>,
         optype: PropertyOpType = PropertyOpType.Update,
         oldValue: String?,
         value: String?,

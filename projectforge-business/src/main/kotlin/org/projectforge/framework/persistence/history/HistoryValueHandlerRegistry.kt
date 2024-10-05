@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.projectforge.framework.persistence.api.HibernateUtils
 import java.math.BigDecimal
 
 /**
@@ -36,6 +37,7 @@ internal object HistoryValueHandlerRegistry {
      */
     private val registeredHandlers = mutableMapOf<String, HistoryValueHandler<*>>()
 
+    // Will handle all the rest and BaseDOs.
     private val defaultHistoryValueHandler = DefaultHistoryValueHandler()
 
     init {
@@ -59,6 +61,14 @@ internal object HistoryValueHandlerRegistry {
      */
     fun getHandler(propertyType: String): HistoryValueHandler<*> {
         return registeredHandlers[propertyType] ?: defaultHistoryValueHandler
+    }
+
+    /**
+     * @param propertyType The type of the property (as String and not as class due to older history entries (e. g. net.fortuna.ical4j.model.DateTime).
+     */
+    fun getHandler(propertyType: Class<*>): HistoryValueHandler<*> {
+        val propertyTypeString = HibernateUtils.getUnifiedClassname(propertyType)
+        return registeredHandlers[propertyTypeString] ?: defaultHistoryValueHandler
     }
 
     private fun registerHandler(handler: HistoryValueHandler<*>, vararg propertyTypes: String) {

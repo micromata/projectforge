@@ -58,13 +58,66 @@ object HistoryBaseDaoAdapter {
         return whl.isEmpty() == false
     }
 
+    fun createHistoryEntry(entity: IdObject<Long>, opType: EntityOpType): PfHistoryMasterDO {
+        return PfHistoryMasterDO.create(entity, opType)
+    }
 
-    fun createHistoryEntry(
+    /**
+     * Convention: If you want to create a history entry of collections, the oldValue should contain all elements that are removed and the newValue should contain all elements that are added.
+     * @param oldValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     * @param newValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     */
+    fun createHistoryUpdateEntryWithSingleAttribute(
+        entity: IdObject<Long>,
+        propertyName: String?,
+        propertyTypeClass: Class<*>,
+        oldValue: Any?,
+        newValue: Any?,
+    ): PfHistoryMasterDO {
+        val master = PfHistoryMasterDO.create(entity, EntityOpType.Update)
+        val oldValueString = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(oldValue)
+        val newValueString = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(newValue)
+        PfHistoryAttrDO.create(
+            propertyTypeClass = propertyTypeClass,
+            optype = PropertyOpType.Update,
+            oldValue = oldValueString,
+            value = newValueString,
+            propertyName = propertyName,
+        ).let {
+            master.add(it)
+        }
+
+        return master
+    }
+
+    fun insertHistoryEntry(
         entity: IdObject<Long>, opType: EntityOpType, context: PfPersistenceContext,
     ): PfHistoryMasterDO {
-        val historyEntry = PfHistoryMasterDO.create(entity, opType)
+        val historyEntry = createHistoryEntry(entity, opType)
+        return insertHistoryEntry(historyEntry, context)
+    }
+
+    fun insertHistoryEntry(historyEntry: PfHistoryMasterDO, context: PfPersistenceContext): PfHistoryMasterDO {
         context.insert(historyEntry)
         return historyEntry
+    }
+
+    /**
+     * Convention: If you want to create a history entry of collections, the oldValue should contain all elements that are removed and the newValue should contain all elements that are added.
+     * @param oldValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     * @param newValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     */
+    fun insertHistoryUpdateEntryWithSingleAttribute(
+        entity: IdObject<Long>,
+        propertyName: String?,
+        propertyTypeClass: Class<*>,
+        oldValue: Any?, newValue: Any?,
+        context: PfPersistenceContext,
+    ): PfHistoryMasterDO {
+        val historyEntry = createHistoryUpdateEntryWithSingleAttribute(
+            entity, propertyName, propertyTypeClass, oldValue, newValue,
+        )
+        return insertHistoryEntry(historyEntry, EntityOpType.Update, context)
     }
 
     fun inserted(obj: BaseDO<Long>, context: PfPersistenceContext) {
@@ -72,14 +125,19 @@ object HistoryBaseDaoAdapter {
             // not historizable
             return
         }
-        createHistoryEntry(obj, EntityOpType.Insert, context)
+        insertHistoryEntry(obj, EntityOpType.Insert, context)
     }
 
-    fun updated(obj: BaseDO<Long>, historyEntries: List<PfHistoryAttrDO>?, entityOpType: EntityOpType, context: PfPersistenceContext) {
+    fun updated(
+        obj: BaseDO<Long>,
+        historyEntries: List<PfHistoryAttrDO>?,
+        entityOpType: EntityOpType,
+        context: PfPersistenceContext
+    ) {
         if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
-        val master = createHistoryEntry(obj, entityOpType, context)
+        val master = insertHistoryEntry(obj, entityOpType, context)
         historyEntries.forEach { attr ->
             master.add(attr)
             context.insert(attr)

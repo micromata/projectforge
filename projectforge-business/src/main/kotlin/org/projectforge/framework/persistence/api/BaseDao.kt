@@ -1444,10 +1444,17 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return dest.copyValuesFrom(src, *ignoreFields)
     }
 
-    protected open fun createHistoryEntry(
-        entity: Any?, id: Number?, property: String?,
-        valueClass: Class<*>?,
-        oldValue: Any?, newValue: Any?
+    /**
+     * Convention: If you want to create a history entry of collections, the oldValue should contain all elements that are removed and the newValue should contain all elements that are added.
+     * @param oldValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     * @param newValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     * @see HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute
+     */
+    protected fun insertUpdateHistoryEntry(
+        entity: IdObject<Long>, id: Number?, property: String?,
+        propertyTypeClass: Class<*>,
+        oldValue: Any?, newValue: Any?,
+        context: PfPersistenceContext,
     ) {
         accessChecker.checkRestrictedOrDemoUser()
         val contextUser = user
@@ -1455,8 +1462,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         if (userPk == null) {
             log.warn("No user found for creating history entry.")
         }
-        log.error("******** Not yet implemented: createHistoryEntry")
-        // HistoryBaseDaoAdapter.createHistoryEntry(entity, id, userPk, property, valueClass, oldValue, newValue);
+        HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(
+            entity = entity,
+            propertyName = property,
+            propertyTypeClass = propertyTypeClass,
+            oldValue = oldValue,
+            newValue = newValue,
+            context
+        )
     }
 
     /**
