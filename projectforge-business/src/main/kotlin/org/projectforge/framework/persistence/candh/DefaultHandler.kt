@@ -37,7 +37,7 @@ open class DefaultHandler : CandHIHandler {
         return true
     }
 
-    override fun process(propertyContext: PropertyContext<*>, context: CandHContext): Boolean {
+    override fun process(propertyContext: PropertyContext, context: CandHContext): Boolean {
         var modified = false
         propertyContext.apply {
             if (destPropertyValue == null || srcPropertyValue == null) {

@@ -65,9 +65,9 @@ object CandHMaster {
     /**
      * @param ignoreProperties The names of the properties to ignore.
      */
-    fun <IdType : Serializable> copyValues(
-        src: BaseDO<IdType>,
-        dest: BaseDO<IdType>,
+    fun copyValues(
+        src: BaseDO<*>,
+        dest: BaseDO<*>,
         vararg ignoreProperties: String,
         createHistory: Boolean = true,
     ): CandHContext {
@@ -86,9 +86,9 @@ object CandHMaster {
      * @param ignoreProperties The names of the properties to ignore.
     */
      */
-    fun <T : Serializable> copyValues(
-        src: BaseDO<T>,
-        dest: BaseDO<T>,
+    fun copyValues(
+        src: BaseDO<*>,
+        dest: BaseDO<*>,
         context: CandHContext,
         vararg ignoreProperties: String
     ) {
@@ -123,10 +123,10 @@ object CandHMaster {
         //}
     }
 
-    private fun <IdType : Serializable> copyProperties(
+    private fun copyProperties(
         kClass: KClass<*>,
-        src: BaseDO<IdType>,
-        dest: BaseDO<IdType>,
+        src: BaseDO<*>,
+        dest: BaseDO<*>,
         context: CandHContext,
         vararg ignoreProperties: String
     ) {
@@ -137,7 +137,7 @@ object CandHMaster {
                 return@forEach
             }
             @Suppress("UNCHECKED_CAST")
-            property as KMutableProperty1<BaseDO<IdType>, Any?>
+            property as KMutableProperty1<BaseDO<*>, Any?>
             val propertyName = property.name
             if (ignoreProperties.contains(propertyName)) {
                 context.debugContext?.add(
@@ -187,9 +187,9 @@ object CandHMaster {
      * Will also handle the history entries, if required.
      * @param type If null, no history handling is done (was handled by caller).
      */
-    internal fun <IdType : Serializable> propertyWasModified(
+    internal fun propertyWasModified(
         context: CandHContext,
-        propertyContext: PropertyContext<IdType>,
+        propertyContext: PropertyContext,
         type: PropertyOpType?,
     ) {
         propertyContext.apply {
@@ -208,9 +208,9 @@ object CandHMaster {
         }
     }
 
-    internal fun <IdType : Serializable> handleHistoryEntry(
+    internal fun handleHistoryEntry(
         context: CandHContext,
-        propertyContext: PropertyContext<IdType>,
+        propertyContext: PropertyContext,
         type: PropertyOpType,
     ) {
         if (context.historyContext == null) {

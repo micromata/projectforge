@@ -34,5 +34,5 @@ interface CandHIHandler {
     /**
      * @return true if the field was process, false if the next handler should be tried.
      */
-    fun process(propertyContext: PropertyContext<*>, context: CandHContext): Boolean
+    fun process(propertyContext: PropertyContext, context: CandHContext): Boolean
 }
