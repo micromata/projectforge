@@ -690,7 +690,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     open fun getLocationAutocompletion(searchString: String?): List<String> {
         checkLoggedInUserSelectAccess()
         val oneYearAgo = now().minusDays(365)
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             TimesheetDO.SELECT_USED_LOCATIONS_BY_USER_AND_LOCATION_SEARCHSTRING,
             String::class.java,
             Pair("lastUpdate", oneYearAgo.utilDate),
@@ -704,7 +704,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     open fun getUsedReferences(taskId: Long): List<String> {
         checkLoggedInUserSelectAccess()
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             TimesheetDO.SELECT_REFERENCES_BY_TASK_ID,
             String::class.java,
             Pair("taskIds", taskTree.getAncestorAndDescendantTaskIs(taskId, true)),
@@ -724,7 +724,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     open fun getRecentLocation(sinceDate: Date?): Collection<String> {
         checkLoggedInUserSelectAccess()
         log.info("Get recent locations from the database.")
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
             String::class.java,
             Pair("userId", ThreadLocalUserContext.userId),

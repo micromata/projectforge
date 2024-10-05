@@ -189,11 +189,11 @@ open class PfPersistenceService {
 
     /**
      * Encapsulated in [runReadOnly].
-     * @see PfPersistenceContext.query
+     * @see PfPersistenceContext.executeQuery
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
     @JvmOverloads
-    fun <T> query(
+    fun <T> executeQuery(
         sql: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
@@ -203,7 +203,7 @@ open class PfPersistenceService {
         lockModeType: LockModeType? = null,
     ): List<T> {
         return runReadOnly { context ->
-            context.query(
+            context.executeQuery(
                 sql = sql,
                 resultClass = resultClass,
                 keyValues = keyValues,
@@ -216,11 +216,11 @@ open class PfPersistenceService {
     }
 
     /**
-     * Convenience call for [query] with namedQuery = true. Encapsulated in [runReadOnly].
-     * @see query
+     * Convenience call for [executeQuery] with namedQuery = true. Encapsulated in [runReadOnly].
+     * @see executeQuery
      */
     @JvmOverloads
-    fun <T> namedQuery(
+    fun <T> executeNamedQuery(
         sql: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
@@ -228,7 +228,7 @@ open class PfPersistenceService {
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
     ): List<T> {
-        return query(
+        return executeQuery(
             sql = sql,
             resultClass = resultClass,
             keyValues = keyValues,

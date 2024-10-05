@@ -82,7 +82,7 @@ class HistoryService {
         context: PfPersistenceContext,
     ) {
         entityId ?: return
-        val result = context.query(
+        val result = context.executeQuery(
             sql = PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
             resultClass = PfHistoryMasterDO::class.java,
             namedQuery = true,

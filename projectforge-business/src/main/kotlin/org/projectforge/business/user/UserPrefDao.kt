@@ -118,7 +118,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      */
     fun getPrefNames(area: String): Array<String> {
         val user = user
-        val names = persistenceService.namedQuery(
+        val names = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_NAMES_BY_USER_AND_AREA,
             String::class.java,
             Pair("userId", user!!.id),
@@ -129,7 +129,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
 
     fun getListWithoutEntries(areaId: String): List<UserPrefDO> {
         val user = user
-        val list = persistenceService.namedQuery(
+        val list = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_IDS_AND_NAMES_BY_USER_AND_AREA,
             Array<Any>::class.java,
             Pair("userId", user!!.id),
@@ -232,7 +232,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     fun getUserPrefs(userId: Long?, area: UserPrefArea): List<UserPrefDO> {
-        val list = persistenceService.namedQuery(
+        val list = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_BY_USER_ID_AND_AREA,
             UserPrefDO::class.java,
             Pair("userId", userId),
@@ -242,7 +242,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     fun getUserPrefs(userId: Long): List<UserPrefDO> {
-        val list = persistenceService.namedQuery(
+        val list = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_BY_USER_ID,
             UserPrefDO::class.java,
             Pair("userId", userId)

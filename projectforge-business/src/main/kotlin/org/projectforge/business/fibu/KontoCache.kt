@@ -137,7 +137,7 @@ open class KontoCache : AbstractCache() {
         log.info("Initializing KontoCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
         val map: MutableMap<Long?, KontoDO?> = HashMap()
-        val list = persistenceService.query(
+        val list = persistenceService.executeQuery(
             "from KontoDO t where deleted=false",
             KontoDO::class.java,
         )

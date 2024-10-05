@@ -117,7 +117,7 @@ open class AddressImageDao {
         var success = false
         persistenceService.runInTransaction { context ->
             // Should be only one image. But for safety reasons we delete all images.
-            context.query(
+            context.executeQuery(
                 "from ${AddressImageDO::class.java.name} t where t.address.id = :addressId",
                 AddressImageDO::class.java,
                 Pair("addressId", address.id),

@@ -30,9 +30,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistProp
 import org.projectforge.framework.persistence.history.HistoryEntry
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -100,7 +98,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
     ): Map<Long?, AddressCampaignValueDO> {
         map.clear()
         val addressCampaignId = searchFilter.addressCampaignId ?: return map
-        val list: List<AddressCampaignValueDO> = persistenceService.namedQuery(
+        val list: List<AddressCampaignValueDO> = persistenceService.executeNamedQuery(
             AddressCampaignValueDO.FIND_BY_CAMPAIGN,
             AddressCampaignValueDO::class.java,
             Pair("addressCampaignId", searchFilter.addressCampaignId)
@@ -122,7 +120,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         if (addressCampaignId == null) {
             return map
         }
-        val list: List<AddressCampaignValueDO> = persistenceService.namedQuery(
+        val list: List<AddressCampaignValueDO> = persistenceService.executeNamedQuery(
             AddressCampaignValueDO.FIND_BY_CAMPAIGN,
             AddressCampaignValueDO::class.java,
             Pair("addressCampaignId", addressCampaignId),

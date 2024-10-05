@@ -115,7 +115,7 @@ class UserXmlPreferencesDao {
         if (checkAccess) {
             checkAccess(userId)
         }
-        val list: List<UserXmlPreferencesDO> = persistenceService.query(
+        val list: List<UserXmlPreferencesDO> = persistenceService.executeQuery(
             "from UserXmlPreferencesDO where user.id = :userid and key = :key",
             UserXmlPreferencesDO::class.java,
             Pair("userid", userId), Pair("key", key)
@@ -138,7 +138,7 @@ class UserXmlPreferencesDao {
      */
     fun getUserPreferencesByUserId(userId: Long): List<UserXmlPreferencesDO> {
         checkAccess(userId)
-        return persistenceService.query(
+        return persistenceService.executeQuery(
             "select u from UserXmlPreferencesDO u where u.user.id = :userid",
             UserXmlPreferencesDO::class.java,
             Pair("userid", userId)

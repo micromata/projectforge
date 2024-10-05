@@ -154,7 +154,7 @@ class EmployeeService {
         context: PfPersistenceContext,
     ): List<EmployeeValidityPeriodAttrDO> {
         requireNotNull(employee.id) { "Employee id must not be null." }
-        val list = context.query(
+        val list = context.executeQuery(
             "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.attribute = :attribute order by a.validFrom desc",
             EmployeeValidityPeriodAttrDO::class.java,
             Pair("employeeId", employee.id),

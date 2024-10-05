@@ -261,7 +261,7 @@ class PersonalAddressDao {
         get() {
             val owner = requiredLoggedInUser
             val start = System.currentTimeMillis()
-            val list = persistenceService.namedQuery(
+            val list = persistenceService.executeNamedQuery(
                 PersonalAddressDO.FIND_JOINED_BY_OWNER,
                 PersonalAddressDO::class.java,
                 Pair("ownerId", owner.id),
@@ -276,7 +276,7 @@ class PersonalAddressDao {
          */
         get() {
             val owner = requiredLoggedInUser
-            return persistenceService.namedQuery(
+            return persistenceService.executeNamedQuery(
                 PersonalAddressDO.FIND_FAVORITE_ADDRESS_IDS_BY_OWNER,
                 Long::class.java,
                 Pair("ownerId", owner.id)
@@ -290,7 +290,7 @@ class PersonalAddressDao {
          */
         get() {
             val owner = requiredLoggedInUser
-            val list = persistenceService.namedQuery(
+            val list = persistenceService.executeNamedQuery(
                 PersonalAddressDO.FIND_BY_OWNER,
                 PersonalAddressDO::class.java,
                 Pair("ownerId", owner.id),

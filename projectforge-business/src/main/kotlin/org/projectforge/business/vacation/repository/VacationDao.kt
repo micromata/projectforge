@@ -258,7 +258,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     open fun getCurrentAndFutureVacations(): List<VacationDO> {
-        return persistenceService.query(
+        return persistenceService.executeQuery(
             VacationDO.FIND_CURRENT_AND_FUTURE,
             VacationDO::class.java,
             Pair("endDate", LocalDate.now()),
@@ -384,7 +384,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         val baseSQL =
             "SELECT v FROM VacationDO v WHERE v.employee.id = :employeeId AND v.endDate >= :startDate AND v.startDate <= :endDate"
         val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
-        return persistenceService.query(
+        return persistenceService.executeQuery(
             sql,
             VacationDO::class.java,
             Pair("employeeId", employeeId),
@@ -446,7 +446,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         val baseSQL =
             "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate"
         val sql = baseSQL + if (withSpecial) META_SQL_WITH_SPECIAL else META_SQL
-        return persistenceService.query(
+        return persistenceService.executeQuery(
             sql,
             VacationDO::class.java,
             Pair("employee", employee),

@@ -145,7 +145,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     }
 
     fun getActiveKost2(nummernkreis: Int, bereich: Int, teilbereich: Int): List<Kost2DO> {
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             Kost2DO.FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH,
             Kost2DO::class.java,
             Pair("nummernkreis", nummernkreis),

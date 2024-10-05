@@ -76,7 +76,7 @@ class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
     }
 
     fun getSkills(owner: PFUserDO): List<SkillEntryDO> {
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             SkillEntryDO.FIND_OF_OWNER,
             SkillEntryDO::class.java,
             Pair("ownerId", owner.id),
