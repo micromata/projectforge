@@ -36,4 +36,6 @@ class PropertyContext(
     val property: KMutableProperty1<*, *>,
     val srcPropertyValue: Any?,
     val destPropertyValue: Any?,
-)
+) {
+    val kClassAndPropertyName = "$kClass.$propertyName"
+}

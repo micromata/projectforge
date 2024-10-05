@@ -31,12 +31,12 @@ import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
-import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
-import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.NoHistory
 import java.io.Serializable
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -45,6 +45,7 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Used for mutable collections. TreeSet, ArrayList, HashSet and PersistentSet are supported.
+ * Supports deep copy of collection entries as well, as history handling (adding, removing and modifying entries).
  */
 open class CollectionHandler : CandHIHandler {
     override fun accept(property: KMutableProperty1<*, *>): Boolean {
@@ -55,128 +56,90 @@ open class CollectionHandler : CandHIHandler {
         propertyContext: PropertyContext,
         context: CandHContext,
     ): Boolean {
-        propertyContext.apply {
-            if (!collectionManagedBySrcClazz(property)) {
-                // Collection isn't managed by this class, therefore do nothing.
-                return true
-            }
-            @Suppress("UNCHECKED_CAST")
-            property as KMutableProperty1<BaseDO<*>, Any?>
-            @Suppress("UNCHECKED_CAST")
-            val srcCollection = srcPropertyValue as? MutableCollection<Any?>
+        val pc = propertyContext
+        val property = pc.property
+        val dest = pc.dest
+        if (!collectionManagedBySrcClazz(pc.property)) {
+            // Collection isn't managed by this class, therefore do nothing.
+            return true
+        }
+        @Suppress("UNCHECKED_CAST")
+        property as KMutableProperty1<BaseDO<*>, Any?>
+        @Suppress("UNCHECKED_CAST")
+        val srcCollection = pc.srcPropertyValue as? MutableCollection<Any?>
 
-            @Suppress("UNCHECKED_CAST")
-            var destCollection = destPropertyValue as? MutableCollection<Any?>
-            if (srcCollection.isNullOrEmpty() && destCollection.isNullOrEmpty()) {
-                // Both collections are null or empty, so nothing to do.
-                return true
+        @Suppress("UNCHECKED_CAST")
+        var destCollection = pc.destPropertyValue as? MutableCollection<Any?>
+        if (srcCollection.isNullOrEmpty() && destCollection.isNullOrEmpty()) {
+            // Both collections are null or empty, so nothing to do.
+            return true
+        }
+        if (srcCollection.isNullOrEmpty()) {
+            context.debugContext?.add(propertyContext)
+            context.addHistoryEntry(
+                propertyTypeClass = destCollection!!.first()!!::class.java,
+                propertyName = pc.propertyName,
+                value = "",
+                oldValue = indexToStringList(destCollection)
+            )
+            destCollection.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
+            propertyWasModified(context, propertyContext, null)
+            return true
+        }
+        val toRemove = mutableListOf<Any>()
+        val toAdd = mutableListOf<Any>()
+        if (destCollection == null) {
+            destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
+            property.set(dest, destCollection)
+        }
+        destCollection?.filterNotNull()?.forEach { destColEntry ->
+            if (srcCollection.none { it == destColEntry }) {
+                toRemove.add(destColEntry)
             }
-            if (srcCollection.isNullOrEmpty()) {
+        }
+        toRemove.forEach { removeEntry ->
+            log.debug { "Removing collection entry: $removeEntry" }
+            destCollection.remove(removeEntry)
+            context.debugContext?.add(
+                propertyContext, "Removing entry $removeEntry from destPropertyValue.",
+            )
+        }
+        srcCollection.filterNotNull().forEach { srcCollEntry ->
+            if (!destCollection.contains(srcCollEntry)) {
+                log.debug { "Adding new collection entry: $srcCollEntry" }
+                destCollection.add(srcCollEntry)
+                toAdd.add(srcCollEntry)
+                context.debugContext?.add(propertyContext, msg = "Adding entry $srcCollEntry to destPropertyValue.")
+            } else if (srcCollEntry is BaseDO<*>) {
+                val behavior = AnnotationsUtils.getAnnotation(pc.property, PFPersistancyBehavior::class.java)
                 context.debugContext?.add(
-                    "$kClass.$propertyName",
-                    srcVal = srcPropertyValue,
-                    destVal = "<not empty collection>"
+                    propertyContext,
+                    msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}",
                 )
-                context.addHistoryEntry(
-                    propertyTypeClass = destCollection!!.first()!!::class.java,
-                    propertyName = propertyName,
-                    value = "",
-                    oldValue = indexToStringList(destCollection)
-                )
-                destCollection.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
-                propertyWasModified(context, propertyContext, null)
-                return true
-            }
-            val toRemove = mutableListOf<Any>()
-            val toAdd = mutableListOf<Any>()
-            if (destCollection == null) {
-                if (srcPropertyValue is TreeSet<*>) {
-                    destCollection = TreeSet()
-                    context.debugContext?.add(
-                        "$kClass.$propertyName",
-                        srcVal = srcPropertyValue,
-                        msg = "Creating TreeSet as destPropertyValue.",
-                    )
-                } else if (srcPropertyValue is HashSet<*>) {
-                    destCollection = HashSet()
-                    context.debugContext?.add(
-                        "$kClass.$propertyName",
-                        srcVal = srcPropertyValue,
-                        msg = "Creating HashSet as destPropertyValue.",
-                    )
-                } else if (srcPropertyValue is List<*>) {
-                    destCollection = ArrayList()
-                    context.debugContext?.add(
-                        "$kClass.$propertyName",
-                        srcVal = srcPropertyValue,
-                        msg = "Creating ArrayList as destPropertyValue.",
-                    )
-                } else if (srcPropertyValue is PersistentSet<*>) {
-                    destCollection = HashSet()
-                    context.debugContext?.add(
-                        "$kClass.$propertyName",
-                        srcVal = srcPropertyValue,
-                        msg = "Creating HashSet as destPropertyValue. srcPropertyValue is PersistentSet.",
-                    )
-                } else {
-                    log.error("Unsupported collection type: " + srcPropertyValue?.javaClass?.name)
-                    return true
-                }
-                property.set(dest, destCollection)
-            }
-            destCollection.filterNotNull().forEach { destColEntry ->
-                if (srcCollection.none { it == destColEntry }) {
-                    toRemove.add(destColEntry)
-                }
-            }
-            toRemove.forEach { removeEntry ->
-                log.debug { "Removing collection entry: $removeEntry" }
-                destCollection.remove(removeEntry)
-                context.debugContext?.add(
-                    "$kClass.$propertyName",
-                    msg = "Removing entry $removeEntry from destPropertyValue.",
-                )
-            }
-            srcCollection.filterNotNull().forEach { srcCollEntry ->
-                if (!destCollection.contains(srcCollEntry)) {
-                    log.debug { "Adding new collection entry: $srcCollEntry" }
-                    destCollection.add(srcCollEntry)
-                    toAdd.add(srcCollEntry)
-                    context.debugContext?.add(
-                        "$kClass.$propertyName",
-                        msg = "Adding entry $srcCollEntry to destPropertyValue.",
-                    )
-                } else if (srcCollEntry is BaseDO<*>) {
-                    val behavior = AnnotationsUtils.getAnnotation(property, PFPersistancyBehavior::class.java)
-                    context.debugContext?.add(
-                        "$kClass.$propertyName",
-                        msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}"
-                    )
-                    if (behavior != null && behavior.autoUpdateCollectionEntries) {
-                        val destEntry = destCollection.first { it == srcCollEntry }
-                        try {
-                            context.historyContext?.pushHistoryMaster(srcCollEntry)
-                            @Suppress("UNCHECKED_CAST")
-                            copyValues(
-                                srcCollEntry as BaseDO<Serializable>,
-                                destEntry as BaseDO<Serializable>,
-                                context,
-                            )
-                        } finally {
-                            context.historyContext?.popHistoryMaster()
-                        }
+                if (behavior != null && behavior.autoUpdateCollectionEntries) {
+                    val destEntry = destCollection.first { it == srcCollEntry }
+                    try {
+                        context.historyContext?.pushHistoryMaster(srcCollEntry)
+                        @Suppress("UNCHECKED_CAST")
+                        copyValues(
+                            srcCollEntry as BaseDO<Serializable>,
+                            destEntry as BaseDO<Serializable>,
+                            context,
+                        )
+                    } finally {
+                        context.historyContext?.popHistoryMaster()
                     }
                 }
-                if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
-                    context.addHistoryEntry(
-                        propertyTypeClass = destCollection.first()!!::class.java,
-                        propertyName = propertyName,
-                        value = indexToStringList(toAdd),
-                        oldValue = indexToStringList(toRemove)
-                    )
-                    propertyWasModified(context, propertyContext, null)
-                }
             }
+        }
+        if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
+            context.addHistoryEntry(
+                propertyTypeClass = destCollection.first()!!::class.java,
+                propertyName = pc.propertyName,
+                value = indexToStringList(toAdd),
+                oldValue = indexToStringList(toRemove)
+            )
+            propertyWasModified(context, propertyContext, null)
         }
         return true
     }
@@ -202,6 +165,27 @@ open class CollectionHandler : CandHIHandler {
             return annotation.mappedBy.isNotEmpty()
         }
         return false
+    }
+
+    private fun createCollectionInstance(
+        context: CandHContext,
+        propertyContext: PropertyContext,
+        srcCollection: Any
+    ): MutableCollection<Any?> {
+        val collection: MutableCollection<Any?> = when (srcCollection) {
+            is TreeSet<*> -> TreeSet()
+            is HashSet<*> -> HashSet()
+            is ArrayList<*> -> ArrayList()
+            is PersistentSet<*> -> HashSet()
+            else -> {
+                log.error { "Unsupported collection type: " + srcCollection.javaClass.name }
+                ArrayList()
+            }
+        }
+        propertyContext.apply {
+            context.debugContext?.add(propertyContext, msg = "Creating ${collection.javaClass} as destPropertyValue.")
+        }
+        return collection
     }
 
     private fun indexToStringList(coll: Collection<*>?): String {

@@ -172,14 +172,12 @@ object CandHMaster {
             }
             processedProperties.add(propertyName)
             if (ignoreProperties.contains(propertyName)) {
-                context.debugContext?.add(
-                    "$kClass.$propertyName", msg = "Ignoring property in list of ignoreProperties."
-                )
+                context.debugContext?.add("Ignoring property '$kClass.$propertyName' in list of ignoreProperties.")
                 return@forEach
             }
 
             if (!accept(property)) {
-                context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring property, not accepted.")
+                context.debugContext?.add("Ignoring property '$kClass.$propertyName', not accepted.")
                 return@forEach
             }
             try {

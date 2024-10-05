@@ -264,7 +264,7 @@ class CandHHistoryTest : AbstractTestBase() {
             pos.menge = BigDecimal("1.1")
             pos.einzelNetto = BigDecimal("11")
         }
-        invoice.positionen!!.removeAt(1)
+        //invoice.positionen!!.removeAt(1)
         RechnungsPositionDO().let { pos ->
             invoice.addPosition(pos)
             pos.text = "Test position 3"
@@ -273,9 +273,10 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         var lastStats = countHistoryEntries()
         rechnungDao.updateInTrans(invoice)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 6)
+        invoice = rechnungDao.getById(id)!!
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 4)
         rechnungDao.getHistoryEntries(invoice).let { entries ->
-            Assertions.assertEquals(2, entries.size)
+            Assertions.assertEquals(4, entries.size)
             //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
             //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
             //assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])

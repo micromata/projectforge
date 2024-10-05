@@ -24,8 +24,8 @@
 package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
+import org.projectforge.framework.persistence.history.PropertyOpType
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.jvmErasure
 
@@ -48,12 +48,7 @@ open class DefaultHandler : CandHIHandler {
                 modified = true
             }
             if (modified) {
-                context.debugContext?.add(
-                    "$kClass.$propertyName",
-                    srcVal = srcPropertyValue,
-                    destVal = destPropertyValue,
-                    msg = "Field of type ${property.returnType.jvmErasure} modified.",
-                )
+                context.debugContext?.add(propertyContext, "Field of type ${property.returnType.jvmErasure} modified.")
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
                 property.set(dest, srcPropertyValue)
