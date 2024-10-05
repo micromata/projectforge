@@ -27,6 +27,9 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.history.*
 import kotlin.reflect.KClass
 
+/**
+ * Context for handling history entries.
+ */
 internal class HistoryContext(
     /**
      * Needed for initializing the history context with the first master entry, if required.
@@ -59,8 +62,13 @@ internal class HistoryContext(
 
     /**
      * Pop the last master from the stack. Throws an exception if the stack is empty.
+     * If the master has no attributes, it will be removed from the masterEntries list.
      */
     fun popHistoryMaster(): PfHistoryMasterDO {
+        if (currentMaster?.attributes.isNullOrEmpty()) {
+            // If the master has no attributes, we don't need to keep it.
+            masterEntries.remove(currentMaster)
+        }
         return masterStack.removeAt(masterStack.size - 1)
     }
 
@@ -76,24 +84,30 @@ internal class HistoryContext(
             }
         }
 
+    /**
+     * Add a new history entry for the given property context. The current master will be used.
+     */
     fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
         propertyContext.apply {
             val propertyTypeClass = (property.returnType.classifier as KClass<*>).java
             add(
                 propertyTypeClass = propertyTypeClass,
                 optype = optype,
-                oldValue = HistoryValueService.serializeValue(destPropertyValue, propertyTypeClass),
-                value = HistoryValueService.serializeValue(srcPropertyValue, propertyTypeClass),
+                oldValue = destPropertyValue,
+                newValue = srcPropertyValue,
                 propertyName = propertyName,
             )
         }
     }
 
+    /**
+     * Add a new history entry for the given property context. The current master will be used.
+     */
     fun add(
         propertyTypeClass: Class<*>,
         optype: PropertyOpType,
-        oldValue: String?,
-        value: String?,
+        oldValue: Any?,
+        newValue: Any?,
         propertyName: String?,
     ) {
         currentMasterAttributes.add(
@@ -101,7 +115,7 @@ internal class HistoryContext(
                 propertyTypeClass = propertyTypeClass,
                 optype = optype,
                 oldValue = oldValue,
-                value = value,
+                newValue = newValue,
                 propertyName = propertyName,
                 master = currentMaster
             )
