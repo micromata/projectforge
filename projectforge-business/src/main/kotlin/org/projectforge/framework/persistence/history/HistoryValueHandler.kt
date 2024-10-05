@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
@@ -48,6 +49,27 @@ interface HistoryValueHandler<T> {
 }
 
 open class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
+    override fun serialize(value: Any?): String? {
+        value ?: return null
+        if (value is BaseDO<*>) {
+            return value.id?.toString()
+        }
+        if (value is Collection<*>) {
+            if (value.isEmpty()) {
+                return ""
+            }
+            val first = value.filterNotNull().firstOrNull()
+                ?: return value.joinToString(",") { obj ->
+                    "null"
+                }
+            val handler = HistoryValueHandlerRegistry.getHandler(first.javaClass)
+            return value.joinToString(",") { obj ->
+                handler.serialize(obj) ?: "null"
+            }
+        }
+        return super.serialize(value)
+    }
+
     override fun deserialize(value: String): Any? {
         return value
     }

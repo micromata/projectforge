@@ -360,7 +360,15 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
             }
         }
         if (!firstOld || !firstNew) {
-            createHistoryEntry(obj, obj.id, "entries", String::class.java, bufOld.toString(), bufNew.toString())
+            insertUpdateHistoryEntry(
+                obj,
+                obj.id,
+                "entries",
+                AccessEntryDO::class.java,
+                oldValue = bufOld.toString(),
+                newValue = bufNew.toString(),
+                context,
+            )
         }
     }
 

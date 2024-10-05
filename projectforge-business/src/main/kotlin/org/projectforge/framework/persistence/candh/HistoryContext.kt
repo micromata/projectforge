@@ -56,7 +56,7 @@ internal class HistoryContext {
 
     fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
         propertyContext.apply {
-            val propertyTypeClass = (property.returnType.classifier as KClass<*>).java.name
+            val propertyTypeClass = (property.returnType.classifier as KClass<*>).java
             add(
                 propertyTypeClass = propertyTypeClass,
                 optype = optype,
@@ -68,7 +68,7 @@ internal class HistoryContext {
     }
 
     fun add(
-        propertyTypeClass: String?,
+        propertyTypeClass: Class<*>,
         optype: PropertyOpType,
         oldValue: String?,
         value: String?,

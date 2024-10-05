@@ -26,8 +26,7 @@ package org.projectforge.framework.persistence.candh
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.projectforge.business.fibu.RechnungDO
-import org.projectforge.business.fibu.RechnungDao
+import org.projectforge.business.fibu.*
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.business.user.UserRightId
@@ -41,6 +40,8 @@ import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.Month
 import java.util.*
 import kotlin.reflect.KClass
@@ -54,6 +55,9 @@ class CandHHistoryTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var rechnungDao: RechnungDao
+
+    @Autowired
+    private lateinit var kundeDao: KundeDao
 
     @Test
     fun baseTests() {
@@ -221,14 +225,36 @@ class CandHHistoryTest : AbstractTestBase() {
             assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
         }
-        // Add, remove and change rights and test history entries...
-        //user.rights
+        // TODO: ****** Add, remove and change rights and test history entries...
+        // TODO: ****** Testing adding and removing groups and users.
     }
 
     @Test
     fun invoiceTests() {
-        logon(TEST_FINANCE_USER)
+/*        logon(TEST_FINANCE_USER)
+        val customer = KundeDO()
+        customer.name = "Test customer"
+        kundeDao.saveInTrans(customer)
+
         val invoice = RechnungDO()
+        invoice.betreff = "Test invoice"
+        invoice.datum = LocalDate.now()
+        invoice.typ = RechnungTyp.RECHNUNG
+        invoice.kunde = customer
+
+        RechnungsPositionDO().let { pos ->
+            invoice.addPosition(pos)
+            pos.text = "Test position 1"
+            pos.menge = BigDecimal.ONE
+            pos.einzelNetto = BigDecimal.TEN
+        }
+        RechnungsPositionDO().let { pos ->
+            invoice.addPosition(pos)
+            pos.text = "Test position 2"
+            pos.menge = BigDecimal.TEN
+            pos.einzelNetto = BigDecimal("5.5")
+        }
+        rechnungDao.saveInTrans(invoice)*/
         // kunde, projekt, status
         /*        invoice.apply {
                      = "12345"

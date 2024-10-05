@@ -77,7 +77,7 @@ open class CollectionHandler : CandHIHandler {
                     destVal = "<not empty collection>"
                 )
                 context.addHistoryEntry(
-                    propertyTypeClass = destCollection!!.first()!!::class.java.name,
+                    propertyTypeClass = destCollection!!.first()!!::class.java,
                     propertyName = propertyName,
                     value = "",
                     oldValue = indexToStringList(destCollection)
@@ -163,7 +163,7 @@ open class CollectionHandler : CandHIHandler {
                 }
                 if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
                     context.addHistoryEntry(
-                        propertyTypeClass = destCollection!!.first()!!::class.java.name,
+                        propertyTypeClass = destCollection.first()!!::class.java,
                         propertyName = propertyName,
                         value = indexToStringList(toAdd),
                         oldValue = indexToStringList(toRemove)

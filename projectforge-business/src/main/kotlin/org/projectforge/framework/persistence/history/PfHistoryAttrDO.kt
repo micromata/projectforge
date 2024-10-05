@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.history
 import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.framework.persistence.api.HibernateUtils
 
 /**
  * Stores history attributes.
@@ -139,14 +140,14 @@ class PfHistoryAttrDO {
          * Creates a new PfHistoryAttrDO. Reference master is set by [PfHistoryMasterDO.add].
          */
         fun create(
-            propertyTypeClass: String?,
+            propertyTypeClass: Class<*>,
             optype: PropertyOpType,
             oldValue: String?,
             value: String?,
             propertyName: String?,
         ): PfHistoryAttrDO {
             val ret = PfHistoryAttrDO()
-            ret.propertyTypeClass = propertyTypeClass
+            ret.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
             ret.optype = optype
             ret.oldValue = oldValue
             ret.value = value
