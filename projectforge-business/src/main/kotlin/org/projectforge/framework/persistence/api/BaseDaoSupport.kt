@@ -145,7 +145,7 @@ object BaseDaoSupport {
             res.dbObjBackup = null
         }
         res.wantsReindexAllDependentObjects = baseDao.wantsReindexAllDependentObjects(obj, dbObj)
-        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj)
+        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj, entityOpType = EntityOpType.Update)
         val modStatus = candHContext.currentCopyStatus
         res.modStatus = modStatus
         if (modStatus != EntityCopyStatus.NONE) {
@@ -200,7 +200,7 @@ object BaseDaoSupport {
         val em = context.em
         val dbObj = em.find(baseDao.doClass, obj.id)
         baseDao.onSaveOrModify(obj, context)
-        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj) // If user has made additional changes.
+        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj, entityOpType = EntityOpType.Delete) // If user has made additional changes.
         dbObj.deleted = true
         dbObj.setLastUpdate()
         obj.deleted = true                     // For callee having same object.
@@ -221,7 +221,7 @@ object BaseDaoSupport {
         val em = context.em
         val dbObj = em.find(baseDao.doClass, obj.id)
         baseDao.onSaveOrModify(obj, context)
-        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj) // If user has made additional changes.
+        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj, entityOpType = EntityOpType.Undelete) // If user has made additional changes.
         dbObj.deleted = false
         dbObj.setLastUpdate()
         obj.deleted = false                   // For callee having same object.

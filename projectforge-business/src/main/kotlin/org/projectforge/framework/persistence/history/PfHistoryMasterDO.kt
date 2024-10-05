@@ -29,6 +29,7 @@ import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
@@ -146,14 +147,14 @@ class PfHistoryMasterDO : HistoryEntry {
 
         @JvmOverloads
         fun create(
-            entity: IdObject<Long>,
+            entity: IdObject<*>,
             entityOpType: EntityOpType,
-            entityName: String? = entity::class.qualifiedName,
+            entityName: String? = HibernateUtils.getRealClass(entity).name,
             modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
         ): PfHistoryMasterDO {
             val ret = PfHistoryMasterDO()
             ret.entityName = entityName
-            ret.entityId = entity.id
+            ret.entityId = entity.id as? Long
             ret.entityOpType = entityOpType
             ret.modifiedBy = modifiedBy
             ret.modifiedAt = Date()

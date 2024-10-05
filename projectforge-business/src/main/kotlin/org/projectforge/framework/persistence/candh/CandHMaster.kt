@@ -31,6 +31,7 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.persistence.history.PropertyOpType
 import java.io.Serializable
@@ -73,9 +74,9 @@ object CandHMaster {
         src: BaseDO<*>,
         dest: BaseDO<*>,
         vararg ignoreProperties: String,
-        createHistory: Boolean = true,
+        entityOpType: EntityOpType? = null,
     ): CandHContext {
-        val context = CandHContext(createHistory = createHistory)//, persistenceService = persistenceService)
+        val context = CandHContext(src, entityOpType = entityOpType)
         copyValues(
             src = src,
             dest = dest,

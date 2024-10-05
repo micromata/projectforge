@@ -34,6 +34,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
+import org.projectforge.framework.persistence.history.EntityOpType
 import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KMutableProperty1
@@ -153,12 +154,17 @@ open class CollectionHandler : CandHIHandler {
                     )
                     if (behavior != null && behavior.autoUpdateCollectionEntries) {
                         val destEntry = destCollection.first { it == srcCollEntry }
-                        @Suppress("UNCHECKED_CAST")
-                        copyValues(
-                            srcCollEntry as BaseDO<Serializable>,
-                            destEntry as BaseDO<Serializable>,
-                            context
-                        )
+                        try {
+                            context.historyContext?.pushHistoryMaster(srcCollEntry)
+                            @Suppress("UNCHECKED_CAST")
+                            copyValues(
+                                srcCollEntry as BaseDO<Serializable>,
+                                destEntry as BaseDO<Serializable>,
+                                context,
+                            )
+                        } finally {
+                            context.historyContext?.popHistoryMaster()
+                        }
                     }
                 }
                 if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {

@@ -23,26 +23,38 @@
 
 package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.persistence.history.HistoryValueHandlerRegistry
-import org.projectforge.framework.persistence.history.HistoryValueService
-import org.projectforge.framework.persistence.history.PfHistoryAttrDO
-import org.projectforge.framework.persistence.history.PropertyOpType
+import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.history.*
 import kotlin.reflect.KClass
 
-internal class HistoryContext {
-    /*private val masterStack = mutableListOf<PfHistoryMasterDO>()
+internal class HistoryContext(
+    /**
+     * Needed for initializing the history context with the first master entry, if required.
+     */
+    val entity: BaseDO<*>,
+    val entityOpType: EntityOpType = EntityOpType.Update
+) {
+    // All created masterEntries for later processing.
+    internal val masterEntries = mutableListOf<PfHistoryMasterDO>()
 
-    private val currentMaster: PfHistoryMasterDO
-        get() = masterStack.last()
+    // Stack for the current masterEntry, proceeded by CandHMaster.
+    private val masterStack = mutableListOf<PfHistoryMasterDO>()
+
+    private val currentMaster: PfHistoryMasterDO?
+        get() = masterStack.lastOrNull()
 
     /**
      * Push a new master of type [PfHistoryMasterDO] to the stack. Don't forget to call [popHistoryMaster] when you're done.
      */
     fun pushHistoryMaster(
-        entity: IdObject<Long>,
+        entity: BaseDO<*>,
         entityOpType: EntityOpType = EntityOpType.Update,
-    ) {
-        masterStack.add(PfHistoryMasterDO.create(entity = entity, entityOpType = entityOpType))
+    ): PfHistoryMasterDO {
+        PfHistoryMasterDO.create(entity = entity, entityOpType = entityOpType).let {
+            masterStack.add(it)
+            masterEntries.add(it)
+            return it
+        }
     }
 
     /**
@@ -50,9 +62,19 @@ internal class HistoryContext {
      */
     fun popHistoryMaster(): PfHistoryMasterDO {
         return masterStack.removeAt(masterStack.size - 1)
-    }*/
+    }
 
-    internal val entries = mutableListOf<PfHistoryAttrDO>()
+    private val currentMasterAttributes: MutableSet<PfHistoryAttrDO>
+        get() {
+            if (currentMaster == null) {
+                // Now we need to create the first master entry.
+                pushHistoryMaster(entity, entityOpType)
+            }
+            currentMaster!!.let { master ->
+                master.attributes = master.attributes ?: mutableSetOf()
+                return master.attributes!!
+            }
+        }
 
     fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
         propertyContext.apply {
@@ -74,13 +96,14 @@ internal class HistoryContext {
         value: String?,
         propertyName: String?,
     ) {
-        entries.add(
+        currentMasterAttributes.add(
             PfHistoryAttrDO.create(
                 propertyTypeClass = propertyTypeClass,
                 optype = optype,
                 oldValue = oldValue,
                 value = value,
                 propertyName = propertyName,
+                master = currentMaster
             )
         )
     }

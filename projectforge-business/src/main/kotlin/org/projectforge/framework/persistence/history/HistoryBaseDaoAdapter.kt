@@ -117,7 +117,7 @@ object HistoryBaseDaoAdapter {
         val historyEntry = createHistoryUpdateEntryWithSingleAttribute(
             entity, propertyName, propertyTypeClass, oldValue, newValue,
         )
-        return insertHistoryEntry(historyEntry, EntityOpType.Update, context)
+        return insertHistoryEntry(historyEntry, context)
     }
 
     fun inserted(obj: BaseDO<Long>, context: PfPersistenceContext) {
@@ -130,17 +130,19 @@ object HistoryBaseDaoAdapter {
 
     fun updated(
         obj: BaseDO<Long>,
-        historyEntries: List<PfHistoryAttrDO>?,
+        historyEntries: List<PfHistoryMasterDO>?,
         entityOpType: EntityOpType,
         context: PfPersistenceContext
     ) {
         if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
-        val master = insertHistoryEntry(obj, entityOpType, context)
-        historyEntries.forEach { attr ->
-            master.add(attr)
-            context.insert(attr)
+        historyEntries.forEach { master ->
+            insertHistoryEntry(master, context)
+            master.attributes?.forEach { attr ->
+                master.add(attr)
+                context.insert(attr)
+            }
         }
     }
 

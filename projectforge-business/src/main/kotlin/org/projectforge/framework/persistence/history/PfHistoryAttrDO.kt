@@ -145,6 +145,7 @@ class PfHistoryAttrDO {
             oldValue: String?,
             value: String?,
             propertyName: String?,
+            master: PfHistoryMasterDO? = null,
         ): PfHistoryAttrDO {
             val ret = PfHistoryAttrDO()
             ret.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
@@ -152,6 +153,7 @@ class PfHistoryAttrDO {
             ret.oldValue = oldValue
             ret.value = value
             ret.propertyName = propertyName
+            ret.master = master
             return ret
         }
     }

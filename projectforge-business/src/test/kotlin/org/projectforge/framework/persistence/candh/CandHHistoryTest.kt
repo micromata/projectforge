@@ -201,7 +201,7 @@ class CandHHistoryTest : AbstractTestBase() {
     @Test
     fun userRightsTests() {
         logon(ADMIN_USER)
-        var user = PFUserDO()
+        val user = PFUserDO()
         user.username = "${PREFIX}rightsTest"
         var lastStats = countHistoryEntries()
         try {
@@ -231,16 +231,19 @@ class CandHHistoryTest : AbstractTestBase() {
 
     @Test
     fun invoiceTests() {
-/*        logon(TEST_FINANCE_USER)
+        logon(TEST_FINANCE_USER)
         val customer = KundeDO()
+        customer.id = 7864872 // Must be manually assigned.
         customer.name = "Test customer"
         kundeDao.saveInTrans(customer)
 
-        val invoice = RechnungDO()
+        var invoice = RechnungDO()
+        invoice.nummer = rechnungDao.nextNumber
         invoice.betreff = "Test invoice"
         invoice.datum = LocalDate.now()
         invoice.typ = RechnungTyp.RECHNUNG
         invoice.kunde = customer
+        invoice.faelligkeit = LocalDate.now().plusDays(14)
 
         RechnungsPositionDO().let { pos ->
             invoice.addPosition(pos)
@@ -251,10 +254,32 @@ class CandHHistoryTest : AbstractTestBase() {
         RechnungsPositionDO().let { pos ->
             invoice.addPosition(pos)
             pos.text = "Test position 2"
-            pos.menge = BigDecimal.TEN
-            pos.einzelNetto = BigDecimal("5.5")
+            pos.menge = BigDecimal("2")
+            pos.einzelNetto = BigDecimal("20")
         }
-        rechnungDao.saveInTrans(invoice)*/
+        val id = rechnungDao.saveInTrans(invoice)
+        invoice = rechnungDao.getById(id)!!
+        invoice.getAbstractPosition(0).let { pos ->
+            pos!!.text = "Test position 1 changed"
+            pos.menge = BigDecimal("1.1")
+            pos.einzelNetto = BigDecimal("11")
+        }
+        invoice.positionen!!.removeAt(1)
+        RechnungsPositionDO().let { pos ->
+            invoice.addPosition(pos)
+            pos.text = "Test position 3"
+            pos.menge = BigDecimal("3")
+            pos.einzelNetto = BigDecimal("30")
+        }
+        var lastStats = countHistoryEntries()
+        rechnungDao.updateInTrans(invoice)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 6)
+        rechnungDao.getHistoryEntries(invoice).let { entries ->
+            Assertions.assertEquals(2, entries.size)
+            //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
+            //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
+            //assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
+        }
         // kunde, projekt, status
         /*        invoice.apply {
                      = "12345"

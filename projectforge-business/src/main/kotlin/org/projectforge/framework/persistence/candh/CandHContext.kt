@@ -24,21 +24,32 @@
 package org.projectforge.framework.persistence.candh
 
 import kotlinx.collections.immutable.toImmutableList
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.PfHistoryAttrDO
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 
-class CandHContext(
+class CandHContext constructor(
+    /**
+     * Needed for initializing the history context with the master entry.
+     */
+    val entity: BaseDO<*>,
     var currentCopyStatus: EntityCopyStatus = EntityCopyStatus.NONE,
-    createHistory: Boolean = true,
     debug: Boolean = false,
-    // var persistenceService: PfPersistenceService,
+    /**
+     * If given, history entries are created.
+     */
+    entityOpType: EntityOpType? = null,
 ) {
-    val historyEntries: List<PfHistoryAttrDO>?
-        get() = historyContext?.entries?.toImmutableList()
+    val historyEntries: List<PfHistoryMasterDO>?
+        get() = historyContext?.masterEntries?.toImmutableList()
 
     internal val debugContext = if (debug) DebugContext() else null
-    internal val historyContext = if (createHistory) HistoryContext() else null
+
+    // Only if entityOpType is given, history entries are created.
+    internal val historyContext = if (entityOpType != null) HistoryContext(entity, entityOpType) else null
 
     internal fun addHistoryEntry(
         propertyTypeClass: Class<*>,
