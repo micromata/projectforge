@@ -39,7 +39,7 @@ class CandHContext(
     internal val debugContext = if (debug) DebugContext() else null
     internal val historyContext = if (createHistory) HistoryContext() else null
     internal fun addHistoryEntry(
-        propertyContext: PropertyContext<*>,
+        propertyContext: PropertyContext,
         optype: PropertyOpType = PropertyOpType.Update
     ) {
         historyContext?.add(propertyContext = propertyContext, optype = optype)

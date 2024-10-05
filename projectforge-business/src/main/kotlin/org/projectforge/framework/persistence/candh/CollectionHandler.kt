@@ -51,7 +51,7 @@ open class CollectionHandler : CandHIHandler {
     }
 
     override fun process(
-        propertyContext: PropertyContext<*>,
+        propertyContext: PropertyContext,
         context: CandHContext,
     ): Boolean {
         propertyContext.apply {

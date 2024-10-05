@@ -28,10 +28,10 @@ import java.io.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 
-class PropertyContext<IdType : Serializable>(
+class PropertyContext(
     val kClass: KClass<*>,
-    val src: BaseDO<IdType>,
-    val dest: BaseDO<IdType>,
+    val src: BaseDO<*>,
+    val dest: BaseDO<*>,
     val propertyName: String,
     val property: KMutableProperty1<*, *>,
     val srcPropertyValue: Any?,

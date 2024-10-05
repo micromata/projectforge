@@ -54,7 +54,7 @@ internal class HistoryContext {
 
     internal val entries = mutableListOf<PfHistoryAttrDO>()
 
-    fun add(propertyContext: PropertyContext<*>, optype: PropertyOpType) {
+    fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
         propertyContext.apply {
             val propertyTypeClass = (property.returnType.classifier as KClass<*>).java.name
             add(
