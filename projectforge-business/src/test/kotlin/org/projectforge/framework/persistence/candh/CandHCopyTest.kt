@@ -182,10 +182,10 @@ class CandHCopyTest : AbstractTestBase() {
         debug: Boolean,
         createHistory: Boolean = true,
     ): CandHContext {
-        val resultContext = CandHContext(debug = debug, createHistory = createHistory)
+        val resultContext = CandHContext(debug = debug, createHistory = createHistory)//, persistenceService = persistenceService)
         CandHMaster.copyValues(src, dest, resultContext)
         Assertions.assertEquals(expectedStatus, resultContext.currentCopyStatus)
-        CandHContext(debug = debug, createHistory = createHistory).let { context ->
+        CandHContext(debug = debug, createHistory = createHistory/*, persistenceService = persistenceService*/).let { context ->
             CandHMaster.copyValues(src, dest, context)
             Assertions.assertEquals(EntityCopyStatus.NONE, context.currentCopyStatus)
         }

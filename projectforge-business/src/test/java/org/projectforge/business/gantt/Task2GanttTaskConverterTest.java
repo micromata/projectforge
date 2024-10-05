@@ -53,8 +53,8 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     @Test
     public void testConvertingTaskTree() {
         logon(AbstractTestBase.TEST_ADMIN_USER);
+        final String prefix = "task2Gantt";
         persistenceService.runInTransaction(context -> {
-            final String prefix = "task2Gantt";
             initTestDB.addTask(prefix, "root", context);
             initTestDB.addTask(prefix + "1", prefix, context);
             initTestDB.addTask(prefix + "1.1", prefix + "1", context);
@@ -78,8 +78,10 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
             task.setGanttPredecessor(getTask(prefix + "2.1"));
             task.setDuration(BigDecimal.TEN);
             taskDao.update(task, context);
-
-            task = getTask(prefix + "1.1.1");
+            return null;
+        });
+        persistenceService.runInTransaction(context -> {
+            TaskDO task = getTask(prefix + "1.1.1");
             task.setGanttPredecessor(getTask(prefix + "2.1"));
             task.setDuration(BigDecimal.TEN);
             taskDao.update(task, context);

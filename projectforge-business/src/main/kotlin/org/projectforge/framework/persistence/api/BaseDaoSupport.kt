@@ -29,10 +29,10 @@ import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.candh.CandHMaster
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.persistence.candh.CandHMaster
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 
@@ -75,13 +75,12 @@ object BaseDaoSupport {
         } catch (ex: Exception) {
             // Exception stack trace:
             // org.postgresql.util.PSQLException: FEHLER: ungültige Byte-Sequenz für Kodierung »UTF8«: 0x00
-            log.error("${ex.message} while saving object: ${ToStringUtil.toJsonString(obj)}", ex)
+            log.error(ex) { "${ex.message} while saving object: ${ToStringUtil.toJsonString(obj)}" }
             throw ex
         }
     }
 
     private fun <O : ExtendedBaseDO<Long>> preInternalSave(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext) {
-        requireNotNull(obj)
         obj.setCreated()
         obj.setLastUpdate()
         baseDao.onSave(obj, context)
@@ -265,7 +264,6 @@ object BaseDaoSupport {
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} undeleted: $dbObj")
         }
-        dbObj
         baseDao.afterSaveOrModify(obj, context)
         baseDao.afterUndelete(obj, context)
     }
@@ -334,7 +332,7 @@ object BaseDaoSupport {
                 preInternalUpdate(baseDao, obj, false, context)
                 val res = ResultObject<O>()
                 internalUpdate(baseDao, obj, false, res, context)
-                postInternalUpdate<O>(baseDao, obj, res, context)
+                postInternalUpdate(baseDao, obj, res, context)
             } else {
                 preInternalSave(baseDao, obj, context)
                 internalSave(baseDao, obj, context)
@@ -355,7 +353,7 @@ object BaseDaoSupport {
         blockSize: Int,
         persistenceService: PfPersistenceService,
     ) {
-        val list: MutableList<O> = ArrayList<O>()
+        val list = mutableListOf<O>()
         var counter = 0
         for (obj in col) {
             list.add(obj)

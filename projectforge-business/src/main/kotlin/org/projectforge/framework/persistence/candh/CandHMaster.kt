@@ -23,12 +23,10 @@
 
 package org.projectforge.framework.persistence.candh
 
-import jakarta.persistence.Id
 import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.Hibernate
 import org.hibernate.proxy.HibernateProxy
-import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.HibernateUtils
@@ -36,6 +34,8 @@ import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseD
 import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.persistence.history.PropertyOpType
 import java.io.Serializable
+import java.lang.reflect.Member
+import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -52,6 +52,8 @@ object CandHMaster {
      */
     private val registeredHandlers = mutableListOf<CandHIHandler>()
 
+    // private val persistenceService: PfPersistenceService
+
     init {
         // Register all handlers here.
         registeredHandlers.add(BigDecimalHandler())
@@ -60,6 +62,8 @@ object CandHMaster {
         registeredHandlers.add(CollectionHandler())
         registeredHandlers.add(BaseDOHandler())
         registeredHandlers.add(DefaultHandler()) // Handles everything else.
+        // persistenceService =
+        //    ApplicationContextProvider.getApplicationContext().getBean(PfPersistenceService::class.java)
     }
 
     /**
@@ -71,7 +75,7 @@ object CandHMaster {
         vararg ignoreProperties: String,
         createHistory: Boolean = true,
     ): CandHContext {
-        val context = CandHContext(createHistory = createHistory)
+        val context = CandHContext(createHistory = createHistory)//, persistenceService = persistenceService)
         copyValues(
             src = src,
             dest = dest,
@@ -87,20 +91,13 @@ object CandHMaster {
     */
      */
     fun copyValues(
-        src: BaseDO<*>,
-        dest: BaseDO<*>,
-        context: CandHContext,
-        vararg ignoreProperties: String
+        src: BaseDO<*>, dest: BaseDO<*>, context: CandHContext, vararg ignoreProperties: String
     ) {
         val srcClass = HibernateUtils.getRealClass(src)
         val destClass = HibernateUtils.getRealClass(dest)
         if (!ClassUtils.isAssignable(srcClass, destClass)) {
             throw RuntimeException(
-                ("Try to copyValues from different BaseDO classes: this from type "
-                        + destClass.name
-                        + " and src from type"
-                        + srcClass.name
-                        + "!")
+                ("Try to copyValues from different BaseDO classes: this from type ${destClass.name} and src of type ${srcClass.name}!")
             )
         }
         //try {
@@ -108,15 +105,21 @@ object CandHMaster {
         var useSrc: BaseDO<out Serializable> = src
         //  context.historyContext?.pushHistoryMaster(useSrc as BaseDO<Long>)
         if (src is HibernateProxy) {
-            useSrc = (src as HibernateProxy).hibernateLazyInitializer
-                .implementation as BaseDO<*>
+            useSrc = (src as HibernateProxy).hibernateLazyInitializer.implementation as BaseDO<*>
         }
+        if (ignoreProperties.none { it == "id" } && BaseDOHandler.idModified(src, dest)) {
+            @Suppress("UNCHECKED_CAST")
+            (dest as BaseDO<Serializable>).id = src.id
+        }
+        // We have to ignore the id property in the ignoreProperties list. The id of the dest field can't be changed.
+        val ignorePropertiesList = ignoreProperties.toMutableList()
+        ignorePropertiesList.add("id")
         copyProperties(
             useSrc.javaClass.kotlin,
             src = src,
             dest = dest,
             context = context,
-            ignoreProperties = ignoreProperties,
+            ignoreProperties = ignorePropertiesList.toTypedArray(),
         )
         //} finally {
         //    context.historyContext?.popHistoryMaster()
@@ -124,11 +127,7 @@ object CandHMaster {
     }
 
     private fun copyProperties(
-        kClass: KClass<*>,
-        src: BaseDO<*>,
-        dest: BaseDO<*>,
-        context: CandHContext,
-        vararg ignoreProperties: String
+        kClass: KClass<*>, src: BaseDO<*>, dest: BaseDO<*>, context: CandHContext, vararg ignoreProperties: String
     ) {
         context.debugContext?.add(msg = "Processing class $kClass")
         kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
@@ -141,13 +140,12 @@ object CandHMaster {
             val propertyName = property.name
             if (ignoreProperties.contains(propertyName)) {
                 context.debugContext?.add(
-                    "$kClass.$propertyName",
-                    msg = "Ignoring property in list of ignoreProperties."
+                    "$kClass.$propertyName", msg = "Ignoring property in list of ignoreProperties."
                 )
                 return@forEach
             }
 
-            if (!accept(property, kClass)) {
+            if (!accept(property)) {
                 context.debugContext?.add("$kClass.$propertyName", msg = "Ignoring property, not accepted.")
                 return@forEach
             }
@@ -166,8 +164,7 @@ object CandHMaster {
                 var processed = false
                 for (handler in registeredHandlers) {
                     if (handler.accept(property)) {
-                        if (handler.process(propertyContext, context = context)
-                        ) {
+                        if (handler.process(propertyContext, context = context)) {
                             processed = true
                             break
                         }
@@ -177,6 +174,7 @@ object CandHMaster {
                     log.error { "******** Oups, property $kClass.$propertyName not processed!" }
                 }
             } catch (ex: Exception) {
+                log.error(ex) { "Error processing property $kClass.$propertyName: ${ex.message}" }
                 throw InternalError("Unexpected IllegalAccessException for property $kClass.$propertyName " + ex.message)
             }
         }
@@ -208,7 +206,7 @@ object CandHMaster {
         }
     }
 
-    internal fun handleHistoryEntry(
+    private fun handleHistoryEntry(
         context: CandHContext,
         propertyContext: PropertyContext,
         type: PropertyOpType,
@@ -233,15 +231,25 @@ object CandHMaster {
      * @param property The property to test.
      * @return Whether to consider the given `Property`.
      */
-    internal fun accept(property: KCallable<*>, kClass: KClass<*>): Boolean {
+    internal fun accept(property: KCallable<*>): Boolean {
         if (property.name.indexOf(ClassUtils.INNER_CLASS_SEPARATOR_CHAR) != -1) {
             // Reject properties from inner class.
             return false
         }
-        if (AnnotationsUtils.hasAnnotation(property, Id::class.java)) {
+        if (property is Member) {
+            if (Modifier.isTransient(property.modifiers)) {
+                // transients.
+                return false
+            }
+            if (Modifier.isStatic(property.modifiers)) {
+                // transients.
+                return false
+            }
+        }
+        return true/*if (AnnotationsUtils.hasAnnotation(property, Id::class.java)) {
             // Ignore id properties (dest is loaded from database, and the id can't be changed).
             return false
         }
-        return HibernateUtils.isPersistedProperty(kClass.java, property)
+        return HibernateUtils.isPersistedProperty(kClass.java, property)*/
     }
 }
