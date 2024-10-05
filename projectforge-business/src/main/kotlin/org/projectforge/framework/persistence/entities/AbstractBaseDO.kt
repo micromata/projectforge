@@ -23,26 +23,24 @@
 
 package org.projectforge.framework.persistence.entities
 
+import jakarta.persistence.Basic
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
 import org.apache.commons.lang3.ClassUtils
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.ToStringUtil.Companion.toJsonString
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.BaseDOSupport
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.candh.CandHMaster
+import org.projectforge.framework.persistence.history.NoHistory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.Serializable
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
-import jakarta.persistence.Basic
-import jakarta.persistence.Column
-import jakarta.persistence.MappedSuperclass
-import org.apache.poi.ss.formula.functions.T
-import org.projectforge.framework.persistence.api.BaseDOSupport
-import org.projectforge.framework.persistence.candh.CandHMaster
-import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -137,8 +135,8 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
                 val lastUpdate = destObj.lastUpdate
                 destObj.created = srcObj.created
                 destObj.lastUpdate = srcObj.lastUpdate
-                val modificationStatus = BaseDaoJpaAdapter.copyValues(src, dest, *ignoreFields)
-                // val modificationStatus = CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
+                val modificationStatus =
+                    CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
                 // Preserve original dest values:
                 if (created != null) {
                     destObj.created = created
@@ -148,8 +146,7 @@ abstract class AbstractBaseDO<I : Serializable> : ExtendedBaseDO<I>, Serializabl
                 }
                 return modificationStatus
             }
-            return BaseDaoJpaAdapter.copyValues(src, dest, *ignoreFields)
-            // return CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
+            return CandHMaster.copyValues(src, dest, ignoreProperties = ignoreFields).currentCopyStatus
         }
 
         @JvmStatic

@@ -32,18 +32,13 @@ class CandHContext(
     var currentCopyStatus: EntityCopyStatus = EntityCopyStatus.NONE,
     createHistory: Boolean = true,
     debug: Boolean = false,
+    // var persistenceService: PfPersistenceService,
 ) {
     val historyEntries: List<PfHistoryAttrDO>?
         get() = historyContext?.entries?.toImmutableList()
 
     internal val debugContext = if (debug) DebugContext() else null
     internal val historyContext = if (createHistory) HistoryContext() else null
-    internal fun addHistoryEntry(
-        propertyContext: PropertyContext,
-        optype: PropertyOpType = PropertyOpType.Update
-    ) {
-        historyContext?.add(propertyContext = propertyContext, optype = optype)
-    }
 
     internal fun addHistoryEntry(
         propertyTypeClass: String?,

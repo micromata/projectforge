@@ -135,7 +135,8 @@ object HibernateUtils {
      */
     @JvmStatic
     fun getIdentifier(obj: BaseDO<*>): Serializable? {
-        if (Hibernate.isInitialized(obj)) {
+        return obj.id
+/*        if (Hibernate.isInitialized(obj)) {
             return obj.id
         } else if (obj is DefaultBaseDO) {
             return obj.id
@@ -153,7 +154,7 @@ object HibernateUtils {
             "Couldn't get the identifier of the given object (Jassist/Hibernate-Bug: HHH-3502) for class: "
                     + obj.javaClass.name
         )
-        return null
+        return null*/
     }
 
     /**
