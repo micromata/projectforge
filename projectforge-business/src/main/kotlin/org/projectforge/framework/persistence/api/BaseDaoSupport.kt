@@ -148,11 +148,7 @@ object BaseDaoSupport {
         val modStatus = candHContext.currentCopyStatus
         res.modStatus = modStatus
         if (modStatus != EntityCopyStatus.NONE) {
-            log.error("*********** To fix: BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj) and history")
-            //BaseDaoJpaAdapter.prepareUpdate(emgr, dbObj)
             dbObj.setLastUpdate()
-            // } else {
-            //   log.info("No modifications detected (no update needed): " + dbObj.toString());
             baseDao.prepareHibernateSearch(obj, OperationType.UPDATE, context)
             em.merge(dbObj)
             HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)

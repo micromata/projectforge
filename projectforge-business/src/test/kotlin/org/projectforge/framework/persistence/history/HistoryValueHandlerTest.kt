@@ -38,12 +38,14 @@ class HistoryValueHandlerTest {
     @Test
     fun testHandler() {
         BooleanHistoryValueHandler().let { handler ->
+            Assertions.assertNull(handler.deserialize("NULL"))
+            Assertions.assertEquals(false, handler.deserialize("dsfa"))
             Assertions.assertEquals("true", handler.serialize(true))
             Assertions.assertEquals("false", handler.serialize(false))
             Assertions.assertEquals(true, handler.deserialize("true"))
             Assertions.assertEquals(false, handler.deserialize("false"))
             Assertions.assertNull(handler.deserialize("NULL"))
-            Assertions.assertEquals("yes", handler.format(true))
+            Assertions.assertEquals("Ja", handler.format(true))
             deserializeAndSerializeTest("true", handler)
             deserializeAndSerializeTest("false", handler)
         }

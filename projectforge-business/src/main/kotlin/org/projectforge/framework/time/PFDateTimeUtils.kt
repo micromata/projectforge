@@ -33,7 +33,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
@@ -238,13 +237,8 @@ object PFDateTimeUtils {
         } else {
             DateTimeFormatter.ISO_DATE_TIME.withZone(ZONE_UTC)
         }
-        try {
-            val dateTime = ZonedDateTime.parse(trimmedString, formatter) // Parses with given time zone.
-            return PFDateTime(dateTime, locale = locale, precision = null)
-        } catch (ex: DateTimeParseException) {
-            // Can't parse it. Giving up.
-        }
-        return null
+        val dateTime = ZonedDateTime.parse(trimmedString, formatter) // Parses with given time zone.
+        return PFDateTime(dateTime, locale = locale, precision = null)
     }
 
     @JvmOverloads
