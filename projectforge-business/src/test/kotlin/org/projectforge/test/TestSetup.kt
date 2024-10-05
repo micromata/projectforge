@@ -24,8 +24,10 @@
 package org.projectforge.test
 
 import mu.KotlinLogging
+import org.projectforge.Constants
 import org.projectforge.business.configuration.ConfigurationServiceAccessor
 import org.projectforge.framework.configuration.ConfigXmlTest
+import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext.Companion.createTestInstance
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -46,6 +48,7 @@ object TestSetup {
    */
   @JvmStatic
   fun init(): PFUserDO {
+    addBundleName(Constants.RESOURCE_BUNDLE_NAME)
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
     val user = PFUserDO()
     user.timeZone = TimeZone.getTimeZone("Europe/Berlin")
