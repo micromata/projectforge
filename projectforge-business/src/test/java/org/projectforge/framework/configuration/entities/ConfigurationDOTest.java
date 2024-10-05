@@ -59,12 +59,12 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setValue("Hurzel");
     assertNotNull(config);
     configurationDao.internalSaveInTrans(config);
-    List<ConfigurationDO> list = persistenceService.query(
+    List<ConfigurationDO> list = persistenceService.executeQuery(
             "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);
     assertEquals("Hurzel", config.getStringValue());
     configurationDao.checkAndUpdateDatabaseEntriesInTrans();
-    list = persistenceService.query(
+    list = persistenceService.executeQuery(
             "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);
     assertEquals(true, config.getDeleted(), "Entry should be deleted.");

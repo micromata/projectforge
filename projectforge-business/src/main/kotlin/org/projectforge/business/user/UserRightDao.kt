@@ -57,7 +57,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     }
 
     fun internalGetAllOrdered(context: PfPersistenceContext): List<UserRightDO> {
-        return context.namedQuery(
+        return context.executeNamedQuery(
             UserRightDO.FIND_ALL_ORDERED,
             UserRightDO::class.java
         )

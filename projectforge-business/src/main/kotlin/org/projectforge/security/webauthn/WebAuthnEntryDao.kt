@@ -114,7 +114,7 @@ class WebAuthnEntryDao {
         }
         val loggedInUserId = ThreadLocalUserContext.userId
         require(loggedInUserId == null || loggedInUserId == ownerId) { "Can only get WebAuthn entries for logged-in user #$loggedInUserId, not for other user #$ownerId" }
-        return persistencyService.namedQuery(
+        return persistencyService.executeNamedQuery(
             WebAuthnEntryDO.FIND_BY_OWNER,
             WebAuthnEntryDO::class.java,
             Pair("ownerId", ownerId),

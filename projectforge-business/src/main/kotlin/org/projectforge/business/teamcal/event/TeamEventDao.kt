@@ -505,7 +505,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 calIds.add(it)
             }
         }
-        return persistenceService.query(
+        return persistenceService.executeQuery(
             sql,
             String::class.java,
             Pair("cals", calIds),

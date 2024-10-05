@@ -75,7 +75,7 @@ class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBalanceDO
     fun getByTimePeriod(accountId: Int): List<BankAccountBalanceDO> {
         val account = bankAccountDao.getById(accountId)!! // For access checking
         log.info("Getting Balances of account '${account.name}', IBAN=${account.iban}")
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             BankAccountBalanceDO.FIND_BY_BANK_ACCOUNT,
             BankAccountBalanceDO::class.java,
             Pair("bankAccountId", accountId),

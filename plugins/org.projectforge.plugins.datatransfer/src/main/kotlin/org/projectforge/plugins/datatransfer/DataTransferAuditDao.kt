@@ -93,7 +93,7 @@ class DataTransferAuditDao {
 
     internal fun internalGetEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO>? {
         areaId ?: return null
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             DataTransferAuditDO.FIND_BY_AREA_ID,
             DataTransferAuditDO::class.java,
             Pair("areaId", areaId),
@@ -107,7 +107,7 @@ class DataTransferAuditDao {
     internal fun internalGetQueuedEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO>? {
         areaId ?: return null
         val resultList =
-            persistenceService.namedQuery(
+            persistenceService.executeNamedQuery(
                 DataTransferAuditDO.FIND_QUEUED_ENTRIES_SENT_BY_AREA_ID,
                 DataTransferAuditDO::class.java,
                 Pair("areaId", areaId),
@@ -131,7 +131,7 @@ class DataTransferAuditDao {
      */
     internal fun internalGetDownloadEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO> {
         areaId ?: return emptyList()
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             DataTransferAuditDO.FIND_DOWNLOADS_BY_AREA_ID,
             DataTransferAuditDO::class.java,
             Pair("areaId", areaId),

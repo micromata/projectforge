@@ -135,7 +135,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
          */
         get() {
             val result: MutableMap<Long?, MutableSet<AuftragsPositionVO>> = HashMap()
-            val list = persistenceService.query(
+            val list = persistenceService.executeQuery(
                 "from AuftragsPositionDO a where a.task.id is not null and a.deleted = false",
                 AuftragsPositionDO::class.java,
             )

@@ -242,7 +242,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
 
     override fun onDelete(obj: AddressbookDO, context: PfPersistenceContext) {
         super.onDelete(obj, context)
-        val addressList = context.query(
+        val addressList = context.executeQuery(
             "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList",
             AddressDO::class.java,
             Pair("addressbook", obj),

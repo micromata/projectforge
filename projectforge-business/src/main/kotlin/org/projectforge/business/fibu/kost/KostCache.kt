@@ -212,7 +212,7 @@ class KostCache : AbstractCache() {
     }
 
     fun updateKost2Arts(context: PfPersistenceContext) {
-        val result = context.query(
+        val result = context.executeQuery(
             "from Kost2ArtDO t where t.deleted = false order by t.id",
             Kost2ArtDO::class.java, lockModeType = LockModeType.NONE
         )
@@ -242,7 +242,7 @@ class KostCache : AbstractCache() {
         log.info("Initializing KostCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
         val map1: MutableMap<Long?, Kost1DO> = HashMap()
-        val list1 = persistenceService.query(
+        val list1 = persistenceService.executeQuery(
             "from Kost1DO t", Kost1DO::class.java,
             lockModeType = LockModeType.NONE,
         )
@@ -251,7 +251,7 @@ class KostCache : AbstractCache() {
         }
         this.kost1Map = map1
         val map2: MutableMap<Long?, Kost2DO> = HashMap()
-        val list2 = persistenceService.query("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
+        val list2 = persistenceService.executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
         kost2EntriesExists = false
         for (kost2 in list2) {
             if (!kost2EntriesExists && !kost2.deleted) {

@@ -170,7 +170,7 @@ class PfPersistenceContext internal constructor(
      * No null result values are allowed.
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
-    fun <T> query(
+    fun <T> executeQuery(
         sql: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
@@ -201,14 +201,14 @@ class PfPersistenceContext internal constructor(
      * Convenience call for query() with namedQuery = true.
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
      */
-    fun <T> namedQuery(
+    fun <T> executeNamedQuery(
         sql: String,
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         maxResults: Int? = null,
     ): List<T> {
-        return query(
+        return executeQuery(
             sql = sql,
             resultClass = resultClass,
             keyValues = keyValues,

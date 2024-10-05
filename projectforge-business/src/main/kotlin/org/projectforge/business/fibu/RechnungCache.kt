@@ -77,7 +77,7 @@ open class RechnungCache : AbstractCache() {
         val mapByAuftragId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
         val mapByAuftragsPositionId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
         val mapByRechnungsPositionMapByRechnungId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
-        val list: List<RechnungsPositionDO> = persistenceService.query(
+        val list: List<RechnungsPositionDO> = persistenceService.executeQuery(
             "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
             RechnungsPositionDO::class.java,
         )

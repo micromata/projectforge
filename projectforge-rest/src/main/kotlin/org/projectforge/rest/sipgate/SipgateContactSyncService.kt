@@ -850,14 +850,14 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
 
     private fun findByContactOrAddressId(sipgateContactId: String?, addressId: Long): SipgateContactSyncDO? {
         val list = if (sipgateContactId != null) {
-            persistenceService.namedQuery(
+            persistenceService.executeNamedQuery(
                 SipgateContactSyncDO.FIND_BY_CONTACT_AND_ADDRESS_ID,
                 SipgateContactSyncDO::class.java,
                 Pair("sipgateContactId", sipgateContactId),
                 Pair("addressId", addressId),
             )
         } else {
-            persistenceService.namedQuery(
+            persistenceService.executeNamedQuery(
                 SipgateContactSyncDO.FIND_BY_ADDRESS_ID,
                 SipgateContactSyncDO::class.java,
                 Pair("addressId", addressId),
@@ -882,7 +882,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
     }
 
     internal open fun loadAll(): List<SipgateContactSyncDO> {
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             SipgateContactSyncDO.LOAD_ALL,
             SipgateContactSyncDO::class.java,
         )

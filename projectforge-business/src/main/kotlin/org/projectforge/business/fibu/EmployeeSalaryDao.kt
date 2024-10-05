@@ -88,7 +88,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
 
     override fun onSaveOrModify(obj: EmployeeSalaryDO, context: PfPersistenceContext) {
         if (obj.id == null) {
-            val list = persistenceService.query(
+            val list = persistenceService.executeQuery(
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",
                 EmployeeSalaryDO::class.java,
                 Pair("year", obj.year),
@@ -103,7 +103,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
                 throw UserException("fibu.employee.salary.error.salaryAlreadyExist")
             }
         } else {
-            val list = persistenceService.query(
+            val list = persistenceService.executeQuery(
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid and s.id <> :id",
                 EmployeeSalaryDO::class.java,
                 Pair("year", obj.year),
@@ -136,7 +136,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
     }
 
     fun findByEmployee(employee: EmployeeDO?): List<EmployeeSalaryDO> {
-        return persistenceService.query(
+        return persistenceService.executeQuery(
             "from EmployeeSalaryDO sal where sal.employee = :emp",
             EmployeeSalaryDO::class.java,
             Pair("emp", employee),

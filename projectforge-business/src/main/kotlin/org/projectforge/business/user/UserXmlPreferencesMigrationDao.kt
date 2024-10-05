@@ -57,7 +57,7 @@ open class UserXmlPreferencesMigrationDao {
     open fun migrateAllUserPrefs(): String {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val buf = StringBuilder()
-        val list = persistenceService.query(
+        val list = persistenceService.executeQuery(
             "from ${UserXmlPreferencesDO::class.java.simpleName} t order by user.id, key",
             UserXmlPreferencesDO::class.java,
         )

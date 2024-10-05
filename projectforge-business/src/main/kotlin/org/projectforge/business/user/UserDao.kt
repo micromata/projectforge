@@ -328,7 +328,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     fun findByUsername(username: String?): List<PFUserDO> {
-        return persistenceService.namedQuery(
+        return persistenceService.executeNamedQuery(
             PFUserDO.FIND_BY_USERNAME,
             PFUserDO::class.java,
             Pair("username", username),

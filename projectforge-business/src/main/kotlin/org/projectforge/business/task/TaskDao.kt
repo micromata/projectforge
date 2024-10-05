@@ -119,7 +119,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         log.debug("Calculating duration for all tasks")
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
-            val result = persistenceService.query(
+            val result = persistenceService.executeQuery(
                 "select $intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id",
                 Tuple::class.java,
             )
@@ -131,7 +131,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             return list
         }
 
-        val result = persistenceService.query(
+        val result = persistenceService.executeQuery(
             "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id",
             Tuple::class.java,
         )
@@ -179,7 +179,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             // select DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime") from TimesheetDO where task.id = :taskId and deleted=false")
             return value?.toLong() ?: 0L
         }
-        val result = persistenceService.namedQuery(
+        val result = persistenceService.executeNamedQuery(
             TimesheetDO.FIND_START_STOP_BY_TASKID,
             Tuple::class.java,
             Pair("taskId", taskId),
@@ -246,7 +246,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             }
         } else {
             val others = if (task.id != null) {
-                context.namedQuery(
+                context.executeNamedQuery(
                     TaskDO.FIND_OTHER_TASK_BY_PARENTTASKID_AND_TITLE,
                     TaskDO::class.java,
                     Pair("parentTaskId", task.parentTaskId),
@@ -254,7 +254,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
                     Pair("id", task.id),
                 )// Find other (different from this id).
             } else {
-                context.namedQuery(
+                context.executeNamedQuery(
                     TaskDO.FIND_BY_PARENTTASKID_AND_TITLE,
                     TaskDO::class.java,
                     Pair("parentTaskId", task.parentTaskId),

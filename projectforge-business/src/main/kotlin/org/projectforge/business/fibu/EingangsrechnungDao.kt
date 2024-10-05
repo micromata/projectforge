@@ -237,7 +237,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     }
 
     fun findNewestByKreditor(kreditor: String?): EingangsrechnungDO? {
-        val resultList = persistenceService.query(
+        val resultList = persistenceService.executeQuery(
             "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.created DESC",
             EingangsrechnungDO::class.java,
             Pair("kreditor", kreditor),
