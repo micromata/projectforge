@@ -25,11 +25,12 @@ package org.projectforge.framework.persistence.metamodel
 
 import jakarta.persistence.Column
 import jakarta.persistence.metamodel.EntityType
-import org.hibernate.query.sqm.tree.SqmNode.log
+import mu.KotlinLogging
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 
+private val log = KotlinLogging.logger {}
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -66,6 +67,11 @@ class EntityInfo(
 
     fun isPersistedProperty(property: KMutableProperty1<*, *>): Boolean {
         return propertyInfos.any { it.propertyName == property.name }
+        // return entityType.attributes.any { it.javaMember == property.javaField }
+    }
+
+    fun isPersistedProperty(propertyName: String): Boolean {
+        return propertyInfos.any { it.propertyName == propertyName }
         // return entityType.attributes.any { it.javaMember == property.javaField }
     }
 
