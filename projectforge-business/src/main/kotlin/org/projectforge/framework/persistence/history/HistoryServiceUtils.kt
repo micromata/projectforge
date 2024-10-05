@@ -84,5 +84,15 @@ class HistoryServiceUtils private constructor() {
         fun get(): HistoryServiceUtils {
             return instance
         }
+
+        @JvmStatic
+        fun isHistorizable(bean: Any?): Boolean {
+            return HistoryBaseDaoAdapter.isHistorizable(bean)
+        }
+
+        @JvmStatic
+        fun isHistorizable(entityClass: Class<*>): Boolean {
+            return HistoryBaseDaoAdapter.isHistorizable(entityClass)
+        }
     }
 }

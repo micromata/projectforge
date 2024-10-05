@@ -100,12 +100,11 @@ class HibernateSearchReindexer {
 
     fun rebuildDatabaseSearchIndices(settings: ReindexSettings, vararg classes: Class<*>): String {
         if (currentReindexRun != null) {
-            log.error("*********** Not yet migrated")
-            val buf = StringBuffer()
+            val sb = StringBuilder()
             if (classes != null && classes.size > 0) {
                 var first = true
                 for (cls in classes) {
-                    first = StringHelper.append(buf, first, cls.name, ", ")
+                    first = StringHelper.append(sb, first, cls.name, ", ")
                 }
             }
             val date = DateTimeFormatter.instance().getFormattedDateTime(
@@ -113,7 +112,7 @@ class HibernateSearchReindexer {
                 DateHelper.UTC
             )
             log.info(
-                ("Re-indexing of '" + buf.toString()
+                ("Re-indexing of '" + sb.toString()
                         + "' cancelled due to another already running re-index job started at " + date + " (UTC):")
             )
             return "Another re-index job is already running. The job was started at: $date"

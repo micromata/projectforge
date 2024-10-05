@@ -46,6 +46,8 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.HistoryService;
+import org.projectforge.framework.persistence.history.HistoryServiceUtils;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.admin.WizardPage;
@@ -110,9 +112,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
     final StringBuffer buf = new StringBuffer();
     buf.append("function showDeleteQuestionDialog() {\n").append("  return window.confirm('");
 
-    //    boolean entWithHistory = HistoryServiceManager.get().getHistoryService().hasHistory(data.getClass());
-    log.error("********* HistoryServiceManger to use");
-    boolean entWithHistory = false;// HistoryServiceManager.get().getHistoryService().hasHistory(getBaseDao().getEntityClass());
+    boolean entWithHistory = HistoryServiceUtils.isHistorizable(data.getClass());
     showHistory = entWithHistory;
     if (entWithHistory == true) {
       buf.append(getString("question.markAsDeletedQuestion"));
