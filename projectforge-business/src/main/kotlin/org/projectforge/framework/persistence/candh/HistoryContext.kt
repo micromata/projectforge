@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.candh
 
+import org.projectforge.framework.persistence.history.HistoryValueHandlerRegistry
+import org.projectforge.framework.persistence.history.HistoryValueService
 import org.projectforge.framework.persistence.history.PfHistoryAttrDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 import kotlin.reflect.KClass
@@ -54,11 +56,12 @@ internal class HistoryContext {
 
     fun add(propertyContext: PropertyContext<*>, optype: PropertyOpType) {
         propertyContext.apply {
+            val propertyTypeClass = (property.returnType.classifier as KClass<*>).java.name
             add(
-                propertyTypeClass = (property.returnType.classifier as KClass<*>).java.name,
+                propertyTypeClass = propertyTypeClass,
                 optype = optype,
-                oldValue = destPropertyValue?.toString(),
-                value = srcPropertyValue?.toString(),
+                oldValue = HistoryValueService.serializeValue(destPropertyValue, propertyTypeClass),
+                value = HistoryValueService.serializeValue(srcPropertyValue, propertyTypeClass),
                 propertyName = propertyName,
             )
         }

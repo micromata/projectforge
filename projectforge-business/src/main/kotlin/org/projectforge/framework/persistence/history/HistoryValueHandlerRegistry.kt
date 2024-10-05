@@ -25,6 +25,9 @@ package org.projectforge.framework.persistence.history
 
 import java.math.BigDecimal
 
+/**
+ * Registry for [HistoryValueHandler]s.
+ */
 internal object HistoryValueHandlerRegistry {
     private class Entry(val handler: HistoryValueHandler<*>, vararg properties: String)
 

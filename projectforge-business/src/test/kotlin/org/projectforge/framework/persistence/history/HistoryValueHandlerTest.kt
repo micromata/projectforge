@@ -50,9 +50,9 @@ class HistoryValueHandlerTest {
         // date is CEST, so UTC is 2 hours behind.
         val date = PFDateTime.withDate(2024, Month.OCTOBER, 5, 10, 27, 13)
         DateHistoryValueHandler().let { handler ->
-            Assertions.assertEquals("2024-10-05 08:27:13.000", handler.serialize(date.utilDate))
+            Assertions.assertEquals("2024-10-05 08:27:13", handler.serialize(date.utilDate))
             Assertions.assertEquals("05.10.2024 10:27", handler.format(date.utilDate)) // CEST
-            deserializeAndSerializeTest("2006-11-02 14:59:59.000", handler)
+            deserializeAndSerializeTest("2006-11-02 14:59:59.000", handler, "2006-11-02 14:59:59")
         }
         TimestampHistoryValueHandler().let { handler ->
             Assertions.assertEquals("2024-10-05 08:27:13.000", handler.serialize(date.sqlTimestamp))
@@ -85,6 +85,14 @@ class HistoryValueHandlerTest {
             Assertions.assertEquals("10.000", handler.format(10000))
         }
         ShortHistoryValueHandler().let { handler ->
+            Assertions.assertEquals("42", handler.serialize(42))
+            Assertions.assertEquals(42, handler.deserialize("42"))
+            deserializeAndSerializeTest("42", handler)
+            deserializeAndSerializeTest("-10", handler)
+            deserializeAndSerializeTest("0", handler)
+            Assertions.assertEquals("10.000", handler.format(10000))
+        }
+        LongHistoryValueHandler().let { handler ->
             Assertions.assertEquals("42", handler.serialize(42))
             Assertions.assertEquals(42, handler.deserialize("42"))
             deserializeAndSerializeTest("42", handler)
