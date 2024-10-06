@@ -460,7 +460,7 @@ class HistoryServiceTest : AbstractTestBase() {
             oldValue: String?,
             propertyName: String?,
             optype: PropertyOpType,
-            attributes: Set<PfHistoryAttrDO>?,
+            attributes: Set<HistoryEntryAttr>?,
         ) {
             Assertions.assertFalse(attributes.isNullOrEmpty())
             val attr = attributes?.firstOrNull { it.propertyName == propertyName }

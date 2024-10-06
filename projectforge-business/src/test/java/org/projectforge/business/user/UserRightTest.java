@@ -131,7 +131,8 @@ public class UserRightTest extends AbstractTestBase {
     userRightDao.saveInTrans(userRights);
 
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
-    groupDao.assignGroups(user, Collections.singleton(group), null, false);
+    group.addUser(user);
+    groupDao.updateInTrans(group);
 
     logon(user.getUsername());
     user = userService.internalGetById(user.getId());

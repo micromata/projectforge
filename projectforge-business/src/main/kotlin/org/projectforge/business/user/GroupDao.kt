@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.utils.CollectionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -103,6 +104,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
 
     /**
      * Please note: Any existing assigned user in group object is ignored!
+     * Used by GroupEditPage (Wicket), only used by Group-Task-Access-Wizard.
      *
      * @param assignedUsers Full list of all users which have to assigned to this group.
      */
@@ -135,44 +137,26 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     /**
      * Creates for every user a history entry if the user is part of this new group.
      */
-    override fun afterSave(group: GroupDO, context: PfPersistenceContext) {
-        val groupList: MutableCollection<GroupDO> = ArrayList()
-        groupList.add(group)
-        if (group.assignedUsers != null) {
-            // Create history entry of PFUserDO for all assigned users:
-            for (user in group.assignedUsers!!) {
-                insertHistoryEntry(user, null, groupList, context)
-            }
+    override fun afterSave(obj: GroupDO, context: PfPersistenceContext) {
+        val groupList = listOf(obj)
+        // Create history entry of PFUserDO for all assigned users:
+        obj.assignedUsers?.forEach { user ->
+            insertHistoryEntry(user, null, groupList, context)
         }
     }
 
-    /**
-     * Assigns groups to and unassigns groups from given user.
-     *
-     * @param groupsToAssign   Groups to assign (nullable).
-     * @param groupsToUnassign Groups to unassign (nullable).
-     * @throws AccessException
-     */
-    @JvmOverloads
-    fun assignGroups(
-        user: PFUserDO,
-        groupsToAssign: Set<GroupDO>,
-        groupsToUnassign: Set<GroupDO>?,
-        updateUserGroupCache: Boolean = true
-    ) {
-        val groupIdsToAssign: MutableSet<Long?> = HashSet()
-        val groupIdsToUnassign: MutableSet<Long?> = HashSet()
-        if (groupIdsToAssign != null) {
-            for (group in groupsToAssign) {
-                groupIdsToAssign.add(group.id)
+    override fun afterUpdate(obj: GroupDO, dbObj: GroupDO?, context: PfPersistenceContext) {
+        if (dbObj == null) {
+            log.error { "Oups, shouldn't occur. dbObj is null. Can't determine assigned and unassigned user's in afterUpdate for creating history entries." }
+        }
+        CollectionUtils.compareLists(obj.assignedUsers, dbObj?.assignedUsers).let { result ->
+            result.added?.forEach { user ->
+                insertHistoryEntry(user, null, listOf(obj), context)
+            }
+            result.removed?.forEach { user ->
+                insertHistoryEntry(user, listOf(obj), null, context)
             }
         }
-        if (groupsToUnassign != null) {
-            for (group in groupsToUnassign) {
-                groupIdsToUnassign.add(group.id)
-            }
-        }
-        assignGroupByIdsInTrans(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache)
     }
 
     /**
@@ -180,65 +164,87 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      *
      * @param groupIdsToAssign   Groups to assign (nullable).
      * @param groupIdsToUnassign Groups to unassign (nullable).
+     * @param updateUserGroupCache If true, the userGroupCache will be updated. Defualt is true.
+     * @param context            The persistence context to run in transaction.
      * @throws AccessException
      */
+    @JvmOverloads
+    fun assignGroupByIds(
+        user: PFUserDO,
+        groupIdsToAssign: Set<Long?>?,
+        groupIdsToUnassign: Set<Long?>?,
+        updateUserGroupCache: Boolean = true,
+        context: PfPersistenceContext,
+    ) {
+        val assignedGroups = mutableListOf<GroupDO>()
+        val unassignedGroups = mutableListOf<GroupDO>()
+        val dbUser = context.selectById(PFUserDO::class.java, user.id, attached = true)
+            ?: throw RuntimeException("User with id ${user.id} not found.")
+        if (groupIdsToAssign != null) {
+            for (groupId in groupIdsToAssign) {
+                val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
+                    ?: throw RuntimeException("Group with id $groupId not found.")
+                log.error("******* not yet migrated: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup)")
+                // TODO: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
+                var assignedUsers: MutableSet<PFUserDO>? = dbGroup.assignedUsers
+                if (assignedUsers == null) {
+                    assignedUsers = HashSet()
+                    dbGroup.assignedUsers = assignedUsers
+                }
+                if (!assignedUsers.contains(dbUser)) {
+                    log.info("Assigning user '" + dbUser.username + "' to group '" + dbGroup.name + "'.")
+                    assignedUsers.add(dbUser)
+                    assignedGroups.add(dbGroup)
+                    dbGroup.setLastUpdate() // Needed, otherwise GroupDO is not detected for hibernate history!
+                } else {
+                    log.info("User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'.")
+                }
+                context.update(dbGroup)
+            }
+        }
+        if (groupIdsToUnassign != null) {
+            for (groupId in groupIdsToUnassign) {
+                val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
+                    ?: throw RuntimeException("Group with id $groupId not found.")
+                log.error("******* not yet migrated: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup)")
+                //  TODO: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
+                val assignedUsers = dbGroup.assignedUsers
+                if (assignedUsers != null && assignedUsers.contains(dbUser)) {
+                    log.info("Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'.")
+                    assignedUsers.remove(dbUser)
+                    unassignedGroups.add(dbGroup)
+                    dbGroup.setLastUpdate() // Needed, otherwise GroupDO is not detected for hibernate history!
+                } else {
+                    log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
+                }
+                context.update(dbGroup)
+                // }
+            }
+        }
+
+        insertHistoryEntry(user, unassignedGroups, assignedGroups, context)
+        if (updateUserGroupCache) {
+            userGroupCache.setExpired()
+        }
+    }
+
+    /**
+     * Assigns groups to and unassigns groups from given user.
+     *
+     * @param groupIdsToAssign   Groups to assign (nullable).
+     * @param groupIdsToUnassign Groups to unassign (nullable).
+     * @param updateUserGroupCache If true, the userGroupCache will be updated. Defualt is true.
+     * @throws AccessException
+     */
+    @JvmOverloads
     fun assignGroupByIdsInTrans(
         user: PFUserDO,
         groupIdsToAssign: Set<Long?>?,
         groupIdsToUnassign: Set<Long?>?,
-        updateUserGroupCache: Boolean
+        updateUserGroupCache: Boolean = true,
     ) {
-        val assignedGroups = mutableListOf<GroupDO>()
-        val unassignedGroups = mutableListOf<GroupDO>()
         persistenceService.runInTransaction { context ->
-            val dbUser = context.selectById(PFUserDO::class.java, user.id, attached = true)
-                ?: throw RuntimeException("User with id ${user.id} not found.")
-            if (groupIdsToAssign != null) {
-                for (groupId in groupIdsToAssign) {
-                    val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
-                        ?: throw RuntimeException("Group with id $groupId not found.")
-                    log.error("******* not yet migrated: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup)")
-                    // TODO: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
-                    var assignedUsers: MutableSet<PFUserDO>? = dbGroup.assignedUsers
-                    if (assignedUsers == null) {
-                        assignedUsers = HashSet()
-                        dbGroup.assignedUsers = assignedUsers
-                    }
-                    if (!assignedUsers.contains(dbUser)) {
-                        log.info("Assigning user '" + dbUser.username + "' to group '" + dbGroup.name + "'.")
-                        assignedUsers.add(dbUser)
-                        assignedGroups.add(dbGroup)
-                        dbGroup.setLastUpdate() // Needed, otherwise GroupDO is not detected for hibernate history!
-                    } else {
-                        log.info("User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'.")
-                    }
-                    context.update(dbGroup)
-                }
-            }
-            if (groupIdsToUnassign != null) {
-                for (groupId in groupIdsToUnassign) {
-                    val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
-                        ?: throw RuntimeException("Group with id $groupId not found.")
-                    log.error("******* not yet migrated: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup)")
-                    //  TODO: HistoryBaseDaoAdapter.wrapHistoryUpdate(dbGroup) {
-                    val assignedUsers = dbGroup.assignedUsers
-                    if (assignedUsers != null && assignedUsers.contains(dbUser)) {
-                        log.info("Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'.")
-                        assignedUsers.remove(dbUser)
-                        unassignedGroups.add(dbGroup)
-                        dbGroup.setLastUpdate() // Needed, otherwise GroupDO is not detected for hibernate history!
-                    } else {
-                        log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
-                    }
-                    context.update(dbGroup)
-                    // }
-                }
-            }
-
-            insertHistoryEntry(user, unassignedGroups, assignedGroups, context)
-            if (updateUserGroupCache) {
-                userGroupCache.setExpired()
-            }
+            assignGroupByIds(user, groupIdsToAssign, groupIdsToUnassign, updateUserGroupCache, context)
         }
     }
 
