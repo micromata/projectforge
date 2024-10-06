@@ -133,7 +133,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     }
 
     /**
-     * Creates for every user an history entry if the user is part of this new group.
+     * Creates for every user a history entry if the user is part of this new group.
      */
     override fun afterSave(group: GroupDO, context: PfPersistenceContext) {
         val groupList: MutableCollection<GroupDO> = ArrayList()

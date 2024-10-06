@@ -68,7 +68,6 @@ class HistoryServiceTest : AbstractTestBase() {
         historyService.loadHistory(invoice).let { historyEntries ->
             historyEntries.filter { it.entityId == 351958L }.let { entries ->
                 Assertions.assertEquals(4, entries.size, "4 entries for Invoice 351958")
-                //assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
 
             }
             historyEntries.filter { it.entityId == 351959L }.let { entries ->

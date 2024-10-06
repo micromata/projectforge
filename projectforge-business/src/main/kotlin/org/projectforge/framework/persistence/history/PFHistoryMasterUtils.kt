@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.projectforge.framework.persistence.api.HibernateUtils
+
 /**
  * Creates HistoryEntries from PFHistoryMasterDO and PFHistoryAttrDO.
  *
@@ -60,31 +62,41 @@ object PFHistoryMasterUtils {
         }
     }
 
+    fun getFixedPropertyClass(attr: PfHistoryAttrDO): String {
+        return HibernateUtils.getUnifiedClassname(attr.propertyTypeClass)
+    }
+
     /**
      * Transforms old attributes to new attributes by merging 3 attribute entries from older PF-Version (MGC)
      * as one attribute entry.
      * Concatenates history attributes from older MGC versions.
-     *
+     * If no old attributes are found, nothing is done.
      */
     fun transformOldAttributes(masterDO: PfHistoryMasterDO) {
         val oldAttrs = masterDO.attributes ?: return
-        val transformedAttrs = mutableSetOf<PfHistoryAttrDO>()
-        var currentEntry: PfHistoryAttrDO? = null
-        oldAttrs.sortedBy { it.propertyName }.forEach { attr ->
-            currentEntry.let { current ->
-                if (current != null && current.propertyName == attr.plainPropertyName) {
-                    mergeDiffEntry(current, attr)
-                } else if (isOldAttr(attr)) {
-                    val newEntry = cloneAndTransformAttr(attr)
-                    transformedAttrs.add(newEntry)
-                    currentEntry = newEntry
-                } else {
-                    // Nothing to do, because the attribute is already in current format.
-                    transformedAttrs.add(attr)
+        if (oldAttrs.any { isOldAttr(it) }) {
+            // Old attributes found, nothing to do.
+            val transformedAttrs = mutableSetOf<PfHistoryAttrDO>()
+            var currentEntry: PfHistoryAttrDO? = null
+            oldAttrs.sortedBy { it.propertyName }.forEach { attr ->
+                currentEntry.let { current ->
+                    if (current != null && current.propertyName == attr.plainPropertyName) {
+                        mergeDiffEntry(current, attr)
+                    } else if (isOldAttr(attr)) {
+                        val newEntry = cloneAndTransformAttr(attr)
+                        transformedAttrs.add(newEntry)
+                        currentEntry = newEntry
+                    } else {
+                        // Nothing to do, because the attribute is already in current format.
+                        transformedAttrs.add(attr)
+                    }
                 }
             }
+            masterDO.attributes = transformedAttrs
         }
-        masterDO.attributes = transformedAttrs
+        masterDO.attributes?.forEach { attr ->
+            attr.propertyTypeClass = getFixedPropertyClass(attr)
+        }
     }
 
     private fun cloneAndTransformAttr(attr: PfHistoryAttrDO): PfHistoryAttrDO {
