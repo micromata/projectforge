@@ -27,7 +27,6 @@ import mu.KotlinLogging
 import org.projectforge.common.mgc.ClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
-import org.projectforge.framework.persistence.candh.CandHHistoryMasterWrapper
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import java.util.*
@@ -84,6 +83,7 @@ object HistoryBaseDaoAdapter {
             propertyName = propertyName,
         ).let {
             master.add(it)
+            it.internalSerializeValueObjects()
         }
 
         return master
@@ -105,19 +105,6 @@ object HistoryBaseDaoAdapter {
         }
         context.insert(historyEntry)
         return historyEntry
-    }
-
-    /**
-     * Inserts the history entry of the given entity.
-     * @param historyEntryWrapper The wrapper of the history entry to insert created by CandH.
-     * @see org.projectforge.framework.persistence.candh.CandHContext
-     */
-    fun insertHistoryEntry(
-        historyEntryWrapper: CandHHistoryMasterWrapper,
-        context: PfPersistenceContext,
-    ): PfHistoryMasterDO {
-        historyEntryWrapper.internalPrepareForPersist()
-        return insertHistoryEntry(historyEntryWrapper.master, context)
     }
 
     /**
@@ -148,14 +135,14 @@ object HistoryBaseDaoAdapter {
 
     fun updated(
         obj: BaseDO<Long>,
-        historyEntries: List<CandHHistoryMasterWrapper>?,
+        historyEntries: List<PfHistoryMasterDO>?,
         context: PfPersistenceContext
     ) {
         if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
-        historyEntries.forEach { masterWrapper ->
-            insertHistoryEntry(masterWrapper, context)
+        historyEntries.forEach { master ->
+            insertHistoryEntry(master, context)
             /*master.attributes?.forEach { attr ->
                 master.add(attr)
                 attr.internalSerializeValueObjects()
