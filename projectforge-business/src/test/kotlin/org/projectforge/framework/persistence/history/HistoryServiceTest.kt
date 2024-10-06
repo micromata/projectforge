@@ -38,6 +38,7 @@ import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
 import java.net.URI
+import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
@@ -67,6 +68,8 @@ class HistoryServiceTest : AbstractTestBase() {
         historyService.loadHistory(invoice).let { historyEntries ->
             historyEntries.filter { it.entityId == 351958L }.let { entries ->
                 Assertions.assertEquals(4, entries.size, "4 entries for Invoice 351958")
+                //assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
+
             }
             historyEntries.filter { it.entityId == 351959L }.let { entries ->
                 Assertions.assertEquals(4, entries.size, "4 entries for Invoice position 351959")
@@ -425,6 +428,47 @@ class HistoryServiceTest : AbstractTestBase() {
             )
 
             Assertions.assertEquals(master.id, attr1.master!!.id)
+        }
+
+        fun assertMasterEntry(
+            entityClass: KClass<*>,
+            id: Long?,
+            opType: EntityOpType,
+            modUser: PFUserDO,
+            entry: HistoryEntry,
+            numberOfAttributes: Int = 0,
+        ) {
+            Assertions.assertEquals(entityClass.java.name, entry.entityName)
+            if (id != null) {
+                Assertions.assertEquals(id, entry.entityId)
+            }
+            Assertions.assertEquals(opType, entry.entityOpType)
+            Assertions.assertEquals(modUser.id?.toString(), entry.modifiedBy)
+            Assertions.assertTrue(
+                System.currentTimeMillis() - entry.modifiedAt!!.time < 10000,
+                "Time difference is too big",
+            )
+            entry as PfHistoryMasterDO
+            Assertions.assertEquals(numberOfAttributes, entry.attributes?.size ?: 0)
+        }
+
+        fun assertAttrEntry(
+            propertyClass: String?,
+            value: String?,
+            oldValue: String?,
+            propertyName: String?,
+            optype: PropertyOpType,
+            attributes: Set<PfHistoryAttrDO>?,
+        ) {
+            Assertions.assertFalse(attributes.isNullOrEmpty())
+            val attr = attributes?.firstOrNull { it.propertyName == propertyName }
+            Assertions.assertNotNull(attr, "Property $propertyName not found")
+            Assertions.assertEquals(propertyClass, attr!!.propertyTypeClass)
+            Assertions.assertEquals(value, attr.value)
+            Assertions.assertEquals(oldValue, attr.oldValue)
+            Assertions.assertEquals(propertyName, attr.propertyName)
+            Assertions.assertEquals(optype, attr.optype)
+
         }
     }
 }
