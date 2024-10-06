@@ -27,42 +27,94 @@ import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.IdObject
 
 object CollectionUtils {
-    class CompareListResult<T>(val added: Collection<T>? = null, val removed: Collection<T>? = null)
+    class CompareCollectionsResult<T>(
+        /** New entries in src, not yet part of dest. */
+        val added: Collection<T>? = null,
+        /** Removed entries in src, to be removed in dest. */
+        val removed: Collection<T>? = null,
+        /** Entries in src and dest. */
+        val shared: Collection<T>? = null,
+    )
 
     /**
-     * Compares two lists and returns the added and removed entries.
-     * @param src Source list.
-     * @param dest Destination list.
+     * Joins the id's of the given collection to a csv string. The entries are sorted by id.
+     * Used for example in history entries, representing the removed and added entries of a collection.
      */
-    fun <T> compareLists(src: Collection<T>?, dest: Collection<T>?): CompareListResult<T> {
-        if (src.isNullOrEmpty()) {
-            if (dest.isNullOrEmpty()) {
-                return CompareListResult()
-            }
-            return CompareListResult(removed = dest.toImmutableList())
-        }
-        if (dest.isNullOrEmpty()) {
-            return CompareListResult(added = src.toImmutableList())
-        }
-        val added = addedEntries(src = dest, dest = src)
-        val removed = addedEntries(src = src, dest = dest)
-        return CompareListResult(added, removed)
+    fun joinToIdString(col: Collection<IdObject<Long>>?): String {
+        col ?: return ""
+        return col.sortedBy { it.id }.joinToString(separator = ",") { it.id.toString() }
     }
 
     /**
-     * Returns all entries of src list which are not contained in dest list.
+     * Compares two collection and returns the added, removed entries and shared entries.
+     * @param src Source collection.
+     * @param dest Destination collection.
+     * @param withShared If true, the shared entries (part of both collections) are returned as well.
      */
-    private fun <T> addedEntries(src: Collection<T>, dest: Collection<T>): List<T> {
-        val foreignFirst = dest.firstOrNull() ?: return emptyList()
-        if (foreignFirst is IdObject<*>) {
-            val result = mutableListOf<T>()
-            dest.forEach { item ->
-                if (src.none { (it as IdObject<*>).id == (item as IdObject<*>).id }) {
-                    result.add(item)
-                }
+    fun <T> compareLists(
+        src: Collection<T?>?,
+        dest: Collection<T?>?,
+        withShared: Boolean = false,
+    ): CompareCollectionsResult<T> {
+        val useSrc = src?.filterNotNull()
+        val useDest = dest?.filterNotNull()
+        if (useSrc.isNullOrEmpty()) {
+            if (useDest.isNullOrEmpty()) {
+                return CompareCollectionsResult()
             }
-            return result
+            return CompareCollectionsResult(removed = useDest.toImmutableList())
         }
-        return dest.filterNot { it in src }
+        if (useDest.isNullOrEmpty()) {
+            return CompareCollectionsResult(added = useSrc.toImmutableList())
+        }
+        val added = getAddedEntries(src = useSrc, dest = useDest)
+        val removed = getAddedEntries(src = useDest, dest = useSrc)
+        val shared = if (withShared) sharedEntries(src = useSrc, dest = useDest) else null
+        return CompareCollectionsResult(added, removed, shared)
+    }
+
+    /**
+     * Returns all entries of src collection which are not contained in dest collection.
+     */
+    private fun <T> getAddedEntries(src: Collection<T>, dest: Collection<T>): Collection<T> {
+        val srcFirst = dest.firstOrNull() ?: return emptyList()
+        if (srcFirst !is IdObject<*>) {
+            return src.filterNot { it in dest }
+        }
+        val result = mutableListOf<T>()
+        src.forEach { item ->
+            if (dest.none { idObjectsEqual(it as IdObject<*>, item as IdObject<*>) }) {
+                result.add(item)
+            }
+        }
+        return result
+    }
+
+    /**
+     * Returns all entries of src collection which are part of both collections.
+     */
+    private fun <T> sharedEntries(src: Collection<T>, dest: Collection<T>): List<T> {
+        val srcFirst = dest.firstOrNull() ?: return emptyList()
+        if (srcFirst !is IdObject<*>) {
+            return src.filter { it in dest }
+        }
+        val result = mutableListOf<T>()
+        src.forEach { item ->
+            if (dest.any { idObjectsEqual(it as IdObject<*>, item as IdObject<*>) }) {
+                result.add(item)
+            }
+        }
+        return result
+    }
+
+    /**
+     * Compares two IdObjects by their id's, if given, otherwise by equals.
+     */
+    fun idObjectsEqual(src: IdObject<*>, dest: IdObject<*>): Boolean {
+        return if (src.id == null || dest.id == null) {
+            src == dest
+        } else {
+            src.id == dest.id
+        }
     }
 }

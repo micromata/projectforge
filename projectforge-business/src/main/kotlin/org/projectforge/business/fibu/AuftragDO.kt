@@ -599,7 +599,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         return this
     }
 
-    fun ensureAndGetPositionen(): List<AuftragsPositionDO> {
+    fun ensureAndGetPositionen(): MutableList<AuftragsPositionDO> {
         if (this.positionen == null) {
             this.positionen = ArrayList()
         }
@@ -654,11 +654,11 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         return this
     }
 
-    fun ensureAndGetPaymentSchedules(): List<PaymentScheduleDO>? {
+    fun ensureAndGetPaymentSchedules(): MutableList<PaymentScheduleDO> {
         if (this.paymentSchedules == null) {
             this.paymentSchedules = ArrayList()
         }
-        return this.paymentSchedules
+        return this.paymentSchedules!!
     }
 
     companion object {

@@ -52,7 +52,10 @@ internal class HistoryContext(
 
     private class SrcCollectionWithNewEntries(
         val propertyContext: PropertyContext,
-        val existingEntries: Collection<Any>
+        /**
+         * Already existing entries in the destination collection. The new src entries are not part of this collection.
+         */
+        val sharedEntries: Collection<Any>?
     )
 
     /**
@@ -61,9 +64,12 @@ internal class HistoryContext(
      */
     private var srcCollectionsWithNewEntries: MutableCollection<SrcCollectionWithNewEntries>? = null
 
-    fun addSrcCollectionWithNewEntries(propertyContext: PropertyContext, existingEntries: Collection<Any>) {
+    /**
+     * Adds a new collection with new entries. The shared entries are already part of the destination collection.
+     */
+    fun addSrcCollectionWithNewEntries(propertyContext: PropertyContext, sharedEntries: Collection<Any>?) {
         srcCollectionsWithNewEntries = srcCollectionsWithNewEntries ?: mutableListOf()
-        srcCollectionsWithNewEntries!!.add(SrcCollectionWithNewEntries(propertyContext, existingEntries))
+        srcCollectionsWithNewEntries!!.add(SrcCollectionWithNewEntries(propertyContext, sharedEntries))
     }
 
     fun getPreparedMasterEntries(): List<PfHistoryMasterDO> {
@@ -77,11 +83,11 @@ internal class HistoryContext(
 
             @Suppress("UNCHECKED_CAST")
             val destCol = property.get(dest) as? Collection<Any>
-            val existingEntries = entry.existingEntries
+            val sharedEntries = entry.sharedEntries
             destCol?.forEach { destEntry ->
                 @Suppress("UNCHECKED_CAST")
                 destEntry as IdObject<Long>
-                if (!existingEntries.contains(destEntry)) {
+                if (sharedEntries?.contains(destEntry) != true) {
                     // This is a new entry, not existing in the dest collection before.
                     masterList.add(PfHistoryMasterDO.create(destEntry, EntityOpType.Insert))
                 }

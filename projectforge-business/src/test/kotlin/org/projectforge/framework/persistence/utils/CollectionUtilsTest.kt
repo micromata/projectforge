@@ -30,38 +30,50 @@ import org.projectforge.framework.persistence.api.IdObject
 class CollectionUtilsTest {
     @Test
     fun testCompareLists() {
-        val src1 = listOf("a", "b", "c", "z")
-        val dest1 = listOf("b", "c", "d", "e")
-        testCompareLists(src1, dest1, added = listOf("a", "z"), removed = listOf("d", "e"))
-        testCompareLists(src1, null, added = src1, removed = null)
-        testCompareLists(null, dest1, added = null, removed = dest1)
+        val src1 = listOf("b", "c", null, "z", "a")
+        val dest1 = listOf("c", null, "e", "b", null, "d")
+        testCompareLists(src1, dest1, added = listOf("a", "z"), removed = listOf("d", "e"), shared = listOf("b", "c"))
+        testCompareLists(src1, null, added = src1.filterNotNull(), removed = null)
+        testCompareLists(null, dest1, added = null, removed = dest1.filterNotNull())
         testCompareLists(null, null, added = null, removed = null)
 
-        val src2 = listOf(TestClass(1), TestClass(2), TestClass(3))
-        val dest2 = listOf(TestClass(2), TestClass(3), TestClass(4))
-        testCompareLists(src2, dest2, added = listOf(TestClass(1)), removed = listOf(TestClass(4)))
+        val src2 = listOf(TestClass(3), TestClass(2), TestClass(1))
+        val dest2 = listOf(TestClass(42), TestClass(3), TestClass(4), TestClass(2))
+        testCompareLists(
+            src2, dest2,
+            added = listOf(TestClass(1)),
+            removed = listOf(TestClass(4), TestClass(42)),
+            shared = listOf(TestClass(2), TestClass(3))
+        )
     }
 
     private fun testCompareLists(
-        src: Collection<Any>?,
-        dest: Collection<Any>?,
+        src: Collection<Any?>?,
+        dest: Collection<Any?>?,
         added: Collection<Any>?,
-        removed: Collection<Any>?
+        removed: Collection<Any>?,
+        shared: Collection<Any>? = null,
     ) {
-        val result = CollectionUtils.compareLists(src, dest)
-        Assertions.assertEquals(added?.size, result.added?.size)
-        Assertions.assertEquals(removed?.size, result.removed?.size)
-        added?.forEach { entry ->
-            Assertions.assertTrue(
-                result.added?.any { it.toString() == entry.toString() } == true,
-                "$entry not contained in added=${result.added?.joinToString()}",
-            )
+        var result = CollectionUtils.compareLists(src, dest)
+        Assertions.assertEquals(asString(added), asString(result.added))
+        Assertions.assertEquals(asString(removed), asString(result.removed))
+        Assertions.assertNull(result.shared, "shared should be null, because it is not requested.")
+
+        result = CollectionUtils.compareLists(src, dest, withShared = true)
+        Assertions.assertEquals(asString(added), asString(result.added))
+        Assertions.assertEquals(asString(removed), asString(result.removed))
+        Assertions.assertEquals(asString(shared), asString(result.shared))
+    }
+
+    private fun asString(col: Collection<Any>?): String {
+        if (col.isNullOrEmpty()) {
+            return ""
         }
-        removed?.forEach { entry ->
-            Assertions.assertTrue(
-                result.removed?.any { it.toString() == entry.toString() } == true,
-                "$entry not contained in removed=${result.removed?.joinToString()}",
-            )
+        return if (col.first() is IdObject<*>) {
+            @Suppress("UNCHECKED_CAST")
+            CollectionUtils.joinToIdString(col as Collection<IdObject<Long>>)
+        } else {
+            col.sortedBy { it.toString() }.joinToString(separator = ",")
         }
     }
 
