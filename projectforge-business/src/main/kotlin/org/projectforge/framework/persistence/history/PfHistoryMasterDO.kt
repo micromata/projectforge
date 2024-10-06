@@ -111,29 +111,13 @@ class PfHistoryMasterDO : HistoryEntry {
         fetch = FetchType.EAGER,
         orphanRemoval = true
     )
-    var attributes: MutableSet<PfHistoryAttrDO>? = null
+    override var attributes: MutableSet<PfHistoryAttrDO>? = null
 
     fun add(attrDO: PfHistoryAttrDO) {
         attributes = attributes ?: mutableSetOf()
         attributes!!.add(attrDO)
         attrDO.master = this
     }
-
-    @get:Transient
-    override var diffEntries: List<DiffEntry>? = null
-        private set
-        get() {
-            if (diffEntriesDirty) {
-                diffEntriesDirty = false
-                field = PFHistoryMasterUtils.createDiffEntries(attributes)
-            }
-            return field
-        }
-
-    /**
-     * For avoiding multiple calls of [PFHistoryMasterUtils.createDiffEntries]
-     */
-    private var diffEntriesDirty = true
 
     override fun toString(): String {
         return JsonUtils.toJson(this)
@@ -223,5 +207,5 @@ class PfHistoryMasterDO : HistoryEntry {
  *  org.projectforge.plugins.skillmatrix.SkillRatingDO
  *  org.projectforge.plugins.skillmatrix.TrainingAttendeeDO
  *  org.projectforge.plugins.skillmatrix.TrainingDO
- *  org.projectforge.plugins.todo.ToDoDO
+ *  org.projectforge.plugins.to do.To DoDO
  */

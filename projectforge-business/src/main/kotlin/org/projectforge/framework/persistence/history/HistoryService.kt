@@ -72,6 +72,7 @@ class HistoryService {
                 loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, ctx)
             }
         }
+        allHistoryEntries.forEach { master -> PFHistoryMasterUtils.transformOldAttributes(master) }
         return allHistoryEntries
     }
 

@@ -69,11 +69,11 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-open class PfHistoryAttrDO {
+class PfHistoryAttrDO: HistoryEntryAttr {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id
-    var id: Long? = null
+    override var id: Long? = null
 
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
@@ -84,20 +84,20 @@ open class PfHistoryAttrDO {
      * The new value.
      */
     @get:Column(name = "value", length = 100000)
-    var value: String? = null
+    override var value: String? = null
 
     /**
      * The new value.
      */
     @get:Column(name = "old_value", length = 100000)
-    var oldValue: String? = null
+    override var oldValue: String? = null
 
     /**
      * Insert, Update (new field after MGC migration). In MGC version it was one additional entry with property_type_class
      * de.micromata.genome.db.jpa.history.entities.PropertyOpType.
      */
     @get:Column(name = "optype", length = 32)
-    var optype: PropertyOpType? = null
+    override var opType: PropertyOpType? = null
 
     /**
      * With MGC:
@@ -113,14 +113,14 @@ open class PfHistoryAttrDO {
      * Without MGC: The property name.
      */
     @get:Column(name = "propertyname", length = 255)
-    var propertyName: String? = null
+    override var propertyName: String? = null
 
     @get:jakarta.persistence.Transient
     val plainPropertyName: String?
         get() = PFHistoryMasterUtils.getPlainPropertyName(this)
 
     @get:Column(name = "property_type_class", length = 128)
-    var propertyTypeClass: String? = null
+    override var propertyTypeClass: String? = null
 
     /**
      * Serializes the old and new value to a string by using [HistoryValueHandlerRegistry].
@@ -144,14 +144,14 @@ open class PfHistoryAttrDO {
         fun create(
             propertyTypeClass: Class<*>,
             propertyName: String?,
-            optype: PropertyOpType,
+            opType: PropertyOpType,
             oldValue: Any? = null,
             newValue: Any? = null,
             master: PfHistoryMasterDO? = null,
         ): PfHistoryAttrDO {
             val attr = PfHistoryAttrDO()
             attr.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
-            attr.optype = optype
+            attr.opType = opType
             attr.propertyName = propertyName
             attr.master = master
             attr.serializeAndSet(oldValue = oldValue, newValue = newValue)

@@ -66,7 +66,7 @@ internal class CandHHistoryAttrWrapper(
             PfHistoryAttrDO.create(
                 propertyTypeClass = propertyTypeClass,
                 propertyName = propertyName,
-                optype = optype,
+                opType = optype,
             ).let { attr ->
                 return CandHHistoryAttrWrapper(attr, oldValue = oldValue, newValue = newValue)
             }

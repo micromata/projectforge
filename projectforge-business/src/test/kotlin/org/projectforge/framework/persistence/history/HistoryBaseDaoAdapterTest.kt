@@ -62,7 +62,7 @@ class HistoryBaseDaoAdapterTest {
         Assertions.assertEquals("1,2,3", attr.oldValue)
         Assertions.assertEquals("2,4,5", attr.value)
         Assertions.assertEquals("test", attr.propertyName)
-        Assertions.assertEquals(PropertyOpType.Update, attr.optype)
+        Assertions.assertEquals(PropertyOpType.Update, attr.opType)
         Assertions.assertEquals(GroupDO::class.java.name, attr.propertyTypeClass)
     }
 

@@ -48,7 +48,7 @@ object PFHistoryMasterUtils {
             propertyName ?: return false
             return propertyName.endsWith(OP_SUFFIX)
                     || propertyName.endsWith(OLDVAL_SUFFIX)
-                    ||  propertyName.endsWith(NEWVAL_SUFFIX)
+                    || propertyName.endsWith(NEWVAL_SUFFIX)
         }
     }
 
@@ -63,6 +63,7 @@ object PFHistoryMasterUtils {
     /**
      * Transforms old attributes to new attributes by merging 3 attribute entries from older PF-Version (MGC)
      * as one attribute entry.
+     * Concatenates history attributes from older MGC versions.
      *
      */
     fun transformOldAttributes(masterDO: PfHistoryMasterDO) {
@@ -73,61 +74,17 @@ object PFHistoryMasterUtils {
             currentEntry.let { current ->
                 if (current != null && current.propertyName == attr.plainPropertyName) {
                     mergeDiffEntry(current, attr)
-                } else {
+                } else if (isOldAttr(attr)) {
                     val newEntry = cloneAndTransformAttr(attr)
                     transformedAttrs.add(newEntry)
                     currentEntry = newEntry
+                } else {
+                    // Nothing to do, because the attribute is already in current format.
+                    transformedAttrs.add(attr)
                 }
             }
         }
         masterDO.attributes = transformedAttrs
-    }
-
-    /**
-     * Concatenates also history attributes from older MGC versions.
-     */
-    fun createDiffEntries(attrs: Collection<PfHistoryAttrDO>?): List<DiffEntry>? {
-        attrs ?: return null
-        val diffEntries = mutableListOf<DiffEntry>()
-        var currentDiffEntry: DiffEntry? = null
-        attrs.sortedBy { it.propertyName }.forEach { attr ->
-            currentDiffEntry.let { current ->
-                if (current != null && current.propertyName == attr.plainPropertyName) {
-                    mergeDiffEntry(current, attr)
-                } else {
-                    val newEntry = createDiffEntry(attr)
-                    diffEntries.add(newEntry)
-                    currentDiffEntry = newEntry
-                }
-            }
-        }
-        return diffEntries
-    }
-
-    private fun createDiffEntry(attr: PfHistoryAttrDO): DiffEntry {
-        val diffEntry = DiffEntry()
-        mergeDiffEntry(diffEntry, attr)
-        return diffEntry
-    }
-
-    private fun mergeDiffEntry(diffEntry: DiffEntry, attr: PfHistoryAttrDO) {
-        diffEntry.propertyName = attr.plainPropertyName
-        diffEntry.attributeId = attr.id
-        if (attr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
-            diffEntry.oldProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
-        } else if (attr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
-            diffEntry.newProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
-        } else if (attr.propertyName?.endsWith(OP_SUFFIX) == true) {
-            diffEntry.propertyOpType = when (attr.value) {
-                "Insert" -> PropertyOpType.Insert
-                "Update" -> PropertyOpType.Update
-                else -> PropertyOpType.Undefined
-            }
-        } else {
-            diffEntry.propertyOpType = attr.optype
-            diffEntry.oldProp = HistProp(value = attr.oldValue, type = attr.propertyTypeClass)
-            diffEntry.newProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
-        }
     }
 
     private fun cloneAndTransformAttr(attr: PfHistoryAttrDO): PfHistoryAttrDO {
@@ -135,7 +92,6 @@ object PFHistoryMasterUtils {
         mergeDiffEntry(clone, attr)
         return clone
     }
-
 
     private fun mergeDiffEntry(newAttr: PfHistoryAttrDO, oldAttr: PfHistoryAttrDO) {
         newAttr.propertyName = newAttr.propertyName ?: oldAttr.plainPropertyName
@@ -148,7 +104,7 @@ object PFHistoryMasterUtils {
             newAttr.value = oldAttr.value
             newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
         } else if (oldAttr.propertyName?.endsWith(OP_SUFFIX) == true) {
-            newAttr.optype = when (oldAttr.value) {
+            newAttr.opType = when (oldAttr.value) {
                 "Insert" -> PropertyOpType.Insert
                 "Update" -> PropertyOpType.Update
                 else -> PropertyOpType.Undefined
@@ -157,7 +113,7 @@ object PFHistoryMasterUtils {
             newAttr.value = newAttr.value ?: oldAttr.value
             newAttr.oldValue = newAttr.oldValue ?: oldAttr.oldValue
             newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
-            newAttr.optype = newAttr.optype ?: oldAttr.optype
+            newAttr.opType = newAttr.opType ?: oldAttr.opType
         }
     }
 

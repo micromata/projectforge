@@ -28,49 +28,39 @@ import org.junit.jupiter.api.Test
 
 class PfHistoryMasterUtilsTest {
     @Test
-    fun testCreateDiffEntries() {
-        val attrs = mutableListOf<PfHistoryAttrDO>()
-        attrs.add(createAttr("city:ov", "Old City"))
-        attrs.add(createAttr("city:nv", "New City"))
-        attrs.add(createAttr("city:op", "Update"))
-        // For real entries, old and new format isn't mixed:
-        attrs.add(createAttr("street", "New Street", "Old Street", PropertyOpType.Update))
-        val entries = PFHistoryMasterUtils.createDiffEntries(attrs)!!
-        Assertions.assertEquals(2, entries.size)
-        Assertions.assertEquals("Old City", entries[0].oldValue)
-        Assertions.assertEquals("New City", entries[0].newValue)
-        Assertions.assertEquals(PropertyOpType.Update, entries[0].propertyOpType)
-        Assertions.assertEquals("Old Street", entries[1].oldValue)
-        Assertions.assertEquals("New Street", entries[1].newValue)
-        Assertions.assertEquals(PropertyOpType.Update, entries[1].propertyOpType)
-    }
-
-    @Test
     fun testTransformAttributes() {
         val attrs = mutableListOf<PfHistoryAttrDO>()
-        attrs.add(createAttr("city:op", "Update", propertyTypeClass = PropertyOp))
-        attrs.add(createAttr("city:ov", "Old City"))
-        attrs.add(createAttr("city:nv", "New City"))
+        var id = 0L
+        attrs.add(createAttr("city:op", ++id, "Update", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("city:ov", id, "Old City"))
+        attrs.add(createAttr("city:nv", id, "New City"))
         // re-ordered:
-        attrs.add(createAttr("street:ov", "Old Street"))
-        attrs.add(createAttr("street:op", "Update", propertyTypeClass = PropertyOp))
-        attrs.add(createAttr("street:nv", "New Street"))
+        attrs.add(createAttr("street:ov", ++id, "Old Street"))
+        attrs.add(createAttr("street:op", id, "Update", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("street:nv", id, "New Street"))
         // re-ordered:
-        attrs.add(createAttr("zip:ov", "Old Zip", propertyTypeClass = "java.lang.Integer"))
-        attrs.add(createAttr("zip:nv", "New Zip", propertyTypeClass = "java.lang.Integer"))
-        attrs.add(createAttr("zip:op", "Update", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("zip:ov", ++id, "Old Zip", propertyTypeClass = "java.lang.Integer"))
+        attrs.add(createAttr("zip:nv", id, "New Zip", propertyTypeClass = "java.lang.Integer"))
+        attrs.add(createAttr("zip:op", id, "Update", propertyTypeClass = PropertyOp))
         // 2 entries:
-        attrs.add(createAttr("state:nv", "New State"))
-        attrs.add(createAttr("state:op", "Insert", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("state:nv", ++id, "New State"))
+        attrs.add(createAttr("state:op", id, "Insert", propertyTypeClass = PropertyOp))
         // re-ordered:
-        attrs.add(createAttr("country:op", "Update", propertyTypeClass = PropertyOp))
-        attrs.add(createAttr("country:nv", "New Country"))
+        attrs.add(createAttr("country:op", ++id, "Update", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("country:nv", id, "New Country"))
         // timeableAttribute
-        attrs.add(createAttr("timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:op", "Update", propertyTypeClass = PropertyOp))
-        attrs.add(createAttr("timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:nv", "New Visit"))
+        attrs.add(
+            createAttr(
+                "timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:op",
+                ++id,
+                "Update",
+                propertyTypeClass = PropertyOp
+            )
+        )
+        attrs.add(createAttr("timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:nv", id, "New Visit"))
 
         // New format (since 2024):
-        attrs.add(createAttr("name", value = "B", oldValue = "A", opType = PropertyOpType.Update))
+        attrs.add(createAttr("name", ++id, value = "B", oldValue = "A", opType = PropertyOpType.Update))
         val master = PfHistoryMasterDO()
         attrs.forEach { attr -> master.add(attr) }
         PFHistoryMasterUtils.transformOldAttributes(master)
@@ -81,7 +71,12 @@ class PfHistoryMasterUtilsTest {
         assertAttr(master.attributes, "state", "New State", null, PropertyOpType.Insert)
         assertAttr(master.attributes, "country", "New Country", null)
         assertAttr(master.attributes, "name", "B", "A")
-        assertAttr(master.attributes, "timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive", "New Visit", null)
+        assertAttr(
+            master.attributes,
+            "timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive",
+            "New Visit",
+            null
+        )
     }
 
     @Test
@@ -98,31 +93,40 @@ class PfHistoryMasterUtilsTest {
         Assertions.assertNull(PFHistoryMasterUtils.getPropertyName(createAttr(null)))
     }
 
-    private fun assertAttr(attrs: Set<PfHistoryAttrDO>?, propertyName: String?, newValue: String?, oldValue: String?, opType: PropertyOpType = PropertyOpType.Update, propertyTypeClass: String = "java.lang.String") {
+    private fun assertAttr(
+        attrs: Set<PfHistoryAttrDO>?,
+        propertyName: String?,
+        newValue: String?,
+        oldValue: String?,
+        opType: PropertyOpType = PropertyOpType.Update,
+        propertyTypeClass: String = "java.lang.String"
+    ) {
         Assertions.assertNotNull(attrs)
         attrs!!.find { it.propertyName == propertyName }?.let { attr ->
             Assertions.assertNotNull(attrs, "Attribute not found: $propertyName")
             Assertions.assertEquals(propertyName, attr.propertyName)
             Assertions.assertEquals(newValue, attr.value)
             Assertions.assertEquals(oldValue, attr.oldValue)
-            Assertions.assertEquals(opType, attr.optype)
+            Assertions.assertEquals(opType, attr.opType)
             Assertions.assertEquals(propertyTypeClass, attr.propertyTypeClass)
         }
     }
 
     private fun createAttr(
         propertyName: String?,
+        id: Long = 0,
         value: String? = null,
         oldValue: String? = null,
         opType: PropertyOpType? = null,
         propertyTypeClass: String? = "java.lang.String",
     ): PfHistoryAttrDO {
         val attr = PfHistoryAttrDO()
+        attr.id = id
         attr.propertyName = propertyName
         attr.propertyTypeClass = propertyTypeClass
         attr.value = value
         attr.oldValue = oldValue
-        attr.optype = opType
+        attr.opType = opType
         return attr
     }
 
