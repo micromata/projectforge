@@ -69,11 +69,11 @@ class CandHCopyTest : AbstractTestBase() {
         val src = GroupDO()
         val dest = GroupDO()
         copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
-            Assertions.assertEquals(0, context.historyContext!!.masterEntries.size)
+            Assertions.assertEquals(0, context.historyContext!!.masterWrappers.size)
         }
         dest.assignedUsers = mutableSetOf()
         copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
-            Assertions.assertEquals(0, context.historyContext!!.masterEntries.size)
+            Assertions.assertEquals(0, context.historyContext!!.masterWrappers.size)
         }
 
         val user1 = createUser(1, "user1")
@@ -81,7 +81,7 @@ class CandHCopyTest : AbstractTestBase() {
         val user3 = createUser(3, "user3")
         dest.assignedUsers = mutableSetOf(user1, user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR, debug).let { context ->
-            Assertions.assertEquals(1, context.historyContext!!.masterEntries.size)
+            Assertions.assertEquals(1, context.historyContext!!.masterWrappers.size)
             assertHistoryEntry(context, "assignedUsers", "", "1,2")
         }
         Assertions.assertTrue(dest.assignedUsers.isNullOrEmpty())
@@ -167,7 +167,7 @@ class CandHCopyTest : AbstractTestBase() {
         newValue: Any?,
         type: PropertyOpType = PropertyOpType.Update,
     ) {
-        context.historyContext!!.masterEntries.flatMap { it.attributes ?: emptySet() }.find { it.propertyName == propertyName }.apply {
+        context.historyContext!!.masterWrappers.flatMap { it.attributes ?: emptySet() }.find { it.propertyName == propertyName }.apply {
             Assertions.assertEquals(type, type)
             Assertions.assertEquals(propertyName, propertyName)
             Assertions.assertEquals(oldValue, oldValue)

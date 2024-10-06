@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.common.mgc.ClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.candh.CandHHistoryMasterWrapper
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import java.util.*
@@ -95,12 +96,28 @@ object HistoryBaseDaoAdapter {
         return insertHistoryEntry(historyEntry, context)
     }
 
-    fun insertHistoryEntry(historyEntry: PfHistoryMasterDO, context: PfPersistenceContext): PfHistoryMasterDO {
+    fun insertHistoryEntry(
+        historyEntry: PfHistoryMasterDO,
+        context: PfPersistenceContext,
+    ): PfHistoryMasterDO {
         historyEntry.attributes?.forEach { attr ->
             attr.internalSerializeValueObjects()
         }
         context.insert(historyEntry)
         return historyEntry
+    }
+
+    /**
+     * Inserts the history entry of the given entity.
+     * @param historyEntryWrapper The wrapper of the history entry to insert created by CandH.
+     * @see org.projectforge.framework.persistence.candh.CandHContext
+     */
+    fun insertHistoryEntry(
+        historyEntryWrapper: CandHHistoryMasterWrapper,
+        context: PfPersistenceContext,
+    ): PfHistoryMasterDO {
+        historyEntryWrapper.internalPrepareForPersist()
+        return insertHistoryEntry(historyEntryWrapper.master, context)
     }
 
     /**
@@ -131,14 +148,14 @@ object HistoryBaseDaoAdapter {
 
     fun updated(
         obj: BaseDO<Long>,
-        historyEntries: List<PfHistoryMasterDO>?,
+        historyEntries: List<CandHHistoryMasterWrapper>?,
         context: PfPersistenceContext
     ) {
         if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
-        historyEntries.forEach { master ->
-            insertHistoryEntry(master, context)
+        historyEntries.forEach { masterWrapper ->
+            insertHistoryEntry(masterWrapper, context)
             /*master.attributes?.forEach { attr ->
                 master.add(attr)
                 attr.internalSerializeValueObjects()

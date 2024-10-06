@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.history
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
-import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.json.JsonUtils
@@ -33,8 +32,6 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Stores history.
@@ -147,18 +144,18 @@ class PfHistoryMasterDO : HistoryEntry {
 
         @JvmOverloads
         fun create(
-            entity: IdObject<*>,
+            entity: IdObject<Long>,
             entityOpType: EntityOpType,
             entityName: String? = HibernateUtils.getRealClass(entity).name,
             modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
         ): PfHistoryMasterDO {
-            val ret = PfHistoryMasterDO()
-            ret.entityName = entityName
-            ret.entityId = entity.id as? Long
-            ret.entityOpType = entityOpType
-            ret.modifiedBy = modifiedBy
-            ret.modifiedAt = Date()
-            return ret
+            val masterDO = PfHistoryMasterDO()
+            masterDO.entityName = entityName
+            masterDO.entityId = entity.id
+            masterDO.entityOpType = entityOpType
+            masterDO.modifiedBy = modifiedBy
+            masterDO.modifiedAt = Date()
+            return masterDO
         }
     }
 }

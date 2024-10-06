@@ -152,7 +152,6 @@ object BaseDaoSupport {
             dbObj.setLastUpdate()
             baseDao.prepareHibernateSearch(obj, OperationType.UPDATE, context)
             em.merge(dbObj)
-            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
             try {
                 em.flush()
             } catch (ex: Exception) {
@@ -161,6 +160,8 @@ object BaseDaoSupport {
                 log.error("${ex.message} while updating object: ${ToStringUtil.toJsonString(obj)}", ex)
                 throw ex
             }
+            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
+            em.flush()
             if (baseDao.logDatabaseActions) {
                 log.info("${baseDao.doClass.simpleName} updated: $dbObj")
             }
