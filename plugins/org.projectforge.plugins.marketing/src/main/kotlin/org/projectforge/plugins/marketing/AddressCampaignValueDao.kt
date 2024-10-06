@@ -135,13 +135,14 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
     }
 
     override fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
-        if (entry.diffEntries!!.isEmpty()) {
+        val attributes = entry.attributes
+        if (attributes.isNullOrEmpty()) {
             val se = DisplayHistoryEntry(entry)
             return listOf(se)
         }
         val result: MutableList<DisplayHistoryEntry> = ArrayList()
-        for (prop in entry.diffEntries!!) {
-            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(entry, prop) {
+        attributes.forEach { attr ->
+            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(entry, attr) {
                 override fun getObjectValue(context: Context): Any? {
                     if (context.propertyName == null) {
                         return null

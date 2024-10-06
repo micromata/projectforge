@@ -27,29 +27,26 @@ package org.projectforge.framework.persistence.history
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-class DiffEntry {
+interface HistoryEntryAttr {
     /**
      * For information / testing purposes and for avoiding multiple entries in the result list:
      * the id of the PfHistoryAttrDO (t_pf_history_attr)
      */
-    var attributeId: Long? = null
+    var id: Long?
 
     /**
      * The property op type.
      */
-    var propertyOpType: PropertyOpType? = null
+    var opType: PropertyOpType?
 
     /**
      * The property name.
      */
-    var propertyName: String? = null
-    var oldProp: HistProp? = null
+    var propertyName: String?
 
-    var newProp: HistProp? = null
+    var propertyTypeClass: String?
 
-    val oldValue: String?
-        get() = if (oldProp == null) null else oldProp!!.value
+    var oldValue: String?
 
-    val newValue: String?
-        get() = if (newProp == null) null else newProp!!.value
+    var value: String?
 }

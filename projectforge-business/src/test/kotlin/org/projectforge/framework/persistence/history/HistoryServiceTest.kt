@@ -54,15 +54,15 @@ class HistoryServiceTest : AbstractTestBase() {
         historyService.loadHistory(invoice).let { historyEntries ->
             Assertions.assertEquals(2, historyEntries.size)
             var master = historyEntries[0]
-            Assertions.assertEquals(12, master.attributes!!.size)
-            val diffEntries = master.diffEntries!!
-            Assertions.assertEquals(4, diffEntries.size)
-            assert(diffEntries[0], "bemerkung", "PoBa", null, PropertyOpType.Insert)
-            assert(diffEntries[1], "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
-            assert(diffEntries[2], "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
-            assert(diffEntries[3], "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
+            Assertions.assertEquals(4, master.attributes!!.size)
+            val attrs = master.attributes!!
+            Assertions.assertEquals(4, attrs.size)
+            assert(attrs, "bemerkung", "PoBa", null, PropertyOpType.Insert)
+            assert(attrs, "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
+            assert(attrs, "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
+            assert(attrs, "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
             master = historyEntries[1]
-            Assertions.assertEquals(34, master.attributes!!.size)
+            Assertions.assertEquals(17, master.attributes!!.size)
         }
         invoice.id = 351958
         historyService.loadHistory(invoice).let { historyEntries ->
@@ -124,27 +124,27 @@ class HistoryServiceTest : AbstractTestBase() {
         historyService.loadHistory(user).let { historyEntries ->
             Assertions.assertEquals(27, historyEntries.size)
             var master = historyEntries.find { it.id == getNewMasterId(34961266) }!! // was 34961266
-            Assertions.assertEquals(3, master.attributes!!.size)
-            var diffEntries = master.diffEntries!!
-            Assertions.assertEquals(1, diffEntries.size)
-            assert(diffEntries[0], "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
+            Assertions.assertEquals(1, master.attributes!!.size)
+            var attributes = master.attributes!!
+            Assertions.assertEquals(1, attributes.size)
+            assert(attributes, "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
             master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 38057999
-            Assertions.assertEquals(3, master.attributes!!.size)
-            diffEntries = master.diffEntries!!
-            Assertions.assertEquals(1, diffEntries.size)
+            Assertions.assertEquals(1, master.attributes!!.size)
+            attributes = master.attributes!!
+            Assertions.assertEquals(1, attributes.size)
             assert(
-                diffEntries[0],
+                attributes,
                 "lastPasswordChange",
                 "2023-02-10 13:34:25:184",
                 "2022-10-04 09:55:19:329",
                 PropertyOpType.Update
             )
             master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 37229748
-            Assertions.assertEquals(6, master.attributes!!.size)
-            diffEntries = master.diffEntries!!
-            Assertions.assertEquals(2, diffEntries.size)
-            assert(diffEntries[0], "locale", "de_DE", "", PropertyOpType.Update)
-            assert(diffEntries[1], "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
+            Assertions.assertEquals(2, master.attributes!!.size)
+            attributes = master.attributes!!
+            Assertions.assertEquals(2, attributes.size)
+            assert(attributes, "locale", "de_DE", "", PropertyOpType.Update)
+            assert(attributes, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
         }
     }
 
@@ -175,8 +175,8 @@ class HistoryServiceTest : AbstractTestBase() {
             }
             Assertions.assertEquals(26, historyEntries.size, "26 entries in total")
             val master = historyEntries.find { it.id == getNewMasterId(36901229) }!! // was 36901229
-            Assertions.assertEquals(36, master.attributes!!.size)
-            val diffEntries = master.diffEntries!!
+            Assertions.assertEquals(18, master.attributes!!.size)
+            val diffEntries = master.attributes!!
             Assertions.assertEquals(18, diffEntries.size)
 
             val orderPos = AuftragsPositionDO()
@@ -185,12 +185,15 @@ class HistoryServiceTest : AbstractTestBase() {
     }
 
     private fun assert(
-        diffEntry: DiffEntry, propertyName: String, value: String?, oldValue: String?, operationType: PropertyOpType
+        attrs: Collection<HistoryEntryAttr>, propertyName: String, value: String?, oldValue: String?, operationType: PropertyOpType
     ) {
-        Assertions.assertEquals(propertyName, diffEntry.propertyName)
-        Assertions.assertEquals(value, diffEntry.newValue)
-        Assertions.assertEquals(oldValue, diffEntry.oldValue)
-        Assertions.assertEquals(operationType, diffEntry.propertyOpType)
+        attrs.find { it.propertyName == propertyName }.let { attr ->
+            Assertions.assertNotNull(attr, "Property $propertyName not found")
+            Assertions.assertEquals(propertyName, attr!!.propertyName)
+            Assertions.assertEquals(value, attr.value)
+            Assertions.assertEquals(oldValue, attr.oldValue)
+            Assertions.assertEquals(operationType, attr.opType)
+        }
     }
 
     /**
@@ -275,7 +278,7 @@ class HistoryServiceTest : AbstractTestBase() {
                     attr.propertyTypeClass = map["property_type_class"]
                     map["optype"]?.let { optype ->
                         if (optype.isNotEmpty()) {
-                            attr.optype = PropertyOpType.valueOf(optype)
+                            attr.opType = PropertyOpType.valueOf(optype)
                         }
                     }
                     val masterFk = map["master_fk"]!!.toLong()
@@ -467,7 +470,7 @@ class HistoryServiceTest : AbstractTestBase() {
             Assertions.assertEquals(value, attr.value)
             Assertions.assertEquals(oldValue, attr.oldValue)
             Assertions.assertEquals(propertyName, attr.propertyName)
-            Assertions.assertEquals(optype, attr.optype)
+            Assertions.assertEquals(optype, attr.opType)
 
         }
     }

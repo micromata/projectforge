@@ -252,31 +252,6 @@ class HistoryValueService private constructor() {
     }
 
 
-    private fun getDBObjects(em: EntityManager, prop: HistProp): List<Any> {
-        val ret: MutableList<Any> = ArrayList()
-        /*val emd = PfEmgrFactory.get().metadataRepository.findEntityMetadata(prop.type)
-        if (emd == null) {
-          ret.add(prop.value)
-          return ret
-        }
-        val sa = StringUtils.split(prop.value, ", ")
-        if (sa == null || sa.size == 0) {
-          return emptyList()
-        }
-        for (pks in sa) {
-          try {
-            val pk = pks.toInt()
-            val ent = em.find(emd.javaType, pk)
-            if (ent != null) {
-              ret.add(ent)
-            }
-          } catch (ex: NumberFormatException) {
-            log.warn("Cannot parse pk: $prop")
-          }
-        }*/
-        return ret
-    }
-
     companion object {
         @JvmStatic
         lateinit var instance: HistoryValueService

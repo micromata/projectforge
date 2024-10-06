@@ -537,17 +537,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     open fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
-        if (entry.diffEntries.isNullOrEmpty()) {
-            return listOf(DisplayHistoryEntry(entry))
-        }
-        val result = mutableListOf<DisplayHistoryEntry>()
-        for (prop in entry.diffEntries!!) {
-            val se = DisplayHistoryEntry(entry, prop)
-            se.initialize(DisplayHistoryEntry.Context(entry.entityName, se))
-            result.add(se)
-        }
+        entry.attributes.let { attributes ->
+            if (attributes.isNullOrEmpty()) {
+                return listOf(DisplayHistoryEntry(entry))
+            }
+            val result = mutableListOf<DisplayHistoryEntry>()
+            attributes.forEach { attr ->
+                val se = DisplayHistoryEntry(entry, attr)
+                se.initialize(DisplayHistoryEntry.Context(entry.entityName, se))
+                result.add(se)
+            }
 
-        return result
+            return result
+        }
     }
 
     /**

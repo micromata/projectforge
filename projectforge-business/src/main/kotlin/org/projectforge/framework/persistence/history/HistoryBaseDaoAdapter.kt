@@ -77,7 +77,7 @@ object HistoryBaseDaoAdapter {
         val master = PfHistoryMasterDO.create(entity, EntityOpType.Update)
         PfHistoryAttrDO.create(
             propertyTypeClass = propertyTypeClass,
-            optype = PropertyOpType.Update,
+            opType = PropertyOpType.Update,
             oldValue = oldValue,
             newValue = newValue,
             propertyName = propertyName,

@@ -132,18 +132,13 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     }
 
     constructor(
-        entry: HistoryEntry, diffEntry: DiffEntry,
+        entry: HistoryEntry, attr: HistoryEntryAttr,
     ) : this(entry) {
-        attributeId = diffEntry.attributeId
-        propertyName = diffEntry.propertyName
-        diffEntry.oldProp?.let {
-            propertyType = propertyType ?: HistoryValueService.getUnifiedTypeName(it.type)
-            oldValue = oldValue ?: it.value
-        }
-        diffEntry.newProp?.let {
-            propertyType = propertyType ?: HistoryValueService.getUnifiedTypeName(it.type)
-            newValue = newValue ?: it.value
-        }
+        attributeId = attr.id
+        propertyName = attr.propertyName
+        propertyType = HistoryValueService.getUnifiedTypeName(attr.propertyTypeClass)
+        oldValue = attr.oldValue
+        newValue = attr.value
     }
 
     fun initialize(context: Context) {

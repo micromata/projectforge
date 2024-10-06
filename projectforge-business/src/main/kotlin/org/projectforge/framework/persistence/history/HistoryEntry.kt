@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.history
 
 import org.projectforge.framework.persistence.api.IdObject
-import java.io.Serializable
 import java.util.*
 
 /**
@@ -52,7 +51,7 @@ interface HistoryEntry : IdObject<Long> {
      *
      * @return the diff entries
      */
-    val diffEntries: List<DiffEntry>?
+    val attributes: Set<HistoryEntryAttr>?
 
     /**
      * Gets the entity op type.
