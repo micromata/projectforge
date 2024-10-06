@@ -46,9 +46,10 @@ public class UserRightDaoTest extends AbstractTestBase {
   public void testUpdateUserRightsInTrans() {
     logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUserInTrans("testUserRightDaoTest");
-    final Set<GroupDO> groupsToAssign = new HashSet<>();
-    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP));
-    groupDao.assignGroups(user, groupsToAssign, null);
+    final Set<Long> groupsToAssign = new HashSet<>();
+    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP).getId());
+    groupDao.assignGroupByIdsInTrans(user, groupsToAssign, null);
+
     List<UserRightVO> list = userRightDao.getUserRights(user);
     UserRightVO right1 = null;
     UserRightVO right2 = null;

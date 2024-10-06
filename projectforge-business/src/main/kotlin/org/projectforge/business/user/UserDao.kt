@@ -111,19 +111,8 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return list
     }
 
-    fun getAssignedGroups(user: PFUserDO?): Collection<Long>? {
-        return userGroupCache.getUserGroups(user)
-    }
-
     fun getUserRights(userId: Long?): List<UserRightDO>? {
         return userGroupCache.getUserRights(userId)
-    }
-
-    /**
-     * @see org.projectforge.framework.persistence.api.BaseDao.onChange
-     */
-    override fun onChange(obj: PFUserDO, dbObj: PFUserDO, context: PfPersistenceContext) {
-        super.onChange(obj, dbObj, context)
     }
 
     /**
@@ -270,7 +259,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     /**
-     * Gets history entries of super and adds all history entries of the AuftragsPositionDO children.
+     * Gets history entries of super and adds all history entries of the UserRightDO children.
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */

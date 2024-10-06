@@ -253,9 +253,6 @@ public class WebRegistry
     register(DaoConst.TIMESHEET, TimesheetListPage.class);
     addMountPages(DaoConst.TIMESHEET, TimesheetListPage.class, TimesheetEditPage.class);
 
-    register(DaoConst.USER, UserListPage.class);
-    addMountPages(DaoConst.USER, UserListPage.class, UserEditPage.class);
-
     register(DaoConst.GROUP, GroupListPage.class);
     addMountPages(DaoConst.GROUP, GroupListPage.class, GroupEditPage.class);
 
