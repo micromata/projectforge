@@ -81,6 +81,14 @@ object HibernateUtils {
     }
 
     /**
+     * Removes any suffixes from the class name, such as $HibernateProxy.
+     * @see HistoryValueService.getUnifiedTypeName
+     */
+    fun getUnifiedClassname(className: String?): String {
+        return HistoryValueService.getUnifiedTypeName(className)
+    }
+
+    /**
      * Called by [PfPersistenceService] after construction.
      */
     fun internalInit(entityManagerFactory: EntityManagerFactory) {

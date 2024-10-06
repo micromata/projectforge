@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.hibernate.proxy.HibernateProxy
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -77,6 +78,22 @@ class PfHistoryMasterUtilsTest {
             "New Visit",
             null
         )
+    }
+
+    @Test
+    fun testFixOfProxyClassEntries() {
+        val attrs = mutableListOf<PfHistoryAttrDO>()
+        var id = 0L
+        attrs.add(createAttr("account:op", ++id, "Update", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("account:nv", id, "123", propertyTypeClass = "org.projectforge.business.fibu.KontoDO_\$\$_jvst148_1c"))
+        attrs.add(createAttr("address:op", ++id, "Update", propertyTypeClass = PropertyOp))
+        attrs.add(createAttr("address:nv", id, "456", propertyTypeClass = "org.projectforge.business.address.AddressDO\$HibernateProxy\$En8hKwh8"))
+        val master = PfHistoryMasterDO()
+        attrs.forEach { attr -> master.add(attr) }
+        PFHistoryMasterUtils.transformOldAttributes(master)
+        Assertions.assertEquals(2, master.attributes?.size)
+        assertAttr(master.attributes, "account", "123", null, propertyTypeClass = "org.projectforge.business.fibu.KontoDO")
+        assertAttr(master.attributes, "address", "456", null, propertyTypeClass = "org.projectforge.business.address.AddressDO")
     }
 
     @Test
