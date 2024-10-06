@@ -351,7 +351,8 @@ open class UserGroupCache() : AbstractCache() {
      *
      * @return collection if found, otherwise null.
      */
-    fun getUserGroupDOs(user: PFUserDO): Collection<GroupDO>? {
+    fun getUserGroupDOs(user: PFUserDO?): Collection<GroupDO>? {
+        user ?: return null
         return getUserGroups(user)?.map { groupId ->
             getGroup(groupId)
         }?.filterNotNull()

@@ -252,11 +252,11 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         if (obj.allDay) {
             val startDate = obj.startDate
             if (startDate != null) {
-                obj.setStartDate(getUTCBeginOfDayTimestamp(startDate))
+                obj.startDate = getUTCBeginOfDayTimestamp(startDate)
             }
             val endDate = obj.endDate
             if (endDate != null) {
-                obj.setEndDate(getUTCBeginOfDayTimestamp(endDate))
+                obj.endDate = getUTCBeginOfDayTimestamp(endDate)
             }
         }
     }
@@ -264,7 +264,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     override fun onSave(obj: CalEventDO, context: PfPersistenceContext) {
         // create uid if empty
         if (StringUtils.isBlank(obj.uid)) {
-            obj.setUid(TeamCalConfig.get().createEventUid())
+            obj.uid = TeamCalConfig.get().createEventUid()
         }
     }
 

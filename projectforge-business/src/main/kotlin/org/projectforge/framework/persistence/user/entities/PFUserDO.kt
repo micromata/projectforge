@@ -403,7 +403,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     fun addRight(right: UserRightDO): PFUserDO {
         this.rights = this.rights ?: mutableSetOf()
         this.rights!!.add(right)
-        right.setUser(this)
+        right.user = this
         return this
     }
 
