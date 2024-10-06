@@ -24,7 +24,9 @@
 package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.PropertyOpType
 import kotlin.reflect.KClass
 
 /**
@@ -32,60 +34,79 @@ import kotlin.reflect.KClass
  */
 internal class HistoryContext(
     /**
-     * Needed for initializing the history context with the first master entry, if required.
+     * Needed for initializing the history context with the first masterWrapper entry, if required.
      */
     val entity: BaseDO<*>,
     val entityOpType: EntityOpType = EntityOpType.Update
 ) {
-    // All created masterEntries for later processing.
-    internal val masterEntries = mutableListOf<PfHistoryMasterDO>()
+    // All created masterWrappers for later processing.
+    internal val masterWrappers = mutableListOf<CandHHistoryMasterWrapper>()
 
-    // Stack for the current masterEntry, proceeded by CandHMaster.
-    private val masterStack = mutableListOf<PfHistoryMasterDO>()
+    // Stack for the current masterWrapper, proceeded by CandHMaster.
+    private val masterWrapperStack = mutableListOf<CandHHistoryMasterWrapper>()
 
-    private val currentMaster: PfHistoryMasterDO?
-        get() = masterStack.lastOrNull()
+    private val currentMasterWrapper: CandHHistoryMasterWrapper?
+        get() = masterWrapperStack.lastOrNull()
 
     /**
-     * Push a new master of type [PfHistoryMasterDO] to the stack. Don't forget to call [popHistoryMaster] when you're done.
+     * Adds history masterWrapper. This will not be removed, even if it has no attributes.
      */
-    fun pushHistoryMaster(
+    fun addHistoryMasterWrapper(
         entity: BaseDO<*>,
         entityOpType: EntityOpType = EntityOpType.Update,
-    ): PfHistoryMasterDO {
-        PfHistoryMasterDO.create(entity = entity, entityOpType = entityOpType).let {
-            masterStack.add(it)
-            masterEntries.add(it)
+    ): CandHHistoryMasterWrapper {
+        @Suppress("UNCHECKED_CAST")
+        entity as IdObject<Long>
+        CandHHistoryMasterWrapper.create(entity = entity, entityOpType = entityOpType).let {
+            masterWrappers.add(it)
             return it
         }
     }
 
     /**
-     * Pop the last master from the stack. Throws an exception if the stack is empty.
-     * If the master has no attributes, it will be removed from the masterEntries list.
+     * Push a new masterWrapper of type [CandHHistoryMasterWrapper] to the stack. Don't forget to call [popHistoryMasterWrapper] when you're done.
+     * This masterWrapper will be removed if [popHistoryMasterWrapper] is called, and it has no attributes.
      */
-    fun popHistoryMaster(): PfHistoryMasterDO {
-        if (currentMaster?.attributes.isNullOrEmpty()) {
-            // If the master has no attributes, we don't need to keep it.
-            masterEntries.remove(currentMaster)
+    fun pushHistoryMasterWrapper(
+        entity: BaseDO<*>,
+        entityOpType: EntityOpType = EntityOpType.Update,
+    ): CandHHistoryMasterWrapper {
+        @Suppress("UNCHECKED_CAST")
+        entity as IdObject<Long>
+        CandHHistoryMasterWrapper.create(entity = entity, entityOpType = entityOpType).let {
+            masterWrapperStack.add(it)
+            masterWrappers.add(it)
+            return it
         }
-        return masterStack.removeAt(masterStack.size - 1)
     }
 
-    private val currentMasterAttributes: MutableSet<PfHistoryAttrDO>
+    /**
+     * Pop the last masterWrapper from the stack. Throws an exception if the stack is empty.
+     * If the masterWrapper has no attributes, it will be removed from the masterWrappers list.
+     */
+    fun popHistoryMasterWrapper(): CandHHistoryMasterWrapper {
+        if (currentMasterWrapper?.attributes.isNullOrEmpty()) {
+            // If the masterWrapper has no attributes, we don't need to keep it.
+            masterWrappers.remove(currentMasterWrapper)
+        }
+        return masterWrapperStack.removeAt(masterWrapperStack.size - 1)
+    }
+
+    private val currentMasterAttributes: MutableSet<CandHHistoryAttrWrapper>
         get() {
-            if (currentMaster == null) {
-                // Now we need to create the first master entry.
-                pushHistoryMaster(entity, entityOpType)
+            if (currentMasterWrapper == null) {
+                // Now we need to create the first masterWrapper entry.
+                pushHistoryMasterWrapper(entity, entityOpType)
             }
-            currentMaster!!.let { master ->
-                master.attributes = master.attributes ?: mutableSetOf()
-                return master.attributes!!
+            currentMasterWrapper!!.let { masterWrapper ->
+                masterWrapper.attributes = masterWrapper.attributes ?: mutableSetOf()
+                @Suppress("UNCHECKED_CAST")
+                return masterWrapper.attributes!!
             }
         }
 
     /**
-     * Add a new history entry for the given property context. The current master will be used.
+     * Add a new history entry for the given property context. The current masterWrapper will be used.
      */
     fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
         propertyContext.apply {
@@ -101,7 +122,7 @@ internal class HistoryContext(
     }
 
     /**
-     * Add a new history entry for the given property context. The current master will be used.
+     * Add a new history entry for the given property context. The current masterWrapper will be used.
      */
     fun add(
         propertyTypeClass: Class<*>,
@@ -111,13 +132,13 @@ internal class HistoryContext(
         propertyName: String?,
     ) {
         currentMasterAttributes.add(
-            PfHistoryAttrDO.create(
+            CandHHistoryAttrWrapper.create(
                 propertyTypeClass = propertyTypeClass,
                 optype = optype,
                 oldValue = oldValue,
                 newValue = newValue,
                 propertyName = propertyName,
-                master = currentMaster
+                masterWrapper = currentMasterWrapper
             )
         )
     }

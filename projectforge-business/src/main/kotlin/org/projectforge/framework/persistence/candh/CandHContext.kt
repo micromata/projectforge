@@ -27,7 +27,6 @@ import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.EntityOpType
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 
 class CandHContext constructor(
@@ -42,8 +41,8 @@ class CandHContext constructor(
      */
     entityOpType: EntityOpType? = null,
 ) {
-    val historyEntries: List<PfHistoryMasterDO>?
-        get() = historyContext?.masterEntries?.toImmutableList()
+    val historyEntries: List<CandHHistoryMasterWrapper>?
+        get() = historyContext?.masterWrappers?.toImmutableList()
 
     internal val debugContext = if (debug) DebugContext() else null
 
@@ -63,6 +62,16 @@ class CandHContext constructor(
             propertyName = propertyName,
             newValue = value,
             oldValue = oldValue,
+        )
+    }
+
+    internal fun addHistoryMaster(
+        entity: BaseDO<*>,
+        entityOpType: EntityOpType = EntityOpType.Update,
+    ) {
+        historyContext?.addHistoryMasterWrapper(
+            entity = entity,
+            entityOpType = entityOpType,
         )
     }
 

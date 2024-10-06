@@ -70,7 +70,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-class PfHistoryAttrDO {
+open class PfHistoryAttrDO {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id
@@ -94,14 +94,14 @@ class PfHistoryAttrDO {
     var oldValue: String? = null
 
     /**
-     * Only used by CandH for temrporary storage of the new value object. Don't forget to call [internalSerializeValueObjects] before persisting.
+     * Only used by CandH for temporary storage of the new value object. Don't forget to call [internalSerializeValueObjects] before persisting.
      */
     @get:Transient
     @JsonIgnore
     var internalNewValueObject: Any? = null
 
     /**
-     * Only used by CandH for temrporary storage of the old value object. Don't forget to call [internalSerializeValueObjects] before persisting.
+     * Only used by CandH for temporary storage of the old value object. Don't forget to call [internalSerializeValueObjects] before persisting.
      */
     @get:Transient
     @JsonIgnore
@@ -148,7 +148,7 @@ class PfHistoryAttrDO {
     @get:Column(name = "property_type_class", length = 128)
     var propertyTypeClass: String? = null
 
-    fun internalSerializeValueObjects() {
+    internal fun internalSerializeValueObjects() {
         if (internalOldValueObject != null) {
             oldValue = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(internalOldValueObject)
             internalOldValueObject = null
@@ -176,14 +176,14 @@ class PfHistoryAttrDO {
             newValue: Any? = null,
             master: PfHistoryMasterDO? = null,
         ): PfHistoryAttrDO {
-            val ret = PfHistoryAttrDO()
-            ret.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
-            ret.optype = optype
-            ret.internalNewValueObject = newValue
-            ret.internalOldValueObject = oldValue
-            ret.propertyName = propertyName
-            ret.master = master
-            return ret
+            val attr = PfHistoryAttrDO()
+            attr.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
+            attr.optype = optype
+            attr.internalNewValueObject = newValue
+            attr.internalOldValueObject = oldValue
+            attr.propertyName = propertyName
+            attr.master = master
+            return attr
         }
     }
 

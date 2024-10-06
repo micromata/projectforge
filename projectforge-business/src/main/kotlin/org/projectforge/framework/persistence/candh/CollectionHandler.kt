@@ -33,6 +33,7 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.NoHistory
 import java.io.Serializable
 import java.util.*
@@ -91,7 +92,7 @@ open class CollectionHandler : CandHIHandler {
             destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
             property.set(dest, destCollection)
         }
-        destCollection?.filterNotNull()?.forEach { destColEntry ->
+        destCollection.filterNotNull().forEach { destColEntry ->
             if (srcCollection.none { it == destColEntry }) {
                 toRemove.add(destColEntry)
             }
@@ -120,7 +121,7 @@ open class CollectionHandler : CandHIHandler {
                     collectionManagedByThis = true
                     val destEntry = destCollection.first { it == srcCollEntry }
                     try {
-                        context.historyContext?.pushHistoryMaster(srcCollEntry)
+                        context.historyContext?.pushHistoryMasterWrapper(srcCollEntry)
                         @Suppress("UNCHECKED_CAST")
                         copyValues(
                             srcCollEntry as BaseDO<Serializable>,
@@ -128,22 +129,37 @@ open class CollectionHandler : CandHIHandler {
                             context,
                         )
                     } finally {
-                        context.historyContext?.popHistoryMaster()
+                        context.historyContext?.popHistoryMasterWrapper()
                     }
                 }
             }
         }
-        if (collectionManagedByThis) {
-            // If collection is managed by this class, we don't need to add a history entry of removed and added entries.
-            // The entries of managed collections will be handled by the managed class and result in history entries for Insert,
-            // Update, Delete and Undelete.
-        } else if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
-            context.addHistoryEntry(
-                propertyTypeClass = destCollection.first()!!::class.java,
-                propertyName = pc.propertyName,
-                value = toAdd,
-                oldValue = toRemove,
-            )
+        if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
+            if (collectionManagedByThis) {
+                // If collection is managed by this class, we don't need to add a history entry of removed and added entries as lists.
+                toRemove.forEach { entry ->
+                    context.addHistoryMaster(
+                        entity = entry as BaseDO<*>,
+                        entityOpType = EntityOpType.Delete,
+                    )
+                }
+                // toAdd: Entity id is null, so can't create history master entry now.
+                toAdd.forEach { entry ->
+                    context.addHistoryMaster(
+                        entity = entry as BaseDO<*>,
+                        entityOpType = EntityOpType.Insert,
+                    )
+                }
+            } else {
+                // There are entries to remove or add.
+                context.addHistoryEntry(
+                    propertyTypeClass = destCollection.first()!!::class.java,
+                    propertyName = pc.propertyName,
+                    value = toAdd,
+                    oldValue = toRemove,
+                )
+            }
+            // Writes no history entry (type = null), because it's already done:
             propertyWasModified(context, propertyContext, null)
         }
         return true
