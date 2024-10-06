@@ -65,8 +65,7 @@ open class CollectionHandler : CandHIHandler {
         }
         @Suppress("UNCHECKED_CAST")
         property as KMutableProperty1<BaseDO<*>, Any?>
-        @Suppress("UNCHECKED_CAST")
-        val srcCollection = pc.srcPropertyValue as? MutableCollection<Any?>
+        val srcCollection = pc.srcPropertyValue as? Collection<Any?>
 
         @Suppress("UNCHECKED_CAST")
         var destCollection = pc.destPropertyValue as? MutableCollection<Any?>
@@ -88,6 +87,7 @@ open class CollectionHandler : CandHIHandler {
         }
         val toRemove = mutableListOf<Any>()
         val toAdd = mutableListOf<Any>()
+        val existingEntries = mutableListOf<Any>() // Only needed for creating history entries for new collection entries.
         if (destCollection == null) {
             destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
             property.set(dest, destCollection)
@@ -112,6 +112,7 @@ open class CollectionHandler : CandHIHandler {
                 toAdd.add(srcCollEntry)
                 context.debugContext?.add(propertyContext, msg = "Adding entry $srcCollEntry to destPropertyValue.")
             } else if (srcCollEntry is BaseDO<*>) {
+                existingEntries.add(srcCollEntry)
                 val behavior = AnnotationsUtils.getAnnotation(pc.property, PFPersistancyBehavior::class.java)
                 context.debugContext?.add(
                     propertyContext,
@@ -138,17 +139,16 @@ open class CollectionHandler : CandHIHandler {
             if (collectionManagedByThis) {
                 // If collection is managed by this class, we don't need to add a history entry of removed and added entries as lists.
                 toRemove.forEach { entry ->
-                    context.addHistoryMaster(
+                    context.addHistoryMasterWrapper(
                         entity = entry as BaseDO<*>,
                         entityOpType = EntityOpType.Delete,
                     )
                 }
-                // toAdd: Entity id is null, so can't create history master entry now.
-                toAdd.forEach { entry ->
-                    context.addHistoryMaster(
-                        entity = entry as BaseDO<*>,
-                        entityOpType = EntityOpType.Insert,
-                    )
+                if (toAdd.isNotEmpty()) {
+                    // toAdd: Entity id is null, so can't create history master entry now.
+                    // We store the src collection entries in the history context and create the history master entries later.
+
+                    context.historyContext?.addSrcCollectionWithNewEntries(pc, existingEntries)
                 }
             } else {
                 // There are entries to remove or add.

@@ -281,7 +281,7 @@ class CandHHistoryTest : AbstractTestBase() {
         Assertions.assertEquals(3, count)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 3)
         rechnungDao.getHistoryEntries(invoice).let { entries ->
-            Assertions.assertEquals(4, entries.size)
+            Assertions.assertEquals(3, entries.size)
             //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
             //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
             //assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])

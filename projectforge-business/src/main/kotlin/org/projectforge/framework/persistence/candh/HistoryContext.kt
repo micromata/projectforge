@@ -26,8 +26,10 @@ package org.projectforge.framework.persistence.candh
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.PfHistoryMasterDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 
 /**
  * Context for handling history entries.
@@ -40,13 +42,54 @@ internal class HistoryContext(
     val entityOpType: EntityOpType = EntityOpType.Update
 ) {
     // All created masterWrappers for later processing.
-    internal val masterWrappers = mutableListOf<CandHHistoryMasterWrapper>()
+    private val masterWrappers = mutableListOf<CandHHistoryMasterWrapper>()
 
     // Stack for the current masterWrapper, proceeded by CandHMaster.
     private val masterWrapperStack = mutableListOf<CandHHistoryMasterWrapper>()
 
-    private val currentMasterWrapper: CandHHistoryMasterWrapper?
+    internal val currentMasterWrapper: CandHHistoryMasterWrapper?
         get() = masterWrapperStack.lastOrNull()
+
+    private class SrcCollectionWithNewEntries(
+        val propertyContext: PropertyContext,
+        val existingEntries: Collection<Any>
+    )
+
+    /**
+     * This map is used to store the original collection of the entity for generating history entries later of
+     * new persisted collection entries. The id of the new entries is not known at this point.
+     */
+    private var srcCollectionsWithNewEntries: MutableCollection<SrcCollectionWithNewEntries>? = null
+
+    fun addSrcCollectionWithNewEntries(propertyContext: PropertyContext, existingEntries: Collection<Any>) {
+        srcCollectionsWithNewEntries = srcCollectionsWithNewEntries ?: mutableListOf()
+        srcCollectionsWithNewEntries!!.add(SrcCollectionWithNewEntries(propertyContext, existingEntries))
+    }
+
+    fun getPreparedMasterEntries(): List<PfHistoryMasterDO> {
+        masterWrappers.forEach { it.internalPrepareForPersist() } // Copy all attrs to master and internalSerializeValueObjects.
+        val masterList = masterWrappers.map { it.master }.toMutableList()
+        srcCollectionsWithNewEntries?.forEach { entry ->
+            val pc = entry.propertyContext
+            val dest = pc.dest
+
+            @Suppress("UNCHECKED_CAST")
+            val property = pc.property as KMutableProperty1<BaseDO<*>, Any?>
+
+            @Suppress("UNCHECKED_CAST")
+            val destCol = property.get(dest) as? Collection<Any>
+            val existingEntries = entry.existingEntries
+            destCol?.forEach { destEntry ->
+                @Suppress("UNCHECKED_CAST")
+                destEntry as IdObject<Long>
+                if (!existingEntries.contains(destEntry)) {
+                    // This is a new entry, not existing in the dest collection before.
+                    masterList.add(PfHistoryMasterDO.create(destEntry, EntityOpType.Insert))
+                }
+            }
+        }
+        return masterList
+    }
 
     /**
      * Adds history masterWrapper. This will not be removed, even if it has no attributes.
@@ -85,7 +128,7 @@ internal class HistoryContext(
      * If the masterWrapper has no attributes, it will be removed from the masterWrappers list.
      */
     fun popHistoryMasterWrapper(): CandHHistoryMasterWrapper {
-        if (currentMasterWrapper?.attributes.isNullOrEmpty()) {
+        if (currentMasterWrapper?.attributeWrappers.isNullOrEmpty()) {
             // If the masterWrapper has no attributes, we don't need to keep it.
             masterWrappers.remove(currentMasterWrapper)
         }
@@ -99,9 +142,9 @@ internal class HistoryContext(
                 pushHistoryMasterWrapper(entity, entityOpType)
             }
             currentMasterWrapper!!.let { masterWrapper ->
-                masterWrapper.attributes = masterWrapper.attributes ?: mutableSetOf()
+                masterWrapper.attributeWrappers = masterWrapper.attributeWrappers ?: mutableSetOf()
                 @Suppress("UNCHECKED_CAST")
-                return masterWrapper.attributes!!
+                return masterWrapper.attributeWrappers!!
             }
         }
 
