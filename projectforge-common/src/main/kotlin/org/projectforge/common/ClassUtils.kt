@@ -120,6 +120,10 @@ object ClassUtils {
         return currentInfo
     }
 
+    fun isKotlinClass(clazz: Class<*>): Boolean {
+        return clazz.annotations.any { it.annotationClass.simpleName == "Metadata" }
+    }
+
     class Info(
         /**
          * The parent class of the field.

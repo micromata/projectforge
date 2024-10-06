@@ -155,7 +155,7 @@ class VacationServiceTest : AbstractTestBase() {
             Assertions.assertTrue(ex is UserException)
             Assertions.assertEquals(VacationValidator.Error.COLLISION.messageKey, ex.message)
         }
-        logon(createEmployee("Foreign-user", LocalDate.of(2017, Month.JANUARY, 1)).user)
+        logon(createEmployee("Foreign-user", LocalDate.of(2017, Month.JANUARY, 1)).user!!)
         try {
             addVacations(employee, manager, 2020, Month.JULY, 20, Month.JULY, 28)
         } catch (ex: Exception) {

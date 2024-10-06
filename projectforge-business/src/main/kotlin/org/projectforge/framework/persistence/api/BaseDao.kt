@@ -31,7 +31,7 @@ import org.apache.commons.lang3.Validate
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.user.UserRight
 import org.projectforge.common.i18n.UserException
-import org.projectforge.common.mgc.ClassUtils
+import org.projectforge.common.mgc.MGCClassUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
@@ -1554,7 +1554,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     open fun getEntityClass(): Class<O> {
-        return ClassUtils.getGenericTypeArgument(javaClass, 0) as Class<O>
+        return MGCClassUtils.getGenericTypeArgument(javaClass, 0) as Class<O>
     }
 
     @Throws(AccessException::class)

@@ -200,7 +200,7 @@ class CandHHistoryTest : AbstractTestBase() {
 
     @Test
     fun userRightsTests() {
-        logon(ADMIN_USER)
+        val loggedInUser = logon(ADMIN_USER)
         val user = PFUserDO()
         user.username = "${PREFIX}rightsTest"
         var lastStats = countHistoryEntries()
@@ -233,15 +233,34 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         userRightDao.internalSaveOrUpdateInTrans(user.rights!!)
         rights = userRightDao.getList(user)
-        val recent = getRecentHistoryEntries(5)
+        // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)
-/*        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 0)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 1)
         userDao.getHistoryEntries(user).let { entries ->
-            Assertions.assertEquals(4, entries.size)
-        }*/
+            Assertions.assertEquals(5, entries.size)
+            entries.filter { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
+                .let { inserts ->
+                    Assertions.assertEquals(3, inserts.size)
+                }
+            entries.single { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
+                .let { master ->
+                    assertMasterEntry(UserRightDO::class, null, EntityOpType.Update, loggedInUser, master, 1)
+                    (master as PfHistoryMasterDO).let { entry ->
+                        assertAttrEntry(
+                            "org.projectforge.business.user.UserRightValue",
+                            "READONLY",
+                            "READWRITE",
+                            "value",
+                            PropertyOpType.Update,
+                            entry.attributes,
+                        )
+                    }
+                }
+        }
 
         // TODO: ****** Add, remove and change rights and test history entries...
         // TODO: ****** Testing adding and removing groups and users.
+        // TODO: Test of unmanaged collections, such as assigned users etc.
     }
 
     @Test

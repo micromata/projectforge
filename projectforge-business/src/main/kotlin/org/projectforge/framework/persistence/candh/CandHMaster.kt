@@ -97,6 +97,10 @@ object CandHMaster {
         src: BaseDO<*>, dest: BaseDO<*>, context: CandHContext, vararg ignoreProperties: String
     ) {
         val srcClass = HibernateUtils.getRealClass(src)
+        if (!org.projectforge.common.ClassUtils.isKotlinClass(srcClass)) {
+            // Java classes are not supported.
+            log.warn { "******* Java classes ($srcClass) are not supported by CandHMaster (most fields are not processed). See code of CandHMaster for details and how to fix it. It's recommended to convert to Kotlin instead." }
+        }
         val destClass = HibernateUtils.getRealClass(dest)
         if (!ClassUtils.isAssignable(srcClass, destClass)) {
             throw RuntimeException(

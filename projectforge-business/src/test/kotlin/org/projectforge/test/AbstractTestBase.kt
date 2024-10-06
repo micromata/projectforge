@@ -280,8 +280,9 @@ abstract class AbstractTestBase protected constructor() {
         return user
     }
 
-    fun logon(user: PFUserDO?) {
+    fun logon(user: PFUserDO): PFUserDO {
         setUser(user)
+        return user
     }
 
     protected fun logoff() {
