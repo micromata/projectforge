@@ -398,18 +398,7 @@ class CandHHistoryTest : AbstractTestBase() {
         entry: HistoryEntry,
         numberOfAttributes: Int = 0,
     ) {
-        Assertions.assertEquals(entityClass.java.name, entry.entityName)
-        if (id != null) {
-            Assertions.assertEquals(id, entry.entityId)
-        }
-        Assertions.assertEquals(opType, entry.entityOpType)
-        Assertions.assertEquals(modUser.id?.toString(), entry.modifiedBy)
-        Assertions.assertTrue(
-            System.currentTimeMillis() - entry.modifiedAt!!.time < 10000,
-            "Time difference is too big",
-        )
-        entry as PfHistoryMasterDO
-        Assertions.assertEquals(numberOfAttributes, entry.attributes?.size ?: 0)
+        HistoryServiceTest.assertMasterEntry(entityClass, id, opType, modUser, entry, numberOfAttributes)
     }
 
     private fun assertAttrEntry(
@@ -420,15 +409,7 @@ class CandHHistoryTest : AbstractTestBase() {
         optype: PropertyOpType,
         attributes: Set<PfHistoryAttrDO>?,
     ) {
-        Assertions.assertFalse(attributes.isNullOrEmpty())
-        val attr = attributes?.firstOrNull { it.propertyName == propertyName }
-        Assertions.assertNotNull(attr, "Property $propertyName not found")
-        Assertions.assertEquals(propertyClass, attr!!.propertyTypeClass)
-        Assertions.assertEquals(value, attr.value)
-        Assertions.assertEquals(oldValue, attr.oldValue)
-        Assertions.assertEquals(propertyName, attr.propertyName)
-        Assertions.assertEquals(optype, attr.optype)
-
+        HistoryServiceTest.assertAttrEntry(propertyClass, value, oldValue, propertyName, optype, attributes)
     }
 
     companion object {

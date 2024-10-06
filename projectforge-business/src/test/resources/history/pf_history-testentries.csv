@@ -96,3 +96,11 @@
  3026625 | 2010-02-08 10:24:55.037 | 116        |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
  3062915 | 2010-03-08 12:26:57.06  | 116        |    351960 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
  3062923 | 2010-03-08 12:26:57.061 | 116        |    351959 | org.projectforge.business.fibu.RechnungsPositionDO  | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=40312219;
+--  pk    |       modifiedat        | modifiedby | entity_id |                 entity_name                  | entity_optype
+----------+-------------------------+------------+-----------+----------------------------------------------+---------------
+ 40312223 | 2023-09-14 14:04:45.252 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Insert
+ 40312245 | 2023-09-14 14:05:04.091 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
+ 40312255 | 2023-09-14 14:05:17.443 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
+ 40312269 | 2023-09-14 14:05:31.785 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update

@@ -325,3 +325,45 @@ TASK_ACCESS_MANAGEMENT={true,false,false,false};TASKS={true,false,false,false};T
         | :nv          | V    | java.lang.String                                           | NULL      | NULL   |   3026605
  Insert | :op          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |   3026605
         | :ov          | V    | java.lang.String                                           | NULL      | NULL   |   3026605
+
+
+-- org.projectforge.business.orga.VisitorbookDO with id 40312219
+-- select value,propertyname,type,property_type_class,old_value,optype,master_fk from t_pf_history_attr where master_fk in (40312223,40312245,40312255,40312269);
+--        value          |                            propertyname                             | type |                    property_type_class                     | old_value | optype | master_fk
+-------------------------+---------------------------------------------------------------------+------+------------------------------------------------------------+-----------+--------+-----------
+ Dieter Horst            | company:nv                                                          | V    | java.lang.String                                           | NULL      | NULL   |  40312223
+ Insert                  | company:op                                                          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ false                   | deleted:nv                                                          | V    | boolean                                                    | NULL      | NULL   |  40312223
+ Insert                  | deleted:op                                                          | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ Kevin                   | firstname:nv                                                        | V    | java.lang.String                                           | NULL      | NULL   |  40312223
+ Insert                  | firstname:op                                                        | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ 40312219                | id:nv                                                               | V    | java.lang.Integer                                          | NULL      | NULL   |  40312223
+ Insert                  | id:op                                                               | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ Ullmann                 | lastname:nv                                                         | V    | java.lang.String                                           | NULL      | NULL   |  40312223
+ Insert                  | lastname:op                                                         | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ 08.30                   | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312223
+ Insert                  | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ 16                      | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312223
+ Insert                  | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ 2023-09-11 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312223
+ Insert                  | timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ WORKMAN                 | visitortype:nv                                                      | V    | org.projectforge.business.orga.VisitorType                 | NULL      | NULL   |  40312223
+ Insert                  | visitortype:op                                                      | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312223
+ 08:30                   | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312245
+ Insert                  | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312245
+ 16:00                   | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312245
+ Insert                  | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312245
+ 2023-09-12 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312245
+ Insert                  | timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312245
+ 08:30                   | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312255
+ Insert                  | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312255
+ 16:00                   | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312255
+ Insert                  | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312255
+ 2023-09-13 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312255
+ Insert                  | timeableAttributes.timeofvisit.2023-09-13 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312255
+ 08:30                   | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.arrive:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312269
+ Insert                  | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.arrive:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312269
+ 15:00                   | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.depart:nv    | V    | java.lang.String                                           | NULL      | NULL   |  40312269
+ Insert                  | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.depart:op    | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312269
+ 2023-09-14 00:00:00:000 | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.startTime:nv | V    | java.util.Date                                             | NULL      | NULL   |  40312269
+ Insert                  | timeableAttributes.timeofvisit.2023-09-14 00:00:00:000.startTime:op | V    | de.micromata.genome.db.jpa.history.entities.PropertyOpType | NULL      | NULL   |  40312269

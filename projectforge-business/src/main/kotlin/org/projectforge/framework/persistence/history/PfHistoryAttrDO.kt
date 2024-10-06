@@ -117,17 +117,7 @@ open class PfHistoryAttrDO {
 
     @get:jakarta.persistence.Transient
     val plainPropertyName: String?
-        get() {
-            propertyName.let { str ->
-                return if (str == null) {
-                    null
-                } else if (str.contains(':')) {
-                    str.substringBefore(':')
-                } else {
-                    str
-                }
-            }
-        }
+        get() = PFHistoryMasterUtils.getPlainPropertyName(this)
 
     @get:Column(name = "property_type_class", length = 128)
     var propertyTypeClass: String? = null

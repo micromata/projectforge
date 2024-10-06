@@ -41,6 +41,48 @@ object PFHistoryMasterUtils {
      */
     const val NEWVAL_SUFFIX: String = ":nv"
 
+    fun isOldAttr(attr: PfHistoryAttrDO): Boolean {
+        // Property names with these suffixes are old attributes.
+        // Remember, there are some property names like 'timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv'
+        attr.propertyName.let { propertyName ->
+            propertyName ?: return false
+            return propertyName.endsWith(OP_SUFFIX)
+                    || propertyName.endsWith(OLDVAL_SUFFIX)
+                    ||  propertyName.endsWith(NEWVAL_SUFFIX)
+        }
+    }
+
+    fun getPlainPropertyName(attr: PfHistoryAttrDO): String? {
+        if (isOldAttr(attr)) {
+            return attr.propertyName?.substringBeforeLast(":")
+        } else {
+            return attr.propertyName
+        }
+    }
+
+    /**
+     * Transforms old attributes to new attributes by merging 3 attribute entries from older PF-Version (MGC)
+     * as one attribute entry.
+     *
+     */
+    fun transformOldAttributes(masterDO: PfHistoryMasterDO) {
+        val oldAttrs = masterDO.attributes ?: return
+        val transformedAttrs = mutableSetOf<PfHistoryAttrDO>()
+        var currentEntry: PfHistoryAttrDO? = null
+        oldAttrs.sortedBy { it.propertyName }.forEach { attr ->
+            currentEntry.let { current ->
+                if (current != null && current.propertyName == attr.plainPropertyName) {
+                    mergeDiffEntry(current, attr)
+                } else {
+                    val newEntry = cloneAndTransformAttr(attr)
+                    transformedAttrs.add(newEntry)
+                    currentEntry = newEntry
+                }
+            }
+        }
+        masterDO.attributes = transformedAttrs
+    }
+
     /**
      * Concatenates also history attributes from older MGC versions.
      */
@@ -85,6 +127,37 @@ object PFHistoryMasterUtils {
             diffEntry.propertyOpType = attr.optype
             diffEntry.oldProp = HistProp(value = attr.oldValue, type = attr.propertyTypeClass)
             diffEntry.newProp = HistProp(value = attr.value, type = attr.propertyTypeClass)
+        }
+    }
+
+    private fun cloneAndTransformAttr(attr: PfHistoryAttrDO): PfHistoryAttrDO {
+        val clone = PfHistoryAttrDO()
+        mergeDiffEntry(clone, attr)
+        return clone
+    }
+
+
+    private fun mergeDiffEntry(newAttr: PfHistoryAttrDO, oldAttr: PfHistoryAttrDO) {
+        newAttr.propertyName = newAttr.propertyName ?: oldAttr.plainPropertyName
+        newAttr.master = newAttr.master ?: oldAttr.master
+        newAttr.id = newAttr.id ?: oldAttr.id
+        if (oldAttr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
+            newAttr.oldValue = oldAttr.value
+            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+        } else if (oldAttr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
+            newAttr.value = oldAttr.value
+            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+        } else if (oldAttr.propertyName?.endsWith(OP_SUFFIX) == true) {
+            newAttr.optype = when (oldAttr.value) {
+                "Insert" -> PropertyOpType.Insert
+                "Update" -> PropertyOpType.Update
+                else -> PropertyOpType.Undefined
+            }
+        } else {
+            newAttr.value = newAttr.value ?: oldAttr.value
+            newAttr.oldValue = newAttr.oldValue ?: oldAttr.oldValue
+            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+            newAttr.optype = newAttr.optype ?: oldAttr.optype
         }
     }
 
