@@ -1455,7 +1455,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     protected fun insertUpdateHistoryEntry(
         entity: IdObject<Long>, id: Number?, property: String?,
         propertyTypeClass: Class<*>,
-        oldValue: Any?, newValue: Any?,
+        oldValue: Any?,
+        newValue: Any?,
         context: PfPersistenceContext,
     ) {
         accessChecker.checkRestrictedOrDemoUser()

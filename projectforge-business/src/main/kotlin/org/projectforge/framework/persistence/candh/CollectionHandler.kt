@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.utils.CollectionUtils
 import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KMutableProperty1
@@ -85,34 +86,32 @@ open class CollectionHandler : CandHIHandler {
             propertyWasModified(context, propertyContext, null)
             return true
         }
-        val toRemove = mutableListOf<Any>()
-        val toAdd = mutableListOf<Any>()
-        val existingEntries = mutableListOf<Any>() // Only needed for creating history entries for new collection entries.
+        // Calculates the differences between src and dest collection: added, removed and shared entries.
+        val compareResults = CollectionUtils.compareLists(srcCollection, destCollection, withShared = true)
         if (destCollection == null) {
             destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
             property.set(dest, destCollection)
         }
-        destCollection.filterNotNull().forEach { destColEntry ->
-            if (srcCollection.none { it == destColEntry }) {
-                toRemove.add(destColEntry)
-            }
-        }
-        toRemove.forEach { removeEntry ->
+        compareResults.removed?.forEach { removeEntry ->
             log.debug { "Removing collection entry: $removeEntry" }
             destCollection.remove(removeEntry)
             context.debugContext?.add(
                 propertyContext, "Removing entry $removeEntry from destPropertyValue.",
             )
         }
+        compareResults.added?.forEach { addEntry ->
+            log.debug { "Adding new collection entry: $addEntry" }
+            destCollection.add(addEntry)
+            context.debugContext?.add(propertyContext, msg = "Adding entry $addEntry to destPropertyValue.")
+        }
         var collectionManagedByThis = false
-        srcCollection.filterNotNull().forEach { srcCollEntry ->
-            if (!destCollection.contains(srcCollEntry)) {
-                log.debug { "Adding new collection entry: $srcCollEntry" }
-                destCollection.add(srcCollEntry)
-                toAdd.add(srcCollEntry)
-                context.debugContext?.add(propertyContext, msg = "Adding entry $srcCollEntry to destPropertyValue.")
-            } else if (srcCollEntry is BaseDO<*>) {
-                existingEntries.add(srcCollEntry)
+        run loop@{
+            compareResults.shared?.forEach { sharedEntry ->
+                // Shared entries are part of src and dest collection, so we have to check modifications.
+                if (sharedEntry !is BaseDO<*>) {
+                    // Shared entries are not of type BaseDO, so we can't check modifications.
+                    return@loop // break foreach loop
+                }
                 val behavior = AnnotationsUtils.getAnnotation(pc.property, PFPersistancyBehavior::class.java)
                 context.debugContext?.add(
                     propertyContext,
@@ -120,12 +119,13 @@ open class CollectionHandler : CandHIHandler {
                 )
                 if (behavior != null && behavior.autoUpdateCollectionEntries) {
                     collectionManagedByThis = true
-                    val destEntry = destCollection.first { it == srcCollEntry }
+                    val destEntry =
+                        destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, sharedEntry) }
                     try {
-                        context.historyContext?.pushHistoryMasterWrapper(srcCollEntry)
+                        context.historyContext?.pushHistoryMasterWrapper(sharedEntry)
                         @Suppress("UNCHECKED_CAST")
                         copyValues(
-                            srcCollEntry as BaseDO<Serializable>,
+                            sharedEntry,
                             destEntry as BaseDO<Serializable>,
                             context,
                         )
@@ -135,28 +135,27 @@ open class CollectionHandler : CandHIHandler {
                 }
             }
         }
-        if (toRemove.isNotEmpty() || toAdd.isNotEmpty()) {
+        if (!compareResults.removed.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
             if (collectionManagedByThis) {
                 // If collection is managed by this class, we don't need to add a history entry of removed and added entries as lists.
-                toRemove.forEach { entry ->
+                compareResults.removed?.forEach { entry ->
                     context.addHistoryMasterWrapper(
                         entity = entry as BaseDO<*>,
                         entityOpType = EntityOpType.Delete,
                     )
                 }
-                if (toAdd.isNotEmpty()) {
+                if (!compareResults.added.isNullOrEmpty()) {
                     // toAdd: Entity id is null, so can't create history master entry now.
                     // We store the src collection entries in the history context and create the history master entries later.
-
-                    context.historyContext?.addSrcCollectionWithNewEntries(pc, existingEntries)
+                    context.historyContext?.addSrcCollectionWithNewEntries(pc, compareResults.shared)
                 }
             } else {
                 // There are entries to remove or add.
                 context.addHistoryEntry(
                     propertyTypeClass = destCollection.first()!!::class.java,
                     propertyName = pc.propertyName,
-                    value = toAdd,
-                    oldValue = toRemove,
+                    value = compareResults.added,
+                    oldValue = compareResults.removed,
                 )
             }
             // Writes no history entry (type = null), because it's already done:
@@ -207,10 +206,5 @@ open class CollectionHandler : CandHIHandler {
             context.debugContext?.add(propertyContext, msg = "Creating ${collection.javaClass} as destPropertyValue.")
         }
         return collection
-    }
-
-    private fun indexToStringList(coll: Collection<*>?): String {
-        coll ?: return ""
-        return coll.joinToString(separator = ",") { (it as? BaseDO<*>)?.id?.toString() ?: "" }
     }
 }
