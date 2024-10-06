@@ -44,18 +44,28 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
+    /**
+     * Returns the list of user rights for the given user. The rights will not be evaluated if they are available for the user.
+     */
     fun getList(user: PFUserDO?): List<UserRightDO> {
         return persistenceService.runReadOnly { context ->
             getList(user, context)
         }
     }
 
+    /**
+     * Returns the list of user rights for the given user. The rights will not be evaluated if they are available for the user.
+     */
     fun getList(user: PFUserDO?, context: PfPersistenceContext): List<UserRightDO> {
         val filter = UserRightFilter()
         filter.user = user
         return getList(filter, context)
     }
 
+    /**
+     * Returns all rights of the database: select from UserRightDO order by user.id, rightIdString
+     *
+     */
     fun internalGetAllOrdered(context: PfPersistenceContext): List<UserRightDO> {
         return context.executeNamedQuery(
             UserRightDO.FIND_ALL_ORDERED,
@@ -63,6 +73,10 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         )
     }
 
+    /**
+     * Evaluates the rights of the user and updates the database. The rights will be evaluated if they are available for the user.
+     * If a right is not available for the user, the value of the right will be set to null.
+     */
     @JvmOverloads
     fun updateUserRightsInTrans(user: PFUserDO, list: List<UserRightVO>, updateUserGroupCache: Boolean = true) {
         persistenceService.runInTransaction { context ->
@@ -72,7 +86,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
             val userGroups = userGroupCache.getUserGroupDOs(user)
             list.forEach { rightVO ->
                 var rightDO: UserRightDO? = null
-                dbList?.forEach { dbItem ->
+                dbList.forEach { dbItem ->
                     val rightid = userRightService.getRightId(dbItem?.rightIdString)
                     if (rightid === rightVO.right.id) {
                         rightDO = dbItem
@@ -86,7 +100,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         // Do nothing.
                     } else {
                         // Create new right instead of updating an existing one.
-                        rightDO = UserRightDO(user, rightVO.right.id).setUser(user)
+                        rightDO = UserRightDO(user, rightVO.right.id).withUser(user)
                         rightDO?.let {
                             copy(it, rightVO)
                             save(it, context)
@@ -100,21 +114,21 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         if (!right.isAvailable(user, userGroups)
                             || !right.isAvailable(user, userGroups, it.value)
                         ) {
-                            it.setValue(null)
+                            it.value = null
                         }
                         update(it, context)
                     }
                 }
             }
             // Set unavailable rights to null (if exists):
-            dbList?.forEach { rightDO ->
-                rightDO?.let {
+            dbList.forEach { rightDO ->
+                rightDO.let {
                     val rightId = it.rightIdString
                     val right = userRightService.getRight(rightId)
                     if (right != null && (!right.isAvailable(user, userGroups)
                                 || !right.isAvailable(user, userGroups, it.value))
                     ) {
-                        it.setValue(null)
+                        it.value = null
                         update(it, context)
                     }
                 }
@@ -145,12 +159,12 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     private fun copy(dest: UserRightDO, src: UserRightVO) {
         if (src.right.isBooleanType) {
             if (src.isBooleanValue) {
-                dest.setValue(UserRightValue.TRUE)
+                dest.value = UserRightValue.TRUE
             } else {
-                dest.setValue(UserRightValue.FALSE)
+                dest.value = UserRightValue.FALSE
             }
         } else {
-            dest.setValue(src.value)
+            dest.value = src.value
         }
     }
 

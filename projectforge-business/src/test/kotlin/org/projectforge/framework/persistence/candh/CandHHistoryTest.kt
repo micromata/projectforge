@@ -217,7 +217,8 @@ class CandHHistoryTest : AbstractTestBase() {
         user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
         user.addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE))
         userRightDao.internalSaveOrUpdateInTrans(user.rights!!)
-        val rights = userRightDao.getList(user)
+        var rights = userRightDao.getList(user)
+        Assertions.assertEquals(2, rights.size)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
@@ -225,6 +226,20 @@ class CandHHistoryTest : AbstractTestBase() {
             assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
             assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
         }
+
+        user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE))
+        user.getRight(UserRightId.ORGA_OUTGOING_MAIL).let { right ->
+            right!!.value = UserRightValue.READONLY
+        }
+        userRightDao.internalSaveOrUpdateInTrans(user.rights!!)
+        rights = userRightDao.getList(user)
+        val recent = getRecentHistoryEntries(5)
+        Assertions.assertEquals(3, rights.size)
+/*        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 0)
+        userDao.getHistoryEntries(user).let { entries ->
+            Assertions.assertEquals(4, entries.size)
+        }*/
+
         // TODO: ****** Add, remove and change rights and test history entries...
         // TODO: ****** Testing adding and removing groups and users.
     }

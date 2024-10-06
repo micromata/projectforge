@@ -287,7 +287,7 @@ object BaseDaoSupport {
         col: Collection<O>,
         context: PfPersistenceContext,
     ) {
-        for (obj in col) {
+        col.forEach { obj ->
             if (obj.id != null) {
                 preInternalUpdate(baseDao, obj, false, context)
                 val res = ResultObject<O>()

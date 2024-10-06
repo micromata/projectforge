@@ -61,7 +61,7 @@ class CalEventsProvider() {
     eventFilter.endDate = end.utilDate
     eventFilter.user = ThreadLocalUserContext.user
     val calendarEvents = calEventDao.getEventList(eventFilter, true)
-    calendarEvents?.forEach {
+    calendarEvents.forEach {
       val eventDO: CalEventDO
       val recurrentEvent: Boolean
       if (it is CalEventDO) {
@@ -74,7 +74,7 @@ class CalEventsProvider() {
       val recurrentDate = if (recurrentEvent) "?recurrentDate=${it!!.startDate!!.time / 1000}" else ""
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
       val allDay = eventDO.allDay
-      val style = styleMap.get(eventDO.calendar.id) ?: CalendarStyle()
+      val style = styleMap.get(eventDO.calendar?.id) ?: CalendarStyle()
       val dbId: Long?
       val uid: String?
       if (eventDO.id!! > 0) {
@@ -82,7 +82,7 @@ class CalEventsProvider() {
         uid = null
       } else {
         dbId = null
-        uid = "${eventDO.calendar.id}-${eventDO.uid}"
+        uid = "${eventDO.calendar?.id}-${eventDO.uid}"
       }
       val event = FullCalendarEvent.createEvent(
         id = dbId,

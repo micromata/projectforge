@@ -171,7 +171,7 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
     if (obj.calendar?.id != null) {
       // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
       // is needed by the access checker.
-      obj.calendar = teamCalDao.getById(obj.calendar.id)
+      obj.calendar = teamCalDao.getById(obj.calendar?.id)
     }
   }
 

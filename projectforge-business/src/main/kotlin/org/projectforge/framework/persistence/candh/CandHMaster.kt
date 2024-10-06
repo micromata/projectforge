@@ -46,6 +46,8 @@ private val log = KotlinLogging.logger {}
 
 /**
  * Manages copy and history of database objects. Copy is used for merging objects and history is used for tracking changes.
+ *
+ * Please note: CandHMaster is currently functioning only for Kotlin classes. Java classes are not supported. (See comment in code below.)
  */
 object CandHMaster {
     /**
@@ -156,6 +158,8 @@ object CandHMaster {
     ) {
         context.debugContext?.add(msg = "Processing class $kClass")
         kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
+            // The following check does not work for Java classes, because the visibility of the fields is never 'public'.
+            // For support of Java classes, the visibility check must be modified.
             if (property.setter.visibility != KVisibility.PUBLIC || property.getter.visibility != KVisibility.PUBLIC) {
                 log.debug { "Getter and/or setter of property $kClass.${property.name} has not visibility 'public', ignoring it." }
                 return@forEach
