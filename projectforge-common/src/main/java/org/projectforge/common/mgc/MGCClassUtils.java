@@ -35,7 +35,7 @@ import java.util.*;
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class ClassUtils extends org.apache.commons.lang3.ClassUtils
+public class MGCClassUtils extends org.apache.commons.lang3.ClassUtils
 {
 
   /**
@@ -72,7 +72,7 @@ public class ClassUtils extends org.apache.commons.lang3.ClassUtils
     allMethods.addAll(Arrays.asList(clazz.getMethods()));
     allMethods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
 
-    for (Object obj : ClassUtils.getAllSuperclasses(clazz)) {
+    for (Object obj : MGCClassUtils.getAllSuperclasses(clazz)) {
       Class aClass = (Class) obj;
       for (Method method : aClass.getDeclaredMethods()) {
         if (Modifier.isProtected(method.getModifiers())) {
@@ -134,7 +134,7 @@ public class ClassUtils extends org.apache.commons.lang3.ClassUtils
   public static Class<?> findGenericTypeFromMethod(Class<?> clazz, Method method, int pos)
   {
     Type gent = method.getGenericReturnType();
-    Class<?> gentype = ClassUtils.findGenericTypeArgument(gent, pos);
+    Class<?> gentype = MGCClassUtils.findGenericTypeArgument(gent, pos);
     return gentype;
   }
 
@@ -149,7 +149,7 @@ public class ClassUtils extends org.apache.commons.lang3.ClassUtils
   public static Class<?> findGenericTypeFromField(Class<?> clazz, Field field, int pos)
   {
     Type gent = field.getGenericType();
-    Class<?> gentype = ClassUtils.findGenericTypeArgument(gent, pos);
+    Class<?> gentype = MGCClassUtils.findGenericTypeArgument(gent, pos);
     return gentype;
   }
 
@@ -163,7 +163,7 @@ public class ClassUtils extends org.apache.commons.lang3.ClassUtils
    */
   public static Class<?> findGenericTypeFromProperty(Class<?> clazz, String prop, int pos)
   {
-    Method method = ClassUtils.findMethod(clazz, PrivateBeanUtils.getGetterMethodNameFromFieldName(prop));
+    Method method = MGCClassUtils.findMethod(clazz, PrivateBeanUtils.getGetterMethodNameFromFieldName(prop));
     if (method != null) {
       return findGenericTypeFromMethod(clazz, method, pos);
     }

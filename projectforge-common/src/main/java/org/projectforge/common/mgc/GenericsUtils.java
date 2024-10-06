@@ -166,7 +166,7 @@ public class GenericsUtils
 
   public static Class<?> getMethodType(Class<?> cls, String methodName, String typeName)
   {
-    Method m = ClassUtils.findFirstMethod(cls, methodName);
+    Method m = MGCClassUtils.findFirstMethod(cls, methodName);
     if (m == null) {
       return null;
     }

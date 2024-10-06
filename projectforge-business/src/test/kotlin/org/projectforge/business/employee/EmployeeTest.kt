@@ -123,7 +123,7 @@ class EmployeeTest : AbstractTestBase() {
             email: String? = null,
             context: PfPersistenceContext,
         ): EmployeeDO {
-            val loggedInUser = ThreadLocalUserContext.user
+            val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
             val useName = "${test.javaClass.simpleName}.$name"

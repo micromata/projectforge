@@ -72,7 +72,7 @@ class VacationSendMailServiceTest : AbstractTestBase() {
         vacation.otherReplacements!!.add(otherReplacement2)
         vacation.id = 47114711
         vacation.comment = "This is a really important comment ;-)"
-        logon(vacationer.user)
+        logon(vacationer.user!!)
 
         // Check all combinations (4*4*5=80):
         arrayOf(OperationType.INSERT, OperationType.UPDATE, OperationType.DELETE, OperationType.UNDELETE)

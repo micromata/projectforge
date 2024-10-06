@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.history
 
 import mu.KotlinLogging
-import org.projectforge.common.mgc.ClassUtils
+import org.projectforge.common.mgc.MGCClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
@@ -51,7 +51,7 @@ object HistoryBaseDaoAdapter {
         if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(entityClass)) {
             return true
         }
-        val whl = ClassUtils.findClassAnnotations(
+        val whl = MGCClassUtils.findClassAnnotations(
             entityClass,
             WithHistory::class.java
         )
