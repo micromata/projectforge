@@ -67,8 +67,7 @@ internal class HistoryContext(
     }
 
     fun getPreparedMasterEntries(): List<PfHistoryMasterDO> {
-        masterWrappers.forEach { it.internalPrepareForPersist() } // Copy all attrs to master and internalSerializeValueObjects.
-        val masterList = masterWrappers.map { it.master }.toMutableList()
+        val masterList = masterWrappers.map { it.prepareAndGetMaster() }.toMutableList()
         srcCollectionsWithNewEntries?.forEach { entry ->
             val pc = entry.propertyContext
             val dest = pc.dest
@@ -165,7 +164,7 @@ internal class HistoryContext(
     }
 
     /**
-     * Add a new history entry for the given property context. The current masterWrapper will be used.
+     * Add a new history entry for the given property context. The currentMasterWrapper must be given and will be used.
      */
     fun add(
         propertyTypeClass: Class<*>,
@@ -176,12 +175,12 @@ internal class HistoryContext(
     ) {
         currentMasterAttributes.add(
             CandHHistoryAttrWrapper.create(
+                masterWrapper = currentMasterWrapper!!,
                 propertyTypeClass = propertyTypeClass,
                 optype = optype,
                 oldValue = oldValue,
                 newValue = newValue,
                 propertyName = propertyName,
-                masterWrapper = currentMasterWrapper
             )
         )
     }

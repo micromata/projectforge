@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.history
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.framework.persistence.api.HibernateUtils
@@ -94,26 +93,11 @@ open class PfHistoryAttrDO {
     var oldValue: String? = null
 
     /**
-     * Only used by CandH for temporary storage of the new value object. Don't forget to call [internalSerializeValueObjects] before persisting.
-     */
-    @get:Transient
-    @JsonIgnore
-    var internalNewValueObject: Any? = null
-
-    /**
-     * Only used by CandH for temporary storage of the old value object. Don't forget to call [internalSerializeValueObjects] before persisting.
-     */
-    @get:Transient
-    @JsonIgnore
-    var internalOldValueObject: Any? = null
-
-    /**
      * Insert, Update (new field after MGC migration). In MGC version it was one additional entry with property_type_class
      * de.micromata.genome.db.jpa.history.entities.PropertyOpType.
      */
     @get:Column(name = "optype", length = 32)
     var optype: PropertyOpType? = null
-
 
     /**
      * With MGC:
@@ -148,15 +132,12 @@ open class PfHistoryAttrDO {
     @get:Column(name = "property_type_class", length = 128)
     var propertyTypeClass: String? = null
 
-    internal fun internalSerializeValueObjects() {
-        if (internalOldValueObject != null) {
-            oldValue = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(internalOldValueObject)
-            internalOldValueObject = null
-        }
-        if (internalNewValueObject != null) {
-            value = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(internalNewValueObject)
-            internalNewValueObject = null
-        }
+    /**
+     * Serializes the old and new value to a string by using [HistoryValueHandlerRegistry].
+     */
+    fun serializeAndSet(oldValue: Any?, newValue: Any?) {
+        oldValue?.let { this.oldValue = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(oldValue) }
+        newValue?.let { this.value = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(newValue) }
     }
 
     companion object {
@@ -164,9 +145,11 @@ open class PfHistoryAttrDO {
 
         /**
          * Creates a new PfHistoryAttrDO. Reference master is set by [PfHistoryMasterDO.add].
-         * The old and new value should be serialized to a string by using [HistoryValueHandlerRegistry] before
-         * persisting. The serialization should be done after persist/merge of all database objects for getting the id values
-         * of new database objects.
+         * The old and new value will be serialized to a string by using [HistoryValueHandlerRegistry].
+         *
+         * @param master The master object, which is the parent of this attribute. [PfHistoryMasterDO.add] will be called.
+         * @param oldValue The old value will be automatically serialized by [HistoryValueHandlerRegistry].
+         * @param newValue The old value will be automatically serialized by [HistoryValueHandlerRegistry].
          */
         fun create(
             propertyTypeClass: Class<*>,
@@ -179,10 +162,10 @@ open class PfHistoryAttrDO {
             val attr = PfHistoryAttrDO()
             attr.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
             attr.optype = optype
-            attr.internalNewValueObject = newValue
-            attr.internalOldValueObject = oldValue
             attr.propertyName = propertyName
             attr.master = master
+            attr.serializeAndSet(oldValue = oldValue, newValue = newValue)
+            master?.add(attr)
             return attr
         }
     }

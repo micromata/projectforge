@@ -32,15 +32,15 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 /**
  * Wrapper for PfHistoryMasterDO with additional functionalities.
  */
-class CandHHistoryMasterWrapper(internal var master: PfHistoryMasterDO) {
+class CandHHistoryMasterWrapper(private var master: PfHistoryMasterDO) {
     internal var attributeWrappers: MutableSet<CandHHistoryAttrWrapper>? = null
 
-    fun internalPrepareForPersist() {
+    fun prepareAndGetMaster(): PfHistoryMasterDO {
         master.attributes = mutableSetOf()
-        attributeWrappers?.forEach { attrs ->
-            master.attributes!!.add(attrs.attr)
-            attrs.attr.internalSerializeValueObjects()
+        attributeWrappers?.forEach { attrWrapper ->
+            attrWrapper.prepareAndGetAttr(master)
         }
+        return master
     }
 
     companion object {

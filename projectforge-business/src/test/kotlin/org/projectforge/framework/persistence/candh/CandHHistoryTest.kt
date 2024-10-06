@@ -231,18 +231,22 @@ class CandHHistoryTest : AbstractTestBase() {
 
     @Test
     fun invoiceTests() {
-        logon(TEST_FINANCE_USER)
-        val customer = KundeDO()
-        customer.id = 7864872 // Must be manually assigned.
-        customer.name = "Test customer"
-        kundeDao.saveInTrans(customer)
+        val loggedInUser = logon(TEST_FINANCE_USER)
+        val customer1 = KundeDO()
+        customer1.id = 7864872 // Must be manually assigned.
+        customer1.name = "7864872 Test customer 1"
+        kundeDao.saveInTrans(customer1)
+        val customer2 = KundeDO()
+        customer2.id = 7864873 // Must be manually assigned.
+        customer2.name = "7864873 Test customer 1"
+        kundeDao.saveInTrans(customer2)
 
         var invoice = RechnungDO()
         invoice.nummer = rechnungDao.nextNumber
         invoice.betreff = "Test invoice"
         invoice.datum = LocalDate.now()
         invoice.typ = RechnungTyp.RECHNUNG
-        invoice.kunde = customer
+        invoice.kunde = customer1
         invoice.faelligkeit = LocalDate.now().plusDays(14)
 
         RechnungsPositionDO().let { pos ->
@@ -259,6 +263,7 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         val id = rechnungDao.saveInTrans(invoice)
         invoice = rechnungDao.getById(id)!!
+        invoice.kunde = customer2
         invoice.getAbstractPosition(0).let { pos ->
             pos!!.text = "Test position 1 changed"
             pos.menge = BigDecimal("1.1")
@@ -279,62 +284,76 @@ class CandHHistoryTest : AbstractTestBase() {
             Pair("id", id),
         )
         Assertions.assertEquals(3, count)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 2, 3)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 4)
         rechnungDao.getHistoryEntries(invoice).let { entries ->
-            Assertions.assertEquals(3, entries.size)
-            //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
-            //assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
-            //assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
-        }
-        // kunde, projekt, status
-        /*        invoice.apply {
-                     = "12345"
-                    invoiceDate = "2020-01-01"
-                    invoiceAmount = 123.45
+            Assertions.assertEquals(4, entries.size)
+            entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
+                .let { master ->
+                    assertMasterEntry(RechnungsPositionDO::class, null, EntityOpType.Insert, loggedInUser, master)
                 }
-                var lastStats = countHistoryEntries()
-                rechnungDao.saveInTrans(invoice)
-                lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
-                userDao.getHistoryEntries(invoice).let { entries ->
-                    Assertions.assertEquals(1, entries.size)
-                    assertMasterEntry(invoice::class, invoice.id, EntityOpType.Insert, ADMIN_USER, entries[0])
-                }
-                invoice.invoiceNumber = "123456"
-                invoice.invoiceDate = "2021-01-01"
-                invoice.invoiceAmount = 123.45
-                userDao.updateInTrans(invoice)
-                assertNumberOfNewHistoryEntries(lastStats, 1, 3)
-                userDao.getHistoryEntries(invoice).let { entries ->
-                    Assertions.assertEquals(2, entries.size)
-                    assertMasterEntry(invoice::class, invoice.id, EntityOpType.Update, ADMIN_USER, entries[0], 3)
-                    (entries[0] as PfHistoryMasterDO).let { entry ->
+            entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
+                .let { master ->
+                    assertMasterEntry(RechnungsPositionDO::class, null, EntityOpType.Update, loggedInUser, master, 3)
+                    (master as PfHistoryMasterDO).let { entry ->
                         assertAttrEntry(
                             "java.lang.String",
-                            "123456",
-                            null,
-                            "invoiceNumber",
+                            "Test position 1 changed",
+                            "Test position 1",
+                            "text",
                             PropertyOpType.Update,
                             entry.attributes,
                         )
                         assertAttrEntry(
-                            "java.lang.String",
-                            "2021-01-01",
-                            null,
-                            "invoiceDate",
+                            "java.math.BigDecimal",
+                            "1.1",
+                            "1.00000",
+                            "menge",
                             PropertyOpType.Update,
                             entry.attributes,
                         )
                         assertAttrEntry(
-                            "java.lang.Double",
-                            "123.45",
-                            null,
-                            "invoiceAmount",
+                            "java.math.BigDecimal",
+                            "11",
+                            "10.00",
+                            "einzelNetto",
                             PropertyOpType.Update,
                             entry.attributes,
                         )
                     }
-                    assertMasterEntry(invoice::class, invoice.id, EntityOpType.Insert, ADMIN_USER, entries[1])
-                }*/
+                }
+            entries.single { it.entityName == RechnungDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
+                .let { master ->
+                    assertMasterEntry(
+                        RechnungDO::class,
+                        null,
+                        EntityOpType.Update,
+                        loggedInUser,
+                        master, 1
+                    )
+                    (master as PfHistoryMasterDO).let { master ->
+                        assertAttrEntry(
+                            KundeDO::class.qualifiedName,
+                            "7864873",
+                            "7864872",
+                            "kunde",
+                            PropertyOpType.Update,
+                            master.attributes,
+                        )
+                    }
+                }
+
+            // First insert:
+            entries.single { it.entityName == RechnungDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
+                .let { master ->
+                    assertMasterEntry(
+                        RechnungDO::class,
+                        null,
+                        EntityOpType.Insert,
+                        loggedInUser,
+                        master
+                    )
+                }
+        }
     }
 
     private fun assertMasterEntry(
