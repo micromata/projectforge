@@ -81,10 +81,8 @@ object HistoryBaseDaoAdapter {
             oldValue = oldValue,
             newValue = newValue,
             propertyName = propertyName,
-        ).let {
-            master.add(it)
-            it.internalSerializeValueObjects()
-        }
+            master = master,
+        )
 
         return master
     }
@@ -100,9 +98,6 @@ object HistoryBaseDaoAdapter {
         historyEntry: PfHistoryMasterDO,
         context: PfPersistenceContext,
     ): PfHistoryMasterDO {
-        historyEntry.attributes?.forEach { attr ->
-            attr.internalSerializeValueObjects()
-        }
         context.insert(historyEntry)
         return historyEntry
     }
