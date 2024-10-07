@@ -53,16 +53,16 @@ class HistoryServiceTest : AbstractTestBase() {
         invoice.id = 40770225
         historyService.loadHistory(invoice).let { historyEntries ->
             Assertions.assertEquals(2, historyEntries.size)
-            var master = historyEntries[0]
-            Assertions.assertEquals(4, master.attributes!!.size)
-            val attrs = master.attributes!!
+            var entry = historyEntries[0]
+            Assertions.assertEquals(4, entry.attributes!!.size)
+            val attrs = entry.attributes!!
             Assertions.assertEquals(4, attrs.size)
             assert(attrs, "bemerkung", "PoBa", null, PropertyOpType.Insert)
             assert(attrs, "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
             assert(attrs, "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
             assert(attrs, "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
-            master = historyEntries[1]
-            Assertions.assertEquals(17, master.attributes!!.size)
+            entry = historyEntries[1]
+            Assertions.assertEquals(17, entry.attributes!!.size)
         }
         invoice.id = 351958
         historyService.loadHistory(invoice).let { historyEntries ->
@@ -122,14 +122,14 @@ class HistoryServiceTest : AbstractTestBase() {
         user.id = 34961222
         historyService.loadHistory(user).let { historyEntries ->
             Assertions.assertEquals(27, historyEntries.size)
-            var master = historyEntries.find { it.id == getNewMasterId(34961266) }!! // was 34961266
-            Assertions.assertEquals(1, master.attributes!!.size)
-            var attributes = master.attributes!!
+            var entry = historyEntries.find { it.id == getNewHistoryEntryId(34961266) }!! // was 34961266
+            Assertions.assertEquals(1, entry.attributes!!.size)
+            var attributes = entry.attributes!!
             Assertions.assertEquals(1, attributes.size)
             assert(attributes, "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
-            master = historyEntries.find { it.id == getNewMasterId(38057999) }!! // was 38057999
-            Assertions.assertEquals(1, master.attributes!!.size)
-            attributes = master.attributes!!
+            entry = historyEntries.find { it.id == getNewHistoryEntryId(38057999) }!! // was 38057999
+            Assertions.assertEquals(1, entry.attributes!!.size)
+            attributes = entry.attributes!!
             Assertions.assertEquals(1, attributes.size)
             assert(
                 attributes,
@@ -138,9 +138,9 @@ class HistoryServiceTest : AbstractTestBase() {
                 "2022-10-04 09:55:19:329",
                 PropertyOpType.Update
             )
-            master = historyEntries.find { it.id == getNewMasterId(37229748) }!! // was 37229748
-            Assertions.assertEquals(2, master.attributes!!.size)
-            attributes = master.attributes!!
+            entry = historyEntries.find { it.id == getNewHistoryEntryId(37229748) }!! // was 37229748
+            Assertions.assertEquals(2, entry.attributes!!.size)
+            attributes = entry.attributes!!
             Assertions.assertEquals(2, attributes.size)
             assert(attributes, "locale", "de_DE", "", PropertyOpType.Update)
             assert(attributes, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
@@ -153,7 +153,7 @@ class HistoryServiceTest : AbstractTestBase() {
         val order = AuftragDO()
         order.id = 36901223
         historyService.loadHistory(order).let { historyEntries ->
-            // 9 master entries, 36 attr entries in old format -> 18 entries in new format.
+            // 9 history entries, 36 attr entries in old format -> 18 entries in new format.
             historyEntries.filter { it.entityId == 36901223L }.let { entries ->
                 Assertions.assertEquals(9, entries.size, "9 entries for Auftrag 36901229")
             }
@@ -173,9 +173,9 @@ class HistoryServiceTest : AbstractTestBase() {
                 Assertions.assertEquals(5, entries.size, "5 for Auftragsposition 36901228")
             }
             Assertions.assertEquals(26, historyEntries.size, "26 entries in total")
-            val master = historyEntries.find { it.id == getNewMasterId(36901229) }!! // was 36901229
-            Assertions.assertEquals(18, master.attributes!!.size)
-            val diffEntries = master.attributes!!
+            val entry = historyEntries.find { it.id == getNewHistoryEntryId(36901229) }!! // was 36901229
+            Assertions.assertEquals(18, entry.attributes!!.size)
+            val diffEntries = entry.attributes!!
             Assertions.assertEquals(18, diffEntries.size)
 
             val orderPos = AuftragsPositionDO()
@@ -205,7 +205,7 @@ class HistoryServiceTest : AbstractTestBase() {
         propertyName: String,
         operationType: EntityOpType
     ) {
-        val master = HistoryCreateUtils.createMaster(entity, operationType)
+        val entry = HistoryCreateUtils.createHistoryEntry(entity, operationType)
 
         val attr1 = HistoryCreateUtils.createAttr(
             GroupDO::class,
@@ -215,18 +215,18 @@ class HistoryServiceTest : AbstractTestBase() {
         )
         val attrs = mutableListOf(attr1)
 
-        val pk = historyService.save(master, attrs)!!
+        historyService.save(entry, attrs)!!
 
-        Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
-        Assertions.assertEquals(entity.id, master.entityId)
-        Assertions.assertEquals("anon", master.modifiedBy)
-        val createdAt = master.modifiedAt!!.time
+        Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", entry.entityName)
+        Assertions.assertEquals(entity.id, entry.entityId)
+        Assertions.assertEquals("anon", entry.modifiedBy)
+        val createdAt = entry.modifiedAt!!.time
         Assertions.assertTrue(
             Math.abs(System.currentTimeMillis() - createdAt) < 10000,
             "createdAt should be near to now (10s)",
         )
 
-        Assertions.assertEquals(master.id, attr1.master!!.id)
+        Assertions.assertEquals(entry.id, attr1.parent!!.id)
     }
 
     private fun ensureSetup() {
@@ -237,40 +237,40 @@ class HistoryServiceTest : AbstractTestBase() {
         private val oldPropertyClass = "de.micromata.genome.db.jpa.history.entities.PropertyOpType"
 
         /**
-         * Key is the parsed history master entry id and value the database entry saved by this test case.
+         * Key is the parsed history entry id and value the database entry saved by this test case.
          */
-        private val historyMasterMap = mutableMapOf<Long, PfHistoryMasterDO>()
+        private val historyEntryMap = mutableMapOf<Long, HistoryEntryDO>()
 
         /**
-         * Key is the parsed history master_fk id and value the generated PfHistoryAttrDO.
+         * Key is the parsed history master_fk id and value the generated HistoryEntryAttrDO.
          */
-        private val historyAttrMap = mutableMapOf<Long, MutableList<PfHistoryAttrDO>>()
+        private val historyAttrMap = mutableMapOf<Long, MutableList<HistoryEntryAttrDO>>()
 
-        internal fun getNewMasterId(origMasterId: Long): Long {
-            val newMaster = historyMasterMap[origMasterId]
-            Assertions.assertNotNull(newMaster, "Master with id $origMasterId not found!")
-            return newMaster!!.id!!
+        internal fun getNewHistoryEntryId(origHistoryEntryId: Long): Long {
+            val newEntry = historyEntryMap[origHistoryEntryId]
+            Assertions.assertNotNull(newEntry, "HistoryEntryDO with id $origHistoryEntryId not found!")
+            return newEntry!!.id!!
         }
 
         internal fun ensureSetup(persistenceService: PfPersistenceService, historyService: HistoryService) {
-            if (historyMasterMap.isNotEmpty()) {
+            if (historyEntryMap.isNotEmpty()) {
                 return // Already done.
             }
             parseFile(getUri("/history/pf_history-testentries.csv")).forEach { map ->
                 // pk, modifiedby, entity_id, entity_name, entity_optype
                 val pk = map["pk"]!!.toLong()
-                val historyMaster = PfHistoryMasterDO()
-                historyMaster.modifiedAt = PFDateTimeUtils.parse(map["modifiedat"])?.utilDate
-                historyMaster.modifiedBy = map["modifiedby"]
-                historyMaster.entityId = map["entity_id"]!!.toLong()
-                historyMaster.entityName = map["entity_name"]!!
-                historyMaster.entityOpType = EntityOpType.valueOf(map["entity_optype"]!!)
-                historyMasterMap[pk] = historyMaster
+                val historyEntry = HistoryEntryDO()
+                historyEntry.modifiedAt = PFDateTimeUtils.parse(map["modifiedat"])?.utilDate
+                historyEntry.modifiedBy = map["modifiedby"]
+                historyEntry.entityId = map["entity_id"]!!.toLong()
+                historyEntry.entityName = map["entity_name"]!!
+                historyEntry.entityOpType = EntityOpType.valueOf(map["entity_optype"]!!)
+                historyEntryMap[pk] = historyEntry
             }
             parseFile(getUri("/history/pf_history_attr-testentries.csv")).forEach { map ->
                 try {
                     // value, propertyname, type, property_type_class, old_value, optype, master_fk
-                    val attr = PfHistoryAttrDO()
+                    val attr = HistoryEntryAttrDO()
                     attr.value = map["value"]
                     attr.oldValue = map["old_alue"]
                     attr.propertyName = map["propertyname"]
@@ -295,13 +295,13 @@ class HistoryServiceTest : AbstractTestBase() {
             }
             persistenceService.runInTransaction { context ->
                 val em = context.em
-                historyMasterMap.entries.forEach { entry ->
-                    val master = entry.value
-                    val masterId = entry.key
-                    val attrs = historyAttrMap[masterId]
-                    if (em.find(PfHistoryMasterDO::class.java, masterId) == null) {
+                historyEntryMap.entries.forEach { entry ->
+                    val historyEntry = entry.value
+                    val historyEntryId = entry.key
+                    val attrs = historyAttrMap[historyEntryId]
+                    if (em.find(HistoryEntryDO::class.java, historyEntryId) == null) {
                         // Entry not yet saved:
-                        historyService.save(em, master, attrs)
+                        historyService.save(em, historyEntry, attrs)
                     }
                 }
             }
@@ -403,36 +403,36 @@ class HistoryServiceTest : AbstractTestBase() {
             propertyName: String,
             operationType: EntityOpType
         ) {
-            val master = HistoryCreateUtils.createMaster(entity, operationType)
+            val entry = HistoryCreateUtils.createHistoryEntry(entity, operationType)
 
             val attr1 = HistoryCreateUtils.createAttr(
-                GroupDO::class, propertyName = "$propertyName${PFHistoryMasterUtils.NEWVAL_SUFFIX}", value = value
+                GroupDO::class, propertyName = "$propertyName${HistoryEntryDOUtils.NEWVAL_SUFFIX}", value = value
             )
             val attr2 = HistoryCreateUtils.createAttr(
-                oldPropertyClass, "$propertyName${PFHistoryMasterUtils.OP_SUFFIX}", value = operationType.name
+                oldPropertyClass, "$propertyName${HistoryEntryDOUtils.OP_SUFFIX}", value = operationType.name
             )
             val attr3 = HistoryCreateUtils.createAttr(
-                GroupDO::class, "$propertyName${PFHistoryMasterUtils.OLDVAL_SUFFIX}", value = oldValue
+                GroupDO::class, "$propertyName${HistoryEntryDOUtils.OLDVAL_SUFFIX}", value = oldValue
             )
             val attrs = mutableListOf(attr1, attr2, attr3)
 
-            val pk = historyService.save(master, attrs)!!
+            historyService.save(entry, attrs)!!
 
             Assertions.assertEquals(
-                "org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName
+                "org.projectforge.framework.persistence.user.entities.PFUserDO", entry.entityName
             )
-            Assertions.assertEquals(entity.id, master.entityId)
-            Assertions.assertEquals("anon", master.modifiedBy)
-            val createdAt = master.modifiedAt!!.time
+            Assertions.assertEquals(entity.id, entry.entityId)
+            Assertions.assertEquals("anon", entry.modifiedBy)
+            val createdAt = entry.modifiedAt!!.time
             Assertions.assertTrue(
                 Math.abs(System.currentTimeMillis() - createdAt) < 10000,
                 "createdAt should be near to now (10s)",
             )
 
-            Assertions.assertEquals(master.id, attr1.master!!.id)
+            Assertions.assertEquals(entry.id, attr1.parent!!.id)
         }
 
-        fun assertMasterEntry(
+        fun assertHistoryEntry(
             entityClass: KClass<*>,
             id: Long?,
             opType: EntityOpType,
@@ -450,7 +450,7 @@ class HistoryServiceTest : AbstractTestBase() {
                 System.currentTimeMillis() - entry.modifiedAt!!.time < 10000,
                 "Time difference is too big",
             )
-            entry as PfHistoryMasterDO
+            entry as HistoryEntryDO
             Assertions.assertEquals(numberOfAttributes, entry.attributes?.size ?: 0)
         }
 

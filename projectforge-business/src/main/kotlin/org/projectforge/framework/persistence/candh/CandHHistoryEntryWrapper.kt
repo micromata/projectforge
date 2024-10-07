@@ -26,22 +26,22 @@ package org.projectforge.framework.persistence.candh
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
- * Wrapper for PfHistoryMasterDO with additional functionalities.
+ * Wrapper for HistoryEntryDO with additional functionalities.
  * @see CandHHistoryAttrWrapper
  */
-internal class CandHHistoryMasterWrapper(private var master: PfHistoryMasterDO) {
+internal class CandHHistoryEntryWrapper(private var historyEntry: HistoryEntryDO) {
     internal var attributeWrappers: MutableSet<CandHHistoryAttrWrapper>? = null
 
-    fun prepareAndGetMaster(): PfHistoryMasterDO {
-        master.attributes = mutableSetOf()
+    fun prepareAndGetHistoryEntry(): HistoryEntryDO {
+        historyEntry.attributes = mutableSetOf()
         attributeWrappers?.forEach { attrWrapper ->
-            attrWrapper.prepareAndGetAttr(master)
+            attrWrapper.prepareAndGetAttr(historyEntry)
         }
-        return master
+        return historyEntry
     }
 
     companion object {
@@ -51,10 +51,10 @@ internal class CandHHistoryMasterWrapper(private var master: PfHistoryMasterDO) 
             entityOpType: EntityOpType,
             entityName: String? = HibernateUtils.getRealClass(entity).name,
             modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
-        ): CandHHistoryMasterWrapper {
-            PfHistoryMasterDO.create(entity, entityOpType, entityName = entityName, modifiedBy = modifiedBy)
-                .let { master ->
-                    return CandHHistoryMasterWrapper(master)
+        ): CandHHistoryEntryWrapper {
+            HistoryEntryDO.create(entity, entityOpType, entityName = entityName, modifiedBy = modifiedBy)
+                .let { entry ->
+                    return CandHHistoryEntryWrapper(entry)
                 }
         }
     }

@@ -26,11 +26,11 @@ package org.projectforge.framework.persistence.history
 import org.projectforge.framework.persistence.api.HibernateUtils
 
 /**
- * Creates HistoryEntries from PFHistoryMasterDO and PFHistoryAttrDO.
+ * Creates HistoryEntries from HistoryEntryDO and HistoryEntryAttrDO.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-object PFHistoryMasterUtils {
+object HistoryEntryDOUtils {
     const val OP_SUFFIX: String = ":op"
 
     /**
@@ -43,7 +43,7 @@ object PFHistoryMasterUtils {
      */
     const val NEWVAL_SUFFIX: String = ":nv"
 
-    fun isOldAttr(attr: PfHistoryAttrDO): Boolean {
+    fun isOldAttr(attr: HistoryEntryAttrDO): Boolean {
         // Property names with these suffixes are old attributes.
         // Remember, there are some property names like 'timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv'
         attr.propertyName.let { propertyName ->
@@ -54,7 +54,7 @@ object PFHistoryMasterUtils {
         }
     }
 
-    fun getPlainPropertyName(attr: PfHistoryAttrDO): String? {
+    fun getPlainPropertyName(attr: HistoryEntryAttrDO): String? {
         if (isOldAttr(attr)) {
             return attr.propertyName?.substringBeforeLast(":")
         } else {
@@ -62,7 +62,7 @@ object PFHistoryMasterUtils {
         }
     }
 
-    fun getFixedPropertyClass(attr: PfHistoryAttrDO): String {
+    fun getFixedPropertyClass(attr: HistoryEntryAttrDO): String {
         return HibernateUtils.getUnifiedClassname(attr.propertyTypeClass)
     }
 
@@ -72,12 +72,12 @@ object PFHistoryMasterUtils {
      * Concatenates history attributes from older MGC versions.
      * If no old attributes are found, nothing is done.
      */
-    fun transformOldAttributes(masterDO: PfHistoryMasterDO) {
-        val oldAttrs = masterDO.attributes ?: return
+    fun transformOldAttributes(historyEntry: HistoryEntryDO) {
+        val oldAttrs = historyEntry.attributes ?: return
         if (oldAttrs.any { isOldAttr(it) }) {
             // Old attributes found, nothing to do.
-            val transformedAttrs = mutableSetOf<PfHistoryAttrDO>()
-            var currentEntry: PfHistoryAttrDO? = null
+            val transformedAttrs = mutableSetOf<HistoryEntryAttrDO>()
+            var currentEntry: HistoryEntryAttrDO? = null
             oldAttrs.sortedBy { it.propertyName }.forEach { attr ->
                 currentEntry.let { current ->
                     if (current != null && current.propertyName == attr.plainPropertyName) {
@@ -92,22 +92,22 @@ object PFHistoryMasterUtils {
                     }
                 }
             }
-            masterDO.attributes = transformedAttrs
+            historyEntry.attributes = transformedAttrs
         }
-        masterDO.attributes?.forEach { attr ->
+        historyEntry.attributes?.forEach { attr ->
             attr.propertyTypeClass = getFixedPropertyClass(attr)
         }
     }
 
-    private fun cloneAndTransformAttr(attr: PfHistoryAttrDO): PfHistoryAttrDO {
-        val clone = PfHistoryAttrDO()
+    private fun cloneAndTransformAttr(attr: HistoryEntryAttrDO): HistoryEntryAttrDO {
+        val clone = HistoryEntryAttrDO()
         mergeDiffEntry(clone, attr)
         return clone
     }
 
-    private fun mergeDiffEntry(newAttr: PfHistoryAttrDO, oldAttr: PfHistoryAttrDO) {
+    private fun mergeDiffEntry(newAttr: HistoryEntryAttrDO, oldAttr: HistoryEntryAttrDO) {
         newAttr.propertyName = newAttr.propertyName ?: oldAttr.plainPropertyName
-        newAttr.master = newAttr.master ?: oldAttr.master
+        newAttr.parent = newAttr.parent ?: oldAttr.parent
         newAttr.id = newAttr.id ?: oldAttr.id
         if (oldAttr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
             newAttr.oldValue = oldAttr.value
@@ -129,7 +129,7 @@ object PFHistoryMasterUtils {
         }
     }
 
-    internal fun getPropertyName(attr: PfHistoryAttrDO): String? {
+    internal fun getPropertyName(attr: HistoryEntryAttrDO): String? {
         return attr.plainPropertyName
     }
 }

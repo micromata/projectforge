@@ -30,7 +30,7 @@ package org.projectforge.framework.persistence.history
 interface HistoryEntryAttr {
     /**
      * For information / testing purposes and for avoiding multiple entries in the result list:
-     * the id of the PfHistoryAttrDO (t_pf_history_attr)
+     * the id of the HistoryEntryAttrDO (t_pf_history_attr)
      */
     var id: Long?
 

@@ -79,7 +79,7 @@ class CandHHistoryTest : AbstractTestBase() {
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(1, entries.size)
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
+            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
         }
         user.email = "horst@acme.com"
         user.username = "${PREFIX}test_changed"
@@ -94,8 +94,8 @@ class CandHHistoryTest : AbstractTestBase() {
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 8)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(2, entries.size)
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, entries[0], 8)
-            (entries[0] as PfHistoryMasterDO).let { entry ->
+            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, entries[0], 8)
+            (entries[0] as HistoryEntryDO).let { entry ->
                 assertAttrEntry(
                     "java.lang.String",
                     "${PREFIX}test_changed",
@@ -161,15 +161,15 @@ class CandHHistoryTest : AbstractTestBase() {
                     entry.attributes,
                 )
             }
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[1])
+            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[1])
         }
         user.description = "This is a deleted test user."
         userDao.markAsDeletedInTrans(user)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, entries[0], 1)
-            (entries[0] as PfHistoryMasterDO).let { entry ->
+            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, entries[0], 1)
+            (entries[0] as HistoryEntryDO).let { entry ->
                 assertAttrEntry(
                     "java.lang.String",
                     "This is a deleted test user.",
@@ -185,8 +185,8 @@ class CandHHistoryTest : AbstractTestBase() {
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 1, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(4, entries.size)
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, entries[0], 1)
-            (entries[0] as PfHistoryMasterDO).let { entry ->
+            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, entries[0], 1)
+            (entries[0] as HistoryEntryDO).let { entry ->
                 assertAttrEntry(
                     "java.lang.String",
                     "This is a undeleted test user.",
@@ -223,9 +223,9 @@ class CandHHistoryTest : AbstractTestBase() {
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
-            assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
-            assertMasterEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
-            assertMasterEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
+            assertHistoryEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
+            assertHistoryEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
+            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
         }
 
         user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE))
@@ -244,9 +244,9 @@ class CandHHistoryTest : AbstractTestBase() {
                     Assertions.assertEquals(3, inserts.size)
                 }
             entries.single { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
-                .let { master ->
-                    assertMasterEntry(UserRightDO::class, null, EntityOpType.Update, loggedInUser, master, 1)
-                    (master as PfHistoryMasterDO).let { entry ->
+                .let { historyEntry ->
+                    assertHistoryEntry(UserRightDO::class, null, EntityOpType.Update, loggedInUser, historyEntry, 1)
+                    (historyEntry as HistoryEntryDO).let { entry ->
                         assertAttrEntry(
                             "org.projectforge.business.user.UserRightValue",
                             "READONLY",
@@ -284,7 +284,7 @@ class CandHHistoryTest : AbstractTestBase() {
         groupDao.saveInTrans(group1)
         groupDao.getHistoryEntries(group1).let { entries ->
             Assertions.assertEquals(1, entries.size)
-            assertMasterEntry(GroupDO::class, group1.id, EntityOpType.Insert, loggedInUser, entries[0])
+            assertHistoryEntry(GroupDO::class, group1.id, EntityOpType.Insert, loggedInUser, entries[0])
         }
         userDao.getHistoryEntries(user1).let { entries ->
             Assertions.assertEquals(2, entries.size)
@@ -298,7 +298,7 @@ class CandHHistoryTest : AbstractTestBase() {
                     entry.attributes,
                 )
             }
-            assertMasterEntry(PFUserDO::class, user1.id, EntityOpType.Insert, loggedInUser, entries[1])
+            assertHistoryEntry(PFUserDO::class, user1.id, EntityOpType.Insert, loggedInUser, entries[1])
         }
         var recent = getRecentHistoryEntries(4)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 3)
@@ -332,7 +332,7 @@ class CandHHistoryTest : AbstractTestBase() {
                     entry.attributes,
                 )
             }
-            assertMasterEntry(PFUserDO::class, user1.id, EntityOpType.Insert, loggedInUser, entries[2]) // user inserted
+            assertHistoryEntry(PFUserDO::class, user1.id, EntityOpType.Insert, loggedInUser, entries[2]) // user inserted
         }
         groupDao.getHistoryEntries(group1).let { entries ->
             Assertions.assertEquals(
@@ -349,17 +349,23 @@ class CandHHistoryTest : AbstractTestBase() {
                     entry.attributes,
                 )
             }
-            assertMasterEntry(GroupDO::class, group1.id, EntityOpType.Insert, loggedInUser, entries[1]) // user inserted
+            assertHistoryEntry(GroupDO::class, group1.id, EntityOpType.Insert, loggedInUser, entries[1]) // user inserted
         }
 
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
 
+        val group2 = GroupDO()
+        group2.name = "${PREFIX}assigningGroup2"
+        groupDao.saveInTrans(group2)
+        val group3 = GroupDO()
+        group3.name = "${PREFIX}assigningGroup3"
+        groupDao.saveInTrans(group3)
+        val group4 = GroupDO()
+        group4.name = "${PREFIX}assigningGroup4"
+        groupDao.saveInTrans(group4)
+
         // Assigning and unassigning of group/users is done by GroupDao.saveOrUpdate() or by GroupDao.assignGroups().
-        // groupDao.assignGroups()
-        //groupDao.assignGroups()
-        // TODO: ****** Add, remove and change rights and test history entries...
-        // TODO: ****** Testing adding and removing groups and users.
-        // TODO: Test of unmanaged collections, such as assigned users etc.
+        groupDao.assignGroupByIdsInTrans(user4, setOf(group1.id), setOf(group2.id))
 
     }
 
@@ -422,13 +428,13 @@ class CandHHistoryTest : AbstractTestBase() {
         rechnungDao.getHistoryEntries(invoice).let { entries ->
             Assertions.assertEquals(4, entries.size)
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
-                .let { master ->
-                    assertMasterEntry(RechnungsPositionDO::class, null, EntityOpType.Insert, loggedInUser, master)
+                .let { entry ->
+                    assertHistoryEntry(RechnungsPositionDO::class, null, EntityOpType.Insert, loggedInUser, entry)
                 }
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
-                .let { master ->
-                    assertMasterEntry(RechnungsPositionDO::class, null, EntityOpType.Update, loggedInUser, master, 3)
-                    (master as PfHistoryMasterDO).let { entry ->
+                .let { historyEntry ->
+                    assertHistoryEntry(RechnungsPositionDO::class, null, EntityOpType.Update, loggedInUser, historyEntry, 3)
+                    (historyEntry as HistoryEntryDO).let { entry ->
                         assertAttrEntry(
                             "java.lang.String",
                             "Test position 1 changed",
@@ -456,41 +462,41 @@ class CandHHistoryTest : AbstractTestBase() {
                     }
                 }
             entries.single { it.entityName == RechnungDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
-                .let { master ->
-                    assertMasterEntry(
+                .let { entry ->
+                    assertHistoryEntry(
                         RechnungDO::class,
                         null,
                         EntityOpType.Update,
                         loggedInUser,
-                        master, 1
+                        entry, 1
                     )
-                    (master as PfHistoryMasterDO).let { master ->
+                    (entry as HistoryEntryDO).let { entry ->
                         assertAttrEntry(
                             KundeDO::class.qualifiedName,
                             "7864873",
                             "7864872",
                             "kunde",
                             PropertyOpType.Update,
-                            master.attributes,
+                            entry.attributes,
                         )
                     }
                 }
 
             // First insert:
             entries.single { it.entityName == RechnungDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
-                .let { master ->
-                    assertMasterEntry(
+                .let { entry ->
+                    assertHistoryEntry(
                         RechnungDO::class,
                         null,
                         EntityOpType.Insert,
                         loggedInUser,
-                        master
+                        entry
                     )
                 }
         }
     }
 
-    private fun assertMasterEntry(
+    private fun assertHistoryEntry(
         entityClass: KClass<*>,
         id: Long?,
         opType: EntityOpType,
@@ -498,7 +504,7 @@ class CandHHistoryTest : AbstractTestBase() {
         entry: HistoryEntry,
         numberOfAttributes: Int = 0,
     ) {
-        HistoryServiceTest.assertMasterEntry(entityClass, id, opType, modUser, entry, numberOfAttributes)
+        HistoryServiceTest.assertHistoryEntry(entityClass, id, opType, modUser, entry, numberOfAttributes)
     }
 
     private fun assertAttrEntry(

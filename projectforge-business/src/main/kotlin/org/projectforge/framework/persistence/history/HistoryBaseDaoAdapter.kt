@@ -58,8 +58,8 @@ object HistoryBaseDaoAdapter {
         return whl.isEmpty() == false
     }
 
-    fun createHistoryEntry(entity: IdObject<Long>, opType: EntityOpType): PfHistoryMasterDO {
-        return PfHistoryMasterDO.create(entity, opType)
+    fun createHistoryEntry(entity: IdObject<Long>, opType: EntityOpType): HistoryEntryDO {
+        return HistoryEntryDO.create(entity, opType)
     }
 
     /**
@@ -73,31 +73,31 @@ object HistoryBaseDaoAdapter {
         propertyTypeClass: Class<*>,
         oldValue: Any?,
         newValue: Any?,
-    ): PfHistoryMasterDO {
-        val master = PfHistoryMasterDO.create(entity, EntityOpType.Update)
-        PfHistoryAttrDO.create(
+    ): HistoryEntryDO {
+        val entry = HistoryEntryDO.create(entity, EntityOpType.Update)
+        HistoryEntryAttrDO.create(
             propertyTypeClass = propertyTypeClass,
             opType = PropertyOpType.Update,
             oldValue = oldValue,
             newValue = newValue,
             propertyName = propertyName,
-            master = master,
+            historyEntry = entry,
         )
 
-        return master
+        return entry
     }
 
     fun insertHistoryEntry(
         entity: IdObject<Long>, opType: EntityOpType, context: PfPersistenceContext,
-    ): PfHistoryMasterDO {
+    ): HistoryEntryDO {
         val historyEntry = createHistoryEntry(entity, opType)
         return insertHistoryEntry(historyEntry, context)
     }
 
     fun insertHistoryEntry(
-        historyEntry: PfHistoryMasterDO,
+        historyEntry: HistoryEntryDO,
         context: PfPersistenceContext,
-    ): PfHistoryMasterDO {
+    ): HistoryEntryDO {
         context.insert(historyEntry)
         return historyEntry
     }
@@ -113,7 +113,7 @@ object HistoryBaseDaoAdapter {
         propertyTypeClass: Class<*>,
         oldValue: Any?, newValue: Any?,
         context: PfPersistenceContext,
-    ): PfHistoryMasterDO {
+    ): HistoryEntryDO {
         val historyEntry = createHistoryUpdateEntryWithSingleAttribute(
             entity, propertyName, propertyTypeClass, oldValue, newValue,
         )
@@ -130,16 +130,16 @@ object HistoryBaseDaoAdapter {
 
     fun updated(
         obj: BaseDO<Long>,
-        historyEntries: List<PfHistoryMasterDO>?,
+        historyEntries: List<HistoryEntryDO>?,
         context: PfPersistenceContext
     ) {
         if (!isHistorizable(obj) || historyEntries.isNullOrEmpty()) {
             return
         }
-        historyEntries.forEach { master ->
-            insertHistoryEntry(master, context)
-            /*master.attributes?.forEach { attr ->
-                master.add(attr)
+        historyEntries.forEach { entry ->
+            insertHistoryEntry(entry, context)
+            /*entry.attributes?.forEach { attr ->
+                entry.add(attr)
                 attr.internalSerializeValueObjects()
                 context.insert(attr)
             }*/

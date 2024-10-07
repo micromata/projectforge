@@ -96,7 +96,7 @@ public class PFSpringConfiguration {
       @Override
       public Class<? extends HistoryMasterBaseDO<?, ?>> getHistoryMasterClass()
       {
-        return PfHistoryMasterDO.class;
+        return HistoryEntryDO.class;
       }
 
     });

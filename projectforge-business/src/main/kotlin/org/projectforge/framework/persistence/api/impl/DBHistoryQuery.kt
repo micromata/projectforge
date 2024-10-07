@@ -28,7 +28,7 @@ import jakarta.persistence.criteria.Predicate
 import mu.KotlinLogging
 import org.hibernate.search.mapper.orm.Search
 import org.projectforge.framework.ToStringUtil
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -43,7 +43,7 @@ internal object DBHistoryQuery {
     ): Set<Long> {
         val cb = entityManager.criteriaBuilder
         val cr = cb.createQuery(Long::class.java)
-        val root = cr.from(PfHistoryMasterDO::class.java)
+        val root = cr.from(HistoryEntryDO::class.java)
         val predicates = mutableListOf<Predicate>()
         predicates.add(cb.equal(root.get<String>("entityName"), clazz.name))
         if (searchParams.modifiedByUserId != null) {
@@ -93,7 +93,7 @@ internal object DBHistoryQuery {
         clazz: Class<*>,
         searchParams: DBHistorySearchParams
     ): Set<Long> {
-        val result = Search.session(entityManager).search(PfHistoryMasterDO::class.java).where { q ->
+        val result = Search.session(entityManager).search(HistoryEntryDO::class.java).where { q ->
             q.bool().with { bool ->
                 bool.must { must ->
                     must.match().field("entityName").matching(clazz.name)

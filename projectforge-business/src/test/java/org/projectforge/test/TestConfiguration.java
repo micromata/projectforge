@@ -23,10 +23,6 @@
 
 package org.projectforge.test;
 
-import org.projectforge.database.DatabaseSupport;
-import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -39,8 +35,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
@@ -136,7 +130,7 @@ public class TestConfiguration {
 
       @Override
       public Class<? extends HistoryMasterBaseDO<?, ?>> getHistoryMasterClass() {
-        return PfHistoryMasterDO.class;
+        return HistoryEntryDO.class;
       }
 
     });

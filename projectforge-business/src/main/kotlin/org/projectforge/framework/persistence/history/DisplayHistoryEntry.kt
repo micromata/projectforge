@@ -66,13 +66,13 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     }
 
     /**
-     * For information / testing purposes: the id of the PfHistoryMasterDO (t_pf_history)
+     * For information / testing purposes: the id of the HistoryEntryDO (t_pf_history)
      */
-    var masterId: Long? = null
+    var historyEntryId: Long? = null
 
     /**
      * For information / testing purposes and for avoiding multiple entries in the result list:
-     * the id of the PfHistoryAttrDO (t_pf_history_attr)
+     * the id of the HistoryEntryAttrDO (t_pf_history_attr)
      */
     var attributeId: Long? = null
 
@@ -127,7 +127,7 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         // entry.getClassName();
         // entry.getComment();
         entryType = entry.entityOpType!!
-        masterId = entry.id
+        historyEntryId = entry.id
         // entry.getEntityId();
     }
 

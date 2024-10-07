@@ -97,7 +97,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         searchFilter: AddressCampaignValueFilter
     ): Map<Long?, AddressCampaignValueDO> {
         map.clear()
-        val addressCampaignId = searchFilter.addressCampaignId ?: return map
+        searchFilter.addressCampaignId ?: return map
         val list: List<AddressCampaignValueDO> = persistenceService.executeNamedQuery(
             AddressCampaignValueDO.FIND_BY_CAMPAIGN,
             AddressCampaignValueDO::class.java,

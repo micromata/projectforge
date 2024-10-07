@@ -122,7 +122,7 @@ open class CollectionHandler : CandHIHandler {
                     val destEntry =
                         destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, keptEntry) }
                     try {
-                        context.historyContext?.pushHistoryMasterWrapper(keptEntry)
+                        context.historyContext?.pushHistoryEntryWrapper(keptEntry)
                         @Suppress("UNCHECKED_CAST")
                         copyValues(
                             keptEntry,
@@ -130,7 +130,7 @@ open class CollectionHandler : CandHIHandler {
                             context,
                         )
                     } finally {
-                        context.historyContext?.popHistoryMasterWrapper()
+                        context.historyContext?.popHistoryEntryWrapper()
                     }
                 }
             }
@@ -139,14 +139,14 @@ open class CollectionHandler : CandHIHandler {
             if (collectionManagedByThis) {
                 // If collection is managed by this class, we don't need to add a history entry of removed and added entries as lists.
                 compareResults.removed?.forEach { entry ->
-                    context.addHistoryMasterWrapper(
+                    context.addHistoryEntryWrapper(
                         entity = entry as BaseDO<*>,
                         entityOpType = EntityOpType.Delete,
                     )
                 }
                 if (!compareResults.added.isNullOrEmpty()) {
-                    // toAdd: Entity id is null, so can't create history master entry now.
-                    // We store the src collection entries in the history context and create the history master entries later.
+                    // toAdd: Entity id is null, so can't create history entry now.
+                    // We store the src collection entries in the history context and create the history entries later.
                     context.historyContext?.addSrcCollectionWithNewEntries(pc, compareResults.kept)
                 }
             } else {

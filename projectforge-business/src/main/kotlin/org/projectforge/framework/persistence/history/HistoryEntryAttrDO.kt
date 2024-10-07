@@ -55,8 +55,8 @@ import org.projectforge.framework.persistence.api.HibernateUtils
  */
 @NamedQueries(
     NamedQuery(
-        name = PfHistoryAttrDO.SELECT_HISTORY_ATTR_FOR_BASEDO,
-        query = "from PfHistoryAttrDO where master.id=:masterId order by id desc"
+        name = HistoryEntryAttrDO.SELECT_HISTORY_ATTR_FOR_BASEDO,
+        query = "from HistoryEntryAttrDO where parent.id=:masterId order by id desc"
     ),
 )
 @Entity
@@ -69,7 +69,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-class PfHistoryAttrDO: HistoryEntryAttr {
+class HistoryEntryAttrDO: HistoryEntryAttr {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id
@@ -78,7 +78,7 @@ class PfHistoryAttrDO: HistoryEntryAttr {
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "master_fk", nullable = false)
-    var master: PfHistoryMasterDO? = null
+    var parent: HistoryEntryDO? = null
 
     /**
      * The new value.
@@ -117,7 +117,7 @@ class PfHistoryAttrDO: HistoryEntryAttr {
 
     @get:jakarta.persistence.Transient
     val plainPropertyName: String?
-        get() = PFHistoryMasterUtils.getPlainPropertyName(this)
+        get() = HistoryEntryDOUtils.getPlainPropertyName(this)
 
     @get:Column(name = "property_type_class", length = 128)
     override var propertyTypeClass: String? = null
@@ -131,13 +131,13 @@ class PfHistoryAttrDO: HistoryEntryAttr {
     }
 
     companion object {
-        internal const val SELECT_HISTORY_ATTR_FOR_BASEDO = "PfHistoryAttrDO_SelectForBaseDO"
+        internal const val SELECT_HISTORY_ATTR_FOR_BASEDO = "HistoryEntryAttrDO_SelectForBaseDO"
 
         /**
-         * Creates a new PfHistoryAttrDO. Reference master is set by [PfHistoryMasterDO.add].
+         * Creates a new HistoryEntryAttrDO. Referenced parent is set by [HistoryEntryDO.add].
          * The old and new value will be serialized to a string by using [HistoryValueHandlerRegistry].
          *
-         * @param master The master object, which is the parent of this attribute. [PfHistoryMasterDO.add] will be called.
+         * @param historyEntry The parent history entry, which is the parent of this attribute. [HistoryEntryDO.add] will be called.
          * @param oldValue The old value will be automatically serialized by [HistoryValueHandlerRegistry].
          * @param newValue The old value will be automatically serialized by [HistoryValueHandlerRegistry].
          */
@@ -147,15 +147,15 @@ class PfHistoryAttrDO: HistoryEntryAttr {
             opType: PropertyOpType,
             oldValue: Any? = null,
             newValue: Any? = null,
-            master: PfHistoryMasterDO? = null,
-        ): PfHistoryAttrDO {
-            val attr = PfHistoryAttrDO()
+            historyEntry: HistoryEntryDO? = null,
+        ): HistoryEntryAttrDO {
+            val attr = HistoryEntryAttrDO()
             attr.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
             attr.opType = opType
             attr.propertyName = propertyName
-            attr.master = master
+            attr.parent = historyEntry
             attr.serializeAndSet(oldValue = oldValue, newValue = newValue)
-            master?.add(attr)
+            historyEntry?.add(attr)
             return attr
         }
     }

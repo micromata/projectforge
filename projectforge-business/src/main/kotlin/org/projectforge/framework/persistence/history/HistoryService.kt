@@ -54,7 +54,7 @@ class HistoryService {
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<*>): List<PfHistoryMasterDO> {
+    fun loadHistory(baseDO: BaseDO<*>): List<HistoryEntryDO> {
         return persistenceService.runReadOnly { context ->
             loadHistory(baseDO, context)
         }
@@ -63,8 +63,8 @@ class HistoryService {
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<*>, context: PfPersistenceContext? = null): List<PfHistoryMasterDO> {
-        val allHistoryEntries = mutableListOf<PfHistoryMasterDO>()
+    fun loadHistory(baseDO: BaseDO<*>, context: PfPersistenceContext? = null): List<HistoryEntryDO> {
+        val allHistoryEntries = mutableListOf<HistoryEntryDO>()
         if (context != null) {
             loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
         } else {
@@ -72,20 +72,20 @@ class HistoryService {
                 loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, ctx)
             }
         }
-        allHistoryEntries.forEach { master -> PFHistoryMasterUtils.transformOldAttributes(master) }
+        allHistoryEntries.forEach { entry -> HistoryEntryDOUtils.transformOldAttributes(entry) }
         return allHistoryEntries
     }
 
     private fun loadAndAddHistory(
-        allHistoryEntries: MutableList<PfHistoryMasterDO>,
+        allHistoryEntries: MutableList<HistoryEntryDO>,
         entityClass: Class<out BaseDO<*>>,
         entityId: Serializable?,
         context: PfPersistenceContext,
     ) {
         entityId ?: return
         val result = context.executeQuery(
-            sql = PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
-            resultClass = PfHistoryMasterDO::class.java,
+            sql = HistoryEntryDO.SELECT_HISTORY_FOR_BASEDO,
+            resultClass = HistoryEntryDO::class.java,
             namedQuery = true,
             keyValues = arrayOf(
                 Pair("entityId", entityId),
@@ -102,8 +102,8 @@ class HistoryService {
                 // entities.
                 val embeddedObjectsMap = mutableMapOf<String, MutableSet<Long>>()
                 // Check all result history entries for embedded objects:
-                result.forEach { master ->
-                    master.attributes?.forEach attributes@{ attr ->
+                result.forEach { entry ->
+                    entry.attributes?.forEach attributes@{ attr ->
                         attr.plainPropertyName?.let { propertyName ->
                             oneToManyProps.find { it.propertyName == propertyName } ?: return@attributes
                             attr.propertyTypeClass?.let { propertyTypeClass ->
@@ -174,27 +174,27 @@ class HistoryService {
     /**
      * Save method will be called automatically by the Dao services.
      */
-    fun save(master: PfHistoryMasterDO, attrs: Collection<PfHistoryAttrDO>? = null): Long? {
+    fun save(historyEntry: HistoryEntryDO, attrs: Collection<HistoryEntryAttrDO>? = null): Long? {
         persistenceService.runInTransaction { context ->
             val em = context.em
-            save(em, master, attrs)
+            save(em, historyEntry, attrs)
         }
-        return master.id
+        return historyEntry.id
     }
 
     /**
      * Save method will be called automatically by the Dao services.
      */
-    fun save(em: EntityManager, master: PfHistoryMasterDO, attrs: Collection<PfHistoryAttrDO>? = null): Long? {
-        master.modifiedBy = ThreadLocalUserContext.user?.id?.toString() ?: "anon"
-        master.modifiedAt = Date()
-        em.persist(master)
-        log.info { "Saving history: $master" }
+    fun save(em: EntityManager, historyEntry: HistoryEntryDO, attrs: Collection<HistoryEntryAttrDO>? = null): Long? {
+        historyEntry.modifiedBy = ThreadLocalUserContext.user?.id?.toString() ?: "anon"
+        historyEntry.modifiedAt = Date()
+        em.persist(historyEntry)
+        log.info { "Saving history: $historyEntry" }
         attrs?.forEach { attr ->
-            attr.master = master
+            attr.parent = historyEntry
             em.persist(attr)
         }
-        return master.id
+        return historyEntry.id
     }
 
     companion object {
