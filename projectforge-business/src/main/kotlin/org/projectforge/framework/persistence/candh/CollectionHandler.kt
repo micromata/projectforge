@@ -86,8 +86,8 @@ open class CollectionHandler : CandHIHandler {
             propertyWasModified(context, propertyContext, null)
             return true
         }
-        // Calculates the differences between src and dest collection: added, removed and shared entries.
-        val compareResults = CollectionUtils.compareLists(srcCollection, destCollection, withShared = true)
+        // Calculates the differences between src and dest collection: added, removed and kept entries.
+        val compareResults = CollectionUtils.compareLists(srcCollection, destCollection, withKept = true)
         if (destCollection == null) {
             destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
             property.set(dest, destCollection)
@@ -106,10 +106,10 @@ open class CollectionHandler : CandHIHandler {
         }
         var collectionManagedByThis = false
         run loop@{
-            compareResults.shared?.forEach { sharedEntry ->
-                // Shared entries are part of src and dest collection, so we have to check modifications.
-                if (sharedEntry !is BaseDO<*>) {
-                    // Shared entries are not of type BaseDO, so we can't check modifications.
+            compareResults.kept?.forEach { keptEntry ->
+                // Kept entries are part of src and dest collection, so we have to check modifications.
+                if (keptEntry !is BaseDO<*>) {
+                    // Kept entries are not of type BaseDO, so we can't check modifications.
                     return@loop // break foreach loop
                 }
                 val behavior = AnnotationsUtils.getAnnotation(pc.property, PFPersistancyBehavior::class.java)
@@ -120,12 +120,12 @@ open class CollectionHandler : CandHIHandler {
                 if (behavior != null && behavior.autoUpdateCollectionEntries) {
                     collectionManagedByThis = true
                     val destEntry =
-                        destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, sharedEntry) }
+                        destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, keptEntry) }
                     try {
-                        context.historyContext?.pushHistoryMasterWrapper(sharedEntry)
+                        context.historyContext?.pushHistoryMasterWrapper(keptEntry)
                         @Suppress("UNCHECKED_CAST")
                         copyValues(
-                            sharedEntry,
+                            keptEntry,
                             destEntry as BaseDO<Serializable>,
                             context,
                         )
@@ -147,7 +147,7 @@ open class CollectionHandler : CandHIHandler {
                 if (!compareResults.added.isNullOrEmpty()) {
                     // toAdd: Entity id is null, so can't create history master entry now.
                     // We store the src collection entries in the history context and create the history master entries later.
-                    context.historyContext?.addSrcCollectionWithNewEntries(pc, compareResults.shared)
+                    context.historyContext?.addSrcCollectionWithNewEntries(pc, compareResults.kept)
                 }
             } else {
                 // There are entries to remove or add.

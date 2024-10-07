@@ -33,7 +33,7 @@ object CollectionUtils {
         /** Removed entries in src, to be removed in dest. */
         val removed: Collection<T>? = null,
         /** Entries in src and dest. */
-        val shared: Collection<T>? = null,
+        val kept: Collection<T>? = null,
     )
 
     /**
@@ -46,15 +46,15 @@ object CollectionUtils {
     }
 
     /**
-     * Compares two collection and returns the added, removed entries and shared entries.
+     * Compares two collection and returns the added, removed entries and kept entries.
      * @param src Source collection.
      * @param dest Destination collection.
-     * @param withShared If true, the shared entries (part of both collections) are returned as well.
+     * @param withKept If true, the kept entries (part of both collections) are returned as well.
      */
     fun <T> compareLists(
         src: Collection<T?>?,
         dest: Collection<T?>?,
-        withShared: Boolean = false,
+        withKept: Boolean = false,
     ): CompareCollectionsResult<T> {
         val useSrc = src?.filterNotNull()
         val useDest = dest?.filterNotNull()
@@ -69,8 +69,8 @@ object CollectionUtils {
         }
         val added = getAddedEntries(src = useSrc, dest = useDest)
         val removed = getAddedEntries(src = useDest, dest = useSrc)
-        val shared = if (withShared) sharedEntries(src = useSrc, dest = useDest) else null
-        return CompareCollectionsResult(added, removed, shared)
+        val kept = if (withKept) getKeptEntries(src = useSrc, dest = useDest) else null
+        return CompareCollectionsResult(added, removed, kept)
     }
 
     /**
@@ -93,7 +93,7 @@ object CollectionUtils {
     /**
      * Returns all entries of src collection which are part of both collections.
      */
-    private fun <T> sharedEntries(src: Collection<T>, dest: Collection<T>): List<T> {
+    private fun <T> getKeptEntries(src: Collection<T>, dest: Collection<T>): List<T> {
         val srcFirst = dest.firstOrNull() ?: return emptyList()
         if (srcFirst !is IdObject<*>) {
             return src.filter { it in dest }
