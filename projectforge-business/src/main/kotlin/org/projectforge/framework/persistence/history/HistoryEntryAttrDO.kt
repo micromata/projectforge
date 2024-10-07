@@ -53,12 +53,6 @@ import org.projectforge.framework.persistence.api.HibernateUtils
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-@NamedQueries(
-    NamedQuery(
-        name = HistoryEntryAttrDO.SELECT_HISTORY_ATTR_FOR_BASEDO,
-        query = "from HistoryEntryAttrDO where parent.id=:masterId order by id desc"
-    ),
-)
 @Entity
 @Table(
     name = "t_pf_history_attr",
@@ -69,12 +63,13 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-class HistoryEntryAttrDO: HistoryEntryAttr {
+class HistoryEntryAttrDO : HistoryEntryAttr {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id
     override var id: Long? = null
 
+    // TODO: rename master_fk -> parent_fk later. This is a legacy name. If we change it, we have to change the database schema and have no rollback for the upcoming major release 7.6.
     @JsonBackReference
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "master_fk", nullable = false)
@@ -131,8 +126,6 @@ class HistoryEntryAttrDO: HistoryEntryAttr {
     }
 
     companion object {
-        internal const val SELECT_HISTORY_ATTR_FOR_BASEDO = "HistoryEntryAttrDO_SelectForBaseDO"
-
         /**
          * Creates a new HistoryEntryAttrDO. Referenced parent is set by [HistoryEntryDO.add].
          * The old and new value will be serialized to a string by using [HistoryValueHandlerRegistry].
