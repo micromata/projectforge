@@ -33,7 +33,7 @@ class ReindexerStrategy(
          */
         join: String? = "",
         /**
-         * The id property of the entity ('id' for most objects, 'pk' for PfHistoryMasterDO).
+         * The id property of the entity ('id' for most objects, 'pk' for HistoryEntryDO).
          */
         val idProperty: String? = "id",
         /**

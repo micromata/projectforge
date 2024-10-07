@@ -23,18 +23,18 @@
 
 package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.persistence.history.PfHistoryAttrDO
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 
 /**
- * Wrapper for PfHistoryAttrDO with additional functionalities.
+ * Wrapper for HistoryEntryAttrDO with additional functionalities.
  * The main purpose is to serialize the old and new value late and set it to the attribute. On time of creation
  * the entity id of some objects for old and new value is not known. After the entity is persisted, the id is known and
  * [prepareAndGetAttr] can be called to serialize the old and new value.
  */
 internal class CandHHistoryAttrWrapper(
-    private var attr: PfHistoryAttrDO,
+    private var attr: HistoryEntryAttrDO,
     private var oldValue: Any?,
     private var newValue: Any?,
 ) {
@@ -43,12 +43,12 @@ internal class CandHHistoryAttrWrapper(
 
     /**
      * Serialize the old and new value and set it to the attribute.
-     * The return value is prepared to be persisted: The master is set and the attribute is added to the master.
+     * The return value is prepared to be persisted: The parent is set and the attribute is added to the parent.
      */
-    internal fun prepareAndGetAttr(master: PfHistoryMasterDO): PfHistoryAttrDO {
+    internal fun prepareAndGetAttr(parent: HistoryEntryDO): HistoryEntryAttrDO {
         attr.serializeAndSet(oldValue = oldValue, newValue = newValue)
-        attr.master = master
-        master.add(attr)
+        attr.parent = parent
+        parent.add(attr)
         return attr
     }
 
@@ -56,14 +56,13 @@ internal class CandHHistoryAttrWrapper(
     companion object {
         @JvmOverloads
         fun create(
-            masterWrapper: CandHHistoryMasterWrapper,
             propertyTypeClass: Class<*>,
             propertyName: String?,
             optype: PropertyOpType,
             oldValue: Any? = null,
             newValue: Any? = null,
         ): CandHHistoryAttrWrapper {
-            PfHistoryAttrDO.create(
+            HistoryEntryAttrDO.create(
                 propertyTypeClass = propertyTypeClass,
                 propertyName = propertyName,
                 opType = optype,

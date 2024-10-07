@@ -41,9 +41,9 @@ class HistoryBaseDaoAdapterTest {
             oldValue = "1,2,3",
             newValue = "2,4,5", // removing 1 and 3, adding 4 and 5
             propertyTypeClass = GroupDO::class.java,
-        ).let { master ->
-            Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
-            assertAttr(master.attributes!!.first())
+        ).let { entry ->
+            Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", entry.entityName)
+            assertAttr(entry.attributes!!.first())
         }
         // Now, check oldValue and newValue not transformed to csv string:
         HistoryBaseDaoAdapter.createHistoryUpdateEntryWithSingleAttribute(
@@ -52,13 +52,13 @@ class HistoryBaseDaoAdapterTest {
             oldValue = listOf(createGroup(1), createGroup(2), createGroup(3)),
             newValue = listOf(createGroup(2), createGroup(4), createGroup(5)), // removing 1 and 3, adding 4 and 5
             propertyTypeClass = GroupDO::class.java,
-        ).let { master ->
-            Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", master.entityName)
-            assertAttr(master.attributes!!.first())
+        ).let { entry ->
+            Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", entry.entityName)
+            assertAttr(entry.attributes!!.first())
         }
     }
 
-    private fun assertAttr(attr: PfHistoryAttrDO) {
+    private fun assertAttr(attr: HistoryEntryAttrDO) {
         Assertions.assertEquals("1,2,3", attr.oldValue)
         Assertions.assertEquals("2,4,5", attr.value)
         Assertions.assertEquals("test", attr.propertyName)

@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.database
 
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -37,7 +37,7 @@ object ReindexerRegistry {
     private val standardUnknownStrategy = ReindexerStrategy("", "id", null)
 
     init {
-        add(PfHistoryMasterDO::class.java, ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt"))
+        add(HistoryEntryDO::class.java, ReindexerStrategy("left join fetch t.attributes", "pk", "modifiedAt"))
     }
 
     fun add(clazz: Class<*>, strategy: ReindexerStrategy) {

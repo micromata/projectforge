@@ -530,7 +530,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
         for (entry in entries) {
-            if (list.none { it.masterId == entry.masterId && it.attributeId == entry.attributeId }) {
+            if (list.none { it.historyEntryId == entry.historyEntryId && it.attributeId == entry.attributeId }) {
                 list.add(entry)
             }
         }
@@ -1529,7 +1529,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     open fun rebuildDatabaseIndex4NewestEntries() {
         val settings = createReindexSettings(true)
         databaseDao.rebuildDatabaseSearchIndices(doClass, settings)
-        databaseDao.rebuildDatabaseSearchIndices(PfHistoryMasterDO::class.java, settings)
+        databaseDao.rebuildDatabaseSearchIndices(HistoryEntryDO::class.java, settings)
     }
 
     /**

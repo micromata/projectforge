@@ -38,7 +38,7 @@ import org.projectforge.business.user.UserTokenType;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.GroupTaskAccessDO;
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.history.HistoryEntryDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,8 +134,8 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     assertNotNull(order, "Order #1 not found.");
     assertEquals(3, order.getPositionenIncludingDeleted().size(), "Order #1 must have 3 order positions.");
 
-    final List<PfHistoryMasterDO> list = persistenceService.executeQuery(
-            "select t from " + PfHistoryMasterDO.class.getName() + " t where t.id = :id", PfHistoryMasterDO.class);
+    final List<HistoryEntryDO> list = persistenceService.executeQuery(
+            "select t from " + HistoryEntryDO.class.getName() + " t where t.id = :id", HistoryEntryDO.class);
     // assertTrue("At least 10 history entries expected: " + list.size(), list.size() >= 10);
 
     log.error("****> Next exception and error message are OK (part of the test).");

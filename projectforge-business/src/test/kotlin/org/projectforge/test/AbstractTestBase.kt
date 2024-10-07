@@ -49,7 +49,7 @@ import org.projectforge.framework.configuration.ConfigXmlTest
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner.Companion.setInternalSetUnitTestMode
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
@@ -358,30 +358,30 @@ abstract class AbstractTestBase protected constructor() {
         Assertions.assertEquals(day, date.dayOfMonth)
     }
 
-    class HistoryMasterWithEntity(val master: PfHistoryMasterDO, val entity: Any?)
+    class HistoryEntryWithEntity(val entry: HistoryEntryDO, val entity: Any?)
 
     /**
      * Get the recent history entries for debugging. The recent entries are the last entries in the database, independent of the
      * entity. The entities are loaded as well if available.
      */
-    fun getRecentHistoryEntries(maxResults: Int): List<HistoryMasterWithEntity> {
-        val result = mutableListOf<HistoryMasterWithEntity>()
+    fun getRecentHistoryEntries(maxResults: Int): List<HistoryEntryWithEntity> {
+        val result = mutableListOf<HistoryEntryWithEntity>()
         persistenceService.runInTransaction { context ->
             context.executeQuery(
-                "from PfHistoryMasterDO order by id desc",
-                PfHistoryMasterDO::class.java,
+                "from HistoryEntryDO order by id desc",
+                HistoryEntryDO::class.java,
                 maxResults = maxResults,
-            ).forEach { master ->
-                val entity = master.entityId?.let {
+            ).forEach { entry ->
+                val entity = entry.entityId?.let {
                     try {
-                        val entityClass = Class.forName(master.entityName)
+                        val entityClass = Class.forName(entry.entityName)
                         context.selectById(entityClass, it)
                     } catch (ex: Exception) {
                         // Not found, OK.
                         null
                     }
                 }
-                result.add(HistoryMasterWithEntity(master, entity))
+                result.add(HistoryEntryWithEntity(entry, entity))
             }
         }
         return result
@@ -389,33 +389,33 @@ abstract class AbstractTestBase protected constructor() {
 
     fun assertNumberOfNewHistoryEntries(
         lastStats: Pair<Long, Long>,
-        expectedNumberOfNewMasterEntries: Long,
-        expectedNumberOfNewAttrEntries: Long,
+        expectedNumberOfNewHistoryEntries: Long,
+        expectedNumberOfNewHistoryAttrEntries: Long,
     ): Pair<Long, Long> {
         val count = countHistoryEntries()
         Assertions.assertEquals(
-            expectedNumberOfNewMasterEntries,
+            expectedNumberOfNewHistoryEntries,
             count.first - lastStats.first,
-            "Number of master entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
+            "Number of history entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
         )
         Assertions.assertEquals(
-            expectedNumberOfNewAttrEntries,
+            expectedNumberOfNewHistoryAttrEntries,
             count.second - lastStats.second,
-            "Number of attr entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
+            "Number of history attr entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
         )
         return count
     }
 
     fun countHistoryEntries(): Pair<Long, Long> {
-        val countMasterEntries = persistenceService.selectSingleResult(
-            "select count(*) from PfHistoryMasterDO",
+        val countHistoryEntries = persistenceService.selectSingleResult(
+            "select count(*) from HistoryEntryDO",
             Long::class.java,
         )
         val countAttrEntries = persistenceService.selectSingleResult(
-            "select count(*) from PfHistoryAttrDO",
+            "select count(*) from HistoryEntryAttrDO",
             Long::class.java,
         )
-        return Pair(countMasterEntries!!, countAttrEntries!!)
+        return Pair(countHistoryEntries!!, countAttrEntries!!)
     }
 
 

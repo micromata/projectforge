@@ -23,14 +23,13 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.hibernate.proxy.HibernateProxy
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class PfHistoryMasterUtilsTest {
+class HistoryEntryDOUtilsTest {
     @Test
     fun testTransformAttributes() {
-        val attrs = mutableListOf<PfHistoryAttrDO>()
+        val attrs = mutableListOf<HistoryEntryAttrDO>()
         var id = 0L
         attrs.add(createAttr("city:op", ++id, "Update", propertyTypeClass = PropertyOp))
         attrs.add(createAttr("city:ov", id, "Old City"))
@@ -62,18 +61,18 @@ class PfHistoryMasterUtilsTest {
 
         // New format (since 2024):
         attrs.add(createAttr("name", ++id, value = "B", oldValue = "A", opType = PropertyOpType.Update))
-        val master = PfHistoryMasterDO()
-        attrs.forEach { attr -> master.add(attr) }
-        PFHistoryMasterUtils.transformOldAttributes(master)
-        Assertions.assertEquals(7, master.attributes?.size)
-        assertAttr(master.attributes, "city", "New City", "Old City")
-        assertAttr(master.attributes, "street", "New Street", "Old Street")
-        assertAttr(master.attributes, "zip", "New Zip", "Old Zip", propertyTypeClass = "java.lang.Integer")
-        assertAttr(master.attributes, "state", "New State", null, PropertyOpType.Insert)
-        assertAttr(master.attributes, "country", "New Country", null)
-        assertAttr(master.attributes, "name", "B", "A")
+        val entry = HistoryEntryDO()
+        attrs.forEach { attr -> entry.add(attr) }
+        HistoryEntryDOUtils.transformOldAttributes(entry)
+        Assertions.assertEquals(7, entry.attributes?.size)
+        assertAttr(entry.attributes, "city", "New City", "Old City")
+        assertAttr(entry.attributes, "street", "New Street", "Old Street")
+        assertAttr(entry.attributes, "zip", "New Zip", "Old Zip", propertyTypeClass = "java.lang.Integer")
+        assertAttr(entry.attributes, "state", "New State", null, PropertyOpType.Insert)
+        assertAttr(entry.attributes, "country", "New Country", null)
+        assertAttr(entry.attributes, "name", "B", "A")
         assertAttr(
-            master.attributes,
+            entry.attributes,
             "timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.arrive",
             "New Visit",
             null
@@ -82,36 +81,36 @@ class PfHistoryMasterUtilsTest {
 
     @Test
     fun testFixOfProxyClassEntries() {
-        val attrs = mutableListOf<PfHistoryAttrDO>()
+        val attrs = mutableListOf<HistoryEntryAttrDO>()
         var id = 0L
         attrs.add(createAttr("account:op", ++id, "Update", propertyTypeClass = PropertyOp))
         attrs.add(createAttr("account:nv", id, "123", propertyTypeClass = "org.projectforge.business.fibu.KontoDO_\$\$_jvst148_1c"))
         attrs.add(createAttr("address:op", ++id, "Update", propertyTypeClass = PropertyOp))
         attrs.add(createAttr("address:nv", id, "456", propertyTypeClass = "org.projectforge.business.address.AddressDO\$HibernateProxy\$En8hKwh8"))
-        val master = PfHistoryMasterDO()
-        attrs.forEach { attr -> master.add(attr) }
-        PFHistoryMasterUtils.transformOldAttributes(master)
-        Assertions.assertEquals(2, master.attributes?.size)
-        assertAttr(master.attributes, "account", "123", null, propertyTypeClass = "org.projectforge.business.fibu.KontoDO")
-        assertAttr(master.attributes, "address", "456", null, propertyTypeClass = "org.projectforge.business.address.AddressDO")
+        val entry = HistoryEntryDO()
+        attrs.forEach { attr -> entry.add(attr) }
+        HistoryEntryDOUtils.transformOldAttributes(entry)
+        Assertions.assertEquals(2, entry.attributes?.size)
+        assertAttr(entry.attributes, "account", "123", null, propertyTypeClass = "org.projectforge.business.fibu.KontoDO")
+        assertAttr(entry.attributes, "address", "456", null, propertyTypeClass = "org.projectforge.business.address.AddressDO")
     }
 
     @Test
     fun testGetPropertyName() {
-        Assertions.assertEquals("street", PFHistoryMasterUtils.getPropertyName(createAttr("street")))
-        Assertions.assertEquals("street", PFHistoryMasterUtils.getPropertyName(createAttr("street:ov")))
-        Assertions.assertEquals("street", PFHistoryMasterUtils.getPropertyName(createAttr("street:op")))
-        Assertions.assertEquals("street", PFHistoryMasterUtils.getPropertyName(createAttr("street:nv")))
+        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street")))
+        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street:ov")))
+        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street:op")))
+        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street:nv")))
         Assertions.assertEquals(
             "timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive",
-            PFHistoryMasterUtils.getPropertyName(createAttr("timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv"))
+            HistoryEntryDOUtils.getPropertyName(createAttr("timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv"))
         )
 
-        Assertions.assertNull(PFHistoryMasterUtils.getPropertyName(createAttr(null)))
+        Assertions.assertNull(HistoryEntryDOUtils.getPropertyName(createAttr(null)))
     }
 
     private fun assertAttr(
-        attrs: Set<PfHistoryAttrDO>?,
+        attrs: Set<HistoryEntryAttrDO>?,
         propertyName: String?,
         newValue: String?,
         oldValue: String?,
@@ -136,8 +135,8 @@ class PfHistoryMasterUtilsTest {
         oldValue: String? = null,
         opType: PropertyOpType? = null,
         propertyTypeClass: String? = "java.lang.String",
-    ): PfHistoryAttrDO {
-        val attr = PfHistoryAttrDO()
+    ): HistoryEntryAttrDO {
+        val attr = HistoryEntryAttrDO()
         attr.id = id
         attr.propertyName = propertyName
         attr.propertyTypeClass = propertyTypeClass

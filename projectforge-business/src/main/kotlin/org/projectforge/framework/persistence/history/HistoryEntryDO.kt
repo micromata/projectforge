@@ -52,8 +52,8 @@ import java.util.*
  */
 @NamedQueries(
     NamedQuery(
-        name = PfHistoryMasterDO.SELECT_HISTORY_FOR_BASEDO,
-        query = "from PfHistoryMasterDO as m left join fetch m.attributes where m.entityId=:entityId and m.entityName=:entityName order by m.id desc"
+        name = HistoryEntryDO.SELECT_HISTORY_FOR_BASEDO,
+        query = "from HistoryEntryDO as m left join fetch m.attributes where m.entityId=:entityId and m.entityName=:entityName order by m.id desc"
     ),
 )
 @Entity
@@ -66,7 +66,7 @@ import java.util.*
 )
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
-class PfHistoryMasterDO : HistoryEntry {
+class HistoryEntryDO : HistoryEntry {
     @get:GeneratedValue
     @get:Column(name = "pk")
     @get:Id
@@ -106,17 +106,17 @@ class PfHistoryMasterDO : HistoryEntry {
     @JsonManagedReference
     @get:OneToMany(
         cascade = [CascadeType.ALL],
-        mappedBy = "master",
-        targetEntity = PfHistoryAttrDO::class,
+        mappedBy = "parent",
+        targetEntity = HistoryEntryAttrDO::class,
         fetch = FetchType.EAGER,
         orphanRemoval = true
     )
-    override var attributes: MutableSet<PfHistoryAttrDO>? = null
+    override var attributes: MutableSet<HistoryEntryAttrDO>? = null
 
-    fun add(attrDO: PfHistoryAttrDO) {
+    fun add(attrDO: HistoryEntryAttrDO) {
         attributes = attributes ?: mutableSetOf()
         attributes!!.add(attrDO)
-        attrDO.master = this
+        attrDO.parent = this
     }
 
     override fun toString(): String {
@@ -124,7 +124,7 @@ class PfHistoryMasterDO : HistoryEntry {
     }
 
     companion object {
-        internal const val SELECT_HISTORY_FOR_BASEDO = "PfHistoryMasterDO_SelectForBaseDO"
+        internal const val SELECT_HISTORY_FOR_BASEDO = "HistoryEntryDO_SelectForBaseDO"
 
         @JvmOverloads
         fun create(
@@ -132,14 +132,14 @@ class PfHistoryMasterDO : HistoryEntry {
             entityOpType: EntityOpType,
             entityName: String? = HibernateUtils.getRealClass(entity).name,
             modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
-        ): PfHistoryMasterDO {
-            val masterDO = PfHistoryMasterDO()
-            masterDO.entityName = entityName
-            masterDO.entityId = entity.id
-            masterDO.entityOpType = entityOpType
-            masterDO.modifiedBy = modifiedBy
-            masterDO.modifiedAt = Date()
-            return masterDO
+        ): HistoryEntryDO {
+            val entry = HistoryEntryDO()
+            entry.entityName = entityName
+            entry.entityId = entity.id
+            entry.entityOpType = entityOpType
+            entry.modifiedBy = modifiedBy
+            entry.modifiedAt = Date()
+            return entry
         }
     }
 }

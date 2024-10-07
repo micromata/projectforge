@@ -31,50 +31,50 @@ import kotlin.reflect.KClass
  */
 object HistoryCreateUtils {
     /**
-     * Attributes createdAd and createdBy will be set by save(PFHistoryMaster, Collection) method.
+     * Attributes createdAd and createdBy will be set by save(HistoryEntrDO, Collection) method.
      */
-    fun createMaster(entity: BaseDO<Long>, opType: EntityOpType): PfHistoryMasterDO {
-        val master = PfHistoryMasterDO()
-        master.entityId = entity.id
-        master.entityName = entity::class.java.name
-        master.entityOpType = opType
-        return master
+    fun createHistoryEntry(entity: BaseDO<Long>, opType: EntityOpType): HistoryEntryDO {
+        val entry = HistoryEntryDO()
+        entry.entityId = entity.id
+        entry.entityName = entity::class.java.name
+        entry.entityOpType = opType
+        return entry
     }
 
     /**
-     * Creates a new history attr object. Master will be set by save(PFHistoryMaster, Collection) method.
+     * Creates a new history attr object. The parent [HistoryEntry] will be set by save(HistoryEntryDO, Collection) method.
      */
     fun createAttr(
         propertyClass: KClass<*>,
         propertyName: String,
         value: String?,
         oldValue: String? = null,
-    ): PfHistoryAttrDO {
+    ): HistoryEntryAttrDO {
         return createAttr(propertyClass.java, propertyName = propertyName, value = value, oldValue = oldValue)
     }
 
     /**
-     * Creates a new history attr object. Master will be set by save(PFHistoryMaster, Collection) method.
+     * Creates a new history attr object. The parent [HistoryEntry] will be set by save(HistoryEntryDO, Collection) method.
      */
     fun createAttr(
         propertyClass: Class<*>,
         propertyName: String,
         value: String?,
         oldValue: String? = null,
-    ): PfHistoryAttrDO {
+    ): HistoryEntryAttrDO {
         return createAttr(propertyClass.name, propertyName = propertyName, value = value, oldValue = oldValue)
     }
 
     /**
-     * Creates a new history attr object. Master will be set by save(PFHistoryMaster, Collection) method.
+     * Creates a new history attr object. The parent [HistoryEntry] will be set by save(HistoryEntryDO, Collection) method.
      */
     fun createAttr(
         propertyTypeClass: String,
         propertyName: String,
         value: String?,
         oldValue: String? = null,
-    ): PfHistoryAttrDO {
-        val attr = PfHistoryAttrDO()
+    ): HistoryEntryAttrDO {
+        val attr = HistoryEntryAttrDO()
         attr.propertyTypeClass = propertyTypeClass
         attr.propertyName = propertyName
         attr.value = value

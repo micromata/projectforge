@@ -34,7 +34,7 @@ import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.ReindexSettings
 import org.projectforge.framework.persistence.database.DatabaseDao
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -148,8 +148,8 @@ class HibernateSearchReindexer {
                 nullAllowed = false,
             )
         } catch (ex: Exception) {
-            if (PfHistoryMasterDO::class.java != clazz) {
-                log.info("Class '$clazz' not available (OK for non-active plugins and PfHistoryMasterDO).")
+            if (HistoryEntryDO::class.java != clazz) {
+                log.info("Class '$clazz' not available (OK for non-active plugins and HistoryEntryDO).")
             }
             return
         }

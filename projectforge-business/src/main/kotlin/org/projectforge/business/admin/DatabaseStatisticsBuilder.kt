@@ -29,7 +29,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.framework.persistence.history.PfHistoryMasterDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper
@@ -87,9 +87,9 @@ class DatabaseStatisticsBuilder : SystemsStatisticsBuilderInterface {
       "totalNumberOfTasks", "data base", "system.statistics.totalNumberOfTasks",
       getTableCount(jdbc, TaskDO::class.java)
     )
-    val totalNumberOfHistoryEntries = getTableCount(jdbc, PfHistoryMasterDO::class.java) + getTableCount(
+    val totalNumberOfHistoryEntries = getTableCount(jdbc, HistoryEntryDO::class.java) + getTableCount(
       jdbc,
-      PfHistoryMasterDO::class.java
+      HistoryEntryDO::class.java
     )
     stats.add(
       "totalNumberOfHistoryEntries", "data base", "system.statistics.totalNumberOfHistoryEntries",
