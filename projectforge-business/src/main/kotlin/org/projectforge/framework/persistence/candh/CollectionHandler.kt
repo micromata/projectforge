@@ -87,7 +87,7 @@ open class CollectionHandler : CandHIHandler {
             return true
         }
         // Calculates the differences between src and dest collection: added, removed and kept entries.
-        val compareResults = CollectionUtils.compareLists(srcCollection, destCollection, withKept = true)
+        val compareResults = CollectionUtils.compareCollections(srcCollection, destCollection, withKept = true)
         if (destCollection == null) {
             destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
             property.set(dest, destCollection)

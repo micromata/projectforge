@@ -51,7 +51,7 @@ object CollectionUtils {
      * @param dest Destination collection.
      * @param withKept If true, the kept entries (part of both collections) are returned as well.
      */
-    fun <T> compareLists(
+    fun <T> compareCollections(
         src: Collection<T?>?,
         dest: Collection<T?>?,
         withKept: Boolean = false,
