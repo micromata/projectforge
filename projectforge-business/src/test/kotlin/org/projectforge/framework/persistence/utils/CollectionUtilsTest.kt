@@ -29,37 +29,37 @@ import org.projectforge.framework.persistence.api.IdObject
 
 class CollectionUtilsTest {
     @Test
-    fun testCompareLists() {
+    fun testCompareCollections() {
         val src1 = listOf("b", "c", null, "z", "a")
         val dest1 = listOf("c", null, "e", "b", null, "d")
-        testCompareLists(src1, dest1, added = listOf("a", "z"), removed = listOf("d", "e"), kept = listOf("b", "c"))
-        testCompareLists(src1, null, added = src1.filterNotNull(), removed = null)
-        testCompareLists(null, dest1, added = null, removed = dest1.filterNotNull())
-        testCompareLists(null, null, added = null, removed = null)
+        testCompareCollections(src1, dest1, added = listOf("a", "z"), removed = listOf("d", "e"), kept = listOf("b", "c"))
+        testCompareCollections(src1, null, added = src1.filterNotNull(), removed = null)
+        testCompareCollections(null, dest1, added = null, removed = dest1.filterNotNull())
+        testCompareCollections(null, null, added = null, removed = null)
 
-        val src2 = listOf(TestClass(3), TestClass(2), TestClass(1))
-        val dest2 = listOf(TestClass(42), TestClass(3), TestClass(4), TestClass(2))
-        testCompareLists(
+        val src2 = listOf(TestClass(3), TestClass(name = "two"), TestClass(1))
+        val dest2 = listOf(TestClass(42), TestClass(3), TestClass(4), TestClass(name = "two"))
+        testCompareCollections(
             src2, dest2,
             added = listOf(TestClass(1)),
             removed = listOf(TestClass(4), TestClass(42)),
-            kept = listOf(TestClass(2), TestClass(3))
+            kept = listOf(TestClass(null), TestClass(3))
         )
     }
 
-    private fun testCompareLists(
+    private fun testCompareCollections(
         src: Collection<Any?>?,
         dest: Collection<Any?>?,
         added: Collection<Any>?,
         removed: Collection<Any>?,
         kept: Collection<Any>? = null,
     ) {
-        var result = CollectionUtils.compareLists(src, dest)
+        var result = CollectionUtils.compareCollections(src, dest)
         Assertions.assertEquals(asString(added), asString(result.added))
         Assertions.assertEquals(asString(removed), asString(result.removed))
         Assertions.assertNull(result.kept, "kept should be null, because it is not requested.")
 
-        result = CollectionUtils.compareLists(src, dest, withKept = true)
+        result = CollectionUtils.compareCollections(src, dest, withKept = true)
         Assertions.assertEquals(asString(added), asString(result.added))
         Assertions.assertEquals(asString(removed), asString(result.removed))
         Assertions.assertEquals(asString(kept), asString(result.kept))
@@ -77,10 +77,20 @@ class CollectionUtilsTest {
         }
     }
 
-    class TestClass(id: Long) : IdObject<Long> {
-        override var id: Long? = id
+    class TestClass(override var id: Long? = null, var name: String? = null) : IdObject<Long> {
         override fun toString(): String {
             return id?.toString() ?: "null"
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || javaClass != other.javaClass) return false
+            other as TestClass
+            return name == other.name
+        }
+
+        override fun hashCode(): Int {
+            return name?.hashCode() ?: 0
         }
     }
 }

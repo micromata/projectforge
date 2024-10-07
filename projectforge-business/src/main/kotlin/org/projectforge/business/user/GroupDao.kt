@@ -144,7 +144,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (dbObj == null) {
             log.error { "Oups, shouldn't occur. dbObj is null. Can't determine assigned and unassigned user's in afterUpdate for creating history entries." }
         }
-        CollectionUtils.compareLists(obj.assignedUsers, dbObj?.assignedUsers).let { result ->
+        CollectionUtils.compareCollections(obj.assignedUsers, dbObj?.assignedUsers).let { result ->
             result.added?.forEach { user ->
                 insertHistoryEntry(user, null, listOf(obj), context)
             }
