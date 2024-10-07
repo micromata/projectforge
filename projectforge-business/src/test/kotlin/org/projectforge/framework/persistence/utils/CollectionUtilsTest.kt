@@ -32,7 +32,7 @@ class CollectionUtilsTest {
     fun testCompareLists() {
         val src1 = listOf("b", "c", null, "z", "a")
         val dest1 = listOf("c", null, "e", "b", null, "d")
-        testCompareLists(src1, dest1, added = listOf("a", "z"), removed = listOf("d", "e"), shared = listOf("b", "c"))
+        testCompareLists(src1, dest1, added = listOf("a", "z"), removed = listOf("d", "e"), kept = listOf("b", "c"))
         testCompareLists(src1, null, added = src1.filterNotNull(), removed = null)
         testCompareLists(null, dest1, added = null, removed = dest1.filterNotNull())
         testCompareLists(null, null, added = null, removed = null)
@@ -43,7 +43,7 @@ class CollectionUtilsTest {
             src2, dest2,
             added = listOf(TestClass(1)),
             removed = listOf(TestClass(4), TestClass(42)),
-            shared = listOf(TestClass(2), TestClass(3))
+            kept = listOf(TestClass(2), TestClass(3))
         )
     }
 
@@ -52,17 +52,17 @@ class CollectionUtilsTest {
         dest: Collection<Any?>?,
         added: Collection<Any>?,
         removed: Collection<Any>?,
-        shared: Collection<Any>? = null,
+        kept: Collection<Any>? = null,
     ) {
         var result = CollectionUtils.compareLists(src, dest)
         Assertions.assertEquals(asString(added), asString(result.added))
         Assertions.assertEquals(asString(removed), asString(result.removed))
-        Assertions.assertNull(result.shared, "shared should be null, because it is not requested.")
+        Assertions.assertNull(result.kept, "kept should be null, because it is not requested.")
 
-        result = CollectionUtils.compareLists(src, dest, withShared = true)
+        result = CollectionUtils.compareLists(src, dest, withKept = true)
         Assertions.assertEquals(asString(added), asString(result.added))
         Assertions.assertEquals(asString(removed), asString(result.removed))
-        Assertions.assertEquals(asString(shared), asString(result.shared))
+        Assertions.assertEquals(asString(kept), asString(result.kept))
     }
 
     private fun asString(col: Collection<Any>?): String {
