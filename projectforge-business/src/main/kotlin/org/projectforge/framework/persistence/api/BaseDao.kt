@@ -44,6 +44,7 @@ import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -1453,7 +1454,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute
      */
     protected fun insertUpdateHistoryEntry(
-        entity: IdObject<Long>, id: Number?, property: String?,
+        entity: IdObject<Long>,
+        property: String?,
         propertyTypeClass: Class<*>,
         oldValue: Any?,
         newValue: Any?,

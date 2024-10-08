@@ -393,14 +393,16 @@ abstract class AbstractTestBase protected constructor() {
         expectedNumberOfNewHistoryAttrEntries: Long,
     ): Pair<Long, Long> {
         val count = countHistoryEntries()
+        val numberOfNewHistoryEntries = count.first - lastStats.first
+        val numberOfNewHistoryAttrs = count.second - lastStats.second
         Assertions.assertEquals(
             expectedNumberOfNewHistoryEntries,
-            count.first - lastStats.first,
-            "Number of history entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
+            numberOfNewHistoryEntries,
+            "Number of history entries = $numberOfNewHistoryEntries, attrs = $numberOfNewHistoryAttrs. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
         )
         Assertions.assertEquals(
             expectedNumberOfNewHistoryAttrEntries,
-            count.second - lastStats.second,
+            numberOfNewHistoryAttrs,
             "Number of history attr entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
         )
         return count
