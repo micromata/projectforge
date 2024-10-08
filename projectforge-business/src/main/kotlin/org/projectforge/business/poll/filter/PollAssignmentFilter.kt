@@ -37,7 +37,7 @@ class PollAssignmentFilter(val values: List<PollAssignment>) : CustomResultFilte
         if (!element.fullAccessGroupIds.isNullOrEmpty()) {
             val groupIds = element.fullAccessGroupIds!!.split(", ").map { it.toLong() }.toLongArray()
             val accessUsers = groupService.getGroupUsers(groupIds)
-            val localUser = ThreadLocalUserContext.userId!!
+            val localUser = ThreadLocalUserContext.loggedInUserId!!
             foundUser = accessUsers.firstOrNull { user -> user.id == localUser }
         }
 

@@ -152,7 +152,7 @@ class JobHandler {
     if (job.readAccess()) {
       return job
     }
-    log.warn { "Logged-in user ${ThreadLocalUserContext.user?.username} has no read access to requested job." }
+    log.warn { "Logged-in user ${ThreadLocalUserContext.loggedInUser?.username} has no read access to requested job." }
     return null
   }
 
@@ -160,7 +160,7 @@ class JobHandler {
     if (job.writeAccess()) {
       internalCancelJob(job)
     } else {
-      log.warn { "Logged-in user ${ThreadLocalUserContext.user?.username} has no write access to requested job. So job will not be cancelled." }
+      log.warn { "Logged-in user ${ThreadLocalUserContext.loggedInUser?.username} has no write access to requested job. So job will not be cancelled." }
     }
   }
 

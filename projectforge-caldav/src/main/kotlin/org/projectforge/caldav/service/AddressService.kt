@@ -84,7 +84,7 @@ class AddressService {
             if (personalAddress?.isFavorite == true) {
                 personalAddress.isFavoriteCard = false
                 personalAddressDao.saveOrUpdate(personalAddress)
-                log.info("Contact '${vcard.formattedName.value} removed from ${ThreadLocalUserContext.user!!.username}'s favorite list.")
+                log.info("Contact '${vcard.formattedName.value} removed from ${ThreadLocalUserContext.loggedInUser!!.username}'s favorite list.")
             }
         } catch (e: Exception) {
             log.error("Exception while deleting contact: " + contact.name, e)

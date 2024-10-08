@@ -92,7 +92,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             questionOwnerId = delUser.toLong()
             answerTitle = translateMsg("poll.delegationAnswers") + userService.getUser(questionOwnerId).displayName
         } else {
-            questionOwnerId = ThreadLocalUserContext.userId
+            questionOwnerId = ThreadLocalUserContext.loggedInUserId
             answerTitle = translateMsg("poll.yourAnswers")
         }
 
@@ -129,7 +129,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UISpacer())
             .add(UISpacer())
 
-        if (!pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId) {
+        if (!pollDto.isFinished() && ThreadLocalUserContext.loggedInUserId === questionOwnerId) {
             val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
             fieldSetDelegationUser.add(
                 UIInput(
@@ -277,8 +277,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
 
         pollResponseDao.saveOrUpdateInTrans(pollResponseDO)
 
-        if (ThreadLocalUserContext.user != pollResponseDO.owner) {
-            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.user!!)
+        if (ThreadLocalUserContext.loggedInUser != pollResponseDO.owner) {
+            sendMailResponseToOwner(pollResponseDO, ThreadLocalUserContext.loggedInUser!!)
         }
 
         return ResponseEntity.ok(
@@ -316,7 +316,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             poll.owner?.id
         )
         val joinedAttendeeIds = attendees.joinToString(", ")
-        if (questionOwnerId == ThreadLocalUserContext.userId) {
+        if (questionOwnerId == ThreadLocalUserContext.loggedInUserId) {
             return ResponseEntity.ok(
                 ResponseAction()
             )

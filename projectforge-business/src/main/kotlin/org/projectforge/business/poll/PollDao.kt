@@ -53,7 +53,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
             return true
         };
         if (obj != null && operationType == OperationType.SELECT) {
-            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.user?.id!!))
+            if (hasFullAccess(obj) || isAttendee(obj, ThreadLocalUserContext.loggedInUser?.id!!))
                 return true
         }
         if (obj != null) {
@@ -64,7 +64,7 @@ open class PollDao : BaseDao<PollDO>(PollDO::class.java) {
 
     // returns true if current user has full access, otherwise returns false
     fun hasFullAccess(obj: PollDO): Boolean {
-        val loggedInUserId = ThreadLocalUserContext.userId!!
+        val loggedInUserId = ThreadLocalUserContext.loggedInUserId!!
         if (!obj.fullAccessUserIds.isNullOrBlank()) {
             val userIdArray = PollDO.toLongArray(obj.fullAccessUserIds)
             if (userIdArray?.contains(loggedInUserId) == true) {

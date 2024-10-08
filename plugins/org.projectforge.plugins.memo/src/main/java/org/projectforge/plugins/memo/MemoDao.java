@@ -54,7 +54,7 @@ public class MemoDao extends BaseDao<MemoDO> {
   public QueryFilter createQueryFilter(BaseSearchFilter filter) {
     QueryFilter queryFilter = super.createQueryFilter(filter);
     final PFUserDO user = new PFUserDO();
-    user.setId(ThreadLocalUserContext.getUserId());
+    user.setId(ThreadLocalUserContext.getLoggedInUserId());
     queryFilter.add(QueryFilter.eq("owner", user));
     return queryFilter;
   }

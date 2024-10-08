@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
@@ -139,7 +138,7 @@ open class DBQuery {
         context: PfPersistenceContext,
     )
             : List<O> {
-        val loggedInUser = ThreadLocalUserContext.user
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
         val em = context.em
         val list = mutableListOf<O>()
         var next: O? = dbResultIterator.next() ?: return list

@@ -32,7 +32,6 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
@@ -141,7 +140,7 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
     if (nodes == null || nodes.isEmpty() == true) {
       return list.iterator();
     }
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     for (final TaskNode node : nodes) {
       if (taskFilter.match(node, taskDao, user) == true
           && taskDao.hasUserSelectAccess(user, node.getTask(), false) == true) {

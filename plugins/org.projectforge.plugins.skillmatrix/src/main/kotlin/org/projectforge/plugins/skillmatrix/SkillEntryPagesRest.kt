@@ -50,7 +50,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
    */
   override fun newBaseDO(request: HttpServletRequest?): SkillEntryDO {
     val memo = super.newBaseDO(request)
-    memo.owner = ThreadLocalUserContext.user
+    memo.owner = ThreadLocalUserContext.loggedInUser
     return memo
   }
 
@@ -100,7 +100,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
     if (ownerFilterEntry?.isTrueValue == true) {
       ownerFilterEntry.synthetic = true
       target.createJoin("owner")
-      target.add(QueryFilter.eq("owner", ThreadLocalUserContext.user!!)) // Show only own skills, not from others.
+      target.add(QueryFilter.eq("owner", ThreadLocalUserContext.loggedInUser!!)) // Show only own skills, not from others.
     }
     return null
   }
@@ -110,7 +110,7 @@ class SkillEntryPagesRest() : AbstractDOPagesRest<SkillEntryDO, SkillEntryDao>(
    */
   override fun prepareClone(dto: SkillEntryDO): SkillEntryDO {
     val clone = super.prepareClone(dto)
-    clone.owner = ThreadLocalUserContext.user
+    clone.owner = ThreadLocalUserContext.loggedInUser
     return clone
   }
 

@@ -65,7 +65,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
     if (sortedUsers == null) {
       sortedUsers = new TreeSet<PFUserDO>(usersComparator);
       final Collection<PFUserDO> allusers = UserGroupCache.getInstance().getAllUsers();
-      final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+      final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
       for (final PFUserDO user : allusers) {
         if (user.getDeleted() == false && user.getDeactivated() == false
             && userDao.hasUserSelectAccess(loggedInUser, user, false) == true) {

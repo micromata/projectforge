@@ -44,7 +44,6 @@ import org.hibernate.Hibernate;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetExport;
@@ -195,7 +194,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     icsExportDialog = new TimesheetsICSExportDialog(newModalDialogId(),
         new ResourceModel("timesheet.iCalSubscription"));
     add(icsExportDialog);
-    icsExportDialog.init(ThreadLocalUserContext.getUserId());
+    icsExportDialog.init(ThreadLocalUserContext.getLoggedInUserId());
     icsExportDialog.redraw();
     final AjaxLink<Void> icsExportDialogButton = new AjaxLink<Void>(ContentMenuEntryPanel.LINK_ID) {
       /**

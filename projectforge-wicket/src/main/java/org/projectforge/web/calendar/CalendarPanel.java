@@ -411,7 +411,7 @@ public class CalendarPanel extends Panel {
         if (newEndTimeMillis != null) {
             timesheet.setStopTime(new Timestamp(newEndTimeMillis));
         }
-        final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
 
         // copy or move?
         boolean isMoveAction = CalendarDropMode.MOVE_SAVE == dropMode || CalendarDropMode.MOVE_EDIT == dropMode;

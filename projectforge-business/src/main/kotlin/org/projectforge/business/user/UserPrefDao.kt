@@ -58,8 +58,8 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getPropertyLength
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -117,7 +117,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      * Gets all names of entries of the given area for the current logged in user
      */
     fun getPrefNames(area: String): Array<String> {
-        val user = user
+        val user = loggedInUser
         val names = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_NAMES_BY_USER_AND_AREA,
             String::class.java,
@@ -128,7 +128,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     fun getListWithoutEntries(areaId: String): List<UserPrefDO> {
-        val user = user
+        val user = loggedInUser
         val list = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_IDS_AND_NAMES_BY_USER_AND_AREA,
             Array<Any>::class.java,
@@ -227,7 +227,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     fun getUserPrefs(area: UserPrefArea): List<UserPrefDO> {
-        val userId = userId
+        val userId = loggedInUserId
         return getUserPrefs(userId, area)
     }
 

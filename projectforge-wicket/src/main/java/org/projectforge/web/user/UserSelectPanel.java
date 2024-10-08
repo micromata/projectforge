@@ -234,7 +234,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         @Override
         public void onSubmit()
         {
-          caller.select(selectProperty, ThreadLocalUserContext.getUserId());
+          caller.select(selectProperty, ThreadLocalUserContext.getLoggedInUserId());
           markTextFieldModelAsChanged();
         }
 
@@ -244,7 +244,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
           // Is visible if no user is given or the given user is not the current logged in user.
           final PFUserDO user = UserSelectPanel.this.getModelObject();
           return showSelectMeButton == true
-              && (user == null || user.getId().equals(ThreadLocalUserContext.getUser().getId()) == false);
+              && (user == null || user.getId().equals(ThreadLocalUserContext.getLoggedInUser().getId()) == false);
         }
       };
       ((SubmitLink) selectMeLink).setDefaultFormProcessing(defaultFormProcessing);
@@ -254,7 +254,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         @Override
         public void onClick(final AjaxRequestTarget target)
         {
-          UserSelectPanel.this.setModelObject(ThreadLocalUserContext.getUser());
+          UserSelectPanel.this.setModelObject(ThreadLocalUserContext.getLoggedInUser());
           markTextFieldModelAsChanged();
           target.add(this, userTextField); // For hiding entry.
         }
@@ -268,7 +268,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
           // Is visible if no user is given or the given user is not the current logged in user.
           final PFUserDO user = UserSelectPanel.this.getModelObject();
           return showSelectMeButton
-              && (user == null || !Objects.equals(user.getId(), ThreadLocalUserContext.getUserId()));
+              && (user == null || !Objects.equals(user.getId(), ThreadLocalUserContext.getLoggedInUserId()));
         }
       };
       selectMeLink.setOutputMarkupId(true);

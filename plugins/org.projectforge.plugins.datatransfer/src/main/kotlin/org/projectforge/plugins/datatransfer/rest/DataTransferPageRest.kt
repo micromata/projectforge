@@ -103,7 +103,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       jcrPath = dataTransferAreaPagesRest.jcrPath!!,
       id,
       dto.attachments,
-      byUser = ThreadLocalUserContext.user
+      byUser = ThreadLocalUserContext.loggedInUser
     )
   }
 
@@ -112,7 +112,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     var id = NumberHelper.parseLong(idString)
     if (id == -1L) {
       // personal box of logged-in user is requested:
-      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.userId!!)?.id
+      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.loggedInUserId!!)?.id
     }
     id ?: throw IllegalAccessException("Parameter id not an int or no personal box found.")
     val pair = convertData(id)
@@ -303,7 +303,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     val userWantsToOserveArea =
       postData.data.userWantsToObserve ?: return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
 
-    val loggedInUser = ThreadLocalUserContext.user!!
+    val loggedInUser = ThreadLocalUserContext.loggedInUser!!
     val result = convertData(id)
     // OK, user has read access, so he/she is able to observe this area.
     val dbDto = result.second
@@ -330,7 +330,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
 
   private fun isLoggedInUserObserver(
     dto: DataTransferArea,
-    user: PFUserDO = ThreadLocalUserContext.user!!
+    user: PFUserDO = ThreadLocalUserContext.loggedInUser!!
   ): Boolean {
     return dto.observers?.any { it.id == user.id } ?: false
   }

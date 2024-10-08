@@ -72,7 +72,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
         if (editMode) {
             if (obj.id != null) {
                 val right = TeamCalRight()
-                if (right.hasUpdateAccess(ThreadLocalUserContext.user!!, obj, obj)) {
+                if (right.hasUpdateAccess(ThreadLocalUserContext.loggedInUser!!, obj, obj)) {
                     // User has update access right, so don't remove externalSubscriptionUrl due to privacy reasons:
                     anonymize = false
                 }
@@ -113,7 +113,7 @@ class TeamCalPagesRest : AbstractDTOPagesRest<TeamCalDO, TeamCal, TeamCalDao>(Te
 
     override fun newBaseDTO(request: HttpServletRequest?): TeamCal {
         val cal = TeamCal()
-        cal.owner = ThreadLocalUserContext.user
+        cal.owner = ThreadLocalUserContext.loggedInUser
         return cal
     }
 

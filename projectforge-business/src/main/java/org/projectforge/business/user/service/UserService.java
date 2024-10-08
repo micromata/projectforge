@@ -130,7 +130,7 @@ public class UserService {
     public Collection<PFUserDO> getSortedUsers() {
         TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
         final Collection<PFUserDO> allusers = userGroupCache.getAllUsers();
-        final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
         for (final PFUserDO user : allusers) {
             if (!user.getDeleted() && !user.getDeactivated() && userDao.hasUserSelectAccess(loggedInUser, user, false)) {
                 sortedUsers.add(user);
@@ -260,7 +260,7 @@ public class UserService {
             return persistenceService.runInTransaction(context -> {
                 Validate.notNull(userId);
                 Validate.isTrue(oldPassword.length > 0);
-                Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getUserId()), "User is only allowed to change his own password-");
+                Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own password-");
                 final PFUserDO user = userDao.internalGetById(userId);
                 final PFUserDO userCheck = getUser(user.getUsername(), oldPassword, false);
                 if (userCheck == null) {
@@ -286,7 +286,7 @@ public class UserService {
         try {
             return persistenceService.runInTransaction(context -> {
                 Validate.notNull(userId);
-                Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
+                Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
                 accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
                 final PFUserDO user = userDao.internalGetById(userId);
                 return doPasswordChange(user, null, newPassword, context);
@@ -324,7 +324,7 @@ public class UserService {
         try {
             Validate.notNull(userId);
             Validate.isTrue(newPassword.length > 0);
-            Validate.isTrue(ThreadLocalUserContext.getUser() == null, "ThreadLocalUser mustn't be given on password reset.");
+            Validate.isTrue(ThreadLocalUserContext.getLoggedInUser() == null, "ThreadLocalUser mustn't be given on password reset.");
 
             final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newPassword);
             if (!errorMsgKeys.isEmpty()) {
@@ -359,7 +359,7 @@ public class UserService {
         try {
             Validate.notNull(userId);
             Validate.isTrue(loginPassword.length > 0);
-            Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getUserId()), "User is only allowed to change his own Wlan/Samba password-");
+            Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own Wlan/Samba password-");
             final PFUserDO user = userDao.internalGetById(userId);
             Validate.notNull(user);
             final PFUserDO userCheck = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
@@ -384,7 +384,7 @@ public class UserService {
     public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final Long userId, final char[] newWlanPassword) {
         try {
             Validate.notNull(userId);
-            Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getUserId()), "Admin user is not allowed to change his own password without entering his login password-");
+            Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
             final PFUserDO user = userDao.internalGetById(userId);
             return doWlanPasswordChange(user, newWlanPassword);

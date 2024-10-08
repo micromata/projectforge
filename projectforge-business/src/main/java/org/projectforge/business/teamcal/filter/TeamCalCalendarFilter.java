@@ -278,7 +278,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
   {
     final TemplateEntry newTemplate = new TemplateEntry();
     newTemplate.setName(ThreadLocalUserContext.getLocalizedString("default"));
-    newTemplate.setTimesheetUserId(ThreadLocalUserContext.getUserId()).setShowBirthdays(true).setShowBreaks(true)
+    newTemplate.setTimesheetUserId(ThreadLocalUserContext.getLoggedInUserId()).setShowBirthdays(true).setShowBreaks(true)
         .setShowPlanning(true)
         .setShowStatistics(true);
     add(newTemplate);

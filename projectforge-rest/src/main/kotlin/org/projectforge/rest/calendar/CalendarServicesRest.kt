@@ -213,7 +213,7 @@ class CalendarServicesRest {
       url = if (defaultCalendarId != null && defaultCalendarId > 0) {
         "$url&calendar=$defaultCalendarId"
       } else {
-        "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.userId}&firstHour=$firstHour"
+        "$url&userId=${currentFilter.timesheetUserId ?: ThreadLocalUserContext.loggedInUserId}&firstHour=$firstHour"
       }
     } else if (action == "resize" || action == "dragAndDrop") {
       val origStartDate =

@@ -24,7 +24,6 @@
 package org.projectforge.web.user;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserPrefDao;
@@ -85,7 +84,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
   {
     var userPrefDao = WicketSupport.get(UserPrefDao.class);
     userPref.setAreaObject(area);
-    userPref.setUser(ThreadLocalUserContext.getUser());
+    userPref.setUser(ThreadLocalUserContext.getLoggedInUser());
     if (object != null) {
       userPrefDao.addUserPrefParameters(userPref, object);
     } else {

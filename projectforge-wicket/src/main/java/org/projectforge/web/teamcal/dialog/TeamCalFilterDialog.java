@@ -403,7 +403,7 @@ public class TeamCalFilterDialog extends ModalDialog
         final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
         if (activeTemplateEntry != null) {
           for (final TeamCalDO cal : activeTemplateEntry.getCalendars()) {
-            if (teamEventRight.hasUpdateAccess(ThreadLocalUserContext.getUser(), cal) == true) {
+            if (teamEventRight.hasUpdateAccess(ThreadLocalUserContext.getLoggedInUser(), cal) == true) {
               // User is allowed to insert events to this calendar:
               result.add(cal);
             }

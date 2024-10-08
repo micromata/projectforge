@@ -34,7 +34,6 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPasswordDO
 import org.projectforge.framework.utils.Crypt
@@ -88,7 +87,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
 
     private fun hasLoggedInUserAccess(ownerUserId: Long?, throwException: Boolean = true): Boolean {
         ownerUserId ?: return false
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.userId) {
+        if (accessChecker.isLoggedInUserMemberOfAdminGroup || ownerUserId == ThreadLocalUserContext.loggedInUserId) {
             return true
         }
         if (throwException) {

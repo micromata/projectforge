@@ -148,7 +148,7 @@ public class GroupServiceImpl implements GroupService {
 
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     TreeSet<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
     for (final GroupDO group : allGroups) {
       if (!group.getDeleted() && groupDao.hasUserSelectAccess(loggedInUser, group, false)) {
         sortedGroups.add(group);

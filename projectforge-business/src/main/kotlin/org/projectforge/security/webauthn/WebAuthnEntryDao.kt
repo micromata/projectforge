@@ -45,7 +45,7 @@ class WebAuthnEntryDao {
         val credentialId = entry.credentialId
         requireNotNull(ownerId) { "Owner must be given for upsert of entry." }
         requireNotNull(credentialId) { "Credential id must be given." }
-        require(entry.owner?.id == ThreadLocalUserContext.userId)
+        require(entry.owner?.id == ThreadLocalUserContext.loggedInUserId)
         persistencyService.runInTransaction { context ->
             val em = context.em
             val dbObj = findExistingEntry(entry, em)
@@ -112,7 +112,7 @@ class WebAuthnEntryDao {
         if (ownerId == null) {
             return emptyList()
         }
-        val loggedInUserId = ThreadLocalUserContext.userId
+        val loggedInUserId = ThreadLocalUserContext.loggedInUserId
         require(loggedInUserId == null || loggedInUserId == ownerId) { "Can only get WebAuthn entries for logged-in user #$loggedInUserId, not for other user #$ownerId" }
         return persistencyService.executeNamedQuery(
             WebAuthnEntryDO.FIND_BY_OWNER,
@@ -127,7 +127,7 @@ class WebAuthnEntryDao {
             val ownerId = entry.owner?.id
             // Don't tell the user if the WebAuthn entry of a foreign user exists (security paranoia)
             requireNotNull(ownerId) { "Can't delete WebAuthn entry, no such entry found or logged-in-user isn't the owner." }
-            require(entry.owner?.id == ThreadLocalUserContext.userId) { "Owner is only allowed to delete own WebAuthn entries." }
+            require(entry.owner?.id == ThreadLocalUserContext.loggedInUserId) { "Owner is only allowed to delete own WebAuthn entries." }
             val em = context.em
             em.remove(entry)
             em.flush()

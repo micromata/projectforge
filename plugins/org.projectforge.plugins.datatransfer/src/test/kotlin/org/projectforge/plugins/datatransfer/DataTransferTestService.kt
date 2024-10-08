@@ -88,7 +88,7 @@ class DataTransferTestService {
   ): DataTransferAreaDO {
     val dbo = DataTransferAreaDO()
     dbo.areaName = areaName
-    dbo.adminIds = "${ThreadLocalUserContext.userId}"
+    dbo.adminIds = "${ThreadLocalUserContext.loggedInUserId}"
     dbo.accessUserIds = PFUserDO.toLongList(accessUsers)
     dbo.accessGroupIds = GroupDO.toLongList(accessGroups)
     dbo.externalDownloadEnabled = externalDownloadEnabled

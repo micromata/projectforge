@@ -177,7 +177,7 @@ open class UserGroupCache() : AbstractCache() {
      * Check for current logged in user.
      */
     fun isLoggedInUserMemberOfGroup(groupId: Long?): Boolean {
-        return isUserMemberOfGroup(ThreadLocalUserContext.userId, groupId)
+        return isUserMemberOfGroup(ThreadLocalUserContext.loggedInUserId, groupId)
     }
 
     fun isUserMemberOfGroup(user: PFUserDO?, groupId: Long?): Boolean {
@@ -196,7 +196,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     fun isLoggedInUserMemberOfAtLeastOneGroup(vararg groupIds: Long?): Boolean {
-        return isUserMemberOfAtLeastOneGroup(ThreadLocalUserContext.userId, *groupIds)
+        return isUserMemberOfAtLeastOneGroup(ThreadLocalUserContext.loggedInUserId, *groupIds)
     }
 
     fun isUserMemberOfAtLeastOneGroup(userId: Long?, vararg groupIds: Long?): Boolean {
@@ -209,7 +209,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     val isUserMemberOfAdminGroup: Boolean
-        get() = isUserMemberOfAdminGroup(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfAdminGroup(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfAdminGroup(userId: Long?): Boolean {
         checkRefresh()
@@ -218,7 +218,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     val isUserMemberOfFinanceGroup: Boolean
-        get() = isUserMemberOfFinanceGroup(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfFinanceGroup(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfFinanceGroup(userId: Long?): Boolean {
         checkRefresh()
@@ -227,7 +227,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     val isUserMemberOfProjectManagers: Boolean
-        get() = isUserMemberOfProjectManagers(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfProjectManagers(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfProjectManagers(userId: Long?): Boolean {
         checkRefresh()
@@ -236,7 +236,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     val isUserMemberOfProjectAssistant: Boolean
-        get() = isUserMemberOfProjectAssistant(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfProjectAssistant(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfProjectAssistant(userId: Long?): Boolean {
         checkRefresh()
@@ -248,14 +248,14 @@ open class UserGroupCache() : AbstractCache() {
         if (projekt?.projektManagerGroupId == null) {
             return false
         }
-        val userId = ThreadLocalUserContext.userId
+        val userId = ThreadLocalUserContext.loggedInUserId
         return if (!isUserMemberOfProjectAssistant(userId) && !isUserMemberOfProjectManagers(userId)) {
             false
         } else isUserMemberOfGroup(userId, projekt.projektManagerGroupId)
     }
 
     val isUserMemberOfControllingGroup: Boolean
-        get() = isUserMemberOfControllingGroup(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfControllingGroup(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfControllingGroup(userId: Long?): Boolean {
         checkRefresh()
@@ -264,7 +264,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     val isUserMemberOfMarketingGroup: Boolean
-        get() = isUserMemberOfMarketingGroup(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfMarketingGroup(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfMarketingGroup(userId: Long?): Boolean {
         checkRefresh()
@@ -273,7 +273,7 @@ open class UserGroupCache() : AbstractCache() {
     }
 
     val isUserMemberOfOrgaGroup: Boolean
-        get() = isUserMemberOfOrgaGroup(ThreadLocalUserContext.userId)
+        get() = isUserMemberOfOrgaGroup(ThreadLocalUserContext.loggedInUserId)
 
     fun isUserMemberOfOrgaGroup(userId: Long?): Boolean {
         checkRefresh()
@@ -291,7 +291,7 @@ open class UserGroupCache() : AbstractCache() {
      * Checks if the given user is at least member of one of the given groups.
      */
     fun isLoggedInUserMemberOfGroup(vararg groups: ProjectForgeGroup): Boolean {
-        return isUserMemberOfGroup(ThreadLocalUserContext.user, *groups)
+        return isUserMemberOfGroup(ThreadLocalUserContext.loggedInUser, *groups)
     }
 
     /**

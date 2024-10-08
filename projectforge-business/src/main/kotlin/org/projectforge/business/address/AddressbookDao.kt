@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,7 +77,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         else {
             AddressbookFilter(filter)
         }
-        val user = user
+        val user = loggedInUser
         val queryFilter = QueryFilter(myFilter)
         queryFilter.addOrder(asc("title"))
         val list = getList(queryFilter, context)

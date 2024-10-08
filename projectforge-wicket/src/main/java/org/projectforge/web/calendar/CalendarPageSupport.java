@@ -30,7 +30,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
@@ -57,7 +56,7 @@ public class CalendarPageSupport implements Serializable
   public CalendarPageSupport(final ISelectCallerPage parentPage)
   {
     this.parentPage = parentPage;
-    this.user = ThreadLocalUserContext.getUser();
+    this.user = ThreadLocalUserContext.getLoggedInUser();
   }
 
   public UserSelectPanel addUserSelectPanel(final FieldsetPanel fieldset, final IModel<PFUserDO> model,

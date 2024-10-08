@@ -66,7 +66,7 @@ open class SessionCsrfService
     val csrfToken = postData.serverData?.csrfToken
     if (csrfToken.isNullOrBlank() && ThreadLocalUserContext.userContext?.loggedInByAuthenticationToken == true) {
       if (log.isDebugEnabled) {
-        log.debug { "User '${ThreadLocalUserContext.user?.username}' logged in by rest call, not by session." }
+        log.debug { "User '${ThreadLocalUserContext.loggedInUser?.username}' logged in by rest call, not by session." }
       }
       return null
     }

@@ -34,9 +34,9 @@ import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class MemoEditForm extends AbstractEditForm<MemoDO, MemoEditPage>
 {
@@ -47,7 +47,7 @@ public class MemoEditForm extends AbstractEditForm<MemoDO, MemoEditPage>
   public MemoEditForm(final MemoEditPage parentPage, final MemoDO data)
   {
     super(parentPage, data);
-    data.setOwner(ThreadLocalUserContext.getUser());
+    data.setOwner(ThreadLocalUserContext.getLoggedInUser());
   }
 
   @Override

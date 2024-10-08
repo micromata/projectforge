@@ -186,7 +186,7 @@ class HistoryService {
      * Save method will be called automatically by the Dao services.
      */
     fun save(em: EntityManager, historyEntry: HistoryEntryDO, attrs: Collection<HistoryEntryAttrDO>? = null): Long? {
-        historyEntry.modifiedBy = ThreadLocalUserContext.user?.id?.toString() ?: "anon"
+        historyEntry.modifiedBy = ThreadLocalUserContext.loggedInUser?.id?.toString() ?: "anon"
         historyEntry.modifiedAt = Date()
         em.persist(historyEntry)
         log.info { "Saving history: $historyEntry" }

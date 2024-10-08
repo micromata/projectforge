@@ -79,7 +79,7 @@ public class IHKPlugin extends AbstractPlugin {
   }
 
   static LogSubscription ensureUserLogSubscription() {
-    String username = ThreadLocalUserContext.getUser().getUsername();
+    String username = ThreadLocalUserContext.getLoggedInUser().getUsername();
     if (username == null) {
       return null;
     }

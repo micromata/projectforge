@@ -60,7 +60,7 @@ class BankAccountPagesRest : AbstractDTOPagesRest<BankAccountDO, BankAccount, Ba
 
   override fun newBaseDTO(request: HttpServletRequest?): BankAccount {
     val account = super.newBaseDTO(request)
-    User.getUser(ThreadLocalUserContext.userId)?.let {
+    User.getUser(ThreadLocalUserContext.loggedInUserId)?.let {
       account.fullAccessUsers = listOf(it)
     }
     return account

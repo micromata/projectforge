@@ -34,14 +34,12 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import jakarta.persistence.EntityManagerFactory
 import org.hibernate.Session
-import org.hibernate.SessionFactory
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.json.TimestampSerializer
 import org.projectforge.framework.json.UtilDateFormat
 import org.projectforge.framework.json.UtilDateSerializer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -70,7 +68,7 @@ class DatabaseWriter(val emgrFactory: EntityManagerFactory) {
         jgen.writeStringField("date", PFDateTime.now().isoString)
         jgen.writeStringField("app", ProjectForgeVersion.APP_ID)
         jgen.writeStringField("version", ProjectForgeVersion.VERSION_STRING)
-        jgen.writeStringField("user", ThreadLocalUserContext.user!!.username)
+        jgen.writeStringField("user", ThreadLocalUserContext.loggedInUser!!.username)
         jgen.writeArrayFieldStart("database")
        /* val session = sessionFactory.openSession()
         session.use {

@@ -132,7 +132,7 @@ object DateFormats {
    */
   @JvmStatic
   @JvmOverloads
-  fun getFormatString(format: DateFormatType?, user: PFUserDO? = ThreadLocalUserContext.user): String {
+  fun getFormatString(format: DateFormatType?, user: PFUserDO? = ThreadLocalUserContext.loggedInUser): String {
     return getFormatString(ensureAndGetDefaultDateFormat(user), ensureAndGetDefaultTimeNotation(user), format)
   }
 
@@ -147,7 +147,7 @@ object DateFormats {
   @JvmOverloads
   fun getDateTimeFormatter(
     format: DateFormatType?,
-    user: PFUserDO? = ThreadLocalUserContext.user
+    user: PFUserDO? = ThreadLocalUserContext.loggedInUser
   ): DateTimeFormatter {
     val formatString = getFormatString(ensureAndGetDefaultDateFormat(user), ensureAndGetDefaultTimeNotation(user), format)
     return DateTimeFormatter.ofPattern(formatString, ThreadLocalUserContext.locale)
@@ -159,7 +159,7 @@ object DateFormats {
    *
    * @return
    */
-  private fun ensureAndGetDefaultDateFormat(user: PFUserDO? = ThreadLocalUserContext.user): String {
+  private fun ensureAndGetDefaultDateFormat(user: PFUserDO? = ThreadLocalUserContext.loggedInUser): String {
     var defaultDateFormat = user?.dateFormat
     if (defaultDateFormat == null) {
       defaultDateFormat = instance.defaultDateFormat
@@ -177,7 +177,7 @@ object DateFormats {
    */
   @JvmStatic
   @JvmOverloads
-  fun ensureAndGetDefaultTimeNotation(user: PFUserDO? = ThreadLocalUserContext.user): TimeNotation? {
+  fun ensureAndGetDefaultTimeNotation(user: PFUserDO? = ThreadLocalUserContext.loggedInUser): TimeNotation? {
     var defaultTimeNotation = user?.timeNotation
     if (defaultTimeNotation == null) {
       defaultTimeNotation = if (ConfigurationServiceAccessor.get().defaultTimeNotation != null) {
@@ -203,7 +203,7 @@ object DateFormats {
    * @return
    */
   private fun ensureAndGetDefaultExcelDateFormat(): String {
-    val user = ThreadLocalUserContext.user
+    val user = ThreadLocalUserContext.loggedInUser
     var defaultExcelDateFormat = user?.excelDateFormat
     if (defaultExcelDateFormat == null) {
       defaultExcelDateFormat = instance.defaultExcelDateFormat

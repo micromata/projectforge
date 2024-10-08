@@ -79,7 +79,7 @@ public class TeamCalDaoRest
     }
     final List<TeamCalDO> list = teamCalDao.getList(filter);
     Integer[] teamCalBlackListIds = userXmlPreferencesDao
-        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), Integer[].class);
+        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getLoggedInUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), Integer[].class);
     if(teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
       Arrays.stream(teamCalBlackListIds).forEach(calId -> list.remove(teamCalDao.getById(calId)));
     }

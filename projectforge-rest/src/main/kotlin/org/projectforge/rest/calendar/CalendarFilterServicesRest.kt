@@ -231,7 +231,7 @@ class CalendarFilterServicesRest {
 
   private fun getCalendars(): MutableList<TeamCalendar> {
     val list = teamCalCache.allAccessibleCalendars
-    val userId = ThreadLocalUserContext.userId!!
+    val userId = ThreadLocalUserContext.loggedInUserId!!
     val calendars = list.map { teamCalDO ->
       TeamCalendar(teamCalDO, userId, teamCalCache)
     }.toMutableList()
@@ -334,7 +334,7 @@ class CalendarFilterServicesRest {
       currentFilter.timesheetUserId = userId
     } else {
       currentFilter.timesheetUserId = if (userId != null && userId >= 0) {
-        ThreadLocalUserContext.userId
+        ThreadLocalUserContext.loggedInUserId
       } else {
         null
       }

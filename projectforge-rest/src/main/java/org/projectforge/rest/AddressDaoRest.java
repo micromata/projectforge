@@ -46,7 +46,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
 
-import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId;
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getLoggedInUserId;
 
 /**
  * REST-Schnittstelle für {@link AddressDao}
@@ -240,7 +240,7 @@ public class AddressDaoRest {
       personalAddress = new PersonalAddressDO();
       personalAddress.setAddress(dbAddress);
       personalAddress.setFavoriteCard(true);
-      personalAddressDao.setOwner(personalAddress, getUserId());
+      personalAddressDao.setOwner(personalAddress, getLoggedInUserId());
       personalAddressDao.saveOrUpdate(personalAddress);
     }
 

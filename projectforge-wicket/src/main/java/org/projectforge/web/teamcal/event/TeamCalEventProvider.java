@@ -44,7 +44,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -116,7 +115,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     eventFilter.setTeamCals(visibleCalendars);
     eventFilter.setStartDate(start.toDate());
     eventFilter.setEndDate(end.toDate());
-    eventFilter.setUser(ThreadLocalUserContext.getUser());
+    eventFilter.setUser(ThreadLocalUserContext.getLoggedInUser());
     final List<ICalendarEvent> teamEvents = WicketSupport.get(TeamEventDao.class).getEventList(eventFilter, true);
 
     days = Days.daysBetween(start, end).getDays();
@@ -124,7 +123,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     final boolean longFormat = days < 10;
 
     final TeamCalRight right = new TeamCalRight();
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (CollectionUtils.isNotEmpty(teamEvents) == true) {
       for (final ICalendarEvent teamEvent : teamEvents) {
@@ -148,7 +147,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         event.setId("" + id);
         event.setColor(activeTemplateEntry.getColorCode(eventDO.getCalendarId()));
 
-        if (eventRight.hasUpdateAccess(ThreadLocalUserContext.getUser(), eventDO, null)) {
+        if (eventRight.hasUpdateAccess(ThreadLocalUserContext.getLoggedInUser(), eventDO, null)) {
           event.setEditable(true);
         } else {
           event.setEditable(false);

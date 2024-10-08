@@ -40,12 +40,10 @@ import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.handler.RedirectRequestHandler;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.template.PackageTextTemplate;
 import org.projectforge.Constants;
 import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.DomainService;
-import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -117,7 +115,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage {
       developmentSystem.setVisible(false);
     }
 
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     AbstractLink link;
     link = new ExternalLink("footerNewsLink", Constants.WEB_DOCS_NEWS_LINK);
     body.add(link);

@@ -169,7 +169,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
   }
 
   private fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
     return LogSubscription.ensureSubscription(
       title = "Scripting",
       user = username,

@@ -57,11 +57,11 @@ class MenuRest {
 
   @GetMapping
   fun getMenu(): Menus {
-    val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.user!!))
+    val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.loggedInUser!!))
     val favoritesMenu = favoritesMenuCreator.getFavoriteMenu()
 
     val myAccountMenu = Menu()
-    val userNameItem = MenuItem("username", ThreadLocalUserContext.user!!.getFullname(), key = "MY_MENU")
+    val userNameItem = MenuItem("username", ThreadLocalUserContext.loggedInUser!!.getFullname(), key = "MY_MENU")
     myAccountMenu.add(userNameItem)
     userNameItem.add(MenuItem(MenuItemDefId.FEEDBACK))
     userNameItem.add(MenuItemDef(MenuItemDefId.MY_ACCOUNT))

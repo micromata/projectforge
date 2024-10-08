@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -105,7 +105,7 @@ class PersonalAddressDao {
     private fun checkAccess(obj: PersonalAddressDO, throwException: Boolean = true): Boolean {
         requireNotNull(obj.ownerId)
         requireNotNull(obj.addressId)
-        val owner = user
+        val owner = loggedInUser
         if (owner == null || owner.id != obj.ownerId) {
             if (throwException) {
                 throw AccessException("address.accessException.userIsNotOwnerOfPersonalAddress")
@@ -213,7 +213,7 @@ class PersonalAddressDao {
      * @return the PersonalAddressDO entry assigned to the given address for the context user or null, if not exist.
      */
     fun getByAddressId(addressId: Long?): PersonalAddressDO? {
-        val owner = user
+        val owner = loggedInUser
         return getByAddressId(addressId, owner)
     }
 

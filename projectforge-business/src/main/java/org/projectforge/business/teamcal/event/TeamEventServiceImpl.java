@@ -369,7 +369,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, TeamEventAttendeeDO attendee, final EventMailType mailType) {
-        final PFUserDO sender = ThreadLocalUserContext.getUser();
+        final PFUserDO sender = ThreadLocalUserContext.getLoggedInUser();
 
         if (sender == null) {
             return false;
@@ -394,7 +394,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                 "mail/teamEventEmail.html",
                 dataMap,
                 I18nHelper.getLocalizedMessage("plugins.teamcal.event.title.heading"),
-                ThreadLocalUserContext.getUser());
+                ThreadLocalUserContext.getLoggedInUser());
         msg.setContent(content);
 
         // create iCal

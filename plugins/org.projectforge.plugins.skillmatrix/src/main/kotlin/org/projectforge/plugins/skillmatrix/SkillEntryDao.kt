@@ -56,7 +56,7 @@ class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
     override fun onSaveOrModify(obj: SkillEntryDO, context: PfPersistenceContext) {
         super.onSaveOrModify(obj, context)
         if (obj.owner == null) {
-            obj.owner = ThreadLocalUserContext.user // Set always the logged-in user as owner.
+            obj.owner = ThreadLocalUserContext.loggedInUser // Set always the logged-in user as owner.
         }
         obj.rating = NumberHelper.ensureRange(SkillEntryDO.MIN_VAL_RATING, SkillEntryDO.MAX_VAL_RATING, obj.rating)
         obj.interest =

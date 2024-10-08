@@ -88,7 +88,7 @@ public class MyXlsExportContext implements ExportContext
   @Override
   public String getExcelDateFormat()
   {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     return user != null ? user.getExcelDateFormat() : ExcelDateFormats.EXCEL_DEFAULT_DATE;
   }
 }

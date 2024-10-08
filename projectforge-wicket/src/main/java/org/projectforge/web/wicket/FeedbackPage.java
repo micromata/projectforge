@@ -24,7 +24,6 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -58,7 +57,7 @@ public class FeedbackPage extends AbstractStandardFormPage
     final String receiver = Configuration.getInstance().getStringValue(ConfigurationParam.FEEDBACK_E_MAIL);
     body.add(form);
     form.data.setReceiver(receiver);
-    form.data.setSender(ThreadLocalUserContext.getUser().getFullname());
+    form.data.setSender(ThreadLocalUserContext.getLoggedInUser().getFullname());
     form.data.setSubject("Feedback from " + form.data.getSender());
     form.init();
   }

@@ -91,7 +91,7 @@ public class AuthenticationRest {
     @Path(RestPaths.AUTHENTICATE_GET_TOKEN_METHOD)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getToken() {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             log.error("No user given for rest call.");
             throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");
@@ -114,7 +114,7 @@ public class AuthenticationRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
     public Response initialContact(@QueryParam("clientVersion") final String clientVersionString) {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             log.error("No user given for rest call.");
             throw new IllegalArgumentException("No user given for the rest call: authenticate/getToken.");

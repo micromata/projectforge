@@ -85,7 +85,7 @@ class MerlinPagesRest :
    */
   override fun newBaseDO(request: HttpServletRequest?): MerlinTemplateDO {
     val template = super.newBaseDO(request)
-    template.adminIds = "${ThreadLocalUserContext.userId}"
+    template.adminIds = "${ThreadLocalUserContext.loggedInUserId}"
     template.fileNamePattern = "\${date}-document"
     return template
   }

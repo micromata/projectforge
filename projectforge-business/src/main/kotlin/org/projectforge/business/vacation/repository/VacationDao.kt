@@ -223,7 +223,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
 
     override fun afterLoad(obj: VacationDO, context: PfPersistenceContext) {
         if (StringUtils.isNotBlank(obj.comment)) {
-            val user = ThreadLocalUserContext.user!!
+            val user = ThreadLocalUserContext.loggedInUser!!
             if (!isOwnEntry(user, obj) && !hasUpdateAccess(user, obj, obj, false)) {
                 // Entry is not own entry and user has no update access to it, so hide comment due to data privacy.
                 obj.comment = "..."

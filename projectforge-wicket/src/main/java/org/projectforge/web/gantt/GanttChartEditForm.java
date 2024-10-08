@@ -78,7 +78,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
     super(parentPage, data);
     if (isNew() == true) {
       if (data.getOwner() == null) {
-        data.setOwner(ThreadLocalUserContext.getUser());
+        data.setOwner(ThreadLocalUserContext.getLoggedInUser());
       }
       if (StringUtils.isEmpty(data.getName()) == true) {
         data.setName("MyChart");

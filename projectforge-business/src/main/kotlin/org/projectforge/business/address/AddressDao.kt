@@ -44,7 +44,7 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay.Companion.from
 import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
@@ -261,7 +261,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
                 addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             }
             for (ab in addressbookDao.internalLoadAll()) {
-                if (!ab.deleted && addressbookRight!!.hasSelectAccess(user, ab)) {
+                if (!ab.deleted && addressbookRight!!.hasSelectAccess(loggedInUser, ab)) {
                     ab.id?.let {
                         abIdList.add(it)
                     }
@@ -341,7 +341,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             for (dbAddressbook in dbAddress!!.addressbookList!!) {
                 //If user has no right for assigned addressbook, it could not be removed
-                if (!addressbookRight.hasSelectAccess(user, dbAddressbook)
+                if (!addressbookRight.hasSelectAccess(loggedInUser, dbAddressbook)
                     && !obj.addressbookList!!.contains(dbAddressbook)
                 ) {
                     obj.addressbookList!!.add(dbAddressbook)

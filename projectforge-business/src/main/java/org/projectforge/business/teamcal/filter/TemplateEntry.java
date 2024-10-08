@@ -433,7 +433,7 @@ public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, C
    */
   public TemplateEntry setShowTimesheets(final boolean showTimesheets)
   {
-    this.timesheetUserId = ThreadLocalUserContext.getUserId();
+    this.timesheetUserId = ThreadLocalUserContext.getLoggedInUserId();
     return this;
   }
 

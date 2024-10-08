@@ -55,7 +55,7 @@ public class UserXmlPreferencesService {
    * @see UserXmlPreferencesCache#putEntry(Long, String, Object, boolean)
    */
   public void putEntry(final String key, final Object value, final boolean persistent) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     if (user == null || value == null) {
       // Should only occur, if user is not logged in.
       return;
@@ -81,7 +81,7 @@ public class UserXmlPreferencesService {
    * @see UserXmlPreferencesCache#getEntry(Long, String)
    */
   public Object getEntry(final String key) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     if (user == null) {
       // Should only occur, if user is not logged in.
       return null;
@@ -143,7 +143,7 @@ public class UserXmlPreferencesService {
   }
 
   private Object removeEntry(final String key, final boolean ifNotExists) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     if (user == null) {
       // Should only occur, if user is not logged in.
       return null;

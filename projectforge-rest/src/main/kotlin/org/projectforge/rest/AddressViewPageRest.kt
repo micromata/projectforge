@@ -244,7 +244,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     val id = postData.data.id ?: throw IllegalAccessException("Parameter id not given.")
     val favorite = postData.data.isFavoriteCard
     val address = addressDao.getById(id) ?: throw IllegalAccessException("Address not found.")
-    val owner = ThreadLocalUserContext.user!!
+    val owner = ThreadLocalUserContext.loggedInUser!!
     val personalAddress = personalAddressDao.getByAddressId(id, owner) ?: PersonalAddressDO()
     if (personalAddress.id == null) {
       if (!favorite) {

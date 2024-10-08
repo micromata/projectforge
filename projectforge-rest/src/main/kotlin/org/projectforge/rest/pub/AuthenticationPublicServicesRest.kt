@@ -110,7 +110,7 @@ open class AuthenticationPublicServicesRest {
      * Internal usage for test cases.
      */
     internal open fun createTemporaryToken(): String {
-        val uid = ThreadLocalUserContext.userId!!
+        val uid = ThreadLocalUserContext.loggedInUserId!!
         return createTemporaryToken(uid, System.currentTimeMillis())
     }
 

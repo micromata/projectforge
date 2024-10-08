@@ -238,7 +238,7 @@ class CalendarFilter(
         filter.showPlanning = templateEntry.isShowPlanning
         filter.timesheetUserId = templateEntry.timesheetUserId
         if (templateEntry.isShowTimesheets)
-          filter.timesheetUserId = ThreadLocalUserContext.userId
+          filter.timesheetUserId = ThreadLocalUserContext.loggedInUserId
         templateEntry.calendarProperties?.forEach {
           filter.addCalendarId(it.calId)
         }

@@ -113,7 +113,7 @@ open class ForecastExport { // open needed by Wicket.
     val baseDate: PFDay,
     val invoices: List<RechnungDO>
   ) {
-    val excelDateFormat = ThreadLocalUserContext.user?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
+    val excelDateFormat = ThreadLocalUserContext.loggedInUser?.excelDateFormat ?: ExcelDateFormats.EXCEL_DEFAULT_DATE
     val dateFormat = DateTimeFormatter.ofPattern(DateFormats.getFormatString(DateFormatType.DATE_SHORT))!!
     val currencyFormat = NumberHelper.getCurrencyFormat(ThreadLocalUserContext.locale)
     val currencyCellStyle = workbook.createOrGetCellStyle("DataFormat.currency")

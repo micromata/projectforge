@@ -63,7 +63,7 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
     var id = NumberHelper.parseLong(idString)
     if (id == -1L) {
       // personal box of logged-in user is requested:
-      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.userId!!)?.id
+      id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.loggedInUserId!!)?.id
     }
     id ?: throw IllegalAccessException("Parameter id not an int or no personal box found.")
     val areaDO = dataTransferAreaDao.getById(id)!!

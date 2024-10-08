@@ -89,7 +89,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
     override fun newBaseDTO(request: HttpServletRequest?): Poll {
         val result = Poll()
-        result.owner = ThreadLocalUserContext.user
+        result.owner = ThreadLocalUserContext.loggedInUser
         return result
     }
 

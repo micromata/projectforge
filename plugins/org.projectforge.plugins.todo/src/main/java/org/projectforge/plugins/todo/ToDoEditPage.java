@@ -58,7 +58,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
       if (pref != null) {
         copyPrefValues(pref, getData());
       }
-      getData().setReporter(ThreadLocalUserContext.getUser());
+      getData().setReporter(ThreadLocalUserContext.getLoggedInUser());
       getData().setStatus(ToDoStatus.OPENED);
     } else {
       // Store old to-do for sending e-mail notification after major changes.
@@ -75,7 +75,7 @@ public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao
       // Do nothing.
       return;
     }
-    if (Objects.equals(ThreadLocalUserContext.getUserId(), getData().getAssigneeId())) {
+    if (Objects.equals(ThreadLocalUserContext.getLoggedInUserId(), getData().getAssigneeId())) {
       // OK, user has now seen this to-do: delete recent flag:
       if (!isNew() && getData().getRecent()) {
         getData().setRecent(false);

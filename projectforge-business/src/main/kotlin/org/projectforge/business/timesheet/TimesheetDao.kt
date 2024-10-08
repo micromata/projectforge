@@ -218,7 +218,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     override fun getListForSearchDao(filter: BaseSearchFilter, context: PfPersistenceContext): List<TimesheetDO>? {
         val timesheetFilter = TimesheetFilter(filter)
         if (filter.modifiedByUserId == null) {
-            timesheetFilter.userId = ThreadLocalUserContext.userId
+            timesheetFilter.userId = ThreadLocalUserContext.loggedInUserId
         }
         return getList(timesheetFilter, context)
     }
@@ -695,7 +695,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             String::class.java,
             Pair("lastUpdate", oneYearAgo.utilDate),
             Pair("locationSearch", "%${searchString?.lowercase() ?: ""}%"),
-            Pair("userId", ThreadLocalUserContext.userId),
+            Pair("userId", ThreadLocalUserContext.loggedInUserId),
         )
     }
 
@@ -727,7 +727,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         return persistenceService.executeNamedQuery(
             TimesheetDO.SELECT_RECENT_USED_LOCATIONS_BY_USER_AND_LAST_UPDATE,
             String::class.java,
-            Pair("userId", ThreadLocalUserContext.userId),
+            Pair("userId", ThreadLocalUserContext.loggedInUserId),
             Pair("lastUpdate", sinceDate),
         )
     }

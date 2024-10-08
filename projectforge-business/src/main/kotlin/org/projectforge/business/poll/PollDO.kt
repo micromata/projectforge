@@ -92,7 +92,7 @@ open class PollDO : DefaultBaseDO() {
 
     @Transient
     fun getPollAssignment(): MutableList<PollAssignment> {
-        val currentUserId = ThreadLocalUserContext.userId!!
+        val currentUserId = ThreadLocalUserContext.loggedInUserId!!
         val assignmentList = mutableListOf<PollAssignment>()
         if (currentUserId == this.owner?.id) {
             assignmentList.add(PollAssignment.OWNER)

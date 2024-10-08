@@ -59,7 +59,7 @@ class CalEventsProvider() {
     eventFilter.teamCals = calendarIds
     eventFilter.startDate = start.utilDate
     eventFilter.endDate = end.utilDate
-    eventFilter.user = ThreadLocalUserContext.user
+    eventFilter.user = ThreadLocalUserContext.loggedInUser
     val calendarEvents = calEventDao.getEventList(eventFilter, true)
     calendarEvents.forEach {
       val eventDO: CalEventDO

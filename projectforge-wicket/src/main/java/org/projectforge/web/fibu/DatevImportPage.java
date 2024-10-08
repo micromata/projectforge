@@ -29,7 +29,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.datev.DatevImportDao;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -56,7 +55,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
 
   public DatevImportPage(final PageParameters parameters) {
     super(parameters);
-    final String username = ThreadLocalUserContext.getUser().getUsername();
+    final String username = ThreadLocalUserContext.getLoggedInUser().getUsername();
     final LogSubscription logSubscription = LogSubscription.ensureSubscription("Datev-Import", username,
         (title, user) -> new LogSubscription(title, user, new LogEventLoggerNameMatcher("org.projectforge.business.fibu.datev", "de.micromata.merlin")));
 

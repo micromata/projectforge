@@ -105,7 +105,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
     else {
       myFilter = new TeamCalFilter(filter);
     }
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     final QueryFilter queryFilter = new QueryFilter(myFilter);
     queryFilter.addOrder(SortProperty.asc("title"));
     final List<TeamCalDO> list = getList(queryFilter, context);

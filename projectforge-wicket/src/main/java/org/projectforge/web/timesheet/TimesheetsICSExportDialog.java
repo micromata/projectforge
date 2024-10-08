@@ -61,7 +61,7 @@ public class TimesheetsICSExportDialog extends AbstractICSExportDialog
   protected String getUrl()
   {
     return WicketSupport.get(CalendarFeedService.class)
-        .getUrl4Timesheets(timesheetUserId != null ? timesheetUserId : ThreadLocalUserContext.getUserId());
+        .getUrl4Timesheets(timesheetUserId != null ? timesheetUserId : ThreadLocalUserContext.getLoggedInUserId());
   }
 
 }

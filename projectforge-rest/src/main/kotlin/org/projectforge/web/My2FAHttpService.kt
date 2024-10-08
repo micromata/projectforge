@@ -119,7 +119,7 @@ class My2FAHttpService {
     }
     val code = createOTP(request)
     val mail = Mail()
-    val user = ThreadLocalUserContext.user
+    val user = ThreadLocalUserContext.loggedInUser
     mail.setTo(user)
     mail.subject = translate("user.My2FACode.sendCode.mail.title")
     mail.contentType = Mail.CONTENTTYPE_HTML
@@ -177,7 +177,7 @@ class My2FAHttpService {
       // Code sent by E-Mail and password required as additional trust.
       // Check password as an additional security factor (because OTP was sent by e-mail).
       if (password == null || password.isEmpty() || loginService.loginHandler.checkLogin(
-          ThreadLocalUserContext.user!!.username,
+          ThreadLocalUserContext.loggedInUser!!.username,
           password
         ).loginResultStatus != LoginResultStatus.SUCCESS
       ) {
