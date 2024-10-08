@@ -51,6 +51,8 @@ class AccessDaoTest : AbstractTestBase() {
     @Test
     fun testAddUserWithHistory() {
         logon(ADMIN_USER)
+        var groupTaskAccessId = 0L
+        val hist = createHistoryTester()
         persistenceService.runInTransaction { context ->
             val group = GroupDO()
             group.name = "$PREFIX-Group"
@@ -59,17 +61,24 @@ class AccessDaoTest : AbstractTestBase() {
             task.title = "$PREFIX-Task"
             task.parentTask = taskTree.rootTaskNode.task
             taskDao.insert(task, context)
+            hist.reset()
             val access = GroupTaskAccessDO()
             access.group = group
             access.task = task
             access.addAccessEntry(createAccessEntry(AccessType.OWN_TIMESHEETS, true, true, true, true))
             access.addAccessEntry(createAccessEntry(AccessType.TIMESHEETS, true, false, false, false))
-            val hist = createHistoryTester()
-            accessDao.insert(access, context)
-            hist.loadRecentHistoryEntriesAndAssertSizes(1)
-
-            // TODO: Changes and history
+            groupTaskAccessId = accessDao.insert(access, context)
+            hist.loadRecentHistoryEntries(1)
         }
+        val access = accessDao.getById(groupTaskAccessId)!!
+        access.addAccessEntry(createAccessEntry(AccessType.TASKS, true, false, false, false))
+        access.getAccessEntry(AccessType.TIMESHEETS)!!.let {
+            it.accessSelect = false
+            it.accessInsert = true
+        }
+        accessDao.saveOrUpdateInTrans(access)
+       // hist.loadRecentHistoryEntries()
+        // TODO: Changes and history
     }
 
     private fun createAccessEntry(
