@@ -39,8 +39,8 @@ class HistoryTester(
     private var totalNumberOfHistoryAttrs: Int = 0
 
     /**
-     * The recent history entries since last check. This is set by [loadRecentHistoryEntriesAndAssertSizes].
-     * You may also set it manually or by [loadRecentHistoryEntries] or [loadHistory] if you want to check the entries later.
+     * The recent history entries since last check. This is set by [loadRecentHistoryEntries].
+     * You may also set it manually or by [loadAndTailHistoryEntries] or [loadHistory] if you want to check the entries later.
      */
     var recentEntries: List<HistoryEntryHolder>? = null
 
@@ -64,7 +64,7 @@ class HistoryTester(
         msg: String = "",
     ): List<HistoryEntryHolder>? {
         persistenceService.runReadOnly { context ->
-            loadHistoryEntriesWithEntities(historyService.loadHistory(baseDO, context), context)
+            loadHistoryEntries(historyService.loadHistory(baseDO, context), context)
         }
         if (expectedNumberOfNewHistoryEntries != null) {
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)
@@ -76,14 +76,14 @@ class HistoryTester(
      * Load the recent history entries for debugging. The recent entries are the last entries in the database, independent of the
      * entity. The entities are loaded as well if available.
      */
-    fun loadRecentHistoryEntries(maxResults: Int): List<HistoryEntryHolder>? {
+    fun loadAndTailHistoryEntries(maxResults: Int): List<HistoryEntryHolder>? {
         persistenceService.runInTransaction { context ->
             context.executeQuery(
                 "from HistoryEntryDO order by id desc",
                 HistoryEntryDO::class.java,
                 maxResults = maxResults,
             ).let { entries ->
-                loadHistoryEntriesWithEntities(entries, context)
+                loadHistoryEntries(entries, context)
             }
         }
         return recentEntries
@@ -138,7 +138,7 @@ class HistoryTester(
         return result
     }
 
-    private fun loadHistoryEntriesWithEntities(historyEntries: List<HistoryEntryDO>, context: PfPersistenceContext) {
+    private fun loadHistoryEntries(historyEntries: List<HistoryEntryDO>, context: PfPersistenceContext) {
         val result = mutableListOf<HistoryEntryHolder>()
         historyEntries.forEach { entry ->
             val entity = entry.entityId?.let {
@@ -166,13 +166,13 @@ class HistoryTester(
      * @param expectedNumberOfNewHistoryAttrEntries The expected number of new history attributes.
      * @return This for chaining.
      */
-    fun loadRecentHistoryEntriesAndAssertSizes(
+    fun loadRecentHistoryEntries(
         expectedNumberOfNewHistoryEntries: Int,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
     ): HistoryTester {
         val count = count()
         val numberOfNewHistoryEntries = count.first - totalNumberHistoryEntries
-        loadRecentHistoryEntries(numberOfNewHistoryEntries)
+        loadAndTailHistoryEntries(numberOfNewHistoryEntries)
         // ####### For debugging, it's recommended to set the breakpoint at the following line: ##############
         assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries)
         totalNumberHistoryEntries = count.first

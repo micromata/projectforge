@@ -75,7 +75,7 @@ class CandHHistoryTest : AbstractTestBase() {
             PFDateTime.withDate(2021, Month.JANUARY, 1, 12, 17, 33, 763, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         val hist = createHistoryTester()
         userDao.saveInTrans(user)
-        hist.loadRecentHistoryEntriesAndAssertSizes(1, 0)
+        hist.loadRecentHistoryEntries(1, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
@@ -90,7 +90,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.lastPasswordChange =
             PFDateTime.withDate(2024, Month.OCTOBER, 5, 8, 39, 12, 500, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         userDao.updateInTrans(user)
-        hist.loadRecentHistoryEntriesAndAssertSizes(1, 8)
+        hist.loadRecentHistoryEntries(1, 8)
         hist.loadHistory(user, 2, 8)
 
         userDao.getHistoryEntries(user).let { entries ->
@@ -162,7 +162,7 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         user.description = "This is a deleted test user."
         userDao.markAsDeletedInTrans(user)
-        hist.loadRecentHistoryEntriesAndAssertSizes(1, 1)
+        hist.loadRecentHistoryEntries(1, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, 1)
@@ -178,7 +178,7 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         user.description = "This is a undeleted test user."
         userDao.undeleteInTrans(user)
-        hist.loadRecentHistoryEntriesAndAssertSizes(1, 1)
+        hist.loadRecentHistoryEntries(1, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(4, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 1)
@@ -215,7 +215,7 @@ class CandHHistoryTest : AbstractTestBase() {
         userRightDao.internalSaveOrUpdateInTrans(user.rights!!)
         var rights = userRightDao.getList(user)
         Assertions.assertEquals(2, rights.size)
-        hist.loadRecentHistoryEntriesAndAssertSizes(3, 0)
+        hist.loadRecentHistoryEntries(3, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
             assertHistoryEntry(entries[0], UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER)
@@ -231,7 +231,7 @@ class CandHHistoryTest : AbstractTestBase() {
         rights = userRightDao.getList(user)
         // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)
-        hist.loadRecentHistoryEntriesAndAssertSizes(2, 1)
+        hist.loadRecentHistoryEntries(2, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(5, entries.size)
             entries.filter { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
@@ -310,7 +310,7 @@ class CandHHistoryTest : AbstractTestBase() {
             Pair("id", id),
         )
         Assertions.assertEquals(3, count)
-        hist.loadRecentHistoryEntriesAndAssertSizes(3, 4)
+        hist.loadRecentHistoryEntries(3, 4)
         rechnungDao.getHistoryEntries(invoice).let { entries ->
             Assertions.assertEquals(4, entries.size)
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }

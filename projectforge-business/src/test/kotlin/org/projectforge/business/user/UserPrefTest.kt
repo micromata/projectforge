@@ -105,7 +105,7 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param2", "value2")
             hist.reset()
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+            hist.loadRecentHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
@@ -120,7 +120,7 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param3", "value3")
             userPrefDao.internalSaveOrUpdate(userPref, context)
         }
-        hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+        hist.loadRecentHistoryEntries(0, 0)
         persistenceService.runReadOnly { context ->
             val userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
@@ -133,7 +133,7 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA3"
             userPref.name = ""
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+            hist.loadRecentHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
 
@@ -142,7 +142,7 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA4"
             userPref.name = ""
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+            hist.loadRecentHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "", context)!!
             Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
 
@@ -153,14 +153,14 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param1", "value1")
             addEntry(userPref, "param2", "value2")
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+            hist.loadRecentHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
             null
         }
-        hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+        hist.loadRecentHistoryEntries(0, 0)
     }
 
     private fun addEntry(userPref: UserPrefDO, parameter: String, value: String) {
@@ -180,7 +180,7 @@ class UserPrefTest : AbstractTestBase() {
         userPref.area = "TEST_AREA2"
         userPref.name = name
         userPrefDao.internalSaveOrUpdateInTrans(userPref)
-        hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+        hist.loadRecentHistoryEntries(0, 0)
         val id = userPref.id
         userPref = UserPrefDO()
         userPref.user = loggedInUser
@@ -188,7 +188,7 @@ class UserPrefTest : AbstractTestBase() {
         userPref.area = "TEST_AREA2"
         userPref.name = name
         userPrefDao.internalSaveOrUpdateInTrans(userPref)
-        hist.loadRecentHistoryEntriesAndAssertSizes(0, 0)
+        hist.loadRecentHistoryEntries(0, 0)
         Assertions.assertEquals(id, userPref.id, "Object should be updated not inserted.")
     }
 

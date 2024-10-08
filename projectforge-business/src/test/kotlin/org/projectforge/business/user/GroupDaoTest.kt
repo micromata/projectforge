@@ -78,7 +78,7 @@ class GroupDaoTest : AbstractTestBase() {
             assertHistoryEntry(entries[1], PFUserDO::class, users[0].id, EntityOpType.Insert, loggedInUser)
         }
         // var recent = getRecentHistoryEntries(4)
-        hist.loadRecentHistoryEntriesAndAssertSizes(4, 3)
+        hist.loadRecentHistoryEntries(4, 3)
 
         group.assignedUsers!!.remove(users[0]) // Unassign users[0] from group 1.
         group.assignedUsers!!.remove(users[1]) // Unassign users[1] from group 1.
@@ -141,7 +141,7 @@ class GroupDaoTest : AbstractTestBase() {
             ) // user inserted
         }
 
-        hist.loadRecentHistoryEntriesAndAssertSizes(4, 4)
+        hist.loadRecentHistoryEntries(4, 4)
     }
 
     @Test
@@ -180,7 +180,7 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(), arrayOf())
         )
-        hist.loadRecentHistoryEntriesAndAssertSizes(3, 3)
+        hist.loadRecentHistoryEntries(3, 3)
             .recentEntries?.let { entries ->
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[0], arrayOf(0, 1), null)
             }
@@ -200,7 +200,7 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())
         )
-        hist.loadRecentHistoryEntriesAndAssertSizes(4, 4)
+        hist.loadRecentHistoryEntries(4, 4)
             .recentEntries?.let { entries ->
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(0, 1, 2), null)
             }
@@ -217,7 +217,7 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
         )
-        hist.loadRecentHistoryEntriesAndAssertSizes(4, 4)
+        hist.loadRecentHistoryEntries(4, 4)
             .recentEntries?.let { entries ->
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(3), arrayOf(0, 1))
             }
@@ -232,7 +232,7 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
         )
-        hist.loadRecentHistoryEntriesAndAssertSizes(0)
+        hist.loadRecentHistoryEntries(0)
 
         // -12 is unkown, exception expected.
         try {
