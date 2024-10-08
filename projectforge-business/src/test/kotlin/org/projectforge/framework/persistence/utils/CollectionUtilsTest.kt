@@ -65,13 +65,13 @@ class CollectionUtilsTest {
         Assertions.assertEquals(asString(kept), asString(result.kept))
     }
 
-    private fun asString(col: Collection<Any>?): String {
+    private fun asString(col: Collection<Any>?): String? {
         if (col.isNullOrEmpty()) {
             return ""
         }
         return if (col.first() is IdObject<*>) {
             @Suppress("UNCHECKED_CAST")
-            CollectionUtils.joinToIdString(col as Collection<IdObject<Long>>)
+            CollectionUtils.joinToStringOfIds(col as Collection<IdObject<Long>>)
         } else {
             col.sortedBy { it.toString() }.joinToString(separator = ",")
         }

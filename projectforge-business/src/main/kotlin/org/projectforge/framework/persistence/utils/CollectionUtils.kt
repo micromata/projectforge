@@ -40,9 +40,17 @@ object CollectionUtils {
      * Joins the id's of the given collection to a csv string. The entries are sorted by id.
      * Used for example in history entries, representing the removed and added entries of a collection.
      */
-    fun joinToIdString(col: Collection<IdObject<Long>>?): String {
-        col ?: return ""
-        return col.sortedBy { it.id }.joinToString(separator = ",") { it.id.toString() }
+    fun joinToStringOfIds(col: Collection<IdObject<Long>>?): String? {
+        col ?: return null
+        return joinToString(col.map { it.id })
+    }
+
+    /**
+     * Joins the given collection to a csv string. The entries are sorted.
+     */
+    fun <T : Comparable<T>> joinToString(col: Collection<T?>?): String? {
+        col ?: return null
+        return col.filterNotNull().sorted().joinToString(separator = ",")
     }
 
     /**

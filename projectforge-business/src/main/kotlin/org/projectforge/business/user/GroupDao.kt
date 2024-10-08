@@ -48,7 +48,7 @@ private val log = KotlinLogging.logger {}
 @Service
 open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     @Autowired
-    private val userDao: UserDao? = null
+    private lateinit var userDao: UserDao
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
@@ -101,29 +101,24 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      * Please note: Any existing assigned user in group object is ignored!
      * Used by GroupEditPage (Wicket), only used by Group-Task-Access-Wizard.
      *
-     * @param assignedUsers Full list of all users which have to assigned to this group.
+     * @param newAssignedUsers Full list of all users which have to assigned to this group.
      */
     @Throws(AccessException::class)
-    fun setAssignedUsers(group: GroupDO, assignedUsers: Collection<PFUserDO>) {
-        val origAssignedUsers = group.assignedUsers
-        if (origAssignedUsers != null) {
-            val it = origAssignedUsers.iterator()
-            while (it.hasNext()) {
-                val user = it.next()
-                if (!assignedUsers.contains(user)) {
-                    it.remove()
-                }
-            }
+    fun setAssignedUsers(group: GroupDO, newAssignedUsers: Collection<PFUserDO>) {
+        // Can't use group.assignedUsers = newAssignedUsers, because Hibernate doesn't recognize the change, if group is attached.
+        group.assignedUsers?.removeIf { user ->
+            newAssignedUsers.none { it.id == user.id }
         }
-        for (user in assignedUsers) {
-            val dbUser = userDao!!.internalGetById(user.id)
+        group.assignedUsers = group.assignedUsers ?: mutableSetOf()
+        newAssignedUsers.forEach { user ->
+            val dbUser = userDao.internalGetById(user.id)
                 ?: throw RuntimeException(
                     ("User '"
                             + user.id
                             + "' not found. Could not add this unknown user to new group: "
                             + group.name)
                 )
-            if (origAssignedUsers == null || !origAssignedUsers.contains(dbUser)) {
+            if (group.assignedUsers?.none { it.id == dbUser.id } == true) {
                 group.addUser(dbUser)
             }
         }
@@ -136,7 +131,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         val groupList = listOf(obj)
         // Create history entry of PFUserDO for all assigned users:
         obj.assignedUsers?.forEach { user ->
-            insertHistoryEntry(user, unassignedList = null, assignedList = groupList, context)
+            insertHistoryEntry(user, assignedList = groupList, unassignedList = null, context)
         }
     }
 
@@ -146,10 +141,10 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
         CollectionUtils.compareCollections(obj.assignedUsers, dbObj?.assignedUsers).let { result ->
             result.added?.forEach { user ->
-                insertHistoryEntry(user, unassignedList = null, assignedList = listOf(obj), context)
+                insertHistoryEntry(user, assignedList = listOf(obj), unassignedList = null, context)
             }
             result.removed?.forEach { user ->
-                insertHistoryEntry(user, unassignedList = listOf(obj), assignedList = null, context)
+                insertHistoryEntry(user, assignedList = null, unassignedList = listOf(obj), context)
             }
         }
     }
@@ -180,7 +175,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 ?: throw RuntimeException("Group with id $groupId not found.")
             dbGroup.assignedUsers = dbGroup.assignedUsers ?: mutableSetOf()
             dbGroup.assignedUsers!!.let { assignedUsers ->
-                if (assignedUsers.contains(dbUser) != true) {
+                if (assignedUsers.none { it.id == dbUser.id }) { // Check if the user isn't yet assigned. Use id check instead of equals.
                     log.info("Assigning user '" + dbUser.username + "' to group '" + dbGroup.name + "'.")
                     assignedUsers.add(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                     dbGroup.setLastUpdate()   // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
@@ -195,7 +190,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
             val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
                 ?: throw RuntimeException("Group with id $groupId not found.")
             dbGroup.assignedUsers?.let { assignedUsers ->
-                if (assignedUsers.contains(dbUser)) {
+                if (assignedUsers.any { it.id == dbUser.id }) { // Check if the user is assigned. Use id check instead of equals.
                     log.info("Unassigning user '" + dbUser.username + "' from group '" + dbGroup.name + "'.")
                     assignedUsers.remove(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                     dbGroup.setLastUpdate()      // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
@@ -214,7 +209,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         unassignedGroups?.forEach { group ->
             insertHistoryEntry(group, unassignedList = listOf(user), assignedList = null, context)
         }
-        insertHistoryEntry(user, unassignedList = unassignedGroups, assignedList = assignedGroups, context)
+        insertHistoryEntry(user, assignedList = assignedGroups, unassignedList = unassignedGroups, context)
         if (updateUserGroupCache) {
             userGroupCache.setExpired()
         }
@@ -245,8 +240,8 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
      */
     private fun insertHistoryEntry(
         user: PFUserDO,
-        unassignedList: Collection<GroupDO>?,
         assignedList: Collection<GroupDO>?,
+        unassignedList: Collection<GroupDO>?,
         context: PfPersistenceContext,
     ) {
         if (unassignedList.isNullOrEmpty() && assignedList.isNullOrEmpty()) {
