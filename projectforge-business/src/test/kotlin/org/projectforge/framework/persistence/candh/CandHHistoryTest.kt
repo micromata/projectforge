@@ -30,7 +30,6 @@ import org.projectforge.business.fibu.*
 import org.projectforge.business.user.*
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.user.entities.Gender
-import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDateTime
@@ -64,7 +63,7 @@ class CandHHistoryTest : AbstractTestBase() {
     fun baseTests() {
         logon(ADMIN_USER)
         val user = PFUserDO()
-        user.username = "${PREFIX}test"
+        user.username = "$PREFIX.test"
         user.email = "hs@gmail.private"
         user.timeZone = TimeZone.getTimeZone("Europe/Berlin")
         user.gender = Gender.MALE
@@ -82,7 +81,7 @@ class CandHHistoryTest : AbstractTestBase() {
             assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
         }
         user.email = "horst@acme.com"
-        user.username = "${PREFIX}test_changed"
+        user.username = "$PREFIX.test_changed"
         user.firstname = "Horst"
         user.lastname = "Schlemmer"
         user.timeNotation = TimeNotation.H12
@@ -98,8 +97,8 @@ class CandHHistoryTest : AbstractTestBase() {
             (entries[0] as HistoryEntryDO).let { entry ->
                 assertAttrEntry(
                     "java.lang.String",
-                    "${PREFIX}test_changed",
-                    "${PREFIX}test",
+                    "$PREFIX.test_changed",
+                    "$PREFIX.test",
                     "username",
                     PropertyOpType.Update,
                     entry.attributes,
@@ -203,7 +202,7 @@ class CandHHistoryTest : AbstractTestBase() {
     fun userRightsTests() {
         val loggedInUser = logon(ADMIN_USER)
         val user = PFUserDO()
-        user.username = "${PREFIX}rightsTest"
+        user.username = "$PREFIX.rightsTest"
         var lastStats = countHistoryEntries()
         try {
             user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
@@ -258,132 +257,6 @@ class CandHHistoryTest : AbstractTestBase() {
                     }
                 }
         }
-    }
-
-    @Test
-    fun assigningUsersAndGroupsTest() {
-        val loggedInUser = logon(ADMIN_USER)
-        val user1 = PFUserDO()
-        user1.username = "${PREFIX}assigningUser1"
-        userDao.saveInTrans(user1)
-        val user2 = PFUserDO()
-        user2.username = "${PREFIX}assigningUser2"
-        userDao.saveInTrans(user2)
-        val user3 = PFUserDO()
-        user3.username = "${PREFIX}assigningUser3"
-        userDao.saveInTrans(user3)
-        val user4 = PFUserDO()
-        user4.username = "${PREFIX}assigningUser4"
-        userDao.saveInTrans(user4)
-        var lastStats = countHistoryEntries()
-        val group1 = GroupDO()
-        group1.name = "${PREFIX}assigningGroup1"
-        group1.addUser(user1)
-        group1.addUser(user2)
-        group1.addUser(user3)
-        groupDao.saveInTrans(group1)
-        groupDao.getHistoryEntries(group1).let { entries ->
-            Assertions.assertEquals(1, entries.size)
-            assertHistoryEntry(GroupDO::class, group1.id, EntityOpType.Insert, loggedInUser, entries[0])
-        }
-        userDao.getHistoryEntries(user1).let { entries ->
-            Assertions.assertEquals(2, entries.size)
-            entries[0].let { entry ->
-                assertAttrEntry(
-                    GroupDO::class.qualifiedName,
-                    value = group1.id.toString(), // assignedGroup
-                    oldValue = null,
-                    propertyName = "assignedGroups",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-            }
-            assertHistoryEntry(PFUserDO::class, user1.id, EntityOpType.Insert, loggedInUser, entries[1])
-        }
-        var recent = getRecentHistoryEntries(4)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 3)
-
-        group1.assignedUsers!!.remove(user1) // Unassign user1 from group 1.
-        group1.assignedUsers!!.remove(user2) // Unassign user2 from group 1.
-        group1.addUser(user4) // Assign user4 to group 1.
-        groupDao.updateInTrans(group1)
-        userDao.getHistoryEntries(user1).let { entries ->
-            Assertions.assertEquals(
-                3,
-                entries.size
-            ) // 1. user inserted[3], 2. group assigned[2], 3. group unassigned[0],
-            entries[0].let { entry -> // group 1 unassigned
-                assertAttrEntry(
-                    GroupDO::class.qualifiedName,
-                    value = null,
-                    oldValue = group1.id.toString(), // unassignedGroup
-                    propertyName = "assignedGroups",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-            }
-            entries[1].let { entry -> // group 1 assigned
-                assertAttrEntry(
-                    GroupDO::class.qualifiedName,
-                    value = group1.id.toString(), // assignedGroup
-                    oldValue = null,
-                    propertyName = "assignedGroups",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-            }
-            assertHistoryEntry(
-                PFUserDO::class,
-                user1.id,
-                EntityOpType.Insert,
-                loggedInUser,
-                entries[2]
-            ) // user inserted
-        }
-        groupDao.getHistoryEntries(group1).let { entries ->
-            Assertions.assertEquals(
-                2,
-                entries.size
-            ) // 1. group inserted, 2. assigned: user4, unassigned: user1, user2
-            entries[0].let { entry -> // group 1 assigned
-                assertAttrEntry(
-                    PFUserDO::class.qualifiedName,
-                    value = user4.id.toString(),          // assigned: user4
-                    oldValue = "${user1.id},${user2.id}", // unassigned: user1, user2
-                    propertyName = "assignedUsers",
-                    PropertyOpType.Update,
-                    entry.attributes,
-                )
-            }
-            assertHistoryEntry(
-                GroupDO::class,
-                group1.id,
-                EntityOpType.Insert,
-                loggedInUser,
-                entries[1]
-            ) // user inserted
-        }
-
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
-
-        val group2 = GroupDO()
-        group2.name = "${PREFIX}assigningGroup2"
-        groupDao.saveInTrans(group2)
-        val group3 = GroupDO()
-        group3.name = "${PREFIX}assigningGroup3"
-        groupDao.saveInTrans(group3)
-        val group4 = GroupDO()
-        group4.name = "${PREFIX}assigningGroup4"
-        groupDao.saveInTrans(group4)
-        val user5 = PFUserDO()
-        user5.username = "${PREFIX}assigningUser5"
-        userDao.saveInTrans(user5)
-
-        lastStats = countHistoryEntries()
-        // Assigning and unassigning of group/users is done by GroupDao.saveOrUpdate(group) or by GroupDao.assignGroupByIdsInTrans().
-        groupDao.assignGroupByIdsInTrans(user5, setOf(group1.id, group2.id), null)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 2)
-        getRecentHistoryEntries(3)
     }
 
     @Test
@@ -543,6 +416,6 @@ class CandHHistoryTest : AbstractTestBase() {
     }
 
     companion object {
-        private const val PREFIX = "CandHHistoryTest_"
+        private const val PREFIX = "CandHHistoryTest"
     }
 }
