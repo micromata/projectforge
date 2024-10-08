@@ -92,7 +92,7 @@ class UserPrefTest : AbstractTestBase() {
     fun saveAndUpdateTest() {
         val loggedInUser = getUser(TEST_USER)
         logon(loggedInUser)
-        var lastStats = countHistoryEntries()
+        val hist = createHistoryTester()
         persistenceService.runInTransaction { context ->
             saveAndUpdateTest("", loggedInUser)
             saveAndUpdateTest("test", loggedInUser)
@@ -103,9 +103,9 @@ class UserPrefTest : AbstractTestBase() {
             userPref.name = ""
             addEntry(userPref, "param1", "value1")
             addEntry(userPref, "param2", "value2")
-            lastStats = countHistoryEntries()
+            hist.reset()
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            hist.assertNumberOfNewHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
@@ -120,7 +120,7 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param3", "value3")
             userPrefDao.internalSaveOrUpdate(userPref, context)
         }
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+        hist.assertNumberOfNewHistoryEntries(0, 0)
         persistenceService.runReadOnly { context ->
             val userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
@@ -133,7 +133,7 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA3"
             userPref.name = ""
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            hist.assertNumberOfNewHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "", context)!!
             Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
 
@@ -142,7 +142,7 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA4"
             userPref.name = ""
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            hist.assertNumberOfNewHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "", context)!!
             Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
 
@@ -153,14 +153,14 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param1", "value1")
             addEntry(userPref, "param2", "value2")
             userPrefDao.internalSaveOrUpdate(userPref, context)
-            lastStats = assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+            hist.assertNumberOfNewHistoryEntries(0, 0)
             userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "", context)!!
             Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
             Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
             Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
             null
         }
-        assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+        hist.assertNumberOfNewHistoryEntries(0, 0)
     }
 
     private fun addEntry(userPref: UserPrefDO, parameter: String, value: String) {
@@ -173,14 +173,14 @@ class UserPrefTest : AbstractTestBase() {
 
     private fun saveAndUpdateTest(name: String, loggedInUser: PFUserDO) {
         val user = User.createTestUser()
-        val lastStats = countHistoryEntries()
+        val hist = createHistoryTester()
         var userPref = UserPrefDO()
         userPref.user = loggedInUser
         userPref.valueObject = user
         userPref.area = "TEST_AREA2"
         userPref.name = name
         userPrefDao.internalSaveOrUpdateInTrans(userPref)
-        assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+        hist.assertNumberOfNewHistoryEntries(0, 0)
         val id = userPref.id
         userPref = UserPrefDO()
         userPref.user = loggedInUser
@@ -188,7 +188,7 @@ class UserPrefTest : AbstractTestBase() {
         userPref.area = "TEST_AREA2"
         userPref.name = name
         userPrefDao.internalSaveOrUpdateInTrans(userPref)
-        assertNumberOfNewHistoryEntries(lastStats, 0, 0)
+        hist.assertNumberOfNewHistoryEntries(0, 0)
         Assertions.assertEquals(id, userPref.id, "Object should be updated not inserted.")
     }
 
