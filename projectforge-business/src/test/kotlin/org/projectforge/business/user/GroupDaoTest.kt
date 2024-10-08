@@ -27,8 +27,6 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
-import org.projectforge.framework.persistence.history.HistoryServiceTest.Companion.assertAttrEntry
-import org.projectforge.framework.persistence.history.HistoryServiceTest.Companion.assertHistoryEntry
 import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -36,7 +34,9 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.CollectionUtils
 import org.projectforge.framework.persistence.utils.CollectionUtils.joinToString
 import org.projectforge.test.AbstractTestBase
-import org.projectforge.test.HistoryEntryWithEntity
+import org.projectforge.test.HistoryEntryHolder
+import org.projectforge.test.HistoryTester
+import org.projectforge.test.HistoryTester.Companion.assertHistoryEntry
 import org.springframework.beans.factory.annotation.Autowired
 
 class GroupDaoTest : AbstractTestBase() {
@@ -61,24 +61,24 @@ class GroupDaoTest : AbstractTestBase() {
         groupDao.saveInTrans(group)
         groupDao.getHistoryEntries(group).let { entries ->
             Assertions.assertEquals(1, entries.size)
-            assertHistoryEntry(GroupDO::class, group.id, EntityOpType.Insert, loggedInUser, entries[0])
+            assertHistoryEntry(entries[0], GroupDO::class, group.id, EntityOpType.Insert, loggedInUser)
         }
         userDao.getHistoryEntries(users[0]).let { entries ->
             Assertions.assertEquals(2, entries.size)
             entries[0].let { entry ->
-                assertAttrEntry(
-                    GroupDO::class.qualifiedName,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "assignedGroups",
                     value = group.id.toString(), // assignedGroup
                     oldValue = null,
-                    propertyName = "assignedGroups",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = GroupDO::class,
                 )
             }
-            assertHistoryEntry(PFUserDO::class, users[0].id, EntityOpType.Insert, loggedInUser, entries[1])
+            assertHistoryEntry(entries[1], PFUserDO::class, users[0].id, EntityOpType.Insert, loggedInUser)
         }
         // var recent = getRecentHistoryEntries(4)
-        hist.assertNumberOfNewHistoryEntries(4, 3)
+        hist.loadRecentHistoryEntriesAndAssertSizes(4, 3)
 
         group.assignedUsers!!.remove(users[0]) // Unassign users[0] from group 1.
         group.assignedUsers!!.remove(users[1]) // Unassign users[1] from group 1.
@@ -90,31 +90,31 @@ class GroupDaoTest : AbstractTestBase() {
                 entries.size
             ) // 1. user inserted[3], 2. group assigned[2], 3. group unassigned[0],
             entries[0].let { entry -> // group 1 unassigned
-                assertAttrEntry(
-                    GroupDO::class.qualifiedName,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "assignedGroups",
                     value = null,
                     oldValue = group.id.toString(), // unassignedGroup
-                    propertyName = "assignedGroups",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = GroupDO::class,
                 )
             }
             entries[1].let { entry -> // group 1 assigned
-                assertAttrEntry(
-                    GroupDO::class.qualifiedName,
+                HistoryTester.assertAttr(
+                    entry,
                     value = group.id.toString(), // assignedGroup
                     oldValue = null,
                     propertyName = "assignedGroups",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = GroupDO::class,
                 )
             }
             assertHistoryEntry(
+                entries[2],
                 PFUserDO::class,
                 users[0].id,
                 EntityOpType.Insert,
                 loggedInUser,
-                entries[2]
             ) // user inserted
         }
         groupDao.getHistoryEntries(group).let { entries ->
@@ -123,25 +123,25 @@ class GroupDaoTest : AbstractTestBase() {
                 entries.size
             ) // 1. group inserted, 2. assigned: users[3], unassigned: users[0], users[1]
             entries[0].let { entry -> // group 1 assigned
-                assertAttrEntry(
-                    PFUserDO::class.qualifiedName,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "assignedUsers",
                     value = users[3].id.toString(),          // assigned: users[3]
                     oldValue = "${users[0].id},${users[1].id}", // unassigned: users[0], users[1]
-                    propertyName = "assignedUsers",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = PFUserDO::class,
                 )
             }
             assertHistoryEntry(
+                entries[1],
                 GroupDO::class,
                 group.id,
                 EntityOpType.Insert,
                 loggedInUser,
-                entries[1]
             ) // user inserted
         }
 
-        hist.assertNumberOfNewHistoryEntries(4, 4)
+        hist.loadRecentHistoryEntriesAndAssertSizes(4, 4)
     }
 
     @Test
@@ -180,8 +180,8 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(), arrayOf())
         )
-        hist.assertNumberOfNewHistoryEntries(3, 3)
-            .entries?.let { entries ->
+        hist.loadRecentHistoryEntriesAndAssertSizes(3, 3)
+            .recentEntries?.let { entries ->
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[0], arrayOf(0, 1), null)
             }
 
@@ -200,8 +200,8 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())
         )
-        hist.assertNumberOfNewHistoryEntries(4, 4)
-            .entries?.let { entries ->
+        hist.loadRecentHistoryEntriesAndAssertSizes(4, 4)
+            .recentEntries?.let { entries ->
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(0, 1, 2), null)
             }
 
@@ -217,8 +217,8 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
         )
-        hist.assertNumberOfNewHistoryEntries(4, 4)
-            .entries?.let { entries ->
+        hist.loadRecentHistoryEntriesAndAssertSizes(4, 4)
+            .recentEntries?.let { entries ->
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(3), arrayOf(0, 1))
             }
 
@@ -232,7 +232,7 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
         )
-        hist.assertNumberOfNewHistoryEntries(0)
+        hist.loadRecentHistoryEntriesAndAssertSizes(0)
 
         // -12 is unkown, exception expected.
         try {
@@ -240,7 +240,7 @@ class GroupDaoTest : AbstractTestBase() {
                 users[1], groupsToAssign = listOf(testContext.groups[2].id, -12),
                 groupsToUnassign = asIds(groups, arrayOf(0, 1))
             )
-            Assertions.fail<Void> { "IllegalArgumentException expected tue to unknown group." }
+            Assertions.fail { "IllegalArgumentException expected tue to unknown group." }
         } catch (ex: RuntimeException) {
             // Expected.
         }
@@ -250,12 +250,13 @@ class GroupDaoTest : AbstractTestBase() {
                 users[1], groupsToAssign = listOf(testContext.groups[2].id),
                 groupsToUnassign = listOf(testContext.groups[0].id, -18)
             )
-            Assertions.fail<Void> { "IllegalArgumentException expected tue to unknown group." }
+            Assertions.fail { "IllegalArgumentException expected tue to unknown group." }
         } catch (ex: RuntimeException) {
             // Expected.
         }
     }
 
+    @Suppress("unused")
     private fun printGroupUserMatrix(testContext: TestContext) {
         val dbGroups = mutableListOf<GroupDO>()
         val sb = StringBuilder()
@@ -292,7 +293,7 @@ class GroupDaoTest : AbstractTestBase() {
 
     private fun assertUserAndGroupsHistoryEntries(
         testContext: TestContext,
-        entries: Collection<HistoryEntryWithEntity>,
+        entries: Collection<HistoryEntryHolder>,
         expectedUser: PFUserDO,
         expectedAssignedGroups: Array<Int?>?,
         expectedUnassignedGroups: Array<Int?>?,
@@ -321,39 +322,37 @@ class GroupDaoTest : AbstractTestBase() {
 
     private fun assertAssignedUsersHistoryEntry(
         id: Long?,
-        holder: HistoryEntryWithEntity,
+        holder: HistoryEntryHolder,
         newValue: String? = null,
         oldValue: String? = null,
     ) {
         val modUser = ThreadLocalUserContext.requiredLoggedInUser
-        val attrs =
-            assertHistoryEntry(GroupDO::class, id, EntityOpType.Update, modUser, holder.entry, 1)
-        assertAttrEntry(
-            PFUserDO::class.qualifiedName,
+        assertHistoryEntry(holder, GroupDO::class, id, EntityOpType.Update, modUser, 1)
+        HistoryTester.assertAttr(
+            holder,
+            propertyName = "assignedUsers",
             value = newValue,
             oldValue = oldValue,
-            propertyName = "assignedUsers",
-            PropertyOpType.Update,
-            attrs,
+            opType = PropertyOpType.Update,
+            propertyTypeClass = PFUserDO::class,
         )
     }
 
     private fun assertAssignedGroupsHistoryEntry(
         id: Long?,
-        holder: HistoryEntryWithEntity,
+        holder: HistoryEntryHolder,
         newValue: String? = null,
         oldValue: String? = null,
     ) {
         val modUser = ThreadLocalUserContext.requiredLoggedInUser
-        val attrs =
-            assertHistoryEntry(PFUserDO::class, id, EntityOpType.Update, modUser, holder.entry, 1)
-        assertAttrEntry(
-            GroupDO::class.qualifiedName,
+        assertHistoryEntry(holder, PFUserDO::class, id, EntityOpType.Update, modUser, 1)
+        HistoryTester.assertAttr(
+            holder,
+            propertyName = "assignedGroups",
             value = newValue,
             oldValue = oldValue,
-            propertyName = "assignedGroups",
-            PropertyOpType.Update,
-            attrs,
+            opType = PropertyOpType.Update,
+            propertyTypeClass = GroupDO::class,
         )
     }
 

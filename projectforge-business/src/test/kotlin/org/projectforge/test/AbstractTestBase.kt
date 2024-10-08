@@ -49,6 +49,7 @@ import org.projectforge.framework.configuration.ConfigXmlTest
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner.Companion.setInternalSetUnitTestMode
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
@@ -100,6 +101,9 @@ abstract class AbstractTestBase protected constructor() {
 
     @Autowired
     protected lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    protected lateinit var historyService: HistoryService
 
     @Autowired
     lateinit var initTestDB: InitTestDB
@@ -358,7 +362,7 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     fun createHistoryTester(): HistoryTester {
-        return HistoryTester(persistenceService)
+        return HistoryTester(persistenceService, historyService)
     }
 
     companion object {

@@ -23,10 +23,17 @@
 
 package org.projectforge.test
 
+import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 
 /**
  * For debugging purposes only. Holds a HistoryEntryDO and the corresponding entity, if available.
  */
-class HistoryEntryWithEntity(val entry: HistoryEntryDO, val entity: Any?)
+class HistoryEntryHolder(val entry: HistoryEntryDO, val entity: Any?) {
+    /**
+     * The attributes of the history entry.
+     */
+    val attributes: Set<HistoryEntryAttrDO>?
+        get() = entry.attributes
+}
 

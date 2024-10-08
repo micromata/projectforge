@@ -28,7 +28,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.*
 import org.projectforge.business.user.*
-import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.entities.Gender
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -36,12 +38,13 @@ import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.TimeNotation
 import org.projectforge.test.AbstractTestBase
+import org.projectforge.test.HistoryTester
+import org.projectforge.test.HistoryTester.Companion.assertHistoryEntry
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
 import java.util.*
-import kotlin.reflect.KClass
 
 class CandHHistoryTest : AbstractTestBase() {
     @Autowired
@@ -49,9 +52,6 @@ class CandHHistoryTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var userRightDao: UserRightDao
-
-    @Autowired
-    private lateinit var groupDao: GroupDao
 
     @Autowired
     private lateinit var rechnungDao: RechnungDao
@@ -75,10 +75,10 @@ class CandHHistoryTest : AbstractTestBase() {
             PFDateTime.withDate(2021, Month.JANUARY, 1, 12, 17, 33, 763, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         val hist = createHistoryTester()
         userDao.saveInTrans(user)
-        hist.assertNumberOfNewHistoryEntries(1, 0)
+        hist.loadRecentHistoryEntriesAndAssertSizes(1, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(1, entries.size)
-            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[0])
+            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
         }
         user.email = "horst@acme.com"
         user.username = "$PREFIX.test_changed"
@@ -90,109 +90,105 @@ class CandHHistoryTest : AbstractTestBase() {
         user.lastPasswordChange =
             PFDateTime.withDate(2024, Month.OCTOBER, 5, 8, 39, 12, 500, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         userDao.updateInTrans(user)
-        hist.assertNumberOfNewHistoryEntries(1, 8)
+        hist.loadRecentHistoryEntriesAndAssertSizes(1, 8)
+        hist.loadHistory(user, 2, 8)
+
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(2, entries.size)
-            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, entries[0], 8)
+            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, 8)
             (entries[0] as HistoryEntryDO).let { entry ->
-                assertAttrEntry(
-                    "java.lang.String",
-                    "$PREFIX.test_changed",
-                    "$PREFIX.test",
-                    "username",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "username",
+                    value = "$PREFIX.test_changed",
+                    oldValue = "$PREFIX.test",
+                    opType = PropertyOpType.Update,
                 )
-                assertAttrEntry(
-                    "java.lang.String",
-                    "horst@acme.com",
-                    "hs@gmail.private",
-                    "email",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "email",
+                    value = "horst@acme.com",
+                    oldValue = "hs@gmail.private",
+                    opType = PropertyOpType.Update,
                 )
-                assertAttrEntry(
-                    "java.lang.String",
-                    "Horst",
-                    null,
-                    "firstname",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "firstname",
+                    value = "Horst",
+                    oldValue = null,
+                    opType = PropertyOpType.Update,
                 )
-                assertAttrEntry(
-                    "java.lang.String",
-                    "Schlemmer",
-                    null,
-                    "lastname",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "lastname",
+                    value = "Schlemmer",
+                    oldValue = null,
+                    opType = PropertyOpType.Update,
                 )
-                assertAttrEntry(
-                    "java.util.Locale",
-                    "fr",
-                    "de",
-                    "locale",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "locale",
+                    value = "fr",
+                    oldValue = "de",
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = Locale::class,
                 )
-                assertAttrEntry(
-                    "java.lang.Integer",
-                    "7",
-                    "1",
-                    "firstDayOfWeekValue",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "firstDayOfWeekValue",
+                    value = "7",
+                    oldValue = "1",
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = Integer::class,
                 )
-                assertAttrEntry(
-                    "org.projectforge.framework.time.TimeNotation",
-                    "H12",
-                    "H24",
-                    "timeNotation",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "timeNotation",
+                    value = "H12",
+                    oldValue = "H24",
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = TimeNotation::class,
                 )
-                assertAttrEntry(
-                    "java.util.Date",
-                    "2024-10-05 08:39:12",
-                    "2021-01-01 12:17:33",
-                    "lastPasswordChange",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "lastPasswordChange",
+                    value = "2024-10-05 08:39:12",
+                    oldValue = "2021-01-01 12:17:33",
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = java.util.Date::class,
                 )
             }
-            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[1])
+            assertHistoryEntry(entries[1], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
         }
         user.description = "This is a deleted test user."
         userDao.markAsDeletedInTrans(user)
-        hist.assertNumberOfNewHistoryEntries(1, 1)
+        hist.loadRecentHistoryEntriesAndAssertSizes(1, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
-            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, entries[0], 1)
+            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, 1)
             (entries[0] as HistoryEntryDO).let { entry ->
-                assertAttrEntry(
-                    "java.lang.String",
-                    "This is a deleted test user.",
-                    null,
-                    "description",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "description",
+                    value = "This is a deleted test user.",
+                    oldValue = null,
+                    opType = PropertyOpType.Update,
                 )
             }
         }
         user.description = "This is a undeleted test user."
         userDao.undeleteInTrans(user)
-        hist.assertNumberOfNewHistoryEntries(1, 1)
+        hist.loadRecentHistoryEntriesAndAssertSizes(1, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(4, entries.size)
-            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, entries[0], 1)
+            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 1)
             (entries[0] as HistoryEntryDO).let { entry ->
-                assertAttrEntry(
-                    "java.lang.String",
-                    "This is a undeleted test user.",
-                    "This is a deleted test user.",
-                    "description",
-                    PropertyOpType.Update,
-                    entry.attributes,
+                HistoryTester.assertAttr(
+                    entry,
+                    propertyName = "description",
+                    value = "This is a undeleted test user.",
+                    oldValue = "This is a deleted test user.",
+                    opType = PropertyOpType.Update,
                 )
             }
         }
@@ -219,12 +215,12 @@ class CandHHistoryTest : AbstractTestBase() {
         userRightDao.internalSaveOrUpdateInTrans(user.rights!!)
         var rights = userRightDao.getList(user)
         Assertions.assertEquals(2, rights.size)
-        hist.assertNumberOfNewHistoryEntries(3, 0)
+        hist.loadRecentHistoryEntriesAndAssertSizes(3, 0)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
-            assertHistoryEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[0])
-            assertHistoryEntry(UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER, entries[1])
-            assertHistoryEntry(PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER, entries[2])
+            assertHistoryEntry(entries[0], UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER)
+            assertHistoryEntry(entries[1], UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER)
+            assertHistoryEntry(entries[2], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
         }
 
         user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE))
@@ -235,7 +231,7 @@ class CandHHistoryTest : AbstractTestBase() {
         rights = userRightDao.getList(user)
         // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)
-        hist.assertNumberOfNewHistoryEntries(2, 1)
+        hist.loadRecentHistoryEntriesAndAssertSizes(2, 1)
         userDao.getHistoryEntries(user).let { entries ->
             Assertions.assertEquals(5, entries.size)
             entries.filter { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
@@ -244,15 +240,15 @@ class CandHHistoryTest : AbstractTestBase() {
                 }
             entries.single { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
                 .let { historyEntry ->
-                    assertHistoryEntry(UserRightDO::class, null, EntityOpType.Update, loggedInUser, historyEntry, 1)
+                    assertHistoryEntry(historyEntry, UserRightDO::class, null, EntityOpType.Update, loggedInUser, 1)
                     (historyEntry as HistoryEntryDO).let { entry ->
-                        assertAttrEntry(
-                            "org.projectforge.business.user.UserRightValue",
-                            "READONLY",
-                            "READWRITE",
-                            "value",
-                            PropertyOpType.Update,
-                            entry.attributes,
+                        HistoryTester.assertAttr(
+                            entry,
+                            value = "READONLY",
+                            oldValue = "READWRITE",
+                            propertyName = "value",
+                            opType = PropertyOpType.Update,
+                            propertyTypeClass = UserRightValue::class,
                         )
                     }
                 }
@@ -314,105 +310,81 @@ class CandHHistoryTest : AbstractTestBase() {
             Pair("id", id),
         )
         Assertions.assertEquals(3, count)
-        hist.assertNumberOfNewHistoryEntries(3, 4)
+        hist.loadRecentHistoryEntriesAndAssertSizes(3, 4)
         rechnungDao.getHistoryEntries(invoice).let { entries ->
             Assertions.assertEquals(4, entries.size)
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
                 .let { entry ->
-                    assertHistoryEntry(RechnungsPositionDO::class, null, EntityOpType.Insert, loggedInUser, entry)
+                    assertHistoryEntry(entry, RechnungsPositionDO::class, null, EntityOpType.Insert, loggedInUser)
                 }
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
                 .let { historyEntry ->
                     assertHistoryEntry(
+                        historyEntry,
                         RechnungsPositionDO::class,
                         null,
                         EntityOpType.Update,
                         loggedInUser,
-                        historyEntry,
                         3
                     )
                     (historyEntry as HistoryEntryDO).let { entry ->
-                        assertAttrEntry(
-                            "java.lang.String",
-                            "Test position 1 changed",
-                            "Test position 1",
-                            "text",
-                            PropertyOpType.Update,
-                            entry.attributes,
+                        HistoryTester.assertAttr(
+                            entry,
+                            propertyName = "text",
+                            value = "Test position 1 changed",
+                            oldValue = "Test position 1",
+                            opType = PropertyOpType.Update,
                         )
-                        assertAttrEntry(
-                            "java.math.BigDecimal",
-                            "1.1",
-                            "1.00000",
-                            "menge",
-                            PropertyOpType.Update,
-                            entry.attributes,
+                        HistoryTester.assertAttr(
+                            entry,
+                            value = "1.1",
+                            oldValue = "1.00000",
+                            propertyName = "menge",
+                            opType = PropertyOpType.Update,
+                            propertyTypeClass = BigDecimal::class,
                         )
-                        assertAttrEntry(
-                            "java.math.BigDecimal",
-                            "11",
-                            "10.00",
-                            "einzelNetto",
-                            PropertyOpType.Update,
-                            entry.attributes,
+                        HistoryTester.assertAttr(
+                            entry,
+                            propertyName = "einzelNetto",
+                            value = "11",
+                            oldValue = "10.00",
+                            opType = PropertyOpType.Update,
+                            propertyTypeClass = BigDecimal::class,
                         )
                     }
                 }
             entries.single { it.entityName == RechnungDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
                 .let { entry ->
                     assertHistoryEntry(
+                        entry,
                         RechnungDO::class,
                         null,
                         EntityOpType.Update,
                         loggedInUser,
-                        entry, 1
+                        1,
                     )
-                    (entry as HistoryEntryDO).let { entry ->
-                        assertAttrEntry(
-                            KundeDO::class.qualifiedName,
-                            "7864873",
-                            "7864872",
-                            "kunde",
-                            PropertyOpType.Update,
-                            entry.attributes,
-                        )
-                    }
+                    HistoryTester.assertAttr(
+                        entry,
+                        value = "7864873",
+                        oldValue = "7864872",
+                        propertyName = "kunde",
+                        opType = PropertyOpType.Update,
+                        propertyTypeClass = KundeDO::class,
+                    )
                 }
 
             // First insert:
             entries.single { it.entityName == RechnungDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
                 .let { entry ->
                     assertHistoryEntry(
+                        entry,
                         RechnungDO::class,
                         null,
                         EntityOpType.Insert,
                         loggedInUser,
-                        entry
                     )
                 }
         }
-    }
-
-    private fun assertHistoryEntry(
-        entityClass: KClass<*>,
-        id: Long?,
-        opType: EntityOpType,
-        modUser: PFUserDO,
-        entry: HistoryEntry,
-        numberOfAttributes: Int = 0,
-    ) {
-        HistoryServiceTest.assertHistoryEntry(entityClass, id, opType, modUser, entry, numberOfAttributes)
-    }
-
-    private fun assertAttrEntry(
-        propertyClass: String?,
-        value: String?,
-        oldValue: String?,
-        propertyName: String?,
-        opType: PropertyOpType,
-        attributes: Set<HistoryEntryAttr>?,
-    ) {
-        HistoryServiceTest.assertAttrEntry(propertyClass, value, oldValue, propertyName, opType, attributes)
     }
 
     companion object {
