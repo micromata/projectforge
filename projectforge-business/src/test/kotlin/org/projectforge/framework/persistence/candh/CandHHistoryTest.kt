@@ -332,7 +332,13 @@ class CandHHistoryTest : AbstractTestBase() {
                     entry.attributes,
                 )
             }
-            assertHistoryEntry(PFUserDO::class, user1.id, EntityOpType.Insert, loggedInUser, entries[2]) // user inserted
+            assertHistoryEntry(
+                PFUserDO::class,
+                user1.id,
+                EntityOpType.Insert,
+                loggedInUser,
+                entries[2]
+            ) // user inserted
         }
         groupDao.getHistoryEntries(group1).let { entries ->
             Assertions.assertEquals(
@@ -349,7 +355,13 @@ class CandHHistoryTest : AbstractTestBase() {
                     entry.attributes,
                 )
             }
-            assertHistoryEntry(GroupDO::class, group1.id, EntityOpType.Insert, loggedInUser, entries[1]) // user inserted
+            assertHistoryEntry(
+                GroupDO::class,
+                group1.id,
+                EntityOpType.Insert,
+                loggedInUser,
+                entries[1]
+            ) // user inserted
         }
 
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
@@ -363,10 +375,15 @@ class CandHHistoryTest : AbstractTestBase() {
         val group4 = GroupDO()
         group4.name = "${PREFIX}assigningGroup4"
         groupDao.saveInTrans(group4)
+        val user5 = PFUserDO()
+        user5.username = "${PREFIX}assigningUser5"
+        userDao.saveInTrans(user5)
 
-        // Assigning and unassigning of group/users is done by GroupDao.saveOrUpdate() or by GroupDao.assignGroups().
-        groupDao.assignGroupByIdsInTrans(user4, setOf(group1.id), setOf(group2.id))
-
+        lastStats = countHistoryEntries()
+        // Assigning and unassigning of group/users is done by GroupDao.saveOrUpdate(group) or by GroupDao.assignGroupByIdsInTrans().
+        groupDao.assignGroupByIdsInTrans(user5, setOf(group1.id, group2.id), null)
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 2)
+        getRecentHistoryEntries(3)
     }
 
     @Test
@@ -433,7 +450,14 @@ class CandHHistoryTest : AbstractTestBase() {
                 }
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
                 .let { historyEntry ->
-                    assertHistoryEntry(RechnungsPositionDO::class, null, EntityOpType.Update, loggedInUser, historyEntry, 3)
+                    assertHistoryEntry(
+                        RechnungsPositionDO::class,
+                        null,
+                        EntityOpType.Update,
+                        loggedInUser,
+                        historyEntry,
+                        3
+                    )
                     (historyEntry as HistoryEntryDO).let { entry ->
                         assertAttrEntry(
                             "java.lang.String",

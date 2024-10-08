@@ -362,7 +362,6 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         if (!firstOld || !firstNew) {
             insertUpdateHistoryEntry(
                 obj,
-                obj.id,
                 "entries",
                 AccessEntryDO::class.java,
                 oldValue = bufOld.toString(),
