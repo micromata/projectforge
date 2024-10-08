@@ -66,7 +66,7 @@ open class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
             if (first is IdObject<*>) {
                 @Suppress("UNCHECKED_CAST")
                 value as Collection<IdObject<Long>>
-                // log the entries in the order of the id:
+                // log the entries in the order of the id (not really required, but helpfull for testcases):
                 return value.filter { it.id != null }.sortedBy { it.id }.joinToString(",") {
                     it.id.toString()
                 }

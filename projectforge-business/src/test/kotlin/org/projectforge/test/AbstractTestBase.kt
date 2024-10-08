@@ -360,9 +360,17 @@ abstract class AbstractTestBase protected constructor() {
 
     class HistoryEntryWithEntity(val entry: HistoryEntryDO, val entity: Any?)
 
+    class NewestHistoryEntries(
+        val totalNumberHistoryEntries: Int,
+        val totalNumberOfHistoryAttrs: Int,
+        val entries: List<HistoryEntryWithEntity>? = null,
+    )
+
     /**
      * Get the recent history entries for debugging. The recent entries are the last entries in the database, independent of the
      * entity. The entities are loaded as well if available.
+     * You should use [assertNumberOfNewHistoryEntries] instead to check the number of new entries as well as getting the list of the newest entries
+     * since last check.
      */
     fun getRecentHistoryEntries(maxResults: Int): List<HistoryEntryWithEntity> {
         val result = mutableListOf<HistoryEntryWithEntity>()
@@ -388,27 +396,33 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     fun assertNumberOfNewHistoryEntries(
-        lastStats: Pair<Long, Long>,
-        expectedNumberOfNewHistoryEntries: Long,
-        expectedNumberOfNewHistoryAttrEntries: Long,
-    ): Pair<Long, Long> {
+        lastStats: NewestHistoryEntries,
+        expectedNumberOfNewHistoryEntries: Int,
+        expectedNumberOfNewHistoryAttrEntries: Int = 0,
+    ): NewestHistoryEntries {
         val count = countHistoryEntries()
-        val numberOfNewHistoryEntries = count.first - lastStats.first
-        val numberOfNewHistoryAttrs = count.second - lastStats.second
+        val numberOfNewHistoryEntries = count.totalNumberHistoryEntries - lastStats.totalNumberHistoryEntries
+        val numberOfNewHistoryAttrs = count.totalNumberOfHistoryAttrs - lastStats.totalNumberOfHistoryAttrs
+        val recentHistoryEntries = getRecentHistoryEntries(numberOfNewHistoryEntries)
+        // For debugging, it's recommended to set the breakpoint at the following line:
         Assertions.assertEquals(
             expectedNumberOfNewHistoryEntries,
             numberOfNewHistoryEntries,
-            "Number of history entries = $numberOfNewHistoryEntries, attrs = $numberOfNewHistoryAttrs. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
+            "Number of new history entries = $numberOfNewHistoryEntries, attrs = $numberOfNewHistoryAttrs. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults) or set the breakpoint a few lines above."
         )
         Assertions.assertEquals(
             expectedNumberOfNewHistoryAttrEntries,
             numberOfNewHistoryAttrs,
-            "Number of history attr entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults)."
+            "Number of history attr entries. If it fails, check the last entries by calling getRecentHistoryEntries(maxResults) or set the breakpoint a few lines above."
         )
-        return count
+        return NewestHistoryEntries(
+            totalNumberHistoryEntries = count.totalNumberHistoryEntries,
+            totalNumberOfHistoryAttrs = count.totalNumberOfHistoryAttrs,
+            recentHistoryEntries
+        )
     }
 
-    fun countHistoryEntries(): Pair<Long, Long> {
+    fun countHistoryEntries(): NewestHistoryEntries {
         val countHistoryEntries = persistenceService.selectSingleResult(
             "select count(*) from HistoryEntryDO",
             Long::class.java,
@@ -417,7 +431,7 @@ abstract class AbstractTestBase protected constructor() {
             "select count(*) from HistoryEntryAttrDO",
             Long::class.java,
         )
-        return Pair(countHistoryEntries!!, countAttrEntries!!)
+        return NewestHistoryEntries(totalNumberHistoryEntries = countHistoryEntries!!.toInt(), totalNumberOfHistoryAttrs = countAttrEntries!!.toInt())
     }
 
 

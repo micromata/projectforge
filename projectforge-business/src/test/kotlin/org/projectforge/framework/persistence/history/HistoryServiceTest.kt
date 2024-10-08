@@ -471,8 +471,8 @@ class HistoryServiceTest : AbstractTestBase() {
             val attr = attributes?.firstOrNull { it.propertyName == propertyName }
             Assertions.assertNotNull(attr, "Property $propertyName not found")
             Assertions.assertEquals(propertyClass, attr!!.propertyTypeClass, "propertyTypeClass")
-            Assertions.assertEquals(value, attr.value, "value")
-            Assertions.assertEquals(oldValue, attr.oldValue, "oldValue")
+            Assertions.assertEquals(value, attr.value, "$propertyName.value")
+            Assertions.assertEquals(oldValue, attr.oldValue, "$propertyName.oldValue")
             Assertions.assertEquals(propertyName, attr.propertyName, "propertyName")
             Assertions.assertEquals(optype, attr.opType, "opType")
 

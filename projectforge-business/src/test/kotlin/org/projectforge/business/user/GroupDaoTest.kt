@@ -25,6 +25,7 @@ package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.projectforge.business.timesheet.TimesheetReferenceListTest.Companion.user
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryServiceTest.Companion.assertAttrEntry
@@ -34,10 +35,13 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.CollectionUtils
+import org.projectforge.framework.persistence.utils.CollectionUtils.joinToString
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class GroupDaoTest : AbstractTestBase() {
+    class TestContext(val users: Array<PFUserDO>, val groups: Array<GroupDO>)
+
     @Autowired
     private lateinit var groupDao: GroupDao
 
@@ -73,7 +77,7 @@ class GroupDaoTest : AbstractTestBase() {
             }
             assertHistoryEntry(PFUserDO::class, users[0].id, EntityOpType.Insert, loggedInUser, entries[1])
         }
-        var recent = getRecentHistoryEntries(4)
+        // var recent = getRecentHistoryEntries(4)
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 3)
 
         group.assignedUsers!!.remove(users[0]) // Unassign users[0] from group 1.
@@ -141,48 +145,172 @@ class GroupDaoTest : AbstractTestBase() {
     }
 
     @Test
+    fun testSetAssignedUsers() {
+        logon(ADMIN_USER)
+        val group = GroupDO()
+        val users = createTestUsers(userDao, "$PREFIX.user.setAssignedUsers")
+        groupDao.setAssignedUsers(group, mutableSetOf(users[1], users[2]))
+        Assertions.assertEquals(CollectionUtils.joinToStringOfIds(setOf(users[1], users[2])), CollectionUtils.joinToStringOfIds(group.assignedUsers))
+
+        group.assignedUsers = mutableSetOf(users[0], users[1])
+        groupDao.setAssignedUsers(group, mutableSetOf(users[1], users[2]))
+        Assertions.assertEquals(CollectionUtils.joinToStringOfIds(setOf(users[1], users[2])), CollectionUtils.joinToStringOfIds(group.assignedUsers))
+    }
+
+    @Test
     fun testAssignGroupByIdsInTransWithHistory() {
-        val loggedInUser = logon(ADMIN_USER)
+        logon(ADMIN_USER)
         val users = createTestUsers(userDao, "$PREFIX.user.assignGroupByIdsInTrans")
         val groups = createTestGroups(groupDao, "$PREFIX.group.assignGroupByIdsInTrans")
+        val testContext = TestContext(users, groups)
         // Start with first assignment of group[0] and group[1] to user[0]:
         var lastStats = countHistoryEntries()
-        groupDao.assignGroupByIdsInTrans(users[0], asIds(groups, 0, 1), null)
+        groupDao.assignGroupByIdsInTrans(
+            users[0],
+            groupsToAssign = asIds(groups, arrayOf(0, 1)),
+            groupsToUnassign = null
+        )
         assertAssignedUsersOfAllGroups(
-            groups, users,
-            arrayOf(intArrayOf(0), intArrayOf(0), intArrayOf(), intArrayOf())
+            testContext,
+            userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(), arrayOf())
         )
         lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 3)
-        getRecentHistoryEntries(3).let { entries ->
-            // Order of entries for GroupDO is not guaranteed.
-            entries.find { it.entry.entityId == groups[0].id }?.let { holder ->
-                assertAssignedUsersHistoryEntry(
-                    groups[0].id,
-                    holder,
-                    newValue = asIdsString(users, 0)
-                )
+        lastStats.entries?.let { entries ->
+            assertUserAndGroupsHistoryEntries(testContext, entries, users[0], arrayOf(0, 1), null)
+        }
+
+        // printGroupUserMatrix(testContext) // print current state for debugging:
+        // Current users of groups: group[0]: 0, group[1]: 0,
+        // Current groups of users: user[0]: 0,1,
+        groupDao.assignGroupByIdsInTrans(
+            users[1],
+            groupsToAssign = asIds(groups, arrayOf(0, 1, 2)),
+            groupsToUnassign = null
+        )
+        // printGroupUserMatrix(testContext) // print current state for debugging:
+        // Current users of groups: group[0]: 0,1, group[1]: 0,1, group[2]: 1,
+        // Current groups of users: user[0]: 0,1, user[1]: 0,1,2,
+        assertAssignedUsersOfAllGroups(
+            testContext,
+            userMatrix = arrayOf(arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())
+        )
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
+        lastStats.entries?.let { entries ->
+            assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(0, 1, 2), null)
+        }
+
+        groupDao.assignGroupByIdsInTrans(
+            users[1],
+            groupsToAssign = asIds(groups, arrayOf(3)),
+            groupsToUnassign = asIds(groups, arrayOf(0, 1))
+        )
+        // printGroupUserMatrix(testContext) // print current state for debugging:
+        // Current users of groups: group[0]: 0, group[1]: 0, group[2]: 1, group[3]: 1,
+        // Current groups of users: user[0]: 0,1, user[1]: 2,3,
+        assertAssignedUsersOfAllGroups(
+            testContext,
+            userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
+        )
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
+        lastStats.entries?.let { entries ->
+            assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(3), arrayOf(0, 1))
+        }
+
+        // NOP: No changes:
+        groupDao.assignGroupByIdsInTrans(
+            users[1],
+            groupsToAssign = asIds(groups, arrayOf(3)),
+            groupsToUnassign = asIds(groups, arrayOf(0, 1))
+        )
+        assertAssignedUsersOfAllGroups(
+            testContext,
+            userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
+        )
+        lastStats = assertNumberOfNewHistoryEntries(lastStats, 0)
+
+        // -12 is unkown, exception expected.
+        try {
+            groupDao.assignGroupByIdsInTrans(
+                users[1], groupsToAssign = listOf(testContext.groups[2].id, -12),
+                groupsToUnassign = asIds(groups, arrayOf(0, 1))
+            )
+            Assertions.fail<Void> { "IllegalArgumentException expected tue to unknown group." }
+        } catch (ex: RuntimeException) {
+            // Expected.
+        }
+        // -18 is unkonwn, exception expected.
+        try {
+            groupDao.assignGroupByIdsInTrans(
+                users[1], groupsToAssign = listOf(testContext.groups[2].id),
+                groupsToUnassign = listOf(testContext.groups[0].id, -18)
+            )
+            Assertions.fail<Void> { "IllegalArgumentException expected tue to unknown group." }
+        } catch (ex: RuntimeException) {
+            // Expected.
+        }
+    }
+
+    private fun printGroupUserMatrix(testContext: TestContext) {
+        val dbGroups = mutableListOf<GroupDO>()
+        val sb = StringBuilder()
+        sb.append("userMatrix = arrayOf(")//arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())")
+        print("Current users of groups: ")
+        testContext.groups.forEachIndexed { index, groupDO ->
+            groupDao.getById(groupDO.id)?.let { group ->
+                if (!group.assignedUsers.isNullOrEmpty()) {
+                    dbGroups.add(group)
+                    print(
+                        "group[${asIndex(testContext.groups, group.id)}]: ${
+                            asIndices(testContext.users, group.assignedUsers)
+                        }, "
+                    )
+                    sb.append("arrayOf(").append(asIndices(testContext.users, group.assignedUsers)).append("), ")
+                }
             }
-            entries.find { it.entry.entityId == groups[1].id }?.let { holder ->
-                assertAssignedUsersHistoryEntry(
-                    groups[1].id,
-                    holder,
-                    newValue = asIdsString(users, 0)
-                )
-            }
-            entries.find { it.entry.entityId == users[0].id }?.let { holder ->
-                assertAssignedGroupsHistoryEntry(
-                    users[0].id,
-                    holder,
-                    newValue = asIdsString(groups, 0, 1)
+        }
+        println()
+        print("Current groups of users: ")
+        testContext.users.forEachIndexed { index, userDO ->
+            val assignedGroups = dbGroups.filter { it.assignedUsers?.any { it.id == userDO.id } == true }
+            if (assignedGroups.isNotEmpty()) {
+                print(
+                    "user[${asIndex(testContext.users, userDO.id)}]: ${
+                        asIndices(testContext.groups, assignedGroups)
+                    }, "
                 )
             }
         }
-        // Assigning and unassigning of group/users is done by GroupDao.saveOrUpdate(group) or by GroupDao.assignGroupByIdsInTrans().
-        // groupDao.assignGroupByIdsInTrans(user5, setOf(group1.id, group2.id), null)
-        //lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 2)
-        //getRecentHistoryEntries(3)
+        println()
+        println(sb.toString().removeSuffix(", ") + ")")
+    }
 
-        // TODO: Test of already existing groups as well as unknown groups.
+    private fun assertUserAndGroupsHistoryEntries(
+        testContext: TestContext,
+        entries: Collection<HistoryEntryWithEntity>,
+        expectedUser: PFUserDO,
+        expectedAssignedGroups: Array<Int?>?,
+        expectedUnassignedGroups: Array<Int?>?,
+    ) {
+        // Order of entries for GroupDO is not guaranteed.
+        expectedAssignedGroups?.filterNotNull()?.forEach { groupIdx ->
+            entries.find { it.entry.entityId == testContext.groups[groupIdx].id }?.let { holder ->
+                assertAssignedUsersHistoryEntry(
+                    testContext.groups[groupIdx].id,
+                    holder,
+                    newValue = expectedUser.id.toString()
+                )
+            }
+        }
+        if (expectedAssignedGroups?.isNotEmpty() == true) {
+            entries.find { it.entry.entityId == expectedUser.id }?.let { holder ->
+                assertAssignedGroupsHistoryEntry(
+                    expectedUser.id,
+                    holder,
+                    newValue = asIdsString(testContext.groups, expectedAssignedGroups),
+                    oldValue = asIdsString(testContext.groups, expectedUnassignedGroups),
+                )
+            }
+        }
     }
 
     private fun assertAssignedUsersHistoryEntry(
@@ -223,33 +351,49 @@ class GroupDaoTest : AbstractTestBase() {
         )
     }
 
+    /**
+     * @param userMatrix Each row represents the assigned users of a group.
+     */
     private fun assertAssignedUsersOfAllGroups(
-        groups: Array<GroupDO>,
-        users: Array<PFUserDO>,
-        userMatrix: Array<IntArray>
+        testContext: TestContext,
+        userMatrix: Array<Array<Int?>>
     ) {
-        groups.forEachIndexed { index, group ->
+        testContext.groups.forEachIndexed { index, group ->
             val userIdx = userMatrix[index]
-            assertAssignedUsers(group, users, *userIdx)
+            assertAssignedUsers(testContext, group, userIdx)
         }
     }
 
-    private fun assertAssignedUsers(group: GroupDO, users: Array<PFUserDO>, vararg userIdx: Int) {
+    private fun assertAssignedUsers(testContext: TestContext, group: GroupDO, userIndices: Array<Int?>) {
         val dbGroup = groupDao.getById(group.id)
-        val assignedUsers = CollectionUtils.joinToIdString(dbGroup?.assignedUsers)
-        val expectedUsers = asIdsString(users, idx = userIdx)
-        Assertions.assertEquals(expectedUsers, assignedUsers, "assignedUsers of group ${group.id}")
+        val assignedUsers = CollectionUtils.joinToStringOfIds(dbGroup?.assignedUsers)
+        val expectedUsers = asIdsString(testContext.users, userIndices)
+        Assertions.assertEquals(
+            expectedUsers,
+            assignedUsers,
+            "assignedUsers of group ${asIndex(testContext.groups, group.id)}"
+        )
     }
+
+    private fun <T : IdObject<*>> asIndex(col: Array<T>, id: Long?): Int {
+        return col.indexOfFirst { it.id == id }
+    }
+
+    private fun <T : IdObject<Long>> asIndices(col: Array<T>, id: Collection<T?>?): String {
+        return id?.map { asIndex(col, it?.id) }?.sorted()?.joinToString(",") ?: ""
+    }
+
 
     companion object {
         private const val PREFIX = "GroupDaoTest"
 
-        fun <T : IdObject<Long>> asIds(list: Array<T>, vararg idx: Int): List<Long> {
-            return idx.map { list[it].id!! }.sorted()
+        fun <T : IdObject<Long>> asIds(list: Array<T>, indices: Array<Int?>?): List<Long>? {
+            indices ?: return null
+            return indices.filterNotNull().map { list[it].id!! }.sorted()
         }
 
-        fun <T : IdObject<Long>> asIdsString(list: Array<T>, vararg idx: Int): String {
-            return asIds(list, *idx).joinToString(",")
+        fun <T : IdObject<Long>> asIdsString(list: Array<T>, indices: Array<Int?>?): String? {
+            return joinToString(asIds(list, indices))
         }
 
         fun createTestUsers(userDao: UserDao, prefix: String): Array<PFUserDO> {
