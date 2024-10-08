@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.history
 
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.framework.time.PFDay
@@ -62,6 +63,14 @@ open class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
                 ?: return value.joinToString(",") { obj ->
                     "null"
                 }
+            if (first is IdObject<*>) {
+                @Suppress("UNCHECKED_CAST")
+                value as Collection<IdObject<Long>>
+                // log the entries in the order of the id:
+                return value.filter { it.id != null }.sortedBy { it.id }.joinToString(",") {
+                    it.id.toString()
+                }
+            }
             val handler = HistoryValueHandlerRegistry.getHandler(first.javaClass)
             return value.joinToString(",") { obj ->
                 handler.serialize(obj) ?: "null"

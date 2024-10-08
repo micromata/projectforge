@@ -432,6 +432,10 @@ class HistoryServiceTest : AbstractTestBase() {
             Assertions.assertEquals(entry.id, attr1.parent!!.id)
         }
 
+        /**
+         * Asserts the history entry.
+         * @return The attributes of the history entry (migth be null).
+         */
         fun assertHistoryEntry(
             entityClass: KClass<*>,
             id: Long?,
@@ -439,7 +443,7 @@ class HistoryServiceTest : AbstractTestBase() {
             modUser: PFUserDO,
             entry: HistoryEntry,
             numberOfAttributes: Int = 0,
-        ) {
+        ): Set<HistoryEntryAttr>? {
             Assertions.assertEquals(entityClass.java.name, entry.entityName)
             if (id != null) {
                 Assertions.assertEquals(id, entry.entityId)
@@ -452,6 +456,7 @@ class HistoryServiceTest : AbstractTestBase() {
             )
             entry as HistoryEntryDO
             Assertions.assertEquals(numberOfAttributes, entry.attributes?.size ?: 0)
+            return entry.attributes
         }
 
         fun assertAttrEntry(
@@ -465,11 +470,11 @@ class HistoryServiceTest : AbstractTestBase() {
             Assertions.assertFalse(attributes.isNullOrEmpty())
             val attr = attributes?.firstOrNull { it.propertyName == propertyName }
             Assertions.assertNotNull(attr, "Property $propertyName not found")
-            Assertions.assertEquals(propertyClass, attr!!.propertyTypeClass)
-            Assertions.assertEquals(value, attr.value)
-            Assertions.assertEquals(oldValue, attr.oldValue)
-            Assertions.assertEquals(propertyName, attr.propertyName)
-            Assertions.assertEquals(optype, attr.opType)
+            Assertions.assertEquals(propertyClass, attr!!.propertyTypeClass, "propertyTypeClass")
+            Assertions.assertEquals(value, attr.value, "value")
+            Assertions.assertEquals(oldValue, attr.oldValue, "oldValue")
+            Assertions.assertEquals(propertyName, attr.propertyName, "propertyName")
+            Assertions.assertEquals(optype, attr.opType, "opType")
 
         }
     }
