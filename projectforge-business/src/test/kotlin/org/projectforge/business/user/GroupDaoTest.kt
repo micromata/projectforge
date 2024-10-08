@@ -25,7 +25,6 @@ package org.projectforge.business.user
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.timesheet.TimesheetReferenceListTest.Companion.user
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryServiceTest.Companion.assertAttrEntry
@@ -37,6 +36,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.CollectionUtils
 import org.projectforge.framework.persistence.utils.CollectionUtils.joinToString
 import org.projectforge.test.AbstractTestBase
+import org.projectforge.test.HistoryEntryWithEntity
 import org.springframework.beans.factory.annotation.Autowired
 
 class GroupDaoTest : AbstractTestBase() {
@@ -52,7 +52,7 @@ class GroupDaoTest : AbstractTestBase() {
     fun testAddUserWithHistory() {
         val loggedInUser = logon(ADMIN_USER)
         val users = createTestUsers(userDao, "$PREFIX.user.addUser")
-        var lastStats = countHistoryEntries()
+        val hist = createHistoryTester()
         val group = GroupDO()
         group.name = "$PREFIX.group.addUser"
         group.addUser(users[0])
@@ -78,7 +78,7 @@ class GroupDaoTest : AbstractTestBase() {
             assertHistoryEntry(PFUserDO::class, users[0].id, EntityOpType.Insert, loggedInUser, entries[1])
         }
         // var recent = getRecentHistoryEntries(4)
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 3)
+        hist.assertNumberOfNewHistoryEntries(4, 3)
 
         group.assignedUsers!!.remove(users[0]) // Unassign users[0] from group 1.
         group.assignedUsers!!.remove(users[1]) // Unassign users[1] from group 1.
@@ -141,7 +141,7 @@ class GroupDaoTest : AbstractTestBase() {
             ) // user inserted
         }
 
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
+        hist.assertNumberOfNewHistoryEntries(4, 4)
     }
 
     @Test
@@ -150,11 +150,17 @@ class GroupDaoTest : AbstractTestBase() {
         val group = GroupDO()
         val users = createTestUsers(userDao, "$PREFIX.user.setAssignedUsers")
         groupDao.setAssignedUsers(group, mutableSetOf(users[1], users[2]))
-        Assertions.assertEquals(CollectionUtils.joinToStringOfIds(setOf(users[1], users[2])), CollectionUtils.joinToStringOfIds(group.assignedUsers))
+        Assertions.assertEquals(
+            CollectionUtils.joinToStringOfIds(setOf(users[1], users[2])),
+            CollectionUtils.joinToStringOfIds(group.assignedUsers)
+        )
 
         group.assignedUsers = mutableSetOf(users[0], users[1])
         groupDao.setAssignedUsers(group, mutableSetOf(users[1], users[2]))
-        Assertions.assertEquals(CollectionUtils.joinToStringOfIds(setOf(users[1], users[2])), CollectionUtils.joinToStringOfIds(group.assignedUsers))
+        Assertions.assertEquals(
+            CollectionUtils.joinToStringOfIds(setOf(users[1], users[2])),
+            CollectionUtils.joinToStringOfIds(group.assignedUsers)
+        )
     }
 
     @Test
@@ -164,7 +170,7 @@ class GroupDaoTest : AbstractTestBase() {
         val groups = createTestGroups(groupDao, "$PREFIX.group.assignGroupByIdsInTrans")
         val testContext = TestContext(users, groups)
         // Start with first assignment of group[0] and group[1] to user[0]:
-        var lastStats = countHistoryEntries()
+        val hist = createHistoryTester()
         groupDao.assignGroupByIdsInTrans(
             users[0],
             groupsToAssign = asIds(groups, arrayOf(0, 1)),
@@ -174,10 +180,10 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(), arrayOf())
         )
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 3, 3)
-        lastStats.entries?.let { entries ->
-            assertUserAndGroupsHistoryEntries(testContext, entries, users[0], arrayOf(0, 1), null)
-        }
+        hist.assertNumberOfNewHistoryEntries(3, 3)
+            .entries?.let { entries ->
+                assertUserAndGroupsHistoryEntries(testContext, entries, users[0], arrayOf(0, 1), null)
+            }
 
         // printGroupUserMatrix(testContext) // print current state for debugging:
         // Current users of groups: group[0]: 0, group[1]: 0,
@@ -194,10 +200,10 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())
         )
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
-        lastStats.entries?.let { entries ->
-            assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(0, 1, 2), null)
-        }
+        hist.assertNumberOfNewHistoryEntries(4, 4)
+            .entries?.let { entries ->
+                assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(0, 1, 2), null)
+            }
 
         groupDao.assignGroupByIdsInTrans(
             users[1],
@@ -211,10 +217,10 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
         )
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 4, 4)
-        lastStats.entries?.let { entries ->
-            assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(3), arrayOf(0, 1))
-        }
+        hist.assertNumberOfNewHistoryEntries(4, 4)
+            .entries?.let { entries ->
+                assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(3), arrayOf(0, 1))
+            }
 
         // NOP: No changes:
         groupDao.assignGroupByIdsInTrans(
@@ -226,7 +232,7 @@ class GroupDaoTest : AbstractTestBase() {
             testContext,
             userMatrix = arrayOf(arrayOf(0), arrayOf(0), arrayOf(1), arrayOf(1))
         )
-        lastStats = assertNumberOfNewHistoryEntries(lastStats, 0)
+        hist.assertNumberOfNewHistoryEntries(0)
 
         // -12 is unkown, exception expected.
         try {
@@ -385,7 +391,7 @@ class GroupDaoTest : AbstractTestBase() {
 
 
     companion object {
-        private const val PREFIX = "GroupDaoTest"
+        private val PREFIX = GroupDaoTest::class.simpleName
 
         fun <T : IdObject<Long>> asIds(list: Array<T>, indices: Array<Int?>?): List<Long>? {
             indices ?: return null
