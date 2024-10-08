@@ -50,7 +50,7 @@ internal class CandHHistoryEntryWrapper(private var historyEntry: HistoryEntryDO
             entity: IdObject<Long>,
             entityOpType: EntityOpType,
             entityName: String? = HibernateUtils.getRealClass(entity).name,
-            modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
+            modifiedBy: String? = ThreadLocalUserContext.loggedInUserId?.toString(),
         ): CandHHistoryEntryWrapper {
             HistoryEntryDO.create(entity, entityOpType, entityName = entityName, modifiedBy = modifiedBy)
                 .let { entry ->

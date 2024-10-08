@@ -223,7 +223,7 @@ public class TeamEventExternalSubscriptionCache {
     if (eventSubscription == null) {
       return null;
     }
-    final Long userId = ThreadLocalUserContext.getUserId();
+    final Long userId = ThreadLocalUserContext.getLoggedInUserId();
     final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
     if (!accessType.hasAnyAccess()) {
       return null;
@@ -236,7 +236,7 @@ public class TeamEventExternalSubscriptionCache {
     final List<TeamEventDO> result = new ArrayList<>();
     // precondition: existing teamcals ins filter
     final Collection<Long> teamCals = new LinkedList<>();
-    final Long userId = ThreadLocalUserContext.getUserId();
+    final Long userId = ThreadLocalUserContext.getLoggedInUserId();
     if (CollectionUtils.isNotEmpty(filter.getTeamCals())) {
       for (final Long calendarId : filter.getTeamCals()) {
         final TeamEventSubscription eventSubscription = subscriptions.get(calendarId);

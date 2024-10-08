@@ -67,7 +67,7 @@ public class MonthlyEmployeeReportDao {
     filter.setStopTime(report.getToDate());
     filter.setUserId(user.getId());
     List<TimesheetDO> list = timesheetDao.internalGetList(filter, false); // Attention: No access checking!!!!
-    PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
     if (CollectionUtils.isNotEmpty(list)) {
       for (TimesheetDO sheet : list) {
         report.addTimesheet(sheet, timesheetDao.hasUserSelectAccess(loggedInUser, sheet, false));

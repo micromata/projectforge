@@ -168,7 +168,7 @@ open class VacationDO : DefaultBaseDO() {
 
   @Transient
   fun getVacationmode(): VacationMode {
-    val currentUserId = ThreadLocalUserContext.userId
+    val currentUserId = ThreadLocalUserContext.loggedInUserId
     val employeeUserId = if (employee != null && employee!!.user != null) employee!!.user!!.id else null
     val managerUserId = if (manager != null && manager!!.user != null) manager!!.user!!.id else null
     if (currentUserId == employeeUserId) {

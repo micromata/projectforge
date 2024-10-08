@@ -64,7 +64,7 @@ public class AccessException extends UserException {
   protected Class<?> clazz = null;
 
   public AccessException(final String i18nKey, final Object... params) {
-    this(ThreadLocalUserContext.getUser(), i18nKey, params);
+    this(ThreadLocalUserContext.getLoggedInUser(), i18nKey, params);
   }
 
   public AccessException(final PFUserDO user, final String i18nKey, final Object... params) {
@@ -74,7 +74,7 @@ public class AccessException extends UserException {
   }
 
   public AccessException(final AccessType accessType, final OperationType operationType) {
-    this(ThreadLocalUserContext.getUser(), accessType, operationType);
+    this(ThreadLocalUserContext.getLoggedInUser(), accessType, operationType);
   }
 
   public AccessException(final PFUserDO user, final AccessType accessType,
@@ -88,7 +88,7 @@ public class AccessException extends UserException {
 
   public AccessException(final Long taskId, final AccessType accessType,
                          final OperationType operationType) {
-    this(ThreadLocalUserContext.getUser(), taskId, accessType, operationType);
+    this(ThreadLocalUserContext.getLoggedInUser(), taskId, accessType, operationType);
   }
 
   public AccessException(final PFUserDO user, final Long taskId, final AccessType accessType,

@@ -46,7 +46,7 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -184,7 +184,7 @@ class DatabaseService {
         log.info("Adding global addressbook.")
         val insertGlobal =
             "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, owner_fk) VALUES (:id, :created, :deleted, :lastUpdate, :description, :title, :owner)"
-        val ownerId = user?.id ?: ThreadLocalUserContext.userId
+        val ownerId = user?.id ?: ThreadLocalUserContext.loggedInUserId
         val now = Date()
         val result = context.executeNativeUpdate(
             insertGlobal,
@@ -324,11 +324,11 @@ class DatabaseService {
      * @param writeaccess
      */
     protected fun accessCheck(writeaccess: Boolean) {
-        if (user === SYSTEM_ADMIN_PSEUDO_USER) {
+        if (loggedInUser === SYSTEM_ADMIN_PSEUDO_USER) {
             // No access check for the system admin pseudo user.
             return
         }
-        if (!Login.getInstance().isAdminUser(user)) {
+        if (!Login.getInstance().isAdminUser(loggedInUser)) {
             throw AccessException(
                 AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF,
                 ProjectForgeGroup.ADMIN_GROUP.key

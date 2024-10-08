@@ -69,7 +69,7 @@ class TimesheetEventsProvider {
     if (timesheetDao.showTimesheetsOfOtherUsers()) {
       tsFilter.userId = userId
     } else {
-      tsFilter.userId = ThreadLocalUserContext.userId
+      tsFilter.userId = ThreadLocalUserContext.loggedInUserId
     }
     val timesheetUser = UserGroupCache.getInstance().getUser(userId)
     val timesheets = timesheetDao.getList(tsFilter)

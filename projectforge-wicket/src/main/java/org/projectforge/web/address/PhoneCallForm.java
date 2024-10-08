@@ -266,7 +266,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       // DropDownChoice myCurrentPhoneId
       fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));
       final LabelValueChoiceRenderer<String> myCurrentPhoneIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getUser());
+      List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getLoggedInUser());
       if (CollectionUtils.isEmpty(ids)) {
         myCurrentPhoneIdChoiceRenderer.addValue("--", getString("user.personalPhoneIdentifiers.pleaseDefine"));
       } else {
@@ -285,7 +285,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
       // DropDownChoice myCurrentCallerId
       fs = gridBuilder.newFieldset(getString("address.myCurrentCallerId"));
       final LabelValueChoiceRenderer<String> myCurrentCalerIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getUser());
+      ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getLoggedInUser());
       for (final String id : ids) {
         myCurrentCalerIdChoiceRenderer.addValue(id, id);
       }

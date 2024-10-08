@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.fibu.KundeDO;
@@ -146,7 +145,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // User
-      data.setUser(ThreadLocalUserContext.getUser());
+      data.setUser(ThreadLocalUserContext.getLoggedInUser());
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user")).suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(), data.getUser().getFullname()));
     }

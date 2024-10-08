@@ -41,7 +41,7 @@ public class HRPlanningListFilter extends HRPlanningFilter
   public HRPlanningListFilter reset()
   {
     super.reset();
-    setUserId(ThreadLocalUserContext.getUserId());
+    setUserId(ThreadLocalUserContext.getLoggedInUserId());
     final DateHolder date = new DateHolder(DatePrecision.DAY);
     date.setBeginOfWeek();
     setStartDay(date.getLocalDate());

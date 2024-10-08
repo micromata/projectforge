@@ -42,7 +42,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
@@ -141,7 +140,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
                     buf.append(timesheet.getKost2().getDisplayName());
                   }
                   if (timesheet.getUserId() != null
-                      && timesheet.getUserId().equals(ThreadLocalUserContext.getUserId()) == false) {
+                      && timesheet.getUserId().equals(ThreadLocalUserContext.getLoggedInUserId()) == false) {
                     if (timesheet.getKost2() != null) {
                       buf.append(", ");
                     }

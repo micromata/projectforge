@@ -160,7 +160,7 @@ class My2FAServicesRest {
    */
   @GetMapping("sendSmsCode")
   fun sendSmsCode(request: HttpServletRequest): ResponseEntity<*> {
-    val user = ThreadLocalUserContext.user!!
+    val user = ThreadLocalUserContext.loggedInUser!!
     val mobilePhone = user.mobilePhone
     if (mobilePhone == null) {
       log.error { "User '${user.username}' tried to send 2FA code as text message, but mobile phone isn't available." }
@@ -180,7 +180,7 @@ class My2FAServicesRest {
    */
   @GetMapping("sendMailCode")
   fun sendMailCode(request: HttpServletRequest): ResponseEntity<*> {
-    val user = ThreadLocalUserContext.user!!
+    val user = ThreadLocalUserContext.loggedInUser!!
     if (user.email.isNullOrBlank()) {
       log.error { "User '${user.username}' tried to send 2FA code as mail, but e-mail address isn't available." }
       return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
@@ -340,14 +340,14 @@ class My2FAServicesRest {
    * @param restServiceClass Optional rest service class, [My2FAPublicServicesRest] is default.
    */
   private fun fillCodeCol(
-    layout: UILayout,
-    codeCol: UICol,
-    redirectUrl: String? = null,
-    mobilePhone: String? = ThreadLocalUserContext.user?.mobilePhone,
-    showCancelButton: Boolean = false,
-    mailOTPDisabled: Boolean = false,
-    restServiceClass: Class<*>,
-    userContext: UserContext? = null,
+      layout: UILayout,
+      codeCol: UICol,
+      redirectUrl: String? = null,
+      mobilePhone: String? = ThreadLocalUserContext.loggedInUser?.mobilePhone,
+      showCancelButton: Boolean = false,
+      mailOTPDisabled: Boolean = false,
+      restServiceClass: Class<*>,
+      userContext: UserContext? = null,
   ) {
     val smsAvailable = my2FAHttpService.smsConfigured && NumberHelper.matchesPhoneNumber(mobilePhone)
     codeCol

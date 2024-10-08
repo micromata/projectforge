@@ -109,7 +109,7 @@ public class NavTopPanel extends NavAbstractPanel {
       addBookmarkDialog();
     }
     {
-      add(new Label("user", ThreadLocalUserContext.getUser().getFullname()));
+      add(new Label("user", ThreadLocalUserContext.getLoggedInUser().getFullname()));
 
       final RepeatingView pluginPersonalMenuEntriesRepeater = new RepeatingView("pluginPersonalMenuEntriesRepeater");
       add(pluginPersonalMenuEntriesRepeater);
@@ -156,7 +156,7 @@ public class NavTopPanel extends NavAbstractPanel {
     final ExternalLink vacationViewLink = new ExternalLink("vacationViewLink", "/" + MenuItemDefId.VACATION_ACCOUNT.getUrl()) {
       @Override
       public boolean isVisible() {
-        return WicketSupport.get(VacationService.class).hasAccessToVacationService(ThreadLocalUserContext.getUser(), false);
+        return WicketSupport.get(VacationService.class).hasAccessToVacationService(ThreadLocalUserContext.getLoggedInUser(), false);
       }
     };
     add(vacationViewLink);

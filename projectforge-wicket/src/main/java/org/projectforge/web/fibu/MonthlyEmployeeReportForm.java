@@ -28,10 +28,8 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
@@ -80,7 +78,7 @@ public class MonthlyEmployeeReportForm
         fs.add(userSelectPanel);
         userSelectPanel.init();
       } else {
-        filter.setUser(ThreadLocalUserContext.getUser());
+        filter.setUser(ThreadLocalUserContext.getLoggedInUser());
         fs.add(new DivTextPanel(fs.newChildId(), filter.getUser().getFullname()));
       }
     }

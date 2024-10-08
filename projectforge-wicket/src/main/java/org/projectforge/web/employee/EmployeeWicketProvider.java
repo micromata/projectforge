@@ -91,7 +91,7 @@ public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
       resultList = employeeDao.findAllActive(false);
     } else {
       resultList = employeeDao.findAllActive(false).stream()
-          .filter(emp -> emp.getUser().getId().equals(ThreadLocalUserContext.getUserId()) == false)
+          .filter(emp -> emp.getUser().getId().equals(ThreadLocalUserContext.getLoggedInUserId()) == false)
           .collect(Collectors.toList());
     }
     for (EmployeeDO emp : resultList) {

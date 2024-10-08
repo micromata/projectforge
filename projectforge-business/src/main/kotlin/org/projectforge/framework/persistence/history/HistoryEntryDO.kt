@@ -131,7 +131,7 @@ class HistoryEntryDO : HistoryEntry {
             entity: IdObject<Long>,
             entityOpType: EntityOpType,
             entityName: String? = HibernateUtils.getRealClass(entity).name,
-            modifiedBy: String? = ThreadLocalUserContext.userId?.toString(),
+            modifiedBy: String? = ThreadLocalUserContext.loggedInUserId?.toString(),
         ): HistoryEntryDO {
             val entry = HistoryEntryDO()
             entry.entityName = entityName

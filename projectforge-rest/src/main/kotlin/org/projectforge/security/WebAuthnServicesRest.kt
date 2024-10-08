@@ -181,7 +181,7 @@ class WebAuthnServicesRest {
 
   private val loggedInUser: WebAuthnUser
     get() {
-      val user = ThreadLocalUserContext.user
+      val user = ThreadLocalUserContext.loggedInUser
       requireNotNull(user)
       val userId = user.id
       requireNotNull(userId)

@@ -46,7 +46,7 @@ import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -264,7 +264,7 @@ class InitTestDB {
     }
 
     fun initDatabase() {
-        val origUser = user
+        val origUser = loggedInUser
         try {
             persistenceService.runInTransaction<Any?> { context: PfPersistenceContext ->
                 val initUser = PFUserDO()

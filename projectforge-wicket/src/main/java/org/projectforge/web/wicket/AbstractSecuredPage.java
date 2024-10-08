@@ -32,10 +32,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Constants;
 import org.projectforge.SystemAlertMessage;
-import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WicketSupport;
@@ -72,7 +70,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage {
   @SuppressWarnings("serial")
   public AbstractSecuredPage(final PageParameters parameters) {
     super(parameters);
-    if (ThreadLocalUserContext.getUser() == null) {
+    if (ThreadLocalUserContext.getLoggedInUser() == null) {
       log.warn("AbstractSecuredPage called without logged-in user: " + this.getPageAsLink(parameters));
       // Shouldn't occur, but safe is safe:
       throw new RedirectToUrlException("/");

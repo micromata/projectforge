@@ -122,7 +122,7 @@ open class InvoiceService {
                     .map { pos: RechnungsPositionDO -> pos.auftragsPosition!!.auftrag!!.nummer.toString() }
                     .distinct()
                     .collect(Collectors.joining(", ")))
-            variables.put("VORNAME_NACHNAME", ThreadLocalUserContext.user?.getFullname()?.uppercase() ?: "")
+            variables.put("VORNAME_NACHNAME", ThreadLocalUserContext.loggedInUser?.getFullname()?.uppercase() ?: "")
             variables.put("Rechnungsnummer", data.nummer?.toString() ?: "")
             variables.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.datum))
             variables.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.faelligkeit))

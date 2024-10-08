@@ -318,7 +318,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     super.onSaveOrUpdate();
     var teamEventService = WicketSupport.get(TeamEventService.class);
     if (getData().getCreator() == null) {
-      getData().setCreator(ThreadLocalUserContext.getUser());
+      getData().setCreator(ThreadLocalUserContext.getLoggedInUser());
     }
 
     if (getData() != null && getData().getId() != null) {

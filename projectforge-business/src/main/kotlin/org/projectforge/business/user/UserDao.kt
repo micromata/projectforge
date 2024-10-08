@@ -36,7 +36,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.utils.Crypt.decrypt
@@ -233,7 +233,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      */
     fun updateMyAccount(user: PFUserDO) {
         accessChecker.checkRestrictedOrDemoUser()
-        val contextUser = ThreadLocalUserContext.user
+        val contextUser = ThreadLocalUserContext.loggedInUser
         Validate.isTrue(user.id == contextUser!!.id)
         val dbUser = internalGetById(user.id)
         dbUser!!.timeZone = user.timeZone
@@ -332,7 +332,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      * @return The encrypted data.
      */
     fun encrypt(data: String): String? {
-        val password = getPasswordOfUser(userId!!) ?: return null
+        val password = getPasswordOfUser(loggedInUserId!!) ?: return null
         return encrypt(password, data)
     }
 
@@ -344,7 +344,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      * @return The decrypted data.
      */
     fun decrypt(encrypted: String?): String? {
-        return decrypt(encrypted, userId!!)
+        return decrypt(encrypted, loggedInUserId!!)
     }
 
     /**

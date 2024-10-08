@@ -251,7 +251,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
                 ProjektDO projekt = entry.getProjekt();
                 if (entryHasUpdates(entry, existingPlanning) && projekt != null) {
                     boolean userHasRightForProject = false;
-                    Long userId = ThreadLocalUserContext.getUser().getId();
+                    Long userId = ThreadLocalUserContext.getLoggedInUser().getId();
                     Long headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
                     Long projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
                     Long salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;

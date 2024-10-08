@@ -146,13 +146,13 @@ class TimesheetFavoritesService {
     }
     if (modified) {
       userPrefService.putEntry(PREF_AREA, Favorites.PREF_NAME_LIST, currentFavorites)
-      migrationCache.refresh(ThreadLocalUserContext.userId)
+      migrationCache.refresh(ThreadLocalUserContext.loggedInUserId)
     }
     return currentFavorites
   }
 
   fun hasLegacyFavoritesToMigrate(): Boolean {
-    return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.userId)
+    return migrationCache.hasLegacyFavoritesToMigrate(ThreadLocalUserContext.loggedInUserId)
   }
 
   private fun hasLegacyFavoritesToMigrate(userId: Long): Boolean {

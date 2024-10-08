@@ -30,8 +30,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.ical.ICalParser;
@@ -41,7 +39,6 @@ import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.calendar.CalendarForm;
@@ -247,7 +244,7 @@ public class TeamCalCalendarForm extends CalendarForm
           final TeamEventDO dbEvent = WicketSupport.get(TeamEventDao.class).getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
 
           if (dbEvent != null) {
-            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getId()) || dbEvent.getDeleted()) {
+            if (ThreadLocalUserContext.getLoggedInUserId().equals(dbEvent.getCreator().getId()) || dbEvent.getDeleted()) {
               event.setId(dbEvent.getId());
               event.setCreated(dbEvent.getCreated());
               event.setCreator(dbEvent.getCreator());

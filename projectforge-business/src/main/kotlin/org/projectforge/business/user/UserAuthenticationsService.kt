@@ -155,7 +155,7 @@ open class UserAuthenticationsService {
    */
   @JvmOverloads
   open fun getUserAccessLogEntries(tokenType: UserTokenType, userId: Long? = null): UserAccessLogEntries? {
-    val uid = userId ?: ThreadLocalUserContext.userId ?: return null
+    val uid = userId ?: ThreadLocalUserContext.loggedInUserId ?: return null
     return userPrefService.ensureEntry(
       USER_PREF_AREA_ACCESS_LOG_ENTRIES,
       tokenType.name,
@@ -220,6 +220,6 @@ open class UserAuthenticationsService {
    * @return
    */
   open fun encrypt(type: UserTokenType, data: String): String? {
-    return encrypt(ThreadLocalUserContext.userId!!, type, data)
+    return encrypt(ThreadLocalUserContext.loggedInUserId!!, type, data)
   }
 }

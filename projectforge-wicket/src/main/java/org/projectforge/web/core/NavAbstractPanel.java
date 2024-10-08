@@ -33,7 +33,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WicketMenu;
 import org.projectforge.web.WicketMenuBuilder;
@@ -106,7 +105,7 @@ public abstract class NavAbstractPanel extends Panel {
 
   public WicketMenu getMenu() {
     if (menu == null) {
-      menu = WicketSupport.get(WicketMenuBuilder.class).getMenu(ThreadLocalUserContext.getUser());
+      menu = WicketSupport.get(WicketMenuBuilder.class).getMenu(ThreadLocalUserContext.getLoggedInUser());
     }
     return menu;
   }

@@ -45,7 +45,7 @@ public class SendFeedback {
    */
   public boolean send(final SendFeedbackData data) {
     if (data.getSender() == null) {
-      data.setSender(ThreadLocalUserContext.getUser().getFullname());
+      data.setSender(ThreadLocalUserContext.getLoggedInUser().getFullname());
     }
     final Map<String, Object> params = new HashMap<String, Object>();
     params.put("data", data);
@@ -57,7 +57,7 @@ public class SendFeedback {
             "mail/feedback.txt",
             params,
             I18nHelper.getLocalizedMessage("administration.configuration.param.feedbackEMail.label"),
-            ThreadLocalUserContext.getUser());
+            ThreadLocalUserContext.getLoggedInUser());
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_TEXT);
     return sendMail.send(msg, null, null);

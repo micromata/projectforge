@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu;
 
 import org.projectforge.business.user.*;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -84,7 +83,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
 
       final UserGroupCache userGroupCache = UserGroupCache.getInstance();
       if (obj.getProjektManagerGroup() != null
-          && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getUserId(),
+          && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getLoggedInUserId(),
           obj.getProjektManagerGroupId())) {
         if ((obj.getStatus() == null || !obj.getStatus().isIn(ProjektStatus.ENDED))
             && !obj.getDeleted()) {

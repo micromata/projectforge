@@ -71,7 +71,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   public CalendarFilter()
   {
     super();
-    timesheetUserId = ThreadLocalUserContext.getUserId();
+    timesheetUserId = ThreadLocalUserContext.getLoggedInUserId();
     selectedCalendar = Constants.EVENT_CLASS_NAME;
   }
 
@@ -149,7 +149,7 @@ public class CalendarFilter extends AbstractCalendarFilter
   public CalendarFilter setShowTimesheets(final boolean showTimesheets)
   {
     if (showTimesheets) {
-      this.timesheetUserId = ThreadLocalUserContext.getUserId();
+      this.timesheetUserId = ThreadLocalUserContext.getLoggedInUserId();
     } else {
       this.timesheetUserId = null;
     }

@@ -44,9 +44,8 @@ import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
@@ -1415,7 +1414,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see .hasDeleteAccess
      */
     open fun hasLoggedInUserDeleteAccess(obj: O, dbObj: O, throwException: Boolean): Boolean {
-        return hasDeleteAccess(user!!, obj, dbObj, throwException)
+        return hasDeleteAccess(loggedInUser!!, obj, dbObj, throwException)
     }
 
     /**
@@ -1462,7 +1461,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         context: PfPersistenceContext,
     ) {
         accessChecker.checkRestrictedOrDemoUser()
-        val contextUser = user
+        val contextUser = loggedInUser
         val userPk = contextUser?.id?.toString()
         if (userPk == null) {
             log.warn("No user found for creating history entry.")

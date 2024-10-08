@@ -243,7 +243,7 @@ class VacationAccountPageRest {
       statistics = statistics,
       vacations = vacations,
       workingHoursStatistics = vacationService.getAverageWorkingTimeStats(
-        employee.user ?: ThreadLocalUserContext.user!!, PFDay.fromOrNull(employee.eintrittsDatum)
+        employee.user ?: ThreadLocalUserContext.loggedInUser!!, PFDay.fromOrNull(employee.eintrittsDatum)
       ).localizedMessage
     )
 

@@ -53,7 +53,7 @@ class CardDAVInfoPageRest {
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
-        val username = ThreadLocalUserContext.user?.username ?: "?????"
+        val username = ThreadLocalUserContext.loggedInUser?.username ?: "?????"
         val layout = UILayout("address.cardDAV.infopage.title")
                 .add(UILabel("address.cardDAV.infopage.description"))
                 .add(UILabel("address.cardDAV.infopage.description2"))
@@ -84,7 +84,7 @@ class CardDAVInfoPageRest {
 
         val data = Data(
                 user = username,
-                password = authenticationsService.getToken(ThreadLocalUserContext.userId!!, UserTokenType.DAV_TOKEN),
+                password = authenticationsService.getToken(ThreadLocalUserContext.loggedInUserId!!, UserTokenType.DAV_TOKEN),
                 server = request.serverName,
                 serverPath = "/users/${username}/addressBooks/default",
                 ios = "CardDAV account",

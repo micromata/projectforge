@@ -99,7 +99,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         final String searchString = myFilter.getSearchString();
         if (myFilter.isOnlyRecent()) {
             final PFUserDO assignee = new PFUserDO();
-            assignee.setId(ThreadLocalUserContext.getUserId());
+            assignee.setId(ThreadLocalUserContext.getLoggedInUserId());
             queryFilter.add(QueryFilter.eq("assignee", assignee));
             myFilter.setSearchString(""); // Delete search string for ignoring it.
             queryFilter.add(QueryFilter.eq("recent", true));
@@ -166,7 +166,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
             }
         }
         data.put("history", list);
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         final Long userId = user.getId();
         final Long assigneeId = todo.getAssigneeId();
         final Long reporterId = todo.getReporterId();
@@ -178,7 +178,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         }
         if (userId != assigneeId && userId != reporterId && !hasUserSelectAccess(user, todo, false)) {
             // User is whether reporter nor assignee, so send e-mail (in the case the user hasn't read access anymore).
-            sendNotification(ThreadLocalUserContext.getUser(), todo, data, false);
+            sendNotification(ThreadLocalUserContext.getLoggedInUser(), todo, data, false);
         }
     }
 
@@ -216,7 +216,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
 
     @Override
     public void onSave(final ToDoDO obj, final PfPersistenceContext context) {
-        if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
+        if (!Objects.equals(ThreadLocalUserContext.getLoggedInUserId(), obj.getAssigneeId())) {
             // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
             obj.setRecent(true);
         }
@@ -224,7 +224,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
 
     @Override
     public void onChange(final ToDoDO obj, final ToDoDO dbObj, final PfPersistenceContext context) {
-        if (!Objects.equals(ThreadLocalUserContext.getUserId(), obj.getAssigneeId())) {
+        if (!Objects.equals(ThreadLocalUserContext.getLoggedInUserId(), obj.getAssigneeId())) {
             // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
             final ToDoDO copyOfDBObj = new ToDoDO();
             copyOfDBObj.copyValuesFrom(dbObj, "deleted");
@@ -270,7 +270,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
      */
     public int getOpenToDoEntries(Long userId) {
         if (userId == null) {
-            userId = ThreadLocalUserContext.getUserId();
+            userId = ThreadLocalUserContext.getLoggedInUserId();
         }
         return toDoCache.getOpenToDoEntries(userId);
     }

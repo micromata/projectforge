@@ -239,7 +239,7 @@ class TaskServicesRest {
       filter.isNotOpened = true
     }
     val result = Result()
-    val ctx = BuildContext(result, ThreadLocalUserContext.user!!, filter, openNodes)
+    val ctx = BuildContext(result, ThreadLocalUserContext.loggedInUser!!, filter, openNodes)
     if (highlightedTaskId != null) {
       ctx.highlightedTaskNode = taskTree.getTaskNodeById(highlightedTaskId)
     }

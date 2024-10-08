@@ -59,7 +59,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
    */
   val badgeCounter: Int?
     get() {
-      ThreadLocalUserContext.user?.let { user ->
+      ThreadLocalUserContext.loggedInUser?.let { user ->
         synchronized(stateMap) {
           var state = stateMap[user.id]
           if (state == null) {
@@ -81,7 +81,7 @@ class My2FASetupMenuBadge : AbstractCache(TICKS_PER_HOUR) {
    * after any modifications.
    */
   fun refreshUserBadgeCounter() {
-    ThreadLocalUserContext.userId?.let {
+    ThreadLocalUserContext.loggedInUserId?.let {
       synchronized(stateMap) {
         stateMap.remove(it)
       }

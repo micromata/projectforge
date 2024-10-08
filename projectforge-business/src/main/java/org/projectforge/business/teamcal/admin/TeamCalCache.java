@@ -76,7 +76,7 @@ public class TeamCalCache extends AbstractCache
   {
     checkRefresh();
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.hasSelectAccess(loggedInUser, cal) && !cal.getDeleted()) {
         set.add(cal);
@@ -94,7 +94,7 @@ public class TeamCalCache extends AbstractCache
   {
     checkRefresh();
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) && !cal.getDeleted()) {
         set.add(cal);
@@ -112,7 +112,7 @@ public class TeamCalCache extends AbstractCache
   {
     checkRefresh();
     final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final Long loggedInUserId = ThreadLocalUserContext.getUserId();
+    final Long loggedInUserId = ThreadLocalUserContext.getLoggedInUserId();
     for (final TeamCalDO cal : calendarMap.values()) {
       if (teamCalRight.isOwner(loggedInUserId, cal)) {
         set.add(cal);
@@ -131,7 +131,7 @@ public class TeamCalCache extends AbstractCache
           log.warn("Calendar with id " + calId + " not found in cache.");
           continue;
         }
-        if (teamCalRight.hasSelectAccess(ThreadLocalUserContext.getUser())) {
+        if (teamCalRight.hasSelectAccess(ThreadLocalUserContext.getLoggedInUser())) {
           set.add(cal);
         }
       }

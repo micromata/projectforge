@@ -88,8 +88,8 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         boolean foundUser = false;
 
         for (AddressDO addressDo : addressDos) {
-            if (addressDo.getName().equals(ThreadLocalUserContext.getUser().getLastname())) {
-                if (addressDo.getFirstName().equals(ThreadLocalUserContext.getUser().getFirstname())) {
+            if (addressDo.getName().equals(ThreadLocalUserContext.getLoggedInUser().getLastname())) {
+                if (addressDo.getFirstName().equals(ThreadLocalUserContext.getLoggedInUser().getFirstname())) {
                     userComment = addressDo.getComment();
                     foundUser = true;
                     break;

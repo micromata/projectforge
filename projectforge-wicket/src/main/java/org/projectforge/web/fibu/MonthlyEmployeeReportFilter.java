@@ -52,7 +52,7 @@ public class MonthlyEmployeeReportFilter implements Serializable
       month = day.getMonthValue();
     }
     if (user == null) {
-      user = ThreadLocalUserContext.getUser();
+      user = ThreadLocalUserContext.getLoggedInUser();
     }
   }
 

@@ -183,7 +183,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
       }
     }
     if (sheet.user == null) {
-      sheet.user = User.getUser(ThreadLocalUserContext.userId) // Use current user.
+      sheet.user = User.getUser(ThreadLocalUserContext.loggedInUserId) // Use current user.
     }
     return sheet
   }

@@ -24,7 +24,7 @@
 package org.projectforge.rest
 
 import org.projectforge.business.book.BookDao
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.userId
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.saveOrUpdate
 import org.projectforge.rest.dto.Book
@@ -56,7 +56,7 @@ class BookServicesRest {
   fun lendOut(request: HttpServletRequest, @RequestBody postData: PostData<Book>): ResponseEntity<ResponseAction> {
     val book = bookRest.transformForDB(postData.data)
     book.lendOutDate = LocalDate.now()
-    bookDao.setLendOutBy(book, userId)
+    bookDao.setLendOutBy(book, loggedInUserId)
     return saveOrUpdate(request, bookDao, book, postData, bookRest, bookRest.validate(book))
   }
 

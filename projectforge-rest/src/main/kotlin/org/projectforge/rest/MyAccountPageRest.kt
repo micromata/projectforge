@@ -111,7 +111,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
             : ResponseEntity<ResponseAction> {
         validateCsrfToken(request, postData)?.let { return it }
         val data = postData.data
-        check(ThreadLocalUserContext.userId == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
+        check(ThreadLocalUserContext.loggedInUserId == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
         val user = userDao.internalGetById(data.userId)!!
         user.firstname = data.firstname ?: user.firstname
         user.lastname = data.lastname ?: user.lastname
@@ -130,7 +130,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
 
     @GetMapping("dynamic")
     fun getForm(request: HttpServletRequest): FormLayoutData {
-        val userId = ThreadLocalUserContext.userId!!
+        val userId = ThreadLocalUserContext.loggedInUserId!!
         val user = userDao.getById(userId)!!
         val data = MyAccountData(userId, user.username, user.firstname, user.lastname, user.mobilePhone)
 

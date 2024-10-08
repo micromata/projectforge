@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.protocol.http.PageExpiredException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.DomainService;
 import org.projectforge.common.ProjectForgeException;
@@ -153,7 +152,7 @@ public class ErrorPage extends AbstractSecuredPage {
     form.data.setMessageNumber(messageNumber);
     form.data.setMessage(throwable != null ? throwable.getMessage() : "");
     form.data.setStackTrace(throwable != null ? ExceptionHelper.printStackTrace(throwable) : "");
-    form.data.setSender(ThreadLocalUserContext.getUser().getFullname());
+    form.data.setSender(ThreadLocalUserContext.getLoggedInUser().getFullname());
     final String subject = "ProjectForge-Error #" + form.data.getMessageNumber() + " from " + form.data.getSender();
     form.data.setSubject(subject);
     if (rootCause != null) {

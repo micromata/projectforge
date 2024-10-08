@@ -82,7 +82,7 @@ open class My2FAService {
    */
   val userConfigured2FA: Boolean
     get() {
-      ThreadLocalUserContext.user?.let { user ->
+      ThreadLocalUserContext.loggedInUser?.let { user ->
         if (!authenticationsService.getAuthenticatorToken().isNullOrBlank()) {
           return true
         }
@@ -180,7 +180,7 @@ open class My2FAService {
     val authenticatorToken = userAuthenticationsService.getAuthenticatorToken()
     if (authenticatorToken == null) {
       if (!suppressNoTokenWarnings) {
-        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.user?.username}', no authenticator token configured." }
+        log.warn { "Can't check OTP for user '${ThreadLocalUserContext.loggedInUser?.username}', no authenticator token configured." }
       }
       return OTPCheckResult.NOT_CONFIGURED
     }
@@ -235,7 +235,7 @@ open class My2FAService {
     if (disabledGroupIds.isNullOrEmpty()) {
       return false
     }
-    val user = userContext?.user ?: ThreadLocalUserContext.user
+    val user = userContext?.user ?: ThreadLocalUserContext.loggedInUser
     requireNotNull(user)
     val userGroups =
       UserGroupCache.getInstance().getUserGroups(user) ?: return false // User without groups shouldn't occur.

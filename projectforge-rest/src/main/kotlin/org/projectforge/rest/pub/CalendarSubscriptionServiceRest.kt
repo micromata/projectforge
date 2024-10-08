@@ -100,7 +100,7 @@ class CalendarSubscriptionServiceRest {
   fun exportCalendar(request: HttpServletRequest): ResponseEntity<*> {
     var logMessage: String? = null
     try {
-      val userId = ThreadLocalUserContext.userId ?: run {
+      val userId = ThreadLocalUserContext.loggedInUserId ?: run {
         log.error("Internal errror: shouldn't occur: can't get context user! Should be denied by filter!!!")
         return ResponseEntity<Any>(HttpStatus.BAD_REQUEST)
       }

@@ -101,7 +101,7 @@ public class CalendarFeedService {
    * @return The url for downloading calendars (without context), e. g. /export/ProjectForge.ics?user=...
    */
   public String getUrl(final String additionalParams) {
-    final PFUserDO user = ThreadLocalUserContext.getUser();
+    final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
     final String authenticationKey = userAuthenticationsService.getToken(user.getId(), UserTokenType.CALENDAR_REST);
     final StringBuilder buf = new StringBuilder();
     buf.append("token=").append(authenticationKey);

@@ -28,9 +28,7 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
-import jakarta.annotation.PostConstruct
 
 private val log = KotlinLogging.logger {}
 
@@ -50,7 +48,7 @@ class PersonalAddressCache : AbstractCache() {
     private var ownersMap = mutableMapOf<Long, Map<Long, PersonalAddressDO>>()
 
     @JvmOverloads
-    fun getByAddressId(addressId: Long, owner: PFUserDO? = ThreadLocalUserContext.user): PersonalAddressDO? {
+    fun getByAddressId(addressId: Long, owner: PFUserDO? = ThreadLocalUserContext.loggedInUser): PersonalAddressDO? {
         owner?.id?.let { ownerId ->
             return getPersonalAddressList(ownerId)[addressId]
         }
@@ -58,7 +56,7 @@ class PersonalAddressCache : AbstractCache() {
     }
 
     @JvmOverloads
-    fun isPersonalAddress(addressId: Long?, owner: PFUserDO? = ThreadLocalUserContext.user): Boolean {
+    fun isPersonalAddress(addressId: Long?, owner: PFUserDO? = ThreadLocalUserContext.loggedInUser): Boolean {
         return addressId != null && getByAddressId(addressId, owner)?.isFavorite == true
     }
 

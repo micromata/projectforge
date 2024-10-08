@@ -99,7 +99,7 @@ internal class My2FABruteForceProtection {
     /**
      * After an OTP failure, this method should be called.
      */
-    fun registerOTPFailure(userId: Long = ThreadLocalUserContext.userId!!) {
+    fun registerOTPFailure(userId: Long = ThreadLocalUserContext.loggedInUserId!!) {
         var counter = 0
         synchronized(otpFailures) {
             var data = otpFailures[userId]
@@ -126,7 +126,7 @@ internal class My2FABruteForceProtection {
     /**
      * After a successful OTP check, this method should be called. So the user has all retries again.
      */
-    fun registerOTPSuccess(userId: Long = ThreadLocalUserContext.userId!!) {
+    fun registerOTPSuccess(userId: Long = ThreadLocalUserContext.loggedInUserId!!) {
         synchronized(otpFailures) {
             otpFailures.remove(userId)
         }
@@ -136,7 +136,7 @@ internal class My2FABruteForceProtection {
      * This method should be called before every OTP check. If not allowed, the OTP check must be skipped and an
      * error message should be returned.
      */
-    fun isBlocked(userId: Long = ThreadLocalUserContext.userId!!): Boolean {
+    fun isBlocked(userId: Long = ThreadLocalUserContext.loggedInUserId!!): Boolean {
         val data = getData(userId) ?: return false
         val lastFailedTry = data.lastFailedTry ?: return false
         val waitingMillis = getWaitingMillis(data.counter)
@@ -147,7 +147,7 @@ internal class My2FABruteForceProtection {
      * If retry is not allowed, this method will return a localized message about the reason including the number
      * of failed retries, the risk of beeing deactivated as well as any time penalty.
      */
-    fun getBlockedResult(userId: Long = ThreadLocalUserContext.userId!!): OTPCheckResult? {
+    fun getBlockedResult(userId: Long = ThreadLocalUserContext.loggedInUserId!!): OTPCheckResult? {
         getBlockedMessage(userId)?.let { message ->
             return OTPCheckResult.BLOCKED.withMessage(message)
         }
@@ -158,7 +158,7 @@ internal class My2FABruteForceProtection {
      * If retry is not allowed, this method will return a localized message about the reason including the number
      * of failed retries, the risk of beeing deactivated as well as any time penalty.
      */
-    fun getBlockedMessage(userId: Long = ThreadLocalUserContext.userId!!): String? {
+    fun getBlockedMessage(userId: Long = ThreadLocalUserContext.loggedInUserId!!): String? {
         if (!isBlocked(userId)) {
             return null
         }

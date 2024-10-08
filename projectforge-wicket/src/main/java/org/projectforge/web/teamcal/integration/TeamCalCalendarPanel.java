@@ -160,7 +160,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
     final TeamCalEventId id = new TeamCalEventId(event.getId(), ThreadLocalUserContext.getTimeZone());
     final TeamEventDO teamEventDO = WicketSupport.get(TeamEventDao.class).getById(id.getDataBaseId());
     final ICalendarEvent teamEvent = eventProvider.getTeamEvent(id.toString());
-    if (new TeamEventRight().hasUpdateAccess(ThreadLocalUserContext.getUser(), teamEventDO,
+    if (new TeamEventRight().hasUpdateAccess(ThreadLocalUserContext.getLoggedInUser(), teamEventDO,
         null)) {
       if (teamEventDO.hasRecurrence() == true) {
         // at this point the dbTeamEvent is already updated in time

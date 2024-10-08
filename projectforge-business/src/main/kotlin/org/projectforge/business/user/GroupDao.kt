@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.user
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.CollectionUtils

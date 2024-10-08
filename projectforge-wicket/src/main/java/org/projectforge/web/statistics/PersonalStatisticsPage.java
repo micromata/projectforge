@@ -57,7 +57,7 @@ public class PersonalStatisticsPage extends AbstractSecuredPage
     final Label timesheetDisciplineChartTitle = new Label("timesheetDisciplineChartTitle",
         getString("personal.statistics.timesheetDisciplineChart.title"));
     body.add(timesheetDisciplineChartTitle);
-    final EmployeeDO employee = employeeDao.findByUserId(ThreadLocalUserContext.getUserId());
+    final EmployeeDO employee = employeeDao.findByUserId(ThreadLocalUserContext.getLoggedInUserId());
     double workingHoursPerDay = 8;
     if (employee != null && NumberHelper.isGreaterZero(employee.getWeeklyWorkingHours())) {
       workingHoursPerDay = employee.getWeeklyWorkingHours().doubleValue() / 5;

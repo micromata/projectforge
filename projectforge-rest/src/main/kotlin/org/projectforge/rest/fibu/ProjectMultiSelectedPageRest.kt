@@ -126,7 +126,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
   }
 
   override fun ensureUserLogSubscription(): LogSubscription {
-    val username = ThreadLocalUserContext.user!!.username ?: throw InternalError("User not given")
+    val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
     val displayTitle = translate("fibu.projekt.multiselected.title")
     return LogSubscription.ensureSubscription(
       title = "Projects",

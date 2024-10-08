@@ -210,7 +210,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible() {
           return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.hasAccessToVacationService(
-              ThreadLocalUserContext.getUser(), false);
+              ThreadLocalUserContext.getLoggedInUser(), false);
         }
       }.suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
@@ -232,7 +232,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible() {
           return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.hasAccessToVacationService(
-              ThreadLocalUserContext.getUser(), false);
+              ThreadLocalUserContext.getLoggedInUser(), false);
         }
       }.suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {

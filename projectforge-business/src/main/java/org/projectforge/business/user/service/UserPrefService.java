@@ -79,7 +79,7 @@ public class UserPrefService {
    * @param name
    * @param value
    * @param persistent If true, the object will be persisted in the database.
-   * @param userId     Optional userId. If not given, {@link ThreadLocalUserContext#getUserId()} is used.
+   * @param userId     Optional userId. If not given, {@link ThreadLocalUserContext#getLoggedInUserId()} is used.
    */
   public void putEntry(final String area, final String name, final Object value, final boolean persistent, Long userId) {
     userPrefCache.putEntry(area, name, value, persistent, userId);

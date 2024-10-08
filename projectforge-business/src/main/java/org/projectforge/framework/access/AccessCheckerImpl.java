@@ -69,7 +69,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     public boolean hasLoggedInUserPermission(final Long taskId, final AccessType accessType,
                                              final OperationType operationType,
                                              final boolean throwException) {
-        return hasPermission(ThreadLocalUserContext.getUser(), taskId, accessType, operationType, throwException);
+        return hasPermission(ThreadLocalUserContext.getLoggedInUser(), taskId, accessType, operationType, throwException);
     }
 
     /**
@@ -126,7 +126,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean isLoggedInUserMemberOfAdminGroup() {
-        return isUserMemberOfAdminGroup(ThreadLocalUserContext.getUser());
+        return isUserMemberOfAdminGroup(ThreadLocalUserContext.getLoggedInUser());
     }
 
     /**
@@ -157,7 +157,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public void checkIsLoggedInUserMemberOfGroup(final ProjectForgeGroup... groups) {
-        checkIsUserMemberOfGroup(ThreadLocalUserContext.getUser(), groups);
+        checkIsUserMemberOfGroup(ThreadLocalUserContext.getLoggedInUser(), groups);
     }
 
     /**
@@ -187,7 +187,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean isLoggedInUserMemberOfGroup(final boolean throwException, final ProjectForgeGroup... groups) {
-        return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), throwException, groups);
+        return isUserMemberOfGroup(ThreadLocalUserContext.getLoggedInUser(), throwException, groups);
     }
 
     /**
@@ -266,7 +266,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean userEqualsToContextUser(final PFUserDO user) {
-        return userEquals(ThreadLocalUserContext.getUser(), user);
+        return userEquals(ThreadLocalUserContext.getLoggedInUser(), user);
     }
 
     /**
@@ -276,7 +276,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      * @return
      */
     public boolean isLoggedInUserInSameGroup(final PFUserDO user) {
-        return areUsersInSameGroup(ThreadLocalUserContext.getUser(), user);
+        return areUsersInSameGroup(ThreadLocalUserContext.getLoggedInUser(), user);
     }
 
     /**
@@ -363,7 +363,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
             return result;
         }
         if (UserRightId.ADMIN_CORE.equals(right.getId())) {
-            return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), ProjectForgeGroup.ADMIN_GROUP);
+            return isUserMemberOfGroup(ThreadLocalUserContext.getLoggedInUser(), ProjectForgeGroup.ADMIN_GROUP);
         }
         if (obj instanceof EmployeeDO && oldObj instanceof EmployeeDO && ((EmployeeDO) obj).getUser().equals(origUser)
                 && ((EmployeeDO) oldObj).getUser()
@@ -391,7 +391,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     public boolean hasLoggedInUserAccess(final IUserRightId rightId, final Object obj, final Object oldObj,
                                          final OperationType operationType,
                                          final boolean throwException) {
-        return hasAccess(ThreadLocalUserContext.getUser(), rightId, obj, oldObj, operationType, throwException);
+        return hasAccess(ThreadLocalUserContext.getLoggedInUser(), rightId, obj, oldObj, operationType, throwException);
     }
 
     /**
@@ -401,7 +401,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean hasLoggedInUserSelectAccess(final IUserRightId rightId, final boolean throwException) {
-        return hasSelectAccess(ThreadLocalUserContext.getUser(), rightId, throwException);
+        return hasSelectAccess(ThreadLocalUserContext.getLoggedInUser(), rightId, throwException);
     }
 
     /**
@@ -493,7 +493,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      * @see #hasRight(PFUserDO, IUserRightId, boolean, UserRightValue...)
      */
     public boolean hasLoggedInUserRight(final IUserRightId rightId, final UserRightValue... values) {
-        return hasRight(ThreadLocalUserContext.getUser(), rightId, false, values);
+        return hasRight(ThreadLocalUserContext.getLoggedInUser(), rightId, false, values);
     }
 
     /**
@@ -517,7 +517,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     @Override
     public boolean hasLoggedInUserRight(final IUserRightId rightId, final boolean throwException,
                                         final UserRightValue... values) {
-        return hasRight(ThreadLocalUserContext.getUser(), rightId, throwException, values);
+        return hasRight(ThreadLocalUserContext.getLoggedInUser(), rightId, throwException, values);
     }
 
     /**
@@ -569,7 +569,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean hasLoggedInUserReadAccess(final IUserRightId rightId, final boolean throwException) {
-        return hasReadAccess(ThreadLocalUserContext.getUser(), rightId, throwException);
+        return hasReadAccess(ThreadLocalUserContext.getLoggedInUser(), rightId, throwException);
     }
 
     /**
@@ -618,7 +618,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     @Override
     public boolean hasLoggedInUserHistoryAccess(final IUserRightId rightId, final Object obj,
                                                 final boolean throwException) {
-        return hasHistoryAccess(ThreadLocalUserContext.getUser(), rightId, obj, throwException);
+        return hasHistoryAccess(ThreadLocalUserContext.getLoggedInUser(), rightId, obj, throwException);
     }
 
     @Override
@@ -673,7 +673,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      * @return
      */
     public boolean isAvailable(final IUserRightId rightId) {
-        return isAvailable(ThreadLocalUserContext.getUser(), rightId);
+        return isAvailable(ThreadLocalUserContext.getLoggedInUser(), rightId);
     }
 
     /**
@@ -690,7 +690,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
     @Override
     public boolean isDemoUser() {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             return false;
         }
@@ -705,7 +705,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
     @Override
     public boolean isRestrictedUser() {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             return true;
         }
@@ -741,7 +741,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
 
     @Override
     public boolean isRestrictedOrDemoUser() {
-        final PFUserDO user = ThreadLocalUserContext.getUser();
+        final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             return false;
         }
@@ -780,7 +780,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
      */
     @Override
     public boolean hasLoggedInUserAccessToTimesheetsOfOtherUsers() {
-        final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
         Validate.notNull(loggedInUser);
         if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
                 ProjectForgeGroup.PROJECT_MANAGER)) {

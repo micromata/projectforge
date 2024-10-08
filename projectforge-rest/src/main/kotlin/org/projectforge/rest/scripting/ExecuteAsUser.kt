@@ -41,7 +41,7 @@ class ExecuteAsUser internal constructor(private val _executeAsUser: PFUserDO, v
 
   init {
     executeAsUser.copyFrom(_executeAsUser)
-    loggedInUser.copyFrom(ThreadLocalUserContext.user!!)
+    loggedInUser.copyFrom(ThreadLocalUserContext.loggedInUser!!)
   }
 
   /**
@@ -53,7 +53,7 @@ class ExecuteAsUser internal constructor(private val _executeAsUser: PFUserDO, v
     if (securityQuestion != I_CONFIRM_ALL_USERS_HAVE_NOW_FULL_ACCESS) {
       throw IllegalArgumentException("Can't enter super mode. Param of proceedAsSuperUser must be SudoExecution.I_CONFIRM_ALL_USERS_HAVE_NOW_FULL_ACCESS.")
     }
-    val loggedInUser = ThreadLocalUserContext.user!!
+    val loggedInUser = ThreadLocalUserContext.loggedInUser!!
     val user = PFUserDO.createCopy(_executeAsUser)!!
     user.username = "${loggedInUser.username} (executed as ${user.username})"
     log.info { "Script ${scriptDO.name} (#${scriptDO.id}) is now executed by ${user.username}." }
