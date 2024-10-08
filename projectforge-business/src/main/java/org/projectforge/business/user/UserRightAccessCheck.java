@@ -24,7 +24,6 @@
 package org.projectforge.business.user;
 
 import org.projectforge.business.humanresources.HRPlanningRight;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.user.entities.GroupDO;

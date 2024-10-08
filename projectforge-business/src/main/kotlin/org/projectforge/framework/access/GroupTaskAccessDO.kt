@@ -40,7 +40,6 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of

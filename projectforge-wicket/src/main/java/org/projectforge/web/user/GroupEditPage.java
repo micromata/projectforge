@@ -25,7 +25,6 @@ package org.projectforge.web.user;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.ldap.GroupDOConverter;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.persistence.user.entities.GroupDO;

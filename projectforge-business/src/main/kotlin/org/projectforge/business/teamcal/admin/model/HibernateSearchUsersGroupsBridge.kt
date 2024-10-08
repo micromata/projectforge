@@ -25,9 +25,7 @@ package org.projectforge.business.teamcal.admin.model
 
 import mu.KotlinLogging
 import org.hibernate.search.engine.backend.document.DocumentElement
-import org.hibernate.search.engine.backend.document.IndexFieldReference
 import org.hibernate.search.mapper.pojo.bridge.TypeBridge
-import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
 import org.hibernate.search.mapper.pojo.bridge.runtime.TypeBridgeWriteContext
 import org.projectforge.business.common.BaseUserGroupRightsDO
 import org.projectforge.business.user.GroupsComparator
@@ -38,7 +36,6 @@ import org.projectforge.common.StringHelper
 import org.projectforge.database.DatabaseSupport
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.slf4j.LoggerFactory
 import java.util.*
 
 private val log = KotlinLogging.logger {}
