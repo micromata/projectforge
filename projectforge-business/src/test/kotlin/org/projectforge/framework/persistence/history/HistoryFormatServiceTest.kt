@@ -30,9 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class HistoryFormatServiceTest : AbstractTestBase() {
     @Autowired
-    private lateinit var historyService: HistoryService
-
-    @Autowired
     private lateinit var historyFormatService: HistoryFormatService
 
     @Test

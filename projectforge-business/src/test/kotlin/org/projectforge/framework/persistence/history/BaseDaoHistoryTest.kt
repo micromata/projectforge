@@ -35,9 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class BaseDaoHistoryTest : AbstractTestBase() {
     @Autowired
-    private lateinit var historyService: HistoryService
-
-    @Autowired
     private lateinit var rechnungDao: RechnungDao
 
     @Test

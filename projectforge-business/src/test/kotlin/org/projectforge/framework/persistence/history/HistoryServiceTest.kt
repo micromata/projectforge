@@ -27,70 +27,73 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
-import org.projectforge.business.fibu.AuftragsPositionDO
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDateTimeUtils
 import org.projectforge.test.AbstractTestBase
-import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.test.HistoryTester
 import java.io.File
+import java.math.BigDecimal
 import java.net.URI
-import kotlin.reflect.KClass
+import java.time.LocalDate
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
 class HistoryServiceTest : AbstractTestBase() {
-    @Autowired
-    private lateinit var historyService: HistoryService
-
     @Test
     fun testOldInvoiceHistory() {
         ensureSetup()
         val invoice = RechnungDO()
         invoice.id = 40770225
-        historyService.loadHistory(invoice).let { historyEntries ->
-            Assertions.assertEquals(2, historyEntries.size)
-            var entry = historyEntries[0]
-            Assertions.assertEquals(4, entry.attributes!!.size)
-            val attrs = entry.attributes!!
-            Assertions.assertEquals(4, attrs.size)
-            assert(attrs, "bemerkung", "PoBa", null, PropertyOpType.Insert)
-            assert(attrs, "bezahlDatum", "2023-12-29", null, PropertyOpType.Insert)
-            assert(attrs, "status", "BEZAHLT", "GESTELLT", PropertyOpType.Update)
-            assert(attrs, "zahlBetrag", "4765.95", null, PropertyOpType.Insert)
-            entry = historyEntries[1]
-            Assertions.assertEquals(17, entry.attributes!!.size)
+        val hist = createHistoryTester()
+        val msg = "Invoice 40770225, entry 0"
+        hist.loadHistory(invoice, 2, 21, msg)
+        hist.getEntry(0, 4, msg).let { entry ->
+            HistoryTester.assertAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
+            HistoryTester.assertAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
+            HistoryTester.assertAttr(
+                entry,
+                "bezahlDatum",
+                "2023-12-29",
+                null,
+                PropertyOpType.Insert,
+                LocalDate::class,
+                msg = msg,
+            )
+            HistoryTester.assertAttr(
+                entry,
+                "status",
+                "BEZAHLT",
+                "GESTELLT",
+                PropertyOpType.Update,
+                RechnungStatus::class,
+                msg = msg,
+            )
+            HistoryTester.assertAttr(
+                entry,
+                "zahlBetrag",
+                "4765.95",
+                null,
+                PropertyOpType.Insert,
+                BigDecimal::class,
+                msg = msg,
+            )
         }
+        hist.getEntry(1, 17, "Invoice 40770225, entry 0")
         invoice.id = 351958
-        historyService.loadHistory(invoice).let { historyEntries ->
-            historyEntries.filter { it.entityId == 351958L }.let { entries ->
-                Assertions.assertEquals(4, entries.size, "4 entries for Invoice 351958")
-
-            }
-            historyEntries.filter { it.entityId == 351959L }.let { entries ->
-                Assertions.assertEquals(4, entries.size, "4 entries for Invoice position 351959")
-            }
-            historyEntries.filter { it.entityId == 351960L }.let { entries ->
-                Assertions.assertEquals(4, entries.size, "4 entries for Invoice position 3519560")
-            }
-            historyEntries.filter { it.entityId == 382506L }.let { entries ->
-                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382506")
-            }
-            historyEntries.filter { it.entityId == 382507L }.let { entries ->
-                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382507")
-            }
-            historyEntries.filter { it.entityId == 382508L }.let { entries ->
-                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382508")
-            }
-            historyEntries.filter { it.entityId == 382509L }.let { entries ->
-                Assertions.assertEquals(2, entries.size, "2 entries for Kostzuweisung 382509")
-            }
-            Assertions.assertEquals(20, historyEntries.size)
-        }
-
+        hist.loadHistory(invoice, 20, 22, "Invoice 351958")
+        hist.getEntriesByEntityId(351958L, 4, 6)
+        hist.getEntriesByEntityId(351959L, 4, 4)
+        hist.getEntriesByEntityId(351960L, 4, 4)
+        hist.getEntriesByEntityId(382506L, 2, 2)
+        hist.getEntriesByEntityId(382507L, 2, 2)
+        hist.getEntriesByEntityId(382508L, 2, 2)
+        hist.getEntriesByEntityId(382509L, 2, 2)
         // 20.04.15 17:19 Update Konto              -> 12202
         // 08.03.10 13:26 Update #1:Position        -> 674.1
         // 08.03.10 13:26 Update Betreff            DM 2010 #674 -> DM 2010
@@ -120,30 +123,31 @@ class HistoryServiceTest : AbstractTestBase() {
         ensureSetup()
         val user = PFUserDO()
         user.id = 34961222
-        historyService.loadHistory(user).let { historyEntries ->
-            Assertions.assertEquals(27, historyEntries.size)
-            var entry = historyEntries.find { it.id == getNewHistoryEntryId(34961266) }!! // was 34961266
-            Assertions.assertEquals(1, entry.attributes!!.size)
-            var attributes = entry.attributes!!
-            Assertions.assertEquals(1, attributes.size)
-            assert(attributes, "assignedGroups", "1100452,1100063,1826459,33", null, PropertyOpType.Update)
-            entry = historyEntries.find { it.id == getNewHistoryEntryId(38057999) }!! // was 38057999
-            Assertions.assertEquals(1, entry.attributes!!.size)
-            attributes = entry.attributes!!
-            Assertions.assertEquals(1, attributes.size)
-            assert(
-                attributes,
+        val hist = createHistoryTester()
+        hist.loadHistory(user, 27, 4)
+        hist.getEntriesByPk(getNewHistoryEntryId(34961266), 1, 1).first().let { entry ->
+            HistoryTester.assertAttr(
+                entry,
+                "assignedGroups",
+                "1100452,1100063,1826459,33",
+                null,
+                PropertyOpType.Update,
+                GroupDO::class
+            )
+        }
+        hist.getEntriesByPk(getNewHistoryEntryId(38057999), 1, 1).first().let { entry ->
+            HistoryTester.assertAttr(
+                entry,
                 "lastPasswordChange",
                 "2023-02-10 13:34:25:184",
                 "2022-10-04 09:55:19:329",
-                PropertyOpType.Update
+                PropertyOpType.Update,
+                java.util.Date::class,
             )
-            entry = historyEntries.find { it.id == getNewHistoryEntryId(37229748) }!! // was 37229748
-            Assertions.assertEquals(2, entry.attributes!!.size)
-            attributes = entry.attributes!!
-            Assertions.assertEquals(2, attributes.size)
-            assert(attributes, "locale", "de_DE", "", PropertyOpType.Update)
-            assert(attributes, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
+        }
+        hist.getEntriesByPk(getNewHistoryEntryId(37229748), 1, 2).first().let { entry ->
+            HistoryTester.assertAttr(entry, "locale", "de_DE", "", PropertyOpType.Update, Locale::class)
+            HistoryTester.assertAttr(entry, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
         }
     }
 
@@ -152,81 +156,17 @@ class HistoryServiceTest : AbstractTestBase() {
         ensureSetup()
         val order = AuftragDO()
         order.id = 36901223
-        historyService.loadHistory(order).let { historyEntries ->
-            // 9 history entries, 36 attr entries in old format -> 18 entries in new format.
-            historyEntries.filter { it.entityId == 36901223L }.let { entries ->
-                Assertions.assertEquals(9, entries.size, "9 entries for Auftrag 36901229")
-            }
-            historyEntries.filter { it.entityId == 36901224L }.let { entries ->
-                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901224")
-            }
-            historyEntries.filter { it.entityId == 36901225L }.let { entries ->
-                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901225")
-            }
-            historyEntries.filter { it.entityId == 36901226L }.let { entries ->
-                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901226")
-            }
-            historyEntries.filter { it.entityId == 36901227L }.let { entries ->
-                Assertions.assertEquals(3, entries.size, "3 for Auftragsposition 36901227")
-            }
-            historyEntries.filter { it.entityId == 36901228L }.let { entries ->
-                Assertions.assertEquals(5, entries.size, "5 for Auftragsposition 36901228")
-            }
-            Assertions.assertEquals(26, historyEntries.size, "26 entries in total")
-            val entry = historyEntries.find { it.id == getNewHistoryEntryId(36901229) }!! // was 36901229
-            Assertions.assertEquals(18, entry.attributes!!.size)
-            val diffEntries = entry.attributes!!
-            Assertions.assertEquals(18, diffEntries.size)
-
-            val orderPos = AuftragsPositionDO()
-            orderPos.id = 36901228
-        }
-    }
-
-    private fun assert(
-        attrs: Collection<HistoryEntryAttr>, propertyName: String, value: String?, oldValue: String?, operationType: PropertyOpType
-    ) {
-        attrs.find { it.propertyName == propertyName }.let { attr ->
-            Assertions.assertNotNull(attr, "Property $propertyName not found")
-            Assertions.assertEquals(propertyName, attr!!.propertyName)
-            Assertions.assertEquals(value, attr.value)
-            Assertions.assertEquals(oldValue, attr.oldValue)
-            Assertions.assertEquals(operationType, attr.opType)
-        }
-    }
-
-    /**
-     * Create entries in new format:
-     */
-    private fun add(
-        entity: BaseDO<Long>,
-        value: String?,
-        oldValue: String? = null,
-        propertyName: String,
-        operationType: EntityOpType
-    ) {
-        val entry = HistoryCreateUtils.createHistoryEntry(entity, operationType)
-
-        val attr1 = HistoryCreateUtils.createAttr(
-            GroupDO::class,
-            propertyName = propertyName,
-            value = value,
-            oldValue = oldValue,
-        )
-        val attrs = mutableListOf(attr1)
-
-        historyService.save(entry, attrs)!!
-
-        Assertions.assertEquals("org.projectforge.framework.persistence.user.entities.PFUserDO", entry.entityName)
-        Assertions.assertEquals(entity.id, entry.entityId)
-        Assertions.assertEquals("anon", entry.modifiedBy)
-        val createdAt = entry.modifiedAt!!.time
-        Assertions.assertTrue(
-            Math.abs(System.currentTimeMillis() - createdAt) < 10000,
-            "createdAt should be near to now (10s)",
-        )
-
-        Assertions.assertEquals(entry.id, attr1.parent!!.id)
+        val hist = createHistoryTester()
+        hist.loadHistory(order, 26, 46)
+        hist.getEntriesByEntityId(36901223L, 9, 27)
+        hist.getEntriesByEntityId(36901224L, 3, 3)
+        hist.getEntriesByEntityId(36901225L, 3, 3)
+        hist.getEntriesByEntityId(36901226L, 3, 3)
+        hist.getEntriesByEntityId(36901227L, 3, 3)
+        hist.getEntriesByEntityId(36901228L, 5, 7)
+        hist.getEntriesByPk(getNewHistoryEntryId(36901229), 1, 18)
+        // val orderPos = AuftragsPositionDO()
+        // orderPos.id = 36901228
     }
 
     private fun ensureSetup() {
@@ -430,52 +370,6 @@ class HistoryServiceTest : AbstractTestBase() {
             )
 
             Assertions.assertEquals(entry.id, attr1.parent!!.id)
-        }
-
-        /**
-         * Asserts the history entry.
-         * @return The attributes of the history entry (migth be null).
-         */
-        fun assertHistoryEntry(
-            entityClass: KClass<*>,
-            id: Long?,
-            opType: EntityOpType,
-            modUser: PFUserDO,
-            entry: HistoryEntry,
-            numberOfAttributes: Int = 0,
-        ): Set<HistoryEntryAttr>? {
-            Assertions.assertEquals(entityClass.java.name, entry.entityName)
-            if (id != null) {
-                Assertions.assertEquals(id, entry.entityId)
-            }
-            Assertions.assertEquals(opType, entry.entityOpType)
-            Assertions.assertEquals(modUser.id?.toString(), entry.modifiedBy)
-            Assertions.assertTrue(
-                System.currentTimeMillis() - entry.modifiedAt!!.time < 10000,
-                "Time difference is too big",
-            )
-            entry as HistoryEntryDO
-            Assertions.assertEquals(numberOfAttributes, entry.attributes?.size ?: 0)
-            return entry.attributes
-        }
-
-        fun assertAttrEntry(
-            propertyClass: String?,
-            value: String?,
-            oldValue: String?,
-            propertyName: String?,
-            optype: PropertyOpType,
-            attributes: Set<HistoryEntryAttr>?,
-        ) {
-            Assertions.assertFalse(attributes.isNullOrEmpty())
-            val attr = attributes?.firstOrNull { it.propertyName == propertyName }
-            Assertions.assertNotNull(attr, "Property $propertyName not found")
-            Assertions.assertEquals(propertyClass, attr!!.propertyTypeClass, "propertyTypeClass")
-            Assertions.assertEquals(value, attr.value, "$propertyName.value")
-            Assertions.assertEquals(oldValue, attr.oldValue, "$propertyName.oldValue")
-            Assertions.assertEquals(propertyName, attr.propertyName, "propertyName")
-            Assertions.assertEquals(optype, attr.opType, "opType")
-
         }
     }
 }

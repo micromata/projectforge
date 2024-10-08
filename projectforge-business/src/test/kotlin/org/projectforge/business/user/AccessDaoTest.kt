@@ -66,7 +66,7 @@ class AccessDaoTest : AbstractTestBase() {
             access.addAccessEntry(createAccessEntry(AccessType.TIMESHEETS, true, false, false, false))
             val hist = createHistoryTester()
             accessDao.insert(access, context)
-            hist.assertNumberOfNewHistoryEntries(1)
+            hist.loadRecentHistoryEntriesAndAssertSizes(1)
 
             // TODO: Changes and history
         }
