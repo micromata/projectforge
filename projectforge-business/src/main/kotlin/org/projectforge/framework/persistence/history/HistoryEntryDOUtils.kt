@@ -63,7 +63,16 @@ object HistoryEntryDOUtils {
     }
 
     fun getFixedPropertyClass(attr: HistoryEntryAttrDO): String {
-        return HibernateUtils.getUnifiedClassname(attr.propertyTypeClass)
+        return getFixedClass(attr.propertyTypeClass)
+    }
+
+    fun getFixedEntityClass(entry: HistoryEntryDO): String {
+        return getFixedClass(entry.entityName)
+    }
+
+    internal fun getFixedClass(className: String?): String {
+        val unifiedClassName = HibernateUtils.getUnifiedClassname(className)
+        return HistoryOldTypeClassMapping.getMappedClass(unifiedClassName)
     }
 
     /**

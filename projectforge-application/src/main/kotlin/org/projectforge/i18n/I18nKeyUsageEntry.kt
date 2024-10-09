@@ -62,6 +62,13 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
     }
   }
 
+  /**
+   * Adds the class to the list of used classes.
+   * The list will be sorted by class name.
+   * @param clazz The class to add.
+   * @return true if the class was added, false if the class was already in the list.
+   * @see usedInClasses
+   */
   fun addUsage(clazz: Class<*>) {
     if (!usedInClasses.contains(clazz)) {
       usedInClasses.add(clazz)
@@ -75,7 +82,7 @@ internal class I18nKeyUsageEntry(val i18nKey: String) {
 
   companion object {
     private val classCacheMap = mutableMapOf<File, Class<*>>()
-    private val basePath = I18nKeysSourceAnalyzer.basePath!!.toFile().absolutePath
+    private val basePath = I18nKeysSourceAnalyzer.basePath.toFile().absolutePath
 
     fun read(str: String): I18nKeyUsageEntry? {
       return JsonUtils.fromJson(str, I18nKeyUsageEntry::class.java)
