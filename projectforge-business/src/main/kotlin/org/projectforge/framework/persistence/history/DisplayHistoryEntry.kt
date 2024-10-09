@@ -146,14 +146,18 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         val newObjectValue = getObjectValue(context.setProp(newValue))
         val propertyClass = context.historyValueService.getClass(propertyType)
         if (oldObjectValue != null) {
-            oldValue = formatObject(oldObjectValue, propertyClass, propertyType)
+            oldValue = formatObject(
+                valueObject = oldObjectValue,
+                typeClass = propertyClass,
+                propertyName = context.propertyName,
+            )
         } else {
-            oldValue = context.historyValueService.format(oldValue, propertyType)
+            oldValue = context.historyValueService.format(oldValue, propertyType = propertyType)
         }
         if (newObjectValue != null) {
-            newValue = formatObject(newObjectValue, propertyClass, propertyType)
+            newValue = formatObject(newObjectValue, propertyClass, propertyName = propertyName)
         } else {
-            newValue = context.historyValueService.format(newValue, propertyType)
+            newValue = context.historyValueService.format(newValue, propertyType = propertyType)
         }
     }
 
@@ -200,7 +204,7 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     /**
      * You may overwrite this method to provide a custom formatting for the object value.
      */
-    protected open fun formatObject(valueObject: Any?, entityClass: Class<*>?, propertyName: String?): String {
+    protected open fun formatObject(valueObject: Any?, typeClass: Class<*>?, propertyName: String?): String {
         return HistoryValueService.instance.toShortNames(valueObject)
     }
 

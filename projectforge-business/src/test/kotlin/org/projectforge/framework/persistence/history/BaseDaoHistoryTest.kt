@@ -52,7 +52,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3042917L) }.let { list ->
                 Assertions.assertEquals(3, list.size)
                 assertHistoryEntry(list[0], RechnungDO::class.java, "bezahlDatum", "", "2010-02-22")
-                assertHistoryEntry(list[1], RechnungDO::class.java, "status", "GESTELLT", "BEZAHLT")
+                assertHistoryEntry(list[1], RechnungDO::class.java, "status", "invoiced", "paid")
                 assertHistoryEntry(list[2], RechnungDO::class.java, "zahlBetrag", "", "4455.00")
             }
             entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3062919L) }.let { list ->
