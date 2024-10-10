@@ -31,7 +31,7 @@ import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -153,7 +153,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         } else projekt!!.id
 
 
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @JsonManagedReference
     @IndexedEmbedded(includeDepth = 3)
     @get:OneToMany(

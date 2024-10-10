@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import jakarta.persistence.*
 
 /**
@@ -53,7 +53,7 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
         @Transient
         get() = eingangsrechnung?.id
 
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")

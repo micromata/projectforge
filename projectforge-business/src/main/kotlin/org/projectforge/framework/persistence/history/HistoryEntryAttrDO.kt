@@ -121,8 +121,26 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
      * Serializes the old and new value to a string by using [HistoryValueHandlerRegistry].
      */
     fun serializeAndSet(oldValue: Any?, newValue: Any?) {
-        oldValue?.let { this.oldValue = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(oldValue) }
-        newValue?.let { this.value = HistoryValueHandlerRegistry.getHandler(propertyTypeClass).serialize(newValue) }
+        val handler = HistoryValueHandlerRegistry.getHandler(propertyTypeClass)
+        if (oldValue != null) {
+            this.oldValue = serializeValue(handler, oldValue)
+        }
+        if (newValue != null) {
+            this.value = serializeValue(handler, newValue)
+        }
+    }
+
+    private fun serializeValue(handler: HistoryValueHandler<*>, value: Any?): String? {
+        value ?: return null
+        if (value is Collection<*>) {
+            if (value.isEmpty()) {
+                return ""
+            }
+            return value.filterNotNull().joinToString(",") { obj ->
+                handler.serialize(obj) ?: "null"
+            }
+        }
+        return handler.serialize(value)
     }
 
     companion object {

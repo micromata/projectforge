@@ -23,7 +23,7 @@
 
 package org.projectforge.core;
 
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
+import org.projectforge.framework.persistence.history.PersistenceBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import java.util.Collection;
@@ -34,15 +34,15 @@ public class FooDO extends DefaultBaseDO
   private static final long serialVersionUID = 2439234268569121526L;
 
   private boolean testBoolean;
-  
+
   private String testString;
-  
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+
+  @PersistenceBehavior(autoUpdateCollectionEntries = true)
   private Collection<BarDO> managedChildren;
 
   private Collection<BarDO> unmanagedChildren1;
 
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = false)
+  @PersistenceBehavior(autoUpdateCollectionEntries = false)
   private Collection<BarDO> unmanagedChildren2;
 
   public boolean isTestBoolean()

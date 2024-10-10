@@ -34,7 +34,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.utils.StringComparator
 import java.math.BigDecimal
 
@@ -112,7 +112,7 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
         get() = IBANUtils.format(iban)
 
     @JsonManagedReference
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(
         cascade = [CascadeType.ALL],
         fetch = FetchType.LAZY,

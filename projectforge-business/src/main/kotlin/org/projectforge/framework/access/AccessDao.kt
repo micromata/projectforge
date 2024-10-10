@@ -327,50 +327,6 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         taskTree.setGroupTaskAccess(obj)
     }
 
-    override fun afterUpdate(obj: GroupTaskAccessDO, dbObj: GroupTaskAccessDO?, context: PfPersistenceContext) {
-        requireNotNull(dbObj)
-        val entries = obj.orderedEntries
-        val bufNew = StringBuilder()
-        val bufOld = StringBuilder()
-        var firstNew = true
-        var firstOld = true
-        for (entry in entries) {
-            val dbEntry = dbObj.getAccessEntry(entry.accessType)
-            if (dbEntry != null && dbEntry.accessSelect == entry.accessSelect && dbEntry.accessInsert == entry.accessInsert && dbEntry.accessUpdate == entry.accessUpdate && dbEntry.accessDelete == entry.accessDelete) {
-                // Nothing changed.
-                continue
-            }
-            if (firstNew) {
-                firstNew = false
-            } else {
-                bufNew.append(";")
-            }
-            bufNew.append(entry.accessType).append("={").append(entry.accessSelect).append(",")
-                .append(entry.accessInsert)
-                .append(",").append(entry.accessUpdate).append(",").append(entry.accessDelete).append("}")
-            if (dbEntry != null) {
-                if (firstOld) {
-                    firstOld = false
-                } else {
-                    bufOld.append(";")
-                }
-                bufOld.append(dbEntry.accessType).append("={").append(dbEntry.accessSelect).append(",")
-                    .append(dbEntry.accessInsert)
-                    .append(",").append(dbEntry.accessUpdate).append(",").append(dbEntry.accessDelete).append("}")
-            }
-        }
-        if (!firstOld || !firstNew) {
-            insertUpdateHistoryEntry(
-                obj,
-                "entries",
-                AccessEntryDO::class.java,
-                oldValue = bufOld.toString(),
-                newValue = bufNew.toString(),
-                context,
-            )
-        }
-    }
-
     override fun getBackupObject(dbObj: GroupTaskAccessDO): GroupTaskAccessDO {
         val access = GroupTaskAccessDO()
         for (dbEntry in dbObj.accessEntries!!) {

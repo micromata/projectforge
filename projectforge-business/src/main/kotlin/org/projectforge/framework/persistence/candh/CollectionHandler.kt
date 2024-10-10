@@ -30,7 +30,7 @@ import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.EntityOpType
@@ -112,7 +112,7 @@ open class CollectionHandler : CandHIHandler {
                     // Kept entries are not of type BaseDO, so we can't check modifications.
                     return@loop // break foreach loop
                 }
-                val behavior = AnnotationsUtils.getAnnotation(pc.property, PFPersistancyBehavior::class.java)
+                val behavior = AnnotationsUtils.getAnnotation(pc.property, PersistenceBehavior::class.java)
                 context.debugContext?.add(
                     propertyContext,
                     msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}",
