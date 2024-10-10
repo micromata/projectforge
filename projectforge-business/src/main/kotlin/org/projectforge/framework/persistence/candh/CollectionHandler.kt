@@ -33,10 +33,7 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
-import org.projectforge.framework.persistence.history.EntityOpType
-import org.projectforge.framework.persistence.history.HistoryServiceUtils
-import org.projectforge.framework.persistence.history.NoHistory
-import org.projectforge.framework.persistence.history.PersistenceBehavior
+import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.utils.CollectionUtils
 import java.io.Serializable
 import java.util.*
@@ -60,6 +57,7 @@ open class CollectionHandler : CandHIHandler {
         propertyContext: PropertyContext,
         context: CandHContext,
     ): Boolean {
+        log.debug { "process: Processing collection property '${propertyContext.propertyName}': $propertyContext" }
         val pc = propertyContext
         val property = pc.property
         val dest = pc.dest
@@ -74,40 +72,48 @@ open class CollectionHandler : CandHIHandler {
         @Suppress("UNCHECKED_CAST")
         var destCollection = pc.destPropertyValue as? MutableCollection<Any?>
         if (srcCollection.isNullOrEmpty() && destCollection.isNullOrEmpty()) {
+            log.debug { "process: Both collections '${propertyContext.propertyName}' are null or empty, so nothing to do." }
             // Both collections are null or empty, so nothing to do.
             return true
         }
         if (srcCollection.isNullOrEmpty()) {
-            context.debugContext?.add(propertyContext)
+            // srcCollection is null or empty, so we have to remove all entries from destCollection.
+            log.debug { "process: srcCollection '${propertyContext.propertyName}' is null or empty." }
             context.addHistoryEntry(
-                propertyTypeClass = destCollection!!.first()!!::class.java,
+                propertyTypeClass = CollectionUtils.getTypeClassOfEntries(destCollection),
                 propertyName = pc.propertyName,
                 value = null,
                 oldValue = destCollection
             )
-            destCollection.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
+            destCollection?.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
+            log.debug { "process: property '${propertyContext.propertyName}' was modified." }
             propertyWasModified(context, propertyContext, null)
             return true
         }
         // Calculates the differences between src and dest collection: added, removed and kept entries.
         val compareResults = CollectionUtils.compareCollections(srcCollection, destCollection, withKept = true)
         if (destCollection == null) {
-            destCollection = createCollectionInstance(context, pc, pc.srcPropertyValue)
+            // destCollection is null, so we have to create a new collection.
+            destCollection = createCollectionInstance(pc.srcPropertyValue)
             property.set(dest, destCollection)
         }
         compareResults.removed?.forEach { removeEntry ->
-            log.debug { "Removing collection entry: $removeEntry" }
+            log.debug { "process: Removing collection '${propertyContext.propertyName}' entry: $removeEntry" }
             destCollection.remove(removeEntry)
-            context.debugContext?.add(
-                propertyContext, "Removing entry $removeEntry from destPropertyValue.",
-            )
+            log.debug { "process: Removing entry $removeEntry from destPropertyValue from collection '${propertyContext.propertyName}'." }
         }
         compareResults.added?.forEach { addEntry ->
-            log.debug { "Adding new collection entry: $addEntry" }
+            log.debug { "process: Adding new collection entry: $addEntry" }
             destCollection.add(addEntry)
-            context.debugContext?.add(propertyContext, msg = "Adding entry $addEntry to destPropertyValue.")
+            log.debug { "process: Adding entry $addEntry to destPropertyValue." }
         }
-        var collectionManagedByOwnerEntity = false
+        val entry = compareResults.anyOrNull
+        pc.entriesHistorizable = HistoryServiceUtils.isHistorizable(entry)
+        val updated = mutableListOf<Pair<Any, Any>>() // first is oldValue, second is newValue.
+        val behavior = AnnotationsUtils.getAnnotation(pc.property, PersistenceBehavior::class.java)
+        log.debug { "process: srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}" }
+        val collectionManagedByOwnerEntity = behavior != null && behavior.autoUpdateCollectionEntries
+        log.debug { "process: collectionManagedByOwnerEntity=$collectionManagedByOwnerEntity" }
         run loop@{
             compareResults.kept?.forEach { keptEntry ->
                 // Kept entries are part of src and dest collection, so we have to check modifications.
@@ -115,13 +121,8 @@ open class CollectionHandler : CandHIHandler {
                     // Kept entries are not of type BaseDO, so we can't check modifications.
                     return@loop // break foreach loop
                 }
-                val behavior = AnnotationsUtils.getAnnotation(pc.property, PersistenceBehavior::class.java)
-                context.debugContext?.add(
-                    propertyContext,
-                    msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}",
-                )
-                if (behavior != null && behavior.autoUpdateCollectionEntries) {
-                    collectionManagedByOwnerEntity = true
+                if (collectionManagedByOwnerEntity) {
+                    log.debug { "process: srcEntry collection managed by owner entity." }
                     val destEntry = destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, keptEntry) }
                     try {
                         context.historyContext?.pushHistoryEntryWrapper(keptEntry)
@@ -131,8 +132,10 @@ open class CollectionHandler : CandHIHandler {
                         @Suppress("UNCHECKED_CAST")
                         copyValues(destEntry as BaseDO<Serializable>, oldValue, context.clone())
                         if (copyValues(keptEntry, destEntry, context) == EntityCopyStatus.MAJOR
+                            && pc.entriesHistorizable == false
                         ) {
-                            pc.addUpdated(oldValue = oldValue)
+                            // If the entry was modified and isn't historizable itself, we have to add a history entry.
+                            updated.add(Pair(oldValue, destEntry))
                         }
                     } finally {
                         context.historyContext?.popHistoryEntryWrapper()
@@ -141,9 +144,7 @@ open class CollectionHandler : CandHIHandler {
             }
         }
         if (!compareResults.removed.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
-            val entry = compareResults.anyOrNull!! // Should be given, because we have removed or added entries.
             if (collectionManagedByOwnerEntity) {
-                pc.entriesHistorizable = HistoryServiceUtils.isHistorizable(entry)
                 if (pc.entriesHistorizable == true) {
                     // If collection is managed by this class and the entries are to be historized themselves,
                     // we don't need to add a history entry of removed and added entries as lists.
@@ -153,25 +154,29 @@ open class CollectionHandler : CandHIHandler {
                             entityOpType = EntityOpType.Delete,
                         )
                     }
-                    if (!pc.updated.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
+                    if (!compareResults.added.isNullOrEmpty()) {
                         // If there are modified entries or added entries, we don't need to add a history entry of added and updated entries as list.
-                        compareResults.added?.forEach { added ->
-                            context.addHistoryEntryWrapper(
-                                entity = added as BaseDO<*>,
-                                entityOpType = EntityOpType.Insert,
-                            )
-                        }
+                        // toAdd: Entity id is null, so can't create history master entry now.
+                        // We store the src collection entries in the history context and create the history master entries later.
+                        context.historyContext?.addSrcCollectionWithNewEntries(pc, compareResults.kept)
                     }
                 }
-                pc.updated?.let { addedAndUpdated ->
-                    // Updated entries are already historized.
-                    if (addedAndUpdated.isNotEmpty()) {
-                        // added: Entity id is null, so can't create history entry now.
-                        // We store the src collection entries in the history context and create the history entries later.
-                        context.historyContext?.addCollectionsWithNewAndUpdatedEntries(pc, compareResults.kept)
-                    }
+                if (updated.isNotEmpty()) {
+                    val oldValues = updated.map { it.first }
+                    val newValues = updated.map { it.second }
+                    context.addHistoryEntryWrapper(
+                        entity = dest,
+                        entityOpType = EntityOpType.Update,
+                    )?.addAttribute(
+                        propertyTypeClass = CollectionUtils.getTypeClassOfEntries(newValues),
+                        propertyName = pc.propertyName,
+                        optype = PropertyOpType.Update,
+                        oldValue = oldValues,
+                        newValue = newValues,
+                    )
                 }
             } else {
+                // The collection isn't managed by this class, so we have to add a history entry of removed and added entries as lists.
                 // There are entries to remove or add.
                 context.addHistoryEntry(
                     propertyTypeClass = destCollection.first()!!::class.java,
@@ -192,26 +197,28 @@ open class CollectionHandler : CandHIHandler {
     private fun collectionManagedBySrcClazz(property: KMutableProperty1<*, *>): Boolean {
         val annotations = AnnotationsUtils.getAnnotations(property)
         if (annotations.any { it.annotationClass == NoHistory::class }) {
+            log.debug { "collectionManagedBySrcClazz: Collection is marked as NoHistory, so nothing to do." }
             // No history for this collection, so nothing to do by this src class.
             return false
         }
         if (annotations.any { it.annotationClass == JoinColumn::class } ||
             annotations.any { it.annotationClass == JoinTable::class }
         ) {
+            log.debug { "collectionManagedBySrcClazz: Collection is managed by this class." }
             // There is a join table or column for this entity, so we're assuming to manage this collection.
             return true
         }
         annotations.firstOrNull { it.annotationClass == OneToMany::class }?.let { annotation ->
             annotation as OneToMany
+            val mappedBy = annotation.mappedBy
+            log.debug { "collectionManagedBySrcClazz: Collection mappedBy='$mappedBy' -> managed by this=${mappedBy.isNotEmpty()}" }
             // There is a mappedBy column for this entity, so we're assuming to manage this collection.
-            return annotation.mappedBy.isNotEmpty()
+            return mappedBy.isNotEmpty()
         }
         return false
     }
 
     private fun createCollectionInstance(
-        context: CandHContext,
-        propertyContext: PropertyContext,
         srcCollection: Any
     ): MutableCollection<Any?> {
         val collection: MutableCollection<Any?> = when (srcCollection) {
@@ -220,13 +227,11 @@ open class CollectionHandler : CandHIHandler {
             is ArrayList<*> -> ArrayList()
             is PersistentSet<*> -> HashSet()
             else -> {
-                log.error { "Unsupported collection type: " + srcCollection.javaClass.name }
+                log.error { "createCollectionInstance: Unsupported collection type: " + srcCollection.javaClass.name }
                 ArrayList()
             }
         }
-        propertyContext.apply {
-            context.debugContext?.add(propertyContext, msg = "Creating ${collection.javaClass} as destPropertyValue.")
-        }
+        log.debug { "createCollectionInstance: Creating instance of ${collection.javaClass} as destPropertyValue." }
         return collection
     }
 }

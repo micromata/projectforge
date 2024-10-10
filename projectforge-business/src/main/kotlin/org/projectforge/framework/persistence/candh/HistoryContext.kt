@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.candh
 
-import jline.console.internal.ConsoleRunner.property
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
@@ -31,8 +31,10 @@ import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.utils.CollectionUtils
-import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.jvm.jvmErasure
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Context for handling history entries.
@@ -70,12 +72,16 @@ internal class HistoryContext(
     /**
      * Adds a new collection with new entries. The kept entries are already part of the destination collection.
      */
-    fun addCollectionsWithNewAndUpdatedEntries(propertyContext: PropertyContext, keptEntries: Collection<Any>?) {
+    fun addSrcCollectionWithNewEntries(propertyContext: PropertyContext, keptEntries: Collection<Any>?) {
         collectionsWithNewAndUpdatedEntries = collectionsWithNewAndUpdatedEntries ?: mutableListOf()
         collectionsWithNewAndUpdatedEntries!!.add(SrcCollectionWithNewEntries(propertyContext, keptEntries))
     }
 
+    /**
+     * Returns the prepared history entries. This method should be called after all history entries have been added.
+     */
     fun getPreparedHistoryEntries(): List<HistoryEntryDO> {
+        log.debug { "getPreparedHistoryEntries: ${entity::class.simpleName}" }
         val entryList = historyEntryWrappers.map { it.prepareAndGetHistoryEntry() }.toMutableList()
         collectionsWithNewAndUpdatedEntries?.forEach { entry ->
             val pc = entry.propertyContext
@@ -87,27 +93,32 @@ internal class HistoryContext(
             @Suppress("UNCHECKED_CAST")
             val destCol = property.get(dest) as? Collection<Any>
             val keptEntries = entry.keptEntries
+            val added = mutableListOf<Any>()
+            destCol?.forEach { destEntry ->
+                @Suppress("UNCHECKED_CAST")
+                destEntry as IdObject<Long>
+                if (keptEntries?.contains(destEntry) != true) {
+                    // This is a new entry, not existing in the dest collection before.
+                    added.add(destEntry)
+                }
+            }
+
             if (pc.entriesHistorizable == true) {
-                destCol?.forEach { destEntry ->
+                added.forEach { destEntry ->
                     @Suppress("UNCHECKED_CAST")
                     destEntry as IdObject<Long>
-                    if (keptEntries?.contains(destEntry) != true) {
-                        // This is a new entry, not existing in the dest collection before.
-                        entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
-                    }
+                    entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
                 }
             } else {
-                @Suppress("UNCHECKED_CAST")
-                val srcCol = property.get(pc.src) as? Collection<Any>
                 // The collection is not historizable. We need to check if the collection has been changed.
                 @Suppress("UNCHECKED_CAST")
                 val histEntry = HistoryEntryDO.create(pc.src as IdObject<Long>, EntityOpType.Update)
                 val attr = HistoryEntryAttrDO.create(
-                    propertyTypeClass =CollectionUtils.getTypeClassOfEntries(pc.updated ?: destCol),
+                    propertyTypeClass = CollectionUtils.getTypeClassOfEntries(destCol),
                     opType = PropertyOpType.Update,
                     propertyName = pc.propertyName,
                 )
-                attr.serializeAndSet(oldValue = pc.updated, newValue = destCol)
+                attr.serializeAndSet(oldValue = null, newValue = added)
                 histEntry.add(attr)
                 entryList.add(histEntry)
             }
@@ -122,6 +133,7 @@ internal class HistoryContext(
         entity: BaseDO<*>,
         entityOpType: EntityOpType = EntityOpType.Update,
     ): CandHHistoryEntryWrapper {
+        log.debug { "addHistoryWrapper: ${entity::class.simpleName}, entityOpType=$entityOpType" }
         @Suppress("UNCHECKED_CAST")
         entity as IdObject<Long>
         CandHHistoryEntryWrapper.create(entity = entity, entityOpType = entityOpType).let {
@@ -138,6 +150,7 @@ internal class HistoryContext(
         entity: BaseDO<*>,
         entityOpType: EntityOpType = EntityOpType.Update,
     ): CandHHistoryEntryWrapper {
+        log.debug { "pushHistoryEntryWrapper: ${entity::class.simpleName}, entityOpType=$entityOpType" }
         @Suppress("UNCHECKED_CAST")
         entity as IdObject<Long>
         CandHHistoryEntryWrapper.create(entity = entity, entityOpType = entityOpType).let {
@@ -152,6 +165,7 @@ internal class HistoryContext(
      * If the historyEntryWrapper has no attributes, it will be removed from the historyEntryWrappers list.
      */
     fun popHistoryEntryWrapper(): CandHHistoryEntryWrapper {
+        log.debug { "popHistoryEntryWrapper" }
         if (currentHistoryEntryWrapper?.attributeWrappers.isNullOrEmpty()) {
             // If the historyEntryWrapper has no attributes, we don't need to keep it.
             historyEntryWrappers.remove(currentHistoryEntryWrapper)
@@ -167,7 +181,6 @@ internal class HistoryContext(
             }
             currentHistoryEntryWrapper!!.let { historyEntryWrapper ->
                 historyEntryWrapper.attributeWrappers = historyEntryWrapper.attributeWrappers ?: mutableSetOf()
-                @Suppress("UNCHECKED_CAST")
                 return historyEntryWrapper.attributeWrappers!!
             }
         }
@@ -197,6 +210,7 @@ internal class HistoryContext(
         newValue: Any?,
         propertyName: String?,
     ) {
+        log.debug { "add: Add history entry: ${property.returnType.jvmErasure}, $optype, oldValue=$oldValue, newValue=$newValue, propertyName=$propertyName" }
         currentHistoryEntryAttrs.add(
             CandHHistoryAttrWrapper.create(
                 property = property,
@@ -218,6 +232,7 @@ internal class HistoryContext(
         newValue: Any?,
         propertyName: String?,
     ) {
+        log.debug { "add: Add history entry: $propertyTypeClass, $optype, oldValue=$oldValue, newValue=$newValue, propertyName=$propertyName" }
         currentHistoryEntryAttrs.add(
             CandHHistoryAttrWrapper.create(
                 propertyTypeClass = propertyTypeClass,

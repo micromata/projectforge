@@ -44,8 +44,12 @@ object CollectionUtils {
     }
 
     fun getTypeClassOfEntries(col: Collection<*>?): Class<*> {
-        col ?: return Any::class.java
-        return col.firstOrNull()?.javaClass ?: Any::class.java
+        return getTypeClassOfEntriesOrNull(col)!!
+    }
+
+    fun getTypeClassOfEntriesOrNull(col: Collection<*>?): Class<*>? {
+        col ?: return null
+        return col.firstOrNull()?.javaClass
     }
 
     /**

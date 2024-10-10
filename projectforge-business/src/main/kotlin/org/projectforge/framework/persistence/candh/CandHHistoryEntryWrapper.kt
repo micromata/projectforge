@@ -27,6 +27,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.PropertyOpType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
@@ -35,6 +36,25 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  */
 internal class CandHHistoryEntryWrapper(private var historyEntry: HistoryEntryDO) {
     internal var attributeWrappers: MutableSet<CandHHistoryAttrWrapper>? = null
+
+    fun addAttribute(
+        propertyTypeClass: Class<*>,
+        propertyName: String?,
+        optype: PropertyOpType,
+        oldValue: Any? = null,
+        newValue: Any? = null,
+    ): CandHHistoryAttrWrapper {
+        val attr = CandHHistoryAttrWrapper.create(
+            propertyTypeClass,
+            propertyName = propertyName,
+            optype = optype,
+            oldValue = oldValue,
+            newValue = newValue
+        )
+        attributeWrappers = attributeWrappers ?: mutableSetOf()
+        attributeWrappers!!.add(attr)
+        return attr
+    }
 
     fun prepareAndGetHistoryEntry(): HistoryEntryDO {
         historyEntry.attributes = mutableSetOf()

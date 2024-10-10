@@ -29,6 +29,7 @@ import org.projectforge.Constants
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -127,14 +128,13 @@ class CandHHandlerTest {
         destFieldValue: Any?,
         modificationExpected: Boolean,
     ) {
-        val context = CandHContext(src, debug = true)
+        val context = CandHContext(src)
         val property = kClass.memberProperties.find { it.name == propertyName }!!
         @Suppress("UNCHECKED_CAST")
         property as KMutableProperty1<BaseDO<*>, Any?>
         property.set(src, srcFieldValue)  // Setzt den neuen Wert
         property.set(dest, destFieldValue)
         val fieldContext = PropertyContext(
-            kClass = kClass,
             src = src,
             dest = dest,
             propertyName = propertyName,
@@ -144,11 +144,10 @@ class CandHHandlerTest {
         )
         handler.process(fieldContext, context = context)
         Assertions.assertEquals(property.get(src), property.get(dest))
-        val debugEntries = context.debugContext!!.entries
         if (modificationExpected) {
-            Assertions.assertTrue(debugEntries.isNotEmpty())
+            Assertions.assertTrue(context.currentCopyStatus != EntityCopyStatus.NONE)
         } else {
-            Assertions.assertTrue(debugEntries.isEmpty())
+            Assertions.assertTrue(context.currentCopyStatus == EntityCopyStatus.NONE)
         }
     }
 }

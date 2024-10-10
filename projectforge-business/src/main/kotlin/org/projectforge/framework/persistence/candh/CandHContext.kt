@@ -23,13 +23,14 @@
 
 package org.projectforge.framework.persistence.candh
 
-import jline.console.internal.ConsoleRunner.property
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
-import kotlin.reflect.KMutableProperty1
+
+private val log = KotlinLogging.logger {}
 
 class CandHContext constructor(
     /**
@@ -37,7 +38,6 @@ class CandHContext constructor(
      */
     val entity: BaseDO<*>,
     var currentCopyStatus: EntityCopyStatus = EntityCopyStatus.NONE,
-    debug: Boolean = false,
     /**
      * If given, history entries are created.
      */
@@ -46,26 +46,8 @@ class CandHContext constructor(
     val historyEntries: List<HistoryEntryDO>?
         get() = historyContext?.getPreparedHistoryEntries()
 
-    internal val debugContext = if (debug) DebugContext() else null
-
     // Only if entityOpType is given, history entries are created.
     internal val historyContext = if (entityOpType != null) HistoryContext(entity, entityOpType) else null
-
-    internal fun addHistoryEntry(
-        property: KMutableProperty1<*, *>,
-        optype: PropertyOpType = PropertyOpType.Update,
-        oldValue: Any?,
-        value: Any?,
-        propertyName: String?,
-    ) {
-        historyContext?.add(
-            property = property,
-            optype = optype,
-            propertyName = propertyName,
-            newValue = value,
-            oldValue = oldValue,
-        )
-    }
 
     internal fun addHistoryEntry(
         propertyTypeClass: Class<*>,
@@ -87,8 +69,8 @@ class CandHContext constructor(
     internal fun addHistoryEntryWrapper(
         entity: BaseDO<*>,
         entityOpType: EntityOpType = EntityOpType.Update,
-    ) {
-        historyContext?.addHistoryEntryWrapper(
+    ): CandHHistoryEntryWrapper? {
+        return historyContext?.addHistoryEntryWrapper(
             entity = entity,
             entityOpType = entityOpType,
         )
@@ -96,16 +78,14 @@ class CandHContext constructor(
 
     fun combine(status: EntityCopyStatus): EntityCopyStatus {
         val newStatus = currentCopyStatus.combine(status)
-        debugContext?.let {
-            if (newStatus != currentCopyStatus) {
-                it.add(msg = "Status changed from $currentCopyStatus to $newStatus")
-            }
+        if (currentCopyStatus != newStatus) {
+            log.debug { "Status changed from $currentCopyStatus to $newStatus" }
         }
         currentCopyStatus = newStatus
         return currentCopyStatus
     }
 
     fun clone(): CandHContext {
-        return CandHContext(entity, currentCopyStatus, debugContext != null, historyContext?.entityOpType)
+        return CandHContext(entity, currentCopyStatus, entityOpType = historyContext?.entityOpType)
     }
 }

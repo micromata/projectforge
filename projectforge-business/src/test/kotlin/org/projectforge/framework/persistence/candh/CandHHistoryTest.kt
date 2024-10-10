@@ -288,6 +288,8 @@ class CandHHistoryTest : AbstractTestBase() {
             pos.einzelNetto = BigDecimal("20")
         }
         val id = rechnungDao.saveInTrans(invoice)
+
+        val hist = createHistoryTester()
         invoice = rechnungDao.getById(id)!!
         invoice.kunde = customer2
         invoice.getAbstractPosition(0).let { pos ->
@@ -301,7 +303,6 @@ class CandHHistoryTest : AbstractTestBase() {
             pos.menge = BigDecimal("3")
             pos.einzelNetto = BigDecimal("30")
         }
-        val hist = createHistoryTester()
         rechnungDao.updateInTrans(invoice)
         invoice = rechnungDao.getById(id)!!
         val count = persistenceService.selectSingleResult(

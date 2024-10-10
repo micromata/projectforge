@@ -23,6 +23,8 @@
 
 package org.projectforge.test
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.LoggerContext
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.junit.jupiter.api.AfterAll
@@ -66,6 +68,7 @@ import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.registry.Registry
 import org.projectforge.test.DatabaseHelper.clearDatabase
 import org.projectforge.web.WicketSupport
+import org.slf4j.LoggerFactory
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -363,6 +366,28 @@ abstract class AbstractTestBase protected constructor() {
 
     fun createHistoryTester(): HistoryTester {
         return HistoryTester(persistenceService, historyService)
+    }
+
+    /**
+     * Suppresses ERROR log entries during the execution of the given action.
+     *
+     * @param action The action to be executed
+     */
+    fun suppressErrorLogs(action: () -> Unit) {
+        // Access the LoggerContext of the current application
+        val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext
+        // Save the original log levels of all loggers
+        val originalLevels = loggerContext.loggerList.associateWith { it.level }
+        try {
+            // Set the log level of all loggers to OFF (suppress ERROR log entries)
+            loggerContext.loggerList.forEach { logger -> logger.level = Level.OFF }
+            action()
+        } finally {
+            // Restore the original log levels of all loggers
+            originalLevels.forEach { (logger, originalLevel) ->
+                logger.level = originalLevel
+            }
+        }
     }
 
     companion object {
