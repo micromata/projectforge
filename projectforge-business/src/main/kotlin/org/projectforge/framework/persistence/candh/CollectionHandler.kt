@@ -30,15 +30,18 @@ import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.history.PersistenceBehavior
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.candh.CandHMaster.copyValues
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.HistoryServiceUtils
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.utils.CollectionUtils
 import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
 
@@ -104,7 +107,7 @@ open class CollectionHandler : CandHIHandler {
             destCollection.add(addEntry)
             context.debugContext?.add(propertyContext, msg = "Adding entry $addEntry to destPropertyValue.")
         }
-        var collectionManagedByThis = false
+        var collectionManagedByOwnerEntity = false
         run loop@{
             compareResults.kept?.forEach { keptEntry ->
                 // Kept entries are part of src and dest collection, so we have to check modifications.
@@ -118,17 +121,19 @@ open class CollectionHandler : CandHIHandler {
                     msg = "srcEntry of src-collection is BaseDO. autoUpdateCollectionEntres = ${behavior?.autoUpdateCollectionEntries == true}",
                 )
                 if (behavior != null && behavior.autoUpdateCollectionEntries) {
-                    collectionManagedByThis = true
-                    val destEntry =
-                        destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, keptEntry) }
+                    collectionManagedByOwnerEntity = true
+                    val destEntry = destCollection.first { CollectionUtils.idObjectsEqual(it as BaseDO<*>, keptEntry) }
                     try {
                         context.historyContext?.pushHistoryEntryWrapper(keptEntry)
                         @Suppress("UNCHECKED_CAST")
-                        copyValues(
-                            keptEntry,
-                            destEntry as BaseDO<Serializable>,
-                            context,
-                        )
+                        val oldValue = keptEntry::class.createInstance() as BaseDO<Serializable>
+                        // oldValue is a deep copy of destEntry (unmodified from database).
+                        @Suppress("UNCHECKED_CAST")
+                        copyValues(destEntry as BaseDO<Serializable>, oldValue, context.clone())
+                        if (copyValues(keptEntry, destEntry, context) == EntityCopyStatus.MAJOR
+                        ) {
+                            pc.addUpdated(oldValue = oldValue)
+                        }
                     } finally {
                         context.historyContext?.popHistoryEntryWrapper()
                     }
@@ -136,18 +141,35 @@ open class CollectionHandler : CandHIHandler {
             }
         }
         if (!compareResults.removed.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
-            if (collectionManagedByThis) {
-                // If collection is managed by this class, we don't need to add a history entry of removed and added entries as lists.
-                compareResults.removed?.forEach { entry ->
-                    context.addHistoryEntryWrapper(
-                        entity = entry as BaseDO<*>,
-                        entityOpType = EntityOpType.Delete,
-                    )
+            val entry = compareResults.anyOrNull!! // Should be given, because we have removed or added entries.
+            if (collectionManagedByOwnerEntity) {
+                pc.entriesHistorizable = HistoryServiceUtils.isHistorizable(entry)
+                if (pc.entriesHistorizable == true) {
+                    // If collection is managed by this class and the entries are to be historized themselves,
+                    // we don't need to add a history entry of removed and added entries as lists.
+                    compareResults.removed?.forEach { removed ->
+                        context.addHistoryEntryWrapper(
+                            entity = removed as BaseDO<*>,
+                            entityOpType = EntityOpType.Delete,
+                        )
+                    }
+                    if (!pc.updated.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
+                        // If there are modified entries or added entries, we don't need to add a history entry of added and updated entries as list.
+                        compareResults.added?.forEach { added ->
+                            context.addHistoryEntryWrapper(
+                                entity = added as BaseDO<*>,
+                                entityOpType = EntityOpType.Insert,
+                            )
+                        }
+                    }
                 }
-                if (!compareResults.added.isNullOrEmpty()) {
-                    // toAdd: Entity id is null, so can't create history entry now.
-                    // We store the src collection entries in the history context and create the history entries later.
-                    context.historyContext?.addSrcCollectionWithNewEntries(pc, compareResults.kept)
+                pc.updated?.let { addedAndUpdated ->
+                    // Updated entries are already historized.
+                    if (addedAndUpdated.isNotEmpty()) {
+                        // added: Entity id is null, so can't create history entry now.
+                        // We store the src collection entries in the history context and create the history entries later.
+                        context.historyContext?.addCollectionsWithNewAndUpdatedEntries(pc, compareResults.kept)
+                    }
                 }
             } else {
                 // There are entries to remove or add.

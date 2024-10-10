@@ -26,7 +26,10 @@ package org.projectforge.framework.persistence.history
 import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 
 /**
  * Stores history attributes.
@@ -110,7 +113,7 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     @get:Column(name = "propertyname", length = 255)
     override var propertyName: String? = null
 
-    @get:jakarta.persistence.Transient
+    @get:Transient
     val plainPropertyName: String?
         get() = HistoryEntryDOUtils.getPlainPropertyName(this)
 
@@ -136,9 +139,10 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
             if (value.isEmpty()) {
                 return ""
             }
-            return value.filterNotNull().joinToString(",") { obj ->
+            val serialized = value.filterNotNull().map { obj ->
                 handler.serialize(obj) ?: "null"
             }
+            return serialized.sorted().joinToString(",")
         }
         return handler.serialize(value)
     }
@@ -168,6 +172,25 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
             attr.serializeAndSet(oldValue = oldValue, newValue = newValue)
             historyEntry?.add(attr)
             return attr
+        }
+
+        fun create(
+            property: KMutableProperty1<*, *>,
+            propertyName: String?,
+            opType: PropertyOpType,
+            oldValue: Any? = null,
+            newValue: Any? = null,
+            historyEntry: HistoryEntryDO? = null,
+        ): HistoryEntryAttrDO {
+            val propertyTypeClass = (property.returnType.classifier as KClass<*>).java
+            return create(
+                propertyTypeClass = propertyTypeClass,
+                propertyName = propertyName,
+                opType = opType,
+                oldValue = oldValue,
+                newValue = newValue,
+                historyEntry = historyEntry,
+            )
         }
     }
 

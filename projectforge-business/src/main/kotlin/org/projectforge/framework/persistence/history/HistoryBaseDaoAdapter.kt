@@ -23,15 +23,12 @@
 
 package org.projectforge.framework.persistence.history
 
-import mu.KotlinLogging
 import org.projectforge.common.mgc.MGCClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import java.util.*
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Utility to provide functionalities for BaseDao.
@@ -55,7 +52,7 @@ object HistoryBaseDaoAdapter {
             entityClass,
             WithHistory::class.java
         )
-        return whl.isEmpty() == false
+        return !whl.isEmpty()
     }
 
     fun createHistoryEntry(entity: IdObject<Long>, opType: EntityOpType): HistoryEntryDO {

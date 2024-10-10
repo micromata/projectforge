@@ -23,9 +23,12 @@
 
 package org.projectforge.framework.persistence.candh
 
+import jline.console.internal.ConsoleRunner.property
+import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
+import kotlin.reflect.KMutableProperty1
 
 /**
  * Wrapper for HistoryEntryAttrDO with additional functionalities.
@@ -54,6 +57,22 @@ internal class CandHHistoryAttrWrapper(
 
 
     companion object {
+        fun create(
+            property: KMutableProperty1<*, *>,
+            propertyName: String?,
+            optype: PropertyOpType,
+            oldValue: Any? = null,
+            newValue: Any? = null,
+        ): CandHHistoryAttrWrapper {
+            HistoryEntryAttrDO.create(
+                property = property,
+                propertyName = propertyName,
+                opType = optype,
+            ).let { attr ->
+                return CandHHistoryAttrWrapper(attr, oldValue = oldValue, newValue = newValue)
+            }
+        }
+
         @JvmOverloads
         fun create(
             propertyTypeClass: Class<*>,

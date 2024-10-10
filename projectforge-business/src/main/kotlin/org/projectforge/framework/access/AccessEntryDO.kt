@@ -31,9 +31,12 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import java.io.Serializable
 import jakarta.persistence.*
+import org.projectforge.framework.persistence.history.NoHistory
 
 /**
  * Represents a single generic access entry for the four main SQL functionalities.
+ *
+ * History is handled by the parent object [GroupTaskAccessDO].
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */

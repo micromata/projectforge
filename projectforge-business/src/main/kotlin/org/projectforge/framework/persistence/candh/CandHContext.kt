@@ -23,11 +23,13 @@
 
 package org.projectforge.framework.persistence.candh
 
+import jline.console.internal.ConsoleRunner.property
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
+import kotlin.reflect.KMutableProperty1
 
 class CandHContext constructor(
     /**
@@ -50,6 +52,22 @@ class CandHContext constructor(
     internal val historyContext = if (entityOpType != null) HistoryContext(entity, entityOpType) else null
 
     internal fun addHistoryEntry(
+        property: KMutableProperty1<*, *>,
+        optype: PropertyOpType = PropertyOpType.Update,
+        oldValue: Any?,
+        value: Any?,
+        propertyName: String?,
+    ) {
+        historyContext?.add(
+            property = property,
+            optype = optype,
+            propertyName = propertyName,
+            newValue = value,
+            oldValue = oldValue,
+        )
+    }
+
+    internal fun addHistoryEntry(
         propertyTypeClass: Class<*>,
         optype: PropertyOpType = PropertyOpType.Update,
         oldValue: Any?,
@@ -64,6 +82,7 @@ class CandHContext constructor(
             oldValue = oldValue,
         )
     }
+
 
     internal fun addHistoryEntryWrapper(
         entity: BaseDO<*>,
@@ -84,5 +103,9 @@ class CandHContext constructor(
         }
         currentCopyStatus = newStatus
         return currentCopyStatus
+    }
+
+    fun clone(): CandHContext {
+        return CandHContext(entity, currentCopyStatus, debugContext != null, historyContext?.entityOpType)
     }
 }

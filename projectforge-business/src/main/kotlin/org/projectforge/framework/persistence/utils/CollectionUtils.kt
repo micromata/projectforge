@@ -34,7 +34,19 @@ object CollectionUtils {
         val removed: Collection<T>? = null,
         /** Entries in src and dest. */
         val kept: Collection<T>? = null,
-    )
+    ) {
+        /**
+         * Returns the first entry of added, removed or kept entries. Is needed to check weather the entries should
+         * be historized or not.
+         */
+        val anyOrNull: T?
+            get() = added?.firstOrNull() ?: removed?.firstOrNull() ?: kept?.firstOrNull()
+    }
+
+    fun getTypeClassOfEntries(col: Collection<*>?): Class<*> {
+        col ?: return Any::class.java
+        return col.firstOrNull()?.javaClass ?: Any::class.java
+    }
 
     /**
      * Joins the id's of the given collection to a csv string. The entries are sorted by id.

@@ -40,6 +40,7 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -81,6 +82,7 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
     @get:Column(name = "description", length = 4000)
     open var description: String? = null
 
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @PropertyInfo(i18nKey = "access.type")
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)
