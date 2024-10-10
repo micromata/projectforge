@@ -234,25 +234,27 @@ class GroupDaoTest : AbstractTestBase() {
         )
         hist.loadRecentHistoryEntries(0)
 
-        // -12 is unkown, exception expected.
-        try {
-            groupDao.assignGroupByIdsInTrans(
-                users[1], groupsToAssign = listOf(testContext.groups[2].id, -12),
-                groupsToUnassign = asIds(groups, arrayOf(0, 1))
-            )
-            Assertions.fail { "IllegalArgumentException expected tue to unknown group." }
-        } catch (ex: RuntimeException) {
-            // Expected.
-        }
-        // -18 is unkonwn, exception expected.
-        try {
-            groupDao.assignGroupByIdsInTrans(
-                users[1], groupsToAssign = listOf(testContext.groups[2].id),
-                groupsToUnassign = listOf(testContext.groups[0].id, -18)
-            )
-            Assertions.fail { "IllegalArgumentException expected tue to unknown group." }
-        } catch (ex: RuntimeException) {
-            // Expected.
+        suppressErrorLogs {
+            // -12 is unkonwn, exception expected.
+            try {
+                groupDao.assignGroupByIdsInTrans(
+                    users[1], groupsToAssign = listOf(testContext.groups[2].id, -12),
+                    groupsToUnassign = asIds(groups, arrayOf(0, 1))
+                )
+                Assertions.fail { "IllegalArgumentException expected tue to unknown group." }
+            } catch (ex: RuntimeException) {
+                // Expected.
+            }
+            // -18 is unkonwn, exception expected.
+            try {
+                groupDao.assignGroupByIdsInTrans(
+                    users[1], groupsToAssign = listOf(testContext.groups[2].id),
+                    groupsToUnassign = listOf(testContext.groups[0].id, -18)
+                )
+                Assertions.fail { "IllegalArgumentException expected tue to unknown group." }
+            } catch (ex: RuntimeException) {
+                // Expected.
+            }
         }
     }
 

@@ -78,8 +78,7 @@ class AccessDaoTest : AbstractTestBase() {
         }
         accessDao.saveOrUpdateInTrans(access)
         hist.loadRecentHistoryEntries(1, 1)
-        val value =
-            "OWN_TIMESHEETS={true,true,true,true},TASKS={true,false,false,false},TIMESHEETS={false,true,false,false}"
+        val value = "TIMESHEETS={false,true,false,false}"
         val oldValue = "TIMESHEETS={true,false,false,false}"
         hist.getEntry(0).assertAttr("accessEntries", value = value, oldValue = oldValue, propertyTypeClass = AccessEntryDO::class)
     }

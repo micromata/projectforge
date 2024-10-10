@@ -25,11 +25,9 @@ package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.utils.CollectionUtils
-import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 
 class PropertyContext(
-    val kClass: KClass<*>,
     val src: BaseDO<*>,
     val dest: BaseDO<*>,
     val propertyName: String,
@@ -42,15 +40,7 @@ class PropertyContext(
     val propertyTypeClass: Class<*>
         get() = CollectionUtils.getTypeClassOfEntries(srcPropertyValue as Collection<*>)
 
-    fun addUpdated(oldValue: Any?) {
-        oldValue ?: return
-        updated = updated ?: mutableListOf()
-        updated!!.add(oldValue)
+    override fun toString(): String {
+        return "PropertyContext(propertyName='$propertyName', srcPropertyValue=$srcPropertyValue, destPropertyValue=$destPropertyValue, entriesHistorizable=$entriesHistorizable)"
     }
-
-    /**
-     * Stores modified entries of a collection (old value).
-     */
-    internal var updated: MutableList<Any>? = null
-        private set
 }

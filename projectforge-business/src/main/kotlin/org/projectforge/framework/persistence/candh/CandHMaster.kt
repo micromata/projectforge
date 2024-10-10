@@ -79,6 +79,7 @@ object CandHMaster {
         entityOpType: EntityOpType? = null,
     ): CandHContext {
         val context = CandHContext(src, entityOpType = entityOpType)
+        log.debug { "################ copyValues: ${src.javaClass.simpleName}, ignoreProperties=${ignoreProperties.joinToString()}" }
         copyValues(
             src = src,
             dest = dest,
@@ -166,12 +167,12 @@ object CandHMaster {
         processedProperties: MutableSet<String>,
         vararg ignoreProperties: String,
     ) {
-        context.debugContext?.add(msg = "Processing class $kClass")
+        log.debug { "copyProperties: Processing class $kClass" }
         kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
             // The following check does not work for Java classes, because the visibility of the fields is never 'public'.
             // For support of Java classes, the visibility check must be modified.
             if (property.setter.visibility != KVisibility.PUBLIC || property.getter.visibility != KVisibility.PUBLIC) {
-                log.debug { "Getter and/or setter of property $kClass.${property.name} has not visibility 'public', ignoring it." }
+                log.debug { "copyProperties: Getter and/or setter of property $kClass.${property.name} has not visibility 'public', ignoring it." }
                 return@forEach
             }
             @Suppress("UNCHECKED_CAST")
@@ -186,19 +187,20 @@ object CandHMaster {
             }
             processedProperties.add(propertyName)
             if (ignoreProperties.contains(propertyName)) {
-                context.debugContext?.add("Ignoring property '$kClass.$propertyName' in list of ignoreProperties.")
+                log.debug { "copyProperties: Ignoring property '$kClass.$propertyName' in list of ignoreProperties." }
                 return@forEach
             }
 
             if (!accept(property)) {
-                context.debugContext?.add("Ignoring property '$kClass.$propertyName', not accepted.")
+                log.debug { "copyProperties: Ignoring property '${kClass.simpleName}.$propertyName', not accepted." }
                 return@forEach
             }
+            log.debug { "copyProperties: Processing property '${kClass.simpleName}.$propertyName'." }
+
             try {
                 val srcValue = property.get(src)
                 val destValue = property.get(dest)
                 val propertyContext = PropertyContext(
-                    kClass = kClass,
                     src = src,
                     dest = dest,
                     propertyName = propertyName,
@@ -209,6 +211,7 @@ object CandHMaster {
                 var processed = false
                 for (handler in registeredHandlers) {
                     if (handler.accept(property)) {
+                        log.debug { "copyProperties: Processing property '${kClass.simpleName}.$propertyName' with handler: ${handler.javaClass.simpleName}" }
                         if (handler.process(propertyContext, context = context)) {
                             processed = true
                             break
@@ -219,7 +222,7 @@ object CandHMaster {
                     log.error { "******** Oups, property $kClass.$propertyName not processed!" }
                 }
             } catch (ex: Exception) {
-                log.error(ex) { "Error processing property $kClass.$propertyName: ${ex.message}" }
+                log.error(ex) { "Error processing property ${kClass.simpleName}.$propertyName: ${ex.message}" }
                 throw InternalError("Unexpected IllegalAccessException for property $kClass.$propertyName " + ex.message)
             }
         }
@@ -240,11 +243,13 @@ object CandHMaster {
                 || !HibernateUtils.isPersistedProperty(src.javaClass, propertyName)
             ) {
                 // This property is not historized, so no major update:
+                log.debug { "propertyWasModified: Property '$propertyName' not historizable -> MINOR." }
                 context.combine(EntityCopyStatus.MINOR)
                 return
             }
             if (context.currentCopyStatus == EntityCopyStatus.MAJOR || src !is AbstractHistorizableBaseDO<*> || src !is HibernateProxy) {
                 if (type != null && HistoryServiceUtils.isHistorizable(src)) {
+                    log.debug { "propertyWasModified: Property '$propertyName' was modified and ${src.javaClass.simpleName} is historizable." }
                     handleHistoryEntry(context, propertyContext, type)
                 }
                 context.combine(EntityCopyStatus.MAJOR) // equals to context.currentCopyStatus=MAJOR.
@@ -259,13 +264,13 @@ object CandHMaster {
         type: PropertyOpType,
     ) {
         if (context.historyContext == null || !HistoryServiceUtils.isHistorizable(propertyContext.src)) {
+            log.debug { "handleHistoryEntry: No history context or not historizable." }
             // No history required.
             return
         }
         // The property is historizable, so we have to handle it.
-        propertyContext.apply {
-            context.historyContext.add(propertyContext, type)
-        }
+        log.debug { "handleHistoryEntry: Adding history entry for property ${propertyContext.propertyName}, type=${PropertyOpType}: pc=$propertyContext" }
+        context.historyContext.add(propertyContext, type)
     }
 
     /**

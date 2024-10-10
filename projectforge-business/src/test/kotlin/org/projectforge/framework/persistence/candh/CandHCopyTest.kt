@@ -65,14 +65,13 @@ class CandHCopyTest : AbstractTestBase() {
 
     @Test
     fun collectionTests() {
-        val debug = false // For user in debugging-mode
         val src = GroupDO()
         val dest = GroupDO()
-        copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
+        copyValues(src, dest, EntityCopyStatus.NONE).let { context ->
             Assertions.assertEquals(0, context.historyEntries!!.size)
         }
         dest.assignedUsers = mutableSetOf()
-        copyValues(src, dest, EntityCopyStatus.NONE, debug).let { context ->
+        copyValues(src, dest, EntityCopyStatus.NONE).let { context ->
             Assertions.assertEquals(0, context.historyEntries!!.size)
         }
 
@@ -80,27 +79,27 @@ class CandHCopyTest : AbstractTestBase() {
         val user2 = createUser(2, "user2")
         val user3 = createUser(3, "user3")
         dest.assignedUsers = mutableSetOf(user1, user2)
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug).let { context ->
+        copyValues(src, dest, EntityCopyStatus.MAJOR).let { context ->
             Assertions.assertEquals(1, context.historyEntries!!.size)
             assertHistoryEntry(context, "assignedUsers", "", "1,2")
         }
         Assertions.assertTrue(dest.assignedUsers.isNullOrEmpty())
 
         src.assignedUsers = mutableSetOf(user1, user2)
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, EntityCopyStatus.MAJOR)
         Assertions.assertEquals(2, dest.assignedUsers!!.size)
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1L })
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2L })
 
         src.assignedUsers!!.add(user3)
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, EntityCopyStatus.MAJOR)
         Assertions.assertEquals(3, dest.assignedUsers!!.size)
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1L })
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 2L })
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3L })
 
         src.assignedUsers!!.remove(user2)
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, EntityCopyStatus.MAJOR)
         Assertions.assertEquals(2, dest.assignedUsers!!.size)
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 1L })
         Assertions.assertTrue(dest.assignedUsers!!.any { it.id == 3L })
@@ -108,15 +107,14 @@ class CandHCopyTest : AbstractTestBase() {
 
     @Test
     fun auftragTest() {
-        val debug = true // For user in debugging-mode
         val src = AuftragDO()
         val dest = AuftragDO()
-        copyValues(src, dest, EntityCopyStatus.NONE, debug)
+        copyValues(src, dest, EntityCopyStatus.NONE)
         val pos1 = AuftragsPositionDO()
         pos1.auftrag = src
         pos1.nettoSumme = BigDecimal.valueOf(2590, 2)
         src.addPosition(pos1)
-        copyValues(src, dest, expectedStatus = EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, expectedStatus = EntityCopyStatus.MAJOR)
         Assertions.assertEquals(1, dest.positionen!!.size)
         Assertions.assertEquals("25.90", dest.positionen!![0].nettoSumme!!.toString())
         val destPos1 = AuftragsPositionDO()
@@ -124,7 +122,7 @@ class CandHCopyTest : AbstractTestBase() {
         destPos1.nettoSumme = BigDecimal.valueOf(259, 1)
         destPos1.number = 1
         dest.positionen = mutableListOf(destPos1)
-        copyValues(src, dest, EntityCopyStatus.NONE, debug)
+        copyValues(src, dest, EntityCopyStatus.NONE)
         Assertions.assertEquals(
             "25.9",
             dest.positionen!![0].nettoSumme!!.toString(),
@@ -132,7 +130,7 @@ class CandHCopyTest : AbstractTestBase() {
         )
 
         pos1.nettoSumme = BigDecimal.TEN
-        copyValues(src, dest, EntityCopyStatus.MAJOR, debug)
+        copyValues(src, dest, EntityCopyStatus.MAJOR)
         Assertions.assertEquals("10", dest.positionen!![0].nettoSumme!!.toString())
     }
 
@@ -149,8 +147,7 @@ class CandHCopyTest : AbstractTestBase() {
         expectedStatus: EntityCopyStatus,
         msg: String = "",
     ) {
-        val debug = false // For use in debugging-mode
-        copyValues(src, dest, expectedStatus, debug)
+        copyValues(src, dest, expectedStatus)
         // Assertions.assertEquals(src.id, dest.id, msg) // Id is not copied.
         Assertions.assertEquals(src.title, dest.title, msg)
         Assertions.assertEquals(src.number, dest.number, msg)
@@ -179,18 +176,13 @@ class CandHCopyTest : AbstractTestBase() {
         src: BaseDO<IdType>,
         dest: BaseDO<IdType>,
         expectedStatus: EntityCopyStatus,
-        debug: Boolean,
         entityOpType: EntityOpType = EntityOpType.Update,
     ): CandHContext {
         val resultContext =
-            CandHContext(src, debug = debug, entityOpType = EntityOpType.Update)
+            CandHContext(src, entityOpType = EntityOpType.Update)
         CandHMaster.copyValues(src, dest, resultContext)
         Assertions.assertEquals(expectedStatus, resultContext.currentCopyStatus)
-        CandHContext(
-            src,
-            debug = debug,
-            entityOpType = entityOpType,
-        ).let { context ->
+        CandHContext(src, entityOpType = entityOpType).let { context ->
             CandHMaster.copyValues(src, dest, context)
             Assertions.assertEquals(EntityCopyStatus.NONE, context.currentCopyStatus)
         }

@@ -23,11 +23,14 @@
 
 package org.projectforge.framework.persistence.candh
 
+import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.PropertyOpType
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.jvmErasure
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Used for primitive types, String, Integer, LocalDate etc. Simply sets the destValue to srcValue if not equals.
@@ -38,6 +41,7 @@ open class DefaultHandler : CandHIHandler {
     }
 
     override fun process(propertyContext: PropertyContext, context: CandHContext): Boolean {
+        log.debug { "Processing property '${propertyContext.propertyName}' propertyContext=$propertyContext" }
         var modified = false
         propertyContext.apply {
             if (destPropertyValue == null || srcPropertyValue == null) {
@@ -48,7 +52,7 @@ open class DefaultHandler : CandHIHandler {
                 modified = true
             }
             if (modified) {
-                context.debugContext?.add(propertyContext, "Field of type ${property.returnType.jvmErasure} modified.")
+                log.debug { "Property '${propertyContext.propertyName}' modified." }
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
                 property.set(dest, srcPropertyValue)
