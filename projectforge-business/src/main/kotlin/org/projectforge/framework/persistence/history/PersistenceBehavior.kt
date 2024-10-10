@@ -21,25 +21,21 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.framework.persistence.api;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.FIELD;
+package org.projectforge.framework.persistence.history
 
 /**
- * Annotations for telling ProjectForge how to handle persistency.
- * Used by BaseDaoJpaAdapter.copyDeclaredFields
+ * Annotations for telling ProjectForge how to handle persistence.
+ *
+ * Used by [org.projectforge.framework.persistence.candh.CollectionHandler] for auto update of collection entries.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@Target( { FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface PFPersistancyBehavior {
-  /**
-   * Use this annotation in collection field for telling ProjectForge to auto update all modified BaseDO objects of the collection. Don't
-   * forget to implement equals and hashCode of entry class!
-   */
-  boolean autoUpdateCollectionEntries() default false;
-}
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class PersistenceBehavior(
+    /**
+     * Use this annotation in collection field for telling ProjectForge to auto update all modified BaseDO objects of the collection. Don't
+     * forget to implement equals and hashCode of entry class!
+     */
+    val autoUpdateCollectionEntries: Boolean = false
+)

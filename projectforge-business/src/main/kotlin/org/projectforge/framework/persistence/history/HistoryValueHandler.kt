@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
@@ -52,29 +53,8 @@ interface HistoryValueHandler<T> {
 open class DefaultHistoryValueHandler : HistoryValueHandler<Any> {
     override fun serialize(value: Any?): String? {
         value ?: return null
-        if (value is BaseDO<*>) {
+        if (value is IdObject<*>) {
             return value.id?.toString()
-        }
-        if (value is Collection<*>) {
-            if (value.isEmpty()) {
-                return ""
-            }
-            val first = value.filterNotNull().firstOrNull()
-                ?: return value.joinToString(",") { obj ->
-                    "null"
-                }
-            if (first is IdObject<*>) {
-                @Suppress("UNCHECKED_CAST")
-                value as Collection<IdObject<Long>>
-                // log the entries in the order of the id (not really required, but helpfull for testcases):
-                return value.filter { it.id != null }.sortedBy { it.id }.joinToString(",") {
-                    it.id.toString()
-                }
-            }
-            val handler = HistoryValueHandlerRegistry.getHandler(first.javaClass)
-            return value.joinToString(",") { obj ->
-                handler.serialize(obj) ?: "null"
-            }
         }
         return super.serialize(value)
     }
@@ -257,6 +237,28 @@ class VoidHistoryValueHandler : HistoryValueHandler<Void> {
     }
 
     override fun format(value: Void): String {
+        return ""
+    }
+}
+
+class AccessEntryHistoryValueHandler : HistoryValueHandler<AccessEntryDO> {
+    override fun serialize(value: Any?): String {
+        value ?: ""
+        if (value !is AccessEntryDO) {
+            return value.toString()
+        }
+        val sb = StringBuilder()
+        sb.append(value.accessType).append("={").append(value.accessSelect).append(",")
+            .append(value.accessInsert)
+            .append(",").append(value.accessUpdate).append(",").append(value.accessDelete).append("}")
+        return sb.toString()
+    }
+
+    override fun deserialize(value: String): AccessEntryDO? {
+        return null
+    }
+
+    override fun format(value: AccessEntryDO): String {
         return ""
     }
 }

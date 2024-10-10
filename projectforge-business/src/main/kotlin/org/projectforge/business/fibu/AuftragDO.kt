@@ -33,7 +33,7 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -104,7 +104,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     open var referenz: String? = null
 
     @PropertyInfo(i18nKey = "label.position.short")
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(includeDepth = 1)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
@@ -244,7 +244,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * Get the payment schedule entries for this object.
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.paymentschedule")
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)

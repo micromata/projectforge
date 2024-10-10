@@ -38,7 +38,7 @@ import org.projectforge.business.teamcal.event.TeamEventRecurrenceData
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.calendar.ICal4JUtils
 import org.projectforge.framework.persistence.api.AUserRightId
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateFormats
@@ -239,7 +239,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   @get:Column(name = "reminder_action_type")
   open var reminderActionType: ReminderActionType? = null
 
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+  @PersistenceBehavior(autoUpdateCollectionEntries = true)
   @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   @get:JoinColumn(name = "team_event_fk2")
   open var attachments: MutableSet<TeamEventAttachmentDO>? = null

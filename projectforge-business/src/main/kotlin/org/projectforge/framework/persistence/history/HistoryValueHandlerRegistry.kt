@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import java.math.BigDecimal
 
@@ -54,6 +55,7 @@ internal object HistoryValueHandlerRegistry {
         registerHandler(ByteArrayHistoryValueHandler(), "[B")
         registerHandler(LocaleHistoryValueHandler(), java.util.Locale::class.java.name)
         registerHandler(VoidHistoryValueHandler(), "void")
+        registerHandler(AccessEntryHistoryValueHandler(), AccessEntryDO::class.java.name)
     }
 
     /**

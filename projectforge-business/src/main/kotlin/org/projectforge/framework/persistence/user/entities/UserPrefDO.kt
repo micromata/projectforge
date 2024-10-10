@@ -36,7 +36,7 @@ import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.persistence.user.api.UserPrefArea
@@ -120,7 +120,7 @@ class UserPrefDO : AbstractBaseDO<Long>() {
             this.area = area?.id
         }
 
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:Deprecated("Use value with json serialization instead.")
     @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
     @get:JoinColumn(name = "user_pref_fk")

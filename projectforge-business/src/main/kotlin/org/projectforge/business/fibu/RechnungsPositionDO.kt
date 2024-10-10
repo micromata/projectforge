@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import java.time.LocalDate
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -83,7 +83,7 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
   @get:Column(name = "period_of_performance_end")
   open var periodOfPerformanceEnd: LocalDate? = null
 
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+  @PersistenceBehavior(autoUpdateCollectionEntries = true)
   @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
   @get:JoinColumn(name = "rechnungs_pos_fk")
   @get:OrderColumn(name = "index")

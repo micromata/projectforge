@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.api.PFPersistancyBehavior
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
@@ -79,7 +79,7 @@ open class HRPlanningDO : DefaultBaseDO() {
     /**
      * Get the entries for this planned week.
      */
-    @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
+    @PersistenceBehavior(autoUpdateCollectionEntries = true)
     // @get:ContainedIn
     @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
     open var entries: MutableList<HRPlanningEntryDO>? = null
