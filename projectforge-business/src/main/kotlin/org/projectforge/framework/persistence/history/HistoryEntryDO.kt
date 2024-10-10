@@ -127,8 +127,8 @@ class HistoryEntryDO : HistoryEntry {
         internal const val SELECT_HISTORY_FOR_BASEDO = "HistoryEntryDO_SelectForBaseDO"
 
         @JvmOverloads
-        fun create(
-            entity: IdObject<Long>,
+        fun <T: IdObject<Long>>create(
+            entity: T,
             entityOpType: EntityOpType,
             entityName: String? = HibernateUtils.getRealClass(entity).name,
             modifiedBy: String? = ThreadLocalUserContext.loggedInUserId?.toString(),

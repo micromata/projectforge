@@ -23,13 +23,28 @@
 
 package org.projectforge.test
 
+import org.junit.jupiter.api.Assertions
+import org.projectforge.framework.persistence.history.HistoryEntry
 import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.PropertyOpType
+import kotlin.reflect.KClass
 
 /**
  * For debugging purposes only. Holds a HistoryEntryDO and the corresponding entity, if available.
  */
 class HistoryEntryHolder(val entry: HistoryEntryDO, val entity: Any?) {
+    fun assertAttr(
+        propertyName: String,
+        value: String?,
+        oldValue: String?,
+        opType: PropertyOpType = PropertyOpType.Update,
+        propertyTypeClass: KClass<*> = java.lang.String::class,
+        msg: String = "",
+    ) {
+        return HistoryTester.assertAttr(entry, propertyName = propertyName, value = value, oldValue = oldValue, opType = opType, propertyTypeClass = propertyTypeClass, msg = msg)
+    }
+
     /**
      * The attributes of the history entry.
      */

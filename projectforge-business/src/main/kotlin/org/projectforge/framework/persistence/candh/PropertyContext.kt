@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.api.BaseDO
-import java.io.Serializable
+import org.projectforge.framework.persistence.utils.CollectionUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 
@@ -37,5 +37,20 @@ class PropertyContext(
     val srcPropertyValue: Any?,
     val destPropertyValue: Any?,
 ) {
-    val kClassAndPropertyName = "$kClass.$propertyName"
+    var entriesHistorizable: Boolean? = null
+
+    val propertyTypeClass: Class<*>
+        get() = CollectionUtils.getTypeClassOfEntries(srcPropertyValue as Collection<*>)
+
+    fun addUpdated(oldValue: Any?) {
+        oldValue ?: return
+        updated = updated ?: mutableListOf()
+        updated!!.add(oldValue)
+    }
+
+    /**
+     * Stores modified entries of a collection (old value).
+     */
+    internal var updated: MutableList<Any>? = null
+        private set
 }

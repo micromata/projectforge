@@ -95,7 +95,7 @@ object CandHMaster {
      */
     fun copyValues(
         src: BaseDO<*>, dest: BaseDO<*>, context: CandHContext, vararg ignoreProperties: String
-    ) {
+    ): EntityCopyStatus {
         val srcClass = HibernateUtils.getRealClass(src)
         if (!org.projectforge.common.ClassUtils.isKotlinClass(srcClass)) {
             // Java classes are not supported.
@@ -123,7 +123,9 @@ object CandHMaster {
         ignorePropertiesList.add("id")
         val ignorePropertiesArray = ignorePropertiesList.toTypedArray()
         val processedProperties =
-            mutableSetOf<String>() // Paranoi check for avoiding handling of the same property twice.
+            mutableSetOf<String>() // Paranoia check for avoiding handling of the same property twice.
+        val saveCurrentCopyStatus = context.currentCopyStatus
+        context.currentCopyStatus = EntityCopyStatus.NONE
         copyProperties(
             useSrc.javaClass.kotlin,
             src = src,
@@ -142,6 +144,10 @@ object CandHMaster {
             processedProperties = processedProperties,
             ignoreProperties = ignorePropertiesArray,
         )
+        val newCopyStatus = context.currentCopyStatus
+        context.currentCopyStatus = saveCurrentCopyStatus
+        context.combine(newCopyStatus)
+        return newCopyStatus
         //} finally {
         //    context.historyContext?.popHistoryMaster()
         //}
@@ -238,7 +244,7 @@ object CandHMaster {
                 return
             }
             if (context.currentCopyStatus == EntityCopyStatus.MAJOR || src !is AbstractHistorizableBaseDO<*> || src !is HibernateProxy) {
-                if (type != null) {
+                if (type != null && HistoryServiceUtils.isHistorizable(src)) {
                     handleHistoryEntry(context, propertyContext, type)
                 }
                 context.combine(EntityCopyStatus.MAJOR) // equals to context.currentCopyStatus=MAJOR.
@@ -252,10 +258,11 @@ object CandHMaster {
         propertyContext: PropertyContext,
         type: PropertyOpType,
     ) {
-        if (context.historyContext == null) {
+        if (context.historyContext == null || !HistoryServiceUtils.isHistorizable(propertyContext.src)) {
             // No history required.
             return
         }
+        // The property is historizable, so we have to handle it.
         propertyContext.apply {
             context.historyContext.add(propertyContext, type)
         }

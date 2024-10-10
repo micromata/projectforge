@@ -23,11 +23,14 @@
 
 package org.projectforge.framework.persistence.candh
 
+import jline.console.internal.ConsoleRunner.property
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
+import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
+import org.projectforge.framework.persistence.utils.CollectionUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 
@@ -55,26 +58,26 @@ internal class HistoryContext(
         /**
          * Already existing entries in the destination collection. The new src entries are not part of this collection.
          */
-        val keptEntries: Collection<Any>?
+        val keptEntries: Collection<Any>?,
     )
 
     /**
      * This map is used to store the original collection of the entity for generating history entries later of
      * new persisted collection entries. The id of the new entries is not known at this point.
      */
-    private var srcCollectionsWithNewEntries: MutableCollection<SrcCollectionWithNewEntries>? = null
+    private var collectionsWithNewAndUpdatedEntries: MutableCollection<SrcCollectionWithNewEntries>? = null
 
     /**
      * Adds a new collection with new entries. The kept entries are already part of the destination collection.
      */
-    fun addSrcCollectionWithNewEntries(propertyContext: PropertyContext, keptEntries: Collection<Any>?) {
-        srcCollectionsWithNewEntries = srcCollectionsWithNewEntries ?: mutableListOf()
-        srcCollectionsWithNewEntries!!.add(SrcCollectionWithNewEntries(propertyContext, keptEntries))
+    fun addCollectionsWithNewAndUpdatedEntries(propertyContext: PropertyContext, keptEntries: Collection<Any>?) {
+        collectionsWithNewAndUpdatedEntries = collectionsWithNewAndUpdatedEntries ?: mutableListOf()
+        collectionsWithNewAndUpdatedEntries!!.add(SrcCollectionWithNewEntries(propertyContext, keptEntries))
     }
 
     fun getPreparedHistoryEntries(): List<HistoryEntryDO> {
         val entryList = historyEntryWrappers.map { it.prepareAndGetHistoryEntry() }.toMutableList()
-        srcCollectionsWithNewEntries?.forEach { entry ->
+        collectionsWithNewAndUpdatedEntries?.forEach { entry ->
             val pc = entry.propertyContext
             val dest = pc.dest
 
@@ -84,13 +87,29 @@ internal class HistoryContext(
             @Suppress("UNCHECKED_CAST")
             val destCol = property.get(dest) as? Collection<Any>
             val keptEntries = entry.keptEntries
-            destCol?.forEach { destEntry ->
-                @Suppress("UNCHECKED_CAST")
-                destEntry as IdObject<Long>
-                if (keptEntries?.contains(destEntry) != true) {
-                    // This is a new entry, not existing in the dest collection before.
-                    entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
+            if (pc.entriesHistorizable == true) {
+                destCol?.forEach { destEntry ->
+                    @Suppress("UNCHECKED_CAST")
+                    destEntry as IdObject<Long>
+                    if (keptEntries?.contains(destEntry) != true) {
+                        // This is a new entry, not existing in the dest collection before.
+                        entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
+                    }
                 }
+            } else {
+                @Suppress("UNCHECKED_CAST")
+                val srcCol = property.get(pc.src) as? Collection<Any>
+                // The collection is not historizable. We need to check if the collection has been changed.
+                @Suppress("UNCHECKED_CAST")
+                val histEntry = HistoryEntryDO.create(pc.src as IdObject<Long>, EntityOpType.Update)
+                val attr = HistoryEntryAttrDO.create(
+                    propertyTypeClass =CollectionUtils.getTypeClassOfEntries(pc.updated ?: destCol),
+                    opType = PropertyOpType.Update,
+                    propertyName = pc.propertyName,
+                )
+                attr.serializeAndSet(oldValue = pc.updated, newValue = destCol)
+                histEntry.add(attr)
+                entryList.add(histEntry)
             }
         }
         return entryList
@@ -158,15 +177,35 @@ internal class HistoryContext(
      */
     fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
         propertyContext.apply {
-            val propertyTypeClass = (property.returnType.classifier as KClass<*>).java
             add(
-                propertyTypeClass = propertyTypeClass,
+                property = property,
                 optype = optype,
                 oldValue = destPropertyValue,
                 newValue = srcPropertyValue,
                 propertyName = propertyName,
             )
         }
+    }
+
+    /**
+     * Add a new history entry for the given property context. The currenthistoryEntryWrapper must be given and will be used.
+     */
+    fun add(
+        property: KMutableProperty1<*, *>,
+        optype: PropertyOpType,
+        oldValue: Any?,
+        newValue: Any?,
+        propertyName: String?,
+    ) {
+        currentHistoryEntryAttrs.add(
+            CandHHistoryAttrWrapper.create(
+                property = property,
+                optype = optype,
+                oldValue = oldValue,
+                newValue = newValue,
+                propertyName = propertyName,
+            )
+        )
     }
 
     /**
