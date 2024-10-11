@@ -314,8 +314,8 @@
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version> <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
 
         <!-- wicket -->
-        <wicket.version>10.1.0</wicket.version> <!-- Check: 09.08.2024 -->
-        <wicket-stuff.version>10.1.1</wicket-stuff.version> <!-- ^^^^^^ -->
+        <wicket.version>10.2.0</wicket.version> <!-- Check: 09.08.2024 -->
+        <wicket-stuff.version>10.2.0</wicket-stuff.version> <!-- ^^^^^^ -->
     </properties>
     <dependencyManagement>
         <dependencies>

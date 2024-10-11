@@ -188,7 +188,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         position.rechnung = this
     }
 
-    val auftragsPositionVOs: Set<AuftragsPositionVO>?
+    val auftragsPositionVOs: Set<AuftragsPositionVO>
         @Transient
         get() {
             val result = mutableSetOf<AuftragsPositionVO>()

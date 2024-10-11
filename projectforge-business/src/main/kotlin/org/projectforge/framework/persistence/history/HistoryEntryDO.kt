@@ -87,6 +87,7 @@ class HistoryEntryDO : HistoryEntry {
      * Insert or Update. EntityOpType, was: de.micromata.genome.db.jpa.history.entities.PropertyOpType
      */
     @get:Column(name = "entity_optype", length = 32)
+    @get:Enumerated(EnumType.STRING)
     override var entityOpType: EntityOpType? = null
 
     /**

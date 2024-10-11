@@ -95,6 +95,7 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
      * de.micromata.genome.db.jpa.history.entities.PropertyOpType.
      */
     @get:Column(name = "optype", length = 32)
+    @get:Enumerated(EnumType.STRING)
     override var opType: PropertyOpType? = null
 
     /**

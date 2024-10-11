@@ -469,13 +469,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return internalGetHistoryEntries(obj, context)
     }
 
-    fun internalGetHistoryEntries(obj: BaseDO<*>): List<HistoryEntry> {
+    fun internalGetHistoryEntries(obj: BaseDO<Long>): List<HistoryEntry> {
         return persistenceService.runReadOnly { context ->
             historyService.loadHistory(obj, context)
         }
     }
 
-    fun internalGetHistoryEntries(obj: BaseDO<*>, context: PfPersistenceContext): List<HistoryEntry> {
+    fun internalGetHistoryEntries(obj: BaseDO<Long>, context: PfPersistenceContext): List<HistoryEntry> {
         accessChecker.checkRestrictedUser()
         return historyService.loadHistory(obj, context)
     }
@@ -503,7 +503,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     protected fun internalGetDisplayHistoryEntries(
-        obj: BaseDO<*>,
+        obj: BaseDO<Long>,
     ): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()
         return persistenceService.runReadOnly { context ->
@@ -512,7 +512,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     protected fun internalGetDisplayHistoryEntries(
-        obj: BaseDO<*>,
+        obj: BaseDO<Long>,
         context: PfPersistenceContext,
     ): MutableList<DisplayHistoryEntry> {
         accessChecker.checkRestrictedUser()

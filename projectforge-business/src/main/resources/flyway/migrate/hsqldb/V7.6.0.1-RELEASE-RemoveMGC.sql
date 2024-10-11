@@ -10,6 +10,9 @@ ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby SET NULL; -- parent.modifi
 ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter SET NULL;
 ALTER TABLE t_pf_history_attr ALTER COLUMN type SET NULL;
 
+ALTER TABLE t_configuration ALTER COLUMN intvalue bigint;
+ALTER TABLE t_configuration ALTER COLUMN intvalue RENAME TO longvalue;
+
 -- Plugins without own flyway scripts:
 ALTER TABLE t_plugin_calendar_event ALTER COLUMN pk bigint;
 ALTER TABLE t_plugin_calendar_event ALTER COLUMN calendar_fk bigint;

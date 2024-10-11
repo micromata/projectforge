@@ -170,7 +170,7 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
             val luceneQuery: Query
             try {
                 luceneQuery = parser.parse(queryString) // Test: .removeSuffix("*"))
-                log.info { "Lucene Query: $luceneQuery" }
+                log.debug { "Lucene Query: $luceneQuery" }
             } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
                 log.error { "Lucene error message: '${ex.message}'  (for ${baseDao.doClass.simpleName}: '$queryString')." }
                 throw ex

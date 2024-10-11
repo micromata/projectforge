@@ -88,12 +88,19 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
   protected WebMarkupContainer bottomPanel;
 
   @SpringBean
-  protected UserFormatter userFormatter;
+  protected transient UserFormatter userFormatter;
 
   @SpringBean
-  protected DateTimeFormatter dateTimeFormatter;
+  protected transient DateTimeFormatter dateTimeFormatter;
 
-  protected EditPageSupport<O, D, AbstractEditPage<O, F, D>> editPageSupport;
+  private transient EditPageSupport<O, D, AbstractEditPage<O, F, D>> editPageSupport;
+
+  protected EditPageSupport<O, D, AbstractEditPage<O, F, D>> getEditPageSupport() {
+    if (editPageSupport == null) {
+      editPageSupport = new EditPageSupport<>(this, getBaseDao());
+    }
+    return editPageSupport;
+  }
 
   public AbstractEditPage(final PageParameters parameters, final String i18nPrefix)
   {

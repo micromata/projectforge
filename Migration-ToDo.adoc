@@ -1,3 +1,5 @@
+- Auf jeder Wicketseite werden folgende DB-Calls 5x gemacht: getEmployeeByUserId (über hasAccessToVacationService im NavTopPanel),
+- Zeitraumfilter bei Kreditoren
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - Ehcache konfigurieren
 - History
