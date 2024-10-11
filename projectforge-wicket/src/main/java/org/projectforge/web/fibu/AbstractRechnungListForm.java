@@ -23,6 +23,7 @@
 
 package org.projectforge.web.fibu;
 
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -31,7 +32,6 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.*;
 import org.slf4j.Logger;
