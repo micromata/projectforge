@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.database
 
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
+import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -33,82 +34,81 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-/**
- * @author Kai Reinhard (k.reinhard@micromata.de)
- */
-class IndexProgressMonitor(
-    private val logPrefix: String,
-    private val totalNumber: Long,
-    private val synchronizedMode: Boolean = false
-) : MassIndexingMonitor {
-    @Volatile
-    private var done: Long = 0
-    private var blockCounter: Long = 0
-    private var progressSteps: Long = 0
-    private var lastTime = System.currentTimeMillis()
-
-    override fun documentsBuilt(increment: Long) {
-        if (synchronizedMode) {
-            synchronized(this) {
-                internalAdded(increment)
-            }
-        } else {
-            internalAdded(increment)
-        }
-    }
-
-    private fun internalAdded(increment: Long) {
-        blockCounter += increment
-        done += increment
-        if (blockCounter > progressSteps) {
-            printStatusMessage(totalNumber, done, blockCounter)
-            blockCounter -= progressSteps
-        }
-    }
+class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
+    private var totalEntities: Long = 0
+    private var indexedEntities: Long = 0
+    private var lastReportedProgress = 0
+    private var step = 50 // 50% steps at default
 
     override fun documentsAdded(increment: Long) {
-        // No implementation needed for this method in this context
+        synchronized(this) {
+            indexedEntities += increment
+        }
+        printProgress()
     }
 
     override fun entitiesLoaded(increment: Long) {
-        // No implementation needed for this method in this context
+        // Diese Methode wird aufgerufen, wenn Entitäten aus der Datenbank geladen werden
     }
 
     override fun addToTotalCount(count: Long) {
-        // No implementation needed for this method in this context
+        synchronized(this) {
+            totalEntities += count
+        }
+        if (totalEntities > 5_000_000) {
+            step = 1 // 5% steps for more than 5,000,000 entities
+        } else if (totalEntities > 2_000_000) {
+            step = 5 // 5%
+        } else if (totalEntities > 1_000_000) {
+            step = 10 // 10%
+        } else if (totalEntities > 100_000) {
+            step = 20 // 20%
+        } else if (totalEntities > 10_000) {
+            step = 25 // 25%
+        } else if (totalEntities > 1_000) {
+            step = 50 // 50%
+        } else {
+            step = 100
+        }
+
+        /*  progressSteps = if (totalNumber > 5000000) // 1.000.000
+              totalNumber / 100 // Log message every 1%
+          else if (totalNumber > 2000000) // 1.000.000
+              totalNumber / 20 // Log message every 5%
+          else if (totalNumber > 1000000) // 1.000.000
+              totalNumber / 10 // Log message every 10%
+          else if (totalNumber > 100000) // 100.000
+              totalNumber / 5 // Log message every 20%
+          else if (totalNumber > 10000) // 10.000
+              totalNumber / 2 // Log message every 50%
+          else 2 * totalNumber // Do not log.
+*/
     }
 
     override fun indexingCompleted() {
-        // No implementation needed for this method in this context
+        log.info { "${entityClass.simpleName}: Indexing completed." }
     }
 
-    private fun printStatusMessage(totalTodoCount: Long, doneCount: Long, blockCounter: Long) {
-        val format = NumberFormat.getInstance(Locale.US)
-        val percentage = BigDecimal(doneCount).multiply(NumberHelper.HUNDRED)
-            .divide(BigDecimal(totalTodoCount), 0, RoundingMode.HALF_UP)
-        val time = System.currentTimeMillis()
-        val speed = blockCounter * 1000 / (time - lastTime)
-        log.info(
-            "$logPrefix: Progress: ${percentage}% (${format.format(doneCount)}/${format.format(totalTodoCount)}): ${
-                format.format(
-                    speed
+    override fun documentsBuilt(increment: Long) {
+        // Diese Methode wird aufgerufen, wenn Dokumente für die Indizierung erstellt werden
+    }
+
+    private fun printProgress() {
+        if (totalEntities > 0) {
+            // Berechne den aktuellen Fortschritt als ganzzahligen Wert
+            val progress = (indexedEntities * step / totalEntities).toInt() // Fortschritt in step-%-Schritten
+
+            // Logge nur, wenn sich der Fortschritt geändert hat
+            if (progress > lastReportedProgress) {
+                lastReportedProgress = progress
+                log.info(
+                    "${entityClass.simpleName}: Indexing ${progress * 100 / step}% (${
+                        NumberFormatter.format(
+                            indexedEntities
+                        )
+                    }/${NumberFormatter.format(totalEntities)})..."
                 )
-            }/s"
-        )
-        lastTime = time
-    }
-
-    init {
-        progressSteps = if (totalNumber > 5000000) // 1.000.000
-            totalNumber / 100 // Log message every 1%
-        else if (totalNumber > 2000000) // 1.000.000
-            totalNumber / 20 // Log message every 5%
-        else if (totalNumber > 1000000) // 1.000.000
-            totalNumber / 10 // Log message every 10%
-        else if (totalNumber > 100000) // 100.000
-            totalNumber / 5 // Log message every 20%
-        else if (totalNumber > 10000) // 10.000
-            totalNumber / 2 // Log message every 50%
-        else 2 * totalNumber // Do not log.
+            }
+        }
     }
 }

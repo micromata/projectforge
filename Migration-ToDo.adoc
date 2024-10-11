@@ -21,6 +21,7 @@
 - SetupPage testen
 - reindexing settings implementieren. Aktuell wird nur komplett gemass-indexed.
 - Alte UserPrefDO im Frontend testen.
+- Refresh-Usercache dauert nun doppelt so lange. Warum?
 
 
 Migration employee timed attrs:

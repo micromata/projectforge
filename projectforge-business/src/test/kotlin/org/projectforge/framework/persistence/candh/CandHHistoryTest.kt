@@ -86,6 +86,8 @@ class CandHHistoryTest : AbstractTestBase() {
         user.lastname = "Schlemmer"
         user.timeNotation = TimeNotation.H12
         user.firstDayOfWeekValue = 7
+        user.created = Date(Date().time - 10000)    // NOP, test NoHistory annotation.
+        user.lastUpdate = Date(Date().time - 10000) // NOP, test NoHistory annotation.
         user.locale = Locale.FRENCH
         user.lastPasswordChange =
             PFDateTime.withDate(2024, Month.OCTOBER, 5, 8, 39, 12, 500, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate

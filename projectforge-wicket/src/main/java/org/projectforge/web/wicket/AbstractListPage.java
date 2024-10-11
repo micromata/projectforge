@@ -221,8 +221,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     if (rowDataId == null) {
       return;
     }
-    if (rowDataId instanceof Integer == false) {
-      log.warn("Error in calling getCssStyle: Integer expected instead of " + rowDataId.getClass());
+    if (rowDataId instanceof Long == false) {
+      log.warn("Error in calling getCssStyle: Long expected instead of " + rowDataId.getClass());
     }
     if (highlightedRowId != null && rowDataId != null && Objects.equals(highlightedRowId, rowDataId) == true) {
       appendCssClasses(item, RowCssClass.HIGHLIGHTED);
