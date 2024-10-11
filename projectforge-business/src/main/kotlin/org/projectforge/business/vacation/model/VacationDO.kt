@@ -137,11 +137,8 @@ open class VacationDO : DefaultBaseDO() {
 
   @PropertyInfo(i18nKey = "vacation.status")
   open var status: VacationStatus? = null
-    @Enumerated(EnumType.STRING) @Column(
-      name = "vacation_status",
-      length = 30,
-      nullable = false
-    ) get() = if (field == null) {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vacation_status", length = 30, nullable = false) get() = if (field == null) {
       VacationStatus.IN_PROGRESS
     } else field
 

@@ -54,7 +54,7 @@ class HistoryService {
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<*>): List<HistoryEntryDO> {
+    fun loadHistory(baseDO: BaseDO<Long>): List<HistoryEntryDO> {
         return persistenceService.runReadOnly { context ->
             loadHistory(baseDO, context)
         }
@@ -63,7 +63,7 @@ class HistoryService {
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<*>, context: PfPersistenceContext? = null): List<HistoryEntryDO> {
+    fun loadHistory(baseDO: BaseDO<Long>, context: PfPersistenceContext? = null): List<HistoryEntryDO> {
         val allHistoryEntries = mutableListOf<HistoryEntryDO>()
         if (context != null) {
             loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
@@ -79,7 +79,7 @@ class HistoryService {
     private fun loadAndAddHistory(
         allHistoryEntries: MutableList<HistoryEntryDO>,
         entityClass: Class<out BaseDO<*>>,
-        entityId: Serializable?,
+        entityId: Long?,
         context: PfPersistenceContext,
     ) {
         entityId ?: return

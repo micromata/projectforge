@@ -96,13 +96,13 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
     private fun printProgress() {
         if (totalEntities > 0) {
             // Berechne den aktuellen Fortschritt als ganzzahligen Wert
-            val progress = (indexedEntities * step / totalEntities).toInt() // Fortschritt in step-%-Schritten
+            val progress = (indexedEntities * 100 / totalEntities / step).toInt() // Fortschritt in step-%-Schritten
 
             // Logge nur, wenn sich der Fortschritt geändert hat
             if (progress > lastReportedProgress) {
                 lastReportedProgress = progress
                 log.info(
-                    "${entityClass.simpleName}: Indexing ${progress * 100 / step}% (${
+                    "${entityClass.simpleName}: Indexing ${progress * step}% (${
                         NumberFormatter.format(
                             indexedEntities
                         )

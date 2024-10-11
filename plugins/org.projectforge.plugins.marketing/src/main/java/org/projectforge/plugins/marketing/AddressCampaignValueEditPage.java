@@ -105,10 +105,10 @@ public class AddressCampaignValueEditPage extends
   {
     if (getData().getId() == null) {
       if (log.isDebugEnabled()) {
-        log.debug("update in " + this.editPageSupport.getClass() + ": " + getData());
+        log.debug("update in " + getEditPageSupport().getClass() + ": " + getData());
       }
       create();
-      this.editPageSupport.setUpdateAndNext(true);
+      getEditPageSupport().setUpdateAndNext(true);
       setResponsePage();
     } else {
       super.updateAndNext();
@@ -118,8 +118,8 @@ public class AddressCampaignValueEditPage extends
   @Override
   public void setResponsePage()
   {
-    if (this.editPageSupport.isUpdateAndNext()) {
-      this.editPageSupport.setUpdateAndNext(false);
+    if (getEditPageSupport().isUpdateAndNext()) {
+      getEditPageSupport().setUpdateAndNext(false);
       final AddressCampaignValueListPage listPage = (AddressCampaignValueListPage) this.returnToPage;
       final Iterator<AddressDO> it = listPage.getList().iterator();
       while (it.hasNext()) {

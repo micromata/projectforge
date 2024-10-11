@@ -258,7 +258,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     }
 
     open fun getCurrentAndFutureVacations(): List<VacationDO> {
-        return persistenceService.executeQuery(
+        return persistenceService.executeNamedQuery(
             VacationDO.FIND_CURRENT_AND_FUTURE,
             VacationDO::class.java,
             Pair("endDate", LocalDate.now()),

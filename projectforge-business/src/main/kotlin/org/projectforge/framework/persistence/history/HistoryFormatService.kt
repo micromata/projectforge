@@ -89,13 +89,13 @@ class HistoryFormatService {
         this.historyServiceAdapters[clazz] = historyServiceAdapter
     }
 
-    fun <O : BaseDO<*>> loadHistory(item: O): List<DisplayHistoryEntryDTO> {
+    fun <O : BaseDO<Long>> loadHistory(item: O): List<DisplayHistoryEntryDTO> {
         return persistenceService.runReadOnly { context ->
             loadHistory(context, item)
         }
     }
 
-    fun <O : BaseDO<*>> loadHistory(context: PfPersistenceContext, item: O): List<DisplayHistoryEntryDTO> {
+    fun <O : BaseDO<Long>> loadHistory(context: PfPersistenceContext, item: O): List<DisplayHistoryEntryDTO> {
         val entries = historyService.loadHistory(item)
         return convertAsFormatted(context, item, entries)
     }

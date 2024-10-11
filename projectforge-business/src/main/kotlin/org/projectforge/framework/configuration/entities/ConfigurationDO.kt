@@ -59,7 +59,7 @@ open class ConfigurationDO : DefaultBaseDO {
      * If entry is not from type STRING then a RuntimeException will be thrown.
      */
     @FullTextField
-    @get:Column(length = PARAM_LENGTH)
+    @get:Column(length = PARAM_LENGTH, name = "stringvalue")
     open var stringValue: String? = null
         get() {
             if (field != null) {
@@ -74,7 +74,7 @@ open class ConfigurationDO : DefaultBaseDO {
             field = stringValue
         }
 
-    @get:Column
+    @get:Column(name = "longvalue")
     open var longValue: Long? = null
         get() {
             if (field != null) {
@@ -89,7 +89,7 @@ open class ConfigurationDO : DefaultBaseDO {
             field = stringValue
         }
 
-    @get:Column(scale = 5, precision = 18)
+    @get:Column(scale = 5, precision = 18, name = "floatvalue")
     open var floatValue: BigDecimal? = null
         get() {
             if (field != null) {
@@ -105,7 +105,7 @@ open class ConfigurationDO : DefaultBaseDO {
         }
 
     @get:Enumerated(EnumType.STRING)
-    @get:Column(length = 20, nullable = false)
+    @get:Column(length = 20, nullable = false, name = "configurationtype")
     open var configurationType: ConfigurationType? = null
         set(type) {
             if (field == null) {

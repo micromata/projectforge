@@ -19,6 +19,9 @@ DROP TABLE IF EXISTS t_contact; -- Unused empty table.
 
 DROP TABLE IF EXISTS t_employee_vacation_calendar; -- Unused table (entries not younger than 2020-01-07).
 
+ALTER TABLE t_configuration ALTER COLUMN intvalue TYPE bigint;
+ALTER TABLE t_configuration RENAME COLUMN intvalue TO longvalue;
+
 -- Plugins without own flyway scripts:
 ALTER TABLE t_plugin_calendar_event ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_plugin_calendar_event ALTER COLUMN calendar_fk TYPE bigint;
