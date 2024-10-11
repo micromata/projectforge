@@ -114,7 +114,7 @@ open class DatabaseDao {
                     .threadsToLoadObjects(4) // Anzahl der Threads zum Laden von Entitäten
                     .batchSizeToLoadObjects(25) // Batch-Größe
                     .idFetchSize(150) // Größe des ID-Fetch
-                    .monitor(MyProgressMonitor(clazz)) // Fortschrittsmonitor hinzufügen
+                    .monitor(IndexProgressMonitor(clazz)) // Fortschrittsmonitor hinzufügen
                     .startAndWait() // Blockiert, bis die Indizierung abgeschlossen ist
             } catch (ex: InterruptedException) {
                 log.error(ex.message, ex)
@@ -134,66 +134,6 @@ open class DatabaseDao {
                 ReindexSettings(day.utilDate, 1000) // Maximum 1,000 newest entries.
             } else {
                 ReindexSettings()
-            }
-        }
-    }
-
-    class MyProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
-        private var totalEntities: Long = 0
-        private var indexedEntities: Long = 0
-        private var lastReportedProgress = 0
-        private var step = 50 // 50% steps at default
-
-        override fun documentsAdded(increment: Long) {
-            synchronized(this) {
-                indexedEntities += increment
-            }
-            printProgress()
-        }
-
-        override fun entitiesLoaded(increment: Long) {
-            // Diese Methode wird aufgerufen, wenn Entitäten aus der Datenbank geladen werden
-        }
-
-        override fun addToTotalCount(count: Long) {
-            synchronized(this) {
-                totalEntities += count
-            }
-            if (totalEntities > 1000000) {
-                step = 5 // 5% steps for more than 1,000,000 entities
-            } else if (totalEntities > 100000) {
-                step = 10 // 10% steps for more than 100,000 entities
-            } else if (totalEntities > 10000) {
-                step = 20 // 20% steps for more than 10,000 entities
-            } else if (totalEntities > 1000) {
-                step = 25 // 25% steps for more than 1,000 entities
-            }
-        }
-
-        override fun indexingCompleted() {
-            log.info { "${entityClass.simpleName}: Indexing completed." }
-        }
-
-        override fun documentsBuilt(increment: Long) {
-            // Diese Methode wird aufgerufen, wenn Dokumente für die Indizierung erstellt werden
-        }
-
-        private fun printProgress() {
-            if (totalEntities > 0) {
-                // Berechne den aktuellen Fortschritt als ganzzahligen Wert
-                val progress = (indexedEntities * step / totalEntities).toInt() // Fortschritt in 10%-Schritten
-
-                // Logge nur, wenn sich der Fortschritt geändert hat
-                if (progress > lastReportedProgress) {
-                    lastReportedProgress = progress
-                    log.info(
-                        "${entityClass.simpleName}: Indexing ${progress * 10}% (${
-                            NumberFormatter.format(
-                                indexedEntities
-                            )
-                        }/${NumberFormatter.format(totalEntities)})..."
-                    )
-                }
             }
         }
     }

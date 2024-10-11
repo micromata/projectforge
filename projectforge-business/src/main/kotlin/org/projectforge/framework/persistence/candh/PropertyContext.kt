@@ -27,6 +27,15 @@ import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.utils.CollectionUtils
 import kotlin.reflect.KMutableProperty1
 
+/**
+ * Context of a property to be copied.
+ * @param src Source object.
+ * @param dest Destination object.
+ * @param propertyName Name of the property.
+ * @param property Property to be copied.
+ * @param srcPropertyValue Value of the property in the source object.
+ * @param destPropertyValue Value of the property in the destination object.
+ */
 class PropertyContext(
     val src: BaseDO<*>,
     val dest: BaseDO<*>,
@@ -35,8 +44,14 @@ class PropertyContext(
     val srcPropertyValue: Any?,
     val destPropertyValue: Any?,
 ) {
+    /**
+     * If the property is a collection, this flag indicates if the entries of the collection are historizable.
+     */
     var entriesHistorizable: Boolean? = null
 
+    /**
+     * @see CollectionUtils.getTypeClassOfEntries
+     */
     val propertyTypeClass: Class<*>
         get() = CollectionUtils.getTypeClassOfEntries(srcPropertyValue as Collection<*>)
 

@@ -1,5 +1,9 @@
 -- Migration to remove MGC.
 
+-- Hibernates-default sequence is used for all tables.
+-- Hibernate users a puffer size of 50 by default.
+ALTER SEQUENCE public.hibernate_sequence INCREMENT BY 50;
+
 ALTER TABLE t_pf_history_attr ADD COLUMN old_value CHARACTER VARYING(50000);
 ALTER TABLE t_pf_history_attr ADD COLUMN optype CHARACTER VARYING(32);
 
