@@ -282,9 +282,6 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "image_last_update")
     open var imageLastUpdate: Date? = null
 
-    /**
-     * The substitutions.
-     */
     @PropertyInfo(i18nKey = "address.addressbooks")
     @get:ManyToMany(fetch = FetchType.LAZY)
     @get:JoinTable(

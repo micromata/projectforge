@@ -158,7 +158,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
 
     fun buildStatistik(list: List<AuftragDO>?): AuftragsStatistik {
-        val stats = AuftragsStatistik(auftragsCache)
+        val stats = AuftragsStatistik()
         if (list == null) {
             return stats
         }

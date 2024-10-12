@@ -42,7 +42,9 @@ internal class UserPrefCacheData {
     private var entries = mutableListOf<CacheEntry>()
 
     internal fun putEntry(userPref: UserPrefDO) {
-        entries.add(CacheEntry(userPref))
+        synchronized(entries) {
+            entries.add(CacheEntry(userPref))
+        }
     }
 
     /**
@@ -104,7 +106,9 @@ internal class UserPrefCacheData {
     }
 
     internal fun getModifiedPersistentEntries(): List<CacheEntry> {
-        return entries.filter { it.persistant && it.modified }
+        synchronized(entries) {
+            return entries.filter { it.persistant && it.modified }
+        }
     }
 
     /**
@@ -117,10 +121,14 @@ internal class UserPrefCacheData {
     }
 
     private fun findEntry(area: String, name: String): CacheEntry? {
-        return entries.find { it.userPrefDO.name == name && it.userPrefDO.area == area }
+        synchronized(entries) {
+            return entries.find { it.userPrefDO.name == name && it.userPrefDO.area == area }
+        }
     }
 
     private fun findEntries(area: String): List<CacheEntry> {
-        return entries.filter { it.userPrefDO.area == area }
+        synchronized(entries) {
+            return entries.filter { it.userPrefDO.area == area }
+        }
     }
 }
