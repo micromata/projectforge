@@ -410,10 +410,9 @@ open class UserGroupCache() : AbstractCache() {
         log.info("Loading all users ...")
         persistenceService.runReadOnly { context ->
             val users = Login.getInstance().allUsers
-            for (user in users) {
-                user.id ?: continue // Should only occur in test cases.
-                user.id?.let {
-                    uMap[it] = user
+            users.forEach { user ->
+                user.id?.let { userId ->
+                    uMap[userId] = user
                 }
             }
             if (users.size != uMap.size) {
@@ -423,16 +422,16 @@ open class UserGroupCache() : AbstractCache() {
             }
             log.info("Loading all groups ...")
             val groups = Login.getInstance().allGroups
-            val gMap: MutableMap<Long, GroupDO> = HashMap()
-            val ugIdMap: MutableMap<Long, MutableSet<Long>> = HashMap()
-            val nAdminUsers: MutableSet<Long> = HashSet()
-            val nFinanceUser: MutableSet<Long> = HashSet()
-            val nControllingUsers: MutableSet<Long> = HashSet()
-            val nProjectManagers: MutableSet<Long> = HashSet()
-            val nProjectAssistants: MutableSet<Long> = HashSet()
-            val nMarketingUsers: MutableSet<Long> = HashSet()
-            val nOrgaUsers: MutableSet<Long> = HashSet()
-            val nhrUsers: MutableSet<Long> = HashSet()
+            val gMap = mutableMapOf<Long, GroupDO>()
+            val ugIdMap = mutableMapOf<Long, MutableSet<Long>>()
+            val nAdminUsers = mutableSetOf<Long>()
+            val nFinanceUser = mutableSetOf<Long>()
+            val nControllingUsers = mutableSetOf<Long>()
+            val nProjectManagers = mutableSetOf<Long>()
+            val nProjectAssistants = mutableSetOf<Long>()
+            val nMarketingUsers = mutableSetOf<Long>()
+            val nOrgaUsers = mutableSetOf<Long>()
+            val nhrUsers = mutableSetOf<Long>()
             for (group in groups) {
                 val groupId = group.id ?: continue
                 gMap[groupId] = group
@@ -441,68 +440,36 @@ open class UserGroupCache() : AbstractCache() {
                     val groupIdSet = ensureAndGetUserGroupIdMap(ugIdMap, userId)
                     groupIdSet.add(groupId)
                     when {
-                        ProjectForgeGroup.ADMIN_GROUP.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' as administrator.")
-                            nAdminUsers.add(userId)
-                        }
-
-                        ProjectForgeGroup.FINANCE_GROUP.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' for finance.")
-                            nFinanceUser.add(userId)
-                        }
-
-                        ProjectForgeGroup.CONTROLLING_GROUP.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' for controlling.")
-                            nControllingUsers.add(userId)
-                        }
-
-                        ProjectForgeGroup.PROJECT_MANAGER.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' as project manager.")
-                            nProjectManagers.add(userId)
-                        }
-
-                        ProjectForgeGroup.PROJECT_ASSISTANT.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' as project assistant.")
-                            nProjectAssistants.add(userId)
-                        }
-
-                        ProjectForgeGroup.MARKETING_GROUP.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' as marketing user.")
-                            nMarketingUsers.add(userId)
-                        }
-
-                        ProjectForgeGroup.ORGA_TEAM.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' as orga user.")
-                            nOrgaUsers.add(userId)
-                        }
-
-                        ProjectForgeGroup.HR_GROUP.matches(group.name) -> {
-                            log.debug("Adding user '" + user.username + "' as hr user.")
-                            nhrUsers.add(userId)
-                        }
+                        ProjectForgeGroup.ADMIN_GROUP.matches(group.name) -> nAdminUsers.add(userId)
+                        ProjectForgeGroup.FINANCE_GROUP.matches(group.name) -> nFinanceUser.add(userId)
+                        ProjectForgeGroup.CONTROLLING_GROUP.matches(group.name) -> nControllingUsers.add(userId)
+                        ProjectForgeGroup.PROJECT_MANAGER.matches(group.name) -> nProjectManagers.add(userId)
+                        ProjectForgeGroup.PROJECT_ASSISTANT.matches(group.name) -> nProjectAssistants.add(userId)
+                        ProjectForgeGroup.MARKETING_GROUP.matches(group.name) -> nMarketingUsers.add(userId)
+                        ProjectForgeGroup.ORGA_TEAM.matches(group.name) -> nOrgaUsers.add(userId)
+                        ProjectForgeGroup.HR_GROUP.matches(group.name) -> nhrUsers.add(userId)
                     }
                 }
             }
-            userMap = uMap
-            groupMap = gMap
+            this.userMap = uMap
+            this.groupMap = gMap
             val nEmployeeMap = mutableMapOf<Long?, EmployeeDO>()
             employeeDao.internalLoadAll(context).forEach { employeeDO ->
                 nEmployeeMap[employeeDO.userId] = employeeDO
                 employeeDao.setEmployeeStatus(employeeDO)
             }
-            employeeMap = nEmployeeMap
-            adminUsers = nAdminUsers
-            financeUsers = nFinanceUser
-            controllingUsers = nControllingUsers
-            projectManagers = nProjectManagers
-            projectAssistants = nProjectAssistants
-            marketingUsers = nMarketingUsers
-            orgaUsers = nOrgaUsers
-            hrUsers = nhrUsers
-            userGroupIdMap = ugIdMap
-            val rMap: MutableMap<Long, List<UserRightDO>> = HashMap()
-            val rights: List<UserRightDO>
-            rights = try {
+            this.employeeMap = nEmployeeMap
+            this.adminUsers = nAdminUsers
+            this.financeUsers = nFinanceUser
+            this.controllingUsers = nControllingUsers
+            this.projectManagers = nProjectManagers
+            this.projectAssistants = nProjectAssistants
+            this.marketingUsers = nMarketingUsers
+            this.orgaUsers = nOrgaUsers
+            this.hrUsers = nhrUsers
+            this.userGroupIdMap = ugIdMap
+            val rMap = mutableMapOf<Long, List<UserRightDO>>()
+            val rights = try {
                 userRightDao.internalGetAllOrdered(context)
             } catch (ex: Exception) {
                 log.error(
@@ -532,7 +499,7 @@ open class UserGroupCache() : AbstractCache() {
                     list!!.add(right)
                 }
             }
-            rightMap = rMap
+            this.rightMap = rMap
             log.info("Initializing of UserGroupCache done. Found ${uMap.size} entries.")
             Login.getInstance().afterUserGroupCacheRefresh(users, groups)
         }
@@ -541,14 +508,6 @@ open class UserGroupCache() : AbstractCache() {
         Thread {
             jobHandler.checkStatus()
         }.start()
-    }
-
-    @Synchronized
-    fun internalSetAdminUser(adminUser: PFUserDO) {
-        checkRefresh()
-        adminUser.id?.let {
-            adminUsers!!.add(it)
-        }
     }
 
     companion object {
