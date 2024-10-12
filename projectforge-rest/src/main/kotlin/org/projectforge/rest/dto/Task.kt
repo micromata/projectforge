@@ -79,7 +79,7 @@ class Task(id: Long? = null,
     companion object {
         fun getTask(taskId: Long?, minimal: Boolean = true): Task? {
             taskId ?: return null
-            val taskDO = TaskTree.getInstance().getTaskById(taskId) ?: return null
+            val taskDO = TaskTree.instance.getTaskById(taskId) ?: return null
             val task = Task()
             if (minimal) {
                 task.copyFromMinimal(taskDO)

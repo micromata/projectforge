@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu.kost
 
 import jakarta.persistence.LockModeType
-import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
@@ -87,14 +86,14 @@ class KostCache : AbstractCache() {
         return null
     }
 
-    fun getActiveKost2(nummernkreis: Int, bereich: Int, teilbereich: Int): List<Kost2DO?>? {
-        val list: MutableList<Kost2DO?> = ArrayList()
+    fun getActiveKost2(nummernkreis: Int, bereich: Int, teilbereich: Int): List<Kost2DO>? {
+        val list = mutableListOf<Kost2DO>()
         for (kost in getKost2Map()!!.values) {
             if (kost.nummernkreis == nummernkreis && kost.bereich == bereich && kost.teilbereich == teilbereich && (kost.kostentraegerStatus == KostentraegerStatus.ACTIVE || kost.kostentraegerStatus == null)) {
                 list.add(kost)
             }
         }
-        if (CollectionUtils.isEmpty(list)) {
+        if (list.isEmpty()) {
             return null
         }
         return list
@@ -251,7 +250,8 @@ class KostCache : AbstractCache() {
         }
         this.kost1Map = map1
         val map2: MutableMap<Long?, Kost2DO> = HashMap()
-        val list2 = persistenceService.executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
+        val list2 =
+            persistenceService.executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
         kost2EntriesExists = false
         for (kost2 in list2) {
             if (!kost2EntriesExists && !kost2.deleted) {

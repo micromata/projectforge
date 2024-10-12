@@ -427,7 +427,7 @@ open class ForecastExport { // open needed by Wicket.
       ctx.currencyCellStyle
 
     sheet.setStringValue(row, ForecastCol.ANSPRECHPARTNER.header, order.contactPerson?.getFullname())
-    val node = TaskTree.getInstance().getTaskNodeById(pos.taskId)
+    val node = TaskTree.instance.getTaskNodeById(pos.taskId)
     sheet.setStringValue(row, ForecastCol.STRUKTUR_ELEMENT.header, node?.task?.title ?: "")
     sheet.setStringValue(row, ForecastCol.BEMERKUNG.header, pos.bemerkung)
 

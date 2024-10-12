@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.IdObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ import java.util.Objects;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TaskNode implements IdObject<Long>, Serializable {
+  @Serial
   private static final long serialVersionUID = -3759574521842841341L;
 
   /**
@@ -144,13 +146,6 @@ public class TaskNode implements IdObject<Long>, Serializable {
    */
   public TaskNode getParent() {
     return this.parent;
-  }
-
-  public void internalSetParent(final TaskNode parent) {
-    this.parent = parent;
-    if (parent != null) {
-      parent.addChild(this);
-    }
   }
 
   /**
@@ -280,7 +275,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
    * Has this task any children?
    */
   public boolean hasChildren() {
-    return this.children != null && this.children.size() > 0 ? true : false;
+    return this.children != null && !this.children.isEmpty() ? true : false;
   }
 
   /**

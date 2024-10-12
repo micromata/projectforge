@@ -130,7 +130,7 @@ class TaskServicesRest {
     fun createTask(id: Long?): Task? {
       if (id == null)
         return null
-      val taskTree = TaskTree.getInstance()
+      val taskTree = TaskTree.instance
       val taskNode = taskTree.getTaskNodeById(id) ?: return null
       val task = Task(taskNode)
       addKost2List(task)
@@ -138,7 +138,7 @@ class TaskServicesRest {
       task.consumption = Consumption.create(taskNode)
       val pathToRoot = taskTree.getPathToRoot(taskNode.parentId)
       val pathArray = mutableListOf<Task>()
-      pathToRoot?.forEach {
+      pathToRoot.forEach {
         val ancestor = Task(id = it.task.id!!, title = it.task.title)
         pathArray.add(ancestor)
       }
@@ -147,11 +147,11 @@ class TaskServicesRest {
     }
 
     fun addKost2List(task: Task, includeKost2ObjectList: Boolean = true) {
-      val kost2DOList = TaskTree.getInstance().getKost2List(task.id)
+      val kost2DOList = TaskTree.instance.getKost2List(task.id)
       if (!kost2DOList.isNullOrEmpty()) {
         if (includeKost2ObjectList) {  // Only if needed in tree, save bandwith...
            val kost2List: List<Kost2> = kost2DOList.map {
-            Kost2((it as Kost2DO).id!!, KostFormatter.format(it, 80))
+            Kost2(it.id!!, KostFormatter.format(it, 80))
           }
           task.kost2List = kost2List
         }
@@ -220,7 +220,6 @@ class TaskServicesRest {
     @RequestParam("showRootForAdmins") showRootForAdmins: Boolean?
   )
       : Result {
-    @Suppress("UNCHECKED_CAST")
     val openNodes = userPrefService.ensureEntry(PREF_ARA, TaskTree.USER_PREFS_KEY_OPEN_TASKS, mutableSetOf<Long>())
     val filter = listFilterService.getSearchFilter(request.getSession(false), TaskFilter::class.java) as TaskFilter
 

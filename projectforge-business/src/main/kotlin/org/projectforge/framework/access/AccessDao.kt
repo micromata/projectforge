@@ -154,24 +154,26 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         }
         val queryFilter = QueryFilter(myFilter)
         if (myFilter.taskId != null) {
-            var descendants: List<Long?>? = null
-            var ancestors: List<Long?>? = null
+            var descendants: List<Long>? = null
+            var ancestors: List<Long>? = null
             val node = taskTree.getTaskNodeById(myFilter.taskId)
             if (myFilter.isIncludeDescendentTasks) {
-                descendants = node.descendantIds
+                descendants = node?.descendantIds
             }
             if (myFilter.isInherit || myFilter.isIncludeAncestorTasks) {
-                ancestors = node.ancestorIds
+                ancestors = node?.ancestorIds
             }
             if (descendants != null || ancestors != null) {
-                val taskIds: MutableList<Long?> = ArrayList()
+                val taskIds = mutableListOf<Long>()
                 if (descendants != null) {
                     taskIds.addAll(descendants)
                 }
                 if (ancestors != null) {
                     taskIds.addAll(ancestors)
                 }
-                taskIds.add(node.id)
+                node?.id?.let { id ->
+                    taskIds.add(id)
+                }
                 queryFilter.add(isIn<Any>("task.id", taskIds))
             } else {
                 queryFilter.add(eq("task.id", myFilter.taskId))
@@ -195,7 +197,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
                     if (!access.isRecursive) {
                         val accessNode = taskTree.getTaskNodeById(access.taskId)
                         // && myFilter.getTaskId().equals(access.getTaskId()) == false) {
-                        if (accessNode.isParentOf(taskNode)) {
+                        if (accessNode?.isParentOf(taskNode) == true) {
                             // This entry is not recursive and inherited, therefore this entry will be ignored.
                             continue
                         }

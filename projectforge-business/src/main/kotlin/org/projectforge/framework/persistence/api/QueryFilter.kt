@@ -335,7 +335,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
       if (taskId == null) {
         return DBPredicate.IsNull(field)
       }
-      val node = TaskTree.getInstance().getTaskNodeById(taskId)
+      val node = TaskTree.instance.getTaskNodeById(taskId)
       return if (node == null) {
         log.warn("Can't query for given task id #$taskId, no such task node found.")
         DBPredicate.IsNull(field)

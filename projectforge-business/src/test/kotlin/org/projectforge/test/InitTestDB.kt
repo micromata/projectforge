@@ -45,8 +45,8 @@ import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -266,7 +266,7 @@ class InitTestDB {
     fun initDatabase() {
         val origUser = loggedInUser
         try {
-            persistenceService.runInTransaction<Any?> { context: PfPersistenceContext ->
+            persistenceService.runInTransaction<Any?> { context ->
                 val initUser = PFUserDO()
                 initUser.username = "Init-database-pseudo-user"
                 initUser.id = -1L
@@ -276,7 +276,6 @@ class InitTestDB {
                 initUsers(context)
                 databaseService.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER, context)
                 initGroups(context)
-                null
             }
             initTaskTree()
             initAccess()
@@ -412,15 +411,16 @@ class InitTestDB {
     }
 
     private fun initTaskTree() {
+        lateinit var rootTask: TaskDO
         persistenceService.runInTransaction<Any?> { context: PfPersistenceContext ->
-            log.debug { "Setting taskTree.expired: $taskTree" }
-            taskTree.clear()
-            log.debug { "TaskTree after reload: $taskTree" }
-            if (taskTree.rootTaskNode == null) {
-                addTask("root", null, context)
-            } else {
-                putTask(taskTree.rootTaskNode.task)
-            }
+            rootTask = TaskDO()
+            rootTask.title = "root"
+            rootTask.shortDescription = "ProjectForge root task"
+            context.insert(rootTask)
+        }
+        taskTree.clear()
+        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext ->
+            putTask(taskTree.rootTaskNode.task)
             addTask("1", "root", context)
             addTask("1.1", "1", context)
             addTask("1.2", "1", context)

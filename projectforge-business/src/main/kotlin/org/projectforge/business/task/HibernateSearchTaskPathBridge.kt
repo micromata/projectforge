@@ -36,7 +36,7 @@ import java.util.function.Consumer
  */
 class HibernateSearchTaskPathBridge : TypeBridge<TaskDO> {
     override fun write(target: DocumentElement, bridgedElement: TaskDO, context: TypeBridgeWriteContext) {
-        val taskNode = TaskTree.getInstance().getTaskNodeById(bridgedElement.id)
+        val taskNode = TaskTree.instance.getTaskNodeById(bridgedElement.id)
         if (taskNode == null) {
             target.addValue("taskpath", "")
             return

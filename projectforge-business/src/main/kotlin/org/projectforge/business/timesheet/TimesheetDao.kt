@@ -190,7 +190,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         }
         if (filter.taskId != null) {
             if (filter.isRecursive) {
-                val node = taskTree.getTaskNodeById(filter.taskId)
+                val node = taskTree.getTaskNodeById(filter.taskId)!!
                 val taskIds = node.descendantIds
                 taskIds.add(node.id)
                 queryFilter.add(isIn<Any>("task.id", taskIds))
@@ -284,7 +284,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      */
     override fun afterSaveOrModify(obj: TimesheetDO, context: PfPersistenceContext) {
         super.afterSaveOrModify(obj, context)
-        taskTree.resetTotalDuration(obj.taskId)
+        taskTree.resetTotalDuration(obj.taskId!!)
     }
 
     /**
@@ -317,15 +317,15 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                     }
                 }
             }
-            if (CollectionUtils.isNotEmpty(kost2List)) {
+            if (!kost2List.isNullOrEmpty()) {
                 if (kost2Id == null) {
                     throw UserException("timesheet.error.kost2Required")
                 }
                 var kost2IdFound = false
-                for (kost2 in kost2List) {
-                    if (isEqual(kost2Id, kost2?.id)) {
+                kost2List.forEach { kost2 ->
+                    if (isEqual(kost2Id, kost2.id)) {
                         kost2IdFound = true
-                        break
+                        return@forEach
                     }
                 }
                 if (!kost2IdFound) {
@@ -341,7 +341,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     override fun onChange(obj: TimesheetDO, dbObj: TimesheetDO, context: PfPersistenceContext) {
         if (compareValues(obj.taskId, dbObj.taskId) != 0) {
-            taskTree.resetTotalDuration(dbObj.taskId)
+            taskTree.resetTotalDuration(dbObj.taskId!!)
         }
     }
 
@@ -549,8 +549,13 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
      * @param oldTimesheet The origin time sheet from the data base (could be null, if no update is done).
      * @return True if none of the rules above matches.
      */
+    @JvmOverloads
     open fun checkTaskBookable(
-        timesheet: TimesheetDO, oldTimesheet: TimesheetDO?, operationType: OperationType, throwException: Boolean
+        timesheet: TimesheetDO,
+        oldTimesheet: TimesheetDO?,
+        operationType: OperationType,
+        throwException: Boolean,
+        checkTaskTreeRefresh: Boolean = false,
     ): Boolean {
         if (operationType == OperationType.UPDATE) {
             if (timesheet.startTime!!.time == oldTimesheet!!.startTime!!.time && timesheet.stopTime!!.time == oldTimesheet.stopTime!!.time && timesheet.kost2Id == oldTimesheet.kost2Id && timesheet.taskId == oldTimesheet.taskId && timesheet.userId == oldTimesheet.userId) {
@@ -558,7 +563,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
                 return true
             }
         }
-        val taskNode = taskTree.getTaskNodeById(timesheet.taskId)
+        val taskNode = taskTree.getTaskNodeById(timesheet.taskId, checkTaskTreeRefresh)
         // 1. Is the task or any of the ancestor tasks closed, deleted or has the booking status TREE_CLOSED?
         var node: TaskNode? = taskNode
         do {
@@ -580,7 +585,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             node = node.parent
         } while (node != null)
         // 2. Has the task the booking status NO_BOOKING?
-        var bookingStatus = taskNode.task.timesheetBookingStatus
+        var bookingStatus = taskNode!!.task.timesheetBookingStatus
         node = taskNode
         while (bookingStatus == TimesheetBookingStatus.INHERIT && node?.parent != null) {
             node = node.parent

@@ -202,12 +202,14 @@ class CandHHistoryTest : AbstractTestBase() {
         val user = PFUserDO()
         user.username = "$PREFIX.rightsTest"
         val hist = createHistoryTester()
-        try {
-            user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
-            userDao.saveInTrans(user)
-            fail { "Cascade on saving rights shouldn't work." }
-        } catch (ex: Exception) {
-            // OK, expected exception.
+        suppressErrorLogs {
+            try {
+                user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
+                userDao.saveInTrans(user)
+                fail { "Cascade on saving rights shouldn't work." }
+            } catch (ex: Exception) {
+                // OK, expected exception.
+            }
         }
         user.rights = null
         user.id = null

@@ -113,13 +113,13 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     /**
-     * Gets the total duration of all time sheets of all tasks (excluding the child tasks).
+     * Gets the total duration of all time sheets of all tasks (group by task.id).
      */
-    fun readTotalDurations(): List<Array<Any>> {
+    internal fun readTotalDurations(context: PfPersistenceContext): List<Array<Any>> {
         log.debug("Calculating duration for all tasks")
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
-            val result = persistenceService.executeQuery(
+            val result = context.executeQuery(
                 "select $intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id",
                 Tuple::class.java,
             )
@@ -131,7 +131,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             return list
         }
 
-        val result = persistenceService.executeQuery(
+        val result = context.executeQuery(
             "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id",
             Tuple::class.java,
         )
@@ -482,7 +482,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         val parent = taskTree.getTaskNodeById(obj.parentTaskId)
             ?: // Task is orphan because it has no parent task.
             throw UserException(I18N_KEY_ERROR_PARENT_TASK_NOT_FOUND)
-        val node = taskTree.getTaskNodeById(obj.id)
+        val node = taskTree.getTaskNodeById(obj.id)!!
         if (node.isParentOf(parent)) {
             // Cyclic reference because task is ancestor of itself.
             throw UserException(I18N_KEY_ERROR_CYCLIC_REFERENCE)
@@ -526,7 +526,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     @Throws(ClassNotFoundException::class, IOException::class)
     private fun readObject(aInputStream: ObjectInputStream) {
         this.userDao = WicketSupport.get(UserDao::class.java)
-        this.taskTree = TaskTree.getInstance()
+        this.taskTree = TaskTree.instance
     }
 
     // Wicket workarround
