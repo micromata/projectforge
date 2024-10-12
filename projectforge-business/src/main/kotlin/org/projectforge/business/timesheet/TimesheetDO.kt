@@ -137,7 +137,7 @@ open class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
   @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
   @IndexedEmbedded(includeDepth = 2)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "kost2_id", nullable = true)
   open var kost2: Kost2DO? = null
 

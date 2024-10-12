@@ -58,7 +58,7 @@ open class RemainingLeaveDO : DefaultBaseDO() {
   @PropertyInfo(i18nKey = "vacation.employee")
   @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "employee_id", nullable = false)
   open var employee: EmployeeDO? = null
 

@@ -129,7 +129,7 @@ open class GroupDO : DefaultBaseDO(), DisplayNameCapable {
     // @ContainedIn
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToMany(targetEntity = PFUserDO::class, fetch = FetchType.EAGER)
+    @get:ManyToMany(targetEntity = PFUserDO::class)
     @get:JoinTable(name = "T_GROUP_USER", joinColumns = [JoinColumn(name = "GROUP_ID")], inverseJoinColumns = [JoinColumn(name = "USER_ID")], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_user_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_group_user_user_id", columnList = "user_id")])
     open var assignedUsers: MutableSet<PFUserDO>? = null
 

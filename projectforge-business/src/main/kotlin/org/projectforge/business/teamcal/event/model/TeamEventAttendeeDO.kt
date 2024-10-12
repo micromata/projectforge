@@ -73,7 +73,7 @@ open class TeamEventAttendeeDO : DefaultBaseDO(), Comparable<TeamEventAttendeeDO
   /**
    * Is set if the attendee is a ProjectForge user.
    */
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "user_id")
   open var user: PFUserDO? = null
 

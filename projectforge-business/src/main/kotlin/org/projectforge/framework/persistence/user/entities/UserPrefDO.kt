@@ -122,7 +122,7 @@ class UserPrefDO : AbstractBaseDO<Long>() {
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:Deprecated("Use value with json serialization instead.")
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+    @get:OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     @get:JoinColumn(name = "user_pref_fk")
     @set:Deprecated("Use value with json serialization instead.")
     var userPrefEntries: MutableSet<UserPrefEntryDO>? = null

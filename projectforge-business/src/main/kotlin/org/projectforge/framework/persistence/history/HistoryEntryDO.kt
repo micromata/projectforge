@@ -109,7 +109,7 @@ class HistoryEntryDO : HistoryEntry {
         cascade = [CascadeType.ALL],
         mappedBy = "parent",
         targetEntity = HistoryEntryAttrDO::class,
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         orphanRemoval = true
     )
     override var attributes: MutableSet<HistoryEntryAttrDO>? = null

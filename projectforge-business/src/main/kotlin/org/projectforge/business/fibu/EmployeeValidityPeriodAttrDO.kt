@@ -59,7 +59,7 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
     override var id: Long? = null
 
     @PropertyInfo(i18nKey = "fibu.employee")
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_fk", nullable = false)
     open var employee: EmployeeDO? = null
 

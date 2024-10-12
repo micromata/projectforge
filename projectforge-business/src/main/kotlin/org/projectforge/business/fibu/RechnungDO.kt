@@ -158,7 +158,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @IndexedEmbedded(includeDepth = 3)
     @get:OneToMany(
         cascade = [CascadeType.MERGE],
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         mappedBy = "rechnung",
         targetEntity = RechnungsPositionDO::class
     )

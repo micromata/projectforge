@@ -69,7 +69,7 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     @PropertyInfo(i18nKey = "book.lendOutBy")
     @IndexedEmbedded(includeDepth = 1, includePaths = ["username", "firstname", "lastname"])
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:Fetch(FetchMode.SELECT)
     @get:JoinColumn(name = "lend_out_by")
