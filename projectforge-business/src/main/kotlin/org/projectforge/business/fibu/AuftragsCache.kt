@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import jakarta.annotation.PostConstruct
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
+import java.io.Serializable
 
 /**
  * Open needed by Wicket's SpringBean.
@@ -48,7 +49,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
     val isVollstaendigFakturiert: Boolean,
     val positionAbgeschlossenUndNichtVollstaendigFakturiert: Boolean,
     val paymentSchedulesReached: Boolean,
-  ) {
+  ): Serializable {
     val toBeInvoiced: Boolean = toBeInvoicedSum > BigDecimal.ZERO
   }
 

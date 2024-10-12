@@ -52,7 +52,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditForm.class);
 
-  private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
+  private PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
 
   NewCustomerSelectPanel customerSelectPanel;
 

@@ -215,6 +215,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
 
     open fun internalLoadAll(context: PfPersistenceContext): List<O> {
         val em = context.em
+        // Native query: doClass.simpleName doesn't match the table name in the database.
+        // val query = em.createNativeQuery("SELECT * FROM ${doClass.simpleName}", doClass)
+        // val query = em.createQuery("SELECT e FROM ${doClass.simpleName} e", doClass)
+        // @Suppress("UNCHECKED_CAST")
+        // return query.resultList as List<O>
         val cb = em.criteriaBuilder
         val cq = cb.createQuery(doClass)
         val query = cq.select(cq.from(doClass))
