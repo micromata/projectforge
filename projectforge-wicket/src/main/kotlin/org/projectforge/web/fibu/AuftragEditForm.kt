@@ -35,7 +35,6 @@ import org.apache.wicket.markup.repeater.RepeatingView
 import org.apache.wicket.model.CompoundPropertyModel
 import org.apache.wicket.model.Model
 import org.apache.wicket.model.PropertyModel
-import org.apache.wicket.spring.injection.annot.SpringBean
 import org.apache.wicket.util.convert.IConverter
 import org.projectforge.business.fibu.*
 import org.projectforge.business.task.TaskDO
@@ -579,6 +578,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         val nettoSumme: TextField<String> =
           object : TextField<String>(InputPanel.WICKET_ID, PropertyModel(position, "nettoSumme")) {
             override fun <C : Any?> getConverter(type: Class<C>?): IConverter<C> {
+              @Suppress("UNCHECKED_CAST")
               return CurrencyConverter() as IConverter<C>
             }
           }

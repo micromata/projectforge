@@ -148,18 +148,21 @@ class VacationServiceTest : AbstractTestBase() {
             remainingLeaveFromPreviousYear = 10.0
         ) // Employee joined in 2018, carry expected.
 
-        try {
-            addVacations(employee, manager, 2020, Month.JULY, 20, Month.JULY, 28)
-            fail("UserException expected due to collision of vacation entries.")
-        } catch (ex: Exception) {
-            Assertions.assertTrue(ex is UserException)
-            Assertions.assertEquals(VacationValidator.Error.COLLISION.messageKey, ex.message)
-        }
-        logon(createEmployee("Foreign-user", LocalDate.of(2017, Month.JANUARY, 1)).user!!)
-        try {
-            addVacations(employee, manager, 2020, Month.JULY, 20, Month.JULY, 28)
-        } catch (ex: Exception) {
-            Assertions.assertTrue(ex is AccessException)
+        suppressErrorLogs {
+            try {
+                addVacations(employee, manager, 2020, Month.JULY, 20, Month.JULY, 28)
+                fail("UserException expected due to collision of vacation entries.")
+            } catch (ex: Exception) {
+                Assertions.assertTrue(ex is UserException)
+                Assertions.assertEquals(VacationValidator.Error.COLLISION.messageKey, ex.message)
+            }
+            logon(createEmployee("Foreign-user", LocalDate.of(2017, Month.JANUARY, 1)).user!!)
+            try {
+                addVacations(employee, manager, 2020, Month.JULY, 20, Month.JULY, 28)
+                fail("AccessException expected, user has not right.")
+            } catch (ex: Exception) {
+                Assertions.assertTrue(ex is AccessException)
+            }
         }
     }
 
@@ -253,22 +256,25 @@ class VacationServiceTest : AbstractTestBase() {
             vacationDaysLeftInYear = 5.0
         ) // 4 days lost after overlap period: 7 - 4 + 30 - 28
 
-        try {
-            // Only 5 days left after 31.03.
-            addVacations(employee, manager, 2020, Month.APRIL, 1, Month.APRIL, 10)
-            fail("UserException expected due to not enough left vacation days.")
-        } catch (ex: Exception) {
-            Assertions.assertTrue(ex is UserException)
-            Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+        suppressErrorLogs {
+            try {
+                // Only 5 days left after 31.03.
+                addVacations(employee, manager, 2020, Month.APRIL, 1, Month.APRIL, 10)
+                fail("UserException expected due to not enough left vacation days.")
+            } catch (ex: Exception) {
+                Assertions.assertTrue(ex is UserException)
+                Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+            }
+            try {
+                // So, try to put vacation partly into the overlap period: get 2 days from previous year and 6 days from new year (but only 5 are available)
+                addVacations(employee, manager, 2020, Month.MARCH, 30, Month.APRIL, 8)
+                fail("UserException expected due to not enough left vacation days.")
+            } catch (ex: Exception) {
+                Assertions.assertTrue(ex is UserException)
+                Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+            }
         }
-        try {
-            // So, try to put vacation partly into the overlap period: get 2 days from previous year and 6 days from new year (but only 5 are available)
-            addVacations(employee, manager, 2020, Month.MARCH, 30, Month.APRIL, 8)
-            fail("UserException expected due to not enough left vacation days.")
-        } catch (ex: Exception) {
-            Assertions.assertTrue(ex is UserException)
-            Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
-        }
+
         // So, try to put vacation partly into the overlap period: get 3 days from previous year and 5 days from new year, should work:
         Assertions.assertEquals(
             7.0,
@@ -279,12 +285,14 @@ class VacationServiceTest : AbstractTestBase() {
         // So, try to move this vacation one day later, this should fail:
         lastStoredVacation!!.startDate = lastStoredVacation!!.startDate!!.plusDays(1)
         lastStoredVacation!!.endDate = lastStoredVacation!!.endDate!!.plusDays(1)
-        try {
-            vacationDao.updateInTrans(lastStoredVacation!!)
-            fail("UserException expected due to not enough left vacation days.")
-        } catch (ex: Exception) {
-            Assertions.assertTrue(ex is UserException)
-            Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+        suppressErrorLogs {
+            try {
+                vacationDao.updateInTrans(lastStoredVacation!!)
+                fail("UserException expected due to not enough left vacation days.")
+            } catch (ex: Exception) {
+                Assertions.assertTrue(ex is UserException)
+                Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+            }
         }
     }
 
@@ -540,11 +548,13 @@ class VacationServiceTest : AbstractTestBase() {
             // Force calculation for older year through baseDate:
             baseDate = LocalDate.of(2016, Month.JANUARY, 10)
         )
-        try {
-            addVacations(employee, manager, 2015, Month.DECEMBER, 22, Month.JANUARY, 15)
-            fail("Not enough days exception expected.")
-        } catch (ex: Exception) {
-            Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+        suppressErrorLogs {
+            try {
+                addVacations(employee, manager, 2015, Month.DECEMBER, 22, Month.JANUARY, 15)
+                fail("Not enough days exception expected.")
+            } catch (ex: Exception) {
+                Assertions.assertEquals(VacationValidator.Error.NOT_ENOUGH_DAYS_LEFT.messageKey, ex.message)
+            }
         }
         Assertions.assertEquals(
             15.0,

@@ -68,7 +68,7 @@ open class TaskFormatter : AbstractFormatter() {
       abreviationLength: Int? = null,
     ): String? {
       var currentTaskId = taskId ?: return null
-      val taskTree = TaskTree.getInstance()
+      val taskTree = TaskTree.instance
       var n: TaskNode? = taskTree.getTaskNodeById(currentTaskId) ?: return null
       if (!showCurrentTask) {
         n = n?.parent

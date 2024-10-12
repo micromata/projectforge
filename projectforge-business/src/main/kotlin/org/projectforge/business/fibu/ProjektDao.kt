@@ -216,8 +216,8 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     override fun afterSaveOrModify(obj: ProjektDO, context: PfPersistenceContext) {
-        if (obj.taskId != null) {
-            taskTree.internalSetProject(obj.taskId, obj)
+        obj.taskId?.let { taskId ->
+            taskTree.internalSetProject(taskId, obj)
         }
         super.afterSaveOrModify(obj, context)
     }
@@ -225,7 +225,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?, context: PfPersistenceContext) {
         if (dbObj?.taskId != null && obj.taskId == null) {
             // Project task was removed:
-            taskTree.internalSetProject(dbObj.taskId, null)
+            taskTree.internalSetProject(dbObj.taskId!!, null)
         }
         super.afterUpdate(obj, dbObj, context)
     }

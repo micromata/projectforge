@@ -80,7 +80,7 @@ open class DBQuery {
                 getList(baseDao, filter, customResultFilters, checkAccess, ctx)
             }
         } catch (ex: Exception) {
-            log.error("Error while querying: ${ex.message}. Magicfilter: ${filter}.")
+            log.error(ex, { "Error while querying: ${ex.message}. Magicfilter: ${filter}." })
             return emptyList()
         }
     }

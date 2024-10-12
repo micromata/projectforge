@@ -108,7 +108,7 @@ open class TimesheetExport {
         row.getCell("kunde")?.setCellValue(timesheet.kost2?.projekt?.kunde?.name)
         row.getCell("projekt")?.setCellValue(timesheet.kost2?.projekt?.name)
         row.getCell("kost2")?.setCellValue(timesheet.kost2?.displayName)
-        row.getCell("task.title")?.setCellValue(node.task.title)
+        row.getCell("task.title")?.setCellValue(node?.task?.title)
         row.getCell("taskPath")?.setCellValue(getTaskPath(timesheet.taskId, null, true, OutputType.PLAIN))
         row.getCell("weekOfYearShortLabel")?.setCellValue(timesheet.getFormattedWeekOfYear())
         row.getCell("dayOfWeekShortLabel")?.setCellValue(
@@ -124,7 +124,7 @@ open class TimesheetExport {
         row.getCell("duration")?.setCellValue(duration.toDouble())?.setCellStyle(durationFormat)
         val hours = seconds.divide(BigDecimal(60 * 60), 2, RoundingMode.HALF_UP)
         row.getCell("hours")?.setCellValue(hours.toDouble())?.setCellStyle(hoursFormat)
-        row.getCell("taskReference")?.setCellValue(node.reference)
+        row.getCell("taskReference")?.setCellValue(node?.reference)
         row.getCell("shortDescription")?.setCellValue(timesheet.getShortDescription())?.setCellStyle(wrapTextStyle)
         row.getCell(descriptionColDef).cell.cellStyle = wrapTextStyle
         row.getCell("created")?.setCellValue(timesheet.created)

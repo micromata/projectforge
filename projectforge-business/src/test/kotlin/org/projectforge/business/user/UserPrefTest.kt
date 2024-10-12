@@ -196,11 +196,16 @@ class UserPrefTest : AbstractTestBase() {
     fun convertPrefParameters() {
         val user = getUser(TEST_USER)
         logon(user)
+        lateinit var user2: PFUserDO
+        lateinit var id: Serializable
+        lateinit var task: TaskDO
+        lateinit var timesheet: TimesheetDO
+        lateinit var userPref: UserPrefDO
         persistenceService.runInTransaction { context ->
-            val user2 = getUser(TEST_USER2)
-            val task = initTestDB.addTask("UserPrefTest", "root", context)
-            var userPref = createUserPref(user, UserPrefArea.TIMESHEET_TEMPLATE, "test")
-            var timesheet = createTimesheet(user2, task, "Micromata", "Wrote a test case...")
+            user2 = getUser(TEST_USER2)
+            task = initTestDB.addTask("UserPrefTest", "root", context)
+            userPref = createUserPref(user, UserPrefArea.TIMESHEET_TEMPLATE, "test")
+            timesheet = createTimesheet(user2, task, "Micromata", "Wrote a test case...")
             userPrefDao.addUserPrefParameters(userPref, timesheet)
             Assertions.assertFalse(
                 userPrefDao.doesParameterNameAlreadyExist(
@@ -210,7 +215,7 @@ class UserPrefTest : AbstractTestBase() {
                     "test"
                 )
             )
-            val id: Serializable = userPrefDao.save(userPref, context)
+            id = userPrefDao.save(userPref, context)
             Assertions.assertTrue(
                 userPrefDao.doesParameterNameAlreadyExist(
                     null,
@@ -227,36 +232,36 @@ class UserPrefTest : AbstractTestBase() {
                     "test"
                 )
             )
+        }
+        persistenceService.runReadOnly { context ->
             userPref = userPrefDao.getById(id, context)!!
             Assertions.assertEquals(5, userPref.userPrefEntries!!.size) // user, task, kost2, location, description.
-            run {
-                val it = userPref.sortedUserPrefEntries.iterator()
-                var entry = it.next()
-                assertUserPrefEntry(entry, "user", PFUserDO::class.java, user2.id.toString(), "user", null, "1")
-                userPrefDao.updateParameterValueObject(entry)
-                Assertions.assertEquals(user2.id, (entry.valueAsObject as PFUserDO).id)
-                entry = it.next()
-                assertUserPrefEntry(entry, "task", TaskDO::class.java, task.id.toString(), "task", null, "2")
-                userPrefDao.updateParameterValueObject(entry)
-                Assertions.assertEquals(task.id, (entry.valueAsObject as TaskDO).id)
-                entry = it.next()
-                assertUserPrefEntry(entry, "kost2", Kost2DO::class.java, null, "fibu.kost2", null, "3")
-                entry = it.next()
-                assertUserPrefEntry(
-                    entry,
-                    "location",
-                    String::class.java,
-                    "Micromata",
-                    "timesheet.location",
-                    100,
-                    "ZZZ00"
-                )
-                entry = it.next()
-                assertUserPrefEntry(
-                    entry, "description",
-                    String::class.java, "Wrote a test case...", "description", 4000, "ZZZ01"
-                )
-            }
+            val it = userPref.sortedUserPrefEntries.iterator()
+            var entry = it.next()
+            assertUserPrefEntry(entry, "user", PFUserDO::class.java, user2.id.toString(), "user", null, "1")
+            userPrefDao.updateParameterValueObject(entry)
+            Assertions.assertEquals(user2.id, (entry.valueAsObject as PFUserDO).id)
+            entry = it.next()
+            assertUserPrefEntry(entry, "task", TaskDO::class.java, task.id.toString(), "task", null, "2")
+            userPrefDao.updateParameterValueObject(entry)
+            Assertions.assertEquals(task.id, (entry.valueAsObject as TaskDO).id)
+            entry = it.next()
+            assertUserPrefEntry(entry, "kost2", Kost2DO::class.java, null, "fibu.kost2", null, "3")
+            entry = it.next()
+            assertUserPrefEntry(
+                entry,
+                "location",
+                String::class.java,
+                "Micromata",
+                "timesheet.location",
+                100,
+                "ZZZ00"
+            )
+            entry = it.next()
+            assertUserPrefEntry(
+                entry, "description",
+                String::class.java, "Wrote a test case...", "description", 4000, "ZZZ01"
+            )
             timesheet = TimesheetDO()
             userPrefDao.fillFromUserPrefParameters(userPref, timesheet)
             Assertions.assertEquals(user2.id, timesheet.userId)
@@ -264,6 +269,8 @@ class UserPrefTest : AbstractTestBase() {
             Assertions.assertNull(timesheet.kost2Id)
             Assertions.assertEquals("Micromata", timesheet.location)
             Assertions.assertEquals("Wrote a test case...", timesheet.description)
+        }
+        persistenceService.runInTransaction { context ->
             userPref.getUserPrefEntry("location")!!.value = "At home"
             userPrefDao.update(userPref, context)
             val names = userPrefDao.getPrefNames(UserPrefArea.TIMESHEET_TEMPLATE)
@@ -275,7 +282,6 @@ class UserPrefTest : AbstractTestBase() {
             dependents = userPref.getDependentUserPrefEntries(userPref.getUserPrefEntry("task")!!.parameter!!)
             Assertions.assertEquals(1, dependents!!.size)
             Assertions.assertEquals("kost2", dependents[0].parameter)
-            null
         }
     }
 

@@ -228,7 +228,7 @@ class ToStringUtil {
 
     class TaskSerializer : EmbeddedDOSerializer<TaskDO>(TaskDO::class.java) {
         override fun writeFields(jgen: JsonGenerator, value: TaskDO, initialized: Boolean) {
-            writeFields(jgen, value.id, "path", TaskTree.getInstance().getTaskNodeById(value.id)?.pathAsString)
+            writeFields(jgen, value.id, "path", TaskTree.instance.getTaskNodeById(value.id)?.pathAsString)
         }
     }
 

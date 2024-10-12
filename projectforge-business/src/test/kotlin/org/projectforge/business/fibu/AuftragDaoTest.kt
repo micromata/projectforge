@@ -142,12 +142,14 @@ class AuftragDaoTest : AbstractTestBase() {
 
             logon(TEST_ADMIN_USER)
             checkNoAccess(useId, order, "Admin ", context)
-            null
         }
     }
 
     @Test
     fun checkAccess2() {
+        lateinit var auftrag1: AuftragDO
+        lateinit var auftrag2: AuftragDO
+        lateinit var id: Serializable
         persistenceService.runInTransaction<Any?> { context: PfPersistenceContext ->
             logon(TEST_FINANCE_USER)
             val group1 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers1", context, TEST_PROJECT_ASSISTANT_USER)
@@ -155,9 +157,9 @@ class AuftragDaoTest : AbstractTestBase() {
             var projekt1 = ProjektDO()
             projekt1.name = "ACME - Webportal 1"
             projekt1.projektManagerGroup = group1
-            var id: Serializable? = projektDao.save(projekt1, context)
+            id = projektDao.save(projekt1, context)
             projekt1 = projektDao.getById(id, context)!!
-            var auftrag1 = AuftragDO()
+            auftrag1 = AuftragDO()
             auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
             auftrag1.projekt = projekt1
             auftrag1.addPosition(AuftragsPositionDO())
@@ -170,7 +172,7 @@ class AuftragDaoTest : AbstractTestBase() {
             projekt2.projektManagerGroup = group2
             id = projektDao.save(projekt2, context)
             projekt2 = projektDao.getById(id, context)!!
-            var auftrag2 = AuftragDO()
+             auftrag2 = AuftragDO()
             auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
             auftrag2.projekt = projekt2
             auftrag2.addPosition(AuftragsPositionDO())
@@ -183,7 +185,8 @@ class AuftragDaoTest : AbstractTestBase() {
 
             logon(TEST_USER)
             checkNoAccess(id, auftrag1, "Other", context)
-
+        }
+        persistenceService.runInTransaction { context ->
             logon(TEST_PROJECT_MANAGER_USER)
             projektDao.getList(ProjektFilter(), context)
             checkNoAccess(auftrag1.id, "Project manager", context)
@@ -198,7 +201,6 @@ class AuftragDaoTest : AbstractTestBase() {
 
             logon(TEST_ADMIN_USER)
             checkNoAccess(id, auftrag1, "Admin ", context)
-            null
         }
     }
 
@@ -328,17 +330,20 @@ class AuftragDaoTest : AbstractTestBase() {
 
     @Test
     fun checkVollstaendigFakturiert() {
+        lateinit var auftrag1: AuftragDO
+        lateinit var id1: Serializable
+        lateinit var position: AuftragsPositionDO
         persistenceService.runInTransaction<Any?> { context ->
             logon(TEST_FINANCE_USER)
-            var auftrag1 = AuftragDO()
+            auftrag1 = AuftragDO()
             auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
             auftragDao.setContactPerson(auftrag1, getUserId(TEST_PROJECT_MANAGER_USER))
             auftrag1.addPosition(AuftragsPositionDO())
-            val id1: Serializable = auftragDao.save(auftrag1, context)
+            id1 = auftragDao.save(auftrag1, context)
             dbNumber++ // Needed for getNextNumber test;
             auftrag1 = auftragDao.getById(id1, context)!!
 
-            var position = auftrag1.positionenIncludingDeleted!![0]
+            position = auftrag1.positionenIncludingDeleted!![0]
             position.vollstaendigFakturiert = true
             try {
                 auftragDao.update(auftrag1, context)
@@ -349,7 +354,8 @@ class AuftragDaoTest : AbstractTestBase() {
                     ex.i18nKey
                 )
             }
-
+        }
+        persistenceService.runInTransaction { context ->
             auftrag1 = auftragDao.getById(id1, context)!!
             auftrag1.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
             auftragDao.update(auftrag1, context)
@@ -372,7 +378,6 @@ class AuftragDaoTest : AbstractTestBase() {
             position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
             position.vollstaendigFakturiert = true
             auftragDao.update(auftrag1, context)
-            null
         }
     }
 
@@ -406,7 +411,6 @@ class AuftragDaoTest : AbstractTestBase() {
             auftragDao.update(auftrag, context)
             auftrag = auftragDao.getById(id, context)!!
             Assertions.assertEquals(3, auftrag.positionenIncludingDeleted!!.size)
-            null
         }
     }
 
@@ -491,7 +495,6 @@ class AuftragDaoTest : AbstractTestBase() {
                 Assertions.assertEquals(e.params!![0], "1, 2")
             }
             Assertions.assertTrue(exceptionThrown)
-            null
         }
     }
 
@@ -565,7 +568,6 @@ class AuftragDaoTest : AbstractTestBase() {
                 exceptionThrown = true
             }
             Assertions.assertTrue(exceptionThrown)
-            null
         }
     }
 
@@ -602,7 +604,6 @@ class AuftragDaoTest : AbstractTestBase() {
 
             auftragFilter.periodOfPerformanceEndDate = null
             Assertions.assertEquals(6, auftragDao.getList(auftragFilter, context).size)
-            null
         }
     }
 

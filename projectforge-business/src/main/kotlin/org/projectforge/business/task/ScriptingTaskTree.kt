@@ -33,7 +33,7 @@ import java.math.BigDecimal
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class ScriptingTaskTree {
-  private val __baseDao: TaskTree = TaskTree.getInstance()
+  private val __baseDao: TaskTree = TaskTree.instance
 
   val rootTaskNode: ScriptingTaskNode
     get() = ScriptingTaskNode(__baseDao.rootTaskNode)
@@ -128,7 +128,7 @@ class ScriptingTaskTree {
     return __baseDao.isRootNode(node.__baseObject)
   }
 
-  fun isRootNode(task: TaskDO?): Boolean {
+  fun isRootNode(task: TaskDO): Boolean {
     return __baseDao.isRootNode(task)
   }
 
