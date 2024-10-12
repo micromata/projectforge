@@ -58,7 +58,7 @@ open class LeaveAccountEntryDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "fibu.employee", required = true)
     @IndexedEmbedded(includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
 

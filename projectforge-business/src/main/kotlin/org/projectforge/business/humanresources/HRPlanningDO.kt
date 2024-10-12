@@ -81,7 +81,7 @@ open class HRPlanningDO : DefaultBaseDO() {
      */
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     // @get:ContainedIn
-    @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.EAGER, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
+    @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.LAZY, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
     open var entries: MutableList<HRPlanningEntryDO>? = null
 
     val formattedWeekOfYear: String

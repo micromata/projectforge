@@ -53,7 +53,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
    */
   // @JsonIgnore needed due to circular references.
   @JsonIgnore
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "auftrag_id", nullable = false)
   open var auftrag: AuftragDO? = null
 

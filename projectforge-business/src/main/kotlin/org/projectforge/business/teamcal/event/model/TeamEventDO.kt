@@ -199,7 +199,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   override var note: String? = null
 
   open var attendees: MutableSet<TeamEventAttendeeDO>? = null
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_event_fk")
     get() {
       if (field == null) {
@@ -240,7 +240,7 @@ open class TeamEventDO : DefaultBaseDO(), ICalendarEvent, Cloneable {
   open var reminderActionType: ReminderActionType? = null
 
   @PersistenceBehavior(autoUpdateCollectionEntries = true)
-  @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
   @get:JoinColumn(name = "team_event_fk2")
   open var attachments: MutableSet<TeamEventAttachmentDO>? = null
     get() {

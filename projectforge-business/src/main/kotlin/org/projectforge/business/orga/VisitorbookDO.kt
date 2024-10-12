@@ -67,7 +67,7 @@ class VisitorbookDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
     @IndexedEmbedded(includeDepth = 2, includePaths = ["user.firstname", "user.lastname"])
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
+    @get:ManyToMany(targetEntity = EmployeeDO::class, cascade = [CascadeType.MERGE], fetch = FetchType.LAZY)
     @get:JoinTable(
         name = "T_ORGA_VISITORBOOK_EMPLOYEE",
         joinColumns = [JoinColumn(name = "VISITORBOOK_ID")],
@@ -96,7 +96,7 @@ class VisitorbookDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
 */
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "visitorbook")
+    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "visitorbook")
     @Fetch(FetchMode.SELECT)
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
     var entries: MutableList<VisitorbookEntryDO>? = null

@@ -282,7 +282,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     open var personalPhoneIdentifiers: String? = null
 
     @PropertyInfo(i18nKey = "access.rights")
-    @get:OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
+    @get:OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "user")
     open var rights: MutableSet<UserRightDO>? = mutableSetOf()
 
     /**

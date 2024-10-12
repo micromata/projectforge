@@ -95,14 +95,14 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @PropertyInfo(i18nKey = "fibu.buchungssatz.konto")
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id", nullable = false)
     open var konto: KontoDO? = null
 
     @PropertyInfo(i18nKey = "fibu.buchungssatz.gegenKonto")
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "gegenkonto_id", nullable = false)
     open var gegenKonto: KontoDO? = null
 
@@ -130,14 +130,14 @@ open class BuchungssatzDO : DefaultBaseDO(), Comparable<BuchungssatzDO> {
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost1_id", nullable = false)
     open var kost1: Kost1DO? = null
 
     @PropertyInfo(i18nKey = "fibu.kost2")
     @IndexedEmbedded(includeDepth = 3)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kost2_id", nullable = false)
     open var kost2: Kost2DO? = null
 

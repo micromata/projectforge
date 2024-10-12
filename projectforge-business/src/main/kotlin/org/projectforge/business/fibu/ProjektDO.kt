@@ -105,7 +105,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.kunde")
     @IndexedEmbedded(includeDepth = 1)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "kunde_id")
     open var kunde: KundeDO? = null
 

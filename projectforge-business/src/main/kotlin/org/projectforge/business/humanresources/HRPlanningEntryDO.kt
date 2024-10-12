@@ -55,14 +55,14 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
 
     @IndexedEmbedded(includeDepth = 3)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "planning_fk", nullable = false)
     open var planning: HRPlanningDO? = null
 
     @PropertyInfo(i18nKey = "fibu.projekt")
     @IndexedEmbedded(includeDepth = 2)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "projekt_fk")
     open var projekt: ProjektDO? = null
 

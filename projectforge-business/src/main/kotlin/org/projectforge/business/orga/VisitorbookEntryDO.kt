@@ -52,7 +52,7 @@ open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Long>() {
     override var id: Long? = null
 
     @PropertyInfo(i18nKey = "orga.visitorbook")
-    @get:ManyToOne(fetch = FetchType.EAGER)
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "visitorbook_fk", nullable = false)
     open var visitorbook: VisitorbookDO? = null
 

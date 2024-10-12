@@ -96,19 +96,19 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
   @PropertyInfo(i18nKey = "fibu.kost1")
   @IndexedEmbedded(includeDepth = 1)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "kost1_fk")
   open var kost1: Kost1DO? = null
 
   @PropertyInfo(i18nKey = "fibu.kost2")
   @IndexedEmbedded(includeDepth = 1)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "kost2_fk")
   open var kost2: Kost2DO? = null
 
   @IndexedEmbedded(includeDepth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "rechnungs_pos_fk", nullable = true)
   @JsonBackReference
   open var rechnungsPosition: RechnungsPositionDO? = null
@@ -120,7 +120,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
     }
 
   @IndexedEmbedded(includeDepth = 1)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "eingangsrechnungs_pos_fk", nullable = true)
   @JsonBackReference
   open var eingangsrechnungsPosition: EingangsrechnungsPositionDO? = null
@@ -140,7 +140,7 @@ open class KostZuweisungDO : DefaultBaseDO(), DisplayNameCapable {
 
   @IndexedEmbedded(includeDepth = 1)
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  @get:ManyToOne(fetch = FetchType.EAGER)
+  @get:ManyToOne(fetch = FetchType.LAZY)
   @get:JoinColumn(name = "employee_salary_fk", nullable = true)
   open var employeeSalary: EmployeeSalaryDO? = null
     set(employeeSalary) {
