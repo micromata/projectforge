@@ -9,6 +9,14 @@
         <appender-ref ref="MEMORY"/>
     </root>
 
+    <!-- Log Hibernate SQL Statements, Log SQL Bind Parameters, Optional: Log DDL operations -->
+    <!--logger name="org.hibernate.SQL" level="DEBUG" />
+    <logger name="org.hibernate.transaction" level="DEBUG" />
+    <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+    <logger name="org.hibernate.orm.tool.schema.internal" level="DEBUG"/>
+    <logger name="logging.level.org.hibernate.type.descriptor.sql" level="TRACE"/-->
+
+    <!-- custom logging levels -->
     <logger name="org.projectforge" level="error"/>
     <logger name="org.projectforge.business.gantt.GanttUtils" level="off"/>
     <logger name="org.projectforge.business.task.TaskNode" level="off"/>

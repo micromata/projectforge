@@ -201,7 +201,7 @@ class MigrateTradingPartnersTest {
     } else {
       ", shortName=${partner.shortName}"
     }
-    println("${partner.type?.value}: ${partner.number} ${partner.company}: ${partner.remarks ?: "ohne Konto"}$shortName$importCode")
+    // println("${partner.type?.value}: ${partner.number} ${partner.company}: ${partner.remarks ?: "ohne Konto"}$shortName$importCode")
   }
 
   private fun createIncomingInvoice(kreditor: String, konto: KontoDO): EingangsrechnungDO {

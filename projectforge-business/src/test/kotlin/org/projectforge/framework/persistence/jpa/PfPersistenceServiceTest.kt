@@ -99,7 +99,7 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             persistenceService.runIsolatedReadOnly { innerContext ->  // Readonly +1
                 Assertions.assertNotEquals(outerContext.contextId, innerContext.contextId, "Isolated context.")
             }
-            persistenceService.runInIsolatedTransaction { innerContext -> // Transactional +1
+            persistenceService.runInNewTransaction { innerContext -> // Transactional +1
                 Assertions.assertNotEquals(innerContext.contextId, outerContext.contextId, "Isolated context.")
             }
         }
@@ -107,7 +107,7 @@ class PfPersistenceServiceTest : AbstractTestBase() {
         suppressErrorLogs {
             try {
                 persistenceService.runInTransaction { outerContext -> // Transactional +1
-                    persistenceService.runInIsolatedTransaction { innerContext -> // Transactional +1
+                    persistenceService.runInNewTransaction { innerContext -> // Transactional +1
                         throw IllegalArgumentException("Some exception for testing.")
                     }
                 }

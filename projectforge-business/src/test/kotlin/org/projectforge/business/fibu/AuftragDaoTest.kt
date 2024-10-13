@@ -86,8 +86,10 @@ class AuftragDaoTest : AbstractTestBase() {
         auftragDao.setContactPerson(auftrag1, getUserId(TEST_FINANCE_USER))
         var id1: Serializable
         try {
-            id1 = auftragDao.save(auftrag1)
-            Assertions.fail<Any>("UserException expected: Order should have positions.")
+            suppressErrorLogs {
+                id1 = auftragDao.save(auftrag1)
+            }
+            Assertions.fail { "UserException expected: Order should have positions." }
         } catch (ex: UserException) {
             Assertions.assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.i18nKey)
         }
@@ -118,15 +120,19 @@ class AuftragDaoTest : AbstractTestBase() {
 
         logon(TEST_PROJECT_MANAGER_USER)
         try {
-            auftragDao.getById(id1)
-            Assertions.fail<Any>("AccessException expected: Projectmanager should not have access to foreign orders.")
+            suppressErrorLogs {
+                auftragDao.getById(id1)
+            }
+            Assertions.fail { "AccessException expected: Projectmanager should not have access to foreign orders." }
         } catch (ex: AccessException) {
             // OK
         }
         auftragDao.getById(id2)
         try {
-            auftragDao.getById(id3)
-            Assertions.fail<Any>("AccessException expected: Projectmanager should not have access to older orders than " + AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER + " days.")
+            suppressErrorLogs {
+                auftragDao.getById(id3)
+            }
+            Assertions.fail { "AccessException expected: Projectmanager should not have access to older orders than ${AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER} days." }
         } catch (ex: AccessException) {
             // OK
         }
@@ -237,8 +243,10 @@ class AuftragDaoTest : AbstractTestBase() {
 
             logon(user)
             try {
-                auftrag = auftragDao.getById(id)!!
-                Assertions.fail<Any>("Access exception expected.")
+                suppressErrorLogs {
+                    auftrag = auftragDao.getById(id)!!
+                }
+                Assertions.fail { "Access exception expected." }
             } catch (ex: AccessException) {
                 Assertions.assertEquals("access.exception.userHasNotRight", ex.i18nKey)
             }
@@ -250,8 +258,10 @@ class AuftragDaoTest : AbstractTestBase() {
             logonUser = user
             logon(user)
             try {
-                auftrag = auftragDao.getById(id)!!
-                Assertions.fail<Any>("Access exception expected.")
+                suppressErrorLogs {
+                    auftrag = auftragDao.getById(id)!!
+                }
+                Assertions.fail { "Access exception expected." }
             } catch (ex: AccessException) {
                 Assertions.assertEquals("access.exception.userHasNotRight", ex.i18nKey)
             }
@@ -286,8 +296,10 @@ class AuftragDaoTest : AbstractTestBase() {
     private fun checkNoAccess(who: String) {
         try {
             val filter = AuftragFilter()
-            auftragDao.getList(filter)
-            Assertions.fail<Any>("AccessException expected: $who users should not have select list access to orders.")
+            suppressErrorLogs {
+                auftragDao.getList(filter)
+            }
+            Assertions.fail { "AccessException expected: $who users should not have select list access to orders." }
         } catch (ex: AccessException) {
             // OK
         }
@@ -295,8 +307,10 @@ class AuftragDaoTest : AbstractTestBase() {
 
     private fun checkNoAccess(auftragsId: Serializable?, who: String) {
         try {
-            auftragDao.getById(auftragsId)
-            Assertions.fail<Any>("AccessException expected: $who users should not have select access to orders.")
+            suppressErrorLogs {
+                auftragDao.getById(auftragsId)
+            }
+            Assertions.fail{"AccessException expected: $who users should not have select access to orders."}
         } catch (ex: AccessException) {
             // OK
         }
@@ -313,15 +327,19 @@ class AuftragDaoTest : AbstractTestBase() {
             val auf = AuftragDO()
             val number = auftragDao.getNextNumber(auf)
             auf.nummer = number
-            auftragDao.save(auf)
-            Assertions.fail<Any>("AccessException expected: $who users should not have save access to orders.")
+            suppressErrorLogs {
+                auftragDao.save(auf)
+            }
+            Assertions.fail { "AccessException expected: $who users should not have save access to orders." }
         } catch (ex: AccessException) {
             // OK
         }
         try {
             auftrag.bemerkung = who
-            auftragDao.update(auftrag)
-            Assertions.fail<Any>("AccessException expected: $who users should not have update access to orders.")
+            suppressErrorLogs {
+                auftragDao.update(auftrag)
+            }
+            Assertions.fail{"AccessException expected: $who users should not have update access to orders."}
         } catch (ex: AccessException) {
             // OK
         }
@@ -345,8 +363,10 @@ class AuftragDaoTest : AbstractTestBase() {
             position = auftrag1.positionenIncludingDeleted!![0]
             position.vollstaendigFakturiert = true
             try {
-                auftragDao.update(auftrag1)
-                Assertions.fail<Any>("UserException expected: Only orders with state ABGESCHLOSSEN should be set as fully invoiced.")
+                suppressErrorLogs {
+                    auftragDao.update(auftrag1)
+                }
+                Assertions.fail { "UserException expected: Only orders with state ABGESCHLOSSEN should be set as fully invoiced."}
             } catch (ex: UserException) {
                 Assertions.assertEquals(
                     "fibu.auftrag.error.nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein",
@@ -365,8 +385,10 @@ class AuftragDaoTest : AbstractTestBase() {
             position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
             position.vollstaendigFakturiert = true
             try {
-                auftragDao.update(auftrag1)
-                Assertions.fail<Any>("AccessException expected: Projectmanager should not able to set order as fully invoiced.")
+                suppressErrorLogs {
+                    auftragDao.update(auftrag1)
+                }
+                Assertions.fail {"AccessException expected: Projectmanager should not able to set order as fully invoiced."}
             } catch (ex: AccessException) {
                 // OK
                 Assertions.assertEquals("fibu.auftrag.error.vollstaendigFakturiertProtection", ex.i18nKey)

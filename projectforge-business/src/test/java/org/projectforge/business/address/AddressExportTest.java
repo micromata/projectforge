@@ -21,11 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.address;
+package org.projectforge.business.address;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

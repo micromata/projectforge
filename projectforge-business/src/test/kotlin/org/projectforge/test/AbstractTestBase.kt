@@ -41,6 +41,7 @@ import org.projectforge.business.login.LoginDefaultHandler
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserGroupCache
+import org.projectforge.business.user.UserPrefCache
 import org.projectforge.business.user.service.UserService
 import org.projectforge.database.DatabaseSupport
 import org.projectforge.framework.access.AccessChecker
@@ -506,6 +507,7 @@ abstract class AbstractTestBase protected constructor() {
             internalJunitTestMode = true
             internalSetTestMode()
             initialized = false
+            UserPrefCache.dontCallPreDestroyInTestMode = true
         }
 
         @JvmStatic

@@ -54,7 +54,6 @@ import java.time.Month
 import java.util.*
 
 class TimesheetMassUpdateTest : AbstractTestBase() {
-    // private static final Logger log = Logger.getLogger(TaskTest.class);
     @Autowired
     private lateinit var configurationDao: ConfigurationDao
 
@@ -184,7 +183,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         master.task = initTestDB.getTask(prefix + "2")
         master.location = "Headquarter"
 
-        val dbList = massUpdate(list, master)
+        var dbList = listOf<TimesheetDO>()
+        suppressErrorLogs {
+            dbList = massUpdate(list, master)
+        }
         assertSheet(dbList.find { it.description == "TS#0" }!!, master)
         assertKost2(dbList.find { it.description == "TS#0" }!!, 5, 50, 2, 0) // Kost2 transformed.
         assertSheet(dbList.find { it.description == "TS#1" }!!, master)
@@ -242,7 +244,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         Assertions.assertNotNull(kost2)
         master.kost2 = kost2
 
-        var dbList = massUpdate(list, master)
+        var dbList = listOf<TimesheetDO>()
+        suppressErrorLogs {
+            dbList = massUpdate(list, master)
+        }
         Assertions.assertEquals(
             getTask(prefix + "1.1").id,
             dbList.find { it.description == "TS#0" }?.taskId
@@ -342,7 +347,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         master.task = initTestDB.getTask(prefix + "2")
         master.location = "Headquarter"
 
-        var dbList = massUpdate(list, master)
+        var dbList = listOf<TimesheetDO>()
+        suppressErrorLogs {
+            dbList = massUpdate(list, master)
+        }
 
         Assertions.assertEquals(getTask(prefix + "1.1").id, dbList[0].taskId) // Not moved.
         Assertions.assertEquals(getTask(prefix + "1.2").id, dbList[1].taskId) // Not moved.
@@ -412,7 +420,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         val master = TimesheetDO()
         master.task = initTestDB.getTask(prefix + "2.2")
 
-        val dbList = massUpdate(list, master)
+        var dbList = listOf<TimesheetDO>()
+        suppressErrorLogs {
+            dbList = massUpdate(list, master)
+        }
         var ts = dbList.find { it.description == "TS#1" }!!
         assertSheet(ts, list[0], "Task not changed due to protectionUntil")
         assertKost2(ts, 5, 53, 2, 0) // Kost2 unmodified.
@@ -435,8 +446,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         try {
             val master = TimesheetDO()
             master.location = "test"
-            massUpdate(list, master)
-            Assertions.fail<Any>("Maximum number of allowed mass updates exceeded. Not detected!")
+            suppressErrorLogs {
+                massUpdate(list, master)
+            }
+            Assertions.fail { "Maximum number of allowed mass updates exceeded. Not detected!" }
         } catch (ex: UserException) {
             Assertions.assertEquals(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, ex.i18nKey)
             // OK.
