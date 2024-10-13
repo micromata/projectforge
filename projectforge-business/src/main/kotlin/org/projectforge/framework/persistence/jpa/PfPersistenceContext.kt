@@ -31,7 +31,7 @@ import mu.KotlinLogging
 import org.hibernate.NonUniqueResultException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
-import java.util.UUID
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext.ContextType
 
 private val log = KotlinLogging.logger {}
 
@@ -54,7 +54,8 @@ class PfPersistenceContext internal constructor(
      * This id is used for logging and debugging purposes.
      * It's a UUID (generated on init).
      */
-    val contextId =  UUID.randomUUID()
+    val contextId = nextContextId // AtomicInteger
+
 
     /* init {
         openEntityManagers.add(em)
@@ -383,7 +384,14 @@ class PfPersistenceContext internal constructor(
         return maxNumber + 1
     }
 
-    //companion object {
-    //    private val openEntityManagers = mutableSetOf<EntityManager>()
-    //}
+    companion object {
+        private val nextContextId: Long
+            get() {
+                synchronized(this) {
+                    return contextCounter++
+                }
+            }
+        private var contextCounter = 0L
+        //    private val openEntityManagers = mutableSetOf<EntityManager>()
+    }
 }
