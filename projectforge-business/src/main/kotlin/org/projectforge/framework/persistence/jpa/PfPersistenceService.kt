@@ -31,6 +31,7 @@ import org.hibernate.Session
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -125,6 +126,7 @@ open class PfPersistenceService {
                 type = PfPersistenceContext.ContextType.TRANSACTION,
             ).use { context ->
                 PfPersistenceContextThreadLocal.setTransactional(context)
+                log.debug { "Begin transaction context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 em.transaction.begin()
                 // openedTransactions.add(em.transaction)
@@ -144,7 +146,8 @@ open class PfPersistenceService {
                 }
             }
         } finally {
-            PfPersistenceContextThreadLocal.removeTransactional()
+            val removed = PfPersistenceContextThreadLocal.removeTransactional()
+            log.debug { "Remove transaction context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setTransactional(it) } // Restore previous context, if any.
         }
     }
@@ -156,13 +159,14 @@ open class PfPersistenceService {
     private fun <T> runInNewReadOnlyContext(
         block: (context: PfPersistenceContext) -> T
     ): T {
-        val saved = PfPersistenceContextThreadLocal.get()
+        val saved = PfPersistenceContextThreadLocal.getReadonly()
         try {
             PfPersistenceContext(
                 entityManagerFactory,
                 type = PfPersistenceContext.ContextType.READONLY
             ).use { context ->
                 PfPersistenceContextThreadLocal.setReadonly(context)
+                log.debug { "New readonly context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 // log.info { "Running read only" }
                 em.unwrap(Session::class.java).isDefaultReadOnly = true
@@ -171,6 +175,8 @@ open class PfPersistenceService {
             }
         } finally {
             PfPersistenceContextThreadLocal.removeReadonly()
+            val removed = PfPersistenceContextThreadLocal.removeReadonly()
+            log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
         }
     }

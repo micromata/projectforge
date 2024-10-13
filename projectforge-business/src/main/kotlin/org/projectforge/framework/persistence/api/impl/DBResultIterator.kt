@@ -28,6 +28,7 @@ import org.hibernate.ScrollableResults
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
+import org.hibernate.Hibernate
 
 
 /**
@@ -56,19 +57,24 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Long>>
 }
 
 internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
-        entityManager: EntityManager,
+        val entityManager: EntityManager,
         criteria: CriteriaQuery<O>,
         val resultPredicates: List<DBPredicate>)
     : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults<O>
+    private var counter = 0
 
     init {
         val query = entityManager.createQuery(criteria)
         val hquery = query.unwrap(org.hibernate.query.Query::class.java)
-        scrollableResults = hquery.scroll(ScrollMode.SCROLL_SENSITIVE) as ScrollableResults<O>
+        @Suppress("UNCHECKED_CAST")
+        scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<O>
     }
 
     override fun next(): O? {
+        if (++counter % 100 == 0) {
+            entityManager.clear()  // Flushing and clearing session
+        }
         if (!scrollableResults.next()) {
             return null
         }

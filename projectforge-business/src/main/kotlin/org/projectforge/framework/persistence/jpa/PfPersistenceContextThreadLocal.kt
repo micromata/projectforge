@@ -51,14 +51,18 @@ internal object PfPersistenceContextThreadLocal {
     /**
      * Removes readonly context of ThreadLocal, if exists.
      */
-    fun removeReadonly() {
+    fun removeReadonly(): PfPersistenceContext? {
+        val ret = threadLocalReadonly.get()
         threadLocalReadonly.remove()
+        return ret
     }
 
     /**
      * Removes transactional context of ThreadLocal, if exists.
      */
-    fun removeTransactional() {
+    fun removeTransactional(): PfPersistenceContext? {
+        val ret = threadLocalTransactional.get()
         threadLocalTransactional.remove()
+        return ret
     }
 }
