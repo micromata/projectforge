@@ -247,7 +247,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             checkRefresh()
         }
         synchronized(taskMap) {
-            return return taskMap[taskId]
+            return taskMap[taskId]
         }
     }
 
