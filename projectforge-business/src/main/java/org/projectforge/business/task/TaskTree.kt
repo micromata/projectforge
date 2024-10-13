@@ -44,7 +44,6 @@ import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.i18n.InternalErrorException
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.utils.NumberHelper.greaterZero
@@ -737,8 +736,8 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     /**
      * Reads the sum of all time sheet durations grouped by task id and set the total duration of found taskNodes.
      */
-    private fun readTotalDurations(context: PfPersistenceContext) {
-        val list = taskDao.readTotalDurations(context)
+    private fun readTotalDurations() {
+        val list = taskDao.readTotalDurations()
         for (res in list) {
             val taskId = res[1] as Long
             val node = getTaskNodeById(taskId, false)
@@ -784,11 +783,13 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @see org.projectforge.framework.cache.AbstractCache.refresh
      */
     public override fun refresh() {
+
+        
         log.info("Initializing task tree ...")
         persistenceService.runIsolatedReadOnly { context ->
             var newRoot: TaskNode? = null
             val nTaskMap = mutableMapOf<Long, TaskNode>()
-            val taskList = taskDao.internalLoadAll(context)
+            val taskList = taskDao.internalLoadAll()
             log.debug("Loading list of tasks ...")
             // First create all nodes and put them into the map:
             // The root node is the first node without parent node.
@@ -826,13 +827,13 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             log.debug { root.toString() }
 
             // Now read all explicit group task access' from the database:
-            accessDao.internalLoadAll(context).forEach { access ->
+            accessDao.internalLoadAll().forEach { access ->
                 val node = nTaskMap.get(access.taskId)!!
                 node.setGroupTaskAccess(access)
                 log.debug { access.toString() }
             }
             // Now read all projects with their references to tasks:
-            projektDao.internalLoadAll(context).forEach { project ->
+            projektDao.internalLoadAll().forEach { project ->
                 if (project.deleted || project.taskId == null) {
                     return@forEach
                 }
@@ -847,7 +848,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             }
             log.debug { this.toString() }
             this.taskMap = nTaskMap
-            readTotalDurations(context)
+            readTotalDurations()
             refreshOrderPositionReferences()
             // Now update the status: bookable for time sheets:
             val timesheet = TimesheetDO()

@@ -520,7 +520,7 @@ class TaskTest : AbstractTestBase() {
             timesheetDao.saveInTrans(ts)
         }
         persistenceService.runReadOnly { context ->
-            val list = taskDao.readTotalDurations(context)
+            val list = taskDao.readTotalDurations()
             var taskFound = false
             var subtask1Found = false
             for (oa in list) {

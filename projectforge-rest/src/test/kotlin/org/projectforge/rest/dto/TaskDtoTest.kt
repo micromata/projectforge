@@ -29,7 +29,7 @@ import org.projectforge.business.task.TaskDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 
-class TaskTest: AbstractTestBase() {
+class TaskDtoTest: AbstractTestBase() {
 
     @Test
     fun dtoTest() {

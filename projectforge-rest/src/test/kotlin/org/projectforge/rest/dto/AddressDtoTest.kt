@@ -30,7 +30,7 @@ import org.projectforge.business.address.AddressbookDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 
-class AddressTest: AbstractTestBase() {
+class AddressDtoTest: AbstractTestBase() {
 
     @Test
     fun dtoTest() {
