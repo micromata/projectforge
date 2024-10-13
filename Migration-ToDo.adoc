@@ -1,4 +1,7 @@
+- Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - Auf jeder Wicketseite werden folgende DB-Calls 5x gemacht: getEmployeeByUserId (über hasAccessToVacationService im NavTopPanel),
+- ehcache prüfen, transaction logging checken
+- AuftragsCache.isVollstaendigFakturiert() > 6s
 - Zeitraumfilter bei Kreditoren
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - Ehcache konfigurieren
@@ -25,9 +28,22 @@
 - Alte UserPrefDO im Frontend testen.
 - Refresh-Usercache dauert nun doppelt so lange. Warum?
 
+- pom.xml:
+Some problems were encountered while building the effective model for org.projectforge:projectforge-business:jar:7.5.1-SNAPSHOT
+[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.springframework.boot:spring-boot-starter-cache:jar -> version (?) vs ${spring.boot.version} @ line 188, column 21
+[WARNING]
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING]
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
 
 Migration employee timed attrs:
 select a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.end_time, a.employee_id, a.group_name, b.value, b.propertyname, b.createdby, b.createdat, b.modifiedby, b.modifiedat from t_fibu_employee_timed a JOIN t_fibu_employee_timedattr b ON a.pk=b.parent;
 
 employeestatus
 employeeannualleave
+
+- Produktion:
+  # In postgresql.conf (Neustart der Datenbank erforderlich)
+  lock_timeout = '300s'   # 5 minutes timeout for locks.
+  statement_timeout = '300s'   # 5 minutes timeout for SQL-commands.
+- caches in isolated readonly mode

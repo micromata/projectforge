@@ -31,6 +31,7 @@ import mu.KotlinLogging
 import org.hibernate.NonUniqueResultException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
+import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -48,6 +49,12 @@ class PfPersistenceContext internal constructor(
     internal enum class ContextType { READONLY, TRANSACTION }
 
     val em: EntityManager = entityManagerFactory.createEntityManager()
+
+    /**
+     * This id is used for logging and debugging purposes.
+     * It's a UUID (generated on init).
+     */
+    val contextId =  UUID.randomUUID()
 
     /* init {
         openEntityManagers.add(em)
