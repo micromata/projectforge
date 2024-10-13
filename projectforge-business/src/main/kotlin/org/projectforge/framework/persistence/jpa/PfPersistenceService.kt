@@ -126,7 +126,7 @@ open class PfPersistenceService {
                 type = PfPersistenceContext.ContextType.TRANSACTION,
             ).use { context ->
                 PfPersistenceContextThreadLocal.setTransactional(context)
-                log.debug { "Begin transaction context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
+                log.debug { "Begin transactional context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 em.transaction.begin()
                 // openedTransactions.add(em.transaction)
@@ -147,7 +147,7 @@ open class PfPersistenceService {
             }
         } finally {
             val removed = PfPersistenceContextThreadLocal.removeTransactional()
-            log.debug { "Remove transaction context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
+            log.debug { "Remove transactional context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setTransactional(it) } // Restore previous context, if any.
         }
     }
@@ -174,7 +174,6 @@ open class PfPersistenceService {
                 return block(context)
             }
         } finally {
-            PfPersistenceContextThreadLocal.removeReadonly()
             val removed = PfPersistenceContextThreadLocal.removeReadonly()
             log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.

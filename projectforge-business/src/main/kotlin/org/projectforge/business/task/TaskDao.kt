@@ -46,7 +46,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.not
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.web.WicketSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.*
@@ -115,11 +114,11 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * Gets the total duration of all time sheets of all tasks (group by task.id).
      */
-    internal fun readTotalDurations(context: PfPersistenceContext): List<Array<Any>> {
+    internal fun readTotalDurations(): List<Array<Any>> {
         log.debug("Calculating duration for all tasks")
         val intervalInSeconds = DatabaseSupport.getInstance().getIntervalInSeconds("startTime", "stopTime")
         if (intervalInSeconds != null) {
-            val result = context.executeQuery(
+            val result = persistenceService.executeQuery(
                 "select $intervalInSeconds, task.id from TimesheetDO where deleted=false group by task.id",
                 Tuple::class.java,
             )
@@ -131,7 +130,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             return list
         }
 
-        val result = context.executeQuery(
+        val result = persistenceService.executeQuery(
             "select startTime, stopTime, task.id from TimesheetDO where deleted=false order by task.id",
             Tuple::class.java,
         )
@@ -519,20 +518,5 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         const val I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS: String = "task.error.duplicateChildTasks"
         val ADDITIONAL_SEARCH_FIELDS =
             arrayOf("responsibleUser.username", "responsibleUser.firstname", "responsibleUser.lastname")
-    }
-
-    // Wicket workarround
-    @Serial
-    @Throws(ClassNotFoundException::class, IOException::class)
-    private fun readObject(aInputStream: ObjectInputStream) {
-        this.userDao = WicketSupport.get(UserDao::class.java)
-        this.taskTree = TaskTree.instance
-    }
-
-    // Wicket workarround
-    @Serial
-    @Throws(IOException::class)
-    private fun writeObject(aOutputStream: ObjectOutputStream) {
-        // Do nothing.
     }
 }
