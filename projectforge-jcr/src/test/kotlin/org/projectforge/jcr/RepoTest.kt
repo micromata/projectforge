@@ -50,7 +50,9 @@ class RepoTest {
   @Test
   fun repoTest() {
     try {
-      repoService.ensureNode("world/europe", "germany")
+      TestUtils.suppressErrorLogs {
+        repoService.ensureNode("world/europe", "germany")
+      }
       fail("Exception expected, because node 'world/europe' doesn't exist.")
     } catch (ex: Exception) {
       // OK, hello/world doesn't exist.
@@ -126,9 +128,13 @@ class RepoTest {
     file.content = null
     repoService.retrieveFile(file, "dummyPassword")
     Assertions.assertArrayEquals(content, file.content)
-    repoService.retrieveFile(file, "dsfsd")
+    TestUtils.suppressErrorLogs {
+      repoService.retrieveFile(file, "dsfsd") // Wrong password
+    }
     Assertions.assertNull(file.content)
-    repoService.retrieveFile(file)
+    TestUtils.suppressErrorLogs {
+      repoService.retrieveFile(file) // No password
+    }
     Assertions.assertNull(file.content)
   }
 

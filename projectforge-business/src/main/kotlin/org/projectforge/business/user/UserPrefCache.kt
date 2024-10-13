@@ -47,7 +47,6 @@ private val log = KotlinLogging.logger {}
 @Component
 @DependsOn("entityManagerFactory")
 class UserPrefCache : AbstractCache() {
-
     private val allPreferences = HashMap<Long, UserPrefCacheData>()
 
     @Autowired
@@ -169,7 +168,7 @@ class UserPrefCache : AbstractCache() {
             data = UserPrefCacheData()
             data.userId = userId
             val userPrefs = userPrefDao.getUserPrefs(userId)
-            userPrefs?.forEach {
+            userPrefs.forEach {
                 data.putEntry(it)
             }
             if (log.isDebugEnabled) {
@@ -236,11 +235,13 @@ class UserPrefCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Flushing all user preferences to data-base....")
-        for (userId in allPreferences.keys) {
-            if (log.isDebugEnabled) {
-                log.debug { "Flushing all user preferences for user $userId." }
+        persistenceService.runInNewTransaction { _ ->
+            for (userId in allPreferences.keys) {
+                if (log.isDebugEnabled) {
+                    log.debug { "Flushing all user preferences for user $userId." }
+                }
+                flushToDB(userId, false)
             }
-            flushToDB(userId, false)
         }
         log.info("Flushing of user preferences to data-base done.")
     }
@@ -267,7 +268,24 @@ class UserPrefCache : AbstractCache() {
 
     @PreDestroy
     fun preDestroy() {
+        if (dontCallPreDestroyInTestMode) {
+            log.info("It seems to be running in test mode. No sync to database in UserPrefCache.")
+            return
+        }
         log.info("Syncing all user preferences to database.")
         this.forceReload()
+    }
+
+    companion object {
+        /**
+         * If true, the preDestroy will not call sync to database. This is useful for tests, but should never be called
+         * in production mode. Otherwise, user data will be lost.
+         * This is a static variable, because the preDestroy method is called by the Spring container and the test
+         * In test cases the database connections may be closed before [preDestroy] is called.
+         * This is a workaround for this problem.
+         * This variable is also used by [UserXmlPreferencesCache].
+         */
+        @JvmStatic
+        var dontCallPreDestroyInTestMode = false
     }
 }

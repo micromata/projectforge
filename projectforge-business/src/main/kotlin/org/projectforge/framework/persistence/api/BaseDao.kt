@@ -817,8 +817,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             log.error(msg)
             throw RuntimeException(msg)
         }
-        onDelete(obj)
         persistenceService.runInTransaction { context ->
+            onDelete(obj)
             val dbObj = context.selectById(doClass, obj.id, attached = true)
             if (dbObj != null) {
                 checkLoggedInUserDeleteAccess(obj, dbObj)

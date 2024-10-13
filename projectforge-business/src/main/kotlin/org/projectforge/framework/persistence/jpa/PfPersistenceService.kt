@@ -31,7 +31,6 @@ import org.hibernate.Session
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 private val log = KotlinLogging.logger {}
 
@@ -62,14 +61,14 @@ open class PfPersistenceService {
     /**
      * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
      * If a transaction is already running inside the current thread (threadlocal is used), the block will be executed in the same transaction.
-     * @see runInNewTransaction
+     * @see internalRunInNewTransaction
      */
     fun <T> runInTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
         val context = PfPersistenceContextThreadLocal.getTransactional() // Transactional context.
         if (context == null) {
-            return runInNewTransaction(run)
+            return internalRunInNewTransaction(run)
         } else {
             return context.run(run)
         }
@@ -80,10 +79,10 @@ open class PfPersistenceService {
      * After finishing the block, the transactional context will be closed as well as removed from ThreadLocal.
      * Any previous transactional context in ThreadLocal will be restored after finishing the block.
      */
-    fun <T> runInIsolatedTransaction(
+    fun <T> runInNewTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
-        return runInNewTransaction(run)
+        return internalRunInNewTransaction(run)
     }
 
     /**
@@ -116,7 +115,7 @@ open class PfPersistenceService {
      * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
      * Any previous transactional context in ThreadLocal will be restored after finishing the block.
      */
-    private fun <T> runInNewTransaction(
+    private fun <T> internalRunInNewTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
         val saved = PfPersistenceContextThreadLocal.getTransactional()

@@ -223,6 +223,10 @@ public class UserXmlPreferencesCache extends AbstractCache
   @PreDestroy
   public void preDestroy()
   {
+    if (UserPrefCache.getDontCallPreDestroyInTestMode()) {
+      log.info("It seems to be running in test mode. No sync to database in UserPrefCache.");
+      return;
+    }
     log.info("Syncing all user preferences to database.");
     this.forceReload();
   }

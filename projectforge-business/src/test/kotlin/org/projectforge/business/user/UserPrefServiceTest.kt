@@ -59,7 +59,9 @@ class UserPrefServiceTest : AbstractTestBase() {
         userPrefService.putEntry(area, name, "Hurzel2")
         userPrefService.putEntry(area, name2, 88)
         logoff()
-        userPrefCache.flushToDB(getUserId(TEST_USER))
+        suppressErrorLogs {
+            userPrefCache.flushToDB(getUserId(TEST_USER)) // User 'null' is not allowed.
+        }
         userPrefCache.setExpired()
         logon(TEST_USER)
         assertEquals("Hurzel", userPrefService.getEntry(area, name, String::class.java))

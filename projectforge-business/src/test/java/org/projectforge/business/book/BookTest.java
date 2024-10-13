@@ -21,12 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.book;
+package org.projectforge.business.book;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.book.BookDO;
-import org.projectforge.business.book.BookDao;
-import org.projectforge.business.book.BookStatus;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 

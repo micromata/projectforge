@@ -205,7 +205,10 @@ class HRPlanningTest : AbstractTestBase() {
             planning.week = date
             planning.user = getUser(TEST_USER)
             Assertions.assertEquals("2010-01-09", planning.week.toString())
-            val id: Serializable = hrPlanningDao.save(planning)
+            var id: Serializable = -1
+            suppressErrorLogs {
+                id = hrPlanningDao.save(planning)
+            }
             planning = hrPlanningDao.getById(id)!!
             Assertions.assertEquals("2010-01-04", planning.week.toString())
         }
