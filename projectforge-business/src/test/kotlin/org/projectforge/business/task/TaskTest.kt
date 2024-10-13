@@ -38,7 +38,6 @@ import org.projectforge.common.task.TimesheetBookingStatus
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -116,11 +115,11 @@ class TaskTest : AbstractTestBase() {
 
     @Test
     fun testCyclicTasks() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
-            initTestDB.addTask("cyclictest", "root", context!!)
-            initTestDB.addTask("c", "cyclictest", context)
-            initTestDB.addTask("c.1", "c", context)
-            initTestDB.addTask("c.1.1", "c.1", context)
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask("cyclictest", "root")
+            initTestDB.addTask("c", "cyclictest")
+            initTestDB.addTask("c.1", "c")
+            initTestDB.addTask("c.1.1", "c.1")
             val c = taskTree.getTaskNodeById(getTask("c").id)
             val c_1_1 = taskTree.getTaskNodeById(getTask("c.1.1").id)
             try {
@@ -141,14 +140,14 @@ class TaskTest : AbstractTestBase() {
 
     @Test
     fun testTaskDescendants() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
-            initTestDB.addTask("descendanttest", "root", context!!)
-            initTestDB.addTask("d", "descendanttest", context)
-            initTestDB.addTask("d.1", "d", context)
-            initTestDB.addTask("d.1.1", "d.1", context)
-            initTestDB.addTask("d.1.2", "d.1", context)
-            initTestDB.addTask("d.1.2.1", "d.1.2", context)
-            initTestDB.addTask("d.2", "d", context)
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask("descendanttest", "root")
+            initTestDB.addTask("d", "descendanttest")
+            initTestDB.addTask("d.1", "d")
+            initTestDB.addTask("d.1.1", "d.1")
+            initTestDB.addTask("d.1.2", "d.1")
+            initTestDB.addTask("d.1.2.1", "d.1.2")
+            initTestDB.addTask("d.2", "d")
             val d = taskTree.getTaskNodeById(getTask("d").id)
             val ids = d!!.descendantIds
             Assertions.assertEquals(5, ids.size)
@@ -164,30 +163,30 @@ class TaskTest : AbstractTestBase() {
 
     @Test
     fun testTaskTreeUpdate() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
-            initTestDB.addTask("taskTreeUpdateTest", "root", context!!)
-            initTestDB.addTask("u", "taskTreeUpdateTest", context)
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask("taskTreeUpdateTest", "root")
+            initTestDB.addTask("u", "taskTreeUpdateTest")
             val u = taskTree.getTaskNodeById(getTask("u").id)
             val parent = taskTree.getTaskNodeById(getTask("taskTreeUpdateTest").id)
             Assertions.assertEquals(false, u!!.hasChildren(), "Should have no children")
             Assertions.assertEquals(u.getParent().id, parent!!.id)
-            initTestDB.addTask("u.1", "u", context)
+            initTestDB.addTask("u.1", "u")
             Assertions.assertEquals(true, u.hasChildren(), "Should have children")
             Assertions.assertEquals(1, u.getChildren().size, "Should have exact 1 child")
-            initTestDB.addTask("u.2", "u", context)
+            initTestDB.addTask("u.2", "u")
             Assertions.assertEquals(2, u.getChildren().size, "Should have exact 2 children")
-            initTestDB.addTask("u.2.1", "u.2", context)
-            initTestDB.addTask("u.2.2", "u.2", context)
-            initTestDB.addTask("u.2.3", "u.2", context)
+            initTestDB.addTask("u.2.1", "u.2")
+            initTestDB.addTask("u.2.2", "u.2")
+            initTestDB.addTask("u.2.3", "u.2")
             val u1 = taskTree.getTaskNodeById(getTask("u.1").id)
             val u2 = taskTree.getTaskNodeById(getTask("u.2").id)
             Assertions.assertEquals(3, u2!!.getChildren().size, "Should have exact 3 children")
             // Now we move u.2.3 to u.1.1:
-            val tu_2_3 = taskDao.internalGetById(getTask("u.2.3").id, context)
+            val tu_2_3 = taskDao.internalGetById(getTask("u.2.3").id)
             tu_2_3!!.title = "u.1.1"
             logon(ADMIN)
             taskDao.setParentTask(tu_2_3, getTask("u.1").id!!)
-            taskDao.internalUpdateInTrans(tu_2_3)
+            taskDao.internalUpdate(tu_2_3)
             Assertions.assertEquals(2, u2.getChildren().size, "Should have exact 2 children")
             Assertions.assertEquals(1, u1!!.getChildren().size, "Should have exact 1 child")
             val tu_1_1 = taskDao.internalGetById(getTask("u.2.3").id)
@@ -206,16 +205,16 @@ class TaskTest : AbstractTestBase() {
      */
     @Test
     fun checkTaskAccess() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
-            initTestDB.addTask("accesstest", "root", context!!)
-            initTestDB.addTask("a", "accesstest", context)
-            initTestDB.addTask("a.1", "a", context)
-            initTestDB.addTask("a.1.1", "a.1", context)
-            initTestDB.addTask("a.1.2", "a.1", context)
-            initTestDB.addTask("a.2", "a", context)
-            initTestDB.addTask("a.2.1", "a.2", context)
-            initTestDB.addTask("a.2.2", "a.2", context)
-            initTestDB.addUser("taskTest1", context)
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask("accesstest", "root")
+            initTestDB.addTask("a", "accesstest")
+            initTestDB.addTask("a.1", "a")
+            initTestDB.addTask("a.1.1", "a.1")
+            initTestDB.addTask("a.1.2", "a.1")
+            initTestDB.addTask("a.2", "a")
+            initTestDB.addTask("a.2.1", "a.2")
+            initTestDB.addTask("a.2.2", "a.2")
+            initTestDB.addUser("taskTest1")
             logon("taskTest1")
             try {
                 taskDao.getById(getTask("a.1").id)
@@ -223,10 +222,9 @@ class TaskTest : AbstractTestBase() {
             } catch (ex: AccessException) {
                 assertAccessException(ex, getTask("a.1").id, AccessType.TASKS, OperationType.SELECT)
             }
-            initTestDB.addGroup("taskTest1", context, "taskTest1")
+            initTestDB.addGroup("taskTest1", "taskTest1")
             initTestDB.createGroupTaskAccess(
                 getGroup("taskTest1"), getTask("a.1"), AccessType.TASKS, true, true, true, true,
-                context
             )
             var task = taskDao.getById(getTask("a.1").id)!!
             Assertions.assertEquals("a.1", task.title, "Now readable.")
@@ -234,7 +232,7 @@ class TaskTest : AbstractTestBase() {
             Assertions.assertEquals("a.1.1", task.title, "Also child tasks are now readable.")
             taskDao.setParentTask(task, getTask("a.2").id!!)
             try {
-                taskDao.updateInTrans(task)
+                taskDao.update(task)
                 Assertions.fail<Any>("User has no access to insert task as child of a.2")
             } catch (ex: AccessException) {
                 assertAccessException(ex, getTask("a.2").id, AccessType.TASKS, OperationType.INSERT)
@@ -242,32 +240,29 @@ class TaskTest : AbstractTestBase() {
             initTestDB.createGroupTaskAccess(
                 getGroup("taskTest1"), getTask("a.2"), AccessType.TASKS, true, false, false,
                 false,
-                context
             )
             task = taskDao.getById(getTask("a.2.1").id)!!
             task.title = "a.2.1test"
             try {
-                taskDao.updateInTrans(task)
+                taskDao.update(task)
                 Assertions.fail<Any>("User has no access to update child task of a.2")
             } catch (ex: AccessException) {
                 assertAccessException(ex, getTask("a.2.1").id, AccessType.TASKS, OperationType.UPDATE)
             }
 
-            initTestDB.addUser("taskTest2", context)
+            initTestDB.addUser("taskTest2")
             logon("taskTest2")
-            initTestDB.addGroup("taskTest2", context, "taskTest2")
+            initTestDB.addGroup("taskTest2", "taskTest2")
             initTestDB.createGroupTaskAccess(
                 getGroup("taskTest2"), getTask("a.1"), AccessType.TASKS, true, true, true, true,
-                context
             )
             initTestDB.createGroupTaskAccess(
                 getGroup("taskTest2"), getTask("a.2"), AccessType.TASKS, true, true, true, false,
-                context
             )
             task = taskDao.getById(getTask("a.2.1").id)!!
             taskDao.setParentTask(task, getTask("a.1").id!!)
             try {
-                taskDao.updateInTrans(task)
+                taskDao.update(task)
                 Assertions.fail<Any>("User has no access to delete child task from a.2")
             } catch (ex: AccessException) {
                 assertAccessException(ex, getTask("a.2").id, AccessType.TASKS, OperationType.DELETE)
@@ -278,51 +273,50 @@ class TaskTest : AbstractTestBase() {
 
     @Test
     fun checkAccess() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_ADMIN_USER)
-            val task = initTestDB.addTask("checkAccessTestTask", "root", context)
-            initTestDB.addGroup("checkAccessTestGroup", context, TEST_USER)
+            val task = initTestDB.addTask("checkAccessTestTask", "root")
+            initTestDB.addGroup("checkAccessTestGroup", TEST_USER)
             initTestDB.createGroupTaskAccess(
                 getGroup("checkAccessTestGroup"), getTask("checkAccessTestTask"), AccessType.TASKS,
                 true, true, true,
-                true, context
+                true
             )
             logon(TEST_FINANCE_USER)
             val kost2Art = Kost2ArtDO()
             kost2Art.id = 42L
             kost2Art.name = "Test"
-            kost2ArtDao.saveInTrans(kost2Art)
+            kost2ArtDao.save(kost2Art)
             val kost2 = Kost2DO()
             kost2.nummernkreis = 3
             kost2.bereich = 0
             kost2.teilbereich = 42
             kost2.kost2Art = kost2Art
-            kost2Dao.saveInTrans(kost2)
+            kost2Dao.save(kost2)
             val projekt = ProjektDO()
             projekt.internKost2_4 = 123
             projekt.name = "Testprojekt"
-            projektDao.saveInTrans(projekt)
-            checkAccess(TEST_ADMIN_USER, task.id, projekt, kost2, context)
-            checkAccess(TEST_USER, task.id, projekt, kost2, context)
+            projektDao.save(projekt)
+            checkAccess(TEST_ADMIN_USER, task.id, projekt, kost2)
+            checkAccess(TEST_USER, task.id, projekt, kost2)
             null
         }
     }
 
     @Test
     fun checkKost2AndTimesheetBookingStatusAccess() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
-            val task = initTestDB.addTask("checkKost2AndTimesheetStatusAccessTask", "root", context!!)
+            val task = initTestDB.addTask("checkKost2AndTimesheetStatusAccessTask", "root")
             val groupName = "checkKost2AndTimesheetBookingStatusAccessGroup"
             // Please note: TEST_USER is no project manager or assistant!
             val projectManagers = initTestDB.addGroup(
-                groupName, context,
+                groupName,
                 TEST_PROJECT_MANAGER_USER, TEST_PROJECT_ASSISTANT_USER,
                 TEST_USER
             )
             initTestDB.createGroupTaskAccess(
                 projectManagers, task, AccessType.TASKS, true, true, true, true,
-                context
             ) // All rights.
             val projekt = ProjektDO()
             projekt.name = "checkKost2AndTimesheetBookingStatusAccess"
@@ -330,14 +324,14 @@ class TaskTest : AbstractTestBase() {
             projekt.nummer = 1
             projekt.projektManagerGroup = projectManagers
             projekt.task = task
-            projektDao.saveInTrans(projekt)
+            projektDao.save(projekt)
             logon(TEST_USER)
             var task1: TaskDO? = TaskDO()
             task1!!.parentTask = task
             task1.title = "Task 1"
             task1.kost2BlackWhiteList = "Hurzel"
             try {
-                taskDao.saveInTrans(task1)
+                taskDao.save(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
@@ -345,7 +339,7 @@ class TaskTest : AbstractTestBase() {
             try {
                 task1.kost2BlackWhiteList = null
                 task1.kost2IsBlackList = true
-                taskDao.saveInTrans(task1)
+                taskDao.save(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
@@ -353,7 +347,7 @@ class TaskTest : AbstractTestBase() {
             try {
                 task1.kost2IsBlackList = false
                 task1.timesheetBookingStatus = TimesheetBookingStatus.ONLY_LEAFS
-                taskDao.saveInTrans(task1)
+                taskDao.save(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
@@ -361,11 +355,11 @@ class TaskTest : AbstractTestBase() {
             logon(TEST_PROJECT_MANAGER_USER)
             task1.kost2IsBlackList = true
             task1.timesheetBookingStatus = TimesheetBookingStatus.ONLY_LEAFS
-            task1 = taskDao.getById(taskDao.saveInTrans(task1))!!
+            task1 = taskDao.getById(taskDao.save(task1))!!
             logon(TEST_USER)
             task1.kost2BlackWhiteList = "123456"
             try {
-                taskDao.updateInTrans(task1)
+                taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
@@ -373,7 +367,7 @@ class TaskTest : AbstractTestBase() {
             try {
                 task1.kost2BlackWhiteList = null
                 task1.kost2IsBlackList = false
-                taskDao.updateInTrans(task1)
+                taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
@@ -381,7 +375,7 @@ class TaskTest : AbstractTestBase() {
             try {
                 task1.kost2IsBlackList = true
                 task1.timesheetBookingStatus = TimesheetBookingStatus.INHERIT
-                taskDao.updateInTrans(task1)
+                taskDao.update(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
@@ -390,7 +384,7 @@ class TaskTest : AbstractTestBase() {
             task1.kost2BlackWhiteList = "123456"
             task1.kost2IsBlackList = false
             task1.timesheetBookingStatus = TimesheetBookingStatus.INHERIT
-            taskDao.updateInTrans(task1)
+            taskDao.update(task1)
             null
         }
     }
@@ -400,13 +394,12 @@ class TaskTest : AbstractTestBase() {
         id: Serializable?,
         projekt: ProjektDO,
         kost2: Kost2DO,
-        context: PfPersistenceContext
     ) {
         logon(user)
-        var task = taskDao.getById(id, context)!!
+        var task = taskDao.getById(id)!!
         task.protectTimesheetsUntil = LocalDate.now()
         try {
-            taskDao.update(task, context)
+            taskDao.update(task)
             Assertions.fail<Any>("AccessException expected.")
         } catch (ex: AccessException) {
             // OK
@@ -415,18 +408,18 @@ class TaskTest : AbstractTestBase() {
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
         try {
-            taskDao.update(task, context)
+            taskDao.update(task)
             Assertions.fail<Any>("AccessException expected.")
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
         }
-        task = taskDao.getById(id, context)!!
+        task = taskDao.getById(id)!!
         task = TaskDO()
         task.parentTask = getTask("checkAccessTestTask")
         task.protectTimesheetsUntil = LocalDate.now()
         try {
-            taskDao.save(task, context)
+            taskDao.save(task)
             Assertions.fail<Any>("AccessException expected.")
         } catch (ex: AccessException) {
             // OK
@@ -435,13 +428,13 @@ class TaskTest : AbstractTestBase() {
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
         try {
-            taskDao.save(task, context)
+            taskDao.save(task)
             Assertions.fail<Any>("AccessException expected.")
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
         }
-        task = taskDao.getById(id, context)!!
+        task = taskDao.getById(id)!!
     }
 
     /**
@@ -449,38 +442,38 @@ class TaskTest : AbstractTestBase() {
      */
     @Test
     fun testDuplicateTaskNames() {
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
-            initTestDB.addTask("duplicateTaskNamesTest", "root", context!!)
-            initTestDB.addTask("dT.1", "duplicateTaskNamesTest", context)
-            initTestDB.addTask("dT.2", "duplicateTaskNamesTest", context)
-            initTestDB.addTask("dT.1.1", "dT.1", context)
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask("duplicateTaskNamesTest", "root")
+            initTestDB.addTask("dT.1", "duplicateTaskNamesTest")
+            initTestDB.addTask("dT.2", "duplicateTaskNamesTest")
+            initTestDB.addTask("dT.1.1", "dT.1")
             try {
                 // Try to insert sister task with same name:
-                initTestDB.addTask("dT.1.1", "dT.1", context)
+                initTestDB.addTask("dT.1.1", "dT.1")
                 Assertions.fail<Any>("Duplicate task was not detected.")
             } catch (ex: UserException) {
                 Assertions.assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.i18nKey)
             }
-            var task = initTestDB.addTask("dT.1.2", "dT.1", context)
+            var task = initTestDB.addTask("dT.1.2", "dT.1")
             task.title = "dT.1.1"
             try {
                 // Try to rename task to same name as a sister task:
-                taskDao.internalUpdateInTrans(task)
+                taskDao.internalUpdate(task)
                 Assertions.fail<Any>("Duplicate task was not detected.")
             } catch (ex: UserException) {
                 Assertions.assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.i18nKey)
             }
-            task = initTestDB.addTask("dT.1.1", "dT.2", context)
+            task = initTestDB.addTask("dT.1.1", "dT.2")
             task.parentTask = initTestDB.getTask("dT.1")
             try {
                 // Try to move task from dT.1.2 to dT.1.1 where already a task with the same name exists.
-                taskDao.internalUpdateInTrans(task)
+                taskDao.internalUpdate(task)
                 Assertions.fail<Any>("Duplicate task was not detected.")
             } catch (ex: UserException) {
                 Assertions.assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.i18nKey)
             }
             task.parentTask = initTestDB.getTask("dT.2")
-            taskDao.internalUpdateInTrans(task)
+            taskDao.internalUpdate(task)
             null
         }
     }
@@ -490,18 +483,18 @@ class TaskTest : AbstractTestBase() {
         lateinit var task: TaskDO
         lateinit var subTask1: TaskDO
         lateinit var subTask2: TaskDO
-        persistenceService.runInTransaction<Any?> { context: PfPersistenceContext? ->
+        persistenceService.runInTransaction { _ ->
             logon(getUser(TEST_ADMIN_USER))
-            task = initTestDB.addTask("totalDurationTask", "root", context!!)
-            subTask1 = initTestDB.addTask("totalDurationTask.subtask1", "totalDurationTask", context)
-            subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask", context)
+            task = initTestDB.addTask("totalDurationTask", "root")
+            subTask1 = initTestDB.addTask("totalDurationTask.subtask1", "totalDurationTask")
+            subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask")
             Assertions.assertEquals(0, taskDao.readTotalDuration(task.id))
             val dt = withDate(2010, Month.APRIL, 20, 8, 0)
             var ts = TimesheetDO()
             ts.user = getUser(TEST_USER)
             ts.setStartDate(dt.utilDate).stopTime = dt.plus(4, ChronoUnit.HOURS).sqlTimestamp
             ts.task = task
-            timesheetDao.saveInTrans(ts)
+            timesheetDao.save(ts)
             Assertions.assertEquals((4 * 3600).toLong(), taskDao.readTotalDuration(task.id))
             Assertions.assertEquals((4 * 3600).toLong(), getTotalDuration(taskTree, task.id))
             ts = TimesheetDO()
@@ -509,7 +502,7 @@ class TaskTest : AbstractTestBase() {
             ts.setStartDate(dt.plus(5, ChronoUnit.HOURS).utilDate)
                 .stopTime = dt.plus(9, ChronoUnit.HOURS).sqlTimestamp
             ts.task = task
-            timesheetDao.saveInTrans(ts)
+            timesheetDao.save(ts)
             Assertions.assertEquals((8 * 3600).toLong(), taskDao.readTotalDuration(task.id))
             Assertions.assertEquals((8 * 3600).toLong(), getTotalDuration(taskTree, task.id))
             ts = TimesheetDO()
@@ -517,9 +510,9 @@ class TaskTest : AbstractTestBase() {
             ts.setStartDate(dt.plus(10, ChronoUnit.HOURS).utilDate)
                 .stopTime = dt.plus(14, ChronoUnit.HOURS).sqlTimestamp
             ts.task = subTask1
-            timesheetDao.saveInTrans(ts)
+            timesheetDao.save(ts)
         }
-        persistenceService.runReadOnly { context ->
+        persistenceService.runReadOnly { _ ->
             val list = taskDao.readTotalDurations()
             var taskFound = false
             var subtask1Found = false

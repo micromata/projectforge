@@ -49,25 +49,25 @@ open class LiquidityForecastBuilder {
      * Calculates expected dates of payments inside the last year (-365 days).
      */
     open fun build(baseDate: LocalDate?): LiquidityForecast {
-        val baseDate = baseDate ?: LocalDate.now()
+        val useBaseDate = baseDate ?: LocalDate.now()
         val forecast = LiquidityForecast(accountCache)
         // Consider only invoices of the last year:
-        val historicalForecast = baseDate.isBefore(LocalDate.now())
-        val fromDate = baseDate.minusMonths(12)
-        val toDate = baseDate.plusMonths(3)
-        forecast.baseDate = baseDate
+        val historicalForecast = useBaseDate.isBefore(LocalDate.now())
+        val fromDate = useBaseDate.minusMonths(12)
+        val toDate = useBaseDate.plusMonths(3)
+        forecast.baseDate = useBaseDate
 
-        processInvoices(forecast, baseDate, fromDate, toDate, historicalForecast)
-        processCreditorInvoices(forecast, baseDate, fromDate, toDate, historicalForecast)
+        processInvoices(forecast, useBaseDate, fromDate, toDate, historicalForecast)
+        processCreditorInvoices(forecast, useBaseDate, fromDate, toDate, historicalForecast)
 
         val filter = LiquidityFilter()
-        filter.baseDate = baseDate
+        filter.baseDate = useBaseDate
         if (!historicalForecast) {
             filter.paymentStatus = PaymentStatus.UNPAID
         }
         val list: MutableList<LiquidityEntryDO> = liquidityEntryDao.getList(filter).toMutableList()
         if (historicalForecast) {
-            list.removeIf { entry: LiquidityEntryDO -> entry.dateOfPayment!!.isBefore(baseDate) }
+            list.removeIf { entry: LiquidityEntryDO -> entry.dateOfPayment!!.isBefore(useBaseDate) }
         }
         forecast.set(list)
         forecast.build()

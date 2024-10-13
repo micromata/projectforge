@@ -53,21 +53,21 @@ class AccessDaoTest : AbstractTestBase() {
         logon(ADMIN_USER)
         var groupTaskAccessId = 0L
         val hist = createHistoryTester()
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             val group = GroupDO()
             group.name = "$PREFIX-Group"
-            groupDao.insert(group, context)
+            groupDao.insert(group)
             val task = TaskDO()
             task.title = "$PREFIX-Task"
             task.parentTask = taskTree.rootTaskNode.task
-            taskDao.insert(task, context)
+            taskDao.insert(task)
             hist.reset()
             val access = GroupTaskAccessDO()
             access.group = group
             access.task = task
             access.addAccessEntry(createAccessEntry(AccessType.OWN_TIMESHEETS, true, true, true, true))
             access.addAccessEntry(createAccessEntry(AccessType.TIMESHEETS, true, false, false, false))
-            groupTaskAccessId = accessDao.insert(access, context)
+            groupTaskAccessId = accessDao.insert(access)
             hist.loadRecentHistoryEntries(1)
         }
         val access = accessDao.getById(groupTaskAccessId)!!
@@ -76,11 +76,12 @@ class AccessDaoTest : AbstractTestBase() {
             it.accessSelect = false
             it.accessInsert = true
         }
-        accessDao.saveOrUpdateInTrans(access)
+        accessDao.saveOrUpdate(access)
         hist.loadRecentHistoryEntries(1, 1)
         val value = "TIMESHEETS={false,true,false,false}"
         val oldValue = "TIMESHEETS={true,false,false,false}"
-        hist.getEntry(0).assertAttr("accessEntries", value = value, oldValue = oldValue, propertyTypeClass = AccessEntryDO::class)
+        hist.getEntry(0)
+            .assertAttr("accessEntries", value = value, oldValue = oldValue, propertyTypeClass = AccessEntryDO::class)
     }
 
     private fun createAccessEntry(

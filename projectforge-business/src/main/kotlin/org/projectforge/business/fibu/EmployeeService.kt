@@ -33,7 +33,6 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -83,13 +82,7 @@ class EmployeeService {
     }
 
     fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
-        return persistenceService.runReadOnly { context ->
-            getEmployeeByUserId(userId, context)
-        }
-    }
-
-    fun getEmployeeByUserId(userId: Long?, context: PfPersistenceContext): EmployeeDO? {
-        return employeeDao.findByUserId(userId, context)
+        return employeeDao.findByUserId(userId)
     }
 
     fun hasLoggedInUserInsertAccess(): Boolean {
@@ -116,8 +109,8 @@ class EmployeeService {
         return employeeDao.getAutocompletion(property, searchString)
     }
 
-    fun getDisplayHistoryEntries(obj: EmployeeDO, context: PfPersistenceContext): List<DisplayHistoryEntry> {
-        return employeeDao.getDisplayHistoryEntries(obj, context)
+    fun getDisplayHistoryEntries(obj: EmployeeDO): List<DisplayHistoryEntry> {
+        return employeeDao.getDisplayHistoryEntries(obj)
     }
 
     fun isEmployeeActive(employee: EmployeeDO): Boolean {
@@ -151,10 +144,9 @@ class EmployeeService {
     private fun getValidityPeriodAttrs(
         employee: EmployeeDO,
         type: EmployeeValidityPeriodAttrType,
-        context: PfPersistenceContext,
     ): List<EmployeeValidityPeriodAttrDO> {
         requireNotNull(employee.id) { "Employee id must not be null." }
-        val list = context.executeQuery(
+        val list = persistenceService.executeQuery(
             "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.attribute = :attribute order by a.validFrom desc",
             EmployeeValidityPeriodAttrDO::class.java,
             Pair("employeeId", employee.id),
@@ -164,13 +156,7 @@ class EmployeeService {
     }
 
     fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
-        return persistenceService.runReadOnly { context ->
-            getEmployeeStatus(employee, context)
-        }
-    }
-
-    fun getEmployeeStatus(employee: EmployeeDO, context: PfPersistenceContext): EmployeeStatus? {
-        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS, context)
+        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS)
         val validEntry = getActiveEntry(list)
         val status = validEntry?.value
         if (status != null) {
@@ -183,15 +169,15 @@ class EmployeeService {
         return null
     }
 
-    fun getAnnualLeaveDays(employee: EmployeeDO?, context: PfPersistenceContext): BigDecimal? {
-        return getAnnualLeaveDays(employee, LocalDate.now(), context)
+    fun getAnnualLeaveDays(employee: EmployeeDO?): BigDecimal? {
+        return getAnnualLeaveDays(employee, LocalDate.now())
     }
 
-    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?, context: PfPersistenceContext): BigDecimal? {
+    fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?): BigDecimal? {
         if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
             return null
         }
-        return getActiveEntry(getAnnualLeaveDayEntries(employee, context), validAtDate)?.value?.toBigDecimal()
+        return getActiveEntry(getAnnualLeaveDayEntries(employee), validAtDate)?.value?.toBigDecimal()
     }
 
     private fun ensure(validAtDate: LocalDate?): LocalDate {
@@ -220,11 +206,8 @@ class EmployeeService {
         return found
     }
 
-    fun getAnnualLeaveDayEntries(
-        employee: EmployeeDO,
-        context: PfPersistenceContext
-    ): List<EmployeeValidityPeriodAttrDO> {
-        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE, context)
+    fun getAnnualLeaveDayEntries(employee: EmployeeDO): List<EmployeeValidityPeriodAttrDO> {
+        val list = getValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
         return list
     }
 

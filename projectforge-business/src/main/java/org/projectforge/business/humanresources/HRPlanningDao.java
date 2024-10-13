@@ -41,7 +41,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
@@ -175,17 +174,14 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     }
 
     @Override
-    public List<HRPlanningDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
+    public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
         final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
         if (myFilter.getStopDay() != null) {
             PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopDay()).getEndOfDay();
             myFilter.setStopDay(dateTime.getLocalDate());
         }
         final QueryFilter queryFilter = buildQueryFilter(myFilter);
-        final List<HRPlanningDO> result = getList(queryFilter, context);
-        if (result == null) {
-            return null;
-        }
+        final List<HRPlanningDO> result = getList(queryFilter);
         return result;
     }
 
@@ -234,7 +230,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * <ul>
      */
     @Override
-    public void onSaveOrModify(final HRPlanningDO obj, final PfPersistenceContext context) {
+    public void onSaveOrModify(final HRPlanningDO obj) {
         PFDay day = PFDay.from(obj.getWeek());
         if (!day.isBeginOfWeek()) {
             log.error("Date is not begin of week, try to change date: " + day.getIsoString());
@@ -270,15 +266,15 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
             }
         }
 
-        super.onSaveOrModify(obj, context);
+        super.onSaveOrModify(obj);
     }
 
     @Override
-    public void prepareHibernateSearch(final HRPlanningDO obj, final OperationType operationType, final PfPersistenceContext context) {
+    public void prepareHibernateSearch(final HRPlanningDO obj, final OperationType operationType) {
         final List<HRPlanningEntryDO> entries = obj.getEntries();
         if (entries != null) {
             for (final HRPlanningEntryDO entry : entries) {
-                projektDao.initializeProjektManagerGroup(entry.getProjekt(), context);
+                projektDao.initializeProjektManagerGroup(entry.getProjekt());
             }
         }
         final PFUserDO user = obj.getUser();
@@ -296,14 +292,14 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj, PfPersistenceContext context) {
-        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj, context);
+    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
+        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
         if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
             return list;
         }
         if (CollectionUtils.isNotEmpty(obj.getEntries())) {
             for (final HRPlanningEntryDO position : obj.getEntries()) {
-                final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position, context);
+                final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
                 for (final DisplayHistoryEntry entry : entries) {
                     final String propertyName = entry.getPropertyName();
                     if (propertyName != null) {

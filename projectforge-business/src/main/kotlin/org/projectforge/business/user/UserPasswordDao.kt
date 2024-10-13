@@ -108,35 +108,18 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      * @see Crypt.digest
      */
     @JvmOverloads
-    open fun encryptAndSavePasswordInTrans(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
-        return persistenceService.runInTransaction { context ->
-            encryptAndSavePassword(userId, clearTextPassword, checkAccess, context)
-        }
-    }
-
-    /**
-     * Encrypts the password with a new generated salt string and the pepper string if configured any.
-     *
-     * @param user     The user to user.
-     * @param clearTextPassword as clear text.
-     * @see Crypt.digest
-     */
-    @JvmOverloads
-    open fun encryptAndSavePassword(
-        userId: Long,
-        clearTextPassword: CharArray,
-        checkAccess: Boolean = true,
-        context: PfPersistenceContext
-    ) {
-        val passwords = ensurePassword(userId, checkAccess, context)
-        newSaltString.let { salt ->
-            passwords.passwordSalt = salt
-            passwords.passwordHash = encryptAndClear(pepperString, salt, clearTextPassword)
-        }
-        if (passwords.id == null) {
-            internalSave(passwords, context)
-        } else {
-            internalUpdate(passwords, context)
+    open fun encryptAndSavePassword(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
+        persistenceService.runInTransaction { context ->
+            val passwords = ensurePassword(userId, checkAccess)
+            newSaltString.let { salt ->
+                passwords.passwordSalt = salt
+                passwords.passwordHash = encryptAndClear(pepperString, salt, clearTextPassword)
+            }
+            if (passwords.id == null) {
+                internalSave(passwords)
+            } else {
+                internalUpdate(passwords)
+            }
         }
     }
 
@@ -149,21 +132,20 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
     private fun ensurePassword(
         userId: Long,
         checkAccess: Boolean = true,
-        context: PfPersistenceContext
     ): UserPasswordDO {
         if (checkAccess) {
             hasLoggedInUserAccess(userId)
         }
-        var passwordObj = internalGetByUserId(userId, context)
+        var passwordObj = internalGetByUserId(userId)
         if (passwordObj == null) {
             passwordObj = UserPasswordDO()
-            val user = userDao.internalGetById(userId, context)
+            val user = userDao.internalGetById(userId)
             passwordObj.user = user
         }
         return passwordObj
     }
 
-    override fun onSaveOrModify(obj: UserPasswordDO, context: PfPersistenceContext) {
+    override fun onSaveOrModify(obj: UserPasswordDO) {
         obj.checkAndFixPassword()
     }
 

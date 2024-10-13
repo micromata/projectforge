@@ -29,7 +29,6 @@ import org.mockito.Mockito
 import org.projectforge.business.user.UserDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
@@ -70,14 +69,13 @@ class My2FABruteForceProtectionTest {
             protection.registerOTPFailure(42)
         }
         Mockito.verify(userDao, Mockito.times(1)).internalGetById(42L)
-        Mockito.verify(userDao, Mockito.times(1)).internalUpdateInTrans(user)
+        Mockito.verify(userDao, Mockito.times(1)).internalUpdate(user)
         Assertions.assertTrue(user.deactivated) // User should now be deactivated.
         // Simulate activation of user by an admin:
         user.deactivated = false
         Assertions.assertEquals(12, protection.getNumberOfFailures(42), "12 failed tries expected.")
         Assertions.assertTrue(protection.isBlocked(42), "Retry shouldn't be allowed after 12 failed tries.")
-        val context = Mockito.mock(PfPersistenceContext::class.java)
-        protection.userChangeListener.afterSaveOrModify(user, OperationType.UPDATE, context)
+        protection.userChangeListener.afterSaveOrModify(user, OperationType.UPDATE)
         Assertions.assertNull(
             protection.getLastFailedTry(42),
             "No last failure millis expected, user should be cleared."

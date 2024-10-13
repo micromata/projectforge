@@ -294,7 +294,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       teamEventDO.setOwnership(true);
 
       // and save the new event -> correct time is set already
-      teamEventDao.saveInTrans(teamEventDO);
+      teamEventDao.save(teamEventDO);
     }
 
     if (dropMode == null || CalendarDropMode.MOVE_EDIT.equals(dropMode)
@@ -316,7 +316,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       // second mode: "quick save mode"
       if (CalendarDropMode.MOVE_SAVE.equals(dropMode)) {
         // we need update only in "move" mode, in "copy" mode it was saved a few lines above
-        teamEventDao.updateInTrans(teamEventDO);
+        teamEventDao.update(teamEventDO);
       }
       setResponsePage(getWebPage().getClass(), getWebPage().getPageParameters());
     } else {

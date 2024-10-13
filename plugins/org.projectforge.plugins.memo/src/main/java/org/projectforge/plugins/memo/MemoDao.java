@@ -26,7 +26,6 @@ package org.projectforge.plugins.memo;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.stereotype.Service;
@@ -39,34 +38,34 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class MemoDao extends BaseDao<MemoDO> {
-  public MemoDao() {
-    super(MemoDO.class);
-    userRightId = MemoPluginUserRightId.PLUGIN_MEMO;
-  }
+    public MemoDao() {
+        super(MemoDO.class);
+        userRightId = MemoPluginUserRightId.PLUGIN_MEMO;
+    }
 
-  /**
-   * Load only memo's of current logged-in user.
-   *
-   * @param filter
-   * @return
-   */
-  @Override
-  public QueryFilter createQueryFilter(BaseSearchFilter filter) {
-    QueryFilter queryFilter = super.createQueryFilter(filter);
-    final PFUserDO user = new PFUserDO();
-    user.setId(ThreadLocalUserContext.getLoggedInUserId());
-    queryFilter.add(QueryFilter.eq("owner", user));
-    return queryFilter;
-  }
+    /**
+     * Load only memo's of current logged-in user.
+     *
+     * @param filter
+     * @return
+     */
+    @Override
+    public QueryFilter createQueryFilter(BaseSearchFilter filter) {
+        QueryFilter queryFilter = super.createQueryFilter(filter);
+        final PFUserDO user = new PFUserDO();
+        user.setId(ThreadLocalUserContext.getLoggedInUserId());
+        queryFilter.add(QueryFilter.eq("owner", user));
+        return queryFilter;
+    }
 
-  @Override
-  public void onSaveOrModify(final MemoDO obj, final PfPersistenceContext context) {
-    super.onSaveOrModify(obj, context);
-    obj.setOwner(ThreadLocalUserContext.getRequiredLoggedInUser()); // Set always the logged-in user as owner.
-  }
+    @Override
+    public void onSaveOrModify(final MemoDO obj) {
+        super.onSaveOrModify(obj);
+        obj.setOwner(ThreadLocalUserContext.getRequiredLoggedInUser()); // Set always the logged-in user as owner.
+    }
 
-  @Override
-  public MemoDO newInstance() {
-    return new MemoDO();
-  }
+    @Override
+    public MemoDO newInstance() {
+        return new MemoDO();
+    }
 }

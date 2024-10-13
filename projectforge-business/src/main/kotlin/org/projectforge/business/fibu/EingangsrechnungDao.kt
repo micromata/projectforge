@@ -35,7 +35,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -97,7 +96,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onSaveOrModify(rechnung: EingangsrechnungDO, context: PfPersistenceContext) {
+    override fun onSaveOrModify(rechnung: EingangsrechnungDO) {
         AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung)
 
         if (rechnung.zahlBetrag != null) {
@@ -120,7 +119,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         RechnungDao.writeUiStatusToXml(rechnung)
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<EingangsrechnungDO> {
+    override fun getList(filter: BaseSearchFilter): List<EingangsrechnungDO> {
         val myFilter = if (filter is EingangsrechnungListFilter) {
             filter
         } else {
@@ -136,7 +135,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("kreditor"))
 
-        val list = getList(queryFilter, context)
+        val list = getList(queryFilter)
         if (myFilter.isShowAll || myFilter.isDeleted) {
             return list
         }
@@ -167,14 +166,14 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: EingangsrechnungDO, context: PfPersistenceContext): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, context)
+    override fun getDisplayHistoryEntries(obj: EingangsrechnungDO): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.positionen)) {
             for (position in obj.positionen!!) {
-                val entries = internalGetDisplayHistoryEntries(position, context)
+                val entries = internalGetDisplayHistoryEntries(position)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -187,7 +186,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                 mergeList(list, entries)
                 if (CollectionUtils.isNotEmpty(position.kostZuweisungen)) {
                     for (zuweisung in position.kostZuweisungen!!) {
-                        val kostEntries = internalGetDisplayHistoryEntries(zuweisung, context)
+                        val kostEntries = internalGetDisplayHistoryEntries(zuweisung)
                         for (entry in kostEntries) {
                             val propertyName = entry.propertyName
                             if (propertyName != null) {

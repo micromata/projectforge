@@ -57,7 +57,6 @@ open class DBQuery {
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<O>>?,
         checkAccess: Boolean = true,
-        context: PfPersistenceContext? = null,
     )
             : List<O> {
         if (checkAccess) {
@@ -73,58 +72,45 @@ open class DBQuery {
         }
 
         try {
-            if (context != null) {
-                return privateGetList(baseDao, filter, customResultFilters, checkAccess, context)
-            }
-            return persistenceService.runInTransaction { ctx ->
-                getList(baseDao, filter, customResultFilters, checkAccess, ctx)
+            return persistenceService.runReadOnly { context ->
+                val begin = System.currentTimeMillis()
+                val dbFilter = filter.createDBFilter()
+                val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
+                // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
+
+                val dbResultIterator: DBResultIterator<O>
+                dbResultIterator = queryBuilder.result()
+                val historSearchParams = DBHistorySearchParams(
+                    filter.modifiedByUserId,
+                    filter.modifiedFrom,
+                    filter.modifiedTo,
+                    filter.searchHistory
+                )
+                var list = privateCreateList(
+                    baseDao,
+                    dbResultIterator,
+                    customResultFilters,
+                    queryBuilder.resultPredicates,
+                    dbFilter,
+                    historSearchParams,
+                    checkAccess,
+                    context,
+                )
+                list = dbResultIterator.sort(list)
+
+                val end = System.currentTimeMillis()
+                if (end - begin > 2000) {
+                    // Show only slow requests.
+                    log.info(
+                        "BaseDao.getList for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)."
+                    )
+                }
+                list
             }
         } catch (ex: Exception) {
             log.error(ex, { "Error while querying: ${ex.message}. Magicfilter: ${filter}." })
             return emptyList()
         }
-    }
-
-    private fun <O : ExtendedBaseDO<Long>> privateGetList(
-        baseDao: BaseDao<O>,
-        filter: QueryFilter,
-        customResultFilters: List<CustomResultFilter<O>>?,
-        checkAccess: Boolean = true,
-        context: PfPersistenceContext,
-    ): List<O> {
-        val begin = System.currentTimeMillis()
-        val dbFilter = filter.createDBFilter()
-        val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
-        // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-
-        val dbResultIterator: DBResultIterator<O>
-        dbResultIterator = queryBuilder.result()
-        val historSearchParams = DBHistorySearchParams(
-            filter.modifiedByUserId,
-            filter.modifiedFrom,
-            filter.modifiedTo,
-            filter.searchHistory
-        )
-        var list = privateCreateList(
-            baseDao,
-            dbResultIterator,
-            customResultFilters,
-            queryBuilder.resultPredicates,
-            dbFilter,
-            historSearchParams,
-            checkAccess,
-            context,
-        )
-        list = dbResultIterator.sort(list)
-
-        val end = System.currentTimeMillis()
-        if (end - begin > 2000) {
-            // Show only slow requests.
-            log.info(
-                "BaseDao.getList for entity class: ${baseDao.doClass.simpleName} took: ${end - begin} ms (>2s)."
-            )
-        }
-        return list
     }
 
     private fun <O : ExtendedBaseDO<Long>> privateCreateList(
@@ -167,7 +153,7 @@ open class DBQuery {
                         && match(list, customResultFilters, resultPredicates, next)
                     ) {
                         // Current result object fits the modified query:
-                        baseDao.afterLoad(next, context)
+                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break
@@ -190,7 +176,7 @@ open class DBQuery {
                             next
                         )
                     ) {
-                        baseDao.afterLoad(next, context)
+                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break

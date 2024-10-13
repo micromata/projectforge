@@ -52,7 +52,7 @@ public class PersonalAddressTest extends AbstractTestBase {
     address.setFax("+49 561 316793-11");
     address.setBusinessPhone("+49 561 316793-0");
     address.setPrivatePhone("+49 561 12345678");
-    addressIds[0] = (Long) addressDao.saveInTrans(address);
+    addressIds[0] = (Long) addressDao.save(address);
 
     PersonalAddressDO personalAddress = new PersonalAddressDO();
     AddressDO a = addressDao.getOrLoad(addressIds[0]);

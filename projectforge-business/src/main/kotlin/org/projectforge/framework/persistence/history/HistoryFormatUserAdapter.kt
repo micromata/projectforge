@@ -45,7 +45,7 @@ class HistoryFormatUserAdapter(
       return
     }
     item.rights?.forEach { right ->
-      userRightDao.getHistoryEntries(right, context).forEach { entry ->
+      userRightDao.getHistoryEntries(right).forEach { entry ->
         val dto = convert(context, item, entry)
         dto.diffEntries.firstOrNull { it.property == "value" }?.let { diffEntry ->
           diffEntry.property = right.rightIdString.toString()

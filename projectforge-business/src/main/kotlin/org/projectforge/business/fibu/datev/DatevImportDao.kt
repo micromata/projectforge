@@ -38,7 +38,6 @@ import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import org.slf4j.LoggerFactory
@@ -127,12 +126,10 @@ class DatevImportDao {
         requireNotNull(storage.getSheets())
         val sheet = storage.getNamedSheet(sheetName)
         requireNotNull(sheet)
-        persistenceService.runReadOnly { context ->
-            if (storage.id === Type.KONTENPLAN) {
-                reconcileKontenplan(sheet as ImportedSheet<KontoDO>, context)
-            } else {
-                reconcileBuchungsdaten(sheet as ImportedSheet<BuchungssatzDO>, context)
-            }
+        if (storage.id === Type.KONTENPLAN) {
+            reconcileKontenplan(sheet as ImportedSheet<KontoDO>)
+        } else {
+            reconcileBuchungsdaten(sheet as ImportedSheet<BuchungssatzDO>)
         }
         sheet.numberOfCommittedElements = -1
     }
@@ -155,11 +152,11 @@ class DatevImportDao {
         sheet.setStatus(ImportStatus.IMPORTED)
     }
 
-    private fun reconcileKontenplan(sheet: ImportedSheet<KontoDO>, context: PfPersistenceContext) {
+    private fun reconcileKontenplan(sheet: ImportedSheet<KontoDO>) {
         log.info("Reconcile Kontenplan called")
         sheet.getElements()?.forEach { el ->
             val konto = el.value
-            val dbKonto = kontoDao.getKonto(konto!!.nummer, context)
+            val dbKonto = kontoDao.getKonto(konto!!.nummer)
             if (dbKonto != null) {
                 el.oldValue = dbKonto
             }
@@ -168,7 +165,7 @@ class DatevImportDao {
         sheet.calculateStatistics()
     }
 
-    private fun reconcileBuchungsdaten(sheet: ImportedSheet<BuchungssatzDO>, context: PfPersistenceContext) {
+    private fun reconcileBuchungsdaten(sheet: ImportedSheet<BuchungssatzDO>) {
         log.info("Reconcile Buchungsdaten called")
         sheet.getElements()?.forEach { el ->
             val satz = el.value
@@ -176,7 +173,6 @@ class DatevImportDao {
                 val dbSatz = buchungssatzDao.getBuchungssatz(
                     satz.year!!, satz.month!!,
                     satz.satznr!!,
-                    context,
                 )
                 if (dbSatz != null) {
                     el.oldValue = dbSatz
@@ -198,7 +194,7 @@ class DatevImportDao {
                 col.add(konto)
             }
         }
-        kontoDao.internalSaveOrUpdateInTrans(col, KONTO_INSERT_BLOCK_SIZE)
+        kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE)
         return col.size
     }
 
@@ -213,7 +209,7 @@ class DatevImportDao {
                 col.add(satz)
             }
         }
-        buchungssatzDao.internalSaveOrUpdateInTrans(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE)
+        buchungssatzDao.internalSaveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE)
         return col.size
     }
 

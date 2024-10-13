@@ -46,10 +46,10 @@ public class KundeDaoTest extends AbstractTestBase {
     KundeDO kunde = new KundeDO();
     kunde.setName("ACME");
     kunde.setId(42L);
-    Serializable id = kundeDao.saveInTrans(kunde);
+    Serializable id = kundeDao.save(kunde);
     kunde = kundeDao.getById(id);
     kunde.setDescription("Test");
-    kundeDao.updateInTrans(kunde);
+    kundeDao.update(kunde);
 
     logon(AbstractTestBase.TEST_CONTROLLING_USER);
     kundeDao.getById(id);
@@ -108,14 +108,14 @@ public class KundeDaoTest extends AbstractTestBase {
       KundeDO ku = new KundeDO();
       ku.setId(42L);
       kunde.setName("ACME 2");
-      kundeDao.saveInTrans(ku);
+      kundeDao.save(ku);
       fail("AccessException expected: " + who + " users should not have save access to customers.");
     } catch (AccessException ex) {
       // OK
     }
     try {
       kunde.setDescription(who);
-      kundeDao.updateInTrans(kunde);
+      kundeDao.update(kunde);
       fail("AccessException expected: " + who + " users should not have update access to customers.");
     } catch (AccessException ex) {
       // OK

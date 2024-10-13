@@ -23,14 +23,13 @@
 
 package org.projectforge.business.address
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import jakarta.annotation.PostConstruct
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -68,7 +67,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
      * After modification of any address (insert, update, delete, undelete) this address should be removed from
      * this cache.
      */
-    override fun afterSaveOrModify(changedObject: AddressbookDO, operationType: OperationType, context: PfPersistenceContext) {
+    override fun afterSaveOrModify(changedObject: AddressbookDO, operationType: OperationType) {
         setExpired()
     }
 

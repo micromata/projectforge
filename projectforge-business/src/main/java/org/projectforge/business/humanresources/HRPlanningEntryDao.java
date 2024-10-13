@@ -23,6 +23,7 @@
 
 package org.projectforge.business.humanresources;
 
+import jakarta.persistence.criteria.JoinType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,6 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.slf4j.Logger;
@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.criteria.JoinType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,178 +53,178 @@ import java.util.Set;
  */
 @Service
 public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
+    public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
 
-  private static final Logger log = LoggerFactory.getLogger(HRPlanningEntryDao.class);
+    private static final Logger log = LoggerFactory.getLogger(HRPlanningEntryDao.class);
 
-  @Autowired
-  private ProjektDao projektDao;
+    @Autowired
+    private ProjektDao projektDao;
 
-  @Autowired
-  private HRPlanningDao hrPlanningDao;
+    @Autowired
+    private HRPlanningDao hrPlanningDao;
 
-  @Override
-  public String[] getAdditionalSearchFields() {
-    return new String[]{"projekt.name", "projekt.kunde.name", "planning.user.username", "planning.user.firstname",
-            "planning.user.lastname"};
-  }
-
-  protected HRPlanningEntryDao() {
-    super(HRPlanningEntryDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
-
-  /**
-   * @param sheet
-   * @param projektId If null, then projekt will be set to null;
-   */
-  public void setProjekt(final HRPlanningEntryDO sheet, final Long projektId) {
-    final ProjektDO projekt = projektDao.getOrLoad(projektId);
-    sheet.setProjekt(projekt);
-  }
-
-  @Override
-  public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
-    final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
-    if (myFilter.getStopDay() != null) {
-      final PFDateTime date = PFDateTime.from(myFilter.getStopDay()).getEndOfDay();
-      myFilter.setStopDay(date.getLocalDate());
+    @Override
+    public String[] getAdditionalSearchFields() {
+        return new String[]{"projekt.name", "projekt.kunde.name", "planning.user.username", "planning.user.firstname",
+                "planning.user.lastname"};
     }
-    final QueryFilter queryFilter = buildQueryFilter(myFilter);
-    myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:
-    if (myFilter.isDeleted()) {
-      queryFilter.add(QueryFilter.or(QueryFilter.eq("deleted", true), QueryFilter.eq("planning.deleted", true)));
-    } else {
-      queryFilter.add(QueryFilter.and(QueryFilter.eq("deleted", false), QueryFilter.eq("planning.deleted", false)));
+
+    protected HRPlanningEntryDao() {
+        super(HRPlanningEntryDO.class);
+        userRightId = USER_RIGHT_ID;
     }
-    final List<HRPlanningEntryDO> list = getList(queryFilter, context);
-    if (list == null) {
-      return null;
+
+    /**
+     * @param sheet
+     * @param projektId If null, then projekt will be set to null;
+     */
+    public void setProjekt(final HRPlanningEntryDO sheet, final Long projektId) {
+        final ProjektDO projekt = projektDao.getOrLoad(projektId);
+        sheet.setProjekt(projekt);
     }
-    for (final HRPlanningEntryDO entry : list) {
-      @SuppressWarnings("unchecked") final List<HRPlanningEntryDO> entries = (List<HRPlanningEntryDO>) CollectionUtils.select(
-              entry.getPlanning().getEntries(),
-              PredicateUtils.uniquePredicate());
-      entry.getPlanning().setEntries(entries);
-    }
-    if (!myFilter.isGroupEntries() && !myFilter.isOnlyMyProjects()) {
-      return list;
-    }
-    final List<HRPlanningEntryDO> result = new ArrayList<>();
-    final Set<Long> set = (myFilter.isGroupEntries()) ? new HashSet<>() : null;
-    for (final HRPlanningEntryDO entry : list) {
-      if (myFilter.isOnlyMyProjects()) {
-        if (entry.getProjekt() == null) {
-          continue;
+
+    @Override
+    public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter) {
+        final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
+        if (myFilter.getStopDay() != null) {
+            final PFDateTime date = PFDateTime.from(myFilter.getStopDay()).getEndOfDay();
+            myFilter.setStopDay(date.getLocalDate());
         }
-        final ProjektDO projekt = entry.getProjekt();
-        if (projekt.getProjektManagerGroup() == null) {
-          continue;
+        final QueryFilter queryFilter = buildQueryFilter(myFilter);
+        myFilter.setIgnoreDeleted(true); // Ignore deleted flag of HRPlanningEntryDOs, use instead:
+        if (myFilter.isDeleted()) {
+            queryFilter.add(QueryFilter.or(QueryFilter.eq("deleted", true), QueryFilter.eq("planning.deleted", true)));
+        } else {
+            queryFilter.add(QueryFilter.and(QueryFilter.eq("deleted", false), QueryFilter.eq("planning.deleted", false)));
         }
-        if (!userGroupCache.isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId())) {
-          continue;
+        final List<HRPlanningEntryDO> list = getList(queryFilter);
+        if (list == null) {
+            return null;
         }
-      }
-      if (myFilter.isGroupEntries()) {
-        if (set.contains(entry.getPlanningId())) {
-          // Entry is already in result list.
-          continue;
+        for (final HRPlanningEntryDO entry : list) {
+            @SuppressWarnings("unchecked") final List<HRPlanningEntryDO> entries = (List<HRPlanningEntryDO>) CollectionUtils.select(
+                    entry.getPlanning().getEntries(),
+                    PredicateUtils.uniquePredicate());
+            entry.getPlanning().setEntries(entries);
         }
-        final HRPlanningEntryDO sumEntry = new HRPlanningEntryDO();
-        final HRPlanningDO planning = entry.getPlanning();
-        sumEntry.setPlanning(planning);
-        sumEntry.setUnassignedHours(planning.getTotalUnassignedHours());
-        sumEntry.setMondayHours(planning.getTotalMondayHours());
-        sumEntry.setTuesdayHours(planning.getTotalTuesdayHours());
-        sumEntry.setWednesdayHours(planning.getTotalWednesdayHours());
-        sumEntry.setThursdayHours(planning.getTotalThursdayHours());
-        sumEntry.setFridayHours(planning.getTotalFridayHours());
-        sumEntry.setWeekendHours(planning.getTotalWeekendHours());
-        final StringBuilder buf = new StringBuilder();
-        boolean first = true;
-        for (final HRPlanningEntryDO pos : planning.getEntries()) {
-          final String str = pos.getProjektNameOrStatus();
-          if (StringUtils.isNotBlank(str)) {
-            if (first) {
-              first = false;
-            } else {
-              buf.append("; ");
+        if (!myFilter.isGroupEntries() && !myFilter.isOnlyMyProjects()) {
+            return list;
+        }
+        final List<HRPlanningEntryDO> result = new ArrayList<>();
+        final Set<Long> set = (myFilter.isGroupEntries()) ? new HashSet<>() : null;
+        for (final HRPlanningEntryDO entry : list) {
+            if (myFilter.isOnlyMyProjects()) {
+                if (entry.getProjekt() == null) {
+                    continue;
+                }
+                final ProjektDO projekt = entry.getProjekt();
+                if (projekt.getProjektManagerGroup() == null) {
+                    continue;
+                }
+                if (!userGroupCache.isLoggedInUserMemberOfGroup(projekt.getProjektManagerGroupId())) {
+                    continue;
+                }
             }
-            buf.append(str);
-          }
+            if (myFilter.isGroupEntries()) {
+                if (set.contains(entry.getPlanningId())) {
+                    // Entry is already in result list.
+                    continue;
+                }
+                final HRPlanningEntryDO sumEntry = new HRPlanningEntryDO();
+                final HRPlanningDO planning = entry.getPlanning();
+                sumEntry.setPlanning(planning);
+                sumEntry.setUnassignedHours(planning.getTotalUnassignedHours());
+                sumEntry.setMondayHours(planning.getTotalMondayHours());
+                sumEntry.setTuesdayHours(planning.getTotalTuesdayHours());
+                sumEntry.setWednesdayHours(planning.getTotalWednesdayHours());
+                sumEntry.setThursdayHours(planning.getTotalThursdayHours());
+                sumEntry.setFridayHours(planning.getTotalFridayHours());
+                sumEntry.setWeekendHours(planning.getTotalWeekendHours());
+                final StringBuilder buf = new StringBuilder();
+                boolean first = true;
+                for (final HRPlanningEntryDO pos : planning.getEntries()) {
+                    final String str = pos.getProjektNameOrStatus();
+                    if (StringUtils.isNotBlank(str)) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            buf.append("; ");
+                        }
+                        buf.append(str);
+                    }
+                }
+                sumEntry.setDescription(buf.toString());
+                result.add(sumEntry);
+                set.add(planning.getId());
+            } else {
+                result.add(entry);
+            }
         }
-        sumEntry.setDescription(buf.toString());
-        result.add(sumEntry);
-        set.add(planning.getId());
-      } else {
-        result.add(entry);
-      }
+        return result;
     }
-    return result;
-  }
 
-  public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
-    final QueryFilter queryFilter = new QueryFilter(filter);
-    queryFilter.createJoin("planning")
-            .createJoin("user", JoinType.INNER, false, "planning");
-    if (filter.getUserId() != null) {
-      final PFUserDO user = new PFUserDO();
-      user.setId(filter.getUserId());
-      queryFilter.add(QueryFilter.eq("planning.user", user));
+    public QueryFilter buildQueryFilter(final HRPlanningFilter filter) {
+        final QueryFilter queryFilter = new QueryFilter(filter);
+        queryFilter.createJoin("planning")
+                .createJoin("user", JoinType.INNER, false, "planning");
+        if (filter.getUserId() != null) {
+            final PFUserDO user = new PFUserDO();
+            user.setId(filter.getUserId());
+            queryFilter.add(QueryFilter.eq("planning.user", user));
+        }
+        if (filter.getStartDay() != null && filter.getStopDay() != null) {
+            queryFilter.add(QueryFilter.between("planning.week", filter.getStartDay(), filter.getStopDay()));
+        } else if (filter.getStartDay() != null) {
+            queryFilter.add(QueryFilter.ge("planning.week", filter.getStartDay()));
+        } else if (filter.getStopDay() != null) {
+            queryFilter.add(QueryFilter.le("planning.week", filter.getStopDay()));
+        }
+        if (filter.getProjektId() != null) {
+            queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));
+        }
+        queryFilter.addOrder(SortProperty.desc("planning.week")).addOrder(SortProperty.asc("planning.user.firstname"));
+        if (log.isDebugEnabled()) {
+            log.debug(ToStringBuilder.reflectionToString(filter));
+        }
+        return queryFilter;
     }
-    if (filter.getStartDay() != null && filter.getStopDay() != null) {
-      queryFilter.add(QueryFilter.between("planning.week", filter.getStartDay(), filter.getStopDay()));
-    } else if (filter.getStartDay() != null) {
-      queryFilter.add(QueryFilter.ge("planning.week", filter.getStartDay()));
-    } else if (filter.getStopDay() != null) {
-      queryFilter.add(QueryFilter.le("planning.week", filter.getStopDay()));
+
+    /**
+     * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
+     */
+    @Override
+    public void onSaveOrModify(final HRPlanningEntryDO obj) {
+        throw new UnsupportedOperationException(
+                "Please do not save or HRPlanningEntryDO directly, save or update HRPlanningDO instead.");
     }
-    if (filter.getProjektId() != null) {
-      queryFilter.add(QueryFilter.eq("projekt.id", filter.getProjektId()));
+
+    @Override
+    public void prepareHibernateSearch(final HRPlanningEntryDO obj, final OperationType operationType) {
+        projektDao.initializeProjektManagerGroup(obj.getProjekt());
     }
-    queryFilter.addOrder(SortProperty.desc("planning.week")).addOrder(SortProperty.asc("planning.user.firstname"));
-    if (log.isDebugEnabled()) {
-      log.debug(ToStringBuilder.reflectionToString(filter));
+
+    /**
+     * @see HRPlanningDao#hasUserSelectAccess(PFUserDO, boolean)
+     */
+    @Override
+    public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
+        return hrPlanningDao.hasUserSelectAccess(user, throwException);
     }
-    return queryFilter;
-  }
 
-  /**
-   * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
-   */
-  @Override
-  public void onSaveOrModify(final HRPlanningEntryDO obj, final PfPersistenceContext context) {
-    throw new UnsupportedOperationException(
-            "Please do not save or HRPlanningEntryDO directly, save or update HRPlanningDO instead.");
-  }
+    @Override
+    public boolean hasAccess(final PFUserDO user, final HRPlanningEntryDO obj, final HRPlanningEntryDO oldObj,
+                             final OperationType operationType, final boolean throwException) {
+        final HRPlanningDO old = oldObj != null ? oldObj.getPlanning() : null;
+        return hrPlanningDao.hasAccess(user, obj.getPlanning(), old, operationType, throwException);
+    }
 
-  @Override
-  public void prepareHibernateSearch(final HRPlanningEntryDO obj, final OperationType operationType, final PfPersistenceContext context) {
-    projektDao.initializeProjektManagerGroup(obj.getProjekt(), context);
-  }
+    @Override
+    public boolean hasUserSelectAccess(final PFUserDO user, final HRPlanningEntryDO obj, final boolean throwException) {
+        return hrPlanningDao.hasUserSelectAccess(user, obj.getPlanning(), throwException);
+    }
 
-  /**
-   * @see HRPlanningDao#hasUserSelectAccess(PFUserDO, boolean)
-   */
-  @Override
-  public boolean hasUserSelectAccess(final PFUserDO user, final boolean throwException) {
-    return hrPlanningDao.hasUserSelectAccess(user, throwException);
-  }
-
-  @Override
-  public boolean hasAccess(final PFUserDO user, final HRPlanningEntryDO obj, final HRPlanningEntryDO oldObj,
-                           final OperationType operationType, final boolean throwException) {
-    final HRPlanningDO old = oldObj != null ? oldObj.getPlanning() : null;
-    return hrPlanningDao.hasAccess(user, obj.getPlanning(), old, operationType, throwException);
-  }
-
-  @Override
-  public boolean hasUserSelectAccess(final PFUserDO user, final HRPlanningEntryDO obj, final boolean throwException) {
-    return hrPlanningDao.hasUserSelectAccess(user, obj.getPlanning(), throwException);
-  }
-
-  @Override
-  public HRPlanningEntryDO newInstance() {
-    return new HRPlanningEntryDO();
-  }
+    @Override
+    public HRPlanningEntryDO newInstance() {
+        return new HRPlanningEntryDO();
+    }
 }

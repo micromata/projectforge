@@ -109,7 +109,7 @@ open class Favorites<T : AbstractFavorite>() {
     userPrefEntry.value = value
     @Suppress("DEPRECATION")
     userPref.addOrUpdateUserPrefEntry(userPrefEntry)
-    userPrefDao.saveInTrans(userPref)
+    userPrefDao.save(userPref)
   }
 
   fun createUserPref(userPrefDao: UserPrefDao, area: String, newFavorite: T) {
@@ -120,7 +120,7 @@ open class Favorites<T : AbstractFavorite>() {
     userPref.name = newFavorite.name
     userPref.id = newFavorite.id
     userPref.valueObject = newFavorite
-    userPrefDao.saveInTrans(userPref)
+    userPrefDao.save(userPref)
   }
 
   /**
@@ -224,7 +224,7 @@ open class Favorites<T : AbstractFavorite>() {
     fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Long) {
       val userPref = userPrefDao.getUserPref(area, id)
       if (userPref != null) {
-        userPrefDao.deleteInTrans(userPref)
+        userPrefDao.delete(userPref)
       } else {
         log.warn("User tried to delete user pref with id #$id for area '$area', but it can't be deleted (is from other user, different area or has an unknown id).")
       }
@@ -245,7 +245,7 @@ open class Favorites<T : AbstractFavorite>() {
           log.warn("User tried to rename user pref with id #$id from '${userPref.name}' into '$newName', but another entry with this name already exist.")
         } else {
           userPref.name = newName
-          userPrefDao.updateInTrans(userPref)
+          userPrefDao.update(userPref)
         }
       } else {
         log.warn("User tried to reanme user pref with id #$id for area '$area', but it can't be renamed (is from other user, different area or has an unknown id).")

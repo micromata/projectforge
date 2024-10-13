@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -67,18 +66,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
      * @see BaseDao.getOrLoad
      */
     fun setProjekt(kost2: Kost2DO, projektId: Long) {
-        return persistenceService.runReadOnly { context ->
-            setProjekt(kost2, projektId, context)
-        }
-    }
-
-    /**
-     * @param kost2
-     * @param projektId If null, then projekt will be set to null;
-     * @see BaseDao.getOrLoad
-     */
-    fun setProjekt(kost2: Kost2DO, projektId: Long, context: PfPersistenceContext) {
-        val projekt = projektDao.getOrLoad(projektId, context)
+        val projekt = projektDao.getOrLoad(projektId)
         if (projekt != null) {
             kost2.projekt = projekt
             kost2.nummernkreis = projekt.nummernkreis
@@ -93,18 +81,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
      * @see BaseDao.getOrLoad
      */
     fun setKost2Art(kost2: Kost2DO, kost2ArtId: Long) {
-        persistenceService.runReadOnly { context ->
-            setKost2Art(kost2, kost2ArtId, context)
-        }
-    }
-
-    /**
-     * @param kost2
-     * @param kost2ArtId If null, then kost2Art will be set to null;
-     * @see BaseDao.getOrLoad
-     */
-    fun setKost2Art(kost2: Kost2DO, kost2ArtId: Long, context: PfPersistenceContext) {
-        val kost2Art = kost2ArtDao.getOrLoad(kost2ArtId, context)
+        val kost2Art = kost2ArtDao.getOrLoad(kost2ArtId)
         kost2.kost2Art = kost2Art
     }
 
@@ -113,28 +90,12 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
      * @see .getKost2
      */
     fun getKost2(kostString: String?): Kost2DO? {
-        return persistenceService.runReadOnly { context ->
-            getKost2(kostString, context)
-        }
-    }
-
-    /**
-     * @param kostString Format ######## or #.###.##.## is supported.
-     * @see .getKost2
-     */
-    fun getKost2(kostString: String?, context: PfPersistenceContext): Kost2DO? {
         val kost = parseKostString(kostString) ?: return null
-        return getKost2(kost[0], kost[1], kost[2], kost[3].toLong(), context)
+        return getKost2(kost[0], kost[1], kost[2], kost[3].toLong())
     }
 
     fun getKost2(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Long): Kost2DO? {
-        return persistenceService.runReadOnly { context ->
-            getKost2(nummernkreis, bereich, teilbereich, kost2Art, context)
-        }
-    }
-
-    fun getKost2(nummernkreis: Int, bereich: Int, teilbereich: Int, kost2Art: Long, context: PfPersistenceContext): Kost2DO? {
-        return context.selectNamedSingleResult(
+        return persistenceService.selectNamedSingleResult(
             Kost2DO.FIND_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
             Kost2DO::class.java,
             Pair("nummernkreis", nummernkreis),
@@ -165,7 +126,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         return getActiveKost2(projekt.nummernkreis, projekt.bereich!!, projekt.teilbereich)
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<Kost2DO> {
+    override fun getList(filter: BaseSearchFilter): List<Kost2DO> {
         val myFilter = if (filter is KostFilter) {
             filter
         } else {
@@ -189,14 +150,14 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
         queryFilter.addOrder(asc("nummernkreis")).addOrder(asc("bereich")).addOrder(asc("teilbereich"))
             .addOrder(asc("kost2Art.id"))
-        return getList(queryFilter, context)
+        return getList(queryFilter)
     }
 
-    override fun onSaveOrModify(obj: Kost2DO, context: PfPersistenceContext) {
+    override fun onSaveOrModify(obj: Kost2DO) {
         if (obj.projektId != null) {
             // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
             val projekt =
-                projektDao.getById(obj.projektId, context) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
+                projektDao.getById(obj.projektId) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
             if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.nummer != obj.teilbereich) {
                 throw UserException(
                     ("Inkonsistenz bei Kost2: "
@@ -220,7 +181,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         var other: Kost2DO? = null
         if (obj.id == null) {
             // New kost entry
-            other = getKost2(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.kost2ArtId!!, context)
+            other = getKost2(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.kost2ArtId!!)
         } else {
             // kost entry already exists. Check maybe changed:
             other = persistenceService.selectNamedSingleResult(
@@ -238,8 +199,8 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(obj: Kost2DO, context: PfPersistenceContext) {
-        super.afterSaveOrModify(obj, context)
+    override fun afterSaveOrModify(obj: Kost2DO) {
+        super.afterSaveOrModify(obj)
         kostCache.updateKost2(obj)
     }
 

@@ -56,7 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -136,7 +135,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                 attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
                 attendee.setAddress(singleAddress);
                 PFUserDO userWithSameMail = allUserList.stream()
-                        .filter(u -> u.getEmail() != null && u.getEmail().toLowerCase().equals(singleAddress.getEmail().toLowerCase())).findFirst().orElse(null);
+                        .filter(u -> u.getEmail() != null && u.getEmail().equalsIgnoreCase(singleAddress.getEmail())).findFirst().orElse(null);
                 if (userWithSameMail != null && !addedUserIds.contains(userWithSameMail.getId())) {
                     attendee.setUser(userWithSameMail);
                     addedUserIds.add(userWithSameMail.getId());
@@ -170,18 +169,18 @@ public class TeamEventServiceImpl implements TeamEventService {
                                 assignAttendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                             }
                             data.addAttendee(assignAttendee);
-                            teamEventAttendeeDao.internalSave(assignAttendee, context);
+                            teamEventAttendeeDao.internalSave(assignAttendee);
                         }
                     }
 
                     if (data.getAttendees() != null && itemsToUnassign != null && itemsToUnassign.size() > 0) {
                         data.getAttendees().removeAll(itemsToUnassign);
                         for (TeamEventAttendeeDO deleteAttendee : itemsToUnassign) {
-                            teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee, context);
+                            teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee);
                         }
                     }
 
-                    teamEventDao.update(data, context);
+                    teamEventDao.update(data);
                     return null;
                 }
         );
@@ -196,7 +195,7 @@ public class TeamEventServiceImpl implements TeamEventService {
             if (attendeesNewState == null || attendeesNewState.isEmpty()) {
                 if (attendeesOldState != null && !attendeesOldState.isEmpty()) {
                     for (TeamEventAttendeeDO attendee : attendeesOldState) {
-                        teamEventAttendeeDao.internalMarkAsDeleted(attendee, context);
+                        teamEventAttendeeDao.internalMarkAsDeleted(attendee);
                     }
                 }
 
@@ -212,7 +211,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                         attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                     }
 
-                    teamEventAttendeeDao.internalSave(attendee, context);
+                    teamEventAttendeeDao.internalSave(attendee);
                 }
 
                 return null;
@@ -243,7 +242,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                         attendee.setAddress(attendeeOld.getAddress());
                         attendee.setUser(attendeeOld.getUser());
 
-                        teamEventAttendeeDao.internalSave(attendee, context);
+                        teamEventAttendeeDao.internalSave(attendee);
 
                         break;
                     }
@@ -255,7 +254,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                     if (attendee.getStatus() == null) {
                         attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                     }
-                    teamEventAttendeeDao.internalSave(attendee, context);
+                    teamEventAttendeeDao.internalSave(attendee);
                 }
             }
 
@@ -274,7 +273,7 @@ public class TeamEventServiceImpl implements TeamEventService {
 
                 if (!found) {
                     // delete attendee
-                    teamEventAttendeeDao.internalMarkAsDeleted(attendee, context);
+                    teamEventAttendeeDao.internalMarkAsDeleted(attendee);
                 }
             }
             return null;
@@ -413,15 +412,10 @@ public class TeamEventServiceImpl implements TeamEventService {
         generator.addEvent(event);
         ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
 
-        try {
-            String ics = icsFile.toString(StandardCharsets.UTF_8.name());
+        String ics = icsFile.toString(StandardCharsets.UTF_8);
 
-            // send mail & return result
-            return sendMail.send(msg, ics, null);
-        } catch (UnsupportedEncodingException e) {
-            log.error("An error occurred while sending an event notification to attendee", e);
-            return false;
-        }
+        // send mail & return result
+        return sendMail.send(msg, ics, null);
     }
 
     private Mail createMail(final TeamEventDO event, final EventMailType mailType, final PFUserDO sender) {
@@ -632,13 +626,13 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void updateInTrans(TeamEventDO event) {
-        updateInTrans(event, true);
+    public void update(TeamEventDO event) {
+        update(event, true);
     }
 
     @Override
-    public void updateInTrans(TeamEventDO event, boolean checkAccess) {
-        teamEventDao.internalUpdateInTrans(event, checkAccess);
+    public void update(TeamEventDO event, boolean checkAccess) {
+        teamEventDao.internalUpdate(event, checkAccess);
     }
 
     @Override
@@ -657,23 +651,23 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void saveOrUpdateInTrans(TeamEventDO teamEvent) {
-        teamEventDao.saveOrUpdateInTrans(teamEvent);
+    public void saveOrUpdate(TeamEventDO teamEvent) {
+        teamEventDao.saveOrUpdate(teamEvent);
     }
 
     @Override
-    public void markAsDeletedInTrans(TeamEventDO teamEvent) {
-        teamEventDao.markAsDeletedInTrans(teamEvent);
+    public void markAsDeleted(TeamEventDO teamEvent) {
+        teamEventDao.markAsDeleted(teamEvent);
     }
 
     @Override
-    public void undeleteInTrans(TeamEventDO teamEvent) {
-        teamEventDao.undeleteInTrans(teamEvent);
+    public void undelete(TeamEventDO teamEvent) {
+        teamEventDao.undelete(teamEvent);
     }
 
     @Override
-    public void saveInTrans(TeamEventDO newEvent) {
-        teamEventDao.saveInTrans(newEvent);
+    public void save(TeamEventDO newEvent) {
+        teamEventDao.save(newEvent);
     }
 
     @Override
@@ -682,11 +676,11 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void updateAttendeeInTrans(TeamEventAttendeeDO attendee, boolean accesscheck) {
+    public void updateAttendee(TeamEventAttendeeDO attendee, boolean accesscheck) {
         if (accesscheck) {
-            teamEventAttendeeDao.updateInTrans(attendee);
+            teamEventAttendeeDao.update(attendee);
         } else {
-            teamEventAttendeeDao.internalUpdateInTrans(attendee);
+            teamEventAttendeeDao.internalUpdate(attendee);
         }
     }
 

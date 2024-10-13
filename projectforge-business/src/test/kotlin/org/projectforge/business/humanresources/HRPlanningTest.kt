@@ -33,7 +33,6 @@ import org.projectforge.business.user.*
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.UserRightService
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
@@ -67,14 +66,14 @@ class HRPlanningTest : AbstractTestBase() {
     var userRights: UserRightService? = null
 
     override fun beforeAll() {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 59L
-            kundeDao.save(kunde, context)
-            projekt1 = initTestDB.addProjekt(kunde, 0, "Web portal", context)
-            projekt2 = initTestDB.addProjekt(kunde, 1, "Order management", context)
+            kundeDao.save(kunde)
+            projekt1 = initTestDB.addProjekt(kunde, 0, "Web portal")
+            projekt2 = initTestDB.addProjekt(kunde, 1, "Order management")
         }
     }
 
@@ -82,8 +81,8 @@ class HRPlanningTest : AbstractTestBase() {
     fun testUserRights() {
         lateinit var user1: PFUserDO
         lateinit var planning: HRPlanningDO
-        persistenceService.runInTransaction { context ->
-            user1 = initTestDB.addUser("HRPlanningTestUser1", context)
+        persistenceService.runInTransaction { _ ->
+            user1 = initTestDB.addUser("HRPlanningTestUser1")
             val right = userRights!!.getRight(UserRightId.PM_HR_PLANNING) as HRPlanningRight
             Assertions.assertFalse(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)))
             planning = HRPlanningDO()
@@ -99,7 +98,7 @@ class HRPlanningTest : AbstractTestBase() {
             logon(TEST_ADMIN_USER)
             val group = initTestDB.getGroup(ORGA_GROUP)
             group!!.assignedUsers!!.add(user1)
-            groupDao.update(group, context)
+            groupDao.update(group)
             Assertions.assertTrue(right.isAvailable(user1, userGroupCache.getUserGroupDOs(user1)))
             logon(user1)
             Assertions.assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false))
@@ -127,8 +126,8 @@ class HRPlanningTest : AbstractTestBase() {
             )
             logon(TEST_ADMIN_USER)
             user1.addRight(UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY))
-            userRightDao.save(ArrayList(user1.rights), context)
-            userService.updateInTrans(user1)
+            userRightDao.save(ArrayList(user1.rights))
+            userService.update(user1)
             logon(user1)
             Assertions.assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false))
             Assertions.assertTrue(
@@ -153,13 +152,13 @@ class HRPlanningTest : AbstractTestBase() {
                 )
             )
         }
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_ADMIN_USER)
             // split
             user1 = userService.getById(user1.id)
             val userRight = user1.getRight(UserRightId.PM_HR_PLANNING)
             userRight!!.value = UserRightValue.READWRITE
-            userRightDao.update(userRight, context)
+            userRightDao.update(userRight)
             logon(user1)
             Assertions.assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false))
             Assertions.assertTrue(
@@ -197,7 +196,7 @@ class HRPlanningTest : AbstractTestBase() {
 
     @Test
     fun testBeginOfWeek() {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             var planning = HRPlanningDO()
             val date = LocalDate.of(2010, Month.JANUARY, 9)
@@ -206,15 +205,15 @@ class HRPlanningTest : AbstractTestBase() {
             planning.week = date
             planning.user = getUser(TEST_USER)
             Assertions.assertEquals("2010-01-09", planning.week.toString())
-            val id: Serializable = hrPlanningDao.save(planning, context)
-            planning = hrPlanningDao.getById(id, context)!!
+            val id: Serializable = hrPlanningDao.save(planning)
+            planning = hrPlanningDao.getById(id)!!
             Assertions.assertEquals("2010-01-04", planning.week.toString())
         }
     }
 
     @Test
     fun overwriteDeletedEntries() {
-        persistenceService.runInTransaction { context: PfPersistenceContext? ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             // Create planning:
             var planning = HRPlanningDO()
@@ -233,9 +232,9 @@ class HRPlanningTest : AbstractTestBase() {
             setHours(entry, 6, 5, 4, 3, 2, 1)
             entry.projekt = projekt2
             planning.addEntry(entry)
-            val id: Serializable = hrPlanningDao.save(planning, context!!)
+            val id: Serializable = hrPlanningDao.save(planning)
             // Check saved planning
-            planning = hrPlanningDao.getById(id, context)!!
+            planning = hrPlanningDao.getById(id)!!
             val day = PFDay(planning.week!!)
             assertLocalDate(day.localDate, 2010, Month.JANUARY, 11)
             Assertions.assertEquals(3, planning.entries!!.size)
@@ -244,15 +243,15 @@ class HRPlanningTest : AbstractTestBase() {
             assertHours(planning.getStatusEntry(HRPlanningEntryStatus.OTHER)!!, 2, 4, 6, 8, 10, 12)
             // Delete entry
             planning.getProjectEntry(projekt1!!)!!.deleted = true
-            hrPlanningDao.update(planning, context)
+            hrPlanningDao.update(planning)
             // Check deleted entry and re-adding it
-            planning = hrPlanningDao.getById(id, context)!!
+            planning = hrPlanningDao.getById(id)!!
             Assertions.assertTrue(planning.getProjectEntry(projekt1!!)!!.deleted)
             entry = HRPlanningEntryDO()
             setHours(entry, 7, 9, 11, 1, 3, 5)
             entry.projekt = projekt1
             planning.addEntry(entry)
-            hrPlanningDao.update(planning, context)
+            hrPlanningDao.update(planning)
             null
         }
     }

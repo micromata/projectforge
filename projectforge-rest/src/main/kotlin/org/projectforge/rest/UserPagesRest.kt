@@ -580,13 +580,13 @@ class UserPagesRest
     val dbAssignedGroups = userGroupCache.getUserGroups(obj) ?: emptyList()
     val groupsToAssign = newAssignedGroups.subtract(dbAssignedGroups)
     val groupsToUnassign = dbAssignedGroups.subtract(newAssignedGroups)
-    groupDao.assignGroupByIdsInTrans(obj, groupsToAssign, groupsToUnassign, false)
+    groupDao.assignGroupByIds(obj, groupsToAssign, groupsToUnassign, false)
     log.info("Assigning groups took: ${(System.currentTimeMillis() - start) / 1000}s.")
     val startRights = System.currentTimeMillis()
 
     val user = postData.data
     val userRightVOS = userRightsHandler.getUserRightVOs(user)
-    userRightDao.updateUserRightsInTrans(obj, userRightVOS, false)
+    userRightDao.updateUserRights(obj, userRightVOS, false)
     log.info("Updating rights took: ${(System.currentTimeMillis() - startRights) / 1000}s.")
     //Only one time reload user group cache
     userGroupCache.forceReload()

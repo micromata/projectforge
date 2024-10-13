@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.test.AbstractTestBase;
@@ -56,25 +55,25 @@ public class GanttChartTest extends AbstractTestBase {
         logon(AbstractTestBase.TEST_ADMIN_USER);
         persistenceService.runInTransaction(context -> {
             final String prefix = "GantChartTest";
-            final TaskDO rootTask = initTestDB.addTask(prefix, "root", context);
+            final TaskDO rootTask = initTestDB.addTask(prefix, "root");
             final PFDateTime dt = PFDateTime.withDate(2010, Month.AUGUST, 3);
 
-            TaskDO task = initTestDB.addTask(prefix + "1", prefix, context);
+            TaskDO task = initTestDB.addTask(prefix + "1", prefix);
             task.setStartDate(dt.getLocalDate());
             task.setDuration(BigDecimal.TEN);
 
-            taskDao.updateInTrans(task);
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context);
-            task = initTestDB.addTask(prefix + "2", prefix, context);
+            taskDao.update(task);
+            initTestDB.addTask(prefix + "1.1", prefix + "1");
+            task = initTestDB.addTask(prefix + "2", prefix);
             task.setGanttPredecessor(getTask(prefix + "1"));
             task.setDuration(BigDecimal.ONE);
-            taskDao.updateInTrans(task);
+            taskDao.update(task);
 
-            task = initTestDB.addTask(prefix + "3", prefix, context);
+            task = initTestDB.addTask(prefix + "3", prefix);
             task.setGanttPredecessor(getTask(prefix + "2"));
             task.setGanttPredecessorOffset(10);
             task.setDuration(BigDecimal.TEN);
-            taskDao.updateInTrans(task);
+            taskDao.update(task);
             final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
             final GanttTask rootObject = data.getRootObject();
             final GanttChartDO ganttChartDO = new GanttChartDO();
@@ -101,22 +100,22 @@ public class GanttChartTest extends AbstractTestBase {
             assertEquals(0, BigDecimal.TEN.compareTo(duration), "duration " + duration + "!=10!");
             assertEquals(dt.getLocalDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
 
-            initTestDB.addTask(prefix + "II", "root", context);
+            initTestDB.addTask(prefix + "II", "root");
 
             task = getTask(prefix + "1.1");
             task.setParentTask(getTask(prefix));
 
-            taskDao.updateInTrans(task); // One level higher
+            taskDao.update(task); // One level higher
 
             task = getTask(prefix + "2");
             task.setParentTask(getTask(prefix + "II"));
 
-            taskDao.updateInTrans(task); // Moved anywhere.
+            taskDao.update(task); // Moved anywhere.
 
             task = getTask(prefix + "3");
             task.setParentTask(getTask(prefix + "II"));
 
-            taskDao.updateInTrans(task); // Moved anywhere.
+            taskDao.update(task); // Moved anywhere.
 
             ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
             ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
@@ -167,12 +166,12 @@ public class GanttChartTest extends AbstractTestBase {
         logon(AbstractTestBase.TEST_ADMIN_USER);
         persistenceService.runInTransaction(context -> {
             final String prefix = "GanttTest3";
-            final TaskDO rootTask = initTestDB.addTask(prefix, "root", context);
-            final Long id1 = addTask(prefix + "1", null, null, context);
-            final Long id2 = addTask(prefix + "2", null, null, context);
-            final Long id3 = addTask(prefix + "3", BigDecimal.TEN, 10, context);
-            final Long id4 = addTask(prefix + "4", BigDecimal.TEN, 10, context);
-            final Long id5 = addTask(prefix + "5", BigDecimal.TEN, 10, context);
+            final TaskDO rootTask = initTestDB.addTask(prefix, "root");
+            final Long id1 = addTask(prefix + "1", null, null);
+            final Long id2 = addTask(prefix + "2", null, null);
+            final Long id3 = addTask(prefix + "3", BigDecimal.TEN, 10);
+            final Long id4 = addTask(prefix + "4", BigDecimal.TEN, 10);
+            final Long id5 = addTask(prefix + "5", BigDecimal.TEN, 10);
             // final Long id3 = task.getId();
             final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
             final GanttTask rootObject = data.getRootObject();
@@ -212,16 +211,16 @@ public class GanttChartTest extends AbstractTestBase {
         }
     }
 
-    private Long addTask(final String name, final BigDecimal duration, final Integer progress, final PfPersistenceContext context) {
-        final TaskDO task = initTestDB.addTask(name, "GanttTest3", context);
+    private Long addTask(final String name, final BigDecimal duration, final Integer progress) {
+        final TaskDO task = initTestDB.addTask(name, "GanttTest3");
         task.setDuration(duration);
         task.setProgress(progress);
-        taskDao.update(task, context);
+        taskDao.update(task);
         return task.getId();
     }
 
     private GanttTaskImpl findById(final GanttTask ganttObject, final Serializable id) {
-        return (GanttTaskImpl) ((GanttTaskImpl) ganttObject).findById(id);
+        return (GanttTaskImpl) ganttObject.findById(id);
     }
 
     private String transform(final String prefix, final String str) {

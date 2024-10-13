@@ -34,8 +34,8 @@ import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -160,13 +160,15 @@ class PersonalAddressDao {
      *
      * @param addressDO
      */
-    fun internalDeleteAll(addressDO: AddressDO, context: PfPersistenceContext) {
-        val counter = context.executeNamedUpdate(
-            PersonalAddressDO.DELETE_ALL_BY_ADDRESS_ID,
-            Pair("addressId", addressDO.id),
-        )
-        if (counter > 0) {
-            log.info("Removed #$counter personal address book entries of deleted address: $addressDO")
+    fun internalDeleteAll(addressDO: AddressDO) {
+        persistenceService.runInTransaction { context ->
+            val counter = context.executeNamedUpdate(
+                PersonalAddressDO.DELETE_ALL_BY_ADDRESS_ID,
+                Pair("addressId", addressDO.id),
+            )
+            if (counter > 0) {
+                log.info("Removed #$counter personal address book entries of deleted address: $addressDO")
+            }
         }
     }
 

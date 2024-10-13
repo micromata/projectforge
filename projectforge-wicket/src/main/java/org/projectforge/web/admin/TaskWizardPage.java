@@ -82,7 +82,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       accessDao.setGroup(access, group.getId());
     } else {
       if (access.getDeleted() == true) {
-        accessDao.undeleteInTrans(access);
+        accessDao.undelete(access);
       }
     }
     if (isLeaf == false) {
@@ -95,7 +95,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       access.employee();
       access.setRecursive(true);
     }
-    accessDao.saveOrUpdateInTrans(access);
+    accessDao.saveOrUpdate(access);
     createAccessRights(taskNode.getParent(), group, isManagerGroup, false);
   }
 

@@ -41,7 +41,6 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.configuration.ConfigurationDao
 import org.projectforge.framework.configuration.ConfigurationParam
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.time.DatePrecision
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDateTime.Companion.from
@@ -85,19 +84,19 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         Configuration.instance.isCostConfigured
         val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)
         costConfigured.booleanValue = true
-        configurationDao.internalUpdateInTrans(costConfigured)
+        configurationDao.internalUpdate(costConfigured)
     }
 
     @Test
     fun massUpdate() {
         val prefix = "ts-mu1-"
         val list = mutableListOf<TimesheetDO>()
-        persistenceService.runInTransaction { context ->
-            initTestDB.addTask(prefix + "1", "root", context)
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context)
-            initTestDB.addTask(prefix + "1.2", prefix + "1", context)
-            initTestDB.addTask(prefix + "2", "root", context)
-            initTestDB.addUser(prefix + "user1", context)
+        persistenceService.runInTransaction { _ ->
+            initTestDB.addTask(prefix + "1", "root")
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            initTestDB.addTask(prefix + "2", "root")
+            initTestDB.addUser(prefix + "user1")
             logon(getUser(TEST_FINANCE_USER))
             list.add(
                 createTimesheet(
@@ -113,7 +112,6 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     15,
                     "Office",
                     "A lot of stuff done and more.",
-                    context = context,
                 )
             )
             list.add(
@@ -130,7 +128,6 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     30,
                     "Office",
                     "A lot of stuff done and more.",
-                    context = context,
                 )
             )
         }
@@ -145,44 +142,41 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     fun massUpdateWithKost2Transformation() {
         val prefix = "ts-mu50-"
         val list = mutableListOf<TimesheetDO>()
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(getUser(TEST_FINANCE_USER))
             val kunde = KundeDO()
             kunde.name = "ACME"
             kunde.id = 50
-            kundeDao.save(kunde, context)
-            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2, context = context)
-            val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1, context = context)
-            val t1 = initTestDB.addTask(prefix + "1", "root", context)
-            projektDao.setTask(projekt1, t1.id, context)
-            projektDao.update(projekt1, context)
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context)
-            initTestDB.addTask(prefix + "1.2", prefix + "1", context)
-            val t2 = initTestDB.addTask(prefix + "2", "root", context)
-            projektDao.setTask(projekt2, t2.id, context)
-            projektDao.update(projekt2, context)
-            initTestDB.addTask(prefix + "2.1", prefix + "2", context)
-            initTestDB.addUser(prefix + "user1", context)
+            kundeDao.save(kunde)
+            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
+            val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1)
+            val t1 = initTestDB.addTask(prefix + "1", "root")
+            projektDao.setTask(projekt1, t1.id)
+            projektDao.update(projekt1)
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            val t2 = initTestDB.addTask(prefix + "2", "root")
+            projektDao.setTask(projekt2, t2.id)
+            projektDao.update(projekt2)
+            initTestDB.addTask(prefix + "2.1", prefix + "2")
+            initTestDB.addUser(prefix + "user1")
             logon(getUser(TEST_ADMIN_USER))
             list.add(
                 createTimesheet(
                     prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
                     "TS#0", 5, 50, 1, 0,
-                    context = context,
                 )
             )
             list.add(
                 createTimesheet(
                     prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
                     "TS#1", 5, 50, 1, 1,
-                    context = context,
                 )
             )
             list.add(
                 createTimesheet(
                     prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
                     "TS#2", 5, 50, 1, 2,
-                    context = context,
                 )
             )
         }
@@ -203,41 +197,41 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     fun massUpdateWithKost2() {
         val prefix = "ts-mu51-"
         val list = mutableListOf<TimesheetDO>()
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(getUser(TEST_FINANCE_USER))
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 51
-            kundeDao.save(kunde, context)
-            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2, context = context)
-            val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1, context = context)
-            val t1 = initTestDB.addTask(prefix + "1", "root", context)
-            projektDao.setTask(projekt1, t1.id, context)
-            projektDao.update(projekt1, context)
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context)
-            initTestDB.addTask(prefix + "1.2", prefix + "1", context)
-            val t2 = initTestDB.addTask(prefix + "2", "root", context)
-            projektDao.setTask(projekt2, t2.id, context)
-            projektDao.update(projekt2, context)
-            initTestDB.addTask(prefix + "2.1", prefix + "2", context)
-            initTestDB.addUser(prefix + "user1", context)
+            kundeDao.save(kunde)
+            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
+            val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1)
+            val t1 = initTestDB.addTask(prefix + "1", "root")
+            projektDao.setTask(projekt1, t1.id)
+            projektDao.update(projekt1)
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            val t2 = initTestDB.addTask(prefix + "2", "root")
+            projektDao.setTask(projekt2, t2.id)
+            projektDao.update(projekt2)
+            initTestDB.addTask(prefix + "2.1", prefix + "2")
+            initTestDB.addUser(prefix + "user1")
             logon(getUser(TEST_ADMIN_USER))
             list.add(
                 createTimesheet(
                     prefix, "1.1", "user1", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
-                    "TS#0", 5, 51, 1, 0, context
+                    "TS#0", 5, 51, 1, 0
                 )
             )
             list.add(
                 createTimesheet(
                     prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
-                    "TS#1", 5, 51, 1, 1, context
+                    "TS#1", 5, 51, 1, 1
                 )
             )
             list.add(
                 createTimesheet(
                     prefix, "1.2", "user1", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
-                    "TS#2", 5, 51, 1, 2, context
+                    "TS#2", 5, 51, 1, 2
                 )
             )
         }
@@ -279,21 +273,21 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     fun massUpdateMixedKost2() {
         val list = mutableListOf<TimesheetDO>()
         val prefix = "ts-mu52-"
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(getUser(TEST_FINANCE_USER))
             val kunde = KundeDO()
             kunde.name = "ACME International"
             kunde.id = 52
-            kundeDao.save(kunde, context)
-            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2, context = context)
-            initTestDB.addTask(prefix + "1", "root", context)
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context)
-            initTestDB.addTask(prefix + "1.2", prefix + "1", context)
-            val t2 = initTestDB.addTask(prefix + "2", "root", context)
-            projektDao.setTask(projekt1, t2.id, context)
-            projektDao.update(projekt1, context)
-            initTestDB.addTask(prefix + "2.1", prefix + "2", context)
-            initTestDB.addUser(prefix + "user1", context)
+            kundeDao.save(kunde)
+            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
+            initTestDB.addTask(prefix + "1", "root")
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            val t2 = initTestDB.addTask(prefix + "2", "root")
+            projektDao.setTask(projekt1, t2.id)
+            projektDao.update(projekt1)
+            initTestDB.addTask(prefix + "2.1", prefix + "2")
+            initTestDB.addUser(prefix + "user1")
             logon(getUser(TEST_ADMIN_USER))
             list.add(
                 createTimesheet(
@@ -308,7 +302,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     3,
                     15,
                     "Office",
-                    "A lot of stuff done and more.", context = context
+                    "A lot of stuff done and more."
                 )
             )
             list.add(
@@ -324,7 +318,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     3,
                     30,
                     "Office",
-                    "A lot of stuff done and more.", context = context
+                    "A lot of stuff done and more."
                 )
             )
             list.add(
@@ -340,7 +334,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
                     3,
                     45,
                     "Office",
-                    "A lot of stuff done and more.", context = context
+                    "A lot of stuff done and more."
                 )
             )
         }
@@ -370,47 +364,47 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     fun checkMassUpdateWithTimesheetProtection() {
         val prefix = "ts-mu53-"
         val list = mutableListOf<TimesheetDO>()
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(getUser(TEST_FINANCE_USER))
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 53
-            kundeDao.save(kunde, context)
-            val t1 = initTestDB.addTask(prefix + "1", "root", context)
-            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2, context = context)
+            kundeDao.save(kunde)
+            val t1 = initTestDB.addTask(prefix + "1", "root")
+            val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
             projekt1.task = t1
-            projektDao.update(projekt1, context)
-            val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1, context = context)
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context)
-            initTestDB.addTask(prefix + "1.2", prefix + "1", context)
-            val t2 = initTestDB.addTask(prefix + "2", "root", context)
-            projektDao.setTask(projekt2, t2.id, context)
-            projektDao.update(projekt2, context)
+            projektDao.update(projekt1)
+            val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1)
+            initTestDB.addTask(prefix + "1.1", prefix + "1")
+            initTestDB.addTask(prefix + "1.2", prefix + "1")
+            val t2 = initTestDB.addTask(prefix + "2", "root")
+            projektDao.setTask(projekt2, t2.id)
+            projektDao.update(projekt2)
             val dateTime = withDate(2009, Month.DECEMBER, 31)
             t2.protectTimesheetsUntil = dateTime.localDate
-            taskDao.update(t2, context)
-            initTestDB.addTask(prefix + "2.1", prefix + "2", context)
-            initTestDB.addTask(prefix + "2.2", prefix + "2", context)
-            initTestDB.addUser(prefix + "user", context)
+            taskDao.update(t2)
+            initTestDB.addTask(prefix + "2.1", prefix + "2")
+            initTestDB.addTask(prefix + "2.2", prefix + "2")
+            initTestDB.addUser(prefix + "user")
             list.add(
                 createTimesheet(
                     prefix, "2.1", "user", 2009, Month.NOVEMBER, 21, 3, 30, 3, 45, "Office",
                     "TS#1",
-                    5, 53, 2, 0, context
+                    5, 53, 2, 0
                 )
             )
             list.add(
                 createTimesheet(
                     prefix, "1.1", "user", 2009, Month.NOVEMBER, 21, 3, 0, 3, 15, "Office",
                     "TS#2", 5,
-                    53, 1, 0, context
+                    53, 1, 0
                 )
             )
             list.add(
                 createTimesheet(
                     prefix, "1.2", "user", 2009, Month.NOVEMBER, 21, 3, 15, 3, 30, "Office",
                     "TS#3",
-                    5, 53, 1, 1, context
+                    5, 53, 1, 1
                 )
             )
         }
@@ -452,9 +446,8 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     private fun createProjekt(
         kunde: KundeDO, projektNummer: Int, projektName: String,
         vararg kost2ArtIds: Long,
-        context: PfPersistenceContext,
     ): ProjektDO {
-        return initTestDB.addProjekt(kunde, projektNummer, projektName, context, *kost2ArtIds)
+        return initTestDB.addProjekt(kunde, projektNummer, projektName, *kost2ArtIds)
     }
 
     private fun assertAll(list: List<TimesheetDO>, master: TimesheetDO) {
@@ -502,7 +495,6 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             0,
         kost2Teilbereich: Int = 0,
         kost2Art: Int = 0,
-        context: PfPersistenceContext,
     ): TimesheetDO {
         val ts = TimesheetDO()
         setTimeperiod(ts, year, month, day, fromHour, fromMinute, day, toHour, toMinute)
@@ -511,12 +503,12 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         ts.location = location
         ts.description = description
         if (kost2Nummernkreis > 0) {
-            val kost2 = kost2Dao.getKost2(kost2Nummernkreis, kost2Bereich, kost2Teilbereich, kost2Art.toLong(), context)
+            val kost2 = kost2Dao.getKost2(kost2Nummernkreis, kost2Bereich, kost2Teilbereich, kost2Art.toLong())
             Assertions.assertNotNull(kost2)
             ts.kost2 = kost2
         }
-        val id: Serializable = timesheetDao.internalSave(ts, context)!!
-        return timesheetDao.getById(id, context)!!
+        val id: Serializable = timesheetDao.internalSave(ts)!!
+        return timesheetDao.getById(id)!!
     }
 
     private fun setTimeperiod(

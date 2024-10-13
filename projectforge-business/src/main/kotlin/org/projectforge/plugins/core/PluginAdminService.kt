@@ -104,7 +104,7 @@ open class PluginAdminService {
       configuration.configurationType = param.type
     }
     configuration.stringValue = sval
-    configurationDao.internalSaveOrUpdateInTrans(configuration)
+    configurationDao.internalSaveOrUpdate(configuration)
     Configuration.instance.forceReload()
     return false
   }

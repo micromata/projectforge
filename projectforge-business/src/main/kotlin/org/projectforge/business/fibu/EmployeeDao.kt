@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -78,24 +77,13 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return employeeService.getEmployeeStatus(employee)
     }
 
-
-    open fun getEmployeeStatus(employee: EmployeeDO, context: PfPersistenceContext): EmployeeStatus? {
-        return employeeService.getEmployeeStatus(employee, context)
-    }
-
     open fun findByUserId(userId: Long?): EmployeeDO? {
-        return persistenceService.runReadOnly { context ->
-            findByUserId(userId, context)
-        }
-    }
-
-    open fun findByUserId(userId: Long?, context: PfPersistenceContext): EmployeeDO? {
-        val employee = context.selectNamedSingleResult(
+        val employee = persistenceService.selectNamedSingleResult(
             EmployeeDO.FIND_BY_USER_ID,
             EmployeeDO::class.java,
             Pair("userId", userId),
         )
-        setEmployeeStatus(employee, context)
+        setEmployeeStatus(employee)
         return employee
     }
 
@@ -192,23 +180,13 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      */
     open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
         employeeDO ?: return
-        persistenceService.runReadOnly { context ->
-            setEmployeeStatus(employeeDO, context)
-        }
+        employeeDO.status = employeeService.getEmployeeStatus(employeeDO)
     }
 
-    /**
-     * Sets the employee status from validity period attrs.
-     */
-    open fun setEmployeeStatus(employeeDO: EmployeeDO?, context: PfPersistenceContext) {
-        employeeDO ?: return
-        employeeDO.status = employeeService.getEmployeeStatus(employeeDO, context)
-    }
-
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<EmployeeDO> {
+    override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
         val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
         val queryFilter = QueryFilter(myFilter)
-        var list = getList(queryFilter, context)
+        var list = getList(queryFilter)
         if (myFilter.isShowOnlyActiveEntries) {
             list = list.filter { it.active }
         }

@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.isNull
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.ne
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -52,18 +51,8 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
      * @see .getKost1
      */
     fun getKost1(kostString: String?): Kost1DO? {
-        return persistenceService.runReadOnly { context ->
-            getKost1(kostString, context)
-        }
-    }
-
-    /**
-     * @param kostString Format ######## or #.###.##.## is supported.
-     * @see .getKost1
-     */
-    fun getKost1(kostString: String?, context: PfPersistenceContext): Kost1DO? {
         val kost = parseKostString(kostString) ?: return null
-        return getKost1(kost[0], kost[1], kost[2], kost[3], context)
+        return getKost1(kost[0], kost[1], kost[2], kost[3])
     }
 
     fun getKost1(
@@ -71,9 +60,8 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         bereich: Int,
         teilbereich: Int,
         endziffer: Int,
-        context: PfPersistenceContext
     ): Kost1DO? {
-        return context.selectNamedSingleResult(
+        return persistenceService.selectNamedSingleResult(
             Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
             Kost1DO::class.java,
             Pair("nummernkreis", nummernkreis),
@@ -83,7 +71,7 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         )
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<Kost1DO> {
+    override fun getList(filter: BaseSearchFilter): List<Kost1DO> {
         val myFilter = if (filter is KostFilter) {
             filter
         } else {
@@ -106,17 +94,17 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         }
         queryFilter.addOrder(asc("nummernkreis")).addOrder(asc("bereich")).addOrder(asc("teilbereich"))
             .addOrder(asc("endziffer"))
-        return getList(queryFilter, context)
+        return getList(queryFilter)
     }
 
-    override fun onSaveOrModify(obj: Kost1DO, context: PfPersistenceContext) {
+    override fun onSaveOrModify(obj: Kost1DO) {
         verifyKost(obj)
         val other = if (obj.id == null) {
             // New entry
-            getKost1(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.endziffer, context)
+            getKost1(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.endziffer)
         } else {
             // entry already exists. Check maybe changed:
-            context.selectNamedSingleResult(
+            persistenceService.selectNamedSingleResult(
                 Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
                 Kost1DO::class.java,
                 Pair("nummernkreis", obj.nummernkreis),
@@ -141,8 +129,8 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         if (obj.endziffer < 0 || obj.endziffer > 99) throw UserException("fibu.kost.error.invalidKost")
     }
 
-    override fun afterSaveOrModify(kost1: Kost1DO, context: PfPersistenceContext) {
-        super.afterSaveOrModify(kost1, context)
+    override fun afterSaveOrModify(kost1: Kost1DO) {
+        super.afterSaveOrModify(kost1)
         kostCache!!.updateKost1(kost1)
     }
 

@@ -27,8 +27,6 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.configuration.Configuration.Companion.instance
 import org.projectforge.framework.configuration.entities.ConfigurationDO
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -50,53 +48,37 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     @Autowired
     val applicationContext: ApplicationContext? = null
 
-    @Autowired
-    private lateinit var pfPersistenceService: PfPersistenceService
-
     /**
      * Force reload of the Configuration cache.
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.afterSaveOrModify
      * @see Configuration.setExpired
      */
-    override fun afterSaveOrModify(obj: ConfigurationDO, context: PfPersistenceContext) {
+    override fun afterSaveOrModify(obj: ConfigurationDO) {
         instance.setExpired()
     }
 
     /**
      * Checks and creates missing database entries. Updates also out-dated descriptions.
      */
-    fun checkAndUpdateDatabaseEntriesInTrans() {
-        return persistenceService.runInTransaction { context ->
-            checkAndUpdateDatabaseEntries(context)
-        }
-    }
-
-    /**
-     * Checks and creates missing database entries. Updates also out-dated descriptions.
-     */
-    fun checkAndUpdateDatabaseEntries(context: PfPersistenceContext) {
-        val list = internalLoadAll(context)
-        val params: MutableSet<String?> = HashSet()
-        for (param in ConfigurationParam.entries) {
-            checkAndUpdateDatabaseEntry(param, list, params, context)
-        }
-        for (entry in list) {
-            if (!params.contains(entry.parameter)) {
-                log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
-                internalMarkAsDeleted(entry, context)
+    fun checkAndUpdateDatabaseEntries() {
+        persistenceService.runInTransaction { context ->
+            val list = internalLoadAll()
+            val params: MutableSet<String?> = HashSet()
+            for (param in ConfigurationParam.entries) {
+                checkAndUpdateDatabaseEntry(param, list, params)
+            }
+            for (entry in list) {
+                if (!params.contains(entry.parameter)) {
+                    log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
+                    internalMarkAsDeleted(entry)
+                }
             }
         }
     }
 
     fun getEntry(param: IConfigurationParam): ConfigurationDO {
-        return persistenceService.runReadOnly { context ->
-            getEntry(param, context)
-        }
-    }
-
-    fun getEntry(param: IConfigurationParam, context: PfPersistenceContext): ConfigurationDO {
-        return context.selectNamedSingleResult(
+        return persistenceService.selectNamedSingleResult(
             ConfigurationDO.FIND_BY_PARAMETER,
             ConfigurationDO::class.java,
             Pair("parameter", param.key),
@@ -165,7 +147,6 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         param: IConfigurationParam,
         list: List<ConfigurationDO>,
         params: MutableSet<String?>,
-        context: PfPersistenceContext,
     ) {
         params.add(param.key)
 
@@ -184,7 +165,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                     modified = true
                 }
                 if (modified) {
-                    internalUpdate(configuration, context)
+                    internalUpdate(configuration)
                 }
                 return
             }
@@ -204,7 +185,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         if (param.type.isIn(ConfigurationType.BOOLEAN)) {
             configuration.stringValue = param.defaultBooleanValue.toString()
         }
-        internalSave(configuration, context)
+        internalSave(configuration)
     }
 
     companion object {

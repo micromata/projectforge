@@ -31,8 +31,6 @@ import java.util.List;
 public interface IDao<O> {
     public List<O> getList(final BaseSearchFilter filter);
 
-    public List<O> getList(final BaseSearchFilter filter, final PfPersistenceContext context);
-
     public boolean isHistorizable();
 
     public boolean hasInsertAccess(final PFUserDO user);

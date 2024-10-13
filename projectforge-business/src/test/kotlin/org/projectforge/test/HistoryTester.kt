@@ -225,6 +225,28 @@ class HistoryTester(
     }
 
     companion object {
+        fun filterHistoryEntries(
+            entries: List<HistoryEntry>,
+            numberOfExpectedEntries: Int,
+            entityClass: KClass<*>? = null,
+            id: Long? = null,
+            opType: EntityOpType? = null,
+            modUser: PFUserDO? = null,
+        ): List<HistoryEntry> {
+            val found = entries.filter {
+                (entityClass == null || it.entityName == entityClass.java.name) &&
+                    (id == null || it.entityId == id) &&
+                    (opType == null || it.entityOpType == opType) &&
+                    (modUser == null || it.modifiedBy == modUser.id?.toString())
+            }
+            Assertions.assertEquals(
+                numberOfExpectedEntries,
+                found.size,
+                "Number of found entries: ${found.size}, expected: $numberOfExpectedEntries"
+            )
+            return found
+        }
+
         /**
          * Asserts the history entry.
          * @return The attributes of the history entry (migth be null).

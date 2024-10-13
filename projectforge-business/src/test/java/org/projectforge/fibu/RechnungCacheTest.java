@@ -57,7 +57,7 @@ public class RechnungCacheTest extends AbstractTestBase {
             auftragsPosition.setTitel("Pos 2");
             auftrag.addPosition(auftragsPosition);
             auftrag.setNummer(auftragDao.getNextNumber(auftrag));
-            auftragDao.save(auftrag, context);
+            auftragDao.save(auftrag);
 
             final RechnungDO rechnung1 = new RechnungDO();
             RechnungsPositionDO position = new RechnungsPositionDO();
@@ -70,11 +70,11 @@ public class RechnungCacheTest extends AbstractTestBase {
             position.setEinzelNetto(new BigDecimal("200"));
             position.setText("1.2");
             rechnung1.addPosition(position);
-            rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1, context));
+            rechnung1.setNummer(rechnungDao.getNextNumber(rechnung1));
             rechnung1.setDatum(today.getLocalDate());
             rechnung1.setFaelligkeit(LocalDate.now());
-            rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo", context));
-            rechnungDao.save(rechnung1, context);
+            rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
+            rechnungDao.save(rechnung1);
 
             final RechnungDO rechnung2 = new RechnungDO();
             position = new RechnungsPositionDO();
@@ -82,11 +82,11 @@ public class RechnungCacheTest extends AbstractTestBase {
             position.setEinzelNetto(new BigDecimal("400"));
             position.setText("2.1");
             rechnung2.addPosition(position);
-            rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2, context));
+            rechnung2.setNummer(rechnungDao.getNextNumber(rechnung2));
             rechnung2.setDatum(today.getLocalDate());
             rechnung2.setFaelligkeit(LocalDate.now());
-            rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo", context));
-            rechnungDao.save(rechnung2, context);
+            rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
+            rechnungDao.save(rechnung2);
 
             Set<RechnungsPositionVO> set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
             assertEquals(3, set.size(), "3 invoice positions expected.");
@@ -109,9 +109,9 @@ public class RechnungCacheTest extends AbstractTestBase {
             assertEquals(1, set.size(), "1 invoice positions expected.");
             assertEquals(0, new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)));
 
-            final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId(), context);
+            final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
             rechnung.getPositionen().get(0).setAuftragsPosition(null);
-            rechnungDao.update(rechnung, context);
+            rechnungDao.update(rechnung);
             set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
             assertEquals(2, set.size(), "2 invoice positions expected.");
             assertEquals(0, new BigDecimal("300").compareTo(RechnungDao.getNettoSumme(set)));

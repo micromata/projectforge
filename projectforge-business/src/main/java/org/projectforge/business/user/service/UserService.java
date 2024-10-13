@@ -31,13 +31,15 @@ import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.password.PasswordQualityService;
-import org.projectforge.business.user.*;
+import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserPasswordDao;
+import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -61,7 +63,6 @@ public class UserService {
     private UserDao userDao;
     private UserPasswordDao userPasswordDao;
     private AccessChecker accessChecker;
-    private UserAuthenticationsService userAuthenticationsService;
     private PasswordQualityService passwordQualityService;
     private PfPersistenceService persistenceService;
 
@@ -72,20 +73,18 @@ public class UserService {
     }
 
     @Autowired
-    public UserService(AccessChecker accessChecker, ConfigurationService configurationService, PasswordQualityService passwordQualityService, UserDao userDao, UserPasswordDao userPasswordDao, UserGroupCache userGroupCache, UserAuthenticationsService userAuthenticationsService, PfPersistenceService persistenceService) {
+    public UserService(AccessChecker accessChecker, ConfigurationService configurationService, PasswordQualityService passwordQualityService, UserDao userDao, UserPasswordDao userPasswordDao, UserGroupCache userGroupCache, PfPersistenceService persistenceService) {
         this.accessChecker = accessChecker;
         this.configurationService = configurationService;
         this.passwordQualityService = passwordQualityService;
         this.userDao = userDao;
         this.userPasswordDao = userPasswordDao;
         this.userGroupCache = userGroupCache;
-        this.userAuthenticationsService = userAuthenticationsService;
         this.persistenceService = persistenceService;
     }
 
     /**
      * @param userIds
-     * @return
      */
     public List<String> getUserNames(final String userIds) {
         if (StringUtils.isEmpty(userIds)) {
@@ -130,7 +129,7 @@ public class UserService {
     public Collection<PFUserDO> getSortedUsers() {
         TreeSet<PFUserDO> sortedUsers = new TreeSet<>(usersComparator);
         final Collection<PFUserDO> allusers = userGroupCache.getAllUsers();
-        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getRequiredLoggedInUser();
         for (final PFUserDO user : allusers) {
             if (!user.getDeleted() && !user.getDeactivated() && userDao.hasUserSelectAccess(loggedInUser, user, false)) {
                 sortedUsers.add(user);
@@ -139,10 +138,6 @@ public class UserService {
         return sortedUsers;
     }
 
-    /**
-     * @param userIds
-     * @return
-     */
     public Collection<PFUserDO> getSortedUsers(final String userIds) {
         if (StringUtils.isEmpty(userIds)) {
             return null;
@@ -185,19 +180,6 @@ public class UserService {
     }
 
     /**
-     * Checks the given password by comparing it with the stored user password. For backward compatibility the password is
-     * encrypted with and without pepper (if configured). The salt string of the given user is used.
-     *
-     * @param user
-     * @param clearTextPassword as clear text.
-     * @return true if the password matches the user's password.
-     */
-    public PasswordCheckResult checkPassword(final PFUserDO user, final char[] clearTextPassword) {
-        return userPasswordDao.checkPassword(user, clearTextPassword);
-    }
-
-    /**
-     * @param userId
      * @return The user from UserGroupCache.
      */
     public PFUserDO getUser(Long userId) {
@@ -209,21 +191,10 @@ public class UserService {
      *
      * @param user              The user to user.
      * @param clearTextPassword as clear text.
-     * @see UserPasswordDao#encryptAndSavePasswordInTrans(long, char[])
+     * @see UserPasswordDao#encryptAndSavePassword(long, char[])
      */
-    public void encryptAndSavePasswordInTrans(final PFUserDO user, final char[] clearTextPassword) {
-        encryptAndSavePasswordInTrans(user, clearTextPassword, true);
-    }
-
-    /**
-     * Encrypts the password with a new generated salt string and the pepper string if configured any.
-     *
-     * @param user              The user to user.
-     * @param clearTextPassword as clear text.
-     * @see UserPasswordDao#encryptAndSavePasswordInTrans(long, char[])
-     */
-    public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword, final PfPersistenceContext context) {
-        encryptAndSavePassword(user, clearTextPassword, true, context);
+    public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword) {
+        encryptAndSavePassword(user, clearTextPassword, true);
     }
 
     /**
@@ -232,18 +203,8 @@ public class UserService {
      * @param user              The user to user.
      * @param clearTextPassword as clear text.
      */
-    public void encryptAndSavePasswordInTrans(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess) {
-        userPasswordDao.encryptAndSavePasswordInTrans(user.getId(), clearTextPassword, checkAccess);
-    }
-
-    /**
-     * Encrypts the password with a new generated salt string and the pepper string if configured any.
-     *
-     * @param user              The user to user.
-     * @param clearTextPassword as clear text.
-     */
-    public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess, final PfPersistenceContext context) {
-        userPasswordDao.encryptAndSavePassword(user.getId(), clearTextPassword, checkAccess, context);
+    public void encryptAndSavePassword(final PFUserDO user, final char[] clearTextPassword, final boolean checkAccess) {
+        userPasswordDao.encryptAndSavePassword(user.getId(), clearTextPassword, checkAccess);
     }
 
     /**
@@ -255,7 +216,7 @@ public class UserService {
      * @param newPassword Will be cleared at the end of this method due to security reasons.
      * @return Error message key if any check failed or null, if successfully changed.
      */
-    public List<I18nKeyAndParams> changePasswordInTrans(final Long userId, final char[] oldPassword, final char[] newPassword) {
+    public List<I18nKeyAndParams> changePassword(final Long userId, final char[] oldPassword, final char[] newPassword) {
         try {
             return persistenceService.runInTransaction(context -> {
                 Validate.notNull(userId);
@@ -266,7 +227,7 @@ public class UserService {
                 if (userCheck == null) {
                     return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
                 }
-                return doPasswordChange(user, oldPassword, newPassword, context);
+                return doPasswordChange(user, oldPassword, newPassword);
             });
         } finally {
             LoginHandler.clearPassword(newPassword);
@@ -289,23 +250,23 @@ public class UserService {
                 Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
                 accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
                 final PFUserDO user = userDao.internalGetById(userId);
-                return doPasswordChange(user, null, newPassword, context);
+                return doPasswordChange(user, null, newPassword);
             });
         } finally {
             LoginHandler.clearPassword(newPassword);
         }
     }
 
-    private List<I18nKeyAndParams> doPasswordChange(final PFUserDO user, final char[] oldPassword, final char[] newPassword, final PfPersistenceContext context) {
+    private List<I18nKeyAndParams> doPasswordChange(final PFUserDO user, final char[] oldPassword, final char[] newPassword) {
         Validate.notNull(user);
         Validate.isTrue(newPassword.length > 0);
         final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
         if (!errorMsgKeys.isEmpty()) {
             return errorMsgKeys;
         }
-        encryptAndSavePassword(user, newPassword, context);
+        encryptAndSavePassword(user, newPassword);
         onPasswordChange(user);
-        userDao.internalUpdate(user, context);
+        userDao.internalUpdate(user);
         Login.getInstance().passwordChanged(user, newPassword);
         log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
         return Collections.emptyList();
@@ -333,9 +294,9 @@ public class UserService {
             persistenceService.runInTransaction(context -> {
                 final PFUserDO user = userDao.internalGetById(userId);
                 ThreadLocalUserContext.setUser(user);
-                encryptAndSavePassword(user, newPassword, context);
+                encryptAndSavePassword(user, newPassword);
                 onPasswordChange(user);
-                userDao.internalUpdate(user, context);
+                userDao.internalUpdate(user);
                 Login.getInstance().passwordChanged(user, newPassword);
                 log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
                 return null;
@@ -396,7 +357,7 @@ public class UserService {
     private List<I18nKeyAndParams> doWlanPasswordChange(final PFUserDO user, final char[] newWlanPassword) {
         Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
         user.setLastWlanPasswordChange(new Date());
-        userDao.internalUpdateInTrans(user);
+        userDao.internalUpdate(user);
         log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
         return Collections.emptyList();
     }
@@ -425,8 +386,8 @@ public class UserService {
         }
         if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
             log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
-            encryptAndSavePasswordInTrans(user, password, false);
-            userDao.internalUpdateInTrans(user);
+            encryptAndSavePassword(user, password, false);
+            userDao.internalUpdate(user);
         }
         return user;
     }
@@ -483,28 +444,20 @@ public class UserService {
         return userDao.internalGetById(id);
     }
 
-    public Long saveInTrans(PFUserDO user) {
-        return userDao.internalSaveInTrans(user);
+    public Long save(PFUserDO user) {
+        return userDao.internalSave(user);
     }
 
-    public Long save(PFUserDO user, PfPersistenceContext context) {
-        return userDao.internalSave(user, context);
-    }
-
-    public void markAsDeletedInTrans(PFUserDO user) {
-        userDao.internalMarkAsDeletedInTrans(user);
-    }
-
-    public void markAsDeleted(PFUserDO user, PfPersistenceContext context) {
-        userDao.internalMarkAsDeleted(user, context);
+    public void markAsDeleted(PFUserDO user) {
+        userDao.internalMarkAsDeleted(user);
     }
 
     public boolean doesUsernameAlreadyExist(PFUserDO user) {
         return userDao.doesUsernameAlreadyExist(user);
     }
 
-    public EntityCopyStatus updateInTrans(PFUserDO user) {
-        return userDao.updateInTrans(user);
+    public EntityCopyStatus update(PFUserDO user) {
+        return userDao.update(user);
     }
 
     /**
@@ -524,8 +477,8 @@ public class UserService {
         userDao.updateMyAccount(data);
     }
 
-    public void undeleteInTrans(PFUserDO dbUser) {
-        userDao.internalUndeleteInTrans(dbUser);
+    public void undelete(PFUserDO dbUser) {
+        userDao.internalUndelete(dbUser);
     }
 
     public List<PFUserDO> findUserByMail(String email) {
