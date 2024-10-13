@@ -35,7 +35,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
@@ -52,215 +51,205 @@ import java.util.List;
  */
 @Service
 public class HRViewDao implements IDao<HRViewData> {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRViewDao.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRViewDao.class);
 
-  @Autowired
-  private HRPlanningDao hrPlanningDao;
+    @Autowired
+    private HRPlanningDao hrPlanningDao;
 
-  @Autowired
-  private TaskTree taskTree;
+    @Autowired
+    private TaskTree taskTree;
 
-  @Autowired
-  private TimesheetDao timesheetDao;
+    @Autowired
+    private TimesheetDao timesheetDao;
 
-  @Autowired
-  private UserDao userDao;
+    @Autowired
+    private UserDao userDao;
 
-  @Autowired
-  private UserGroupCache userGroupCache;
+    @Autowired
+    private UserGroupCache userGroupCache;
 
-  /**
-   * Rows contains the users and the last row contains the total sums. Columns of each rows are the man days of the
-   * projects (see getProjectNames)
-   */
-  public HRViewData getResources(final HRFilter filter) {
-    final HRViewData data = new HRViewData(filter);
-    if (filter.getStartDay() == null) {
-      filter.setStartDay(PFDay.today().getLocalDate());
-    }
-    if (filter.getStopDay() == null) {
-      filter.setStartDay(PFDay.today().getLocalDate());
-    }
-    if (filter.isShowBookedTimesheets()) {
-      final TimesheetFilter tsFilter = new TimesheetFilter();
-      tsFilter.setStartTime(PFDateTime.fromOrNull(filter.getStartDay()).getBeginOfDay().getUtilDate());
-      tsFilter.setStopTime(PFDateTime.fromOrNull(filter.getStopDay()).getEndOfDay().getUtilDate());
-      final List<TimesheetDO> sheets = timesheetDao.getList(tsFilter);
-      for (final TimesheetDO sheet : sheets) {
-        final PFUserDO user = userGroupCache.getUser(sheet.getUserId());
-        if (user == null) {
-          log.error("Oups, user of time sheet is null or unknown? Ignoring entry: " + sheet);
-          continue;
+    /**
+     * Rows contains the users and the last row contains the total sums. Columns of each rows are the man days of the
+     * projects (see getProjectNames)
+     */
+    public HRViewData getResources(final HRFilter filter) {
+        final HRViewData data = new HRViewData(filter);
+        if (filter.getStartDay() == null) {
+            filter.setStartDay(PFDay.today().getLocalDate());
         }
-        final ProjektDO projekt = taskTree.getProjekt(sheet.getTaskId());
-        final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
-        if (targetObject == null) {
-          data.addTimesheet(sheet, user);
-        } else if (targetObject instanceof ProjektDO) {
-          data.addTimesheet(sheet, user, (ProjektDO) targetObject);
-        } else if (targetObject instanceof KundeDO) {
-          data.addTimesheet(sheet, user, (KundeDO) targetObject);
-        } else {
-          log.error("Target object of type " + targetObject + " not supported.");
-          data.addTimesheet(sheet, user);
+        if (filter.getStopDay() == null) {
+            filter.setStartDay(PFDay.today().getLocalDate());
         }
-      }
-    }
-    if (filter.isShowPlanning()) {
-      final HRPlanningFilter hrFilter = new HRPlanningFilter();
-      PFDay day = PFDay.fromOrNow(filter.getStartDay());
-      hrFilter.setStartDay(day.getLocalDate());
-      day = PFDay.fromOrNow(filter.getStopDay());
-      hrFilter.setStopDay(day.getLocalDate());
-      final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
-      for (final HRPlanningDO planning : plannings) {
-        if (planning.getEntries() == null) {
-          continue;
-        }
-        for (final HRPlanningEntryDO entry : planning.getEntries()) {
-          if (entry.getDeleted()) {
-            continue;
-          }
-          final PFUserDO user = userGroupCache.getUser(planning.getUserId());
-          final ProjektDO projekt = entry.getProjekt();
-          final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
-          if (targetObject == null) {
-            data.addHRPlanningEntry(entry, user);
-          } else if (targetObject instanceof ProjektDO) {
-            data.addHRPlanningEntry(entry, user, (ProjektDO) targetObject);
-          } else if (targetObject instanceof KundeDO) {
-            data.addHRPlanningEntry(entry, user, (KundeDO) targetObject);
-          } else {
-            log.error("Target object of type " + targetObject + " not supported.");
-            data.addHRPlanningEntry(entry, user);
-          }
-        }
-      }
-    }
-    if (filter.isOnlyMyProjects()) {
-      // remove all user entries which have no planning or booking on my projects.
-      final List<HRViewUserData> list = data.getUserDatas();
-      if (list != null) {
-        final Iterator<HRViewUserData> it = list.iterator();
-        while (it.hasNext()) {
-          final HRViewUserData entry = it.next();
-          boolean hasEntries = false;
-          if (entry.entries != null) {
-            for (final HRViewUserEntryData entryData : entry.entries) {
-              if (entryData.projekt != null || entryData.kunde != null) {
-                hasEntries = true;
-                break;
-              }
+        if (filter.isShowBookedTimesheets()) {
+            final TimesheetFilter tsFilter = new TimesheetFilter();
+            tsFilter.setStartTime(PFDateTime.fromOrNull(filter.getStartDay()).getBeginOfDay().getUtilDate());
+            tsFilter.setStopTime(PFDateTime.fromOrNull(filter.getStopDay()).getEndOfDay().getUtilDate());
+            final List<TimesheetDO> sheets = timesheetDao.getList(tsFilter);
+            for (final TimesheetDO sheet : sheets) {
+                final PFUserDO user = userGroupCache.getUser(sheet.getUserId());
+                if (user == null) {
+                    log.error("Oups, user of time sheet is null or unknown? Ignoring entry: " + sheet);
+                    continue;
+                }
+                final ProjektDO projekt = taskTree.getProjekt(sheet.getTaskId());
+                final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
+                if (targetObject == null) {
+                    data.addTimesheet(sheet, user);
+                } else if (targetObject instanceof ProjektDO) {
+                    data.addTimesheet(sheet, user, (ProjektDO) targetObject);
+                } else if (targetObject instanceof KundeDO) {
+                    data.addTimesheet(sheet, user, (KundeDO) targetObject);
+                } else {
+                    log.error("Target object of type " + targetObject + " not supported.");
+                    data.addTimesheet(sheet, user);
+                }
             }
-          }
-          if (!hasEntries) {
-            it.remove();
-          }
         }
-      }
-    }
-    return data;
-  }
-
-  /**
-   * Returns a list of all users which are accessible by the current logged in user and not planned in the given
-   * HRViewData object.
-   *
-   * @return Result list (may be empty but never null).
-   */
-  public List<PFUserDO> getUnplannedResources(final HRViewData data) {
-    final List<PFUserDO> users = new ArrayList<>();
-    final QueryFilter queryFilter = new QueryFilter(new BaseSearchFilter());
-    queryFilter.addOrder(SortProperty.asc("firstname")).addOrder(SortProperty.asc("lastname"));
-    final List<PFUserDO> allUsers = userDao.getList(queryFilter);
-    if (allUsers != null) {
-      for (final PFUserDO user : allUsers) {
-        final HRViewUserData userData = data.getUserData(user);
-        if (userData == null || !NumberHelper.isNotZero(userData.getPlannedDaysSum())) {
-          users.add(user);
+        if (filter.isShowPlanning()) {
+            final HRPlanningFilter hrFilter = new HRPlanningFilter();
+            PFDay day = PFDay.fromOrNow(filter.getStartDay());
+            hrFilter.setStartDay(day.getLocalDate());
+            day = PFDay.fromOrNow(filter.getStopDay());
+            hrFilter.setStopDay(day.getLocalDate());
+            final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
+            for (final HRPlanningDO planning : plannings) {
+                if (planning.getEntries() == null) {
+                    continue;
+                }
+                for (final HRPlanningEntryDO entry : planning.getEntries()) {
+                    if (entry.getDeleted()) {
+                        continue;
+                    }
+                    final PFUserDO user = userGroupCache.getUser(planning.getUserId());
+                    final ProjektDO projekt = entry.getProjekt();
+                    final Object targetObject = getTargetObject(userGroupCache, filter, projekt);
+                    if (targetObject == null) {
+                        data.addHRPlanningEntry(entry, user);
+                    } else if (targetObject instanceof ProjektDO) {
+                        data.addHRPlanningEntry(entry, user, (ProjektDO) targetObject);
+                    } else if (targetObject instanceof KundeDO) {
+                        data.addHRPlanningEntry(entry, user, (KundeDO) targetObject);
+                    } else {
+                        log.error("Target object of type " + targetObject + " not supported.");
+                        data.addHRPlanningEntry(entry, user);
+                    }
+                }
+            }
         }
-      }
+        if (filter.isOnlyMyProjects()) {
+            // remove all user entries which have no planning or booking on my projects.
+            final List<HRViewUserData> list = data.getUserDatas();
+            if (list != null) {
+                final Iterator<HRViewUserData> it = list.iterator();
+                while (it.hasNext()) {
+                    final HRViewUserData entry = it.next();
+                    boolean hasEntries = false;
+                    if (entry.entries != null) {
+                        for (final HRViewUserEntryData entryData : entry.entries) {
+                            if (entryData.projekt != null || entryData.kunde != null) {
+                                hasEntries = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!hasEntries) {
+                        it.remove();
+                    }
+                }
+            }
+        }
+        return data;
     }
-    return users;
-  }
 
-  /**
-   * Return the target object (ProjektDO, KundeDO or null) to which the entry (time sheet or planning) should be
-   * assigned to. The results depends on the filter settings.
-   *
-   * @param filter
-   * @param projekt
-   * @return
-   */
-  private Object getTargetObject(final UserGroupCache userGroupCache, final HRFilter filter, final ProjektDO projekt) {
-    if (projekt == null) {
-      return null;
+    /**
+     * Returns a list of all users which are accessible by the current logged in user and not planned in the given
+     * HRViewData object.
+     *
+     * @return Result list (may be empty but never null).
+     */
+    public List<PFUserDO> getUnplannedResources(final HRViewData data) {
+        final List<PFUserDO> users = new ArrayList<>();
+        final QueryFilter queryFilter = new QueryFilter(new BaseSearchFilter());
+        queryFilter.addOrder(SortProperty.asc("firstname")).addOrder(SortProperty.asc("lastname"));
+        final List<PFUserDO> allUsers = userDao.getList(queryFilter);
+        if (allUsers != null) {
+            for (final PFUserDO user : allUsers) {
+                final HRViewUserData userData = data.getUserData(user);
+                if (userData == null || !NumberHelper.isNotZero(userData.getPlannedDaysSum())) {
+                    users.add(user);
+                }
+            }
+        }
+        return users;
     }
-    final KundeDO kunde = projekt.getKunde();
-    if (filter.isOnlyMyProjects()) {
-      if (isMyProject(userGroupCache, projekt)) {
-        if (filter.isAllProjectsGroupedByCustomer()) {
-          return kunde;
+
+    /**
+     * Return the target object (ProjektDO, KundeDO or null) to which the entry (time sheet or planning) should be
+     * assigned to. The results depends on the filter settings.
+     *
+     * @param filter
+     * @param projekt
+     * @return
+     */
+    private Object getTargetObject(final UserGroupCache userGroupCache, final HRFilter filter, final ProjektDO projekt) {
+        if (projekt == null) {
+            return null;
+        }
+        final KundeDO kunde = projekt.getKunde();
+        if (filter.isOnlyMyProjects()) {
+            if (isMyProject(userGroupCache, projekt)) {
+                if (filter.isAllProjectsGroupedByCustomer()) {
+                    return kunde;
+                } else {
+                    return projekt;
+                }
+            } else {
+                return null;
+            }
+        } else if (filter.isAllProjectsGroupedByCustomer()) {
+            return kunde;
+        } else if (filter.isOtherProjectsGroupedByCustomer()) {
+            if (isMyProject(userGroupCache, projekt)) {
+                return projekt;
+            } else {
+                return kunde;
+            }
         } else {
-          return projekt;
+            // Show all projects
+            return projekt;
         }
-      } else {
-        return null;
-      }
-    } else if (filter.isAllProjectsGroupedByCustomer()) {
-      return kunde;
-    } else if (filter.isOtherProjectsGroupedByCustomer()) {
-      if (isMyProject(userGroupCache, projekt)) {
-        return projekt;
-      } else {
-        return kunde;
-      }
-    } else {
-      // Show all projects
-      return projekt;
     }
-  }
 
-  private boolean isMyProject(final UserGroupCache userGroupCache, final ProjektDO projekt) {
-    return (projekt != null && projekt.getProjektManagerGroup() != null
-            && userGroupCache.isLoggedInUserMemberOfGroup(projekt
-            .getProjektManagerGroupId()));
-  }
+    private boolean isMyProject(final UserGroupCache userGroupCache, final ProjektDO projekt) {
+        return (projekt != null && projekt.getProjektManagerGroup() != null
+                && userGroupCache.isLoggedInUserMemberOfGroup(projekt
+                .getProjektManagerGroupId()));
+    }
 
-  /**
-   * Throws UnsupportedOperationException.
-   *
-   * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
-   */
-  @Override
-  public List<HRViewData> getList(final BaseSearchFilter filter) {
-    throw new UnsupportedOperationException();
-  }
+    /**
+     * Throws UnsupportedOperationException.
+     *
+     * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
+     */
+    @Override
+    public List<HRViewData> getList(final BaseSearchFilter filter) {
+        throw new UnsupportedOperationException();
+    }
 
-  /**
-   * Throws UnsupportedOperationException.
-   *
-   * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
-   */
-  @Override
-  public List<HRViewData> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
-    throw new UnsupportedOperationException();
-  }
+    /**
+     * @return false.
+     * @see org.projectforge.framework.persistence.api.IDao#isHistorizable()
+     */
+    @Override
+    public boolean isHistorizable() {
+        return false;
+    }
 
-  /**
-   * @return false.
-   * @see org.projectforge.framework.persistence.api.IDao#isHistorizable()
-   */
-  @Override
-  public boolean isHistorizable() {
-    return false;
-  }
-
-  /**
-   * @return true.
-   */
-  @Override
-  public boolean hasInsertAccess(final PFUserDO user) {
-    return hrPlanningDao.hasInsertAccess(user);
-  }
+    /**
+     * @return true.
+     */
+    @Override
+    public boolean hasInsertAccess(final PFUserDO user) {
+        return hrPlanningDao.hasInsertAccess(user);
+    }
 }

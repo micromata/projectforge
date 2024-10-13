@@ -151,7 +151,7 @@ class MerlinTestServicesRest {
       }
     }
     val dbo = merlinPagesRest.transformForDB(dto)
-    merlinTemplateDao.saveInTrans(dbo)
+    merlinTemplateDao.save(dbo)
     dto.id = dbo.id
     applicationContext.getResource("classpath:examples/$filename").inputStream.use { istream ->
       attachmentsService.addAttachment(

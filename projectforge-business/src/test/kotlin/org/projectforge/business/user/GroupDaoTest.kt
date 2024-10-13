@@ -58,7 +58,7 @@ class GroupDaoTest : AbstractTestBase() {
         group.addUser(users[0])
         group.addUser(users[1])
         group.addUser(users[2])
-        groupDao.saveInTrans(group)
+        groupDao.save(group)
         groupDao.getHistoryEntries(group).let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertHistoryEntry(entries[0], GroupDO::class, group.id, EntityOpType.Insert, loggedInUser)
@@ -83,7 +83,7 @@ class GroupDaoTest : AbstractTestBase() {
         group.assignedUsers!!.remove(users[0]) // Unassign users[0] from group 1.
         group.assignedUsers!!.remove(users[1]) // Unassign users[1] from group 1.
         group.addUser(users[3]) // Assign users[3] to group 1.
-        groupDao.updateInTrans(group)
+        groupDao.update(group)
         userDao.getHistoryEntries(users[0]).let { entries ->
             Assertions.assertEquals(
                 3,
@@ -164,14 +164,14 @@ class GroupDaoTest : AbstractTestBase() {
     }
 
     @Test
-    fun testAssignGroupByIdsInTransWithHistory() {
+    fun testAssignGroupByIdsWithHistory() {
         logon(ADMIN_USER)
-        val users = createTestUsers(userDao, "$PREFIX.user.assignGroupByIdsInTrans")
-        val groups = createTestGroups(groupDao, "$PREFIX.group.assignGroupByIdsInTrans")
+        val users = createTestUsers(userDao, "$PREFIX.user.assignGroupByIds")
+        val groups = createTestGroups(groupDao, "$PREFIX.group.assignGroupByIds")
         val testContext = TestContext(users, groups)
         // Start with first assignment of group[0] and group[1] to user[0]:
         val hist = createHistoryTester()
-        groupDao.assignGroupByIdsInTrans(
+        groupDao.assignGroupByIds(
             users[0],
             groupsToAssign = asIds(groups, arrayOf(0, 1)),
             groupsToUnassign = null
@@ -188,7 +188,7 @@ class GroupDaoTest : AbstractTestBase() {
         // printGroupUserMatrix(testContext) // print current state for debugging:
         // Current users of groups: group[0]: 0, group[1]: 0,
         // Current groups of users: user[0]: 0,1,
-        groupDao.assignGroupByIdsInTrans(
+        groupDao.assignGroupByIds(
             users[1],
             groupsToAssign = asIds(groups, arrayOf(0, 1, 2)),
             groupsToUnassign = null
@@ -205,7 +205,7 @@ class GroupDaoTest : AbstractTestBase() {
                 assertUserAndGroupsHistoryEntries(testContext, entries, users[1], arrayOf(0, 1, 2), null)
             }
 
-        groupDao.assignGroupByIdsInTrans(
+        groupDao.assignGroupByIds(
             users[1],
             groupsToAssign = asIds(groups, arrayOf(3)),
             groupsToUnassign = asIds(groups, arrayOf(0, 1))
@@ -223,7 +223,7 @@ class GroupDaoTest : AbstractTestBase() {
             }
 
         // NOP: No changes:
-        groupDao.assignGroupByIdsInTrans(
+        groupDao.assignGroupByIds(
             users[1],
             groupsToAssign = asIds(groups, arrayOf(3)),
             groupsToUnassign = asIds(groups, arrayOf(0, 1))
@@ -237,7 +237,7 @@ class GroupDaoTest : AbstractTestBase() {
         suppressErrorLogs {
             // -12 is unkonwn, exception expected.
             try {
-                groupDao.assignGroupByIdsInTrans(
+                groupDao.assignGroupByIds(
                     users[1], groupsToAssign = listOf(testContext.groups[2].id, -12),
                     groupsToUnassign = asIds(groups, arrayOf(0, 1))
                 )
@@ -247,7 +247,7 @@ class GroupDaoTest : AbstractTestBase() {
             }
             // -18 is unkonwn, exception expected.
             try {
-                groupDao.assignGroupByIdsInTrans(
+                groupDao.assignGroupByIds(
                     users[1], groupsToAssign = listOf(testContext.groups[2].id),
                     groupsToUnassign = listOf(testContext.groups[0].id, -18)
                 )
@@ -408,7 +408,7 @@ class GroupDaoTest : AbstractTestBase() {
             for (i in 0..3) {
                 PFUserDO().let {
                     it.username = "$prefix.user$i"
-                    userDao.saveInTrans(it)
+                    userDao.save(it)
                     users.add(it)
                 }
             }
@@ -420,7 +420,7 @@ class GroupDaoTest : AbstractTestBase() {
             for (i in 0..3) {
                 GroupDO().let {
                     it.name = "$prefix.group$i"
-                    groupDao.saveInTrans(it)
+                    groupDao.save(it)
                     groups.add(it)
                 }
             }

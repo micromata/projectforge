@@ -54,12 +54,11 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel.getPropertyLength
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUserId
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -182,7 +181,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref != null
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<UserPrefDO> {
+    override fun getList(filter: BaseSearchFilter): List<UserPrefDO> {
         val myFilter = filter as UserPrefFilter
         val queryFilter = QueryFilter(filter)
         if (myFilter.area != null) {
@@ -191,20 +190,17 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         queryFilter.add(eq("user.id", requiredLoggedInUser))
         queryFilter.addOrder(asc("area"))
         queryFilter.addOrder(asc("name"))
-        return getList(queryFilter, context)
+        return getList(queryFilter)
     }
 
 
     @Deprecated("Use getUserPref(String, Long) instead.")
     fun getUserPref(area: UserPrefArea, name: String?): UserPrefDO? {
-        return persistenceService.runReadOnly { context ->
-            internalQuery(
-                requiredLoggedInUserId,
-                area.id,
-                name,
-                context
-            )
-        }
+        return internalQuery(
+            requiredLoggedInUserId,
+            area.id,
+            name,
+        )
     }
 
     /**
@@ -478,15 +474,15 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             } else {
                 null
             }
-        } else if (type.isEnum()) {
+        } else if (type.isEnum) {
             return java.lang.Enum.valueOf(type as Class<out Enum<*>>, str)
         }
         log.error("UserPrefDao does not yet support parameters from type: $type")
         return null
     }
 
-    override fun internalGetById(id: Serializable?, context: PfPersistenceContext): UserPrefDO? {
-        val userPref = super.internalGetById(id, context) ?: return null
+    override fun internalGetById(id: Serializable?): UserPrefDO? {
+        val userPref = super.internalGetById(id) ?: return null
         if (userPref.areaObject != null) {
             evaluateAnnotations(userPref, userPref.areaObject!!.beanType)
         }
@@ -528,7 +524,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref.valueObject
     }
 
-    override fun onSaveOrModify(obj: UserPrefDO, context: PfPersistenceContext) {
+    override fun onSaveOrModify(obj: UserPrefDO) {
         val valueObject = obj.valueObject
         if (valueObject == null) {
             obj.valueString = null
@@ -546,17 +542,17 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      * @param area   Must be not blank.
      * @param name   Optional, may-be null.
      */
-    fun internalQuery(userId: Long, area: String?, name: String?, context: PfPersistenceContext): UserPrefDO? {
+    fun internalQuery(userId: Long, area: String?, name: String?): UserPrefDO? {
         Validate.notBlank(area)
         return if (name == null) {
-            context.selectNamedSingleResult(
+            persistenceService.selectNamedSingleResult(
                 UserPrefDO.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME,
                 UserPrefDO::class.java,
                 Pair("userId", userId),
                 Pair("area", area)
             )
         } else {
-            context.selectNamedSingleResult(
+            persistenceService.selectNamedSingleResult(
                 UserPrefDO.FIND_BY_USER_AND_AREA_AND_NAME,
                 UserPrefDO::class.java,
                 Pair("userId", userId),
@@ -570,7 +566,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      * Checks if the user pref already exists in the data base by querying the data base with user id, area and name.
      * The id of the given obj is ignored.
      */
-    override fun internalSaveOrUpdate(obj: UserPrefDO, context: PfPersistenceContext): Serializable? {
+    override fun internalSaveOrUpdate(obj: UserPrefDO): Serializable? {
         val userId = obj.user?.id
         if (userId == null) {
             log.warn("UserId of UserPrefDO is null (can't save it): $obj")
@@ -578,31 +574,17 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
         synchronized(this) {
             // Avoid parallel insert, update, delete operations.
-            val dbUserPref = internalQuery(userId, obj.area, obj.name, context)
+            val dbUserPref = internalQuery(userId, obj.area, obj.name)
             if (dbUserPref == null) {
                 obj.id = null // Add new entry (ignore id of any previous existing entry).
-                return super.internalSaveOrUpdate(obj, context)
+                return super.internalSaveOrUpdate(obj)
             } else {
                 obj.id = dbUserPref.id
-                super.internalUpdate(obj, context)
+                super.internalUpdate(obj, false)
                 return obj.id
             }
         }
     }
-
-    /**
-     * Only for synchronization with [.internalSaveOrUpdateInTrans].
-     *
-     * @param obj
-     * @throws AccessException
-     */
-    @Throws(AccessException::class)
-    override fun delete(obj: UserPrefDO, context: PfPersistenceContext) {
-        synchronized(this) {
-            super.delete(obj, context)
-        }
-    }
-
 
     companion object {
         val ADDITIONAL_SEARCH_FIELDS = arrayOf(

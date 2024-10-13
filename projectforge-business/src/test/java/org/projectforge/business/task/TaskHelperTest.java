@@ -65,13 +65,13 @@ public class TaskHelperTest extends AbstractTestBase {
     public void addKost2() {
         logon(AbstractTestBase.TEST_FINANCE_USER);
         persistenceService.runInTransaction(context -> {
-            final TaskDO task1 = initTestDB.addTask("addKost2", "root", context);
+            final TaskDO task1 = initTestDB.addTask("addKost2", "root");
             final ProjektDO projekt = new ProjektDO();
             projekt.setName("addKost2");
             projekt.setInternKost2_4(128);
             projekt.setNummer(5);
             projekt.setTask(task1);
-            projektDao.save(projekt, context);
+            projektDao.save(projekt);
             final Kost2ArtDO kost2Art = new Kost2ArtDO().withId(42L);
             final Kost2DO kost = new Kost2DO();
             kost.setNummernkreis(4);

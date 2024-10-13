@@ -27,36 +27,32 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Service
 public class VisitorbookDao extends BaseDao<VisitorbookDO> {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
-  //@Autowired
-  //private TimeableService timeableService;
+    public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
+    //@Autowired
+    //private TimeableService timeableService;
 
-  protected VisitorbookDao() {
-    super(VisitorbookDO.class);
-    userRightId = USER_RIGHT_ID;
-  }
-
-  @Override
-  public List<VisitorbookDO> getList(final BaseSearchFilter filter, final PfPersistenceContext context) {
-    final VisitorbookFilter myFilter;
-    if (filter instanceof VisitorbookFilter) {
-      myFilter = (VisitorbookFilter) filter;
-    } else {
-      myFilter = new VisitorbookFilter(filter);
+    protected VisitorbookDao() {
+        super(VisitorbookDO.class);
+        userRightId = USER_RIGHT_ID;
     }
 
-    final QueryFilter queryFilter = createQueryFilter(myFilter);
-    final List<VisitorbookDO> resultList = getList(queryFilter, context);
+    @Override
+    public List<VisitorbookDO> getList(final BaseSearchFilter filter) {
+        final VisitorbookFilter myFilter;
+        if (filter instanceof VisitorbookFilter) {
+            myFilter = (VisitorbookFilter) filter;
+        } else {
+            myFilter = new VisitorbookFilter(filter);
+        }
+
+        final QueryFilter queryFilter = createQueryFilter(myFilter);
+        final List<VisitorbookDO> resultList = getList(queryFilter);
 /*
     final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
             .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getUTCStartTime())); // before() == false -> after or same day
@@ -86,12 +82,12 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
               .collect(Collectors.toList());
     }
 */
-    // no time filter set
-    return resultList;
-  }
+        // no time filter set
+        return resultList;
+    }
 
-  @Override
-  public VisitorbookDO newInstance() {
-    return new VisitorbookDO();
-  }
+    @Override
+    public VisitorbookDO newInstance() {
+        return new VisitorbookDO();
+    }
 }

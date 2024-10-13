@@ -161,9 +161,9 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         update = {
           if (addressCampaignValueDO.id != null) {
             addressCampaignValueDO.deleted = false
-            addressCampaignValueDao.updateInTrans(addressCampaignValueDO)
+            addressCampaignValueDao.update(addressCampaignValueDO)
           } else {
-            addressCampaignValueDao.saveInTrans(addressCampaignValueDO)
+            addressCampaignValueDao.save(addressCampaignValueDO)
             EntityCopyStatus.MAJOR
           }
         },

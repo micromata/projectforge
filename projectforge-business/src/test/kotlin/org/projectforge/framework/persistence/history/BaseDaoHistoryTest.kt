@@ -43,7 +43,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         persistenceService.runReadOnly { context ->
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)
-            val entries = rechnungDao.getDisplayHistoryEntries(invoice, context)
+            val entries = rechnungDao.getDisplayHistoryEntries(invoice)
             // 6 entries for RechnungDO: 351958
             entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(2972182L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
@@ -64,10 +64,16 @@ class BaseDaoHistoryTest : AbstractTestBase() {
                 assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "12202 - ACME Int.")
             }
 
-           // 4 entries for RechnungsPositionDO 351960: 2972178,2985201,3026625,3062923
+            // 4 entries for RechnungsPositionDO 351960: 2972178,2985201,3026625,3062923
             entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3026625L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
-                assertHistoryEntry(list[0],RechnungsPositionDO::class.java, "kostZuweisungen", "", "0:null|null:10.10, 1:null|null:20.20, 2:null|null:30.30")
+                assertHistoryEntry(
+                    list[0],
+                    RechnungsPositionDO::class.java,
+                    "kostZuweisungen",
+                    "",
+                    "0:null|null:10.10, 1:null|null:20.20, 2:null|null:30.30"
+                )
             }
 
             // 4 entries for RechnungsPositionDO 351960: 2972186,2988849,3026621,3062915
@@ -98,10 +104,14 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         newValue: String?,
     ) {
         clazz?.let { cls ->
-            Assertions.assertEquals(translatePropertyName(cls, propertyName), entry.displayPropertyName, "$cls.$propertyName")
+            Assertions.assertEquals(
+                translatePropertyName(cls, propertyName),
+                entry.displayPropertyName,
+                "$cls.$propertyName"
+            )
         }
         Assertions.assertEquals(propertyName, entry.propertyName, "$clazz.$propertyName")
-        Assertions.assertEquals(EntityOpType.Update,  entry.entryType, "$clazz.$propertyName")
+        Assertions.assertEquals(EntityOpType.Update, entry.entryType, "$clazz.$propertyName")
         Assertions.assertEquals(oldValue, entry.oldValue, "$clazz.$propertyName")
         Assertions.assertEquals(newValue, entry.newValue, "$clazz.$propertyName")
     }

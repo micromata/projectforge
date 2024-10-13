@@ -618,7 +618,7 @@ open class AttachmentsService {
         baseDao.onAttachmentEvent(event, fileInfo, dbObj, ThreadLocalUserContext.loggedInUser, userString)
       }
       // Without access checking, because there is no logged-in user or access checking is already done by caller.
-      baseDao.internalUpdateAnyInTrans(dbObj)
+      baseDao.internalUpdateAny(dbObj)
     } else {
       val msg =
         "Can't update search index of ${dbObj!!::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"

@@ -31,7 +31,6 @@ import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -498,10 +497,8 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         log.info { "Syncing local addresses and remote Sipgate contacts..." }
         synchronized(this) {
             val syncContext = SyncContext()
-            persistenceService.runReadOnly { context ->
-                syncContext.addressList =
-                    addressDao.internalLoadAll(context) // Need all for matching contacts, but only active will be used for syncing to Sipgate.
-            }
+            syncContext.addressList =
+                addressDao.internalLoadAll() // Need all for matching contacts, but only active will be used for syncing to Sipgate.
             updateSyncObjects(syncContext)
 
             // Handle doublets from Sipgate
@@ -545,7 +542,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                                     )
                                                 }: Updating local address: $address, was: $oldAddress"
                                             }
-                                            addressDao.internalUpdate(address, context)
+                                            addressDao.internalUpdate(address)
                                         } else {
                                             log.info {
                                                 "${
@@ -621,7 +618,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                     val address = from(contact)
                                     if (configuration.updateLocalAddresses) {
                                         log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
-                                        addressDao.internalSave(address, context)
+                                        addressDao.internalSave(address)
                                     } else {
                                         log.info {
                                             "${
@@ -898,11 +895,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         return "address '${SipgateContactSyncDO.getName(address)}' (id=${address.id}, contact-id=${contact.id})"
     }
 
-    override fun afterSaveOrModify(
-        changedObject: AddressDO,
-        operationType: OperationType,
-        context: PfPersistenceContext
-    ) {
+    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
         sync()
     }
 }

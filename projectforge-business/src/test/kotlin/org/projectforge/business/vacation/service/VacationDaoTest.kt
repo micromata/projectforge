@@ -34,7 +34,6 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,11 +61,11 @@ class VacationDaoTest : AbstractTestBase() {
         lateinit var manager: EmployeeDO
         lateinit var replacement: EmployeeDO
         lateinit var hrEmployee: EmployeeDO
-        persistenceService.runInTransaction { context ->
-            employee = createEmployee("normal2", context = context)
-            manager = createEmployee("manager2", context = context)
-            replacement = createEmployee("replacement2", context = context)
-            hrEmployee = createEmployee("HR2", hrAccess = true, context)
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("normal2")
+            manager = createEmployee("manager2")
+            replacement = createEmployee("replacement2")
+            hrEmployee = createEmployee("HR2", hrAccess = true)
         }
 
         val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
@@ -130,13 +129,13 @@ class VacationDaoTest : AbstractTestBase() {
         lateinit var replacement: EmployeeDO
         lateinit var otherReplacement: EmployeeDO
         lateinit var uninvolvedEmployee: EmployeeDO
-        persistenceService.runInTransaction { context ->
-            employee = createEmployee("normal", context = context)
-            manager = createEmployee("manager", context = context)
-            replacement = createEmployee("replacement", context = context)
-            otherReplacement = createEmployee("otherReplacement", context = context)
-            uninvolvedEmployee = createEmployee("uninvolvedEmployee", context = context)
-            hrEmployee = createEmployee("HR", hrAccess = true, context = context)
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("normal")
+            manager = createEmployee("manager")
+            replacement = createEmployee("replacement")
+            otherReplacement = createEmployee("otherReplacement")
+            uninvolvedEmployee = createEmployee("uninvolvedEmployee")
+            hrEmployee = createEmployee("HR", hrAccess = true)
         }
         val vacation =
             createVacation(
@@ -354,7 +353,7 @@ class VacationDaoTest : AbstractTestBase() {
         return createVacation(employee, manager, replacement, startDate, endDate, status, otherReplacement)
     }
 
-    private fun createEmployee(name: String, hrAccess: Boolean = false, context: PfPersistenceContext): EmployeeDO {
+    private fun createEmployee(name: String, hrAccess: Boolean = false): EmployeeDO {
         return EmployeeTest.createEmployee(
             employeeService,
             employeeDao,
@@ -362,7 +361,6 @@ class VacationDaoTest : AbstractTestBase() {
             name,
             hrAccess,
             groupDao,
-            context = context
         )
     }
 

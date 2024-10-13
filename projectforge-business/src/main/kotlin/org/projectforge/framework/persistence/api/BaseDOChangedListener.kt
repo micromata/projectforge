@@ -31,5 +31,5 @@ import org.projectforge.framework.persistence.jpa.PfPersistenceContext
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 interface BaseDOChangedListener<O : ExtendedBaseDO<Long>> {
-    fun afterSaveOrModify(changedObject: O, operationType: OperationType, context: PfPersistenceContext)
+    fun afterSaveOrModify(changedObject: O, operationType: OperationType)
 }

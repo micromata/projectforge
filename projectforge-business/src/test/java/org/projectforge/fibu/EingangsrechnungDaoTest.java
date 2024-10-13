@@ -49,7 +49,7 @@ public class EingangsrechnungDaoTest extends AbstractTestBase {
     eingangsrechnung.setDatum(LocalDate.now());
     eingangsrechnung.addPosition(new EingangsrechnungsPositionDO());
     eingangsrechnung.setFaelligkeit(LocalDate.now());
-    Serializable id = eingangsrechnungDao.saveInTrans(eingangsrechnung);
+    Serializable id = eingangsrechnungDao.save(eingangsrechnung);
     eingangsrechnung = eingangsrechnungDao.getById(id);
 
     logon(AbstractTestBase.TEST_CONTROLLING_USER);
@@ -107,14 +107,14 @@ public class EingangsrechnungDaoTest extends AbstractTestBase {
     try {
       EingangsrechnungDO re = new EingangsrechnungDO();
       re.setDatum(LocalDate.now());
-      eingangsrechnungDao.saveInTrans(re);
+      eingangsrechnungDao.save(re);
       fail("AccessException expected: " + who + " users should not have save access to invoices.");
     } catch (AccessException ex) {
       // OK
     }
     try {
       eingangsrechnung.setBemerkung(who);
-      eingangsrechnungDao.updateInTrans(eingangsrechnung);
+      eingangsrechnungDao.update(eingangsrechnung);
       fail("AccessException expected: " + who + " users should not have update access to invoices.");
     } catch (AccessException ex) {
       // OK

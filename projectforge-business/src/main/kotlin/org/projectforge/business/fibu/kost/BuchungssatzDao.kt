@@ -39,7 +39,6 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.utils.SQLHelper
 import org.springframework.stereotype.Service
@@ -62,8 +61,8 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
             return SQLHelper.getYearsByTupleOfYears(list)
         }
 
-    open fun getBuchungssatz(year: Int, month: Int, satznr: Int, context: PfPersistenceContext): BuchungssatzDO? {
-        return context.selectNamedSingleResult(
+    open fun getBuchungssatz(year: Int, month: Int, satznr: Int): BuchungssatzDO? {
+        return persistenceService.selectNamedSingleResult(
             BuchungssatzDO.FIND_BY_YEAR_MONTH_SATZNR,
             BuchungssatzDO::class.java,
             Pair("year", year),
@@ -90,7 +89,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         // No year or one year is given.
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<BuchungssatzDO> {
+    override fun getList(filter: BaseSearchFilter): List<BuchungssatzDO> {
         accessChecker.checkIsLoggedInUserMemberOfGroup(
             ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
@@ -114,7 +113,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         if (fromYear != null && toYear != null) {
             // Both years are given
             if (fromMonth != null || toMonth != null) {
-                val or = DBPredicate.Or();
+                val or = DBPredicate.Or()
                 queryFilter.add(or)
                 // At least one month is given, check same year:
                 if (fromMonth != null) {
@@ -173,7 +172,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
                         ge("year", fromYear),
                         le("year", toYear)
                     )
-                );
+                )
 
             }
         } else if (fromYear != null) {
@@ -202,13 +201,13 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
             }
         } // else: nothing given: no time period range.
         queryFilter.addOrder(asc("year")).addOrder(asc("month")).addOrder(asc("satznr"))
-        return getList(queryFilter, context)
+        return getList(queryFilter)
     }
 
     /**
      * User must member of group finance or controlling.
      */
-    open override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
+    override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
         return accessChecker.isUserMemberOfGroup(
             user, throwException, ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
@@ -218,21 +217,21 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
     /**
      * @see .hasUserSelectAccess
      */
-    open override fun hasUserSelectAccess(user: PFUserDO, obj: BuchungssatzDO, throwException: Boolean): Boolean {
+    override fun hasUserSelectAccess(user: PFUserDO, obj: BuchungssatzDO, throwException: Boolean): Boolean {
         return hasUserSelectAccess(user, throwException)
     }
 
     /**
      * User must member of group finance.
      */
-    open override fun hasAccess(
+    override fun hasAccess(
         user: PFUserDO, obj: BuchungssatzDO?, oldObj: BuchungssatzDO?,
         operationType: OperationType, throwException: Boolean
     ): Boolean {
         return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.FINANCE_GROUP)
     }
 
-    open override fun newInstance(): BuchungssatzDO {
+    override fun newInstance(): BuchungssatzDO {
         return BuchungssatzDO()
     }
 

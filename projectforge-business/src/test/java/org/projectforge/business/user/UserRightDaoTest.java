@@ -42,12 +42,12 @@ public class UserRightDaoTest extends AbstractTestBase {
   private UserRightDao userRightDao;
 
   @Test
-  public void testUpdateUserRightsInTrans() {
+  public void testUpdateUserRights() {
     logon(AbstractTestBase.ADMIN);
-    final PFUserDO user = initTestDB.addUserInTrans("testUserRightDaoTest");
+    final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
     final Set<Long> groupsToAssign = new HashSet<>();
     groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP).getId());
-    groupDao.assignGroupByIdsInTrans(user, groupsToAssign, null);
+    groupDao.assignGroupByIds(user, groupsToAssign, null);
 
     List<UserRightVO> list = userRightDao.getUserRights(user);
     UserRightVO right1 = null;
@@ -65,7 +65,7 @@ public class UserRightDaoTest extends AbstractTestBase {
     assertNull(right2.getValue());
     right1.setValue(UserRightValue.READWRITE);
     right2.setValue(UserRightValue.READONLY);
-    userRightDao.updateUserRightsInTrans(user, list);
+    userRightDao.updateUserRights(user, list);
     list = userRightDao.getUserRights(user);
     right1 = right2 = null;
     for (final UserRightVO item : list) {
@@ -81,7 +81,7 @@ public class UserRightDaoTest extends AbstractTestBase {
     assertEquals(UserRightValue.READONLY, right2.getValue());
     right1.setValue(UserRightValue.READONLY);
     right2.setValue(null);
-    userRightDao.updateUserRightsInTrans(user, list);
+    userRightDao.updateUserRights(user, list);
     list = userRightDao.getUserRights(user);
     right1 = right2 = null;
     for (final UserRightVO item : list) {

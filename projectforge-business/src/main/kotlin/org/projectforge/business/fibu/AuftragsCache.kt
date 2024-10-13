@@ -23,15 +23,14 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
-import jakarta.annotation.PostConstruct
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import java.io.Serializable
+import java.math.BigDecimal
 
 /**
  * Open needed by Wicket's SpringBean.
@@ -39,135 +38,135 @@ import java.io.Serializable
 @Service
 open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListener<RechnungDO> {
 
-  class OrderInfo(
-    val netSum: BigDecimal,
-    val akquiseSum: BigDecimal,
-    val invoicedSum: BigDecimal,
-    val toBeInvoicedSum: BigDecimal,
-    val notYetInvoicedSum: BigDecimal,
-    val beauftragtNettoSumme: BigDecimal,
-    val isVollstaendigFakturiert: Boolean,
-    val positionAbgeschlossenUndNichtVollstaendigFakturiert: Boolean,
-    val paymentSchedulesReached: Boolean,
-  ): Serializable {
-    val toBeInvoiced: Boolean = toBeInvoicedSum > BigDecimal.ZERO
-  }
-
-  @Autowired
-  private lateinit var rechnungCache: RechnungCache
-
-  @Autowired
-  private lateinit var rechnungDao: RechnungDao
-
-  private var orderMap = mutableMapOf<Long, OrderInfo>()
-
-  @PostConstruct
-  private fun init() {
-    instance = this
-    rechnungDao.register(this)
-  }
-
-  open fun setValues(order: AuftragDO) {
-    val info = getOrderInfo(order)
-    order.invoicedSum = info.invoicedSum
-    order.toBeInvoicedSum = info.toBeInvoicedSum
-    order.notYetInvoicedSum = info.notYetInvoicedSum
-  }
-
-  open fun getFakturiertSum(order: AuftragDO?): BigDecimal {
-    if (order == null) {
-      return BigDecimal.ZERO
+    class OrderInfo(
+        val netSum: BigDecimal,
+        val akquiseSum: BigDecimal,
+        val invoicedSum: BigDecimal,
+        val toBeInvoicedSum: BigDecimal,
+        val notYetInvoicedSum: BigDecimal,
+        val beauftragtNettoSumme: BigDecimal,
+        val isVollstaendigFakturiert: Boolean,
+        val positionAbgeschlossenUndNichtVollstaendigFakturiert: Boolean,
+        val paymentSchedulesReached: Boolean,
+    ) : Serializable {
+        val toBeInvoiced: Boolean = toBeInvoicedSum > BigDecimal.ZERO
     }
-    return getOrderInfo(order).invoicedSum
-  }
 
-  open fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
-    return getOrderInfo(order).isVollstaendigFakturiert
-  }
+    @Autowired
+    private lateinit var rechnungCache: RechnungCache
 
-  open fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
-    return getOrderInfo(order).positionAbgeschlossenUndNichtVollstaendigFakturiert
-  }
+    @Autowired
+    private lateinit var rechnungDao: RechnungDao
 
-  open fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
-    return getOrderInfo(order).paymentSchedulesReached
-  }
+    private var orderMap = mutableMapOf<Long, OrderInfo>()
 
-  open fun getOrderInfo(order: AuftragDO): OrderInfo {
-    synchronized(orderMap) {
-      orderMap[order.id]?.let {
-        return it
-      }
+    @PostConstruct
+    private fun init() {
+        instance = this
+        rechnungDao.register(this)
     }
-    var invoicedSum = BigDecimal.ZERO
-    var positionAbgeschlossenUndNichtVollstaendigFakturiert = false
-    order.positionenExcludingDeleted.forEach { pos ->
-      rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)?.let { set ->
-        invoicedSum += RechnungDao.getNettoSumme(set)
-      }
-      if (pos.toBeInvoiced) {
-        positionAbgeschlossenUndNichtVollstaendigFakturiert = true
-      }
+
+    open fun setValues(order: AuftragDO) {
+        val info = getOrderInfo(order)
+        order.invoicedSum = info.invoicedSum
+        order.toBeInvoicedSum = info.toBeInvoicedSum
+        order.notYetInvoicedSum = info.notYetInvoicedSum
     }
-    var paymentSchedulesReached = false
-    order.paymentSchedules?.let { paymentSchedules ->
-      for (schedule in paymentSchedules) {
-        if (schedule.deleted != true && schedule.reached && !schedule.vollstaendigFakturiert) {
-          paymentSchedulesReached = true
-          break
+
+    open fun getFakturiertSum(order: AuftragDO?): BigDecimal {
+        if (order == null) {
+            return BigDecimal.ZERO
         }
-      }
+        return getOrderInfo(order).invoicedSum
     }
-    var akquiseSum = BigDecimal.ZERO
-    val status = order.auftragsStatus ?: AuftragsStatus.IN_ERSTELLUNG
-    if (status.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT)) {
-      akquiseSum = order.nettoSumme
-    }
-    order.invoicedSum = invoicedSum
-    val info = OrderInfo(
-      netSum = order.nettoSumme,
-      akquiseSum = akquiseSum,
-      invoicedSum = invoicedSum,
-      toBeInvoicedSum = order.toBeInvoicedSum ?: BigDecimal.ZERO,
-      notYetInvoicedSum = order.notYetInvoicedSum ?: BigDecimal.ZERO,
-      beauftragtNettoSumme = order.beauftragtNettoSumme,
-      isVollstaendigFakturiert = order.isVollstaendigFakturiert,
-      positionAbgeschlossenUndNichtVollstaendigFakturiert = positionAbgeschlossenUndNichtVollstaendigFakturiert,
-      paymentSchedulesReached = paymentSchedulesReached,
-    )
-    order.id?.let { id -> // id might be null on test cases.
-      synchronized(orderMap) {
-        orderMap[id] = info
-      }
-    }
-    return info
-  }
 
-  fun setExpired(order: AuftragDO) {
-    synchronized(orderMap) {
-      orderMap.remove(order.id)
+    open fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
+        return getOrderInfo(order).isVollstaendigFakturiert
     }
-  }
 
-  override fun refresh() {
-    synchronized(orderMap) {
-      orderMap.clear()
+    open fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
+        return getOrderInfo(order).positionAbgeschlossenUndNichtVollstaendigFakturiert
     }
-  }
 
-  /**
-   * Set order as expired, if any invoice on this order was changed.
-   */
-  override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType, context: PfPersistenceContext) {
-    changedObject.positionen?.forEach { pos ->
-      pos.auftragsPosition?.auftrag?.let {
-        setExpired(it)
-      }
+    open fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
+        return getOrderInfo(order).paymentSchedulesReached
     }
-  }
 
-  companion object {
-    lateinit var instance: AuftragsCache
-      private set
-  }
+    open fun getOrderInfo(order: AuftragDO): OrderInfo {
+        synchronized(orderMap) {
+            orderMap[order.id]?.let {
+                return it
+            }
+        }
+        var invoicedSum = BigDecimal.ZERO
+        var positionAbgeschlossenUndNichtVollstaendigFakturiert = false
+        order.positionenExcludingDeleted.forEach { pos ->
+            rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)?.let { set ->
+                invoicedSum += RechnungDao.getNettoSumme(set)
+            }
+            if (pos.toBeInvoiced) {
+                positionAbgeschlossenUndNichtVollstaendigFakturiert = true
+            }
+        }
+        var paymentSchedulesReached = false
+        order.paymentSchedules?.let { paymentSchedules ->
+            for (schedule in paymentSchedules) {
+                if (schedule.deleted != true && schedule.reached && !schedule.vollstaendigFakturiert) {
+                    paymentSchedulesReached = true
+                    break
+                }
+            }
+        }
+        var akquiseSum = BigDecimal.ZERO
+        val status = order.auftragsStatus ?: AuftragsStatus.IN_ERSTELLUNG
+        if (status.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT)) {
+            akquiseSum = order.nettoSumme
+        }
+        order.invoicedSum = invoicedSum
+        val info = OrderInfo(
+            netSum = order.nettoSumme,
+            akquiseSum = akquiseSum,
+            invoicedSum = invoicedSum,
+            toBeInvoicedSum = order.toBeInvoicedSum ?: BigDecimal.ZERO,
+            notYetInvoicedSum = order.notYetInvoicedSum ?: BigDecimal.ZERO,
+            beauftragtNettoSumme = order.beauftragtNettoSumme,
+            isVollstaendigFakturiert = order.isVollstaendigFakturiert,
+            positionAbgeschlossenUndNichtVollstaendigFakturiert = positionAbgeschlossenUndNichtVollstaendigFakturiert,
+            paymentSchedulesReached = paymentSchedulesReached,
+        )
+        order.id?.let { id -> // id might be null on test cases.
+            synchronized(orderMap) {
+                orderMap[id] = info
+            }
+        }
+        return info
+    }
+
+    fun setExpired(order: AuftragDO) {
+        synchronized(orderMap) {
+            orderMap.remove(order.id)
+        }
+    }
+
+    override fun refresh() {
+        synchronized(orderMap) {
+            orderMap.clear()
+        }
+    }
+
+    /**
+     * Set order as expired, if any invoice on this order was changed.
+     */
+    override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType) {
+        changedObject.positionen?.forEach { pos ->
+            pos.auftragsPosition?.auftrag?.let {
+                setExpired(it)
+            }
+        }
+    }
+
+    companion object {
+        lateinit var instance: AuftragsCache
+            private set
+    }
 }

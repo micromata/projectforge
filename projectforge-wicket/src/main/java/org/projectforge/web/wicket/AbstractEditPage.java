@@ -46,7 +46,6 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.persistence.history.HistoryService;
 import org.projectforge.framework.persistence.history.HistoryServiceUtils;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -303,7 +302,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
    *
    * @param modificationStatus MINOR or MAJOR, if the object was modified, otherwise NONE. If a not null web page is
    *                           returned, then the web page will be set as response page.
-   * @see BaseDao#updateInTrans(ExtendedBaseDO)
+   * @see BaseDao#update(ExtendedBaseDO)
    */
   @Override
   public AbstractSecuredBasePage afterUpdate(final EntityCopyStatus modificationStatus)

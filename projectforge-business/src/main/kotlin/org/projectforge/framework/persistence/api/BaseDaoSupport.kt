@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 
@@ -54,9 +53,9 @@ object BaseDaoSupport {
 
     @JvmStatic
     fun <O : ExtendedBaseDO<Long>> internalSave(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext): Long? {
-        preInternalSave(baseDao, obj, context)
+        preInternalSave(baseDao, obj)
         privateInternalSave(baseDao, obj, context)
-        postInternalSave(baseDao, obj, context)
+        postInternalSave(baseDao, obj)
         return obj.id
     }
 
@@ -70,7 +69,7 @@ object BaseDaoSupport {
         if (baseDao.logDatabaseActions) {
             log.info("New ${baseDao.doClass.simpleName} added (${obj.id}): $obj")
         }
-        baseDao.prepareHibernateSearch(obj, OperationType.INSERT, context)
+        baseDao.prepareHibernateSearch(obj, OperationType.INSERT)
         em.merge(obj)
         HistoryBaseDaoAdapter.inserted(obj, context)
         try {
@@ -83,20 +82,19 @@ object BaseDaoSupport {
         }
     }
 
-    private fun <O : ExtendedBaseDO<Long>> preInternalSave(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext) {
+    private fun <O : ExtendedBaseDO<Long>> preInternalSave(baseDao: BaseDao<O>, obj: O) {
         obj.setCreated()
         obj.setLastUpdate()
-        baseDao.onSave(obj, context)
-        baseDao.onSaveOrModify(obj, context)
+        baseDao.onSave(obj)
+        baseDao.onSaveOrModify(obj)
     }
 
     private fun <O : ExtendedBaseDO<Long>> postInternalSave(
         baseDao: BaseDao<O>,
         obj: O,
-        context: PfPersistenceContext,
     ) {
-        baseDao.afterSaveOrModify(obj, context)
-        baseDao.afterSave(obj, context)
+        baseDao.afterSaveOrModify(obj)
+        baseDao.afterSave(obj)
     }
 
     @JvmStatic
@@ -119,8 +117,8 @@ object BaseDaoSupport {
         checkAccess: Boolean,
         context: PfPersistenceContext,
     ) {
-        baseDao.beforeSaveOrModify(obj, context)
-        baseDao.onSaveOrModify(obj, context)
+        baseDao.beforeSaveOrModify(obj)
+        baseDao.onSaveOrModify(obj)
         if (checkAccess) {
             baseDao.accessChecker.checkRestrictedOrDemoUser()
         }
@@ -138,7 +136,7 @@ object BaseDaoSupport {
         if (checkAccess) {
             baseDao.checkLoggedInUserUpdateAccess(obj, dbObj)
         }
-        baseDao.onChange(obj, dbObj, context)
+        baseDao.onChange(obj, dbObj)
         if (baseDao.supportAfterUpdate) {
             res.dbObjBackup = baseDao.getBackupObject(dbObj)
         } else {
@@ -150,7 +148,7 @@ object BaseDaoSupport {
         res.modStatus = modStatus
         if (modStatus != EntityCopyStatus.NONE) {
             dbObj.setLastUpdate()
-            baseDao.prepareHibernateSearch(obj, OperationType.UPDATE, context)
+            baseDao.prepareHibernateSearch(obj, OperationType.UPDATE)
             em.merge(dbObj)
             try {
                 em.flush()
@@ -175,13 +173,13 @@ object BaseDaoSupport {
         res: ResultObject<O>,
         context: PfPersistenceContext
     ) {
-        baseDao.afterSaveOrModify(obj, context)
+        baseDao.afterSaveOrModify(obj)
         if (baseDao.supportAfterUpdate) {
-            baseDao.afterUpdate(obj, res.dbObjBackup, isModified = res.modStatus != EntityCopyStatus.NONE, context)
-            baseDao.afterUpdate(obj, res.dbObjBackup, context)
+            baseDao.afterUpdate(obj, res.dbObjBackup, isModified = res.modStatus != EntityCopyStatus.NONE)
+            baseDao.afterUpdate(obj, res.dbObjBackup)
         } else {
-            baseDao.afterUpdate(obj, null, res.modStatus != EntityCopyStatus.NONE, context)
-            baseDao.afterUpdate(obj, null, context)
+            baseDao.afterUpdate(obj, null, res.modStatus != EntityCopyStatus.NONE)
+            baseDao.afterUpdate(obj, null)
         }
         if (res.wantsReindexAllDependentObjects) {
             baseDao.reindexDependentObjects(obj)
@@ -197,11 +195,15 @@ object BaseDaoSupport {
             )
             throw InternalErrorException("exception.internalError")
         }
-        baseDao.onDelete(obj, context)
+        baseDao.onDelete(obj)
         val em = context.em
         val dbObj = em.find(baseDao.doClass, obj.id)
-        baseDao.onSaveOrModify(obj, context)
-        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj, entityOpType = EntityOpType.Delete) // If user has made additional changes.
+        baseDao.onSaveOrModify(obj)
+        val candHContext = CandHMaster.copyValues(
+            src = obj,
+            dest = dbObj,
+            entityOpType = EntityOpType.Delete
+        ) // If user has made additional changes.
         dbObj.deleted = true
         dbObj.setLastUpdate()
         obj.deleted = true                     // For callee having same object.
@@ -212,17 +214,21 @@ object BaseDaoSupport {
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} marked as deleted: $dbObj")
         }
-        baseDao.afterSaveOrModify(obj, context)
-        baseDao.afterDelete(obj, context)
+        baseDao.afterSaveOrModify(obj)
+        baseDao.afterDelete(obj)
     }
 
     @JvmStatic
     fun <O : ExtendedBaseDO<Long>> internalUndelete(baseDao: BaseDao<O>, obj: O, context: PfPersistenceContext) {
-        baseDao.onSaveOrModify(obj, context)
+        baseDao.onSaveOrModify(obj)
         val em = context.em
         val dbObj = em.find(baseDao.doClass, obj.id)
-        baseDao.onSaveOrModify(obj, context)
-        val candHContext = CandHMaster.copyValues(src = obj, dest = dbObj, entityOpType = EntityOpType.Undelete) // If user has made additional changes.
+        baseDao.onSaveOrModify(obj)
+        val candHContext = CandHMaster.copyValues(
+            src = obj,
+            dest = dbObj,
+            entityOpType = EntityOpType.Undelete
+        ) // If user has made additional changes.
         dbObj.deleted = false
         dbObj.setLastUpdate()
         obj.deleted = false                   // For callee having same object.
@@ -233,8 +239,8 @@ object BaseDaoSupport {
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} undeleted: $dbObj")
         }
-        baseDao.afterSaveOrModify(obj, context)
-        baseDao.afterUndelete(obj, context)
+        baseDao.afterSaveOrModify(obj)
+        baseDao.afterUndelete(obj)
     }
 
     @JvmStatic
@@ -261,7 +267,7 @@ object BaseDaoSupport {
             log.error(msg)
             throw RuntimeException(msg)
         }
-        baseDao.onDelete(obj, context)
+        baseDao.onDelete(obj)
         val em = context.em
         val dbObj = context.selectById(baseDao.doClass, id)
         em.remove(dbObj)
@@ -275,7 +281,7 @@ object BaseDaoSupport {
         if (baseDao.logDatabaseActions) {
             log.info("${baseDao.doClass.simpleName} (forced) deleted: $dbObj")
         }
-        baseDao.afterDelete(obj, context)
+        baseDao.afterDelete(obj)
     }
 
     /**
@@ -294,9 +300,9 @@ object BaseDaoSupport {
                 internalUpdate(baseDao, obj, false, res, context)
                 postInternalUpdate(baseDao, obj, res, context)
             } else {
-                preInternalSave(baseDao, obj, context)
+                preInternalSave(baseDao, obj)
                 internalSave(baseDao, obj, context)
-                postInternalSave(baseDao, obj, context)
+                postInternalSave(baseDao, obj)
             }
         }
     }
@@ -311,7 +317,7 @@ object BaseDaoSupport {
         baseDao: BaseDao<O>,
         col: Collection<O>,
         blockSize: Int,
-        persistenceService: PfPersistenceService,
+        context: PfPersistenceContext,
     ) {
         val list = mutableListOf<O>()
         var counter = 0
@@ -319,15 +325,11 @@ object BaseDaoSupport {
             list.add(obj)
             if (++counter >= blockSize) {
                 counter = 0
-                persistenceService.runInTransaction { context ->
-                    internalSaveOrUpdate(baseDao, list, context)
-                }
+                internalSaveOrUpdate(baseDao, list, context)
                 list.clear()
             }
         }
-        persistenceService.runInTransaction { context ->
-            internalSaveOrUpdate(baseDao, list, context)
-        }
+        internalSaveOrUpdate(baseDao, list, context)
     }
 
     @JvmStatic

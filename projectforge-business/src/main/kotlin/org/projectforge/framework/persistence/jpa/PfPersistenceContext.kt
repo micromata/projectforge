@@ -51,10 +51,19 @@ class PfPersistenceContext internal constructor(
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
     /**
-     * This id is used for logging and debugging purposes.
-     * It's a UUID (generated on init).
+     * This id is used for logging and debugging purposes. It's an increasing number.
+     * It's unique for each context.
+     * If the context is of type [ContextType.READONLY], it's unique for all readonly contexts.
+     * If the context is of type [ContextType.TRANSACTION], it's unique for all transaction contexts.
+     * It's not unique for all contexts.
+     * It's unique for all contexts of the same type.
+     * It's counted separately for each type, starting with 0. Transactional contexts are more expensive than readonly contexts.
      */
-    val contextId = nextContextId // AtomicInteger
+    val contextId = if (type == ContextType.READONLY) {
+        nextReadonlyContextId
+    } else {
+        nextTransactionId
+    }
 
 
     /* init {
@@ -385,13 +394,30 @@ class PfPersistenceContext internal constructor(
     }
 
     companion object {
-        private val nextContextId: Long
+        private val nextTransactionId: Long
             get() {
                 synchronized(this) {
-                    return contextCounter++
+                    return transactionCounter++
                 }
             }
-        private var contextCounter = 0L
+
+        /**
+         * This id is used for logging and debugging purposes. Remember: transactions are more expensive than readonly contexts.
+         */
+        var transactionCounter = 0L
+            private set
+        private val nextReadonlyContextId: Long
+            get() {
+                synchronized(this) {
+                    return readonlyContextCounter++
+                }
+            }
+
+        /**
+         * This id is used for logging and debugging purposes. Remember: readonly contexts are cheap.
+         */
+        var readonlyContextCounter = 0L
+            private set
         //    private val openEntityManagers = mutableSetOf<EntityManager>()
     }
 }

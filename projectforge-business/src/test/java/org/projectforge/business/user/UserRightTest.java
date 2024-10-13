@@ -67,8 +67,8 @@ public class UserRightTest extends AbstractTestBase {
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    Long userId = userService.saveInTrans(user);
-    userRightDao.saveInTrans(userRights);
+    Long userId = userService.save(user);
+    userRightDao.save(userRights);
     user = userService.internalGetById(userId);
 
     Set<UserRightDO> rights = user.getRights();
@@ -91,7 +91,7 @@ public class UserRightTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final GroupDO group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString());
     group.getAssignedUsers().add(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
     logon(user.getUsername());
     user = userService.internalGetById(user.getId());
     rights = user.getRights();
@@ -126,12 +126,12 @@ public class UserRightTest extends AbstractTestBase {
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    user = userService.internalGetById(userService.saveInTrans(user));
-    userRightDao.saveInTrans(userRights);
+    user = userService.internalGetById(userService.save(user));
+    userRightDao.save(userRights);
 
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.addUser(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
 
     logon(user.getUsername());
     user = userService.internalGetById(user.getId());
@@ -167,17 +167,17 @@ public class UserRightTest extends AbstractTestBase {
         "Right is not configurable, because no right values are available.");
     PFUserDO user = new PFUserDO();
     user.setUsername("testConfigurableRight");
-    user = userService.internalGetById(userService.saveInTrans(user));
+    user = userService.internalGetById(userService.save(user));
     GroupDO group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString());
     group.getAssignedUsers().add(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
     loggedInUser = logon(user.getUsername());
     assertTrue(right.isConfigurable(loggedInUser, userGroupCache.getUserGroupDOs(loggedInUser)),
         "Right is configurable, because serveral right values are available.");
     logon(AbstractTestBase.TEST_ADMIN_USER);
     group = getGroup(ProjectForgeGroup.PROJECT_MANAGER.toString());
     group.getAssignedUsers().add(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
     loggedInUser = logon(user.getUsername());
     assertFalse(right.isConfigurable(loggedInUser, userGroupCache.getUserGroupDOs(loggedInUser)),
         "Right is not configurable, because all available right values are automatically assigned to the current user");
@@ -196,13 +196,13 @@ public class UserRightTest extends AbstractTestBase {
         "Right is not configurable, because no right values are available.");
     PFUserDO user = new PFUserDO();
     user.setUsername("testHRPlanningRight");
-    user = userService.internalGetById(userService.saveInTrans(user));
+    user = userService.internalGetById(userService.save(user));
     GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.getAssignedUsers().add(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
     group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString());
     group.getAssignedUsers().add(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
     loggedInUser = logon(user.getUsername());
     assertFalse(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
         "Right invalid.");
@@ -211,7 +211,7 @@ public class UserRightTest extends AbstractTestBase {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     group = getGroup(ProjectForgeGroup.PROJECT_MANAGER.toString());
     group.getAssignedUsers().add(user);
-    groupDao.updateInTrans(group);
+    groupDao.update(group);
     loggedInUser = logon(user.getUsername());
     assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.PM_HR_PLANNING, false, UserRightValue.READWRITE),
         "Right now valid because project managers have always READWRITE access.");

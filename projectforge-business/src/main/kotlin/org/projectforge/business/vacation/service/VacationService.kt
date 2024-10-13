@@ -34,7 +34,6 @@ import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.LocalDatePeriod
@@ -161,12 +160,12 @@ open class VacationService {
             val stats = VacationStats(employee, year, baseDate)
             // Get employee from database if not initialized (user not given).
             val employeeDO =
-                if (employee.userId == null) employeeDao.internalGetById(employee.id, context) else employee
+                if (employee.userId == null) employeeDao.internalGetById(employee.id) else employee
             if (employeeDO == null) {
                 log.warn("Shouldn't occur: employee not found by id #${employee.id}")
                 return@runInTransaction stats
             }
-            stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employeeDO, year, context)
+            stats.vacationDaysInYearFromContract = getAnnualLeaveDays(employeeDO, year)
             stats.endOfVacationYear = getEndOfCarryVacationOfPreviousYear(year)
             // If date of joining not given, assume 1900...
             val dateOfJoining = employeeDO.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
@@ -223,30 +222,6 @@ open class VacationService {
         trimVacations: Boolean = false,
         vararg status: VacationStatus,
     ): List<VacationDO> {
-        return persistenceService.runReadOnly { context ->
-            getVacationsListForPeriod(
-                employee,
-                periodBegin,
-                periodEnd,
-                withSpecial,
-                trimVacations,
-                status = status,
-                context,
-            )
-        }
-    }
-
-    @JvmOverloads
-    open fun getVacationsListForPeriod(
-        employee: EmployeeDO,
-        periodBegin: LocalDate,
-        periodEnd: LocalDate,
-        withSpecial: Boolean = false,
-        trimVacations: Boolean = false,
-        vararg status: VacationStatus,
-        context: PfPersistenceContext,
-    )
-            : List<VacationDO> {
         return getVacationsListForPeriod(
             employee.id,
             periodBegin,
@@ -254,7 +229,6 @@ open class VacationService {
             withSpecial,
             trimVacations,
             status = status,
-            context
         )
     }
 
@@ -273,36 +247,7 @@ open class VacationService {
         vararg status: VacationStatus,
     )
             : List<VacationDO> {
-        return persistenceService.runReadOnly { context ->
-            getVacationsListForPeriod(
-                employeeId,
-                periodBegin,
-                periodEnd,
-                withSpecial,
-                trimVacations,
-                status = status,
-                context
-            )
-        }
-    }
-
-    /**
-     * @param trimVacations If true then vacation entries will be reduced for not extending given period.
-     * @param status If given, only vacations matching the given status values will be returned. If not given, DEFAULT_VACATION_STATUS_LIST
-     * is used.
-     */
-    @JvmOverloads
-    open fun getVacationsListForPeriod(
-        employeeId: Long?,
-        periodBegin: LocalDate,
-        periodEnd: LocalDate,
-        withSpecial: Boolean = false,
-        trimVacations: Boolean = false,
-        vararg status: VacationStatus,
-        context: PfPersistenceContext,
-    )
-            : List<VacationDO> {
-        var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial, context)
+        var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
         result = if (status.isNotEmpty()) {
             result.filter { VacationStatus.values().contains(it.status) }
         } else {
@@ -329,16 +274,6 @@ open class VacationService {
      */
     open fun getVacation(idList: List<Serializable>?): List<VacationDO?>? {
         return vacationDao.internalLoad(idList)
-    }
-
-    /**
-     * Getting vacation for given ids. Calls [VacationDao.internalLoad].
-     *
-     * @param idList
-     * @return List of vacations
-     */
-    open fun getVacation(idList: List<Serializable>?, context: PfPersistenceContext): List<VacationDO?>? {
-        return vacationDao.internalLoad(idList, context)
     }
 
     /**
@@ -424,13 +359,11 @@ open class VacationService {
     }
 
     open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
-        return persistenceService.runReadOnly { context ->
-            val employee = employeeService.getEmployeeByUserId(user.id, context)
-            if (employee == null) {
-                0
-            } else {
-                vacationDao.getOpenLeaveApplicationsForEmployee(employee, context)
-            }
+        val employee = employeeService.getEmployeeByUserId(user.id)
+        return if (employee == null) {
+            0
+        } else {
+            vacationDao.getOpenLeaveApplicationsForEmployee(employee)
         }
     }
 
@@ -441,25 +374,11 @@ open class VacationService {
     open fun hasAccessToVacationService(
         user: PFUserDO?,
         throwException: Boolean,
-    ): Boolean {
-        return persistenceService.runReadOnly { context ->
-            hasAccessToVacationService(user, throwException, context)
-        }
-    }
-
-    /**
-     * Check, if user is able to use vacation services, meaning, has configured annual vacation days (urlaubstage).
-     * @see EmployeeService.getAnnualLeaveDays
-     */
-    open fun hasAccessToVacationService(
-        user: PFUserDO?,
-        throwException: Boolean,
-        context: PfPersistenceContext
     ): Boolean {
         if (user?.id == null)
             return false
-        val employee = employeeService.getEmployeeByUserId(user.id, context)
-        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, context) ?: BigDecimal.ZERO
+        val employee = employeeService.getEmployeeByUserId(user.id)
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee) ?: BigDecimal.ZERO
         return when {
             employee == null -> {
                 if (throwException) {
@@ -598,19 +517,10 @@ open class VacationService {
      * @return [EmployeeService.getAnnualLeaveDays] of the end of given year if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
      */
     internal fun getAnnualLeaveDays(employee: EmployeeDO, year: Int): BigDecimal {
-        return persistenceService.runReadOnly { context ->
-            getAnnualLeaveDays(employee, year, context)
-        }
-    }
-
-    /**
-     * @return [EmployeeService.getAnnualLeaveDays] of the end of given year if employee joined before given year, 0 if employee joined later than given year, otherwise fraction (joined in given year).
-     */
-    internal fun getAnnualLeaveDays(employee: EmployeeDO, year: Int, context: PfPersistenceContext): BigDecimal {
         val joinDate = employee.eintrittsDatum ?: LocalDate.of(1900, Month.JANUARY, 1)
         val leaveDate = employee.austrittsDatum ?: LocalDate.of(2999, Month.DECEMBER, 31)
         val endOfYear = PFDay.of(year, Month.JANUARY, 1).endOfYear.date
-        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, endOfYear, context) ?: BigDecimal.ZERO
+        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee, endOfYear) ?: BigDecimal.ZERO
         /*if (joinDate == null || joinDate.year < year) {
             return BigDecimal(vacationDaysPerYear)
         }*/

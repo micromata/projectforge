@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
  */
 // Open for mocking in test cases.
 @Service
-open class UserGroupCache() : AbstractCache() {
+open class UserGroupCache : AbstractCache() {
 
     @Autowired
     private lateinit var userRights: UserRightService
@@ -408,7 +408,7 @@ open class UserGroupCache() : AbstractCache() {
         val uMap: MutableMap<Long, PFUserDO?> = HashMap()
         // Could not autowire UserDao because of cyclic reference with AccessChecker.
         log.info("Loading all users ...")
-        persistenceService.runReadOnly { context ->
+        persistenceService.runIsolatedReadOnly { context ->
             val users = Login.getInstance().allUsers
             users.forEach { user ->
                 user.id?.let { userId ->
@@ -418,7 +418,7 @@ open class UserGroupCache() : AbstractCache() {
             if (users.size != uMap.size) {
                 log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
                 log.info("For debugging UserCache fuck-up: " + ToStringUtil.toJsonString(users))
-                return@runReadOnly
+                return@runIsolatedReadOnly
             }
             log.info("Loading all groups ...")
             val groups = Login.getInstance().allGroups
@@ -454,7 +454,7 @@ open class UserGroupCache() : AbstractCache() {
             this.userMap = uMap
             this.groupMap = gMap
             val nEmployeeMap = mutableMapOf<Long?, EmployeeDO>()
-            employeeDao.internalLoadAll(context).forEach { employeeDO ->
+            employeeDao.internalLoadAll().forEach { employeeDO ->
                 nEmployeeMap[employeeDO.userId] = employeeDO
                 employeeDao.setEmployeeStatus(employeeDO)
             }
@@ -470,7 +470,7 @@ open class UserGroupCache() : AbstractCache() {
             this.userGroupIdMap = ugIdMap
             val rMap = mutableMapOf<Long, List<UserRightDO>>()
             val rights = try {
-                userRightDao.internalGetAllOrdered(context)
+                userRightDao.internalGetAllOrdered()
             } catch (ex: Exception) {
                 log.error(
                     "******* Exception while getting user rights from data-base (only OK for migration from older versions): "

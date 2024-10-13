@@ -41,12 +41,12 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessCheckerImpl
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
-import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.search.HibernateSearchReindexer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -139,7 +139,7 @@ class DatabaseService {
             adminUser.lastname = "Administrator"
             adminUser.description = "ProjectForge administrator"
             adminUser.timeZone = adminUserTimezone
-            userDao.internalSave(adminUser, context)
+            userDao.internalSave(adminUser)
             adminUser.addRight(UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE))
@@ -153,7 +153,7 @@ class DatabaseService {
             adminUser.addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE))
-            adminUser.rights!!.forEach(Consumer { obj: UserRightDO -> userRightDao.internalSave(obj, context) })
+            adminUser.rights!!.forEach(Consumer { obj: UserRightDO -> userRightDao.internalSave(obj) })
 
             setUser(adminUser) // Need to login the admin user for avoiding following access exceptions.
 
@@ -166,18 +166,9 @@ class DatabaseService {
     }
 
     @JvmOverloads
-    fun insertGlobalAddressbook(user: PFUserDO? = null): AddressbookDO? {
-        return persistenceService.runInTransaction { context: PfPersistenceContext ->
-            insertGlobalAddressbook(
-                user,
-                context,
-            )
-        }
-    }
-
-    fun insertGlobalAddressbook(user: PFUserDO?, context: PfPersistenceContext): AddressbookDO? {
+    fun insertGlobalAddressbook(user: PFUserDO? = null): AddressbookDO {
         log.info("Checking if global addressbook exists.")
-        val addressbook = addressbookDao.getGlobalAddressbook(context)
+        val addressbook = addressbookDao.globalAddressbookOrNull
         if (addressbook != null) {
             return addressbook
         }
@@ -186,18 +177,20 @@ class DatabaseService {
             "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, owner_fk) VALUES (:id, :created, :deleted, :lastUpdate, :description, :title, :owner)"
         val ownerId = user?.id ?: ThreadLocalUserContext.loggedInUserId
         val now = Date()
-        val result = context.executeNativeUpdate(
-            insertGlobal,
-            Pair("id", AddressbookDao.GLOBAL_ADDRESSBOOK_ID),
-            Pair("created", now),
-            Pair("deleted", false),
-            Pair("lastUpdate", now),
-            Pair("description", AddressbookDao.GLOBAL_ADDRESSBOOK_DESCRIPTION),
-            Pair("title", AddressbookDao.GLOBAL_ADDRESSBOOK_TITLE),
-            Pair("owner", ownerId),
-        );
-        log.info("Adding global addressbook finished: $insertGlobal, result: $result")
-        return addressbookDao.getGlobalAddressbook(context)
+        persistenceService.runInTransaction { context ->
+            val result = context.executeNativeUpdate(
+                insertGlobal,
+                Pair("id", AddressbookDao.GLOBAL_ADDRESSBOOK_ID),
+                Pair("created", now),
+                Pair("deleted", false),
+                Pair("lastUpdate", now),
+                Pair("description", AddressbookDao.GLOBAL_ADDRESSBOOK_DESCRIPTION),
+                Pair("title", AddressbookDao.GLOBAL_ADDRESSBOOK_TITLE),
+                Pair("owner", ownerId),
+            )
+            log.info("Adding global addressbook finished: $insertGlobal, result: $result")
+        }
+        return addressbookDao.globalAddressbook
     }
 
     private fun internalCreateProjectForgeGroups(adminUser: PFUserDO, context: PfPersistenceContext) {
@@ -251,7 +244,7 @@ class DatabaseService {
         }
         // group.setNestedGroupsAllowed(false);
         group.localGroup = true // Do not synchronize group with external user management system by default.
-        groupDao.internalSave(group, context)
+        groupDao.internalSave(group)
     }
 
     /**
@@ -264,7 +257,7 @@ class DatabaseService {
         adminUser!!.username = user.username
         adminUser.localUser = true
         adminUser.timeZone = adminUserTimezone
-        userDao.internalUpdateInTrans(adminUser)
+        userDao.internalUpdate(adminUser)
         setUser(adminUser)
         userGroupCache.forceReload()
         return adminUser

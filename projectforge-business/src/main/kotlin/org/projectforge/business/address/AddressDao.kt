@@ -43,7 +43,6 @@ import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.UserRightService
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDay.Companion.from
@@ -129,18 +128,19 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     /**
      * Get the newest address entries (by time of creation).
      */
-    fun getNewest(filter: BaseSearchFilter, context: PfPersistenceContext): List<AddressDO> {
+    fun getNewest(filter: BaseSearchFilter): List<AddressDO> {
         val queryFilter = QueryFilter()
         queryFilter.addOrder(desc("created"))
         addAddressbookRestriction(queryFilter, null)
         if (filter.maxRows > 0) {
             filter.isSortAndLimitMaxRowsWhileSelect = true
         }
-        return getList(queryFilter, context)
+        return getList(queryFilter)
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: QueryFilter, context: PfPersistenceContext): List<AddressDO> {
+    override fun getList(filter: QueryFilter): List<AddressDO> {
+        super.getList(filter)
         val filters: MutableList<CustomResultFilter<AddressDO>> = ArrayList()
         if (filter.getExtendedBooleanValue("doublets")) {
             filters.add(DoubletsResultFilter())
@@ -148,10 +148,10 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (filter.getExtendedBooleanValue("favorites")) {
             filters.add(FavoritesResultFilter(personalAddressDao))
         }
-        return super.getList(filter, filters, context)
+        return super.getList(filter, filters)
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<AddressDO> {
+    override fun getList(filter: BaseSearchFilter): List<AddressDO> {
         val myFilter = if (filter is AddressFilter) {
             filter
         } else {
@@ -161,7 +161,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (StringUtils.isBlank(myFilter.searchString)) {
             if (!myFilter.isDeleted) {
                 if (myFilter.isNewest) {
-                    return getNewest(myFilter, context)
+                    return getNewest(myFilter)
                 }
                 if (myFilter.isMyFavorites) {
                     // Show only favorites.
@@ -221,7 +221,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             addAddressbookRestriction(queryFilter, myFilter)
         }
         queryFilter.addOrder(asc("name"))
-        val result = getList(queryFilter, context)
+        val result = getList(queryFilter)
         if (myFilter.isDoublets) {
             return filterDoublets(result)
         }
@@ -326,7 +326,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun beforeSaveOrModify(obj: AddressDO, context: PfPersistenceContext) {
+    override fun beforeSaveOrModify(obj: AddressDO) {
         if (obj.id == null) {
             if (obj.addressbookList == null) {
                 val addressbookSet = mutableSetOf<AddressbookDO>()
@@ -337,7 +337,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             }
         } else {
             //Check addressbook changes
-            val dbAddress = internalGetById(obj.id, context)
+            val dbAddress = internalGetById(obj.id)
             val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             for (dbAddressbook in dbAddress!!.addressbookList!!) {
                 //If user has no right for assigned addressbook, it could not be removed
@@ -350,37 +350,39 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun onSaveOrModify(obj: AddressDO, context: PfPersistenceContext) {
-        beforeSaveOrModify(obj, context)
+    override fun onSaveOrModify(obj: AddressDO) {
+        beforeSaveOrModify(obj)
     }
 
-    override fun onChange(obj: AddressDO, dbObj: AddressDO, context: PfPersistenceContext) {
+    override fun onChange(obj: AddressDO, dbObj: AddressDO) {
         // Don't modify the following fields:
         if (obj.getTransientAttribute("Modify image modification data") !== "true") {
             obj.image = dbObj.image
             obj.imageLastUpdate = dbObj.imageLastUpdate
         }
-        super.onChange(obj, dbObj, context)
+        super.onChange(obj, dbObj)
     }
 
     /**
      * On force deletion all personal address references has to be deleted.
      * @param obj The deleted object.
      */
-    override fun onDelete(obj: AddressDO, context: PfPersistenceContext) {
-        personalAddressDao.internalDeleteAll(obj, context)
-        teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj, context)
-        val counter = context.executeNamedUpdate(
-            AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
-            Pair("addressId", obj.id)
-        )
-        if (counter > 0) {
-            log.info("Removed #$counter address images of deleted address: $obj")
-        }
-        synchronized(deletionListeners)
-        {
-            for (listener in deletionListeners) {
-                listener.onDelete(obj)
+    override fun onDelete(obj: AddressDO) {
+        persistenceService.runInTransaction { context ->
+            personalAddressDao.internalDeleteAll(obj)
+            teamEventDao.removeAttendeeByAddressIdFromAllEvents(obj)
+            val counter = context.executeNamedUpdate(
+                AddressImageDO.DELETE_ALL_IMAGES_BY_ADDRESS_ID,
+                Pair("addressId", obj.id)
+            )
+            if (counter > 0) {
+                log.info("Removed #$counter address images of deleted address: $obj")
+            }
+            synchronized(deletionListeners)
+            {
+                for (listener in deletionListeners) {
+                    listener.onDelete(obj)
+                }
             }
         }
     }
@@ -398,7 +400,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         address.imageLastUpdate = Date()
     }
 
-    override fun onSave(obj: AddressDO, context: PfPersistenceContext) {
+    override fun onSave(obj: AddressDO) {
         // create uid if empty
         if (StringUtils.isBlank(obj.uid)) {
             obj.uid = UUID.randomUUID().toString()
@@ -410,7 +412,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      *
      * @param obj
      */
-    override fun afterSaveOrModify(obj: AddressDO, context: PfPersistenceContext) {
+    override fun afterSaveOrModify(obj: AddressDO) {
         birthdayCache.setExpired()
     }
 

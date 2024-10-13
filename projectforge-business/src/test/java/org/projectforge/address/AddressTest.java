@@ -56,17 +56,17 @@ public class AddressTest extends AbstractTestBase {
     logon(AbstractTestBase.ADMIN);
     AddressDO a1 = new AddressDO();
     a1.setName("Kai Reinhard");
-    addressDao.saveInTrans(a1);
+    addressDao.save(a1);
     log.debug(a1.toString());
 
     a1.setName("Hurzel");
-    addressDao.updateInTrans(a1);
+    addressDao.update(a1);
     assertEquals("Hurzel", a1.getName());
 
     AddressDO a2 = addressDao.getById(a1.getId());
     assertEquals("Hurzel", a2.getName());
     a2.setName("Micromata GmbH");
-    addressDao.updateInTrans(a2);
+    addressDao.update(a2);
     log.debug(a2.toString());
 
     AddressDO a3 = addressDao.getById(a1.getId());
@@ -79,15 +79,15 @@ public class AddressTest extends AbstractTestBase {
     logon(AbstractTestBase.ADMIN);
     AddressDO a1 = new AddressDO();
     a1.setName("Test");
-    addressDao.saveInTrans(a1);
+    addressDao.save(a1);
 
     Long id = a1.getId();
     a1 = addressDao.getById(id);
-    addressDao.markAsDeletedInTrans(a1);
+    addressDao.markAsDeleted(a1);
     a1 = addressDao.getById(id);
     assertEquals(true, a1.getDeleted(), "Should be marked as deleted.");
 
-    addressDao.undeleteInTrans(a1);
+    addressDao.undelete(a1);
     a1 = addressDao.getById(id);
     assertEquals(false, a1.getDeleted(), "Should be undeleted.");
   }
@@ -97,10 +97,10 @@ public class AddressTest extends AbstractTestBase {
             () -> {
               AddressDO a1 = new AddressDO();
               a1.setName("Not deletable");
-              addressDao.saveInTrans(a1);
+              addressDao.save(a1);
               Long id = a1.getId();
               a1 = addressDao.getById(id);
-              addressDao.deleteInTrans(a1);
+              addressDao.delete(a1);
             });
   }
 
@@ -108,27 +108,27 @@ public class AddressTest extends AbstractTestBase {
   public void checkStandardAccess() {
     AddressbookDO testAddressbook = new AddressbookDO();
     testAddressbook.setTitle("testAddressbook");
-    addressbookDao.internalSaveInTrans(testAddressbook);
+    addressbookDao.internalSave(testAddressbook);
     Set<AddressbookDO> addressbookSet = new HashSet<>();
     addressbookSet.add(testAddressbook);
 
     AddressbookDO globalAddressbook = addressbookDao.getGlobalAddressbook();
     globalAddressbook.setFullAccessUserIds("" + getUser(AbstractTestBase.TEST_USER).getId());
-    addressbookDao.internalUpdateInTrans(globalAddressbook, false);
+    addressbookDao.internalUpdate(globalAddressbook, false);
 
     AddressDO a1 = new AddressDO();
     a1.setName("testa1");
-    addressDao.internalSaveInTrans(a1);
+    addressDao.internalSave(a1);
     AddressDO a2 = new AddressDO();
     a2.setName("testa2");
-    addressDao.internalSaveInTrans(a2);
+    addressDao.internalSave(a2);
     AddressDO a3 = new AddressDO();
     a3.setName("testa3");
-    addressDao.internalSaveInTrans(a3);
+    addressDao.internalSave(a3);
     AddressDO a4 = new AddressDO();
     a4.setName("testa4");
     a4.setAddressbookList(addressbookSet);
-    addressDao.internalSaveInTrans(a4);
+    addressDao.internalSave(a4);
     logon(AbstractTestBase.TEST_USER);
 
     // Select
@@ -164,7 +164,7 @@ public class AddressTest extends AbstractTestBase {
     address.setName("test");
     address.setAddressbookList(addressbookSet);
     try {
-      addressDao.saveInTrans(address);
+      addressDao.save(address);
       fail("User has no access to insert");
     } catch (AccessException ex) {
       assertEquals("access.exception.userHasNotRight", ex.getI18nKey());
@@ -172,13 +172,13 @@ public class AddressTest extends AbstractTestBase {
       assertEquals("insert", ex.getParams()[1].toString());
     }
     address.setAddressbookList(null);
-    addressDao.saveInTrans(address);
+    addressDao.save(address);
     assertEquals("test", address.getName());
 
     // Update
     a4.setName("test_a4test");
     try {
-      addressDao.updateInTrans(a4);
+      addressDao.update(a4);
       fail("User has no access to update");
     } catch (AccessException ex) {
       assertEquals("access.exception.userHasNotRight", ex.getI18nKey());
@@ -186,19 +186,19 @@ public class AddressTest extends AbstractTestBase {
       assertEquals("update", ex.getParams()[1].toString());
     }
     a2.setName("testa2test");
-    addressDao.updateInTrans(a2);
+    addressDao.update(a2);
     address = addressDao.getById(a2.getId());
     assertEquals("testa2test", address.getName());
 
     // Delete
     try {
-      addressDao.deleteInTrans(a1);
+      addressDao.delete(a1);
       fail("Address is historizable and should not be allowed to delete.");
     } catch (RuntimeException ex) {
       assertEquals(true, ex.getMessage().startsWith(AddressDao.EXCEPTION_HISTORIZABLE_NOTDELETABLE));
     }
     try {
-      addressDao.markAsDeletedInTrans(a4);
+      addressDao.markAsDeleted(a4);
       fail("User has no access to delete");
     } catch (AccessException ex) {
       assertEquals("access.exception.userHasNotRight", ex.getI18nKey());
@@ -217,11 +217,11 @@ public class AddressTest extends AbstractTestBase {
     AddressbookDO addressbookWithUserAccess = new AddressbookDO();
     addressbookWithUserAccess.setTitle("address book with user access");
     addressbookWithUserAccess.setFullAccessUserIds("" + testUser.getId());
-    addressbookDao.saveInTrans(addressbookWithUserAccess);
+    addressbookDao.save(addressbookWithUserAccess);
 
     AddressbookDO addressbookWithoutUserAccess = new AddressbookDO();
     addressbookWithoutUserAccess.setTitle("address book without user access");
-    addressbookDao.saveInTrans(addressbookWithoutUserAccess);
+    addressbookDao.save(addressbookWithoutUserAccess);
 
     Set<AddressbookDO> addressbookSet = new HashSet<>();
     addressbookSet.add(addressbookWithUserAccess);
@@ -231,7 +231,7 @@ public class AddressTest extends AbstractTestBase {
     AddressDO address = new AddressDO();
     address.setName("Kai Reinhard");
     address.setAddressbookList(addressbookSet);
-    Long id = addressDao.saveInTrans(address);
+    Long id = addressDao.save(address);
 
     address = addressDao.getById(id);
     assertEquals(2, address.getAddressbookList().size());
@@ -241,7 +241,7 @@ public class AddressTest extends AbstractTestBase {
     assertEquals(2, address.getAddressbookList().size());
     address.getAddressbookList().clear();
     address.getAddressbookList().add(addressbookWithUserAccess);
-    addressDao.updateInTrans(address);
+    addressDao.update(address);
 
     address = addressDao.getById(id);
     assertEquals(2, address.getAddressbookList().size(), "Address book without user access should be preserved.");

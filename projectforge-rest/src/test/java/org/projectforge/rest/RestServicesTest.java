@@ -88,9 +88,9 @@ public class RestServicesTest extends AbstractTestBase {
     addressDO.setPrivateZipCode("1337");
     addressDO.setPrivateMobilePhone("007");
     addressDO.setPrivatePhone("I forgot my number");
-    addressDao.saveInTrans(addressDO);
+    addressDao.save(addressDO);
 
-    addressImageDao.saveOrUpdateInTrans(addressDO.getId(),new byte[]{0, 1, 3});
+    addressImageDao.saveOrUpdate(addressDO.getId(),new byte[]{0, 1, 3});
 
 
     Response response = addressDaoRest.getList("", 0L, true, true, true);

@@ -28,7 +28,6 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Service
 import java.util.*
@@ -39,60 +38,60 @@ import java.util.*
 @Service
 open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class.java) {
 
-  override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
-    return true // Select access in general for all registered users
-  }
-
-  override fun hasAccess(
-    user: PFUserDO,
-    obj: MerlinTemplateDO?,
-    oldObj: MerlinTemplateDO?,
-    operationType: OperationType,
-    throwException: Boolean
-  ): Boolean {
-    obj ?: return false
-    val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
-    if (adminIds.contains(user.id!!)) {
-      return true
+    override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
+        return true // Select access in general for all registered users
     }
-    if (operationType == OperationType.SELECT) {
-      //em.detach(obj)
-      // Select access also for those users:
-      StringHelper.splitToLongs(obj.accessUserIds, ",")?.let {
-        if (it.contains(user.id!!)) {
-          return true
+
+    override fun hasAccess(
+        user: PFUserDO,
+        obj: MerlinTemplateDO?,
+        oldObj: MerlinTemplateDO?,
+        operationType: OperationType,
+        throwException: Boolean
+    ): Boolean {
+        obj ?: return false
+        val adminIds = StringHelper.splitToLongs(obj.adminIds, ",")
+        if (adminIds.contains(user.id!!)) {
+            return true
         }
-      }
-      StringHelper.splitToLongs(obj.accessGroupIds, ",")?.let {
-        if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it.toTypedArray())) {
-          return true
+        if (operationType == OperationType.SELECT) {
+            //em.detach(obj)
+            // Select access also for those users:
+            StringHelper.splitToLongs(obj.accessUserIds, ",")?.let {
+                if (it.contains(user.id!!)) {
+                    return true
+                }
+            }
+            StringHelper.splitToLongs(obj.accessGroupIds, ",")?.let {
+                if (userGroupCache.isUserMemberOfAtLeastOneGroup(user.id, *it.toTypedArray())) {
+                    return true
+                }
+            }
         }
-      }
+        if (throwException) {
+            throw AccessException(user, "access.exception.userHasNotRight")
+        }
+        return false
     }
-    if (throwException) {
-      throw AccessException(user, "access.exception.userHasNotRight")
+
+    override val defaultSortProperties: Array<SortProperty>?
+        get() = arrayOf(SortProperty.desc("lastUpdate"))
+
+    override fun newInstance(): MerlinTemplateDO {
+        return MerlinTemplateDO()
     }
-    return false
-  }
 
-  override val defaultSortProperties: Array<SortProperty>?
-    get() = arrayOf(SortProperty.desc("lastUpdate"))
-
-  override fun newInstance(): MerlinTemplateDO {
-    return MerlinTemplateDO()
-  }
-
-  override fun onSave(obj: MerlinTemplateDO, context: PfPersistenceContext) {
-    if (!obj.variables.isNullOrBlank() || !obj.dependentVariables.isNullOrBlank()) {
-      // Variables were changed:
-      obj.lastVariableUpdate = Date()
+    override fun onSave(obj: MerlinTemplateDO) {
+        if (!obj.variables.isNullOrBlank() || !obj.dependentVariables.isNullOrBlank()) {
+            // Variables were changed:
+            obj.lastVariableUpdate = Date()
+        }
     }
-  }
 
-  override fun onChange(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO, context: PfPersistenceContext) {
-    if (obj.variables != dbObj.variables || obj.dependentVariables != dbObj.dependentVariables) {
-      // Variables were changed:
-      obj.lastVariableUpdate = Date()
+    override fun onChange(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO) {
+        if (obj.variables != dbObj.variables || obj.dependentVariables != dbObj.dependentVariables) {
+            // Variables were changed:
+            obj.lastVariableUpdate = Date()
+        }
     }
-  }
 }

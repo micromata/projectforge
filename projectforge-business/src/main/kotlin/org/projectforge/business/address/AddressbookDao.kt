@@ -34,7 +34,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -72,7 +71,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return AddressbookDO()
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<AddressbookDO> {
+    override fun getList(filter: BaseSearchFilter): List<AddressbookDO> {
         val myFilter = if (filter is AddressbookFilter) filter
         else {
             AddressbookFilter(filter)
@@ -80,7 +79,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         val user = loggedInUser
         val queryFilter = QueryFilter(myFilter)
         queryFilter.addOrder(asc("title"))
-        val list = getList(queryFilter, context)
+        val list = getList(queryFilter)
         if (myFilter.isDeleted) {
             // No further filtering, show all deleted calendars.
             return list
@@ -142,9 +141,8 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     val globalAddressbook: AddressbookDO
         get() = internalGetById(GLOBAL_ADDRESSBOOK_ID)!!
 
-    fun getGlobalAddressbook(context: PfPersistenceContext): AddressbookDO? {
-        return internalGetById(GLOBAL_ADDRESSBOOK_ID, context)
-    }
+    val globalAddressbookOrNull: AddressbookDO?
+        get() = internalGetById(GLOBAL_ADDRESSBOOK_ID)
 
     /**
      * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
@@ -204,9 +202,8 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
 
     override fun getDisplayHistoryEntries(
         obj: AddressbookDO,
-        context: PfPersistenceContext
     ): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, context)
+        val list = super.getDisplayHistoryEntries(obj)
         if (CollectionUtils.isEmpty(list)) {
             return list
         }
@@ -240,21 +237,23 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return list
     }
 
-    override fun onDelete(obj: AddressbookDO, context: PfPersistenceContext) {
-        super.onDelete(obj, context)
-        val addressList = context.executeQuery(
-            "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList",
-            AddressDO::class.java,
-            Pair("addressbook", obj),
-            attached = true,
-        )
-        addressList.forEach { address ->
-            if (address.addressbookList!!.size == 1 && address.addressbookList!!.contains(obj)) {
-                // Add global address book, if no other address book is left:
-                address.addressbookList!!.add(globalAddressbook)
+    override fun onDelete(obj: AddressbookDO) {
+        super.onDelete(obj)
+        persistenceService.runInTransaction { context ->
+            val addressList = context.executeQuery(
+                "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList",
+                AddressDO::class.java,
+                Pair("addressbook", obj),
+                attached = true,
+            )
+            addressList.forEach { address ->
+                if (address.addressbookList!!.size == 1 && address.addressbookList!!.contains(obj)) {
+                    // Add global address book, if no other address book is left:
+                    address.addressbookList!!.add(globalAddressbook)
+                }
+                address.addressbookList!!.remove(obj)
+                context.update(address)
             }
-            address.addressbookList!!.remove(obj)
-            context.update(address)
         }
     }
 

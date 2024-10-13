@@ -157,7 +157,7 @@ public class TeamCalImportDao {
         col.add(event);
       }
     }
-    teamEventDao.internalSaveOrUpdateInTrans(col, INSERT_BLOCK_SIZE);
+    teamEventDao.internalSaveOrUpdate(col, INSERT_BLOCK_SIZE);
     return col.size();
   }
 }

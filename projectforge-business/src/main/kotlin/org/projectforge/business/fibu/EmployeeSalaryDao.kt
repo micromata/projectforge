@@ -33,7 +33,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfYears
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -67,7 +66,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
             return getYearsByTupleOfYears(minMaxDate)
         }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<EmployeeSalaryDO> {
+    override fun getList(filter: BaseSearchFilter): List<EmployeeSalaryDO> {
         val myFilter = if (filter is EmployeeSalaryFilter) {
             filter
         } else {
@@ -82,11 +81,11 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
         }
         queryFilter.addOrder(desc("year")).addOrder(desc("month"))
 
-        val list = getList(queryFilter, context)
+        val list = getList(queryFilter)
         return list
     }
 
-    override fun onSaveOrModify(obj: EmployeeSalaryDO, context: PfPersistenceContext) {
+    override fun onSaveOrModify(obj: EmployeeSalaryDO) {
         if (obj.id == null) {
             val list = persistenceService.executeQuery(
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",

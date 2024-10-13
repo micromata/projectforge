@@ -148,7 +148,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
       log.info("LDAP user '" + username + "' doesn't yet exist in ProjectForge's data base. Creating new user...");
       user = pfUserDOConverter.convert(ldapUser);
       user.setId(null); // Force new id.
-      userDao.internalSaveInTrans(user);
+      userDao.internalSave(user);
       if (mode == Mode.SIMPLE || !ldapConfig.isStorePasswords()) {
         // Don't store password.
       } else {
@@ -158,9 +158,9 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
     } else if (mode != Mode.SIMPLE) {
       PFUserDOConverter.copyUserFields(pfUserDOConverter.convert(ldapUser), user);
       if (ldapConfig.isStorePasswords()) {
-        userService.encryptAndSavePasswordInTrans(user, password);
+        userService.encryptAndSavePassword(user, password);
       }
-      userDao.internalUpdateInTrans(user);
+      userDao.internalUpdate(user);
       if (!user.hasSystemAccess()) {
         log.info("User has no system access (is deleted/deactivated): " + user.getUserDisplayName());
         return loginResult.setLoginResultStatus(LoginResultStatus.LOGIN_EXPIRED);
@@ -289,10 +289,10 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
               }
               PFUserDOConverter.copyUserFields(user, dbUser);
               if (dbUser.getDeleted()) {
-                userDao.internalUndeleteInTrans(dbUser);
+                userDao.internalUndelete(dbUser);
                 ++undeleted;
               }
-              final EntityCopyStatus modificationStatus = userDao.internalUpdateInTrans(dbUser);
+              final EntityCopyStatus modificationStatus = userDao.internalUpdate(dbUser);
               if (modificationStatus != EntityCopyStatus.NONE) {
                 ++updated;
               } else {
@@ -301,7 +301,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
             } else {
               // New user:
               user.setId(null);
-              userDao.internalSaveInTrans(user);
+              userDao.internalSave(user);
               ++created;
             }
           } catch (final Exception ex) {
@@ -320,7 +320,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler {
             if (user == null) {
               if (!dbUser.getDeleted()) {
                 // User isn't available in LDAP, therefore mark the db user as deleted.
-                userDao.internalMarkAsDeletedInTrans(dbUser);
+                userDao.internalMarkAsDeleted(dbUser);
                 ++deleted;
               } else {
                 ++unmodified;

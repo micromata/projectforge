@@ -163,13 +163,13 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
             val employees = mutableSetOf<EmployeeDO>()
             data?.employees?.forEach { employee ->
                 if (employees.none { it.id == employee.id }) {
-                    val employeeDO = employeeDao.internalGetById(employee.id, context)!!
+                    val employeeDO = employeeDao.internalGetById(employee.id)!!
                     employees.add(employeeDO)
                 }
             }
             data?.groups?.forEach { group ->
                 userGroupCache.getGroup(group.id)?.assignedUsers?.forEach { user ->
-                    employeeDao.findByUserId(user.id, context)?.let { employeeDO ->
+                    employeeDao.findByUserId(user.id)?.let { employeeDO ->
                         employees.add(employeeDO)
                     }
                 }

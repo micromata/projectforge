@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
@@ -34,8 +35,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import jakarta.annotation.PostConstruct
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 
 private val log = KotlinLogging.logger {}
 
@@ -46,84 +45,84 @@ private val log = KotlinLogging.logger {}
  */
 @Component
 open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
-  @Autowired
-  private lateinit var vacationDao: VacationDao
+    @Autowired
+    private lateinit var vacationDao: VacationDao
 
-  @Autowired
-  private lateinit var userGroupCache: UserGroupCache
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
 
-  private var vacationMap = mutableMapOf<Long?, VacationDO>()
+    private var vacationMap = mutableMapOf<Long?, VacationDO>()
 
-  private var vacations = listOf<VacationDO>() // Thread safe
+    private var vacations = listOf<VacationDO>() // Thread safe
 
-  @PostConstruct
-  private fun postConstruct() {
-    vacationDao.register(this)
-  }
-
-  /**
-   * Checks also the select access of the logged in user.
-   * @param groupIds Null items should only occur on (de)serialization issues.
-   * @param userIds Null items should only occur on (de)serialization issues.
-   */
-  open fun getVacationForPeriodAndUsers(
-    startVacationDate: LocalDate, endVacationDate: LocalDate,
-    groupIds: Set<Long?>?, userIds: Set<Long?>?
-  ): List<VacationDO> {
-    checkRefresh()
-    val result = mutableListOf<VacationDO>()
-    if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
-      log.info("No groups given, therefore no vacation will be returned.")
-      return result
+    @PostConstruct
+    private fun postConstruct() {
+        vacationDao.register(this)
     }
-    for (vacation in vacations) {
-      if (vacation.endDate?.isBefore(startVacationDate) == true ||
-        vacation.startDate?.isAfter(endVacationDate) == true
-      ) {
-        continue
-      }
-      if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
-        continue
-      }
-      val employeeUser = userGroupCache.getUser(vacation.employee) ?: continue
-      var match = groupIds?.any { gid ->
-        userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
-          user.id == employeeUser.id // The employee matches with one assigned user of the group.
-        } ?: false // Null doesn't match.
-      } ?: false // Null doesn't match
-      if (!match) { // Search for users
-        match = userIds?.any { uid ->
-          uid == employeeUser.id // The employee matches with one given user.
-        } ?: false // Null doesn't match
-      }
-      if (match) {
-        result.add(vacation) // Employee is part of group, so return the vacation entry for this user.
-      }
-    }
-    return result
-  }
 
-  override fun afterSaveOrModify(changedObject: VacationDO, operationType: OperationType, context: PfPersistenceContext) {
-    synchronized(vacationMap) {
-      vacationMap[changedObject.id] = changedObject
-      vacations = vacationMap.values.toList()
+    /**
+     * Checks also the select access of the logged in user.
+     * @param groupIds Null items should only occur on (de)serialization issues.
+     * @param userIds Null items should only occur on (de)serialization issues.
+     */
+    open fun getVacationForPeriodAndUsers(
+        startVacationDate: LocalDate, endVacationDate: LocalDate,
+        groupIds: Set<Long?>?, userIds: Set<Long?>?
+    ): List<VacationDO> {
+        checkRefresh()
+        val result = mutableListOf<VacationDO>()
+        if (groupIds.isNullOrEmpty() && userIds.isNullOrEmpty()) {
+            log.info("No groups given, therefore no vacation will be returned.")
+            return result
+        }
+        for (vacation in vacations) {
+            if (vacation.endDate?.isBefore(startVacationDate) == true ||
+                vacation.startDate?.isAfter(endVacationDate) == true
+            ) {
+                continue
+            }
+            if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
+                continue
+            }
+            val employeeUser = userGroupCache.getUser(vacation.employee) ?: continue
+            var match = groupIds?.any { gid ->
+                userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
+                    user.id == employeeUser.id // The employee matches with one assigned user of the group.
+                } ?: false // Null doesn't match.
+            } ?: false // Null doesn't match
+            if (!match) { // Search for users
+                match = userIds?.any { uid ->
+                    uid == employeeUser.id // The employee matches with one given user.
+                } ?: false // Null doesn't match
+            }
+            if (match) {
+                result.add(vacation) // Employee is part of group, so return the vacation entry for this user.
+            }
+        }
+        return result
     }
-  }
 
-  /**
-   * This method will be called by CacheHelper and is synchronized via getData();
-   */
-  override fun refresh() {
-    log.info("Refreshing VacationCache ...")
-    // This method must not be synchronized because it works with a new copy of maps.
-    val map = mutableMapOf<Long?, VacationDO>()
-    vacationDao.internalLoadAll().forEach {
-      if (!it.deleted) {
-        map[it.id] = it
-      }
+    override fun afterSaveOrModify(changedObject: VacationDO, operationType: OperationType) {
+        synchronized(vacationMap) {
+            vacationMap[changedObject.id] = changedObject
+            vacations = vacationMap.values.toList()
+        }
     }
-    vacationMap = map
-    vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
-    log.info("Refreshing of VacationCache done.")
-  }
+
+    /**
+     * This method will be called by CacheHelper and is synchronized via getData();
+     */
+    override fun refresh() {
+        log.info("Refreshing VacationCache ...")
+        // This method must not be synchronized because it works with a new copy of maps.
+        val map = mutableMapOf<Long?, VacationDO>()
+        vacationDao.internalLoadAll().forEach {
+            if (!it.deleted) {
+                map[it.id] = it
+            }
+        }
+        vacationMap = map
+        vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
+        log.info("Refreshing of VacationCache done.")
+    }
 }

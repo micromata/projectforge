@@ -67,35 +67,35 @@ public class EmployeeSelectFilterTest extends AbstractTestBase {
             "employee"), null, "employee");
     PFUserDO pfUserDO = new PFUserDO();
     pfUserDO.setUsername("EmployeeSelectFilterTestuser1");
-    userDao.saveInTrans(pfUserDO);
+    userDao.save(pfUserDO);
     pfUserDO.setFirstname("1");
     pfUserDO.setLastname("User1");
-    userDao.updateInTrans(pfUserDO);
+    userDao.update(pfUserDO);
     EmployeeDO employeeDO = new EmployeeDO();
     employeeDO.setUser(pfUserDO);
-    this.employeeDao.saveInTrans(employeeDO);
+    this.employeeDao.save(employeeDO);
 
     PFUserDO pfUserDO1 = new PFUserDO();
     pfUserDO1.setUsername("EmployeeSelectFilterTestuser2");
-    userDao.saveInTrans(pfUserDO1);
+    userDao.save(pfUserDO1);
     pfUserDO1.setFirstname("2");
     pfUserDO1.setLastname("User2");
-    userDao.updateInTrans(pfUserDO1);
+    userDao.update(pfUserDO1);
     EmployeeDO employeeDO1 = new EmployeeDO();
     employeeDO1.setUser(pfUserDO1);
     employeeDO1.setAustrittsDatum(LocalDate.now().minusYears(1));
-    this.employeeDao.saveInTrans(employeeDO1);
+    this.employeeDao.save(employeeDO1);
 
     PFUserDO pfUserDO2 = new PFUserDO();
 
     pfUserDO2.setUsername("EmployeeSelectFilterTestuser3");
     pfUserDO2.setFirstname("3");
     pfUserDO2.setLastname("User3");
-    userDao.saveInTrans(pfUserDO2);
+    userDao.save(pfUserDO2);
     EmployeeDO employeeDO2 = new EmployeeDO();
     employeeDO2.setUser(pfUserDO2);
     employeeDO2.setAustrittsDatum(LocalDate.now().plusDays(2));
-    this.employeeDao.saveInTrans(employeeDO2);
+    this.employeeDao.save(employeeDO2);
 
     databaseDao.rebuildDatabaseSearchIndices(EmployeeDO.class);
 

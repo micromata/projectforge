@@ -136,77 +136,75 @@ class BuchungssatzExcelImporter(
         importedSheet.logger.addValidationErrors(excelSheet)
         val it = excelSheet.dataRowIterator
         var year = 0
-        persistenceService.runReadOnly { context ->
-            while (it.hasNext()) {
-                val row = it.next()
-                val element = MyImportedElement(
-                    importedSheet, row.rowNum, BuchungssatzDO::class.java,
-                    *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES
-                )
-                val satz = BuchungssatzDO()
-                element.value = satz
-                ImportHelper.fillBean(satz, excelSheet, row.rowNum)
-                val day = PFDay.fromOrNull(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
-                if (day != null) {
-                    satz.datum = day.localDate
-                    if (year == 0) {
-                        year = day.year
-                    } else if (year != day.year) {
-                        val msg = "Not supported: Buchungssätze liegen in verschiedenen Jahren."
-                        importedSheet.logger.error(msg, row, Cols.DATUM)
-                        element.putErrorProperty("datum", "Buchungssatz liegt außerhalb des Buchungsmonats.")
-                    }
-                    if (day.monthValue > month) {
-                        val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${
-                            KostFormatter.formatBuchungsmonat(
-                                year,
-                                day.monthValue
-                            )
-                        }'' gebucht werden!"
-                        importedSheet.logger.error(msg, row, Cols.DATUM)
-                        element.putErrorProperty("datum", msg)
-                    } else if (day.monthValue < month) {
-                        val msg =
-                            "Buchungssatz liegt vor Monat '${KostFormatter.formatBuchungsmonat(year, month)}' (OK)."
-                        importedSheet.logger.info(msg, row, Cols.DATUM)
-                    }
-                    satz.year = year
-                    satz.month = month
+        while (it.hasNext()) {
+            val row = it.next()
+            val element = MyImportedElement(
+                importedSheet, row.rowNum, BuchungssatzDO::class.java,
+                *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES
+            )
+            val satz = BuchungssatzDO()
+            element.value = satz
+            ImportHelper.fillBean(satz, excelSheet, row.rowNum)
+            val day = PFDay.fromOrNull(dateValidator.getDate(excelSheet.getCell(row, Cols.DATUM)))
+            if (day != null) {
+                satz.datum = day.localDate
+                if (year == 0) {
+                    year = day.year
+                } else if (year != day.year) {
+                    val msg = "Not supported: Buchungssätze liegen in verschiedenen Jahren."
+                    importedSheet.logger.error(msg, row, Cols.DATUM)
+                    element.putErrorProperty("datum", "Buchungssatz liegt außerhalb des Buchungsmonats.")
                 }
-                satz.betrag = satz.betrag?.setScale(2, RoundingMode.HALF_UP)
-                satz.setSH(excelSheet.getCellString(row, Cols.SH)!!)
-                var kontoInt = excelSheet.getCellInt(row, Cols.KONTO)
-                var konto = kontoDao.getKonto(kontoInt, context)
-                if (konto != null) {
-                    satz.konto = konto
-                } else {
-                    element.putErrorProperty("konto", kontoInt!!)
+                if (day.monthValue > month) {
+                    val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${
+                        KostFormatter.formatBuchungsmonat(
+                            year,
+                            day.monthValue
+                        )
+                    }'' gebucht werden!"
+                    importedSheet.logger.error(msg, row, Cols.DATUM)
+                    element.putErrorProperty("datum", msg)
+                } else if (day.monthValue < month) {
+                    val msg =
+                        "Buchungssatz liegt vor Monat '${KostFormatter.formatBuchungsmonat(year, month)}' (OK)."
+                    importedSheet.logger.info(msg, row, Cols.DATUM)
                 }
-                kontoInt = excelSheet.getCellInt(row, Cols.GEGENKONTO)
-                konto = kontoDao.getKonto(kontoInt, context)
-                if (konto != null) {
-                    satz.gegenKonto = konto
-                } else {
-                    element.putErrorProperty("gegenkonto", kontoInt)
-                }
-                var kostString = excelSheet.getCellString(row, Cols.KOST1)
-                val kost1 = kost1Dao.getKost1(kostString)
-                if (kost1 != null) {
-                    satz.kost1 = kost1
-                } else {
-                    element.putErrorProperty("kost1", kostString)
-                }
-                kostString = excelSheet.getCellString(row, Cols.KOST2)
-                val kost2 = kost2Dao.getKost2(kostString, context)
-                if (kost2 != null) {
-                    satz.kost2 = kost2
-                } else {
-                    element.putErrorProperty("kost2", kostString)
-                }
-                satz.calculate(true)
-                importedSheet.addElement(element)
-                //log.debug(satz.toString())
+                satz.year = year
+                satz.month = month
             }
+            satz.betrag = satz.betrag?.setScale(2, RoundingMode.HALF_UP)
+            satz.setSH(excelSheet.getCellString(row, Cols.SH)!!)
+            var kontoInt = excelSheet.getCellInt(row, Cols.KONTO)
+            var konto = kontoDao.getKonto(kontoInt)
+            if (konto != null) {
+                satz.konto = konto
+            } else {
+                element.putErrorProperty("konto", kontoInt!!)
+            }
+            kontoInt = excelSheet.getCellInt(row, Cols.GEGENKONTO)
+            konto = kontoDao.getKonto(kontoInt)
+            if (konto != null) {
+                satz.gegenKonto = konto
+            } else {
+                element.putErrorProperty("gegenkonto", kontoInt)
+            }
+            var kostString = excelSheet.getCellString(row, Cols.KOST1)
+            val kost1 = kost1Dao.getKost1(kostString)
+            if (kost1 != null) {
+                satz.kost1 = kost1
+            } else {
+                element.putErrorProperty("kost1", kostString)
+            }
+            kostString = excelSheet.getCellString(row, Cols.KOST2)
+            val kost2 = kost2Dao.getKost2(kostString)
+            if (kost2 != null) {
+                satz.kost2 = kost2
+            } else {
+                element.putErrorProperty("kost2", kostString)
+            }
+            satz.calculate(true)
+            importedSheet.addElement(element)
+            //log.debug(satz.toString())
         }
         importedSheet.name = KostFormatter.formatBuchungsmonat(year, month)
         importedSheet.setProperty("year", year)

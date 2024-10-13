@@ -41,7 +41,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.NumberHelper
@@ -102,7 +101,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return file
     }
 
-    override fun onChange(obj: DataTransferAreaDO, dbObj: DataTransferAreaDO, context: PfPersistenceContext) {
+    override fun onChange(obj: DataTransferAreaDO, dbObj: DataTransferAreaDO) {
         if (dbObj.isPersonalBox()) {
             if (obj.adminIds != dbObj.adminIds || obj.areaName != dbObj.areaName) {
                 throw IllegalArgumentException("Can't modify personal boxes: $obj")
@@ -112,7 +111,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         ensureSecureExternalAccess(obj)
     }
 
-    override fun onSave(obj: DataTransferAreaDO, context: PfPersistenceContext) {
+    override fun onSave(obj: DataTransferAreaDO) {
         if (obj.isPersonalBox()) {
             if (obj.modifyPersonalBox != true) {
                 // Prevent from saving or changing personal boxes.
@@ -129,7 +128,6 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     override fun getList(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<DataTransferAreaDO>>?,
-        context: PfPersistenceContext,
     ): List<DataTransferAreaDO> {
         val loggedInUserId = ThreadLocalUserContext.loggedInUserId
         // Don't search for personal boxes of other users (they will be added afterwards):
@@ -141,7 +139,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                 DBPredicate.Equal("adminIds", loggedInUserId.toString()),
             )
         )
-        var result = super.getList(filter, customResultFilters, context)
+        var result = super.getList(filter, customResultFilters)
         // searchString contains trailing %:
         val searchString = filter.fulltextSearchString?.replace("%", "")
         if (searchString == null || searchString.length < 2) { // Search string is given and has at least 2 chars:
@@ -178,7 +176,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         obj.maxUploadSizeKB = (springServletMultipartMaxFileSize / 1024).toInt()
     }
 
-    override fun afterLoad(obj: DataTransferAreaDO, context: PfPersistenceContext) {
+    override fun afterLoad(obj: DataTransferAreaDO) {
         if (obj.maxUploadSizeKB == null)
             obj.maxUploadSizeKB = MAX_UPLOAD_SIZE_DEFAULT_VALUE_KB
     }
@@ -193,7 +191,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         )
         if (dbo != null) {
             securePersonalBox(dbo)
-            internalUpdateInTrans(dbo)
+            internalUpdate(dbo)
             return dbo
         }
         dbo = DataTransferAreaDO()
@@ -201,7 +199,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         dbo.adminIds = "$userId"
         dbo.observerIds = "$userId"
         dbo.modifyPersonalBox = true
-        internalSaveInTrans(dbo)
+        internalSave(dbo)
         return dbo
     }
 
@@ -375,7 +373,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                 return user.getFullname()
             }
             if (externalUser != null) {
-                if (externalUser.startsWith(DataTransferAreaDao.EXTERNAL_USER_PREFIX)) {
+                if (externalUser.startsWith(EXTERNAL_USER_PREFIX)) {
                     val marker = translate(locale, "plugins.datatransfer.external.userPrefix")
                     return "${externalUser.removePrefix(EXTERNAL_USER_PREFIX)}, $marker"
                 } else {

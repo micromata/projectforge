@@ -55,51 +55,51 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
         logon(AbstractTestBase.TEST_ADMIN_USER);
         final String prefix = "task2Gantt";
         persistenceService.runInTransaction(context -> {
-            initTestDB.addTask(prefix, "root", context);
-            initTestDB.addTask(prefix + "1", prefix, context);
-            initTestDB.addTask(prefix + "1.1", prefix + "1", context);
-            initTestDB.addTask(prefix + "1.1.1", prefix + "1.1", context);
-            initTestDB.addTask(prefix + "1.1.2", prefix + "1.1", context);
-            initTestDB.addTask(prefix + "1.2", prefix + "1", context);
-            initTestDB.addTask(prefix + "1.2.1", prefix + "1.2", context);
-            initTestDB.addTask(prefix + "1.2.2", prefix + "1.2", context);
-            initTestDB.addTask(prefix + "2", prefix, context);
-            initTestDB.addTask(prefix + "2.1", prefix + "2", context);
-            initTestDB.addTask(prefix + "2.2", prefix + "2", context);
-            initTestDB.addTask(prefix + "2.3", prefix + "2", context);
+            initTestDB.addTask(prefix, "root");
+            initTestDB.addTask(prefix + "1", prefix);
+            initTestDB.addTask(prefix + "1.1", prefix + "1");
+            initTestDB.addTask(prefix + "1.1.1", prefix + "1.1");
+            initTestDB.addTask(prefix + "1.1.2", prefix + "1.1");
+            initTestDB.addTask(prefix + "1.2", prefix + "1");
+            initTestDB.addTask(prefix + "1.2.1", prefix + "1.2");
+            initTestDB.addTask(prefix + "1.2.2", prefix + "1.2");
+            initTestDB.addTask(prefix + "2", prefix);
+            initTestDB.addTask(prefix + "2.1", prefix + "2");
+            initTestDB.addTask(prefix + "2.2", prefix + "2");
+            initTestDB.addTask(prefix + "2.3", prefix + "2");
             final PFDateTime day = PFDateTime.withDate(2010, Month.AUGUST, 16);
 
             TaskDO task = getTask(prefix + "2.1");
             task.setStartDate(day.getLocalDate());
             task.setDuration(BigDecimal.TEN);
-            taskDao.update(task, context);
+            taskDao.update(task);
 
             task = getTask(prefix + "2.2");
             task.setGanttPredecessor(getTask(prefix + "2.1"));
             task.setDuration(BigDecimal.TEN);
-            taskDao.update(task, context);
+            taskDao.update(task);
             return null;
         });
         persistenceService.runInTransaction(context -> {
             TaskDO task = getTask(prefix + "1.1.1");
             task.setGanttPredecessor(getTask(prefix + "2.1"));
             task.setDuration(BigDecimal.TEN);
-            taskDao.update(task, context);
+            taskDao.update(task);
 
             task = getTask(prefix + "1.1.2");
             task.setGanttPredecessor(getTask(prefix + "1.1.1"));
             task.setDuration(BigDecimal.TEN);
-            taskDao.update(task, context);
+            taskDao.update(task);
 
             task = getTask(prefix + "1.2.1");
             task.setGanttPredecessor(getTask(prefix + "2.2"));
             task.setDuration(BigDecimal.TEN);
-            taskDao.update(task, context);
+            taskDao.update(task);
 
             task = getTask(prefix + "1.2.2");
             task.setGanttPredecessor(getTask(prefix + "1.2.1"));
             task.setDuration(BigDecimal.TEN);
-            taskDao.update(task, context);
+            taskDao.update(task);
 
             final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree,
                     getTask(prefix + "1"));

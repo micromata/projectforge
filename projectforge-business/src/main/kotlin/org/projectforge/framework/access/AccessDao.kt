@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -69,19 +68,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      * @see BaseDao.getOrLoad
      */
     fun setTask(access: GroupTaskAccessDO, taskId: Long) {
-        return persistenceService.runReadOnly { context ->
-            setTask(access, taskId, context)
-        }
-    }
-
-
-    /**
-     * @param access
-     * @param taskId If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
-     */
-    fun setTask(access: GroupTaskAccessDO, taskId: Long, context: PfPersistenceContext) {
-        val task = taskDao.getOrLoad(taskId, context)
+        val task = taskDao.getOrLoad(taskId)
         access.task = task
     }
 
@@ -91,18 +78,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      * @see BaseDao.getOrLoad
      */
     fun setGroup(access: GroupTaskAccessDO, groupId: Long) {
-        return persistenceService.runReadOnly { context ->
-            setGroup(access, groupId, context)
-        }
-    }
-
-    /**
-     * @param access
-     * @param groupId If null, then group will be set to null;
-     * @see BaseDao.getOrLoad
-     */
-    fun setGroup(access: GroupTaskAccessDO, groupId: Long, context: PfPersistenceContext) {
-        val group = groupDao.getOrLoad(groupId, context)
+        val group = groupDao.getOrLoad(groupId)
         access.group = group
     }
 
@@ -111,7 +87,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      *
      * @return
      */
-    override fun internalLoadAll(context: PfPersistenceContext): List<GroupTaskAccessDO> {
+    override fun internalLoadAll(): List<GroupTaskAccessDO> {
         return persistenceService.runReadOnly { context ->
             val em = context.em
             val cb: CriteriaBuilder = em.criteriaBuilder
@@ -146,7 +122,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         return access
     }
 
-    override fun getList(filter: BaseSearchFilter, context: PfPersistenceContext): List<GroupTaskAccessDO> {
+    override fun getList(filter: BaseSearchFilter): List<GroupTaskAccessDO> {
         val myFilter = if (filter is AccessFilter) {
             filter
         } else {
@@ -184,7 +160,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
             group.id = myFilter.groupId
             queryFilter.add(eq("group", group))
         }
-        val qlist = getList(queryFilter, context)
+        val qlist = getList(queryFilter)
         var list: List<GroupTaskAccessDO>
         if (myFilter.taskId != null && myFilter.isInherit && !myFilter.isIncludeAncestorTasks) {
             // Now we have to remove all inherited entries of ancestor nodes which are not declared as recursive.
@@ -311,7 +287,6 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
     override fun prepareHibernateSearch(
         obj: GroupTaskAccessDO,
         operationType: OperationType,
-        context: PfPersistenceContext
     ) {
         val task = obj.task
         if (task != null && !Hibernate.isInitialized(task)) {
@@ -320,12 +295,12 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         }
         val group = obj.group
         if (group != null && !Hibernate.isInitialized(group)) {
-            obj.group = groupDao.getOrLoad(obj.groupId!!, context)
+            obj.group = groupDao.getOrLoad(obj.groupId!!)
         }
     }
 
-    override fun afterSaveOrModify(obj: GroupTaskAccessDO, context: PfPersistenceContext) {
-        super.afterSaveOrModify(obj, context)
+    override fun afterSaveOrModify(obj: GroupTaskAccessDO) {
+        super.afterSaveOrModify(obj)
         taskTree.setGroupTaskAccess(obj)
     }
 
@@ -342,11 +317,11 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         return access
     }
 
-    override fun afterDelete(obj: GroupTaskAccessDO, context: PfPersistenceContext) {
+    override fun afterDelete(obj: GroupTaskAccessDO) {
         taskTree.removeGroupTaskAccess(obj)
     }
 
-    override fun afterUndelete(obj: GroupTaskAccessDO, context: PfPersistenceContext) {
+    override fun afterUndelete(obj: GroupTaskAccessDO) {
         taskTree.setGroupTaskAccess(obj)
     }
 

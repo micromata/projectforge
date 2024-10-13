@@ -95,15 +95,15 @@ class UserTest : AbstractTestBase() {
         var user = PFUserDO()
         user.username = "UserTest"
         user.description = "Description"
-        val id: Serializable = userService.saveInTrans(user)
+        val id: Serializable = userService.save(user)
         user = userService.internalGetById(id)
         Assertions.assertEquals("UserTest", user.username)
         Assertions.assertEquals("Description", user.description)
         user.description = "Description\ntest"
-        userService.updateInTrans(user)
+        userService.update(user)
         user = userService.internalGetById(id)
         Assertions.assertEquals("Description\ntest", user.description)
-        userService.updateInTrans(user)
+        userService.update(user)
         user = userService.internalGetById(id)
     }
 
@@ -112,8 +112,8 @@ class UserTest : AbstractTestBase() {
         val user = PFUserDO()
         user.username = "UserTest-Passwords"
         user.description = "Description"
-        val id = userService.saveInTrans(user)
-        userPasswordDao.encryptAndSavePasswordInTrans(id, "secret".toCharArray(), false)
+        val id = userService.save(user)
+        userPasswordDao.encryptAndSavePassword(id, "secret".toCharArray(), false)
         val passwordObj = userPasswordDao.internalGetByUserId(id)
         Assertions.assertNotNull(passwordObj!!.passwordHash) // Not SHA, should be ignored.
         Assertions.assertTrue(passwordObj.passwordHash!!.startsWith("SHA{"))
@@ -126,7 +126,7 @@ class UserTest : AbstractTestBase() {
     fun testPasswordQuality() {
         val minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
         minPwLenEntry.longValue = 10
-        configurationDao.internalUpdateInTrans(minPwLenEntry)
+        configurationDao.internalUpdate(minPwLenEntry)
         var passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, null)
         Assertions.assertTrue(
             passwordQualityMessages.contains(
@@ -296,9 +296,9 @@ class UserTest : AbstractTestBase() {
     fun testUniqueUsernameDO() {
 
         var user = createTestUser("42")
-        val userId1 = userService.saveInTrans(user)
+        val userId1 = userService.save(user)
         user = createTestUser("100")
-        val userId2 = userService.saveInTrans(user)
+        val userId2 = userService.save(user)
 
         user = createTestUser("42")
         Assertions.assertTrue(
@@ -310,7 +310,7 @@ class UserTest : AbstractTestBase() {
             userService.doesUsernameAlreadyExist(user),
             "Signature should not exist."
         )
-        userService.saveInTrans(user)
+        userService.save(user)
 
         val dbUser = userService.internalGetById(userId2)
         user = PFUserDO()

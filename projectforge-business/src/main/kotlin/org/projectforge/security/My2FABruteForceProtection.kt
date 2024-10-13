@@ -31,7 +31,6 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -75,7 +74,6 @@ internal class My2FABruteForceProtection {
         override fun afterSaveOrModify(
             changedObject: PFUserDO,
             operationType: OperationType,
-            context: PfPersistenceContext
         ) {
             val data = protection.getData(changedObject.id!!) ?: return
             if (operationType == OperationType.UPDATE && !changedObject.deactivated && data.counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
@@ -118,7 +116,7 @@ internal class My2FABruteForceProtection {
             } else {
                 user.deactivated = true
                 log.warn { "Deactivating user '${user.username}' after $MAX_RETRIES_BEFORE_DEACTIVATING_USER OTP failures." }
-                userDao.internalUpdateInTrans(user)
+                userDao.internalUpdate(user)
             }
         }
     }
