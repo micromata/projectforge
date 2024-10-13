@@ -40,26 +40,19 @@ private val log = KotlinLogging.logger {}
 class PfPersistenceContext internal constructor(
     entityManagerFactory: EntityManagerFactory,
     /**
-     * If true all actions are done in a transaction. Default is false.
+     * If [ContextType.TRANSACTION] all actions are executed in a transaction.
+     * If [ContextType.READONLY], no transaction is used, and it's a readonly context.
      */
-    var withTransaction: Boolean = false,
+    internal var type: ContextType,
 ) : AutoCloseable {
+    internal enum class ContextType { READONLY, TRANSACTION }
+
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
-    private var threadLocalContextSet = false
-
-    init {
-        ThreadLocalPersistenceContext.get().let { existingContext ->
-            if (existingContext != null) {
-                log.debug { "ThreadLocalPersistenceContext already set: $existingContext" }
-            } else {
-                threadLocalContextSet = true
-                ThreadLocalPersistenceContext.setIfNotGiven(this)
-            }
-        }
-        //    openEntityManagers.add(em)
-        //    log.info { "Created EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
-    }
+    /* init {
+        openEntityManagers.add(em)
+        log.info { "Created EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
+    }*/
 
     fun <T> selectById(
         entityClass: Class<T>,
@@ -364,10 +357,6 @@ class PfPersistenceContext internal constructor(
             //openEntityManagers.remove(em)
             //log.info { "Closed EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
         }
-        if (threadLocalContextSet) {
-            ThreadLocalPersistenceContext.remove()
-            threadLocalContextSet = false // Paranoia setting ;-)
-        }
     }
 
     /**
@@ -390,53 +379,4 @@ class PfPersistenceContext internal constructor(
     //companion object {
     //    private val openEntityManagers = mutableSetOf<EntityManager>()
     //}
-
-    internal object ThreadLocalPersistenceContext {
-        private class ContextHolder {
-            var transactionContext: PfPersistenceContext? = null
-                private set
-            var readonlyContext: PfPersistenceContext? = null
-                private set
-
-            fun setIfNotGiven(context: PfPersistenceContext) {
-                if (context.withTransaction) {
-                    if (transactionContext == null) {
-                        transactionContext = context
-                    }
-                } else {
-                    if (readonlyContext == null) {
-                        readonlyContext = context
-                    }
-                }
-            }
-        }
-
-        private val threadLocal = ThreadLocal<ContextHolder?>()
-
-        /**
-         * Gets context of ThreadLocal with transaction, if exists, or readonly context, if exists. Null, if no context exist.
-         */
-        fun get(): PfPersistenceContext? {
-            threadLocal.get().let { holder ->
-                return holder?.transactionContext ?: holder?.readonlyContext
-            }
-        }
-
-        fun getWithTrans(): PfPersistenceContext? {
-            return ensureContext().transactionContext
-        }
-
-        fun setIfNotGiven(context: PfPersistenceContext) {
-            ensureContext().setIfNotGiven(context)
-        }
-
-        private fun ensureContext(): ContextHolder {
-            threadLocal.get() ?: threadLocal.set(ContextHolder())
-            return threadLocal.get()!!
-        }
-
-        fun remove() {
-            threadLocal.remove()
-        }
-    }
 }

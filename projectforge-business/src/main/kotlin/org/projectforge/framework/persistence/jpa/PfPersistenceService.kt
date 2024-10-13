@@ -34,7 +34,11 @@ import org.springframework.stereotype.Service
 
 private val log = KotlinLogging.logger {}
 
-
+/**
+ * Service for handling persistence contexts (EntityManagers).
+ * It provides methods for running code in transactional or readonly context.
+ * It also provides methods for executing queries and selecting entities.
+ */
 @Service
 open class PfPersistenceService {
     // private val openedTransactions = mutableSetOf<EntityTransaction>()
@@ -56,13 +60,15 @@ open class PfPersistenceService {
 
     /**
      * Re-uses the current EntityManager (context) for the block or a new one, if no EntityManager (context) is set in ThreadLocal before.
+     * If a transaction is already running inside the current thread (threadlocal is used), the block will be executed in the same transaction.
+     * @see runInNewTransaction
      */
     fun <T> runInTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
-        val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
+        val context = PfPersistenceContextThreadLocal.getTransactional() // Transactional context.
         if (context == null) {
-            return runInIsolatedTransaction(run)
+            return runInNewTransaction(run)
         } else {
             return context.run(run)
         }
@@ -70,56 +76,102 @@ open class PfPersistenceService {
 
     /**
      * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
+     * After finishing the block, the transactional context will be closed as well as removed from ThreadLocal.
+     * Any previous transactional context in ThreadLocal will be restored after finishing the block.
      */
     fun <T> runInIsolatedTransaction(
         run: (context: PfPersistenceContext) -> T
     ): T {
-        PfPersistenceContext(entityManagerFactory, withTransaction = true).use { context ->
-            val em = context.em
-            em.transaction.begin()
-            // openedTransactions.add(em.transaction)
-            //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
-            try {
-                val ret = run(context)
-                em.transaction.commit()
-                //openedTransactions.remove(em.transaction)
-                //log.info { "Commit transaction ${em.transaction}..." }
-                return ret
-            } catch (ex: Exception) {
-                em.transaction.rollback()
-                //openedTransactions.remove(em.transaction)
-                //log.info { "Rollback transaction ${em.transaction}..." }
-                log.error(ex.message, ex)
-                throw ex
-            }
-        }
+        return runInNewTransaction(run)
     }
 
     /**
      * Uses the current EntityManager for the block or a new one, if no EntityManager is set in ThreadLocal before.
+     * If no EntityManager is set in ThreadLocal before, a new EntityManager will be created and set in ThreadLocal.
+     * @see runInNewReadOnlyContext
      */
     fun <T> runReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
-        val context = PfPersistenceContext.ThreadLocalPersistenceContext.get()
+        val context = PfPersistenceContextThreadLocal.get() // Readonly or transactional context.
         if (context != null) {
             return context.run(block)
         }
-        return runIsolatedReadOnly(block)
+        return runInNewReadOnlyContext(block)
     }
 
     /**
      * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
+     * After finishing the block, the EntityManager will be closed as well as removed from ThreadLocal.
+     * Any previous EntityManager in ThreadLocal will be restored after finishing the block.
      */
     fun <T> runIsolatedReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
-        PfPersistenceContext(entityManagerFactory, withTransaction = false).use { context ->
-            val em = context.em
-            // log.info { "Running read only" }
-            em.unwrap(Session::class.java).isDefaultReadOnly = true
-            // No transaction in readonly mode.
-            return block(context)
+        return runInNewReadOnlyContext(block)
+    }
+
+    /**
+     * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
+     * Any previous transactional context in ThreadLocal will be restored after finishing the block.
+     */
+    private fun <T> runInNewTransaction(
+        run: (context: PfPersistenceContext) -> T
+    ): T {
+        val saved = PfPersistenceContextThreadLocal.getTransactional()
+        try {
+            PfPersistenceContext(
+                entityManagerFactory,
+                type = PfPersistenceContext.ContextType.TRANSACTION,
+            ).use { context ->
+                PfPersistenceContextThreadLocal.setTransactional(context)
+                val em = context.em
+                em.transaction.begin()
+                // openedTransactions.add(em.transaction)
+                //log.info { "Begin transaction ${em.transaction}... (${openedTransactions.size} open transactions)" }
+                try {
+                    val ret = run(context)
+                    em.transaction.commit()
+                    //openedTransactions.remove(em.transaction)
+                    //log.info { "Commit transaction ${em.transaction}..." }
+                    return ret
+                } catch (ex: Exception) {
+                    em.transaction.rollback()
+                    //openedTransactions.remove(em.transaction)
+                    //log.info { "Rollback transaction ${em.transaction}..." }
+                    log.error(ex.message, ex)
+                    throw ex
+                }
+            }
+        } finally {
+            PfPersistenceContextThreadLocal.removeTransactional()
+            saved?.let { PfPersistenceContextThreadLocal.setTransactional(it) } // Restore previous context, if any.
+        }
+    }
+
+    /**
+     * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
+     * Any previous readonly context in ThreadLocal will be restored after finishing the block.
+     */
+    private fun <T> runInNewReadOnlyContext(
+        block: (context: PfPersistenceContext) -> T
+    ): T {
+        val saved = PfPersistenceContextThreadLocal.get()
+        try {
+            PfPersistenceContext(
+                entityManagerFactory,
+                type = PfPersistenceContext.ContextType.READONLY
+            ).use { context ->
+                PfPersistenceContextThreadLocal.setReadonly(context)
+                val em = context.em
+                // log.info { "Running read only" }
+                em.unwrap(Session::class.java).isDefaultReadOnly = true
+                // No transaction in readonly mode.
+                return block(context)
+            }
+        } finally {
+            PfPersistenceContextThreadLocal.removeReadonly()
+            saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
         }
     }
 
