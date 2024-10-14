@@ -36,7 +36,7 @@ public class HtmlTagBuilder
   //private static final Logger log = Logger.getLogger(HtmlTagBuilder.class);
   protected String name = null;
   protected Collection<KeyValueBean<String, String>> attrs = null;
-  protected StringBuffer stringBuffer = null;
+  protected StringBuilder stringBuffer = null;
 
   /**
    * Creates a new HtmlTagBuilder and an empty collection of attributes.
@@ -54,9 +54,9 @@ public class HtmlTagBuilder
    * Use this constructor for quick and dirty mode for writing of tag strings.
    * 
    * @param name Name of the HTML element.
-   * @param buf StringBuffer to append element and attributes directly.
+   * @param buf StringBuilder to append element and attributes directly.
    */
-  public HtmlTagBuilder(StringBuffer buf, String name)
+  public HtmlTagBuilder(StringBuilder buf, String name)
   {
     this.name = name;
     this.stringBuffer = buf;
@@ -73,7 +73,7 @@ public class HtmlTagBuilder
   }
 
   /**
-   * Adds a attribute. For quick and dirty mode, the attribute will be appended to the StringBuffer given in
+   * Adds a attribute. For quick and dirty mode, the attribute will be appended to the StringBuilder given in
    * constructor. Please note: The attribute will be ignored, if the value is null;
    * 
    * @param name Name of the attribute.

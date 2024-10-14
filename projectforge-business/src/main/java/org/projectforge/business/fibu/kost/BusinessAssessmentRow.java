@@ -232,7 +232,7 @@ public class BusinessAssessmentRow implements Serializable
         + " "
         + StringUtils.leftPad(CurrencyFormatter.format(getAmount()), 18);
     /*
-     * StringBuffer buf = new StringBuffer(); buf.append(row); for (KontoUmsatz umsatz : kontoUmsaetze) { buf.append("\n ");
+     * StringBuilder buf = new StringBuilder(); buf.append(row); for (KontoUmsatz umsatz : kontoUmsaetze) { buf.append("\n ");
      * buf.append(umsatz.toString()); } return buf.toString();
      */
   }

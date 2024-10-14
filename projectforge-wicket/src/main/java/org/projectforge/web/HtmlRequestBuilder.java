@@ -36,7 +36,7 @@ public class HtmlRequestBuilder
 {
   //private static final Logger log = Logger.getLogger(HtmlRequestBuilder.class);
   protected Collection<KeyValueBean<String, String>> attrs = null;
-  protected StringBuffer stringBuffer = null;
+  protected StringBuilder stringBuffer = null;
   protected boolean firstAttribute = true;
   protected String url = null;
 
@@ -56,16 +56,16 @@ public class HtmlRequestBuilder
    * Use this constructor for quick and dirty mode for writing request strings.
    * 
    * @param name Name of the HTML element.
-   * @param buf StringBuffer to url and attributes directly.
+   * @param buf StringBuilder to url and attributes directly.
    */
-  public HtmlRequestBuilder(StringBuffer buf, String url)
+  public HtmlRequestBuilder(StringBuilder buf, String url)
   {
     this.url = url;
     buf.append(url);
   }
 
   /**
-   * Adds a parameter. For quick and dirty mode, the attribute will be appended to the StringBuffer given in
+   * Adds a parameter. For quick and dirty mode, the attribute will be appended to the StringBuilder given in
    * constructor. Please note: The attribute will be ignored, if the value is null;
    * 
    * @param name Name of the attribute.
@@ -94,7 +94,7 @@ public class HtmlRequestBuilder
   /** Gets the request string. The attributes added before will be ignored in quick and dirty mode. */
   public String getRequestString()
   {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(url);
     boolean first = true;
     if (attrs != null) {

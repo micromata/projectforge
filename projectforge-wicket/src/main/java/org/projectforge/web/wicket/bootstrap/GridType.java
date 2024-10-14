@@ -46,7 +46,7 @@ public enum GridType
       return gridTypes[0].classAttrValue;
     }
     boolean first = true;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (final GridType gridType : gridTypes) {
       first = StringHelper.append(buf, first, gridType.classAttrValue, " ");
     }

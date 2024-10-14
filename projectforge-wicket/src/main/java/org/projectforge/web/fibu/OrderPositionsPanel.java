@@ -62,7 +62,7 @@ public class OrderPositionsPanel extends Panel
     if (orderPositions != null) {
       final Iterator<AuftragsPositionVO> it = orderPositions.iterator();
       int orderNumber = -1;
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       Link<String> link = null;
       BigDecimal totalPersonDays = BigDecimal.ZERO;
       AuftragsPositionVO previousOrderPosition = null;
@@ -76,7 +76,7 @@ public class OrderPositionsPanel extends Panel
           if (previousOrderPosition != null) {
             // Previous order position finished.
             addTitleAttribute(link, previousOrderPosition, totalPersonDays, buf);
-            buf = new StringBuffer();
+            buf = new StringBuilder();
             totalPersonDays = BigDecimal.ZERO;
           } else {
             separatorLabel.setVisible(false); // Invisible for first entry.
@@ -123,9 +123,9 @@ public class OrderPositionsPanel extends Panel
   }
 
   private void addTitleAttribute(final Link<String> link, final AuftragsPositionVO pos, final BigDecimal totalPersonDays,
-      final StringBuffer buf)
+      final StringBuilder buf)
   {
-    final StringBuffer tooltip = new StringBuffer();
+    final StringBuilder tooltip = new StringBuilder();
     tooltip.append(StringUtils.defaultString(pos.getAuftragTitle())).append(" (").append(
         NumberFormatter.format(totalPersonDays)).append(" ").append(getString("projectmanagement.personDays.short")).append(")");
     if (pos.getAuftragsStatus() != null) {

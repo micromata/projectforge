@@ -278,7 +278,7 @@ public class WicketUtils {
       if (params == null) {
         return Constants.WICKET_APPLICATION_PATH + alias;
       }
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder buf = new StringBuilder();
       buf.append(Constants.WICKET_APPLICATION_PATH).append(alias);
       try {
         for (int i = 0; i < params.length; i += 2) {
@@ -654,7 +654,7 @@ public class WicketUtils {
    * @param dao
    */
   public static void addShowDeleteRowQuestionDialog(final MarkupContainer parent, final BaseDao<?> dao) {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("function showDeleteEntryQuestionDialog() {\n").append("  return window.confirm('");
     if (dao.isHistorizable() == true) {
       buf.append(parent.getString("question.markAsDeletedQuestion"));
@@ -725,7 +725,7 @@ public class WicketUtils {
     if (fromWeek < 0 && toWeek < 0) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(parent.getString("calendar.weekOfYearShortLabel")).append(" ");
     if (fromWeek >= 0) {
       buf.append(StringHelper.format2DigitNumber(fromWeek));
@@ -783,7 +783,7 @@ public class WicketUtils {
    * @param stopTime  Stop time or null.
    */
   public static String getUTCDates(final Date startTime, final Date stopTime) {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     final DateHolder start = startTime != null ? new DateHolder(startTime) : null;
     final DateHolder stop = stopTime != null ? new DateHolder(stopTime) : null;
     if (start != null) {
@@ -803,7 +803,7 @@ public class WicketUtils {
    * @param stopTime  Stop time or null.
    */
   public static String getUTCDates(final LocalDate startTime, final LocalDate stopTime) {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (startTime != null) {
       buf.append(startTime.toString());
       if (stopTime != null) {
@@ -1003,7 +1003,7 @@ public class WicketUtils {
     if (component instanceof TextField) {
       component.add(AttributeModifier.replace("size", String.valueOf(size)));
     }
-    final StringBuffer buf = new StringBuffer(20);
+    final StringBuilder buf = new StringBuilder(20);
     buf.append("width: ");
     if (component instanceof DropDownChoice) {
       buf.append(size + 2).append("em");

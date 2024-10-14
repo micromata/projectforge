@@ -319,7 +319,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
     val fullNameWithTitleAndForm: String
         @Transient
         get() {
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             if (form != null) {
                 buf.append(ThreadLocalUserContext.getLocalizedString(form!!.i18nKey)).append(" ")
             }
@@ -525,7 +525,7 @@ open class AddressDO : DefaultBaseDO(), DisplayNameCapable {
             if (list == null || list.isEmpty()) {
                 return null
             }
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             var first = true
             for (lv in list) {
                 if (StringUtils.isBlank(lv.value)) {

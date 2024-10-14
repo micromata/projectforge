@@ -135,7 +135,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
     } else {
       event.setEnd(start);
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(NumberHelper.formatFraction2(hours)).append(getString("calendar.unit.hour")).append(" ")
         .append(entry.getProjektNameOrStatus());
     if (StringUtils.isNotBlank(entry.getDescription()) == true) {

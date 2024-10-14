@@ -320,7 +320,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       WicketUtils.addTooltip(startDateTimePanel.getDateField(), new Model<String>() {
         @Override
         public String getObject() {
-          final StringBuffer buf = new StringBuffer();
+          final StringBuilder buf = new StringBuilder();
           if (data.getStartTime() != null) {
             buf.append(DateHelper.TECHNICAL_ISO_UTC.get().format(data.getStartTime()));
             if (data.getStopTime() != null) {

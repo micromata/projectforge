@@ -105,7 +105,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     super(id);
     this.form = form;
     clickRows = false;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("function showSaveAsTaskQuestionDialog() {\n").append("  return window.confirm('");
     buf.append(ThreadLocalUserContext.getLocalizedString("gantt.question.saveGanttObjectAsTask"));
     buf.append("');\n}\n");

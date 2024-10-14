@@ -84,7 +84,7 @@ public class KundeFormatter extends BaseFormatter
     if (kunde == null) {
       return "";
     }
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     boolean hasAccess = WicketSupport.get(KundeDao.class).hasLoggedInUserSelectAccess(false);
     if (!hasAccess) {

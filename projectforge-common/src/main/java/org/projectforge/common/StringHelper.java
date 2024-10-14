@@ -43,12 +43,12 @@ public class StringHelper {
 
 
     /**
-     * Usage: final StringBuffer buf = new StringBuffer();<br/>
+     * Usage: final StringBuilder buf = new StringBuilder();<br/>
      * boolean first = true;<br/>
      * if (...) {<br/>
      * first = StringHelper.append(buf, first, "Hurzel", ", ");<br/>
      * <br/>
-     * first = StringBuffer.append(buf, first, myString, ", ");<br/>
+     * first = StringBuilder.append(buf, first, myString, ", ");<br/>
      *
      * @param buf
      * @param first
@@ -56,7 +56,7 @@ public class StringHelper {
      * @param delimiter
      * @return true if str is not empty and appended to buffer, otherwise first will be returned.
      */
-    public static boolean append(final StringBuffer buf, final boolean first, final String str, final String delimiter) {
+    public static boolean append(final StringBuilder buf, final boolean first, final String str, final String delimiter) {
         if (StringUtils.isEmpty(str)) {
             return first;
         }
@@ -64,31 +64,6 @@ public class StringHelper {
             buf.append(delimiter);
         }
         buf.append(str);
-        return false;
-    }
-
-    /**
-     * Usage: final StringBuffer buf = new StringBuffer();<br/>
-     * boolean first = true;<br/>
-     * if (...) {<br/>
-     * first = StringHelper.append(buf, first, "Hurzel", ", ");<br/>
-     * <br/>
-     * first = StringBuffer.append(buf, first, myString, ", ");<br/>
-     *
-     * @param sb
-     * @param first
-     * @param str       String to append. If null, nothing will be done and first will be returned.
-     * @param delimiter
-     * @return true if str is not empty and appended to buffer, otherwise first will be returned.
-     */
-    public static boolean append(final StringBuilder sb, final boolean first, final String str, final String delimiter) {
-        if (StringUtils.isEmpty(str)) {
-            return first;
-        }
-        if (!first) {
-            sb.append(delimiter);
-        }
-        sb.append(str);
         return false;
     }
 
@@ -175,7 +150,7 @@ public class StringHelper {
      * @param delimiter The delimiter of the single string in output string.
      */
     public static String colToString(final Collection<String> col, final String delimiter) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final String item : col) {
             first = append(buf, first, item, delimiter);
@@ -189,7 +164,7 @@ public class StringHelper {
      * @param delimiter The delimiter of the single string in output string.
      */
     public static String objectColToString(final Collection<?> col, final String delimiter) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final Object item : col) {
             final String str = item != null ? item.toString() : "";
@@ -204,7 +179,7 @@ public class StringHelper {
      * @see #listToString(List, String, boolean)
      */
     public static String listToString(final String delimiter, final String... strings) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         return listToString(buf, delimiter, strings);
     }
 
@@ -213,7 +188,7 @@ public class StringHelper {
      * @param strings
      * @see #listToString(List, String, boolean)
      */
-    public static String listToString(final StringBuffer buf, final String delimiter, final String... strings) {
+    public static String listToString(final StringBuilder buf, final String delimiter, final String... strings) {
         if (strings == null) {
             return null;
         } else if (strings.length == 0) {
@@ -239,7 +214,7 @@ public class StringHelper {
         } else if (oa.length == 0) {
             return "";
         }
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final Object o : oa) {
             if (o == null) {
@@ -264,7 +239,7 @@ public class StringHelper {
         } else if (oa.length == 0) {
             return "";
         }
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final Object o : oa) {
             if (o == null) {
@@ -289,7 +264,7 @@ public class StringHelper {
      */
     public static String listToExpressions(final String delimiter, final String prefix, final String suffix,
                                            final String... strings) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final String s : strings) {
             append(buf, first, prefix, delimiter);
@@ -497,7 +472,7 @@ public class StringHelper {
         if (str == null) {
             return null;
         }
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         final int toPos = str.length() - numberOfCharacters;
         for (int i = 0; i < str.length(); i++) {
             if (i < toPos) {

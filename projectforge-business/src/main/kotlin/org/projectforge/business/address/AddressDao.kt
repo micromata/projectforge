@@ -676,7 +676,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         val queryFilter = QueryFilter(filter)
         // Use internal get list method for avoiding access checking (no user is logged-in):
         val resultList = internalGetList(queryFilter)
-        val buf = StringBuffer()
+        val buf = StringBuilder()
         if (resultList.isNotEmpty()) {
             var result = resultList[0]
             if (resultList.size > 1) {

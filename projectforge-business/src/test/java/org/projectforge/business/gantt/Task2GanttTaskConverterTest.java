@@ -182,7 +182,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
     private String transform(final String prefix, final String str) {
         final String text = str.replace('\'', '"');
         final Pattern p = Pattern.compile("\\{([0-9\\.]*)\\}", Pattern.MULTILINE);
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         final Matcher m = p.matcher(text);
         while (m.find()) {
             if (m.group(1) != null) {

@@ -416,7 +416,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       return;
     }
     int indent = 0;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     for (int i = 0; i < form.logEntries.length(); i++) {
       final char c = form.logEntries.charAt(i);
       buf.append(c);

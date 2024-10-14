@@ -115,7 +115,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         final WebMarkupContainer entryContainer = new WebMarkupContainer(errorPropertiesView.newChildId());
         errorPropertiesView.add(entryContainer);
         entryContainer.add(new Label("propertyKey", entry.getKey()));
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final Object value : entry.getValue()) {
           first = StringHelper.append(buf, first, String.valueOf(value), ", ");
@@ -143,7 +143,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
   protected void addSheet(final ImportedSheet<?> sheet) {
     final WebMarkupContainer cont = new WebMarkupContainer(sheetRepeatingView.newChildId());
     sheetRepeatingView.add(cont);
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append("Sheet: ").append(sheet.getName()).append(" ");
     if (sheet.isReconciled() == true) {
       buf.append(getString(sheet.getStatus().getI18nKey())).append(" ");
@@ -173,7 +173,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         return sheet.isOpen();
       }
     });
-    buf = new StringBuffer();
+    buf = new StringBuilder();
     buf.append("Total=").append(sheet.getTotalNumberOfElements()).append(" ");
     if (sheet.getNumberOfNewElements() > 0) {
       buf.append(" | New=<span style=\"color: red;\">").append(sheet.getNumberOfNewElements()).append("</span>");
@@ -369,8 +369,8 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
       addColumns(cellRepeater, element, style);
 
       if (element.getOldValue() != null && element.getPropertyChanges() != null) {
-        final StringBuffer buf = new StringBuffer();
-        final StringBuffer oldValue = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
+        final StringBuilder oldValue = new StringBuilder();
         boolean first = true;
         // TODO HISTORY
         for (final PropertyDelta delta : element.getPropertyChanges()) {
@@ -386,7 +386,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         addCell(cellRepeater, "", null);
       }
       if (element.isFaulty() == true) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         if (element.getErrorProperties() != null) {
           boolean first = true;
           for (final Map.Entry<String, Object> entry : element.getErrorProperties().entrySet()) {

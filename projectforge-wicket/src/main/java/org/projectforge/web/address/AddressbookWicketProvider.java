@@ -113,7 +113,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 
   public String getAddressbookIds(final Collection<AddressbookDO> addressbooks)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final AddressbookDO ab : addressbooks) {
       if (ab.getId() != null) {

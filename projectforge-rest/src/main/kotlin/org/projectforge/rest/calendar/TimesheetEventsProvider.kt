@@ -197,7 +197,7 @@ class TimesheetEventsProvider {
             }
             weekDuration += ctx.getDurationOfDayOfYear(d)
           }
-          val buf = StringBuffer()
+          val buf = StringBuilder()
           buf.append(translate("calendar.weekOfYearShortLabel")).append(day.weekOfYear)
           if (ctx.days > 1 && weekDuration > 0) { // Show total sum of durations over all time sheets of current week (only in week and month view).
             buf.append(": ").append(FullCalendarEvent.formatDuration(weekDuration, -1, -1))

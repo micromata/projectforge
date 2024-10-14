@@ -424,7 +424,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       form.addError("validation.error.nothingToExport");
       return;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("timesheets_");
     final TimesheetFilter filter = form.getSearchFilter();
     if (filter.getUserId() != null) {

@@ -89,7 +89,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
                                      final IModel<GroupTaskAccessDO> rowModel) {
                 final GroupTaskAccessDO access = rowModel.getObject();
                 final TaskDO task = access.getTask();
-                final StringBuffer buf = new StringBuffer();
+                final StringBuilder buf = new StringBuilder();
                 WicketTaskFormatter.appendFormattedTask(getRequestCycle(), buf, task, true, false);
                 final Label formattedTaskLabel = new Label(ListSelectActionPanel.LABEL_ID, buf.toString());
                 formattedTaskLabel.setEscapeModelStrings(false);

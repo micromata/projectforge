@@ -77,7 +77,7 @@ public class LicenseDao extends BaseDao<LicenseDO>
     if (CollectionUtils.isEmpty(sortedOwners)) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final PFUserDO owner : sortedOwners) {
       first = StringHelper.append(buf, first, owner.getFullname(), ", ");

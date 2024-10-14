@@ -133,7 +133,7 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public String getGroupIds(final Collection<GroupDO> groups) {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final GroupDO group : groups) {
       if (group.getId() != null) {

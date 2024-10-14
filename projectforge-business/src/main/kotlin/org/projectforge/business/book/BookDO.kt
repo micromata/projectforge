@@ -146,8 +146,8 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
             if (this.signature == null) {
                 return null
             }
-            val buf = StringBuffer()
-            var no: StringBuffer? = null
+            val buf = StringBuilder()
+            var no: StringBuilder? = null
             for (i in 0 until this.signature!!.length) {
                 val ch = this.signature!![i]
                 if (!Character.isDigit(ch)) {
@@ -158,7 +158,7 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
                     buf.append(ch)
                 } else {
                     if (no == null) {
-                        no = StringBuffer()
+                        no = StringBuilder()
                     }
                     no.append(ch)
                 }
