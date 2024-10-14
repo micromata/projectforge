@@ -135,6 +135,7 @@ open class KontoCache : AbstractCache() {
      */
     public override fun refresh() {
         log.info("Initializing KontoCache ...")
+        val saved = persistenceService.saveStatsState()
         // This method must not be synchronized because it works with a new copy of maps.
         val map: MutableMap<Long?, KontoDO?> = HashMap()
         val list = persistenceService.executeQuery(
@@ -145,7 +146,7 @@ open class KontoCache : AbstractCache() {
             map[konto.id] = konto
         }
         this.accountMapById = map
-        log.info("Initializing of KontoCache done.")
+        log.info("Initializing of KontoCache done. stats=${persistenceService.formatStats(saved)}")
     }
 
     companion object {

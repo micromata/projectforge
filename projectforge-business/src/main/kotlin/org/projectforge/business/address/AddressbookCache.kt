@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -42,6 +43,9 @@ private val log = KotlinLogging.logger {}
 open class AddressbookCache : AbstractCache(), BaseDOChangedListener<AddressbookDO> {
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
+
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
     private lateinit var addressBookList: List<AddressbookDO>
 
@@ -81,6 +85,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
      */
     override fun refresh() {
         log.info("Initializing AddressbookCache ...")
+        val saved = persistenceService.saveStatsState()
         // This method must not be synchronized because it works with a new copy of maps.
         val newList = mutableListOf<AddressbookDO>()
         val list = addressbookDao.internalLoadAll()
@@ -90,6 +95,6 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
             }
         }
         addressBookList = newList
-        log.info("Initializing of AddressbookCache done.")
+        log.info("Initializing of AddressbookCache done. stats=${persistenceService.formatStats(saved)}")
     }
 }

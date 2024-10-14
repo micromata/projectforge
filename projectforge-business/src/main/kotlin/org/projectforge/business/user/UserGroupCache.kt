@@ -402,8 +402,8 @@ open class UserGroupCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized.
      */
     override fun refresh() {
-        val begin = System.currentTimeMillis()
         log.info("Initializing UserGroupCache...")
+        val saved = persistenceService.saveStatsState()
         // This method must not be synchronized because it works with a new copy of maps.
         val uMap: MutableMap<Long, PFUserDO?> = HashMap()
         // Could not autowire UserDao because of cyclic reference with AccessChecker.
@@ -503,8 +503,7 @@ open class UserGroupCache : AbstractCache() {
             log.info("Initializing of UserGroupCache done. Found ${uMap.size} entries.")
             Login.getInstance().afterUserGroupCacheRefresh(users, groups)
         }
-        val end = System.currentTimeMillis()
-        log.info("UserGroupCache.refresh took: " + (end - begin) + " ms.")
+        log.info("UserGroupCache.refresh done. stats=${persistenceService.formatStats(saved)}")
         Thread {
             jobHandler.checkStatus()
         }.start()

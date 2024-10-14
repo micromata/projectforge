@@ -34,7 +34,7 @@ internal object PfPersistenceContextThreadLocal {
 
     private val threadLocalReadonly = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalTransactional = ThreadLocal<PfPersistenceContext?>()
-    private val threadLocalPersistenceStats = ThreadLocal<PersistenceThreadStats?>()
+    private val threadLocalPersistenceStats = ThreadLocal<PersistenceStats?>()
 
     /**
      * Gets context of ThreadLocal with transaction, if exists, or readonly context, if exists. Null, if no context exist.
@@ -102,8 +102,8 @@ internal object PfPersistenceContextThreadLocal {
      * The statistics are not thread-safe, because they are used in a thread-local context.
      * @return The statistics.
      */
-    fun getStatsState(): PersistenceThreadStats {
+    fun getStatsState(): PersistenceStats {
         return threadLocalPersistenceStats.get()
-            ?: PersistenceThreadStats().also { threadLocalPersistenceStats.set(it) }
+            ?: PersistenceStats().also { threadLocalPersistenceStats.set(it) }
     }
 }

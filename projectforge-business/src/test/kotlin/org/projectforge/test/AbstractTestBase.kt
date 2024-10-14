@@ -52,7 +52,7 @@ import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
 import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner.Companion.setInternalSetUnitTestMode
-import org.projectforge.framework.persistence.jpa.PersistenceThreadStats
+import org.projectforge.framework.persistence.jpa.PersistenceStats
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -364,17 +364,27 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     protected fun assertPersistenceStats(
-        oldState: PersistenceThreadStats,
+        oldState: PersistenceStats,
         createdTransactions: Int,
         createdReadonlies: Int,
+        activeTransactionsSinceLastSave: Int = 0,
+        activeReadonliesSinceLastSave: Int = 0,
+        /**
+         * Total number of active readonlies (in current thread).
+         */
         activeReadonlies: Int = 0,
+        /**
+         * Total number of active transaction (in current thread).
+         */
         activeTransactions: Int = 0,
     ) {
-        val activities = persistenceService.getActivities(oldState)
+        val activities = persistenceService.getStats(oldState)
         Assertions.assertEquals(createdTransactions, activities.createdTransactions, "createdTransactions: $activities")
         Assertions.assertEquals(createdReadonlies, activities.createdReadonlies, "createdReadonlies: $activities")
         Assertions.assertEquals(activeReadonlies, activities.activeReadonlies, "activeTransactions: $activities")
         Assertions.assertEquals(activeTransactions, activities.activeTransactions, "activeTransactions: $activities")
+        Assertions.assertEquals(activeReadonliesSinceLastSave, activities.activeReadonliesSinceLastSave, "activeTransactions: $activities")
+        Assertions.assertEquals(activeTransactionsSinceLastSave, activities.activeTransactionsSinceLastSave, "activeTransactions: $activities")
     }
 
     fun createHistoryTester(): HistoryTester {

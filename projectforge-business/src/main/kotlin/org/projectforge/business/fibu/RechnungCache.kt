@@ -72,7 +72,8 @@ open class RechnungCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     override fun refresh() {
-        log.info("Initializing RechnungCache ...")
+        log.info("Initializing RechnungCache...")
+        val saved = persistenceService.saveStatsState()
         // This method must not be synchronized because it works with a new copy of maps.
         val mapByAuftragId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
         val mapByAuftragsPositionId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
@@ -121,7 +122,7 @@ open class RechnungCache : AbstractCache() {
         this.invoicePositionMapByAuftragId = mapByAuftragId
         this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
         this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
-        log.info("Initializing of RechnungCache done.")
+        log.info("Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}")
     }
 
     companion object {
