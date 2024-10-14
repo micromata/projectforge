@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.JsonIdentityReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
 import mu.KotlinLogging
@@ -51,7 +52,6 @@ private val log = KotlinLogging.logger {}
         name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_id"
     )]
 )
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
     @get:Id
     @get:GeneratedValue
@@ -59,6 +59,7 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
     override var id: Long? = null
 
     @PropertyInfo(i18nKey = "fibu.employee")
+    @JsonIdentityReference(alwaysAsId = true)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_fk", nullable = false)
     open var employee: EmployeeDO? = null

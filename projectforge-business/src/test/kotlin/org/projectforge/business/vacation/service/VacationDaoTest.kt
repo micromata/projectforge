@@ -67,7 +67,7 @@ class VacationDaoTest : AbstractTestBase() {
             replacement = createEmployee("replacement2")
             hrEmployee = createEmployee("HR2", hrAccess = true)
         }
-
+        logon(TEST_HR_USER)
         val vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
         assertStatusList(employee, hrEmployee, vacation, arrayOf(VacationStatus.IN_PROGRESS, VacationStatus.REJECTED))
         assertStatusList(

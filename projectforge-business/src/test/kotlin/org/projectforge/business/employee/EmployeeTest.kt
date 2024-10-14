@@ -121,7 +121,7 @@ class EmployeeTest : AbstractTestBase() {
             groupDao: GroupDao? = null,
             email: String? = null,
         ): EmployeeDO {
-            val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
+            val loggedInUser = ThreadLocalUserContext.loggedInUser
             test.logon(TEST_ADMIN_USER)
             val user = PFUserDO()
             val useName = "${test.javaClass.simpleName}.$name"
@@ -142,7 +142,7 @@ class EmployeeTest : AbstractTestBase() {
             employee.user = user
             employeeDao.internalSave(employee)
             employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
-            test.logon(loggedInUser)
+            loggedInUser?.let { test.logon(it) }
             return employee
         }
     }

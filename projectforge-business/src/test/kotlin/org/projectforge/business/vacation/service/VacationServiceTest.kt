@@ -640,7 +640,9 @@ class VacationServiceTest : AbstractTestBase() {
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
         employeeDao.internalSave(employee)
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays))
+        joinDate?.let { validFrom ->
+            employeeService.addNewAnnualLeaveDays(employee, validFrom, BigDecimal(annualLeaveDays))
+        }
         annualLeaveDayEntries?.forEach {
             employeeService.addNewAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value))
         }

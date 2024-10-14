@@ -124,7 +124,9 @@ class VacationValidatorTest : AbstractTestBase() {
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
         employeeDao.internalSave(employee)
-        employeeService.addNewAnnualLeaveDays(employee, joinDate, BigDecimal(30))
+        joinDate?.let { validFrom ->
+            employeeService.addNewAnnualLeaveDays(employee, validFrom, BigDecimal(30))
+        }
         return employee
     }
 }
