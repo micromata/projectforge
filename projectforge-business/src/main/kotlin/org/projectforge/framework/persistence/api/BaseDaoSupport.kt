@@ -104,10 +104,10 @@ object BaseDaoSupport {
         checkAccess: Boolean,
         context: PfPersistenceContext,
     ): EntityCopyStatus? {
-        preInternalUpdate(baseDao, obj, checkAccess, context)
+        preInternalUpdate(baseDao, obj, checkAccess)
         val res = ResultObject<O>()
         internalUpdate(baseDao, obj, checkAccess, res, context)
-        postInternalUpdate(baseDao, obj, res, context)
+        postInternalUpdate(baseDao, obj, res)
         return res.modStatus
     }
 
@@ -115,7 +115,6 @@ object BaseDaoSupport {
         baseDao: BaseDao<O>,
         obj: O,
         checkAccess: Boolean,
-        context: PfPersistenceContext,
     ) {
         baseDao.beforeSaveOrModify(obj)
         baseDao.onSaveOrModify(obj)
@@ -171,7 +170,6 @@ object BaseDaoSupport {
         baseDao: BaseDao<O>,
         obj: O,
         res: ResultObject<O>,
-        context: PfPersistenceContext
     ) {
         baseDao.afterSaveOrModify(obj)
         if (baseDao.supportAfterUpdate) {
@@ -295,10 +293,10 @@ object BaseDaoSupport {
     ) {
         col.forEach { obj ->
             if (obj.id != null) {
-                preInternalUpdate(baseDao, obj, false, context)
+                preInternalUpdate(baseDao, obj, false)
                 val res = ResultObject<O>()
                 internalUpdate(baseDao, obj, false, res, context)
-                postInternalUpdate(baseDao, obj, res, context)
+                postInternalUpdate(baseDao, obj, res)
             } else {
                 preInternalSave(baseDao, obj)
                 internalSave(baseDao, obj, context)
