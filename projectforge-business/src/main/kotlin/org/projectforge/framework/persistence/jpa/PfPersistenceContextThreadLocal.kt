@@ -25,19 +25,21 @@ package org.projectforge.framework.persistence.jpa
 
 /**
  * ThreadLocal for [PfPersistenceContext].
- * It is used to store context of current transaction or readonly operation.
- * If any method is using [PfPersistenceContext] and it is not passed as parameter, it will be get automatically by
+ * It is used to store [PfPersistenceContext] of current transaction or readonly operation.
+ * If any method is using [PfPersistenceContext] and it is not passed as parameter, it will be got automatically by
  * [PfPersistenceService] for re-using contexts (readonly as well as transactional ones).
  * For readonly operations, any existing context (readonly or transactional) will be used.
  */
 internal object PfPersistenceContextThreadLocal {
+
     private val threadLocalReadonly = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalTransactional = ThreadLocal<PfPersistenceContext?>()
+    private val threadLocalPersistenceStats = ThreadLocal<PersistenceThreadStats?>()
 
     /**
      * Gets context of ThreadLocal with transaction, if exists, or readonly context, if exists. Null, if no context exist.
      */
-    fun get(): PfPersistenceContext? {
+    fun getTransactionalOrReadonly(): PfPersistenceContext? {
         return getTransactional() ?: getReadonly()
     }
 
@@ -61,6 +63,7 @@ internal object PfPersistenceContextThreadLocal {
     fun setReadonly(context: PfPersistenceContext) {
         require(context.type == PfPersistenceContext.ContextType.READONLY) { "Context must be of type READONLY." }
         threadLocalReadonly.set(context)
+        // Can't be used here (becauese of restoring thread values): getStatsState().readonlyCreated()
     }
 
     /**
@@ -69,6 +72,7 @@ internal object PfPersistenceContextThreadLocal {
     fun setTransactional(context: PfPersistenceContext) {
         require(context.type == PfPersistenceContext.ContextType.TRANSACTION) { "Context must be of type TRANSACTION." }
         threadLocalTransactional.set(context)
+        // Can't be used here (becauese of restoring thread values): getStatsState().transactionCreated()
     }
 
     /**
@@ -77,6 +81,7 @@ internal object PfPersistenceContextThreadLocal {
     fun removeReadonly(): PfPersistenceContext? {
         val ret = threadLocalReadonly.get()
         threadLocalReadonly.remove()
+        // Can't be used here (becauese of restoring thread values): getStatsState().readonlyClosed()
         return ret
     }
 
@@ -86,6 +91,19 @@ internal object PfPersistenceContextThreadLocal {
     fun removeTransactional(): PfPersistenceContext? {
         val ret = threadLocalTransactional.get()
         threadLocalTransactional.remove()
+        // Can't be used here (becauese of restoring thread values): getStatsState().transactionClosed()
         return ret
+    }
+
+    /**
+     * Get the statistics of the current thread or create a new one, if not exists.
+     * Please note: The statistics are not needed to be removed, because they are stored in a thread-local context and
+     * are valid for multiple user activities.
+     * The statistics are not thread-safe, because they are used in a thread-local context.
+     * @return The statistics.
+     */
+    fun getStatsState(): PersistenceThreadStats {
+        return threadLocalPersistenceStats.get()
+            ?: PersistenceThreadStats().also { threadLocalPersistenceStats.set(it) }
     }
 }

@@ -42,7 +42,6 @@ private val log = KotlinLogging.logger {}
 @Service
 open class PfPersistenceService {
     // private val openedTransactions = mutableSetOf<EntityTransaction>()
-
     companion object {
         @JvmStatic
         lateinit var instance: PfPersistenceService
@@ -93,7 +92,7 @@ open class PfPersistenceService {
     fun <T> runReadOnly(
         block: (context: PfPersistenceContext) -> T
     ): T {
-        val context = PfPersistenceContextThreadLocal.get() // Readonly or transactional context.
+        val context = PfPersistenceContextThreadLocal.getTransactionalOrReadonly() // Readonly or transactional context.
         if (context != null) {
             return context.run(block)
         }
@@ -125,6 +124,7 @@ open class PfPersistenceService {
                 type = PfPersistenceContext.ContextType.TRANSACTION,
             ).use { context ->
                 PfPersistenceContextThreadLocal.setTransactional(context)
+                PfPersistenceContextThreadLocal.getStatsState().transactionCreated()
                 log.debug { "Begin transactional context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 em.transaction.begin()
@@ -148,6 +148,7 @@ open class PfPersistenceService {
             val removed = PfPersistenceContextThreadLocal.removeTransactional()
             log.debug { "Remove transactional context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setTransactional(it) } // Restore previous context, if any.
+            PfPersistenceContextThreadLocal.getStatsState().transactionClosed()
         }
     }
 
@@ -165,6 +166,7 @@ open class PfPersistenceService {
                 type = PfPersistenceContext.ContextType.READONLY
             ).use { context ->
                 PfPersistenceContextThreadLocal.setReadonly(context)
+                PfPersistenceContextThreadLocal.getStatsState().readonlyCreated()
                 log.debug { "New readonly context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
                 val em = context.em
                 // log.info { "Running read only" }
@@ -176,6 +178,7 @@ open class PfPersistenceService {
             val removed = PfPersistenceContextThreadLocal.removeReadonly()
             log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
+            PfPersistenceContextThreadLocal.getStatsState().readonlyClosed()
         }
     }
 
@@ -322,5 +325,18 @@ open class PfPersistenceService {
             startNumber
         }
         return maxNumber + 1
+    }
+
+    /**
+     * Saves the current statistics state of the current thread.
+     * @return The statistics state (a copy for later comparison).
+     * @see PersistenceThreadStats
+     */
+    fun saveStatsState(): PersistenceThreadStats {
+        return PfPersistenceContextThreadLocal.getStatsState().saveCurrentState()
+    }
+
+    fun getActivities(oldState: PersistenceThreadStats): PersistenceThreadStats {
+        return PfPersistenceContextThreadLocal.getStatsState().getActivities(oldState)
     }
 }

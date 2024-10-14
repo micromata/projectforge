@@ -23,8 +23,6 @@
 
 package org.projectforge.test
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.LoggerContext
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.junit.jupiter.api.AfterAll
@@ -54,6 +52,7 @@ import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
 import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner.Companion.setInternalSetUnitTestMode
+import org.projectforge.framework.persistence.jpa.PersistenceThreadStats
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -69,7 +68,6 @@ import org.projectforge.plugins.core.PluginsRegistry
 import org.projectforge.registry.Registry
 import org.projectforge.test.DatabaseHelper.clearDatabase
 import org.projectforge.web.WicketSupport
-import org.slf4j.LoggerFactory
 import org.springframework.beans.BeansException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -363,6 +361,20 @@ abstract class AbstractTestBase protected constructor() {
         Assertions.assertEquals(year, date.year)
         Assertions.assertEquals(month, date.month)
         Assertions.assertEquals(day, date.dayOfMonth)
+    }
+
+    protected fun assertPersistenceStats(
+        oldState: PersistenceThreadStats,
+        createdTransactions: Int,
+        createdReadonlies: Int,
+        activeReadonlies: Int = 0,
+        activeTransactions: Int = 0,
+    ) {
+        val activities = persistenceService.getActivities(oldState)
+        Assertions.assertEquals(createdTransactions, activities.createdTransactions, "createdTransactions: $activities")
+        Assertions.assertEquals(createdReadonlies, activities.createdReadonlies, "createdReadonlies: $activities")
+        Assertions.assertEquals(activeReadonlies, activities.activeReadonlies, "activeTransactions: $activities")
+        Assertions.assertEquals(activeTransactions, activities.activeTransactions, "activeTransactions: $activities")
     }
 
     fun createHistoryTester(): HistoryTester {
