@@ -765,7 +765,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
     if (positionsPanel.toggleStatus == ToggleStatus.OPENED) {
       return getString("label.position.short") + " #" + position.number
     }
-    val heading = StringBuffer()
+    val heading = StringBuilder()
     heading.append(escapeHtml(getString("label.position.short"))).append(" #").append(position.number.toInt())
     heading.append(": ").append(CurrencyFormatter.format(position.nettoSumme))
     position.status?.let { status ->
@@ -800,7 +800,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       }
     }
     val size = paymentSchedules?.count { !it.deleted } ?: 0
-    val heading = StringBuffer()
+    val heading = StringBuilder()
     heading.append("${escapeHtml(getString("fibu.auftrag.paymentschedule"))} ($size)")
     if (schedulesPanel.toggleStatus == ToggleStatus.OPENED) {
       return heading.toString()

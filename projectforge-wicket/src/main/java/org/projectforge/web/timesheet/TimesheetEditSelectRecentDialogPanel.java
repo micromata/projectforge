@@ -135,7 +135,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
                 @Override
                 public String getObject()
                 {
-                  final StringBuffer buf = new StringBuffer();
+                  final StringBuilder buf = new StringBuilder();
                   if (timesheet.getKost2() != null) {
                     buf.append(timesheet.getKost2().getDisplayName());
                   }

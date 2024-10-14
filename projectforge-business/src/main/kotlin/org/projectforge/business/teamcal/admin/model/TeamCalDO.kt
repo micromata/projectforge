@@ -154,7 +154,7 @@ open class TeamCalDO : BaseUserGroupRightsDO() {
             if (this.externalSubscriptionUrl == null) {
                 return ""
             }
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             var dotRead = false
             for (i in 0 until externalSubscriptionUrl!!.length) {
                 val ch = externalSubscriptionUrl!![i]

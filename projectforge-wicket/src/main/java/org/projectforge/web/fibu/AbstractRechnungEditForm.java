@@ -630,7 +630,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     if (positionsPanel.getToggleStatus() == ToggleStatus.OPENED) {
       return getString("label.position.short") + " #" + position.getNumber();
     }
-    final StringBuffer heading = new StringBuffer();
+    final StringBuilder heading = new StringBuilder();
     heading.append(escapeHtml(getString("label.position.short"))).append(" #").append(position.getNumber());
     heading.append(": ").append(CurrencyFormatter.format(position.getNetSum()));
     if (StringHelper.isNotBlank(position.getText()) == true) {

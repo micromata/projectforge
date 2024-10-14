@@ -106,7 +106,7 @@ public class ConsumptionBarPanel extends Panel
       bar.setVisible(false);
     }
     progressLabel.add(AttributeModifier.replace("style", "width: " + width + "%;"));
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(NumberHelper.getNumberFractionFormat(getLocale(), usage.scale()).format(usage));
     if (unit != null) {
       buf.append(unit);

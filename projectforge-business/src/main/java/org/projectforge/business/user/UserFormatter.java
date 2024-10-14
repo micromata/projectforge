@@ -81,13 +81,13 @@ public class UserFormatter implements Serializable
     return getFormattedUser(user);
   }
 
-  public void appendFormattedUser(final StringBuffer buf, final Long userId)
+  public void appendFormattedUser(final StringBuilder buf, final Long userId)
   {
     final PFUserDO user = UserGroupCache.getInstance().getUser(userId);
     appendFormattedUser(buf, user);
   }
 
-  public void appendFormattedUser(final StringBuffer buf, final PFUserDO user)
+  public void appendFormattedUser(final StringBuilder buf, final PFUserDO user)
   {
     buf.append(getFormattedUser(user));
   }

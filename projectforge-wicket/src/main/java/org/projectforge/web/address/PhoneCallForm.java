@@ -316,7 +316,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
               if (address == null) {
                 return "";
               }
-              final StringBuffer buf = new StringBuffer();
+              final StringBuilder buf = new StringBuilder();
               if (address.getForm() != null) {
                 buf.append(getString(address.getForm().getI18nKey())).append(" ");
               }

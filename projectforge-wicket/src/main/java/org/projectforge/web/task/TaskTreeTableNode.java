@@ -106,7 +106,7 @@ public class TaskTreeTableNode extends TreeTableNode implements Serializable
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer("TaskTreeTableNode[taskName=");
+    final StringBuilder sb = new StringBuilder("TaskTreeTableNode[taskName=");
     sb.append(getTaskTitle());
     sb.append(",id=");
     sb.append(getId());

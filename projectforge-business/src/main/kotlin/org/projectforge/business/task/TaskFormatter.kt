@@ -105,7 +105,7 @@ open class TaskFormatter : AbstractFormatter() {
         // Show 'not opened' as blank field:
         return ""
       }
-      val buf = StringBuffer()
+      val buf = StringBuilder()
       buf.append("<span")
       HtmlHelper.attribute(buf, "class", "taskStatus_" + status.key)
       buf.append(">")

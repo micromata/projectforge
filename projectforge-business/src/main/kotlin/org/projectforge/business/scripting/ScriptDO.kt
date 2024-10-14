@@ -291,7 +291,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
     @Transient
     fun getParameterNames(capitalize: Boolean): String {
-        val buf = StringBuffer()
+        val buf = StringBuilder()
         var first = appendParameterName(buf, parameter1Name, capitalize, true)
         first = appendParameterName(buf, parameter2Name, capitalize, first)
         first = appendParameterName(buf, parameter3Name, capitalize, first)
@@ -364,7 +364,7 @@ open class ScriptDO : DefaultBaseDO(), AttachmentsInfo {
 
 
     private fun appendParameterName(
-        buf: StringBuffer, parameterName: String?, capitalize: Boolean,
+        buf: StringBuilder, parameterName: String?, capitalize: Boolean,
         first: Boolean
     ): Boolean {
         var firstVar = first

@@ -150,7 +150,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   static Label getKostLabel(final String componentId, final TaskDO task)
   {
     final List<Kost2DO> list = TaskTree.getInstance().getKost2List(task.getId(), false);
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     String[] kost2s = null;
     if (list != null) {
       if (list.size() == 1) {
@@ -222,7 +222,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
           final IModel<TaskDO> rowModel)
       {
         final TaskDO task = rowModel.getObject();
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         WicketTaskFormatter.appendFormattedTask(getRequestCycle(), buf, task, true, false);
         final Label formattedTaskLabel = new Label(ListSelectActionPanel.LABEL_ID, buf.toString());
         formattedTaskLabel.setEscapeModelStrings(false);

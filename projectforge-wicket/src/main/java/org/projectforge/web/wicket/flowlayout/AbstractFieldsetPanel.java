@@ -193,7 +193,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
     if (hasFormChildrenFeedbackMessage() == false) {
       return null;
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final FormComponent<?> formComponent : allFormComponents) {
       if (formComponent.hasFeedbackMessage() == true) {

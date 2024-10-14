@@ -385,7 +385,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     val projektAsString: String
         @Transient
         get() {
-            val buf = StringBuffer()
+            val buf = StringBuilder()
             var first = true
             val prj = this.projekt
             val kunde = prj?.kunde

@@ -156,7 +156,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
   private static String getTooltip(final AuftragsPositionDO pos)
   {
     final AuftragDO auftrag = pos.getAuftrag();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(auftrag.getNummer()).append(".").append(pos.getNumber()).append(": ");
     if (auftrag.getKunde() != null) {
       buf.append(auftrag.getKundeAsString());

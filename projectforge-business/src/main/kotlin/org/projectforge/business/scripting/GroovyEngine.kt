@@ -127,7 +127,7 @@ class GroovyEngine @JvmOverloads constructor(
       return null
     }
     val p = Pattern.compile("#INCLUDE\\{([0-9\\-\\.a-zA-Z/]*)\\}", Pattern.MULTILINE)
-    val buf = StringBuffer()
+    val buf = StringBuilder()
     val m = p.matcher(template)
     while (m.find()) {
       if (m.group(1) != null) {

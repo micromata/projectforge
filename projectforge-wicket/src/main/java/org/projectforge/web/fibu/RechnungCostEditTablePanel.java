@@ -251,7 +251,7 @@ public class RechnungCostEditTablePanel extends Panel
         protected void onSubmit(final AjaxRequestTarget target)
         {
           position.deleteKostZuweisung(zuweisung.getIndex());
-          final StringBuffer prependJavascriptBuf = new StringBuffer();
+          final StringBuilder prependJavascriptBuf = new StringBuilder();
           prependJavascriptBuf.append(WicketAjaxUtils.removeChild("costAssignmentBody", row.getMarkupId()));
           ajaxComponents.remove(row);
           rows.remove(row);

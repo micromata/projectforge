@@ -159,7 +159,7 @@ public abstract class Ranges<T extends Comparable<T>> implements Serializable
   @Override
   public String toString()
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     if (ranges != null) {
       for (final Range<T> range : ranges) {

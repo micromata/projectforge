@@ -254,7 +254,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
     final HRFilter filter = form.getSearchFilter();
     final BigDecimal planned = filter.isShowPlanning() == true ? plannedDays : null;
     final BigDecimal actual = filter.isShowBookedTimesheets() == true ? actualDays : null;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (NumberHelper.isNotZero(plannedDays) == true) {
       buf.append(NumberFormatter.format(planned, 2));
     }

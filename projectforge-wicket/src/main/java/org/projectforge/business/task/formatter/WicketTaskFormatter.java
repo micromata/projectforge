@@ -76,7 +76,7 @@ public class WicketTaskFormatter extends TaskFormatter
     }
     final List<TaskNode> list = taskTree.getPath(taskId, ancestorTaskId);
     if (list.size() > 0) {
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder buf = new StringBuilder();
       int i = 0;
       for (final TaskNode node : list) {
         final TaskDO task = node.getTask();
@@ -94,14 +94,14 @@ public class WicketTaskFormatter extends TaskFormatter
   }
 
   /**
-   * Writes the html formatted task to the given StringBuffer.
+   * Writes the html formatted task to the given StringBuilder.
    *
    * @param buf
    * @param task
    * @param enableLink        If true, the task has a link to the EditTask.action.
    * @param showPathAsTooltip If true, an info icon with the whole task path as tooltip will be added.
    */
-  public static void appendFormattedTask(final RequestCycle requestCycle, final StringBuffer buf, TaskDO task,
+  public static void appendFormattedTask(final RequestCycle requestCycle, final StringBuilder buf, TaskDO task,
       final boolean showPathAsTooltip,
       final boolean lineThroughDeletedTask)
   {

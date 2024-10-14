@@ -280,7 +280,7 @@ public abstract class ModalDialog extends Panel
 
   private String getJavaScriptAction()
   {
-    final StringBuffer script = new StringBuffer();
+    final StringBuilder script = new StringBuilder();
     script.append("$('#").append(getMainContainerMarkupId()).append("').modal({keyboard: ").append(escapeKeyEnabled)
         .append(", show: false });");
     final boolean isResizable = (resizable == null && bigWindow == true) || Boolean.TRUE.equals(resizable) == true;

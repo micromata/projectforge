@@ -145,7 +145,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
 
   public String getCalendarIds(final Collection<TeamCalDO> calendars)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     boolean first = true;
     for (final TeamCalDO calendar : calendars) {
       if (calendar.getId() != null) {

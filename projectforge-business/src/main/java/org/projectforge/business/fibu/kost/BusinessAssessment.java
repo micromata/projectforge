@@ -214,7 +214,7 @@ public class BusinessAssessment implements Serializable {
   }
 
   public String asHtml() {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(getHeader(true));
     buf.append("<table class=\"business-assessment\">\n");
     if (rows != null) {
@@ -256,7 +256,7 @@ public class BusinessAssessment implements Serializable {
 
   @Override
   public String toString() {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(getHeader());
     if (rows != null) {
       for (final BusinessAssessmentRow row : rows) {
@@ -266,7 +266,7 @@ public class BusinessAssessment implements Serializable {
     return buf.toString();
   }
 
-  private void asLine(final StringBuffer buf, final String no, final String title, final BigDecimal amount,
+  private void asLine(final StringBuilder buf, final String no, final String title, final BigDecimal amount,
                       final int indent,
                       final int scale, final String unit, final boolean html) {
     if (html) {
@@ -306,7 +306,7 @@ public class BusinessAssessment implements Serializable {
     }
   }
 
-  private void asLine(final StringBuffer buf, final BusinessAssessmentRow row, final boolean html) {
+  private void asLine(final StringBuilder buf, final BusinessAssessmentRow row, final boolean html) {
     asLine(buf, row.getNo(), row.getTitle(), row.getAmount(), row.getIndent(), row.getScale(), row.getUnit(), html);
   }
 

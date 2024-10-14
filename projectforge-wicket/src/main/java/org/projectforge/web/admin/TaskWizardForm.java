@@ -165,7 +165,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       {
         parentPage.managerGroupCreated = "managerGroup".equals(key);
         final PageParameters params = new PageParameters();
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         if (task != null) {
           buf.append(task.getTitle());
         }

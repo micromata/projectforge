@@ -315,7 +315,7 @@ class FullCalendarEvent(
      */
     fun formatDuration(millis: Long, hoursPerDay: Int = 24, minHours4DaySeparation: Int = 24): String {
       val fields = TimePeriod.getDurationFields(millis, hoursPerDay, minHours4DaySeparation)
-      val buf = StringBuffer()
+      val buf = StringBuilder()
       if (fields[0] > 0) {
         buf.append(fields[0]).append(translate("calendar.unit.day")).append(" ")
       }

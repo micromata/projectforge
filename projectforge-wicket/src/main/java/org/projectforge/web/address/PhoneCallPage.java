@@ -239,7 +239,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
         + "' to destination number: "
         + StringHelper.hideStringEnding(form.getPhoneNumber(), 'x', 3));
     result = null;
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(form.getPhoneNumber()).append(SEPARATOR);
     final AddressDO address = form.getAddress();
     if (address != null

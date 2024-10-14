@@ -119,7 +119,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
       final String id = "" + address.getId();
       event.setId(id);
       event.setStart(date);
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder buf = new StringBuilder();
       if (dataProtection == false) {
         // Birthday is not visible for all users (age == 0).
         buf.append(

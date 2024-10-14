@@ -205,7 +205,7 @@ public class XmlObjectReader
     if (processedElements == null || processedAttributes == null) {
       return "No information available";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     checkForIgnoredElements(buf, el);
     final String warnings = buf.toString();
     if (StringUtils.isEmpty(warnings)) {
@@ -214,7 +214,7 @@ public class XmlObjectReader
     return warnings;
   }
 
-  private void checkForIgnoredElements(final StringBuffer buf, final Element el)
+  private void checkForIgnoredElements(final StringBuilder buf, final Element el)
   {
     if (!processedElements.contains(el)) {
       buf.append("Ignored xml element: ").append(el.getPath()).append("\n");

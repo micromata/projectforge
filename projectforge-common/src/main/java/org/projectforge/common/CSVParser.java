@@ -161,7 +161,7 @@ public class CSVParser
       quoted = true; // value is quoted.
       nextToken();
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     while (true) {
       if (type != Type.CHAR) {
         if (quoted == true) {

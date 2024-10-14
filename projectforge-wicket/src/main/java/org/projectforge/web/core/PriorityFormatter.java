@@ -40,7 +40,7 @@ public class PriorityFormatter implements Serializable
     if (priority == null) {
       return "";
     }
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append("<span");
     HtmlHelper.attribute(buf, "class", "priority_" + priority.getKey());
     buf.append(">");

@@ -444,7 +444,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
   protected void exportAsPdf() {
     log.info(
         "Monthly employee report for " + form.filter.getUser().getFullname() + ": " + form.filter.getFormattedMonth());
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append(getString("menu.monthlyEmployeeReport.fileprefix")).append("_");
     final PFUserDO employee = WicketSupport.getUserDao().getById(form.filter.getUserId());
     buf.append(employee.getLastname()).append("_").append(form.filter.getYear()).append("-")

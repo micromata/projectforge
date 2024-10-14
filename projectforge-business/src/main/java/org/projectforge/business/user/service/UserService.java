@@ -156,7 +156,7 @@ public class UserService {
     }
 
     public String getUserIds(final Collection<PFUserDO> users) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         boolean first = true;
         for (final PFUserDO user : users) {
             if (user.getId() != null) {

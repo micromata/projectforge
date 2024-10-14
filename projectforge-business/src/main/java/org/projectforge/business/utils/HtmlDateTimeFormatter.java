@@ -47,7 +47,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
     if (timePeriod == null) {
       return "";
     }
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     if (timePeriod.getMarker()) {
       // Time collision is marked!
       buf.append("<span");
@@ -89,7 +89,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
     return buf.toString();
   }
 
-  private void appendCSSDate(final StringBuffer buf, final Date date, final RenderType renderType)
+  private void appendCSSDate(final StringBuilder buf, final Date date, final RenderType renderType)
   {
     buf.append("<span");
     if (renderType == RenderType.FOP) {
@@ -101,7 +101,7 @@ public class HtmlDateTimeFormatter extends DateTimeFormatter
     buf.append(getFormattedDate(date)).append("</span>");
   }
 
-  private void appendCSSTime(final StringBuffer buf, final Date date, final RenderType renderType)
+  private void appendCSSTime(final StringBuilder buf, final Date date, final RenderType renderType)
   {
     if (renderType == RenderType.FOP) {
       buf.append(getFormattedTime(date));

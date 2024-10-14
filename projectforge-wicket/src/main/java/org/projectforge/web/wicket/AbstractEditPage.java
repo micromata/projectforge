@@ -115,7 +115,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
   @SuppressWarnings({ "serial", "unchecked" })
   protected void init(O data)
   {
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     buf.append("function showDeleteQuestionDialog() {\n").append("  return window.confirm('");
 
     boolean entWithHistory = HistoryServiceUtils.isHistorizable(getBaseDao().getDoClass());
