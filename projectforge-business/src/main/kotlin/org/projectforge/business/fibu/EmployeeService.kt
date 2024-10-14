@@ -33,6 +33,7 @@ import org.projectforge.business.user.UserDao
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -213,22 +214,74 @@ class EmployeeService {
 
     fun addNewAnnualLeaveDays(
         employee: EmployeeDO,
-        validfrom: LocalDate?,
-        annualLeaveDays: BigDecimal
+        validFrom: LocalDate,
+        annualLeaveDays: BigDecimal,
     ): EmployeeValidityPeriodAttrDO {
+        return addValidityPeriodAttr(
+            employee,
+            validFrom,
+            annualLeaveDays.toString(),
+            EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+        )
+    }
+
+    fun addNewStatius(
+        employee: EmployeeDO,
+        validFrom: LocalDate,
+        status: EmployeeStatus,
+    ): EmployeeValidityPeriodAttrDO {
+        return addValidityPeriodAttr(
+            employee,
+            validFrom,
+            status.toString(),
+            EmployeeValidityPeriodAttrType.STATUS,
+        )
+    }
+
+    private fun addValidityPeriodAttr(
+        employee: EmployeeDO,
+        validFrom: LocalDate,
+        value: String,
+        type: EmployeeValidityPeriodAttrType,
+    ): EmployeeValidityPeriodAttrDO {
+        //val dbEmployee = employeeDao.internalGetById(employee.id)!!
+        //hasLoggedInUserUpdateAccess(dbEmployee, dbEmployee, true)
+        val dbEmployee = employee
         val attr = EmployeeValidityPeriodAttrDO()
-        attr.employee = employee
-        attr.validFrom = validfrom
-        attr.value = annualLeaveDays.toString()
-        attr.attribute = EmployeeValidityPeriodAttrType.ANNUAL_LEAVE
+        attr.employee = dbEmployee
+        attr.validFrom = validFrom
+        attr.value = value
+        attr.attribute = type
         attr.created = Date()
         attr.lastUpdate = attr.created
         persistenceService.runInTransaction { context ->
             val em = context.em
-            log.error { "******** Not yet migrated: History entries." }
             em.persist(attr)
+            log.info("New ${EmployeeValidityPeriodAttrDO::class.simpleName} for employee#${dbEmployee.id} ${dbEmployee.displayName} added (${attr.id}): $attr")
+            HistoryBaseDaoAdapter.inserted(attr, context)
+            em.flush()
         }
         return attr
+    }
+
+    private fun removeValidityPeriodAttr(
+        employee: EmployeeDO,
+        attrId: Long,
+        type: EmployeeValidityPeriodAttrType,
+    ) {
+        val dbEmployee = employeeDao.getById(employee.id)!!
+        hasLoggedInUserUpdateAccess(dbEmployee, dbEmployee, true)
+        val attr = persistenceService.selectById(EmployeeValidityPeriodAttrDO::class.java, attrId)
+        if (attr == null || attr.employee?.id != dbEmployee.id || attr.attribute != type) {
+            throw IllegalArgumentException("No such attribute found for employee#${dbEmployee.id} ${dbEmployee.displayName}: $attrId: $attr")
+        }
+        persistenceService.runInTransaction { context ->
+            val em = context.em
+            em.persist(attr)
+            log.info("New ${EmployeeValidityPeriodAttrDO::class.simpleName} for employee#${dbEmployee.id} ${dbEmployee.displayName} added (${attr.id}): $attr")
+            HistoryBaseDaoAdapter.inserted(attr, context)
+            em.flush()
+        }
     }
 
     fun getReportOfMonth(year: Int, month: Int?, user: PFUserDO): MonthlyEmployeeReport {
