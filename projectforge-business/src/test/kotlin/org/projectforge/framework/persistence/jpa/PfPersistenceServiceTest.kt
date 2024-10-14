@@ -30,6 +30,7 @@ import org.projectforge.test.AbstractTestBase
 class PfPersistenceServiceTest : AbstractTestBase() {
     @Test
     fun contextTest() {
+        val oldState = persistenceService.saveStatsState()
         resetContextCounters()
         persistenceService.runReadOnly { outerContext -> // Readonly +1
             persistenceService.runReadOnly { innerContext -> // Readonly +0
@@ -41,6 +42,7 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             }
         }
         assertContextCounterAndReset(0, 1)
+        assertPersistenceStats(oldState, createdTransactions = 0, createdReadonlies = 1)
         persistenceService.runReadOnly { outerContext -> // Readonly +1
             persistenceService.runInTransaction { transContext -> // Transactional +1
                 Assertions.assertNotEquals(
@@ -59,6 +61,7 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             }
         }
         assertContextCounterAndReset(1, 1)
+        assertPersistenceStats(oldState, createdTransactions = 1, createdReadonlies = 2)
         persistenceService.runReadOnly { outerContext -> // Readonly +1
             persistenceService.runIsolatedReadOnly { innerContext -> // Readonly +1
                 Assertions.assertNotEquals(outerContext.contextId, innerContext.contextId)
@@ -81,6 +84,7 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             }
         }
         assertContextCounterAndReset(1, 3)
+        assertPersistenceStats(oldState, createdTransactions = 2, createdReadonlies = 5)
         persistenceService.runInTransaction { outerContext -> // Transactional +1
             persistenceService.runInTransaction { innerContext -> // Transactional +0
                 Assertions.assertEquals(
@@ -104,6 +108,7 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             }
         }
         assertContextCounterAndReset(2, 1)
+        assertPersistenceStats(oldState, createdTransactions = 4, createdReadonlies = 6)
         suppressErrorLogs {
             try {
                 persistenceService.runInTransaction { outerContext -> // Transactional +1
@@ -124,8 +129,9 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             } catch (e: IllegalArgumentException) {
                 // Expected.
             }
-            assertContextCounterAndReset(0, 2)
         }
+        assertContextCounterAndReset(0, 2)
+        assertPersistenceStats(oldState, createdTransactions = 6, createdReadonlies = 8)
         Assertions.assertNull(
             PfPersistenceContextThreadLocal.getReadonly(), "All readonly contexts should be cleared."
         )
@@ -147,7 +153,10 @@ class PfPersistenceServiceTest : AbstractTestBase() {
         )
     }
 
-    private fun assertContextCounterAndReset(numberOfExpectedTransactions: Long, numberOfEexpectedReadonlyContexts: Long) {
+    private fun assertContextCounterAndReset(
+        numberOfExpectedTransactions: Long,
+        numberOfEexpectedReadonlyContexts: Long
+    ) {
         assertContextCounter(numberOfExpectedTransactions, numberOfEexpectedReadonlyContexts)
         resetContextCounters()
     }

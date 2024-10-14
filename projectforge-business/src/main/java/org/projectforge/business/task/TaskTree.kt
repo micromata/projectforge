@@ -783,8 +783,6 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @see org.projectforge.framework.cache.AbstractCache.refresh
      */
     public override fun refresh() {
-
-
         log.info("Initializing task tree ...")
         persistenceService.runIsolatedReadOnly { _ ->
             var newRoot: TaskNode? = null
