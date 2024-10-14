@@ -330,13 +330,17 @@ open class PfPersistenceService {
     /**
      * Saves the current statistics state of the current thread.
      * @return The statistics state (a copy for later comparison).
-     * @see PersistenceThreadStats
+     * @see PersistenceStats
      */
-    fun saveStatsState(): PersistenceThreadStats {
+    fun saveStatsState(): PersistenceStats {
         return PfPersistenceContextThreadLocal.getStatsState().saveCurrentState()
     }
 
-    fun getActivities(oldState: PersistenceThreadStats): PersistenceThreadStats {
+    fun getStats(oldState: PersistenceStats): PersistenceStats {
         return PfPersistenceContextThreadLocal.getStatsState().getActivities(oldState)
+    }
+
+    fun formatStats(oldState: PersistenceStats, withDuration: Boolean = true): String {
+        return getStats(oldState).asString(withDuration)
     }
 }

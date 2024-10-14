@@ -784,6 +784,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      */
     public override fun refresh() {
         log.info("Initializing task tree ...")
+        val saved = persistenceService.saveStatsState()
         persistenceService.runIsolatedReadOnly { _ ->
             var newRoot: TaskNode? = null
             val nTaskMap = mutableMapOf<Long, TaskNode>()
@@ -863,7 +864,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                 node!!.bookableForTimesheets = bookable
             }
         }
-        log.info("Initializing task tree done.")
+        log.info("Initializing task tree done. stats=${persistenceService.formatStats(saved)}")
     }
 
     private fun updateTimeOfLastModification() {
