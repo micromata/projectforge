@@ -174,7 +174,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
             super.markAsDeleted(obj, checkAccess = checkAccess)
             return
         }
-        val masterEvent = getById(obj.id)
+        val masterEvent = find(obj.id)
         obj.copyValuesFrom(masterEvent!!) // Restore db fields of master event. Do only modify single or future events.
         if (mode == SeriesModificationMode.FUTURE) {
             // TODO
@@ -211,7 +211,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
      */
     fun getEventList(filter: TeamEventFilter, calculateRecurrenceEvents: Boolean): List<ICalendarEvent?> {
         val result: MutableList<ICalendarEvent?> = ArrayList()
-        var list = getList(filter)
+        var list = select(filter)
         if (CollectionUtils.isNotEmpty(list)) {
             for (eventDO in list) {
                 result.add(eventDO)
@@ -219,7 +219,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         }
         val teamEventFilter = filter.clone().setOnlyRecurrence(true)
         val qFilter = buildQueryFilter(teamEventFilter)
-        list = getList(qFilter).distinct()
+        list = select(qFilter).distinct()
         for (eventDO in list) {
             if (!calculateRecurrenceEvents) {
                 result.add(eventDO)
@@ -232,8 +232,8 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     /**
      * Sets midnight (UTC) of all day events.
      */
-    override fun onSaveOrModify(obj: CalEventDO) {
-        super.onSaveOrModify(obj)
+    override fun onInsertOrModify(obj: CalEventDO) {
+        super.onInsertOrModify(obj)
         requireNotNull(obj.calendar)
 
         if (obj.allDay) {
@@ -259,7 +259,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         }
     }
 
-    override fun onSave(obj: CalEventDO) {
+    override fun onInsert(obj: CalEventDO) {
         // create uid if empty
         if (StringUtils.isBlank(obj.uid)) {
             obj.uid = TeamCalConfig.get().createEventUid()

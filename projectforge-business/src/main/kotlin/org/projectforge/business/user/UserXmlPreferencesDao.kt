@@ -242,11 +242,11 @@ class UserXmlPreferencesDao {
 
     /**
      * @param userId If null, then user will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setUser(userPrefs: UserXmlPreferencesDO, userId: Long?) {
         userId ?: return
-        val user = userDao.getOrLoad(userId)
+        val user = userDao.findOrLoad(userId)
         userPrefs.user = user
     }
 
@@ -262,7 +262,7 @@ class UserXmlPreferencesDao {
             isNew = true
             userPrefs = UserXmlPreferencesDO()
             userPrefs.created = date
-            userPrefs.user = userDao.getById(userId, checkAccess = false)
+            userPrefs.user = userDao.find(userId, checkAccess = false)
             userPrefs.key = key
         }
         val xml = serialize(userPrefs, entry)

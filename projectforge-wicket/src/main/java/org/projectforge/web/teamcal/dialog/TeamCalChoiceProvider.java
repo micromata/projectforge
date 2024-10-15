@@ -71,7 +71,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
   public void query(String term, final int page, final Response<TeamCalDO> response)
   {
     // add all access groups
-    final List<TeamCalDO> fullAccessTeamCals = getTeamCalDao().getList(new TeamCalFilter());
+    final List<TeamCalDO> fullAccessTeamCals = getTeamCalDao().select(new TeamCalFilter());
     final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
     term = term != null ? term.toLowerCase() : "";
 
@@ -111,7 +111,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
       }
       TeamCalDO teamCal = null;
       try {
-        teamCal = getTeamCalDao().getById(teamCalId);
+        teamCal = getTeamCalDao().find(teamCalId);
       } catch (final AccessException ex) {
         log.warn("User has no access to the selected calendar '" + id + "'.");
       }

@@ -74,7 +74,7 @@ class DataTransferJCRCleanUpJob {
     var preservedCounter = 0
     var preservedSize: Long = 0
     // First of all, try to check all attachments of active areas:
-    dataTransferAreaDao.loadAll(checkAccess = false).forEach { dbo ->
+    dataTransferAreaDao.selectAll(checkAccess = false).forEach { dbo ->
       dbo.id?.let { id ->
         processedDBOs.add(id)
         val expiryMillis = (dbo.expiryDays ?: 30).toLong() * MILLIS_PER_DAY

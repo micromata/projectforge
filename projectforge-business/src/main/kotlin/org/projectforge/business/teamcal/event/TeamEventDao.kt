@@ -168,10 +168,10 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * @param teamEvent
      * @param teamCalendarId If null, then team calendar will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setCalendar(teamEvent: TeamEventDO, teamCalendarId: Long) {
-        val teamCal = teamCalDao!!.getOrLoad(teamCalendarId)
+        val teamCal = teamCalDao!!.findOrLoad(teamCalendarId)
         teamEvent.calendar = teamCal
     }
 
@@ -258,14 +258,14 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
         val newEvent = event.clone()
         newEvent.sequence = 0
-        val masterEvent = getById(event.id)
+        val masterEvent = find(event.id)
         event.copyValuesFrom(masterEvent!!) // Restore db fields of master event. Do only modify single or future events.
         if (mode == SeriesModificationMode.FUTURE) {
             val recurrenceData = masterEvent.getRecurrenceData(timeZone)
             // Set the end date of the master date one day before current date and save this event.
             recurrenceData.setUntil(getUntilDate(selectedEvent.startDate!!))
             event.setRecurrence(recurrenceData)
-            save(newEvent)
+            insert(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
                     "Recurrence until date of master entry will be set to: " + DateHelper.formatAsUTC(
@@ -282,7 +282,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 log.warn("User tries to modifiy single event of a series, the given recurrence is ignored.")
             }
             newEvent.setRecurrence(null as RRule?) // User only wants to modify single event, ignore recurrence.
-            save(newEvent)
+            insert(newEvent)
             if (log.isDebugEnabled) {
                 log.debug(
                     ("Recurrency ex date of master entry is now added: "
@@ -307,7 +307,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             super.markAsDeleted(obj, checkAccess)
             return
         }
-        val masterEvent = getById(obj.id)
+        val masterEvent = find(obj.id)
         obj.copyValuesFrom(masterEvent!!) // Restore db fields of master event. Do only modify single or future events.
         if (mode == SeriesModificationMode.FUTURE) {
             val recurrenceData = obj.getRecurrenceData(timeZone)
@@ -322,7 +322,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
     }
 
-    override fun onSave(obj: TeamEventDO) {
+    override fun onInsert(obj: TeamEventDO) {
         // set ownership if empty
         if (obj.ownership == null) {
             obj.ownership = true
@@ -342,8 +342,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Sets midnight (UTC) of all day events.
      */
-    override fun onSaveOrModify(obj: TeamEventDO) {
-        super.onSaveOrModify(obj)
+    override fun onInsertOrModify(obj: TeamEventDO) {
+        super.onInsertOrModify(obj)
         requireNotNull(obj.calendar)
 
         if (obj.allDay) {
@@ -384,7 +384,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
      */
     fun getEventList(filter: TeamEventFilter, calculateRecurrenceEvents: Boolean): List<ICalendarEvent> {
         val result: MutableList<ICalendarEvent> = ArrayList()
-        var list = getList(filter).toMutableList()
+        var list = select(filter).toMutableList()
         if (CollectionUtils.isNotEmpty(list)) {
             for (eventDO in list) {
                 if (eventDO.hasRecurrence()) {
@@ -397,7 +397,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         val teamEventFilter = filter.clone().setOnlyRecurrence(true)
         val qFilter = buildQueryFilter(teamEventFilter)
         qFilter.add(isNotNull("recurrenceRule"))
-        list = getList(qFilter).distinct().toMutableList()
+        list = select(qFilter).distinct().toMutableList()
         // add all abo events
         val recurrenceEvents = teamEventExternalSubscriptionCache
             .getRecurrenceEvents(teamEventFilter)
@@ -429,9 +429,9 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
 
     /**
      * @param checkAccess is ignored, only accessible calendars are used.
-     * @see org.projectforge.framework.persistence.api.BaseDao.getListForSearchDao
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectForSearchDao
      */
-    override fun getListForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TeamEventDO> {
+    override fun selectForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TeamEventDO> {
         val teamEventFilter = TeamEventFilter(filter) // May-be called by SeachPage
         val allAccessibleCalendars = teamCalCache!!.allAccessibleCalendars
         if (CollectionUtils.isEmpty(allAccessibleCalendars)) {
@@ -439,13 +439,13 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             return ArrayList()
         }
         teamEventFilter.setTeamCals(getCalIdList(allAccessibleCalendars))
-        return getList(teamEventFilter)
+        return select(teamEventFilter)
     }
 
     /**
-     * @see org.projectforge.framework.persistence.api.BaseDao.getList
+     * @see org.projectforge.framework.persistence.api.BaseDao.select
      */
-    override fun getList(filter: BaseSearchFilter): List<TeamEventDO> {
+    override fun select(filter: BaseSearchFilter): List<TeamEventDO> {
         val teamEventFilter = if (filter is TeamEventFilter) {
             filter.clone()
         } else {
@@ -455,7 +455,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
             return ArrayList()
         }
         val qFilter = buildQueryFilter(teamEventFilter)
-        val list = getList(qFilter)
+        val list = select(qFilter)
         val result: MutableList<TeamEventDO> = ArrayList()
         for (event in list) {
             if (matches(event.startDate!!, event.endDate!!, event.allDay, teamEventFilter)) {
@@ -631,8 +631,8 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun getDisplayHistoryEntries(obj: TeamEventDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, checkAccess)
+    override fun selectDisplayHistoryEntries(obj: TeamEventDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

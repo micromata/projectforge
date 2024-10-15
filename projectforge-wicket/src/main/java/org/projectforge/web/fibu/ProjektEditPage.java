@@ -73,7 +73,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
           final Kost2DO kost2 = new Kost2DO();
           kost2Dao.setProjekt(kost2, getData().getId());
           kost2Dao.setKost2Art(kost2, art.getId());
-          kost2Dao.save(kost2);
+          kost2Dao.insert(kost2);
         }
       }
     }

@@ -98,7 +98,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name");
         filter.setSearchString(input);
-        final List<GroupDO> list = WicketSupport.get(GroupDao.class).getList(filter);
+        final List<GroupDO> list = WicketSupport.get(GroupDao.class).select(filter);
         return list;
       }
 

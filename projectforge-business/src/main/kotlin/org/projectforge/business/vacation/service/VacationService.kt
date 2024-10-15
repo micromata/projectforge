@@ -160,7 +160,7 @@ open class VacationService {
             val stats = VacationStats(employee, year, baseDate)
             // Get employee from database if not initialized (user not given).
             val employeeDO =
-                if (employee.userId == null) employeeDao.getById(employee.id, checkAccess = false) else employee
+                if (employee.userId == null) employeeDao.find(employee.id, checkAccess = false) else employee
             if (employeeDO == null) {
                 log.warn("Shouldn't occur: employee not found by id #${employee.id}")
                 return@runInTransaction stats
@@ -273,7 +273,7 @@ open class VacationService {
      * @return List of vacations
      */
     open fun getVacation(idList: List<Serializable>?): List<VacationDO?>? {
-        return vacationDao.load(idList, checkAccess = false)
+        return vacationDao.select(idList, checkAccess = false)
     }
 
     /**
@@ -353,7 +353,7 @@ open class VacationService {
     ): VacationValidator.Error? {
         var dbVal = dbVacation
         if (dbVacation == null && vacation.id != null) {
-            dbVal = vacationDao.getById(vacation.id, checkAccess = false)
+            dbVal = vacationDao.find(vacation.id, checkAccess = false)
         }
         return VacationValidator.validate(this, vacation, dbVal, throwException)
     }

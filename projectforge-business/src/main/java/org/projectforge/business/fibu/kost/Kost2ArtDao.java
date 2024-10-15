@@ -47,16 +47,16 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO> {
     }
 
     @Override
-    public void afterSaveOrModify(final Kost2ArtDO obj) {
-        super.afterSaveOrModify(obj);
+    public void afterInsertOrModify(final Kost2ArtDO obj) {
+        super.afterInsertOrModify(obj);
         kostCache.updateKost2Arts();
     }
 
     @Override
-    public List<Kost2ArtDO> getList(final BaseSearchFilter filter) {
+    public List<Kost2ArtDO> select(final BaseSearchFilter filter) {
         final QueryFilter queryFilter = new QueryFilter(filter);
         queryFilter.addOrder(SortProperty.asc("id"));
-        return getList(queryFilter);
+        return select(queryFilter);
     }
 
     @Override

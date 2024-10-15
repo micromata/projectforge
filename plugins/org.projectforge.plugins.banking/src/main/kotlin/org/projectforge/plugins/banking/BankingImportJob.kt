@@ -80,7 +80,7 @@ class BankingImportJob(
         continue
       }
       var dbEntry = if (storedEntryId != null) {
-        bankAccountRecordDao.getById(storedEntryId)
+        bankAccountRecordDao.find(storedEntryId)
       } else {
         null
       }
@@ -90,7 +90,7 @@ class BankingImportJob(
           readEntry.copyTo(dbEntry)
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
-          bankAccountRecordDao.save(dbEntry, checkAccess = false)
+          bankAccountRecordDao.insert(dbEntry, checkAccess = false)
           result.inserted += 1
         }
       } else {

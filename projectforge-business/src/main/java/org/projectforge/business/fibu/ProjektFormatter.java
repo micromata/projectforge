@@ -81,7 +81,7 @@ public class ProjektFormatter extends BaseFormatter
   {
     ProjektDO projekt = null;
     try {
-      projekt = WicketSupport.get(ProjektDao.class).getById(projektId);
+      projekt = WicketSupport.get(ProjektDao.class).find(projektId);
     } catch (AccessException ex) {
       log.info(ex.getMessage());
       return getNotVisibleString();

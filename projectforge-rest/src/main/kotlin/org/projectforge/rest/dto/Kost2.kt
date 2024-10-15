@@ -90,7 +90,7 @@ class Kost2(
 
     fun getkost2(kost2Id: Long?, minimal: Boolean = true): Kost2? {
       kost2Id ?: return null
-      val kost2DO = kost2Dao.getOrLoad(kost2Id) ?: return null
+      val kost2DO = kost2Dao.findOrLoad(kost2Id) ?: return null
       val kost2 = Kost2()
       if (minimal) {
         kost2.copyFromMinimal(kost2DO)

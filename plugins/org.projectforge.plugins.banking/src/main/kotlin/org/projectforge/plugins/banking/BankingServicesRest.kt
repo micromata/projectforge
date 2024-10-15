@@ -68,7 +68,7 @@ class BankingServicesRest {
       log.warn("Upload file size to big: ${file.size} > 100MB")
       throw IllegalArgumentException("Upload file size to big: ${file.size} > 100MB")
     }
-    val bankAccountDO = bankAccountDao.getById(id)
+    val bankAccountDO = bankAccountDao.find(id)
     if (bankAccountDO == null) {
       log.warn("Bank account with id #$id not found.")
       throw IllegalArgumentException()

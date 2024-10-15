@@ -62,7 +62,7 @@ class ExcelExport {
 
 
     fun getExcel(poll: Poll): ByteArray? {
-        val responses = pollResponseDao.loadAll(checkAccess = false).filter { it.poll?.id == poll.id }
+        val responses = pollResponseDao.selectAll(checkAccess = false).filter { it.poll?.id == poll.id }
         val classPathResource = ClassPathResource("officeTemplates/PollResultTemplate" + ".xlsx")
 
         try {

@@ -163,7 +163,7 @@ class ScriptExecution {
     if (script.id != null) {
       // Exceuting db script:
       scriptDO =
-        scriptDao.getById(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
+        scriptDao.find(script.id) ?: throw IllegalArgumentException("Script with id #${script.id} not found.")
     } else {
       // Executing ad-hoc script (from editor instead of data base).
       scriptDO = ScriptDO()

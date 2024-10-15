@@ -95,7 +95,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
       access.employee();
       access.setRecursive(true);
     }
-    accessDao.saveOrUpdate(access);
+    accessDao.insertOrUpdate(access);
     createAccessRights(taskNode.getParent(), group, isManagerGroup, false);
   }
 
@@ -117,12 +117,12 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
   {
     GroupDao groupDao = WicketSupport.get(GroupDao.class);
     if ("taskId".equals(property) == true) {
-      form.task = WicketSupport.getTaskDao().getById((Long) selectedValue);
+      form.task = WicketSupport.getTaskDao().find((Long) selectedValue);
     } else if ("managerGroupId".equals(property) == true) {
-      form.managerGroup = groupDao.getById((Long) selectedValue);
+      form.managerGroup = groupDao.find((Long) selectedValue);
       form.groupSelectPanelManager.getTextField().modelChanged();
     } else if ("teamId".equals(property) == true) {
-      form.team = groupDao.getById((Long) selectedValue);
+      form.team = groupDao.find((Long) selectedValue);
       form.groupSelectPanelTeam.getTextField().modelChanged();
     } else {
       log.error("Property '" + property + "' not supported for selection.");

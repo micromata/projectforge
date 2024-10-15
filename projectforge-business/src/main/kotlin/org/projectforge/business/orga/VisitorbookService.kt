@@ -34,8 +34,8 @@ class VisitorbookService : IDao<VisitorbookDO?> {
     @Autowired
     private lateinit var visitorbookDao: VisitorbookDao
 
-    override fun getList(filter: BaseSearchFilter): List<VisitorbookDO> {
-        return visitorbookDao.getList(filter)
+    override fun select(filter: BaseSearchFilter): List<VisitorbookDO> {
+        return visitorbookDao.select(filter)
     }
 
     override fun isHistorizable(): Boolean {

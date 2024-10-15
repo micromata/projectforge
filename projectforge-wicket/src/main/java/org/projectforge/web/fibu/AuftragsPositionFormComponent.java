@@ -115,7 +115,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     } else {
       filter.setSearchString(input + "*");
     }
-    final List<AuftragDO> list = WicketSupport.get(AuftragDao.class).getList(filter);
+    final List<AuftragDO> list = WicketSupport.get(AuftragDao.class).select(filter);
     Collections.sort(list, new Comparator<AuftragDO>()
     {
       @Override

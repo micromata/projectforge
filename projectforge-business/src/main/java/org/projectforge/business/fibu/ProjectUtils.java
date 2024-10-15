@@ -68,7 +68,7 @@ public class ProjectUtils {
     final Collection<ProjektDO> result = new LinkedList<>();
     final ProjektFilter filter = new ProjektFilter();
     ensureProjectDao();
-    final List<ProjektDO> projects = projektDao.getList(filter);
+    final List<ProjektDO> projects = projektDao.select(filter);
     if (CollectionUtils.isEmpty(projects)) {
       return result;
     }
@@ -91,7 +91,7 @@ public class ProjectUtils {
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setDeleted(false);
     ensureProjectDao();
-    return projektDao.getList(filter);
+    return projektDao.select(filter);
   }
 
   private static void ensureProjectDao() {

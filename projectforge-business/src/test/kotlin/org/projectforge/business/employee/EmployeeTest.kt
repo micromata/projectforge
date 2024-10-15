@@ -52,7 +52,7 @@ class EmployeeTest : AbstractTestBase() {
     @BeforeEach
     fun init() {
         logon(TEST_FULL_ACCESS_USER)
-        employeeList = employeeDao.loadAll(checkAccess = false)
+        employeeList = employeeDao.selectAll(checkAccess = false)
         Assertions.assertTrue(employeeList.isNotEmpty(), "Keine Mitarbeiter in der Test DB!")
     }
 
@@ -85,7 +85,7 @@ class EmployeeTest : AbstractTestBase() {
         employeeDao.markAsDeleted(e)
 
         //Check updates
-        val updatdEmployee = employeeDao.getById(e.id)
+        val updatdEmployee = employeeDao.find(e.id)
         Assertions.assertTrue(updatdEmployee!!.deleted)
         employeeDao.update(e)
     }
@@ -94,14 +94,14 @@ class EmployeeTest : AbstractTestBase() {
     fun testStaffNumber() {
         Assertions.assertTrue(employeeList.isNotEmpty())
         val e = employeeList[0]
-        val historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e)
+        val historyEntriesBefore = employeeDao.selectDisplayHistoryEntries(e)
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
         Assertions.assertEquals(e.staffNumber, staffNumber)
         employeeDao.update(e)
 
         // test history
-        val historyEntriesAfter = employeeDao.getDisplayHistoryEntries(e)
+        val historyEntriesAfter = employeeDao.selectDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
         assertHistoryEntry(historyEntriesAfter[0], "staffNumber", staffNumber)
     }
@@ -140,7 +140,7 @@ class EmployeeTest : AbstractTestBase() {
             }
             val employee = EmployeeDO()
             employee.user = user
-            employeeDao.save(employee, checkAccess = false)
+            employeeDao.insert(employee, checkAccess = false)
             employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             loggedInUser?.let { test.logon(it) }
             return employee

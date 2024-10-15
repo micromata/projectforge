@@ -92,7 +92,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     scriptDO.scriptAsString = dto.script
     if (dto.id != null) {
       // Restore filename and file for older scripts, edited by classical Wicket-version:
-      val origScript = baseDao.getById(dto.id) ?: throw IllegalArgumentException("Script with id #${dto.id} not found.")
+      val origScript = baseDao.find(dto.id) ?: throw IllegalArgumentException("Script with id #${dto.id} not found.")
       scriptDO.filename = origScript.filename
       scriptDO.file = origScript.file
     }
@@ -318,7 +318,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   @GetMapping("downloadBackupScripts/{id}")
   fun downloadBackupScripts(@PathVariable("id") id: Int?): ResponseEntity<*> {
     log.info("Downloading backup script of script with id=$id")
-    val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
     val zip = ExportZipArchive("${scriptDO.name}-backups.zip")
     zip.add(
       ReplaceUtils.encodeFilename("${scriptDO.name}-backup.${baseDao.getScriptSuffix(scriptDO)}"),
@@ -333,7 +333,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   @GetMapping("downloadEffectiveScript/{id}")
   fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
     log.info("Downloading effective script of script with id=$id")
-    val scriptDO = baseDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
     val script = transformFromDB(scriptDO)
     val effectiveScript = scriptExecution.getEffectiveScript(script, script.parameters, baseDao, this)
     val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-effective.${baseDao.getScriptSuffix(scriptDO)}")

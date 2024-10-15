@@ -151,7 +151,7 @@ open class ForecastExport { // open needed by Wicket.
     filter.periodOfPerformanceStartDate =
       baseDate.plusYears(-2).localDate // Go 2 years back for getting all orders referred by invoices of prior year.
     filter.user = origFilter.user
-    val orderList = orderBookDao.getList(filter)
+    val orderList = orderBookDao.select(filter)
     if (orderList.isNullOrEmpty()) {
       // No orders found, so we don't need the forecast sheet.
       return null
@@ -162,7 +162,7 @@ open class ForecastExport { // open needed by Wicket.
     val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
     queryFilter.addOrder(desc("datum"))
     queryFilter.addOrder(desc("nummer"))
-    val invoices = rechnungDao.getList(queryFilter, checkAccess = false)
+    val invoices = rechnungDao.select(queryFilter, checkAccess = false)
     log.info("Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
     val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
@@ -272,7 +272,7 @@ open class ForecastExport { // open needed by Wicket.
         }
         if (orderPosId != null && order == null) {
           val orderId = pos.auftragsId ?: orderBookDao.getAuftragsPosition(orderPosId)?.auftragId
-          order = orderBookDao.getById(orderId, checkAccess = false)
+          order = orderBookDao.find(orderId, checkAccess = false)
           if (order == null) {
             log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
             continue

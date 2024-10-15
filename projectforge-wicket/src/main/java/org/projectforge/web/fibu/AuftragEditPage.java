@@ -78,7 +78,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       WicketSupport.get(AuftragDao.class).setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
       if (getData().getProjektId() != null && getData().getProjektId() >= 0) {
-        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).getById(getData().getProjektId());
+        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).find(getData().getProjektId());
         form.setKundePmHobmAndSmIfEmpty(projekt, null);
       }
     } else if ("kundeId".equals(property)) {
@@ -152,7 +152,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   protected void update() {
     AuftragDO auftrag = getData();
-    AuftragDO dbObj = WicketSupport.get(AuftragDao.class).getById(auftrag.getId(), false);
+    AuftragDO dbObj = WicketSupport.get(AuftragDao.class).find(auftrag.getId(), false);
     if (dbObj != null) {
       // Update attachments values (if modified in the mean time. They can't be modified on this Wicket page):
       auftrag.setAttachmentsCounter(dbObj.getAttachmentsCounter());

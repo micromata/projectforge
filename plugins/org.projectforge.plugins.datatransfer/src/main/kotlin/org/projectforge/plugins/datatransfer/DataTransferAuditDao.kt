@@ -77,7 +77,7 @@ class DataTransferAuditDao {
 
     fun getEntriesByAreaId(areaId: Long?): List<DataTransferAuditDO>? {
         areaId ?: return null
-        val area = dataTransferAreaDao.getById(areaId)!!
+        val area = dataTransferAreaDao.find(areaId)!!
         val loggedInUser = ThreadLocalUserContext.loggedInUser
         requireNotNull(loggedInUser)
         if (!dataTransferAreaDao.hasAccess(loggedInUser, area, null, OperationType.SELECT, false)) {

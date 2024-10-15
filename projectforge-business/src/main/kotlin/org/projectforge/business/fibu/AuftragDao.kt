@@ -201,7 +201,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         if (contactPersonId == null) {
             auftrag.contactPerson = null
         } else {
-            val contactPerson = userDao.getOrLoad(contactPersonId)
+            val contactPerson = userDao.findOrLoad(contactPersonId)
             auftrag.contactPerson = contactPerson
         }
     }
@@ -211,27 +211,27 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      * @param taskId
      */
     fun setTask(position: AuftragsPositionDO, taskId: Long) {
-        val task = taskDao.getOrLoad(taskId)
+        val task = taskDao.findOrLoad(taskId)
         position.task = task
     }
 
     /**
      * @param auftrag
      * @param kundeId If null, then kunde will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setKunde(auftrag: AuftragDO, kundeId: Long) {
-        val kunde = kundeDao.getOrLoad(kundeId)
+        val kunde = kundeDao.findOrLoad(kundeId)
         auftrag.kunde = kunde
     }
 
     /**
      * @param auftrag
      * @param projektId If null, then projekt will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setProjekt(auftrag: AuftragDO, projektId: Long) {
-        val projekt = projektDao.getOrLoad(projektId)
+        val projekt = projektDao.findOrLoad(projektId)
         auftrag.projekt = projekt
     }
 
@@ -279,7 +279,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         val filter = AuftragFilter()
         filter.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ZU_FAKTURIEREN
         try {
-            val list = getList(filter, false)
+            val list = select(filter, false)
             toBeInvoicedCounter = list.size
             return toBeInvoicedCounter!!
         } catch (ex: Exception) {
@@ -289,8 +289,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun getList(filter: BaseSearchFilter, checkAccess: Boolean): List<AuftragDO> {
-        super.getList(filter, checkAccess)
+    override fun select(filter: BaseSearchFilter, checkAccess: Boolean): List<AuftragDO> {
+        super.select(filter, checkAccess)
         val myFilter = if (filter is AuftragFilter) {
             filter
         } else {
@@ -344,7 +344,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         queryFilter.addOrder(desc("nummer"))
 
-        var list = getList(queryFilter, checkAccess)
+        var list = select(queryFilter, checkAccess)
 
         list = myFilter.filterFakturiert(list)
 
@@ -451,7 +451,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun onSaveOrModify(obj: AuftragDO) {
+    override fun onInsertOrModify(obj: AuftragDO) {
         if (obj.nummer == null) {
             throw UserException(
                 "validation.required.valueNotPresent",
@@ -599,8 +599,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(obj: AuftragDO) {
-        super.afterSaveOrModify(obj)
+    override fun afterInsertOrModify(obj: AuftragDO) {
+        super.afterInsertOrModify(obj)
         taskTree.refreshOrderPositionReferences()
     }
 
@@ -633,7 +633,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         data["contactPerson"] = contactPerson
         data["auftrag"] = auftrag
         data["requestUrl"] = requestUrl
-        val history: List<DisplayHistoryEntry> = getDisplayHistoryEntries(auftrag)
+        val history: List<DisplayHistoryEntry> = selectDisplayHistoryEntries(auftrag)
         val list: MutableList<DisplayHistoryEntry> = ArrayList()
         var i = 0
         for (entry in history) {
@@ -681,7 +681,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      */
     fun getNextNumber(auftrag: AuftragDO?): Int {
         if (auftrag?.id != null) {
-            val orig = getById(auftrag.id, checkAccess = false)
+            val orig = find(auftrag.id, checkAccess = false)
             if (orig!!.nummer != null) {
                 auftrag.nummer = orig.nummer
                 return orig.nummer!!
@@ -694,10 +694,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the AuftragsPositionDO children.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: AuftragDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, checkAccess)
+    override fun selectDisplayHistoryEntries(obj: AuftragDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

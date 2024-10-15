@@ -64,7 +64,7 @@ public class KundeFormatter extends BaseFormatter
   {
     KundeDO kunde = null;
     try {
-      kunde = WicketSupport.get(KundeDao.class).getById(kundeId);
+      kunde = WicketSupport.get(KundeDao.class).find(kundeId);
     } catch (AccessException ex) {
       log.info(ex.getMessage());
       return getNotVisibleString();

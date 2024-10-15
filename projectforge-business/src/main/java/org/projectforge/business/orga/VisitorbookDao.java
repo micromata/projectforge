@@ -43,7 +43,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
     }
 
     @Override
-    public List<VisitorbookDO> getList(final BaseSearchFilter filter) {
+    public List<VisitorbookDO> select(final BaseSearchFilter filter) {
         final VisitorbookFilter myFilter;
         if (filter instanceof VisitorbookFilter) {
             myFilter = (VisitorbookFilter) filter;
@@ -52,7 +52,7 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO> {
         }
 
         final QueryFilter queryFilter = createQueryFilter(myFilter);
-        final List<VisitorbookDO> resultList = getList(queryFilter);
+        final List<VisitorbookDO> resultList = select(queryFilter);
 /*
     final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
             .anyMatch(timeAttr -> !timeAttr.getStartTime().before(myFilter.getUTCStartTime())); // before() == false -> after or same day

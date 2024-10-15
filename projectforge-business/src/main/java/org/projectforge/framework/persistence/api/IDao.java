@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import java.util.List;
 
 public interface IDao<O> {
-    public List<O> getList(final BaseSearchFilter filter);
+    public List<O> select(final BaseSearchFilter filter);
 
     public boolean isHistorizable();
 

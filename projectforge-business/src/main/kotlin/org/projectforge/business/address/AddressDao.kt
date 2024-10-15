@@ -135,11 +135,11 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (filter.maxRows > 0) {
             filter.isSortAndLimitMaxRowsWhileSelect = true
         }
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: QueryFilter, checkAccess: Boolean): List<AddressDO> {
+    override fun select(filter: QueryFilter, checkAccess: Boolean): List<AddressDO> {
         val filters: MutableList<CustomResultFilter<AddressDO>> = ArrayList()
         if (filter.getExtendedBooleanValue("doublets")) {
             filters.add(DoubletsResultFilter())
@@ -147,10 +147,10 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (filter.getExtendedBooleanValue("favorites")) {
             filters.add(FavoritesResultFilter(personalAddressDao))
         }
-        return super.getList(filter, filters, checkAccess)
+        return super.select(filter, filters, checkAccess)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressDO> {
+    override fun select(filter: BaseSearchFilter): List<AddressDO> {
         val myFilter = if (filter is AddressFilter) {
             filter
         } else {
@@ -220,7 +220,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             addAddressbookRestriction(queryFilter, myFilter)
         }
         queryFilter.addOrder(asc("name"))
-        val result = getList(queryFilter)
+        val result = select(queryFilter)
         if (myFilter.isDoublets) {
             return filterDoublets(result)
         }
@@ -259,7 +259,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             if (addressbookRight == null) {
                 addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             }
-            for (ab in addressbookDao.loadAll(checkAccess = false)) {
+            for (ab in addressbookDao.selectAll(checkAccess = false)) {
                 if (!ab.deleted && addressbookRight!!.hasSelectAccess(loggedInUser, ab)) {
                     ab.id?.let {
                         abIdList.add(it)
@@ -325,7 +325,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun beforeSaveOrModify(obj: AddressDO) {
+    override fun beforeInsertOrModify(obj: AddressDO) {
         if (obj.id == null) {
             if (obj.addressbookList == null) {
                 val addressbookSet = mutableSetOf<AddressbookDO>()
@@ -336,7 +336,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             }
         } else {
             //Check addressbook changes
-            val dbAddress = getById(obj.id, checkAccess = false)
+            val dbAddress = find(obj.id, checkAccess = false)
             val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             for (dbAddressbook in dbAddress!!.addressbookList!!) {
                 //If user has no right for assigned addressbook, it could not be removed
@@ -349,8 +349,8 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun onSaveOrModify(obj: AddressDO) {
-        beforeSaveOrModify(obj)
+    override fun onInsertOrModify(obj: AddressDO) {
+        beforeInsertOrModify(obj)
     }
 
     override fun onChange(obj: AddressDO, dbObj: AddressDO) {
@@ -399,7 +399,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         address.imageLastUpdate = Date()
     }
 
-    override fun onSave(obj: AddressDO) {
+    override fun onInsert(obj: AddressDO) {
         // create uid if empty
         if (StringUtils.isBlank(obj.uid)) {
             obj.uid = UUID.randomUUID().toString()
@@ -411,7 +411,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      *
      * @param obj
      */
-    override fun afterSaveOrModify(obj: AddressDO) {
+    override fun afterInsertOrModify(obj: AddressDO) {
         birthdayCache.setExpired()
     }
 
@@ -656,7 +656,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     }
 
     fun findAll(): List<AddressDO?> {
-        return loadAll(checkAccess = false)
+        return selectAll(checkAccess = false)
     }
 
     fun findByUid(uid: String?): AddressDO? {
@@ -674,7 +674,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         filter.setSearchString("*$searchNumber*")
         val queryFilter = QueryFilter(filter)
         // Use internal get list method for avoiding access checking (no user is logged-in):
-        val resultList = getList(queryFilter, checkAccess = false)
+        val resultList = select(queryFilter, checkAccess = false)
         val buf = StringBuilder()
         if (resultList.isNotEmpty()) {
             var result = resultList[0]

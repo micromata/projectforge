@@ -106,7 +106,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "division");
         filter.setSearchString(input);
-        final List<KundeDO> list = WicketSupport.get(KundeDao.class).getList(filter);
+        final List<KundeDO> list = WicketSupport.get(KundeDao.class).select(filter);
         return list;
       }
 
@@ -165,7 +165,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
             final int ind = value.indexOf(" - ");
             final String idString = ind >= 0 ? value.substring(0, ind) : value;
             final Integer id = NumberHelper.parseInteger(idString);
-            final KundeDO kunde = id != null ? WicketSupport.get(KundeDao.class).getById(id) : null;
+            final KundeDO kunde = id != null ? WicketSupport.get(KundeDao.class).find(id) : null;
             if (kunde == null) {
               error(getString("panel.error.customernameNotFound"));
             }

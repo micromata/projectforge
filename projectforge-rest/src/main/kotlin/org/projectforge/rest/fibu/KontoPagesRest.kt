@@ -81,7 +81,7 @@ class KontoPagesRest
         val filter = BaseSearchFilter()
         filter.setSearchFields("nummer", "bezeichnung", "description")
         filter.searchString = search
-        val list: List<KontoDO> = baseDao.getList(filter)
+        val list: List<KontoDO> = baseDao.select(filter)
         if (accountRanges == null) {
             return list.map { Konto(it) }
         }

@@ -188,13 +188,13 @@ open class VacationSendMailService {
     val modifiedByUser = ThreadLocalUserContext.loggedInUser!!
     val modifiedByUserFullname = modifiedByUser.getFullname()
     val modifiedByUserMail = modifiedByUser.email
-    val employeeUser = employeeDao.getById(vacation.employee?.id, checkAccess = false)?.user
+    val employeeUser = employeeDao.find(vacation.employee?.id, checkAccess = false)?.user
     var employeeFullname = employeeUser?.getFullname() ?: "unknown"
     val employeeMail = employeeUser?.email
-    val managerUser = employeeDao.getById(vacation.manager?.id, checkAccess = false)?.user
+    val managerUser = employeeDao.find(vacation.manager?.id, checkAccess = false)?.user
     var managerFullname = managerUser?.getFullname() ?: "unknown"
     val managerMail = managerUser?.email
-    val replacementUser = employeeDao.getById(vacation.replacement?.id, checkAccess = false)?.user
+    val replacementUser = employeeDao.find(vacation.replacement?.id, checkAccess = false)?.user
     val otherReplacementUsers = mutableListOf<PFUserDO>()
     var replacementFullname = replacementUser?.getFullname() ?: "unknown"
     var otherReplacementsFullnames: String = ""
@@ -235,7 +235,7 @@ open class VacationSendMailService {
         valid = false
       }
       vacation.otherReplacements?.forEach { employeeDO ->
-        employeeDao.getById(employeeDO.id, checkAccess = false)?.user?.let { user ->
+        employeeDao.find(employeeDO.id, checkAccess = false)?.user?.let { user ->
           otherReplacementUsers.add(user)
         }
       }

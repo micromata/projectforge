@@ -63,7 +63,7 @@ public class AccessTestFork extends AbstractTestBase {
     @Test
     public void testAccessDO() {
         logon(AbstractTestBase.TEST_ADMIN_USER);
-        final List<GroupTaskAccessDO> list = accessDao.loadAll(false);
+        final List<GroupTaskAccessDO> list = accessDao.selectAll(false);
         for (final GroupTaskAccessDO access : list) {
             log.info(access.toString());
         }
@@ -76,15 +76,15 @@ public class AccessTestFork extends AbstractTestBase {
             taskEntry.setAccess(true, true, true, true);
             final AccessEntryDO timesheetEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS);
             timesheetEntry.setAccess(false, false, false, false);
-            return accessDao.save(groupTaskAccess);
+            return accessDao.insert(groupTaskAccess);
         });
 
-        GroupTaskAccessDO groupTaskAccess = accessDao.getById(id);
+        GroupTaskAccessDO groupTaskAccess = accessDao.find(id);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), false, false, false, false);
         groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS).setAccessSelect(true);
         accessDao.update(groupTaskAccess);
-        groupTaskAccess = accessDao.getById(id);
+        groupTaskAccess = accessDao.find(id);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TASKS), true, true, true, true);
         checkAccessEntry(groupTaskAccess.getAccessEntry(AccessType.TIMESHEETS), true, false, false, false);
     }
@@ -113,7 +113,7 @@ public class AccessTestFork extends AbstractTestBase {
             groupTaskAccess.setGroup(getGroup("group1"));
             AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS);
             taskEntry.setAccess(true, true, true, true);
-            accessDao.save(groupTaskAccess);
+            accessDao.insert(groupTaskAccess);
             // No access in task cTm.1
             groupTaskAccess = new GroupTaskAccessDO();
             accessDao.setTask(groupTaskAccess, getTask("cTm.2").getId());
@@ -121,7 +121,7 @@ public class AccessTestFork extends AbstractTestBase {
 
             taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS);
             taskEntry.setAccess(false, false, false, false);
-            accessDao.save(groupTaskAccess);
+            accessDao.insert(groupTaskAccess);
 
             TimesheetDO timesheet = new TimesheetDO();
             timesheet.setTask(initTestDB.getTask("cTm.child"));
@@ -131,9 +131,9 @@ public class AccessTestFork extends AbstractTestBase {
             final long current = System.currentTimeMillis();
             timesheet.setStartTime(new Date(current));
             timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-            final Serializable timesheetId = timesheetDao.save(timesheet, false);
+            final Serializable timesheetId = timesheetDao.insert(timesheet, false);
             logon(user1); // user1 is in group1, but not in group3
-            timesheet = timesheetDao.getById(timesheetId); // OK, because is selectable for group1
+            timesheet = timesheetDao.find(timesheetId); // OK, because is selectable for group1
             // Move task ctm.child to cTm.2 with no access to user1:
             final TaskDO childTask = getTask("cTm.child");
             childTask.setParentTask(getTask("cTm.2"));
@@ -142,7 +142,7 @@ public class AccessTestFork extends AbstractTestBase {
         });
 
         // try {
-        TimesheetDO timesheet = timesheetDao.getById(id); // AccessException, because is not selectable for group1
+        TimesheetDO timesheet = timesheetDao.find(id); // AccessException, because is not selectable for group1
         // User has no access, but is owner of this timesheet, so the following properties are empty:
         assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getShortDescription());
         assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, timesheet.getDescription());

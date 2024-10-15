@@ -51,10 +51,10 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
     /**
      * Force reload of the Configuration cache.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.afterSaveOrModify
+     * @see org.projectforge.framework.persistence.api.BaseDao.afterInsertOrModify
      * @see Configuration.setExpired
      */
-    override fun afterSaveOrModify(obj: ConfigurationDO) {
+    override fun afterInsertOrModify(obj: ConfigurationDO) {
         instance.setExpired()
     }
 
@@ -63,7 +63,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      */
     fun checkAndUpdateDatabaseEntries() {
         persistenceService.runInTransaction { context ->
-            val list = loadAll(checkAccess = false)
+            val list = selectAll(checkAccess = false)
             val params: MutableSet<String?> = HashSet()
             for (param in ConfigurationParam.entries) {
                 checkAndUpdateDatabaseEntry(param, list, params)
@@ -185,7 +185,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         if (param.type.isIn(ConfigurationType.BOOLEAN)) {
             configuration.stringValue = param.defaultBooleanValue.toString()
         }
-        save(configuration, checkAccess = false)
+        insert(configuration, checkAccess = false)
     }
 
     companion object {

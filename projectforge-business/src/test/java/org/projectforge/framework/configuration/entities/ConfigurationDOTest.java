@@ -58,7 +58,7 @@ public class ConfigurationDOTest extends AbstractTestBase {
     config.setParameter("unknown");
     config.setValue("Hurzel");
     assertNotNull(config);
-    configurationDao.save(config, false);
+    configurationDao.insert(config, false);
     List<ConfigurationDO> list = persistenceService.executeQuery(
             "select t from " + ConfigurationDO.class.getName() + " t where t.parameter = 'unknown'", ConfigurationDO.class);
     config = list.get(0);

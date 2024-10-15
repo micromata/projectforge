@@ -99,7 +99,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
     }
 
     @Override
-    public void onSaveOrModify(final GanttChartDO obj) {
+    public void onInsertOrModify(final GanttChartDO obj) {
         final String styleAsXml = XmlObjectWriter.writeAsXml(obj.getStyle());
         obj.setStyleAsXml(styleAsXml);
         final String settingsAsXml = XmlObjectWriter.writeAsXml(obj.getSettings());
@@ -402,17 +402,17 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
      * @see TaskTree#getTaskById(Long)
      */
     public void setTask(final GanttChartDO ganttChart, final Long taskId) {
-        final TaskDO task = taskDao.getOrLoad(taskId);
+        final TaskDO task = taskDao.findOrLoad(taskId);
         ganttChart.setTask(task);
     }
 
     /**
      * @param ganttChart
      * @param userId     If null, then task will be set to null;
-     * @see BaseDao#getOrLoad(Long)
+     * @see BaseDao#findOrLoad(Long)
      */
     public void setOwner(final GanttChartDO ganttChart, final Long userId) {
-        final PFUserDO user = userDao.getOrLoad(userId);
+        final PFUserDO user = userDao.findOrLoad(userId);
         ganttChart.setOwner(user);
     }
 

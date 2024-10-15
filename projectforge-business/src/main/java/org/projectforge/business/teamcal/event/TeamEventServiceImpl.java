@@ -126,7 +126,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     @Override
     public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee() {
         List<TeamEventAttendeeDO> resultList = new ArrayList<>();
-        List<AddressDO> allAddressList = addressDao.loadAllNotDeleted(false);
+        List<AddressDO> allAddressList = addressDao.selectAllUndeleted(false);
         List<PFUserDO> allUserList = userService.getAllActiveUsers();
         Set<Long> addedUserIds = new HashSet<>();
         for (AddressDO singleAddress : allAddressList) {
@@ -156,7 +156,7 @@ public class TeamEventServiceImpl implements TeamEventService {
 
     @Override
     public TeamEventAttendeeDO getAttendee(Long attendeeId) {
-        return teamEventAttendeeDao.getById(attendeeId, false);
+        return teamEventAttendeeDao.find(attendeeId, false);
     }
 
     @Override
@@ -169,7 +169,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                                 assignAttendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                             }
                             data.addAttendee(assignAttendee);
-                            teamEventAttendeeDao.save(assignAttendee, false);
+                            teamEventAttendeeDao.insert(assignAttendee, false);
                         }
                     }
 
@@ -211,7 +211,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                         attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                     }
 
-                    teamEventAttendeeDao.save(attendee, false);
+                    teamEventAttendeeDao.insert(attendee, false);
                 }
 
                 return null;
@@ -242,7 +242,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                         attendee.setAddress(attendeeOld.getAddress());
                         attendee.setUser(attendeeOld.getUser());
 
-                        teamEventAttendeeDao.save(attendee, false);
+                        teamEventAttendeeDao.insert(attendee, false);
 
                         break;
                     }
@@ -254,7 +254,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                     if (attendee.getStatus() == null) {
                         attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                     }
-                    teamEventAttendeeDao.save(attendee, false);
+                    teamEventAttendeeDao.insert(attendee, false);
                 }
             }
 
@@ -612,7 +612,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     @Override
     public TeamEventAttendeeDO findByAttendeeId(Long attendeeId, boolean checkAccess) {
         TeamEventAttendeeDO result = null;
-        result = teamEventAttendeeDao.getById(attendeeId, checkAccess);
+        result = teamEventAttendeeDao.find(attendeeId, checkAccess);
         return result;
     }
 
@@ -638,17 +638,17 @@ public class TeamEventServiceImpl implements TeamEventService {
 
     @Override
     public List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter) {
-        return teamEventDao.getList(filter);
+        return teamEventDao.select(filter);
     }
 
     @Override
     public TeamEventDO getById(Long teamEventId) {
-        return teamEventDao.getById(teamEventId);
+        return teamEventDao.find(teamEventId);
     }
 
     @Override
     public void saveOrUpdate(TeamEventDO teamEvent) {
-        teamEventDao.saveOrUpdate(teamEvent);
+        teamEventDao.insertOrUpdate(teamEvent);
     }
 
     @Override
@@ -663,7 +663,7 @@ public class TeamEventServiceImpl implements TeamEventService {
 
     @Override
     public void save(TeamEventDO newEvent) {
-        teamEventDao.save(newEvent);
+        teamEventDao.insert(newEvent);
     }
 
     @Override

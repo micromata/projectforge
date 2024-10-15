@@ -130,7 +130,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       if (activeTemplateEntry.getDefaultCalendarId() == null && activeTemplateEntry.getCalendars().size() > 0) {
         activeTemplateEntry.setDefaultCalendarId(activeTemplateEntry.getCalendars().get(0).getId());
       }
-      final TeamCalDO calendar = teamCalDao.getById(activeTemplateEntry.getDefaultCalendarId());
+      final TeamCalDO calendar = teamCalDao.find(activeTemplateEntry.getDefaultCalendarId());
       final TeamEventDO event = new TeamEventDO();
       event.setAllDay(range.isAllDay());
       event.setOwnership(true);
@@ -158,7 +158,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
     }
     // User clicked on teamEvent
     final TeamCalEventId id = new TeamCalEventId(event.getId(), ThreadLocalUserContext.getTimeZone());
-    final TeamEventDO teamEventDO = WicketSupport.get(TeamEventDao.class).getById(id.getDataBaseId());
+    final TeamEventDO teamEventDO = WicketSupport.get(TeamEventDao.class).find(id.getDataBaseId());
     final ICalendarEvent teamEvent = eventProvider.getTeamEvent(id.toString());
     if (new TeamEventRight().hasUpdateAccess(ThreadLocalUserContext.getLoggedInUser(), teamEventDO,
         null)) {
@@ -277,7 +277,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       return;
     }
 
-    teamEventDO = teamEventDao.getById(teamEventDO.getId());
+    teamEventDO = teamEventDao.find(teamEventDO.getId());
 
     // update start and end date
     if (newStartDate != null) {
@@ -294,7 +294,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       teamEventDO.setOwnership(true);
 
       // and save the new event -> correct time is set already
-      teamEventDao.save(teamEventDO);
+      teamEventDao.insert(teamEventDO);
     }
 
     if (dropMode == null || CalendarDropMode.MOVE_EDIT.equals(dropMode)

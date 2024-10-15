@@ -69,12 +69,12 @@ class AuftragDaoTest : AbstractTestBase() {
         var auftrag = AuftragDO()
         auftrag.nummer = auftragDao.getNextNumber(auftrag)
         auftrag.addPosition(AuftragsPositionDO())
-        auftragDao.save(auftrag)
+        auftragDao.insert(auftrag)
         Assertions.assertEquals(dbNumber++, auftrag.nummer)
         auftrag = AuftragDO()
         auftrag.nummer = auftragDao.getNextNumber(auftrag)
         auftrag.addPosition(AuftragsPositionDO())
-        auftragDao.save(auftrag)
+        auftragDao.insert(auftrag)
         Assertions.assertEquals(dbNumber++, auftrag.nummer)
     }
 
@@ -87,22 +87,22 @@ class AuftragDaoTest : AbstractTestBase() {
         var id1: Serializable
         try {
             suppressErrorLogs {
-                id1 = auftragDao.save(auftrag1)
+                id1 = auftragDao.insert(auftrag1)
             }
             Assertions.fail { "UserException expected: Order should have positions." }
         } catch (ex: UserException) {
             Assertions.assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.i18nKey)
         }
         auftrag1.addPosition(AuftragsPositionDO())
-        id1 = auftragDao.save(auftrag1)
+        id1 = auftragDao.insert(auftrag1)
         dbNumber++ // Needed for getNextNumber test;
-        auftrag1 = auftragDao.getById(id1)!!
+        auftrag1 = auftragDao.find(id1)!!
 
         val auftrag2 = AuftragDO()
         auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
         auftragDao.setContactPerson(auftrag2, getUserId(TEST_PROJECT_MANAGER_USER))
         auftrag2.addPosition(AuftragsPositionDO())
-        val id2: Serializable = auftragDao.save(auftrag2)
+        val id2: Serializable = auftragDao.insert(auftrag2)
         dbNumber++ // Needed for getNextNumber test;
 
         val auftrag3 = AuftragDO()
@@ -115,22 +115,22 @@ class AuftragDaoTest : AbstractTestBase() {
         position.vollstaendigFakturiert = true
         position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
         auftrag3.addPosition(position)
-        val id3: Serializable = auftragDao.save(auftrag3)
+        val id3: Serializable = auftragDao.insert(auftrag3)
         dbNumber++ // Needed for getNextNumber test;
 
         logon(TEST_PROJECT_MANAGER_USER)
         try {
             suppressErrorLogs {
-                auftragDao.getById(id1)
+                auftragDao.find(id1)
             }
             Assertions.fail { "AccessException expected: Projectmanager should not have access to foreign orders." }
         } catch (ex: AccessException) {
             // OK
         }
-        auftragDao.getById(id2)
+        auftragDao.find(id2)
         try {
             suppressErrorLogs {
-                auftragDao.getById(id3)
+                auftragDao.find(id3)
             }
             Assertions.fail { "AccessException expected: Projectmanager should not have access to older orders than ${AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER} days." }
         } catch (ex: AccessException) {
@@ -139,7 +139,7 @@ class AuftragDaoTest : AbstractTestBase() {
         val useId = id1
         persistenceService.runInTransaction { _ ->
             logon(TEST_CONTROLLING_USER)
-            val order = auftragDao.getById(useId)!!
+            val order = auftragDao.find(useId)!!
             checkNoWriteAccess(useId, order, "Controller")
 
             logon(TEST_USER)
@@ -162,28 +162,28 @@ class AuftragDaoTest : AbstractTestBase() {
             var projekt1 = ProjektDO()
             projekt1.name = "ACME - Webportal 1"
             projekt1.projektManagerGroup = group1
-            id = projektDao.save(projekt1)
-            projekt1 = projektDao.getById(id)!!
+            id = projektDao.insert(projekt1)
+            projekt1 = projektDao.find(id)!!
             auftrag1 = AuftragDO()
             auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
             auftrag1.projekt = projekt1
             auftrag1.addPosition(AuftragsPositionDO())
-            id = auftragDao.save(auftrag1)
+            id = auftragDao.insert(auftrag1)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag1 = auftragDao.getById(id)!!
+            auftrag1 = auftragDao.find(id)!!
 
             var projekt2 = ProjektDO()
             projekt2.name = "ACME - Webportal 2"
             projekt2.projektManagerGroup = group2
-            id = projektDao.save(projekt2)
-            projekt2 = projektDao.getById(id)!!
+            id = projektDao.insert(projekt2)
+            projekt2 = projektDao.find(id)!!
             auftrag2 = AuftragDO()
             auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
             auftrag2.projekt = projekt2
             auftrag2.addPosition(AuftragsPositionDO())
-            id = auftragDao.save(auftrag2)
+            id = auftragDao.insert(auftrag2)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag2 = auftragDao.getById(id)!!
+            auftrag2 = auftragDao.find(id)!!
 
             logon(TEST_CONTROLLING_USER)
             checkNoWriteAccess(id, auftrag1, "Controlling")
@@ -193,13 +193,13 @@ class AuftragDaoTest : AbstractTestBase() {
         }
         persistenceService.runInTransaction { _ ->
             logon(TEST_PROJECT_MANAGER_USER)
-            projektDao.getList(ProjektFilter())
+            projektDao.select(ProjektFilter())
             checkNoAccess(auftrag1.id, "Project manager")
             checkNoWriteAccess(auftrag1.id, auftrag1, "Project manager")
             checkHasUpdateAccess(auftrag2.id)
 
             logon(TEST_PROJECT_ASSISTANT_USER)
-            projektDao.getList(ProjektFilter())
+            projektDao.select(ProjektFilter())
             checkHasUpdateAccess(auftrag1.id)
             checkNoAccess(auftrag2.id, "Project assistant")
             checkNoWriteAccess(auftrag2.id, auftrag2, "Project assistant")
@@ -229,22 +229,22 @@ class AuftragDaoTest : AbstractTestBase() {
             var projekt = ProjektDO()
             projekt.name = "ACME - Webportal checkPartlyReadwriteAccess"
             projekt.projektManagerGroup = group
-            var id: Serializable? = projektDao.save(projekt)
-            projekt = projektDao.getById(id)!!
+            var id: Serializable? = projektDao.insert(projekt)
+            projekt = projektDao.find(id)!!
 
             var auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
             auftrag.projekt = projekt
             auftrag.addPosition(AuftragsPositionDO())
-            id = auftragDao.save(auftrag)
+            id = auftragDao.insert(auftrag)
             auftragId = id
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.getById(id)!!
+            auftrag = auftragDao.find(id)!!
 
             logon(user)
             try {
                 suppressErrorLogs {
-                    auftrag = auftragDao.getById(id)!!
+                    auftrag = auftragDao.find(id)!!
                 }
                 Assertions.fail { "Access exception expected." }
             } catch (ex: AccessException) {
@@ -252,14 +252,14 @@ class AuftragDaoTest : AbstractTestBase() {
             }
             logon(TEST_ADMIN_USER)
             user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)) //
-            userRightDao.save(ArrayList(user.rights))
+            userRightDao.insert(ArrayList(user.rights))
             userService.update(user)
             user = userService.getById(user.id)
             logonUser = user
             logon(user)
             try {
                 suppressErrorLogs {
-                    auftrag = auftragDao.getById(id)!!
+                    auftrag = auftragDao.find(id)!!
                 }
                 Assertions.fail { "Access exception expected." }
             } catch (ex: AccessException) {
@@ -273,23 +273,23 @@ class AuftragDaoTest : AbstractTestBase() {
             right.value = UserRightValue.READWRITE // Full access
             userRightDao.update(right)
             logon(user)
-            val auftrag = auftragDao.getById(auftragId)
+            val auftrag = auftragDao.find(auftragId)
             logon(TEST_ADMIN_USER)
             right.value = UserRightValue.PARTLYREADWRITE
             userRightDao.update(right)
             group!!.assignedUsers!!.add(user)
             groupDao.update(group!!) // User is now in project manager group.
             logon(user)
-            auftragDao.getById(auftragId)
+            auftragDao.find(auftragId)
         }
     }
 
     private fun checkHasUpdateAccess(auftragsId: Serializable?) {
-        var auftrag = auftragDao.getById(auftragsId)!!
+        var auftrag = auftragDao.find(auftragsId)!!
         val value = random.nextLong().toString()
         auftrag.bemerkung = value
         auftragDao.update(auftrag)
-        auftrag = auftragDao.getById(auftragsId)!!
+        auftrag = auftragDao.find(auftragsId)!!
         Assertions.assertEquals(value, auftrag.bemerkung)
     }
 
@@ -297,7 +297,7 @@ class AuftragDaoTest : AbstractTestBase() {
         try {
             val filter = AuftragFilter()
             suppressErrorLogs {
-                auftragDao.getList(filter)
+                auftragDao.select(filter)
             }
             Assertions.fail { "AccessException expected: $who users should not have select list access to orders." }
         } catch (ex: AccessException) {
@@ -308,7 +308,7 @@ class AuftragDaoTest : AbstractTestBase() {
     private fun checkNoAccess(auftragsId: Serializable?, who: String) {
         try {
             suppressErrorLogs {
-                auftragDao.getById(auftragsId)
+                auftragDao.find(auftragsId)
             }
             Assertions.fail{"AccessException expected: $who users should not have select access to orders."}
         } catch (ex: AccessException) {
@@ -328,7 +328,7 @@ class AuftragDaoTest : AbstractTestBase() {
             val number = auftragDao.getNextNumber(auf)
             auf.nummer = number
             suppressErrorLogs {
-                auftragDao.save(auf)
+                auftragDao.insert(auf)
             }
             Assertions.fail { "AccessException expected: $who users should not have save access to orders." }
         } catch (ex: AccessException) {
@@ -356,9 +356,9 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
             auftragDao.setContactPerson(auftrag1, getUserId(TEST_PROJECT_MANAGER_USER))
             auftrag1.addPosition(AuftragsPositionDO())
-            id1 = auftragDao.save(auftrag1)
+            id1 = auftragDao.insert(auftrag1)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag1 = auftragDao.getById(id1)!!
+            auftrag1 = auftragDao.find(id1)!!
 
             position = auftrag1.positionenIncludingDeleted!![0]
             position.vollstaendigFakturiert = true
@@ -375,10 +375,10 @@ class AuftragDaoTest : AbstractTestBase() {
             }
         }
         persistenceService.runInTransaction { _ ->
-            auftrag1 = auftragDao.getById(id1)!!
+            auftrag1 = auftragDao.find(id1)!!
             auftrag1.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
             auftragDao.update(auftrag1)
-            auftrag1 = auftragDao.getById(id1)!!
+            auftrag1 = auftragDao.find(id1)!!
 
             logon(TEST_PROJECT_MANAGER_USER)
             position = auftrag1.positionenIncludingDeleted!![0]
@@ -412,9 +412,9 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag.addPosition(AuftragsPositionDO())
             auftrag.addPosition(AuftragsPositionDO())
             auftrag.addPosition(AuftragsPositionDO())
-            var id: Serializable = auftragDao.save(auftrag)
+            var id: Serializable = auftragDao.insert(auftrag)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.getById(id)!!
+            auftrag = auftragDao.find(id)!!
             Assertions.assertEquals(1, auftrag.positionenIncludingDeleted!!.size)
             auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
@@ -424,13 +424,13 @@ class AuftragDaoTest : AbstractTestBase() {
             position.titel = "Hurzel"
             auftrag.addPosition(position)
             auftrag.addPosition(AuftragsPositionDO())
-            id = auftragDao.save(auftrag)
+            id = auftragDao.insert(auftrag)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.getById(id)!!
+            auftrag = auftragDao.find(id)!!
             Assertions.assertEquals(3, auftrag.positionenIncludingDeleted!!.size)
             auftrag.positionenIncludingDeleted!![2].titel = null
             auftragDao.update(auftrag)
-            auftrag = auftragDao.getById(id)!!
+            auftrag = auftragDao.find(id)!!
             Assertions.assertEquals(3, auftrag.positionenIncludingDeleted!!.size)
         }
     }
@@ -596,35 +596,35 @@ class AuftragDaoTest : AbstractTestBase() {
     fun testPeriodOfPerformanceFilter() {
         persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
-            auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 1, 2017, 4, 30))
-            auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 3, 2017, 4, 5))
-            auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 5, 1))
-            auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 4, 5))
-            auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 5, 1))
-            auftragDao.save(createAuftragWithPeriodOfPerformance(2010, 1, 1, 2020, 12, 31))
+            auftragDao.insert(createAuftragWithPeriodOfPerformance(2017, 4, 1, 2017, 4, 30))
+            auftragDao.insert(createAuftragWithPeriodOfPerformance(2017, 4, 3, 2017, 4, 5))
+            auftragDao.insert(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 5, 1))
+            auftragDao.insert(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 4, 5))
+            auftragDao.insert(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 5, 1))
+            auftragDao.insert(createAuftragWithPeriodOfPerformance(2010, 1, 1, 2020, 12, 31))
 
             val auftragFilter = AuftragFilter()
 
             setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 1, 2017, 4, 30)
-            Assertions.assertEquals(6, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(6, auftragDao.select(auftragFilter).size)
 
             setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 1, 2017, 4, 1)
-            Assertions.assertEquals(5, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(5, auftragDao.select(auftragFilter).size)
 
             auftragFilter.periodOfPerformanceStartDate = null
-            Assertions.assertEquals(5, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(5, auftragDao.select(auftragFilter).size)
 
             setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 6, 2017, 4, 6)
-            Assertions.assertEquals(4, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(4, auftragDao.select(auftragFilter).size)
 
             auftragFilter.periodOfPerformanceStartDate = null
-            Assertions.assertEquals(6, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(6, auftragDao.select(auftragFilter).size)
 
             setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2016, 1, 1, 2016, 1, 1)
-            Assertions.assertEquals(1, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(1, auftragDao.select(auftragFilter).size)
 
             auftragFilter.periodOfPerformanceEndDate = null
-            Assertions.assertEquals(6, auftragDao.getList(auftragFilter).size)
+            Assertions.assertEquals(6, auftragDao.select(auftragFilter).size)
         }
     }
 

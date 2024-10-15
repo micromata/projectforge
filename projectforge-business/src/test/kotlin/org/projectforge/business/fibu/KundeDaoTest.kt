@@ -41,13 +41,13 @@ class KundeDaoTest : AbstractTestBase() {
         var kunde = KundeDO()
         kunde.name = "ACME"
         kunde.id = 42L
-        val id: Serializable = kundeDao.save(kunde)
-        kunde = kundeDao.getById(id)!!
+        val id: Serializable = kundeDao.insert(kunde)
+        kunde = kundeDao.find(id)!!
         kunde.description = "Test"
         kundeDao.update(kunde)
 
         logon(TEST_CONTROLLING_USER)
-        kundeDao.getById(id)
+        kundeDao.find(id)
         checkNoWriteAccess(id, kunde, "Controlling")
 
         logon(TEST_USER)
@@ -65,7 +65,7 @@ class KundeDaoTest : AbstractTestBase() {
         try {
             val filter = BaseSearchFilter()
             suppressErrorLogs {
-                kundeDao.getList(filter)
+                kundeDao.select(filter)
             }
             Assertions.fail { "AccessException expected: $who users should not have select list access to customers." }
         } catch (ex: AccessException) {
@@ -73,7 +73,7 @@ class KundeDaoTest : AbstractTestBase() {
         }
         try {
             suppressErrorLogs {
-                kundeDao.getById(id)
+                kundeDao.find(id)
             }
             Assertions.fail { "AccessException expected: $who users should not have select access to customers." }
         } catch (ex: AccessException) {
@@ -116,7 +116,7 @@ class KundeDaoTest : AbstractTestBase() {
             ku.id = 42L
             kunde.name = "ACME 2"
             suppressErrorLogs {
-                kundeDao.save(ku)
+                kundeDao.insert(ku)
             }
             Assertions.fail { "AccessException expected: $who users should not have save access to customers." }
         } catch (ex: AccessException) {

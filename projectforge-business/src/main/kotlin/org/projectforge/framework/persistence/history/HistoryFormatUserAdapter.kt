@@ -26,9 +26,7 @@ package org.projectforge.framework.persistence.history
 import mu.KotlinLogging
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import jakarta.persistence.EntityManager
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.context.ApplicationContext
 
 private val log = KotlinLogging.logger {}
@@ -45,7 +43,7 @@ class HistoryFormatUserAdapter(
       return
     }
     item.rights?.forEach { right ->
-      userRightDao.getHistoryEntries(right).forEach { entry ->
+      userRightDao.selectHistoryEntries(right).forEach { entry ->
         val dto = convert(context, item, entry)
         dto.diffEntries.firstOrNull { it.property == "value" }?.let { diffEntry ->
           diffEntry.property = right.rightIdString.toString()

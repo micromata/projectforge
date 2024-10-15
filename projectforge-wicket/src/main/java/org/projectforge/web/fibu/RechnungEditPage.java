@@ -164,7 +164,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
               && getData().getKundeId() == null
               && StringUtils.isBlank(getData().getKundeText())) {
         // User has selected a project and the kunde is not set:
-        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).getById(getData().getProjektId());
+        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).find(getData().getProjektId());
         if (projekt != null) {
           getBaseDao().setKunde(getData(), projekt.getKundeId());
           form.customerSelectPanel.getTextField().modelChanged();

@@ -70,13 +70,13 @@ class AccessDaoTest : AbstractTestBase() {
             groupTaskAccessId = accessDao.insert(access)
             hist.loadRecentHistoryEntries(1)
         }
-        val access = accessDao.getById(groupTaskAccessId)!!
+        val access = accessDao.find(groupTaskAccessId)!!
         access.addAccessEntry(createAccessEntry(AccessType.TASKS, true, false, false, false))
         access.getAccessEntry(AccessType.TIMESHEETS)!!.let {
             it.accessSelect = false
             it.accessInsert = true
         }
-        accessDao.saveOrUpdate(access)
+        accessDao.insertOrUpdate(access)
         hist.loadRecentHistoryEntries(1, 1)
         val value = "TIMESHEETS={false,true,false,false}"
         val oldValue = "TIMESHEETS={true,false,false,false}"

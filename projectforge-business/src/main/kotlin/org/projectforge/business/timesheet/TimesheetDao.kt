@@ -133,11 +133,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     /**
      * @param userId If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     open fun setUser(sheet: TimesheetDO, userId: Long?) {
         userId ?: return
-        val user = userDao.getOrLoad(userId)
+        val user = userDao.findOrLoad(userId)
         sheet.user = user
     }
 
@@ -152,11 +152,11 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
 
     /**
      * @param kost2Id If null, then kost2 will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     open fun setKost2(sheet: TimesheetDO, kost2Id: Long?) {
         kost2Id ?: return
-        val kost2 = kost2Dao.getOrLoad(kost2Id)
+        val kost2 = kost2Dao.findOrLoad(kost2Id)
         sheet.kost2 = kost2
     }
 
@@ -212,21 +212,21 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     }
 
     /**
-     * @see org.projectforge.framework.persistence.api.BaseDao.getListForSearchDao
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectForSearchDao
      */
-    override fun getListForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TimesheetDO> {
+    override fun selectForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TimesheetDO> {
         val timesheetFilter = TimesheetFilter(filter)
         if (filter.modifiedByUserId == null) {
             timesheetFilter.userId = ThreadLocalUserContext.loggedInUserId
         }
-        return getList(timesheetFilter, checkAccess)
+        return select(timesheetFilter, checkAccess)
     }
 
     /**
      * Gets the list filtered by the given filter.
      */
     @Throws(AccessException::class)
-    override fun getList(filter: BaseSearchFilter): List<TimesheetDO> {
+    override fun select(filter: BaseSearchFilter): List<TimesheetDO> {
         return internalGetList(filter, true)
     }
 
@@ -251,7 +251,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             myFilter.maxRows = 100000
         }
         val queryFilter = buildQueryFilter(myFilter)
-        var result = getList(queryFilter, checkAccess = checkAccess)
+        var result = select(queryFilter, checkAccess = checkAccess)
         if (myFilter.isOnlyBillable) {
             val list: List<TimesheetDO> = result
             result = ArrayList()
@@ -267,15 +267,15 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * Rechecks the time sheet overlaps.
      */
-    override fun afterSaveOrModify(obj: TimesheetDO) {
-        super.afterSaveOrModify(obj)
+    override fun afterInsertOrModify(obj: TimesheetDO) {
+        super.afterInsertOrModify(obj)
         taskTree.resetTotalDuration(obj.taskId!!)
     }
 
     /**
      * Checks the start and stop time. If seconds or millis is not null, a RuntimeException will be thrown.
      */
-    override fun onSaveOrModify(obj: TimesheetDO) {
+    override fun onInsertOrModify(obj: TimesheetDO) {
         validateTimestamp(obj.startTime, "startTime")
         validateTimestamp(obj.stopTime, "stopTime")
         if (obj.getDuration() < 60000) {
@@ -371,7 +371,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             // Update time sheet, do not compare with itself.
             queryFilter.add(ne("id", timesheet.id!!))
         }
-        val list = getList(queryFilter)
+        val list = select(queryFilter)
         if (list.isNotEmpty()) {
             val ts = list[0]
             if (throwException) {

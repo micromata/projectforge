@@ -124,7 +124,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @param kundeId  If null, then kunde will be set to null;
      */
     fun setKunde(rechnung: RechnungDO, kundeId: Long) {
-        val kunde = kundeDao.getOrLoad(kundeId)
+        val kunde = kundeDao.findOrLoad(kundeId)
         rechnung.kunde = kunde
     }
 
@@ -133,7 +133,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @param projektId If null, then projekt will be set to null;
      */
     fun setProjekt(rechnung: RechnungDO, projektId: Long) {
-        val projekt = projektDao.getOrLoad(projektId)
+        val projekt = projektDao.findOrLoad(projektId)
         rechnung.projekt = projekt
     }
 
@@ -143,9 +143,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onSaveOrModify(obj: RechnungDO) {
+    override fun onInsertOrModify(obj: RechnungDO) {
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
-            val originValue = getById(obj.id, checkAccess = false)
+            val originValue = find(obj.id, checkAccess = false)
             if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
                 obj.nummer = getNextNumber(obj)
 
@@ -231,7 +231,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(obj: RechnungDO) {
+    override fun afterInsertOrModify(obj: RechnungDO) {
         rechnungCache.setExpired() // Expire the cache because assignments to order position may be changed.
         auftragsCache.setExpired()
     }
@@ -243,11 +243,11 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Fetches the cost assignments.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.getById
+     * @see org.projectforge.framework.persistence.api.BaseDao.find
      */
     @Throws(AccessException::class)
-    override fun getById(id: Serializable?, checkAccess: Boolean): RechnungDO? {
-        val rechnung = super.getById(id, checkAccess)
+    override fun find(id: Serializable?, checkAccess: Boolean): RechnungDO? {
+        val rechnung = super.find(id, checkAccess)
         for (pos in rechnung!!.positionen!!) {
             val list: List<KostZuweisungDO>? = pos.kostZuweisungen
             if (list != null && list.size > 0) {
@@ -257,7 +257,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return rechnung
     }
 
-    override fun getList(filter: BaseSearchFilter): List<RechnungDO> {
+    override fun select(filter: BaseSearchFilter): List<RechnungDO> {
         val myFilter = if (filter is RechnungListFilter) {
             filter
         } else {
@@ -277,7 +277,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             )
         }
 
-        val list = getList(queryFilter)
+        val list = select(queryFilter)
         if (myFilter.isShowAll || myFilter.isDeleted) {
             return list
         }
@@ -319,7 +319,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     fun getNextNumber(rechnung: RechnungDO?): Int {
         if (rechnung?.id != null) {
-            val orig = getById(rechnung.id, checkAccess = false)
+            val orig = find(rechnung.id, checkAccess = false)
             if (orig!!.nummer != null) {
                 rechnung.nummer = orig.nummer
                 return orig.nummer!!
@@ -331,12 +331,12 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun getDisplayHistoryEntries(obj: RechnungDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+    override fun selectDisplayHistoryEntries(obj: RechnungDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
         val list = mutableListOf<DisplayHistoryEntry>()
-        super.getDisplayHistoryEntries(obj, checkAccess).let { list.addAll(it) }
+        super.selectDisplayHistoryEntries(obj, checkAccess).let { list.addAll(it) }
         obj.positionen?.forEach { position ->
             val entries = hisoService.loadAndConvert(position)
             entries.forEach { entry ->

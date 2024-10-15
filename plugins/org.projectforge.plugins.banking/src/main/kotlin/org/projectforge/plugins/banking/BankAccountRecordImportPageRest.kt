@@ -90,7 +90,7 @@ class BankAccountRecordImportPageRest : AbstractImportPageRest<BankAccountRecord
       importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null
     }
-    val bankAccountDO = bankAccountDao.getById(bankAccount.id)
+    val bankAccountDO = bankAccountDao.find(bankAccount.id)
     if (bankAccountDO == null) {
       importStorage.addError(translate("plugins.banking.account.record.import.error.noBankAccountGiven"))
       return null

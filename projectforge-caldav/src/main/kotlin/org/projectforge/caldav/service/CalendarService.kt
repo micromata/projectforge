@@ -57,7 +57,7 @@ class CalendarService {
         if (user.id != ThreadLocalUserContext.loggedInUserId!!.toLong()) {
             throw AccessException("Logged-in user differs from the user requested.")
         }
-        val calendars = teamCalDao.getList(BaseSearchFilter())
+        val calendars = teamCalDao.select(BaseSearchFilter())
         val result = calendars.map { cal ->
             Calendar(user, cal.id, cal.title ?: "untitled")
         }

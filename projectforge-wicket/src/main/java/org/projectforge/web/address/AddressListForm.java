@@ -196,7 +196,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
         final AddressFilter filter = new AddressFilter();
         filter.setSearchString(input);
         filter.setSearchFields("name", "firstName", "organization");
-        final List<AddressDO> list = WicketSupport.get(AddressDao.class).getList(filter);
+        final List<AddressDO> list = WicketSupport.get(AddressDao.class).select(filter);
         return list;
       }
 

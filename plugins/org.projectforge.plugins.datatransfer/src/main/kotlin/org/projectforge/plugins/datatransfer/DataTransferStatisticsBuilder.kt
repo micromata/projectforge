@@ -50,7 +50,7 @@ open class DataTransferStatisticsBuilder(
       // Do nothing for non-admins.
       return
     }
-    val list = dataTransferAreaDao.loadAll(checkAccess = false)
+    val list = dataTransferAreaDao.selectAll(checkAccess = false)
     list.sortedByDescending { it.attachmentsSize }.forEachIndexed { index, dbo ->
       if (dbo.attachmentsCounter ?: 0 == 0 || index >= 30) {
         return

@@ -66,7 +66,7 @@ class DataTransferAuditPageRest : AbstractDynamicPageRest() {
       id = dataTransferAreaDao.ensurePersonalBox(ThreadLocalUserContext.loggedInUserId!!)?.id
     }
     id ?: throw IllegalAccessException("Parameter id not an int or no personal box found.")
-    val areaDO = dataTransferAreaDao.getById(id)!!
+    val areaDO = dataTransferAreaDao.find(id)!!
     val area = DataTransferArea()
     area.copyFrom(areaDO)
     val areaId = area.id

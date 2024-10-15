@@ -48,11 +48,11 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         // Configuration(configurationService)
         val addressDao = object : AddressDao() {
             val addressList = createAddressList()
-            override fun loadAll(checkAccess: Boolean): MutableList<AddressDO> {
+            override fun selectAll(checkAccess: Boolean): MutableList<AddressDO> {
                 return addressList
             }
 
-            override fun save(obj: AddressDO, checkAccess: Boolean): Long {
+            override fun insert(obj: AddressDO, checkAccess: Boolean): Long {
                 obj.id = ++addressCounter
                 addressList.add(obj)
                 return obj.id!!

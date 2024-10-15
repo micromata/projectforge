@@ -84,7 +84,7 @@ public class IHKForm extends AbstractStandardForm<Object, IHKPage> {
         super.init();
 
         String userComment = "";
-        List<AddressDO> addressDos = addressDao.getList(new BaseSearchFilter());
+        List<AddressDO> addressDos = addressDao.select(new BaseSearchFilter());
         boolean foundUser = false;
 
         for (AddressDO addressDo : addressDos) {

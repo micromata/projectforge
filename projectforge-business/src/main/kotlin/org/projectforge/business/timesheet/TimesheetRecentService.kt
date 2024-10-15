@@ -111,7 +111,7 @@ open class TimesheetRecentService {
   private fun readRecentTimesheets(recentQueue: RecentQueue<TimesheetRecentEntry>, userId: Long) {
     log.info { "Getting recent timesheets for user #$userId." }
     val added = mutableSetOf<TimesheetRecentEntry>()
-    val list = timesheetDao.getList(getTimesheetFilter(userId)) ?: return
+    val list = timesheetDao.select(getTimesheetFilter(userId)) ?: return
     for (timesheet in list) {
       val entry = TimesheetRecentEntry(
         taskId = timesheet.taskId,
@@ -152,7 +152,7 @@ open class TimesheetRecentService {
   private fun readRecentTaskIds(recentQueue: RecentQueue<Long>, userId: Long) {
     log.info { "Getting recent timesheet task id's for user #$userId." }
     val added = mutableSetOf<Long>()
-    val list = timesheetDao.getList(getTimesheetFilter(userId)) ?: return
+    val list = timesheetDao.select(getTimesheetFilter(userId)) ?: return
     for (timesheet in list) {
       val taskId = timesheet.taskId ?: continue
       if (!added.contains(taskId)) {

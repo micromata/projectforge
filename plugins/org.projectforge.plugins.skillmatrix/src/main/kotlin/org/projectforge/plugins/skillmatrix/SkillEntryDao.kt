@@ -52,8 +52,8 @@ class SkillEntryDao : BaseDao<SkillEntryDO>(SkillEntryDO::class.java) {
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
 
-    override fun onSaveOrModify(obj: SkillEntryDO) {
-        super.onSaveOrModify(obj)
+    override fun onInsertOrModify(obj: SkillEntryDO) {
+        super.onInsertOrModify(obj)
         if (obj.owner == null) {
             obj.owner = ThreadLocalUserContext.loggedInUser // Set always the logged-in user as owner.
         }

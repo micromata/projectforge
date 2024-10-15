@@ -66,7 +66,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
             return getYearsByTupleOfYears(minMaxDate)
         }
 
-    override fun getList(filter: BaseSearchFilter): List<EmployeeSalaryDO> {
+    override fun select(filter: BaseSearchFilter): List<EmployeeSalaryDO> {
         val myFilter = if (filter is EmployeeSalaryFilter) {
             filter
         } else {
@@ -81,11 +81,11 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
         }
         queryFilter.addOrder(desc("year")).addOrder(desc("month"))
 
-        val list = getList(queryFilter)
+        val list = select(queryFilter)
         return list
     }
 
-    override fun onSaveOrModify(obj: EmployeeSalaryDO) {
+    override fun onInsertOrModify(obj: EmployeeSalaryDO) {
         if (obj.id == null) {
             val list = persistenceService.executeQuery(
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",
@@ -123,10 +123,10 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
     /**
      * @param employeeSalary
      * @param employeeId     If null, then employee will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setEmployee(employeeSalary: EmployeeSalaryDO, employeeId: Long) {
-        val employee = employeeDao!!.getOrLoad(employeeId)
+        val employee = employeeDao!!.findOrLoad(employeeId)
         employeeSalary.employee = employee
     }
 

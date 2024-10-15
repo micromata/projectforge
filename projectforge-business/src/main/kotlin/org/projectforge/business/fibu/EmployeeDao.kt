@@ -123,22 +123,22 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     /**
      * @param employee
      * @param userId   If null, then user will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     @Deprecated("")
     open fun setUser(employee: EmployeeDO, userId: Long) {
-        val user = userDao.getOrLoad(userId)
+        val user = userDao.findOrLoad(userId)
         employee.user = user
     }
 
     /**
      * @param employee
      * @param kost1Id  If null, then kost1 will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     @Deprecated("")
     open fun setKost1(employee: EmployeeDO, kost1Id: Long) {
-        val kost1 = kost1Dao.getOrLoad(kost1Id)
+        val kost1 = kost1Dao.findOrLoad(kost1Id)
         employee.kost1 = kost1
     }
 
@@ -147,7 +147,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         showOnlyActiveEntries: Boolean = true
     ): List<EmployeeDO> {
         val queryFilter = QueryFilter(filter)
-        var employees = getList(queryFilter, checkAccess = false)
+        var employees = select(queryFilter, checkAccess = false)
         if (showOnlyActiveEntries) {
             val now = LocalDate.now()
             employees = employees.filter { employee ->
@@ -183,10 +183,10 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         employeeDO.status = employeeService.getEmployeeStatus(employeeDO)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
+    override fun select(filter: BaseSearchFilter): List<EmployeeDO> {
         val myFilter = if (filter is EmployeeFilter) filter else EmployeeFilter(filter)
         val queryFilter = QueryFilter(myFilter)
-        var list = getList(queryFilter)
+        var list = select(queryFilter)
         if (myFilter.isShowOnlyActiveEntries) {
             list = list.filter { it.active }
         }

@@ -54,7 +54,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
     body.add(form);
     final Integer calId = WicketUtils.getAsInteger(parameters, PARAM_KEY_TEAM_CAL_ID);
     if (calId != null) {
-      form.calendar = WicketSupport.get(TeamCalDao.class).getById(calId);
+      form.calendar = WicketSupport.get(TeamCalDao.class).find(calId);
     }
     form.init();
   }

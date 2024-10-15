@@ -112,7 +112,7 @@ public class TimesheetDisciplineChartBuilder
     filter.setStartTime(dt.getUtilDate());
     filter.setUserId(userId);
     filter.setOrderType(OrderDirection.ASC);
-    final List<TimesheetDO> list = timesheetDao.getList(filter);
+    final List<TimesheetDO> list = timesheetDao.select(filter);
     final TimeSeries sollSeries = new TimeSeries("Soll");
     final TimeSeries istSeries = new TimeSeries("Ist");
     planWorkingHours = 0;
@@ -218,7 +218,7 @@ public class TimesheetDisciplineChartBuilder
     filter.setStartTime(dt.getUtilDate());
     filter.setUserId(userId);
     filter.setOrderType(OrderDirection.ASC);
-    final List<TimesheetDO> list = timesheetDao.getList(filter);
+    final List<TimesheetDO> list = timesheetDao.select(filter);
     final TimeSeries planSeries = new TimeSeries("Soll");
     final TimeSeries actualSeries = new TimeSeries("Ist");
     final Iterator<TimesheetDO> it = list.iterator();

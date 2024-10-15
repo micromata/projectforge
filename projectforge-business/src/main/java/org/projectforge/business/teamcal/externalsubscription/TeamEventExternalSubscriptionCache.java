@@ -78,7 +78,7 @@ public class TeamEventExternalSubscriptionCache {
     if (!initialized) {
       final QueryFilter filter = new QueryFilter();
       filter.add(QueryFilter.eq("externalSubscription", true));
-      final List<TeamCalDO> subscribedCalendars = teamCalDao.getList(filter, false);
+      final List<TeamCalDO> subscribedCalendars = teamCalDao.select(filter, false);
       for (final TeamCalDO calendar : subscribedCalendars) {
         TeamEventSubscription teamEventSubscription = new TeamEventSubscription();
         subscriptions.put(calendar.getId(), teamEventSubscription);
@@ -96,7 +96,7 @@ public class TeamEventExternalSubscriptionCache {
     final QueryFilter filter = new QueryFilter();
     filter.add(QueryFilter.eq("externalSubscription", true));
     // internalGetList is valid at this point, because we are calling this method in an asyn thread
-    final List<TeamCalDO> subscribedCalendars = teamCalDao.getList(filter, false);
+    final List<TeamCalDO> subscribedCalendars = teamCalDao.select(filter, false);
 
     for (final TeamCalDO calendar : subscribedCalendars) {
       updateCache(calendar);

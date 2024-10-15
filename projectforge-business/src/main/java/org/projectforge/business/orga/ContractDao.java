@@ -61,7 +61,7 @@ public class ContractDao extends BaseDao<ContractDO> {
     }
 
     @Override
-    public List<ContractDO> getList(final BaseSearchFilter filter) throws AccessException {
+    public List<ContractDO> select(final BaseSearchFilter filter) throws AccessException {
         final ContractFilter myFilter;
         if (filter instanceof ContractFilter) {
             myFilter = (ContractFilter) filter;
@@ -79,7 +79,7 @@ public class ContractDao extends BaseDao<ContractDO> {
         if (log.isDebugEnabled()) {
             log.debug(myFilter.toString());
         }
-        return getList(queryFilter);
+        return select(queryFilter);
     }
 
     /**
@@ -96,7 +96,7 @@ public class ContractDao extends BaseDao<ContractDO> {
      * A given contract number must be consecutively numbered.
      */
     @Override
-    public void onSaveOrModify(final ContractDO obj) {
+    public void onInsertOrModify(final ContractDO obj) {
         if (obj.getId() == null) {
             // New contract
             final Integer next = getNextNumber(obj);
@@ -126,7 +126,7 @@ public class ContractDao extends BaseDao<ContractDO> {
     @SuppressWarnings("unchecked")
     public Integer getNextNumber(final ContractDO contract) {
         if (contract.getId() != null) {
-            final ContractDO orig = getById(contract.getId(), false);
+            final ContractDO orig = find(contract.getId(), false);
             if (orig.getNumber() != null) {
                 contract.setNumber(orig.getNumber());
                 return orig.getNumber();

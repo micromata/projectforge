@@ -42,11 +42,11 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         eingangsrechnung.datum = LocalDate.now()
         eingangsrechnung.addPosition(EingangsrechnungsPositionDO())
         eingangsrechnung.faelligkeit = LocalDate.now()
-        val id: Serializable = eingangsrechnungDao.save(eingangsrechnung)
-        eingangsrechnung = eingangsrechnungDao.getById(id)!!
+        val id: Serializable = eingangsrechnungDao.insert(eingangsrechnung)
+        eingangsrechnung = eingangsrechnungDao.find(id)!!
 
         logon(TEST_CONTROLLING_USER)
-        eingangsrechnungDao.getById(id)
+        eingangsrechnungDao.find(id)
         checkNoWriteAccess(id, eingangsrechnung, "Controlling")
 
         logon(TEST_USER)
@@ -63,7 +63,7 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         try {
             val filter = RechnungFilter()
             suppressErrorLogs {
-                eingangsrechnungDao.getList(filter)
+                eingangsrechnungDao.select(filter)
             }
             Assertions.fail { "AccessException expected: $who users should not have select list access to invoices." }
         } catch (ex: AccessException) {
@@ -71,7 +71,7 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
         }
         try {
             suppressErrorLogs {
-                eingangsrechnungDao.getById(id)
+                eingangsrechnungDao.find(id)
             }
             Assertions.fail { "AccessException expected: $who users should not have select access to invoices." }
         } catch (ex: AccessException) {
@@ -113,7 +113,7 @@ class EingangsrechnungDaoTest : AbstractTestBase() {
             val re = EingangsrechnungDO()
             re.datum = LocalDate.now()
             suppressErrorLogs {
-                eingangsrechnungDao.save(re)
+                eingangsrechnungDao.insert(re)
             }
             Assertions.fail { "AccessException expected: $who users should not have save access to invoices." }
         } catch (ex: AccessException) {

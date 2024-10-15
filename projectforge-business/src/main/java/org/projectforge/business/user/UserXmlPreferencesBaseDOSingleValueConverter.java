@@ -50,7 +50,7 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
    *
    * @param daoClass Class of the dao.
    * @param doClass Class of the DO which will be converted.
-   * @see BaseDao#getOrLoad(Long)
+   * @see BaseDao#findOrLoad(Long)
    */
   public UserXmlPreferencesBaseDOSingleValueConverter(ApplicationContext applicationContext,
       final Class<? extends BaseDao<?>> daoClass,
@@ -94,7 +94,7 @@ public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValue
       log.error("Could not get dao '" + daoClass + "'. It's not registerd in the Registry.");
       return null;
     } else {
-      return dao.getOrLoad(id);
+      return dao.findOrLoad(id);
     }
   }
 }

@@ -56,7 +56,7 @@ class BaseDOTest : AbstractTestBase() {
     Assertions.assertEquals(EntityCopyStatus.MAJOR, contractA.copyValuesFrom(contractB))
 
     logon(TEST_FINANCE_USER)
-    contractDao.save(contractA)
+    contractDao.insert(contractA)
     Assertions.assertEquals(EntityCopyStatus.NONE, contractDao.update(contractA))
     contractA.title = "Something new"
     Assertions.assertEquals(EntityCopyStatus.MAJOR, contractDao.update(contractA))
@@ -86,7 +86,7 @@ class BaseDOTest : AbstractTestBase() {
     pos.eingangsrechnung = invoice
     invoice.ensureAndGetPositionen()
     invoice.positionen!!.add(pos)
-    eingangsrechnungDao.save(invoice)
+    eingangsrechnungDao.insert(invoice)
     // Doesn't work due to zahlungsZiel: Assertions.assertEquals(ModificationStatus.NONE, eingangsrechnungDao.update(invoice))
   }
 }

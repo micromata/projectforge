@@ -84,7 +84,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     log.info("User has used the back button in "
                             + editPage.getClass()
                             + " after inserting a new object? Try to load the object from the data base and show edit page again.");
-                    final O dbObj = baseDao.getById(editPage.getData().getId());
+                    final O dbObj = baseDao.find(editPage.getData().getId());
                     if (dbObj == null) {
                         // Error while trying to insert Object and user has used the back button?
                         log.info("User has used the back button "
@@ -102,7 +102,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     return;
                 }
                 try {
-                    baseDao.save(editPage.getData());
+                    baseDao.insert(editPage.getData());
                 } catch (final DataIntegrityViolationException ex) {
                     log.error(ex.getMessage(), ex);
                     throw new UserException("exception.constraintViolation");

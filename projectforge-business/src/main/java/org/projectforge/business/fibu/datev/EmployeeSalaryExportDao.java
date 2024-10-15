@@ -77,7 +77,7 @@ public class EmployeeSalaryExportDao {
     final EmployeeFilter filter = new EmployeeFilter();
     filter.setShowOnlyActiveEntries(true);
     filter.setDeleted(false);
-    final List<EmployeeDO> employees = employeeDao.getList(filter);
+    final List<EmployeeDO> employees = employeeDao.select(filter);
     final List<EmployeeDO> missedEmployees = new ArrayList<>();
     for (final EmployeeDO employee : employees) {
       boolean found = false;

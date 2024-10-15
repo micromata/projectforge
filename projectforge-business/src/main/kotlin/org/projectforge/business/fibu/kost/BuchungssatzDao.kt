@@ -89,7 +89,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
         // No year or one year is given.
     }
 
-    override fun getList(filter: BaseSearchFilter): List<BuchungssatzDO> {
+    override fun select(filter: BaseSearchFilter): List<BuchungssatzDO> {
         accessChecker.checkIsLoggedInUserMemberOfGroup(
             ProjectForgeGroup.FINANCE_GROUP,
             ProjectForgeGroup.CONTROLLING_GROUP
@@ -201,7 +201,7 @@ open class BuchungssatzDao : BaseDao<BuchungssatzDO>(BuchungssatzDO::class.java)
             }
         } // else: nothing given: no time period range.
         queryFilter.addOrder(asc("year")).addOrder(asc("month")).addOrder(asc("satznr"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     /**

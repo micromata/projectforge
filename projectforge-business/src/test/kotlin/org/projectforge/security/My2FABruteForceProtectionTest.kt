@@ -40,7 +40,7 @@ class My2FABruteForceProtectionTest {
         val user = PFUserDO()
         user.id = 42
         user.username = "kai"
-        Mockito.`when`(userDao.getById(42L, checkAccess = false)).thenAnswer {
+        Mockito.`when`(userDao.find(42L, checkAccess = false)).thenAnswer {
             return@thenAnswer user
         }
 
@@ -68,7 +68,7 @@ class My2FABruteForceProtectionTest {
             }
             protection.registerOTPFailure(42)
         }
-        Mockito.verify(userDao, Mockito.times(1)).getById(42L, checkAccess = false)
+        Mockito.verify(userDao, Mockito.times(1)).find(42L, checkAccess = false)
         Mockito.verify(userDao, Mockito.times(1)).update(user, checkAccess = false)
         Assertions.assertTrue(user.deactivated) // User should now be deactivated.
         // Simulate activation of user by an admin:

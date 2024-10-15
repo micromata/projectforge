@@ -158,7 +158,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
 
     open val defaultSortProperties: Array<SortProperty>?
         /**
-         * Overwrite this method for having a standard sort of result lists (supported by [BaseDao.getList].
+         * Overwrite this method for having a standard sort of result lists (supported by [BaseDao.select].
          */
         get() = null
 
@@ -169,7 +169,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * [jakarta.persistence.EntityManager.getReference] and returned. If the object is not found, null will be returned.
      */
     @JvmOverloads
-    fun getOrLoad(id: Long?, checkAccess: Boolean = true): O? {
+    fun findOrLoad(id: Long?, checkAccess: Boolean = true): O? {
         val obj = findById(id) ?: return null
         if (!checkAccess || hasLoggedInUserSelectAccess(obj, false)) {
             afterLoad(obj)
@@ -185,7 +185,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    open fun getById(id: Serializable?, checkAccess: Boolean = true): O? {
+    open fun find(id: Serializable?, checkAccess: Boolean = true): O? {
         val obj = findById(id) ?: return null
         if (checkAccess) {
             checkLoggedInUserSelectAccess(obj)
@@ -205,12 +205,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @JvmOverloads
-    fun loadAllNotDeleted(checkAccess: Boolean = true): List<O> {
-        return loadAll(checkAccess).filter { !it.deleted }
+    fun selectAllUndeleted(checkAccess: Boolean = true): List<O> {
+        return selectAll(checkAccess).filter { !it.deleted }
     }
 
     @JvmOverloads
-    open fun loadAll(checkAccess: Boolean = true): List<O> {
+    open fun selectAll(checkAccess: Boolean = true): List<O> {
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
@@ -229,7 +229,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 
-    fun load(idList: Collection<Serializable>?, checkAccess: Boolean = true): List<O>? {
+    fun select(idList: Collection<Serializable>?, checkAccess: Boolean = true): List<O>? {
         if (idList == null) {
             return null
         }
@@ -253,8 +253,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see .getList
      */
     @JvmOverloads
-    open fun getListForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean = true): List<O> {
-        return getList(filter, checkAccess)
+    open fun selectForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean = true): List<O> {
+        return select(filter, checkAccess)
     }
 
     /**
@@ -263,13 +263,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      */
-    override fun getList(filter: BaseSearchFilter): List<O> {
-        return getList(filter, true)
+    override fun select(filter: BaseSearchFilter): List<O> {
+        return select(filter, true)
     }
 
-    open fun getList(filter: BaseSearchFilter, checkAccess: Boolean = true): List<O> {
+    open fun select(filter: BaseSearchFilter, checkAccess: Boolean = true): List<O> {
         val queryFilter = createQueryFilter(filter)
-        return getList(queryFilter, checkAccess)
+        return select(queryFilter, checkAccess)
     }
 
     open fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
@@ -281,8 +281,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    open fun getList(filter: QueryFilter, checkAccess: Boolean = true): List<O> {
-        return getList(filter, null, checkAccess)
+    open fun select(filter: QueryFilter, checkAccess: Boolean = true): List<O> {
+        return select(filter, null, checkAccess)
     }
 
     /**
@@ -290,7 +290,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    open fun getList(
+    open fun select(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<O>>?,
         checkAccess: Boolean = true,
@@ -355,7 +355,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Gets the history entries of the object.
      */
     @JvmOverloads
-    fun getHistoryEntries(obj: O, checkAccess: Boolean = true): List<HistoryEntry> {
+    fun selectHistoryEntries(obj: O, checkAccess: Boolean = true): List<HistoryEntry> {
         if (checkAccess) {
             checkLoggedInUserHistoryAccess(obj)
         }
@@ -367,7 +367,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Please note: If user has no access an empty list will be returned.
      */
     @JvmOverloads
-    open fun getDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<DisplayHistoryEntry> {
+    open fun selectDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
@@ -391,12 +391,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    open fun saveOrUpdate(obj: O, checkAccess: Boolean = true): Serializable? {
+    open fun insertOrUpdate(obj: O, checkAccess: Boolean = true): Serializable? {
         var id: Serializable? = null
         if (obj.id != null && obj.created != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
             update(obj, checkAccess = checkAccess)
         } else {
-            id = save(obj, checkAccess = checkAccess)
+            id = insert(obj, checkAccess = checkAccess)
         }
         return id
     }
@@ -406,10 +406,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    fun save(objects: List<O>, checkAccess: Boolean = true) {
+    fun insert(objects: List<O>, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { _ ->
             for (obj in objects) {
-                save(obj, checkAccess)
+                insert(obj, checkAccess)
             }
         }
     }
@@ -419,31 +419,25 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    open fun save(obj: O, checkAccess: Boolean = true): Long {
+    open fun insert(obj: O, checkAccess: Boolean = true): Long {
         //long begin = System.currentTimeMillis();
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
         }
         accessChecker.checkRestrictedOrDemoUser()
         val result = persistenceService.runInTransaction { context ->
-            beforeSaveOrModify(obj)
+            beforeInsertOrModify(obj)
             if (checkAccess) {
                 checkLoggedInUserInsertAccess(obj)
             }
-            onSave(obj)
-            onSaveOrModify(obj)
+            onInsert(obj)
+            onInsertOrModify(obj)
             val result = baseDOPersistenceService.save(this, obj)
-            afterSaveOrModify(obj)
-            afterSave(obj)
+            afterInsertOrModify(obj)
+            afterInsert(obj)
             result
         }
         return result!!
-    }
-
-    @Throws(AccessException::class)
-    @JvmOverloads
-    fun insert(obj: O, checkAccess: Boolean = true): Long {
-        return save(obj, checkAccess)
     }
 
     /**
@@ -458,7 +452,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * is for example needed for expiring the UserGroupCache after inserting or updating a user or group data object. Does
      * nothing at default.
      */
-    open fun afterSaveOrModify(obj: O) {
+    open fun afterInsertOrModify(obj: O) {
     }
 
     /**
@@ -466,28 +460,28 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      *
      * @param obj The inserted object
      */
-    open fun afterSave(obj: O) {
+    open fun afterInsert(obj: O) {
         callObjectChangedListeners(obj, OperationType.INSERT)
     }
 
     /**
      * This method will be called before inserting. Does nothing at default.
      */
-    open fun onSave(obj: O) {
+    open fun onInsert(obj: O) {
     }
 
     /**
      * This method will be called before inserting, updating, deleting or marking the data object as deleted. Does nothing
      * at default.
      */
-    open fun onSaveOrModify(obj: O) {
+    open fun onInsertOrModify(obj: O) {
     }
 
     /**
      * This method will be called before access check of inserting and updating the object. Does nothing
      * at default.
      */
-    open fun beforeSaveOrModify(obj: O) {
+    open fun beforeInsertOrModify(obj: O) {
     }
 
     /**
@@ -556,15 +550,15 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @JvmOverloads
-    fun saveOrUpdate(col: Collection<O>, checkAccess: Boolean = true) {
+    fun insertOrUpdate(col: Collection<O>, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { _ ->
             for (obj in col) {
-                saveOrUpdate(obj, checkAccess)
+                insertOrUpdate(obj, checkAccess)
             }
         }
     }
 
-    fun saveOrUpdate(col: Collection<O>, blockSize: Int, checkAccess: Boolean = true) {
+    fun insertOrUpdate(col: Collection<O>, blockSize: Int, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { context ->
             val list = mutableListOf<O>()
             var counter = 0
@@ -572,12 +566,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
                 list.add(obj)
                 if (++counter >= blockSize) {
                     counter = 0
-                    saveOrUpdate(list, checkAccess)
+                    insertOrUpdate(list, checkAccess)
                     context.flush()
                     list.clear()
                 }
             }
-            saveOrUpdate(list, checkAccess)
+            insertOrUpdate(list, checkAccess)
         }
     }
 
@@ -596,17 +590,17 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         accessChecker.checkRestrictedOrDemoUser()
         return persistenceService.runInTransaction { context ->
             val em = context.em
-            beforeSaveOrModify(obj)
+            beforeInsertOrModify(obj)
             accessChecker.checkRestrictedOrDemoUser()
             val dbObj = em.find(doClass, obj.id)
             if (checkAccess) {
                 checkLoggedInUserUpdateAccess(obj, dbObj)
             }
-            onSaveOrModify(obj)
+            onInsertOrModify(obj)
             onChange(obj, dbObj)
             val res = ResultObject<O>()
             res.modStatus = baseDOPersistenceService.update(this, obj, checkAccess, dbObj)
-            afterSaveOrModify(obj)
+            afterInsertOrModify(obj)
             if (supportAfterUpdate) {
                 afterUpdate(obj, res.dbObjBackup, isModified = res.modStatus != EntityCopyStatus.NONE)
                 afterUpdate(obj, res.dbObjBackup)
@@ -738,7 +732,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             } else {
                 log.error("Oups, can't delete $doClass #${obj.id}, not found in database!")
             }
-            afterSaveOrModify(obj)
+            afterInsertOrModify(obj)
             afterDelete(obj)
         }
     }
@@ -1180,8 +1174,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     @Throws(AccessException::class)
-    fun selectByPkDetached(pk: Long): O? {
-        return getById(pk)
+    fun findByPkDetached(pk: Long): O? {
+        return find(pk)
     }
 
     /**

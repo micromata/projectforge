@@ -49,22 +49,22 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung1.faelligkeit = LocalDate.now()
             rechnung1.projekt = initTestDB.addProjekt(null, 1, "foo")
             try {
-                rechnungDao.save(rechnung1)
+                rechnungDao.insert(rechnung1)
                 Assertions.fail("Exception with wrong number should be thrown (no number given).")
             } catch (ex: UserException) {
                 // Expected
             }
             rechnung1.nummer = number
             rechnung1.addPosition(createPosition(1, "50.00", "0", "test"))
-            var id: Serializable? = rechnungDao.save(rechnung1)
-            val rechnung1FromDb = rechnungDao.getById(id)
+            var id: Serializable? = rechnungDao.insert(rechnung1)
+            val rechnung1FromDb = rechnungDao.find(id)
             Assertions.assertEquals(dbNumber++, rechnung1FromDb!!.nummer)
 
             val rechnung2 = RechnungDO()
             rechnung2.datum = LocalDate.now()
             rechnung2.nummer = number
             try {
-                rechnungDao.save(rechnung2)
+                rechnungDao.insert(rechnung2)
                 Assertions.fail<Any>("Exception with wrong number should be thrown (does already exists).")
             } catch (ex: UserException) {
                 // Expected.
@@ -74,15 +74,15 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung2.faelligkeit = LocalDate.now()
             rechnung2.projekt = initTestDB.addProjekt(null, 1, "foo")
             try {
-                rechnungDao.save(rechnung2)
+                rechnungDao.insert(rechnung2)
                 Assertions.fail<Any>("Exception with wrong number should be thrown (not continuously).")
             } catch (ex: UserException) {
                 // OK
             }
             rechnung2.nummer = number
             rechnung2.addPosition(createPosition(1, "50.00", "0", "test"))
-            id = rechnungDao.save(rechnung2)
-            val rechnung2FromDb = rechnungDao.getById(id)
+            id = rechnungDao.insert(rechnung2)
+            val rechnung2FromDb = rechnungDao.find(id)
             Assertions.assertEquals(dbNumber++, rechnung2FromDb!!.nummer)
 
             val rechnung3 = RechnungDO()
@@ -91,8 +91,8 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung3.addPosition(createPosition(1, "50.00", "0", "test"))
             rechnung3.faelligkeit = LocalDate.now()
             rechnung3.projekt = initTestDB.addProjekt(null, 1, "foo")
-            id = rechnungDao.save(rechnung3)
-            val rechnung3FromDb = rechnungDao.getById(id)
+            id = rechnungDao.insert(rechnung3)
+            val rechnung3FromDb = rechnungDao.find(id)
             Assertions.assertNull(rechnung3FromDb!!.nummer)
         }
     }
@@ -113,12 +113,12 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung.addPosition(createPosition(2, "100.50", "0.19", "test"))
             rechnung.addPosition(createPosition(1, "50.00", "0", "test"))
             Assertions.assertEquals("289.19", rechnung.grossSum.setScale(2).toString())
-            id = rechnungDao.save(rechnung)
-            rechnung = rechnungDao.getById(id)!!
+            id = rechnungDao.insert(rechnung)
+            rechnung = rechnungDao.find(id)!!
         }
         persistenceService.runInTransaction { context ->
             logon(TEST_CONTROLLING_USER)
-            rechnungDao.getById(id)
+            rechnungDao.find(id)
             checkNoWriteAccess(id, rechnung, "Controlling")
 
             logon(TEST_USER)
@@ -136,13 +136,13 @@ class RechnungDaoTest : AbstractTestBase() {
     private fun checkNoAccess(id: Serializable, rechnung: RechnungDO, who: String) {
         try {
             val filter = RechnungFilter()
-            rechnungDao.getList(filter)
+            rechnungDao.select(filter)
             Assertions.fail<Any>("AccessException expected: $who users should not have select list access to invoices.")
         } catch (ex: AccessException) {
             // OK
         }
         try {
-            rechnungDao.getById(id)
+            rechnungDao.find(id)
             Assertions.fail<Any>("AccessException expected: $who users should not have select access to invoices.")
         } catch (ex: AccessException) {
             // OK
@@ -180,7 +180,7 @@ class RechnungDaoTest : AbstractTestBase() {
             val number = rechnungDao.getNextNumber(re)
             re.datum = LocalDate.now()
             re.nummer = number
-            rechnungDao.save(re)
+            rechnungDao.insert(re)
             Assertions.fail<Any>("AccessException expected: $who users should not have save access to invoices.")
         } catch (ex: AccessException) {
             // OK

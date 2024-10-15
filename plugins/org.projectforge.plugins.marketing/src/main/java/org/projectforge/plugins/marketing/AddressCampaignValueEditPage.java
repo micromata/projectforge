@@ -77,8 +77,8 @@ public class AddressCampaignValueEditPage extends
       if (addressId == null || addressCampaignId == null) {
         throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
       }
-      final AddressDO address = addressDao.getById(addressId);
-      final AddressCampaignDO addressCampaign = addressCampaignDao.getById(addressCampaignId);
+      final AddressDO address = addressDao.find(addressId);
+      final AddressCampaignDO addressCampaign = addressCampaignDao.find(addressCampaignId);
       if (address == null || addressCampaign == null) {
         throw new UserException("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven");
       }

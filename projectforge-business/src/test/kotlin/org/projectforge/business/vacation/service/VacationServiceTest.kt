@@ -617,7 +617,7 @@ class VacationServiceTest : AbstractTestBase() {
         vacation.manager = manager
         vacation.replacement = replacement
         vacation.special = special
-        vacationDao.save(vacation)
+        vacationDao.insert(vacation)
         lastStoredVacation = vacation
         return VacationService.getVacationDays(vacation).toDouble()
     }
@@ -634,12 +634,12 @@ class VacationServiceTest : AbstractTestBase() {
         user.lastname = name
         user.username = "$name.$name"
         user.email = "$name@devnull.com"
-        userDao.save(user, checkAccess = false)
+        userDao.insert(user, checkAccess = false)
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeDao.save(employee, checkAccess = false)
+        employeeDao.insert(employee, checkAccess = false)
         joinDate?.let { validFrom ->
             employeeService.addNewAnnualLeaveDays(employee, validFrom, BigDecimal(annualLeaveDays))
         }

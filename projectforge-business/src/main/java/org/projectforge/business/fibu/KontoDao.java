@@ -44,7 +44,7 @@ public class KontoDao extends BaseDao<KontoDO> {
     }
 
     @Override
-    public void afterSaveOrModify(@NotNull final KontoDO obj) {
+    public void afterInsertOrModify(@NotNull final KontoDO obj) {
         getKontoCache().refresh();
     }
 
@@ -72,7 +72,7 @@ public class KontoDao extends BaseDao<KontoDO> {
     }
 
     @Override
-    public void onSaveOrModify(final KontoDO obj) {
+    public void onInsertOrModify(final KontoDO obj) {
         if (obj.getNummer() != null && obj.getNummer() > 0) {
             KontoDO existingAccount = getKonto(obj.getNummer());
             //Insert case

@@ -70,13 +70,13 @@ public class EmployeeSalaryServiceImpl implements EmployeeSalaryService
   @Override
   public void saveOrUpdate(EmployeeSalaryDO employeeSalaryDO)
   {
-    employeeSalaryDao.saveOrUpdate(employeeSalaryDO);
+    employeeSalaryDao.insertOrUpdate(employeeSalaryDO);
   }
 
   @Override
   public EmployeeSalaryDO selectByPk(Long id)
   {
-    return employeeSalaryDao.getById(id);
+    return employeeSalaryDao.find(id);
   }
 
 }

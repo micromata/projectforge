@@ -96,7 +96,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * @param projektId If null, then projekt will be set to null;
      */
     public void setProjekt(final HRPlanningEntryDO sheet, final Long projektId) {
-        final ProjektDO projekt = projektDao.getOrLoad(projektId);
+        final ProjektDO projekt = projektDao.findOrLoad(projektId);
         sheet.setProjekt(projekt);
     }
 
@@ -105,7 +105,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * @param userId If null, then user will be set to null;
      */
     public void setUser(final HRPlanningDO sheet, final Long userId) {
-        final PFUserDO user = userDao.getOrLoad(userId);
+        final PFUserDO user = userDao.findOrLoad(userId);
         sheet.setUser(user);
     }
 
@@ -178,14 +178,14 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     }
 
     @Override
-    public List<HRPlanningDO> getList(final BaseSearchFilter filter) {
+    public List<HRPlanningDO> select(final BaseSearchFilter filter) {
         final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
         if (myFilter.getStopDay() != null) {
             PFDateTime dateTime = PFDateTime.fromOrNow(myFilter.getStopDay()).getEndOfDay();
             myFilter.setStopDay(dateTime.getLocalDate());
         }
         final QueryFilter queryFilter = buildQueryFilter(myFilter);
-        final List<HRPlanningDO> result = getList(queryFilter);
+        final List<HRPlanningDO> result = select(queryFilter);
         return result;
     }
 
@@ -234,7 +234,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * <ul>
      */
     @Override
-    public void onSaveOrModify(final HRPlanningDO obj) {
+    public void onInsertOrModify(final HRPlanningDO obj) {
         PFDay day = PFDay.from(obj.getWeek());
         if (!day.isBeginOfWeek()) {
             log.error("Date is not begin of week, try to change date: " + day.getIsoString());
@@ -245,7 +245,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
         if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {
             HRPlanningDO existingPlanning = null;
             if (obj.getId() != null) {
-                existingPlanning = getById(obj.getId(), false);
+                existingPlanning = find(obj.getId(), false);
             }
             for (HRPlanningEntryDO entry : obj.getEntries()) {
                 ProjektDO projekt = entry.getProjekt();
@@ -270,7 +270,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
             }
         }
 
-        super.onSaveOrModify(obj);
+        super.onInsertOrModify(obj);
     }
 
     @Override
@@ -296,8 +296,8 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj, final boolean checkAccess) {
-        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
+    public List<DisplayHistoryEntry> selectDisplayHistoryEntries(final HRPlanningDO obj, final boolean checkAccess) {
+        final List<DisplayHistoryEntry> list = super.selectDisplayHistoryEntries(obj);
         if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
             return list;
         }

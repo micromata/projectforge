@@ -91,7 +91,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   ) {
     val lc = LayoutContext(EingangsrechnungDO::class.java)
     val stats = EingangsrechnungsStatistik()
-    eingangsrechnungDao.load(selectedIds)?.forEach { invoice ->
+    eingangsrechnungDao.select(selectedIds)?.forEach { invoice ->
       stats.add(invoice)
     }
     layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
@@ -134,7 +134,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<EingangsrechnungDO>,
   ): ResponseEntity<*>? {
-    val invoices = eingangsrechnungDao.load(selectedIds)
+    val invoices = eingangsrechnungDao.select(selectedIds)
     if (invoices.isNullOrEmpty()) {
       return null
     }
@@ -198,7 +198,7 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
   @GetMapping("exportTransfers")
   fun exportTransfers(request: HttpServletRequest): ResponseEntity<*> {
     val invoices =
-      eingangsrechnungDao.load(MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java))
+      eingangsrechnungDao.select(MultiSelectionSupport.getRegisteredSelectedEntityIds(request, pagesRest::class.java))
     if (invoices.isNullOrEmpty()) {
       return RestUtils.downloadFile("error.txt", translate("massUpdate.error.noEntriesSelected"))
     }

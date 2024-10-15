@@ -200,17 +200,17 @@ class BaseDOPersistenceService {
             if (baseDao.logDatabaseActions) {
                 log.info { "${baseDao.doClass.simpleName} marked as deleted: $dbObj" }
             }
-            baseDao.afterSaveOrModify(obj)
+            baseDao.afterInsertOrModify(obj)
             baseDao.afterDelete(obj)
         }
     }
 
     internal fun <O : ExtendedBaseDO<Long>> undelete(baseDao: BaseDao<O>, obj: O) {
         persistenceService.runInTransaction { context ->
-            baseDao.onSaveOrModify(obj)
+            baseDao.onInsertOrModify(obj)
             val em = context.em
             val dbObj = em.find(baseDao.doClass, obj.id)
-            baseDao.onSaveOrModify(obj)
+            baseDao.onInsertOrModify(obj)
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
@@ -226,7 +226,7 @@ class BaseDOPersistenceService {
             if (baseDao.logDatabaseActions) {
                 log.info { "${baseDao.doClass.simpleName} undeleted: $dbObj" }
             }
-            baseDao.afterSaveOrModify(obj)
+            baseDao.afterInsertOrModify(obj)
             baseDao.afterUndelete(obj)
         }
     }

@@ -132,7 +132,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
       )
     }
-    addressDao.load(selectedIds)?.forEach { address ->
+    addressDao.select(selectedIds)?.forEach { address ->
       var addressCampaignValueDO = addressCampaignValueDao.get(address.id, addressCampaignDO.id)
       if (addressCampaignValueDO == null) {
         addressCampaignValueDO = AddressCampaignValueDO()
@@ -163,7 +163,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
             addressCampaignValueDO.deleted = false
             addressCampaignValueDao.update(addressCampaignValueDO)
           } else {
-            addressCampaignValueDao.save(addressCampaignValueDO)
+            addressCampaignValueDao.insert(addressCampaignValueDO)
             EntityCopyStatus.MAJOR
           }
         },

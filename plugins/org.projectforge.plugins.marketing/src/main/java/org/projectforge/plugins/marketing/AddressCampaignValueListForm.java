@@ -100,7 +100,7 @@ public class AddressCampaignValueListForm
 
   @Override
   protected void onBeforeSearchFilter() {
-    final List<AddressCampaignDO> addressCampaignList = addressCampaignDao.getList(new AddressCampaignValueFilter());
+    final List<AddressCampaignDO> addressCampaignList = addressCampaignDao.select(new AddressCampaignValueFilter());
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.marketing.addressCampaign"));

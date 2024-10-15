@@ -221,7 +221,7 @@ class Script(
             }
             ScriptParameterType.USER ->
               parameter.intValue?.let { userId ->
-                Registry.getInstance().getDao(UserDao::class.java).getById(userId, checkAccess = false)?.let { userDO ->
+                Registry.getInstance().getDao(UserDao::class.java).find(userId, checkAccess = false)?.let { userDO ->
                   val user = User()
                   user.copyFromMinimal(userDO)
                   result.userValue = user

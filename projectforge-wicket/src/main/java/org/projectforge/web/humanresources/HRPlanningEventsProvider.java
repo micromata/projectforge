@@ -92,7 +92,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
 
     filter.setStartDay(startDay.getLocalDate());
     filter.setStopDay(endDay.getLocalDate());
-    final List<HRPlanningDO> list = hrPlanningDao.getList(filter);
+    final List<HRPlanningDO> list = hrPlanningDao.select(filter);
     if (list == null) {
       return;
     }

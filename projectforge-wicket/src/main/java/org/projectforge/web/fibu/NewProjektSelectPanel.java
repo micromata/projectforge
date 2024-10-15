@@ -102,7 +102,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "nummer");
         filter.setSearchString(input);
-        final List<ProjektDO> list = WicketSupport.get(ProjektDao.class).getList(filter);
+        final List<ProjektDO> list = WicketSupport.get(ProjektDao.class).select(filter);
         return list;
       }
 
@@ -371,7 +371,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
       if (nummernkreis.equals("4") == true) {
         return WicketSupport.get(ProjektDao.class).getProjekt(kundeId, kost2);
       } else if (nummernkreis.equals("5") == true) {
-        final KundeDO kunde = WicketSupport.get(KundeDao.class).getById(kundeId);
+        final KundeDO kunde = WicketSupport.get(KundeDao.class).find(kundeId);
         if (kunde == null) {
           return null;
         }

@@ -54,7 +54,7 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public GroupDO getGroup(final Long groupId) {
-    return groupDao.getOrLoad(groupId);
+    return groupDao.findOrLoad(groupId);
   }
 
   @Override
@@ -195,7 +195,7 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public List<GroupDO> getAllGroups() {
-    return groupDao.loadAll(false);
+    return groupDao.selectAll(false);
   }
 
 }

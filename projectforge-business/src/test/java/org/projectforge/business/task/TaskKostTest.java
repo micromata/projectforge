@@ -70,21 +70,21 @@ public class TaskKostTest extends AbstractTestBase {
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(1L));
             final Kost2DO kost2a = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.01
+                    .find(kost2Dao.insert(kost)); // Kost2: 1.137.05.01
             kost = new Kost2DO();
             kost.setNummernkreis(1);
             kost.setBereich(137);
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(2L));
             final Kost2DO kost2b = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 1.137.05.02
+                    .find(kost2Dao.insert(kost)); // Kost2: 1.137.05.02
             kost = new Kost2DO();
             kost.setNummernkreis(2);
             kost.setBereich(423);
             kost.setTeilbereich(12);
             kost.setKost2Art(new Kost2ArtDO().withId(1L));
             final Kost2DO kost2c = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 2.423.12.01
+                    .find(kost2Dao.insert(kost)); // Kost2: 2.423.12.01
             final TaskDO task = initTestDB.addTask("kost2test2", "root");
             task.setKost2BlackWhiteList("1.137.05.01, 1.137.05.02, 2.423.12.01");
             taskDao.update(task);
@@ -122,7 +122,7 @@ public class TaskKostTest extends AbstractTestBase {
             find.setNummer(05);
             find.setTask(task);
             final ProjektDO projekt = projektDao
-                    .getById(projektDao.save(find)); // Kost2: 4.137.05
+                    .find(projektDao.insert(find)); // Kost2: 4.137.05
             List<Kost2DO> list = taskTree.getKost2List(task.getId());
             assertNull(list);
             Kost2DO kost = new Kost2DO();
@@ -132,7 +132,7 @@ public class TaskKostTest extends AbstractTestBase {
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(1L));
             final Kost2DO kost2a = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.01
+                    .find(kost2Dao.insert(kost)); // Kost2: 4.137.05.01
             kost = new Kost2DO();
             kost.setNummernkreis(4);
             kost.setBereich(137);
@@ -140,7 +140,7 @@ public class TaskKostTest extends AbstractTestBase {
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(2L));
             final Kost2DO kost2b = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.02
+                    .find(kost2Dao.insert(kost)); // Kost2: 4.137.05.02
             list = taskTree.getKost2List(task.getId());
             assertEquals(2, list.size());
             assertKost2(kost2a, list.get(0));
@@ -152,7 +152,7 @@ public class TaskKostTest extends AbstractTestBase {
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(3L));
             final Kost2DO kost2c = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.03
+                    .find(kost2Dao.insert(kost)); // Kost2: 4.137.05.03
             kost = new Kost2DO();
             kost.setNummernkreis(4);
             kost.setBereich(137);
@@ -160,7 +160,7 @@ public class TaskKostTest extends AbstractTestBase {
             kost.setTeilbereich(05);
             kost.setKost2Art(new Kost2ArtDO().withId(4L));
             final Kost2DO kost2d = kost2Dao
-                    .getById(kost2Dao.save(kost)); // Kost2: 4.137.05.04
+                    .find(kost2Dao.insert(kost)); // Kost2: 4.137.05.04
             list = taskTree.getKost2List(task.getId());
             assertEquals(4, list.size());
             assertKost2(kost2a, list.get(0));

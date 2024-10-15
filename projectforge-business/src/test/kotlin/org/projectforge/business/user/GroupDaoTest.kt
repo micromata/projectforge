@@ -58,12 +58,12 @@ class GroupDaoTest : AbstractTestBase() {
         group.addUser(users[0])
         group.addUser(users[1])
         group.addUser(users[2])
-        groupDao.save(group)
-        groupDao.getHistoryEntries(group).let { entries ->
+        groupDao.insert(group)
+        groupDao.selectHistoryEntries(group).let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertHistoryEntry(entries[0], GroupDO::class, group.id, EntityOpType.Insert, loggedInUser)
         }
-        userDao.getHistoryEntries(users[0]).let { entries ->
+        userDao.selectHistoryEntries(users[0]).let { entries ->
             Assertions.assertEquals(2, entries.size)
             entries[0].let { entry ->
                 HistoryTester.assertAttr(
@@ -84,7 +84,7 @@ class GroupDaoTest : AbstractTestBase() {
         group.assignedUsers!!.remove(users[1]) // Unassign users[1] from group 1.
         group.addUser(users[3]) // Assign users[3] to group 1.
         groupDao.update(group)
-        userDao.getHistoryEntries(users[0]).let { entries ->
+        userDao.selectHistoryEntries(users[0]).let { entries ->
             Assertions.assertEquals(
                 3,
                 entries.size
@@ -117,7 +117,7 @@ class GroupDaoTest : AbstractTestBase() {
                 loggedInUser,
             ) // user inserted
         }
-        groupDao.getHistoryEntries(group).let { entries ->
+        groupDao.selectHistoryEntries(group).let { entries ->
             Assertions.assertEquals(
                 2,
                 entries.size
@@ -265,7 +265,7 @@ class GroupDaoTest : AbstractTestBase() {
         sb.append("userMatrix = arrayOf(")//arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())")
         print("Current users of groups: ")
         testContext.groups.forEachIndexed { index, groupDO ->
-            groupDao.getById(groupDO.id)?.let { group ->
+            groupDao.find(groupDO.id)?.let { group ->
                 if (!group.assignedUsers.isNullOrEmpty()) {
                     dbGroups.add(group)
                     print(
@@ -372,7 +372,7 @@ class GroupDaoTest : AbstractTestBase() {
     }
 
     private fun assertAssignedUsers(testContext: TestContext, group: GroupDO, userIndices: Array<Int?>) {
-        val dbGroup = groupDao.getById(group.id)
+        val dbGroup = groupDao.find(group.id)
         val assignedUsers = CollectionUtils.joinToStringOfIds(dbGroup?.assignedUsers)
         val expectedUsers = asIdsString(testContext.users, userIndices)
         Assertions.assertEquals(
@@ -408,7 +408,7 @@ class GroupDaoTest : AbstractTestBase() {
             for (i in 0..3) {
                 PFUserDO().let {
                     it.username = "$prefix.user$i"
-                    userDao.save(it)
+                    userDao.insert(it)
                     users.add(it)
                 }
             }
@@ -420,7 +420,7 @@ class GroupDaoTest : AbstractTestBase() {
             for (i in 0..3) {
                 GroupDO().let {
                     it.name = "$prefix.group$i"
-                    groupDao.save(it)
+                    groupDao.insert(it)
                     groups.add(it)
                 }
             }

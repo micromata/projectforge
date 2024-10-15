@@ -204,7 +204,7 @@ public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
         final AddressFilter addressFilter = new AddressFilter();
         addressFilter.setSearchString(input);
         addressFilter.setSearchFields("name", "firstName", "organization");
-        return WicketSupport.get(AddressDao.class).getList(addressFilter);
+        return WicketSupport.get(AddressDao.class).select(addressFilter);
       }
 
       @Override

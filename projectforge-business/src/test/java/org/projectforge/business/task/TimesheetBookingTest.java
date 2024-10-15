@@ -69,7 +69,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
             access.setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER));
             access.addAccessEntry(
                     new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true)).setTask(task);
-            accessDao.save(access);
+            accessDao.insert(access);
             logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
             taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
 
@@ -135,20 +135,20 @@ public class TimesheetBookingTest extends AbstractTestBase {
             sheet.setTask(getTask("TBT-3.1"));
             save(sheet, "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking");
             sheet.setTask(getTask("TBT-3.2"));
-            timesheetDao.save(sheet); // Leaf task node.
+            timesheetDao.insert(sheet); // Leaf task node.
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-3.1.1"));
-            timesheetDao.save(sheet); // Leaf task node.
+            timesheetDao.insert(sheet); // Leaf task node.
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-3.1.2"));
-            timesheetDao.save(sheet); // Leaf task node.
+            timesheetDao.insert(sheet); // Leaf task node.
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-4"));
             save(sheet, "timesheet.error.taskNotBookable.taskClosedForBooking");
             sheet.setTask(getTask("TBT-4.1"));
             save(sheet, "timesheet.error.taskNotBookable.taskClosedForBooking"); // Inherited (not opened)
             sheet.setTask(getTask("TBT-4.1.1"));
-            timesheetDao.save(sheet); // Opened for booking.
+            timesheetDao.insert(sheet); // Opened for booking.
             return null;
         });
     }
@@ -167,7 +167,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
                     .addPosition(pos1)
                     .addPosition(pos2);
             auftrag.setNummer(auftragDao.getNextNumber(auftrag));
-            auftragDao.save(auftrag);
+            auftragDao.insert(auftrag);
             return null;
         });
         persistenceService.runInTransaction(context -> {
@@ -176,20 +176,20 @@ public class TimesheetBookingTest extends AbstractTestBase {
             sheet.setTask(getTask("TBT-5"));
             save(sheet, "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
             sheet.setTask(getTask("TBT-5.1"));
-            timesheetDao.save(sheet);
+            timesheetDao.insert(sheet);
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-5.1.1"));
-            timesheetDao.save(sheet);
+            timesheetDao.insert(sheet);
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-5.1.2"));
-            timesheetDao.save(sheet);
+            timesheetDao.insert(sheet);
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-5.2"));
             save(sheet, "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
             sheet.setTask(getTask("TBT-5.2.1"));
             save(sheet, "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
             sheet.setTask(getTask("TBT-5.2.1.1"));
-            timesheetDao.save(sheet);
+            timesheetDao.insert(sheet);
             return null;
         });
 
@@ -203,7 +203,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
             logon(user);
             TimesheetDO sheet = createNewSheet();
             sheet.setTask(getTask("TBT-1"));
-            timesheetDao.save(sheet);
+            timesheetDao.insert(sheet);
             sheet = createNewSheet();
             sheet.setTask(getTask("TBT-1.1"));
             save(sheet, "timesheet.error.taskNotBookable.taskNotOpened");
@@ -226,7 +226,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
 
     private void save(final TimesheetDO sheet, final String expectedErrorMsgKey) {
         try {
-            timesheetDao.save(sheet);
+            timesheetDao.insert(sheet);
             fail("AccessException expected: " + expectedErrorMsgKey);
         } catch (final AccessException ex) {
             assertEquals(expectedErrorMsgKey, ex.getI18nKey());

@@ -68,7 +68,7 @@ class TaskTest : AbstractTestBase() {
 
     @Test
     fun testTaskDO() {
-        val list = taskDao.loadAll(checkAccess = false)
+        val list = taskDao.selectAll(checkAccess = false)
         for (task in list) {
             if ("root" == task.title) {
                 Assertions.assertNull(task.parentTaskId, "Only root node has no parent task.")
@@ -78,7 +78,7 @@ class TaskTest : AbstractTestBase() {
         }
         val task = super.getTask("1.1")
         logon(ADMIN)
-        val dbTask = taskDao.getById(task.id)
+        val dbTask = taskDao.find(task.id)
         Assertions.assertEquals(task.id, dbTask!!.id)
         Assertions.assertEquals(task.title, dbTask.title)
     }
@@ -182,14 +182,14 @@ class TaskTest : AbstractTestBase() {
             val u2 = taskTree.getTaskNodeById(getTask("u.2").id)
             Assertions.assertEquals(3, u2!!.getChildren().size, "Should have exact 3 children")
             // Now we move u.2.3 to u.1.1:
-            val tu_2_3 = taskDao.getById(getTask("u.2.3").id, checkAccess = false)
+            val tu_2_3 = taskDao.find(getTask("u.2.3").id, checkAccess = false)
             tu_2_3!!.title = "u.1.1"
             logon(ADMIN)
             taskDao.setParentTask(tu_2_3, getTask("u.1").id!!)
             taskDao.update(tu_2_3, checkAccess = false)
             Assertions.assertEquals(2, u2.getChildren().size, "Should have exact 2 children")
             Assertions.assertEquals(1, u1!!.getChildren().size, "Should have exact 1 child")
-            val tu_1_1 = taskDao.getById(getTask("u.2.3").id, checkAccess = false)
+            val tu_1_1 = taskDao.find(getTask("u.2.3").id, checkAccess = false)
             Assertions.assertEquals("u.1.1", tu_1_1!!.title)
             Assertions.assertEquals(getTask("u.1").id, tu_1_1.parentTaskId)
             val u_1_1 = taskTree.getTaskNodeById(tu_1_1.id)
@@ -217,7 +217,7 @@ class TaskTest : AbstractTestBase() {
             initTestDB.addUser("taskTest1")
             logon("taskTest1")
             try {
-                taskDao.getById(getTask("a.1").id)
+                taskDao.find(getTask("a.1").id)
                 Assertions.fail<Any>("User has no access to select task a.1")
             } catch (ex: AccessException) {
                 assertAccessException(ex, getTask("a.1").id, AccessType.TASKS, OperationType.SELECT)
@@ -226,9 +226,9 @@ class TaskTest : AbstractTestBase() {
             initTestDB.createGroupTaskAccess(
                 getGroup("taskTest1"), getTask("a.1"), AccessType.TASKS, true, true, true, true,
             )
-            var task = taskDao.getById(getTask("a.1").id)!!
+            var task = taskDao.find(getTask("a.1").id)!!
             Assertions.assertEquals("a.1", task.title, "Now readable.")
-            task = taskDao.getById(getTask("a.1.1").id)!!
+            task = taskDao.find(getTask("a.1.1").id)!!
             Assertions.assertEquals("a.1.1", task.title, "Also child tasks are now readable.")
             taskDao.setParentTask(task, getTask("a.2").id!!)
             try {
@@ -241,7 +241,7 @@ class TaskTest : AbstractTestBase() {
                 getGroup("taskTest1"), getTask("a.2"), AccessType.TASKS, true, false, false,
                 false,
             )
-            task = taskDao.getById(getTask("a.2.1").id)!!
+            task = taskDao.find(getTask("a.2.1").id)!!
             task.title = "a.2.1test"
             try {
                 taskDao.update(task)
@@ -259,7 +259,7 @@ class TaskTest : AbstractTestBase() {
             initTestDB.createGroupTaskAccess(
                 getGroup("taskTest2"), getTask("a.2"), AccessType.TASKS, true, true, true, false,
             )
-            task = taskDao.getById(getTask("a.2.1").id)!!
+            task = taskDao.find(getTask("a.2.1").id)!!
             taskDao.setParentTask(task, getTask("a.1").id!!)
             try {
                 taskDao.update(task)
@@ -286,17 +286,17 @@ class TaskTest : AbstractTestBase() {
             val kost2Art = Kost2ArtDO()
             kost2Art.id = 42L
             kost2Art.name = "Test"
-            kost2ArtDao.save(kost2Art)
+            kost2ArtDao.insert(kost2Art)
             val kost2 = Kost2DO()
             kost2.nummernkreis = 3
             kost2.bereich = 0
             kost2.teilbereich = 42
             kost2.kost2Art = kost2Art
-            kost2Dao.save(kost2)
+            kost2Dao.insert(kost2)
             val projekt = ProjektDO()
             projekt.internKost2_4 = 123
             projekt.name = "Testprojekt"
-            projektDao.save(projekt)
+            projektDao.insert(projekt)
             checkAccess(TEST_ADMIN_USER, task.id, projekt, kost2)
             checkAccess(TEST_USER, task.id, projekt, kost2)
             null
@@ -324,14 +324,14 @@ class TaskTest : AbstractTestBase() {
             projekt.nummer = 1
             projekt.projektManagerGroup = projectManagers
             projekt.task = task
-            projektDao.save(projekt)
+            projektDao.insert(projekt)
             logon(TEST_USER)
             var task1: TaskDO? = TaskDO()
             task1!!.parentTask = task
             task1.title = "Task 1"
             task1.kost2BlackWhiteList = "Hurzel"
             try {
-                taskDao.save(task1)
+                taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
@@ -339,7 +339,7 @@ class TaskTest : AbstractTestBase() {
             try {
                 task1.kost2BlackWhiteList = null
                 task1.kost2IsBlackList = true
-                taskDao.save(task1)
+                taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.kost2Readonly", ex.i18nKey) // OK
@@ -347,7 +347,7 @@ class TaskTest : AbstractTestBase() {
             try {
                 task1.kost2IsBlackList = false
                 task1.timesheetBookingStatus = TimesheetBookingStatus.ONLY_LEAFS
-                taskDao.save(task1)
+                taskDao.insert(task1)
                 Assertions.fail<Any>("AccessException expected.")
             } catch (ex: AccessException) {
                 Assertions.assertEquals("task.error.timesheetBookingStatus2Readonly", ex.i18nKey) // OK
@@ -355,7 +355,7 @@ class TaskTest : AbstractTestBase() {
             logon(TEST_PROJECT_MANAGER_USER)
             task1.kost2IsBlackList = true
             task1.timesheetBookingStatus = TimesheetBookingStatus.ONLY_LEAFS
-            task1 = taskDao.getById(taskDao.save(task1))!!
+            task1 = taskDao.find(taskDao.insert(task1))!!
             logon(TEST_USER)
             task1.kost2BlackWhiteList = "123456"
             try {
@@ -396,7 +396,7 @@ class TaskTest : AbstractTestBase() {
         kost2: Kost2DO,
     ) {
         logon(user)
-        var task = taskDao.getById(id)!!
+        var task = taskDao.find(id)!!
         task.protectTimesheetsUntil = LocalDate.now()
         try {
             taskDao.update(task)
@@ -414,12 +414,12 @@ class TaskTest : AbstractTestBase() {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
         }
-        task = taskDao.getById(id)!!
+        task = taskDao.find(id)!!
         task = TaskDO()
         task.parentTask = getTask("checkAccessTestTask")
         task.protectTimesheetsUntil = LocalDate.now()
         try {
-            taskDao.save(task)
+            taskDao.insert(task)
             Assertions.fail<Any>("AccessException expected.")
         } catch (ex: AccessException) {
             // OK
@@ -428,13 +428,13 @@ class TaskTest : AbstractTestBase() {
         task.protectTimesheetsUntil = null
         task.protectionOfPrivacy = true
         try {
-            taskDao.save(task)
+            taskDao.insert(task)
             Assertions.fail<Any>("AccessException expected.")
         } catch (ex: AccessException) {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
         }
-        task = taskDao.getById(id)!!
+        task = taskDao.find(id)!!
     }
 
     /**
@@ -494,7 +494,7 @@ class TaskTest : AbstractTestBase() {
             ts.user = getUser(TEST_USER)
             ts.setStartDate(dt.utilDate).stopTime = dt.plus(4, ChronoUnit.HOURS).sqlTimestamp
             ts.task = task
-            timesheetDao.save(ts)
+            timesheetDao.insert(ts)
             Assertions.assertEquals((4 * 3600).toLong(), taskDao.readTotalDuration(task.id))
             Assertions.assertEquals((4 * 3600).toLong(), getTotalDuration(taskTree, task.id))
             ts = TimesheetDO()
@@ -502,7 +502,7 @@ class TaskTest : AbstractTestBase() {
             ts.setStartDate(dt.plus(5, ChronoUnit.HOURS).utilDate)
                 .stopTime = dt.plus(9, ChronoUnit.HOURS).sqlTimestamp
             ts.task = task
-            timesheetDao.save(ts)
+            timesheetDao.insert(ts)
             Assertions.assertEquals((8 * 3600).toLong(), taskDao.readTotalDuration(task.id))
             Assertions.assertEquals((8 * 3600).toLong(), getTotalDuration(taskTree, task.id))
             ts = TimesheetDO()
@@ -510,7 +510,7 @@ class TaskTest : AbstractTestBase() {
             ts.setStartDate(dt.plus(10, ChronoUnit.HOURS).utilDate)
                 .stopTime = dt.plus(14, ChronoUnit.HOURS).sqlTimestamp
             ts.task = subTask1
-            timesheetDao.save(ts)
+            timesheetDao.insert(ts)
         }
         persistenceService.runReadOnly { _ ->
             val list = taskDao.readTotalDurations()

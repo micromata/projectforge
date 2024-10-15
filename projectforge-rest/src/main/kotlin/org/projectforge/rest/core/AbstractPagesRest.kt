@@ -511,7 +511,7 @@ constructor(
    * Get the list by ids.
    */
   open fun getListByIds(entityIds: Collection<Serializable>?): List<O> {
-    return baseDao.load(entityIds) ?: listOf()
+    return baseDao.select(entityIds) ?: listOf()
   }
 
   /**
@@ -711,7 +711,7 @@ constructor(
 
   protected fun getById(id: Long?, editMode: Boolean = false, userAccess: UILayout.UserAccess? = null): DTO? {
     id ?: return null
-    val item = baseDao.getById(id) ?: return null
+    val item = baseDao.find(id) ?: return null
     checkUserAccess(item, userAccess)
     val result = transformFromDB(item, editMode)
     jcrPath?.let {
@@ -876,7 +876,7 @@ constructor(
   }
 
   protected open fun queryAutocompleteObjects(request: HttpServletRequest, filter: BaseSearchFilter): List<O> {
-    return baseDao.getList(filter)
+    return baseDao.select(filter)
   }
 
   /**
@@ -888,7 +888,7 @@ constructor(
     if (id == null) {
       return ResponseEntity(HttpStatus.BAD_REQUEST)
     }
-    val item = baseDao.getById(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
+    val item = baseDao.find(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
     val historyEntries = historyFormatService.loadHistory(item) //baseDao.getHistoryEntries(item)
     return ResponseEntity(historyEntries, HttpStatus.OK)
   }

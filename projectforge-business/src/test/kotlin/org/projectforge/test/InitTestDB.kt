@@ -139,7 +139,7 @@ class InitTestDB {
             userService.save(user) // Save user without rights
             savedSet.forEach { right ->
                 // Now, save the rights.
-                userRightDao.save(right, checkAccess = false)
+                userRightDao.insert(right, checkAccess = false)
             }
         }
         putUser(user)
@@ -165,7 +165,7 @@ class InitTestDB {
         val group = GroupDO()
         group.name = groupname
         group.assignedUsers = usernames.mapNotNull { username -> getUser(username) }.toMutableSet()
-        groupDao.save(group, checkAccess = false)
+        groupDao.insert(group, checkAccess = false)
         putGroup(group)
         userGroupCache.setExpired()
         return group
@@ -197,9 +197,9 @@ class InitTestDB {
         if (shortDescription != null) {
             task.shortDescription = shortDescription
         }
-        val id = taskDao.save(task, checkAccess = false)
+        val id = taskDao.insert(task, checkAccess = false)
         // Test if the task is saved correctly:
-        taskDao.getById(id, checkAccess = false).let { savedTask ->
+        taskDao.find(id, checkAccess = false).let { savedTask ->
             requireNotNull(savedTask)
             putTask(savedTask)
             return savedTask
@@ -220,7 +220,7 @@ class InitTestDB {
         timesheet.stopTime = stopTime
         timesheet.task = task
         timesheet.user = user
-        timesheetDao.save(timesheet, checkAccess = false)
+        timesheetDao.insert(timesheet, checkAccess = false)
         return timesheet
     }
 
@@ -234,7 +234,7 @@ class InitTestDB {
         if (kunde != null) {
             projektDao.setKunde(projekt, kunde.id)
         }
-        projektDao.save(projekt)
+        projektDao.insert(projekt)
         kost2ArtIds.forEach { id ->
             val kost2 = Kost2DO()
             kost2.projekt = projekt
@@ -244,7 +244,7 @@ class InitTestDB {
             }
             kost2.teilbereich = projekt.nummer
             kost2Dao.setKost2Art(kost2, id)
-            kost2Dao.save(kost2)
+            kost2Dao.insert(kost2)
         }
         return projekt
     }
@@ -278,7 +278,7 @@ class InitTestDB {
         val user = addUser(AbstractTestBase.TEST_EMPLOYEE_USER, AbstractTestBase.TEST_EMPLOYEE_USER_PASSWORD)
         val e = EmployeeDO()
         e.user = user
-        employeeDao.save(e, checkAccess = false)
+        employeeDao.insert(e, checkAccess = false)
     }
 
     private fun initConfiguration() {
@@ -391,7 +391,7 @@ class InitTestDB {
         val kost2Art = Kost2ArtDO()
         kost2Art.id = id
         kost2Art.name = name
-        kost2ArtDao.save(kost2Art, checkAccess = false)
+        kost2ArtDao.insert(kost2Art, checkAccess = false)
     }
 
     private fun initTaskTree() {
@@ -422,7 +422,7 @@ class InitTestDB {
         val access = GroupTaskAccessDO()
         access.group = group
         access.task = task
-        accessDao.save(access, checkAccess = false)
+        accessDao.insert(access, checkAccess = false)
         return access
     }
 

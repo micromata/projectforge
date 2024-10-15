@@ -98,7 +98,7 @@ public class SendSmsPage extends AbstractStandardFormPage {
 
   public void setAddressId(final Integer addressId) {
     if (addressId != null) {
-      address = WicketSupport.get(AddressDao.class).getById(addressId);
+      address = WicketSupport.get(AddressDao.class).find(addressId);
     }
   }
 

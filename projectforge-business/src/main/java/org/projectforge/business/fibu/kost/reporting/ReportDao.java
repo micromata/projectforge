@@ -104,7 +104,7 @@ public class ReportDao {
     filter.setFromMonth(report.getFromMonth());
     filter.setToYear(report.getToYear());
     filter.setToMonth(report.getToMonth());
-    final List<BuchungssatzDO> list = buchungssatzDao.getList(filter);
+    final List<BuchungssatzDO> list = buchungssatzDao.select(filter);
     report.select(list);
   }
 

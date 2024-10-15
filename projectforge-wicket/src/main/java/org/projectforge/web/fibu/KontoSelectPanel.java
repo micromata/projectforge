@@ -74,7 +74,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("nummer", "bezeichnung", "description");
         filter.setSearchString(input);
-        final List<KontoDO> list = WicketSupport.get(KontoDao.class).getList(filter);
+        final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
         if (kontoNumberRanges != null && list != null) {
           final List<KontoDO> result = new ArrayList<KontoDO>();
           for (final KontoDO konto : list) {

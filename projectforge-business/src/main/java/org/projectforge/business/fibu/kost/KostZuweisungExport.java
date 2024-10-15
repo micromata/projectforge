@@ -252,7 +252,7 @@ public class KostZuweisungExport {
 
     final QueryFilter filter = new QueryFilter();
     filter.addOrder(SortProperty.desc("lastUpdate"));
-    final List<KontoDO> list = WicketSupport.get(KontoDao.class).getList(filter);
+    final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
 
     final PropertyMapping mapping = new PropertyMapping();
     for (final KontoDO konto : list) {

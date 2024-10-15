@@ -377,7 +377,7 @@ public class TeamCalFilterDialog extends ModalDialog
         if (Constants.isTimesheetCalendarId(object)) {
           return timesheetsCalendar.getTitle();
         }
-        return WicketSupport.get(TeamCalDao.class).getById(object).getTitle();
+        return WicketSupport.get(TeamCalDao.class).find(object).getTitle();
       }
 
       @Override

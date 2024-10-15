@@ -78,7 +78,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         return QueryFilter(filter)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<PFUserDO> {
+    override fun select(filter: BaseSearchFilter): List<PFUserDO> {
         val myFilter = if (filter is PFUserFilter) {
             filter
         } else {
@@ -101,7 +101,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         if (myFilter.hrPlanning != null) {
             queryFilter.add(eq("hrPlanning", myFilter.hrPlanning))
         }
-        var list = getList(queryFilter)
+        var list = select(queryFilter)
         if (myFilter.isAdminUser != null) {
             val origList = list
             list = LinkedList()
@@ -119,9 +119,9 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     }
 
     /**
-     * @see org.projectforge.framework.persistence.api.BaseDao.afterSaveOrModify
+     * @see org.projectforge.framework.persistence.api.BaseDao.afterInsertOrModify
      */
-    override fun afterSaveOrModify(obj: PFUserDO) {
+    override fun afterInsertOrModify(obj: PFUserDO) {
         if (!obj.isMinorChange) {
             userGroupCache.setExpired()
         }
@@ -238,7 +238,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         accessChecker.checkRestrictedOrDemoUser()
         val contextUser = ThreadLocalUserContext.loggedInUser
         Validate.isTrue(user.id == contextUser!!.id)
-        val dbUser = getById(user.id, checkAccess = false)
+        val dbUser = find(user.id, checkAccess = false)
         dbUser!!.timeZone = user.timeZone
         dbUser.dateFormat = user.dateFormat
         dbUser.excelDateFormat = user.excelDateFormat
@@ -264,10 +264,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the UserRightDO children.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: PFUserDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, checkAccess)
+    override fun selectDisplayHistoryEntries(obj: PFUserDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

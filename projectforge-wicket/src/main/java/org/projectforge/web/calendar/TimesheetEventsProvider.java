@@ -116,7 +116,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider {
     filter.setStartTime(startDate.getUtilDate());
     filter.setStopTime(endDate.getUtilDate());
     filter.setOrderType(OrderDirection.ASC);
-    timesheets = timesheetDao.getList(filter);
+    timesheets = timesheetDao.select(filter);
     boolean longFormat = false;
     days = Days.daysBetween(start, end).getDays();
     if (days < 10) {

@@ -314,7 +314,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     final RechnungFilter src = form.getSearchFilter();
     filter.setFromDate(src.getFromDate());
     filter.setToDate(src.getToDate());
-    final List<RechnungDO> rechnungen = WicketSupport.get(RechnungDao.class).getList(filter);
+    final List<RechnungDO> rechnungen = WicketSupport.get(RechnungDao.class).select(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.
       form.addError("validation.error.nothingToExport");

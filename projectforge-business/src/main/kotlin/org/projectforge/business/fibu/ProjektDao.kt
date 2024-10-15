@@ -66,13 +66,13 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     /**
      * @param projekt
      * @param kundeId If null, then kunde will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setKunde(projekt: ProjektDO, kundeId: Long?) {
         if (kundeId == null) {
             projekt.kunde = null
         } else {
-            val kunde = kundeDao.getOrLoad(kundeId)
+            val kunde = kundeDao.findOrLoad(kundeId)
             projekt.kunde = kunde
         }
     }
@@ -80,13 +80,13 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     /**
      * @param projekt
      * @param taskId  If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setTask(projekt: ProjektDO, taskId: Long?) {
         if (taskId == null) {
             projekt.task = null
         } else {
-            val task = taskDao.getOrLoad(taskId)
+            val task = taskDao.findOrLoad(taskId)
             projekt.task = task
         }
     }
@@ -95,7 +95,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         if (groupId == null) {
             projekt.projektManagerGroup = null
         } else {
-            val group = groupDao.getOrLoad(groupId)
+            val group = groupDao.findOrLoad(groupId)
             projekt.projektManagerGroup = group
         }
     }
@@ -113,7 +113,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         Hibernate.initialize(projekt)
         val projectManagerGroup = projekt.projektManagerGroup
         if (projectManagerGroup != null) {
-            val group = groupDao.getById(projectManagerGroup.id, checkAccess = false)
+            val group = groupDao.find(projectManagerGroup.id, checkAccess = false)
             projekt.projektManagerGroup = group
             //Hibernate.initialize(projectManagerGroup); // Does not work.
         }
@@ -137,7 +137,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         )
     }
 
-    override fun getList(filter: BaseSearchFilter): List<ProjektDO> {
+    override fun select(filter: BaseSearchFilter): List<ProjektDO> {
         val myFilter = if (filter is ProjektFilter) {
             filter
         } else {
@@ -150,7 +150,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
             queryFilter.add(or(ne("status", ProjektStatus.ENDED), isNull("status")))
         }
         queryFilter.addOrder(asc("internKost2_4")).addOrder(asc("kunde.nummer")).addOrder(asc("nummer"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     fun getKundenProjekte(kundeId: Int?): List<ProjektDO?>? {
@@ -160,10 +160,10 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         val queryFilter = QueryFilter()
         queryFilter.add(eq("kunde.id", kundeId))
         queryFilter.addOrder(asc("nummer"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
-    override fun onSaveOrModify(obj: ProjektDO) {
+    override fun onInsertOrModify(obj: ProjektDO) {
         if (obj.kunde != null) {
             // Ein Kundenprojekt kann keine interne Kundennummer haben:
             obj.internKost2_4 = null
@@ -171,14 +171,14 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         if (obj.status == ProjektStatus.NONE) {
             obj.status = null
         }
-        super.onSaveOrModify(obj)
+        super.onInsertOrModify(obj)
     }
 
-    override fun afterSaveOrModify(obj: ProjektDO) {
+    override fun afterInsertOrModify(obj: ProjektDO) {
         obj.taskId?.let { taskId ->
             taskTree.internalSetProject(taskId, obj)
         }
-        super.afterSaveOrModify(obj)
+        super.afterInsertOrModify(obj)
     }
 
     override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?) {

@@ -116,7 +116,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
                 passwords.passwordHash = encryptAndClear(pepperString, salt, clearTextPassword)
             }
             if (passwords.id == null) {
-                save(passwords, checkAccess = false)
+                insert(passwords, checkAccess = false)
             } else {
                 update(passwords, checkAccess = false)
             }
@@ -139,13 +139,13 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         var passwordObj = internalGetByUserId(userId)
         if (passwordObj == null) {
             passwordObj = UserPasswordDO()
-            val user = userDao.getById(userId, checkAccess = false)
+            val user = userDao.find(userId, checkAccess = false)
             passwordObj.user = user
         }
         return passwordObj
     }
 
-    override fun onSaveOrModify(obj: UserPasswordDO) {
+    override fun onInsertOrModify(obj: UserPasswordDO) {
         obj.checkAndFixPassword()
     }
 

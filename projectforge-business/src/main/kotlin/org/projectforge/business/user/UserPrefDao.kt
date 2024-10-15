@@ -181,7 +181,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref != null
     }
 
-    override fun getList(filter: BaseSearchFilter): List<UserPrefDO> {
+    override fun select(filter: BaseSearchFilter): List<UserPrefDO> {
         val myFilter = filter as UserPrefFilter
         val queryFilter = QueryFilter(filter)
         if (myFilter.area != null) {
@@ -190,7 +190,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         queryFilter.add(eq("user.id", requiredLoggedInUser))
         queryFilter.addOrder(asc("area"))
         queryFilter.addOrder(asc("name"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
 
@@ -453,13 +453,13 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             val id = parseLong(str)
             if (id != null) {
                 if (PFUserDO::class.java.isAssignableFrom(type)) {
-                    return userDao.getOrLoad(id)
+                    return userDao.findOrLoad(id)
                 } else if (TaskDO::class.java.isAssignableFrom(type)) {
-                    return taskDao.getOrLoad(id)
+                    return taskDao.findOrLoad(id)
                 } else if (Kost2DO::class.java.isAssignableFrom(type)) {
-                    return kost2Dao.getOrLoad(id)
+                    return kost2Dao.findOrLoad(id)
                 } else if (ProjektDO::class.java.isAssignableFrom(type)) {
-                    return projektDao.getOrLoad(id)
+                    return projektDao.findOrLoad(id)
                 } else {
                     log.warn("getParameterValue: Type '$type' not supported. May-be it does not work.")
                     return persistenceService.getReference(type, id)
@@ -470,7 +470,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         } else if (KundeDO::class.java.isAssignableFrom(type)) {
             val id = parseLong(str)
             return if (id != null) {
-                kundeDao.getOrLoad(id)
+                kundeDao.findOrLoad(id)
             } else {
                 null
             }
@@ -523,7 +523,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref.valueObject
     }
 
-    override fun onSaveOrModify(obj: UserPrefDO) {
+    override fun onInsertOrModify(obj: UserPrefDO) {
         val valueObject = obj.valueObject
         if (valueObject == null) {
             obj.valueString = null
@@ -565,7 +565,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      * Checks if the user pref already exists in the database by querying the database with user id, area and name.
      * The id of the given obj is ignored.
      */
-    override fun saveOrUpdate(obj: UserPrefDO, checkAccess: Boolean): Serializable? {
+    override fun insertOrUpdate(obj: UserPrefDO, checkAccess: Boolean): Serializable? {
         val userId = obj.user?.id
         if (userId == null) {
             log.warn("UserId of UserPrefDO is null (can't save it): $obj")
@@ -576,7 +576,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             val dbUserPref = internalQuery(userId, obj.area, obj.name)
             if (dbUserPref == null) {
                 obj.id = null // Add new entry (ignore id of any previous existing entry).
-                return super.saveOrUpdate(obj, checkAccess)
+                return super.insertOrUpdate(obj, checkAccess)
             } else {
                 obj.id = dbUserPref.id
                 super.update(obj, checkAccess= false)

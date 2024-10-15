@@ -66,7 +66,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
   override fun transformForDB(dto: BankAccountRecord): BankAccountRecordDO {
     val bankAccountRecordDO = BankAccountRecordDO()
     dto.id?.let { id ->
-      val dbObj = baseDao.getById(id)
+      val dbObj = baseDao.find(id)
       if (dbObj != null) {
         bankAccountRecordDO.checksum = dbObj.checksum
       }
@@ -148,7 +148,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       )
     )
     val values = mutableListOf<UISelectValue<String>>()
-    bankAccountDao.getList(BaseSearchFilter())?.forEach { account ->
+    bankAccountDao.select(BaseSearchFilter())?.forEach { account ->
       values.add(UISelectValue("${account.id}", StringUtils.abbreviate(account.name, 20)))
     }
     accountsFilter.values = values
@@ -193,7 +193,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     val magicFilter = getCurrentFilter()
     val bankAccountId = request.getParameter("bankAccount")?.toIntOrNull()
     if (bankAccountId != null) {
-      bankAccountDao.getById(bankAccountId)?.let {
+      bankAccountDao.find(bankAccountId)?.let {
         // Show only records of given bank account.
         var filterEntry = magicFilter.entries.find { it.field == "accounts" }
         if (filterEntry == null) {

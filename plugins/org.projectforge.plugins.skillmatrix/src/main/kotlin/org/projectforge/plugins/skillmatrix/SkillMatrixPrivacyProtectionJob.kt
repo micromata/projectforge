@@ -59,7 +59,7 @@ class SkillMatrixPrivacyProtectionJob : IPrivacyProtectionJob {
         val date = PFDateTime.now().minusMonths(3L)
         log.info("Purge skill matrix entries of leavers (deleted/deactivated users with lastUpdate < ${date.isoString}Z)...")
 
-        userDao.loadAll(checkAccess = false).forEach { user ->
+        userDao.selectAll(checkAccess = false).forEach { user ->
             if (user.deactivated || user.deleted) {
                 val lastUpdate = user.lastUpdate
                 if (lastUpdate != null && lastUpdate < date.utilDate) {

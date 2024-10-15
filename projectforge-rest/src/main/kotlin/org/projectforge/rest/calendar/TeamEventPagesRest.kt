@@ -145,7 +145,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     } else {
       val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
       if (calendarId != null && calendarId > 0) {
-        dto.calendar = teamCalDao.getById(calendarId)
+        dto.calendar = teamCalDao.find(calendarId)
       }
     }
     if (startDate != null) dto.startDate = startDate.sqlTimestamp
@@ -161,7 +161,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     if (obj.calendarId != null) {
       // Calendar from client has only id and title. Get the calendar object from the data base (e. g. owner
       // is needed by the access checker.
-      obj.calendar = teamCalDao.getById(obj.calendarId)
+      obj.calendar = teamCalDao.find(obj.calendarId)
     }
   }
 
@@ -184,7 +184,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         val uid = vals[1]
         val eventDO = teamEventExternalSubscriptionCache.getEvent(calId, uid)
         if (eventDO == null) {
-          val cal = teamCalDao.getById(calId)
+          val cal = teamCalDao.find(calId)
           if (cal == null) {
             log.error("Can't get calendar with id #$calId.")
           } else if (!cal.externalSubscription) {
@@ -281,7 +281,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
     subject.focus = true
     val layout = super.createEditLayout(dto, userAccess)
     if (dto.hasRecurrence && !userAccess.onlySelectAccess()) {
-      val masterEvent = baseDao.getById(dto.id)
+      val masterEvent = baseDao.find(dto.id)
       val radioButtonGroup = UIGroup()
       if (masterEvent?.startDate?.before(dto.selectedSeriesEvent?.startDate) != false) {
         radioButtonGroup.add(

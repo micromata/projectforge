@@ -50,8 +50,8 @@ public class ProjektDaoTest extends AbstractTestBase {
             ProjektDO projekt = new ProjektDO();
             projekt.setName("ACME - Webportal");
             projekt.setProjektManagerGroup(group);
-            Serializable id = projektDao.save(projekt);
-            projekt = projektDao.getById(id);
+            Serializable id = projektDao.insert(projekt);
+            projekt = projektDao.find(id);
             projekt.setDescription("Test");
             projektDao.update(projekt);
 
@@ -63,11 +63,11 @@ public class ProjektDaoTest extends AbstractTestBase {
             checkNoAccess(id, projekt, "Other");
 
             logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
-            projektDao.getList(new ProjektFilter());
+            projektDao.select(new ProjektFilter());
             checkNoAccess(id, projekt, "Project manager");
 
             logon(AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
-            projektDao.getList(new ProjektFilter());
+            projektDao.select(new ProjektFilter());
             checkNoWriteAccess(id, projekt, "Project assistant");
             checkNoHistoryAccess(id, projekt, "Project assistant");
 
@@ -81,7 +81,7 @@ public class ProjektDaoTest extends AbstractTestBase {
     private void checkNoAccess(Serializable id, String who) {
         try {
             ProjektFilter filter = new ProjektFilter();
-            projektDao.getList(filter);
+            projektDao.select(filter);
             fail("AccessException expected: " + who + " users should not have select list access to projects.");
         } catch (AccessException ex) {
             // OK
@@ -90,7 +90,7 @@ public class ProjektDaoTest extends AbstractTestBase {
 
     private void checkNoAccess(Serializable id, ProjektDO projekt, String who) {
         try {
-            projektDao.getById(id);
+            projektDao.find(id);
             fail("AccessException expected: " + who + " users should not have select access to projects.");
         } catch (AccessException ex) {
             // OK
@@ -120,7 +120,7 @@ public class ProjektDaoTest extends AbstractTestBase {
         try {
             ProjektDO ku = new ProjektDO();
             projekt.setName("ACME - Webportal 2");
-            projektDao.save(ku);
+            projektDao.insert(ku);
             fail("AccessException expected: " + who + " users should not have save access to projects.");
         } catch (AccessException ex) {
             // OK

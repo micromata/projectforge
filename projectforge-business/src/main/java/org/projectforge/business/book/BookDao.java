@@ -88,7 +88,7 @@ public class BookDao extends BaseDao<BookDO> {
   }
 
   public void setLendOutBy(final BookDO book, final Long lendOutById) {
-    final PFUserDO user = userDao.getOrLoad(lendOutById);
+    final PFUserDO user = userDao.findOrLoad(lendOutById);
     book.setLendOutBy(user);
   }
 

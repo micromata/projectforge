@@ -58,7 +58,7 @@ class MyScriptExecutePageRest : AbstractScriptExecutePageRest() {
     var scriptDO: ScriptDO? = null
     val origScript = Script()
     val id = idString?.toIntOrNull() ?: throw IllegalArgumentException("Script not found.")
-    scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+    scriptDO = scriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
     origScript.copyFrom(scriptDO) // Don't export all fields to the user
     val script = Script()
     script.id = origScript.id

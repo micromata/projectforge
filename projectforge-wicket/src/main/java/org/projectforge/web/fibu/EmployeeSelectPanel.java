@@ -208,7 +208,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchFields("user.username", "user.firstname", "user.lastname");
     filter.setSearchString(input);
-    final List<EmployeeDO> list = WicketSupport.get(EmployeeDao.class).getList(filter);
+    final List<EmployeeDO> list = WicketSupport.get(EmployeeDao.class).select(filter);
     List<EmployeeDO> resultList = new ArrayList<>(list);
     for (EmployeeDO employeeDO : list) {
       if (employeeDO.getAustrittsDatum() != null && LocalDate.now().isAfter(employeeDO.getAustrittsDatum())) {

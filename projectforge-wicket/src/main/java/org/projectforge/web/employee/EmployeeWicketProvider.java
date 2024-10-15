@@ -123,7 +123,7 @@ public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
       if (employeedId == null) {
         continue;
       }
-      EmployeeDO employee = employeeDao.selectByPkDetached(employeedId);
+      EmployeeDO employee = employeeDao.findByPkDetached(employeedId);
       if (employee != null) {
         list.add(employee);
       }

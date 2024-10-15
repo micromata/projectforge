@@ -49,7 +49,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     fun getList(user: PFUserDO?): List<UserRightDO> {
         val filter = UserRightFilter()
         filter.user = user
-        return getList(filter)
+        return select(filter)
     }
 
     /**
@@ -93,7 +93,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                         rightDO = UserRightDO(user, rightVO.right.id).withUser(user)
                         rightDO?.let {
                             copy(it, rightVO)
-                            save(it)
+                            insert(it)
                         }
                     }
                 } else {
@@ -136,8 +136,8 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         }
     }
 
-    override fun afterSave(obj: UserRightDO) {
-        super.afterSave(obj)
+    override fun afterInsert(obj: UserRightDO) {
+        super.afterInsert(obj)
         userGroupCache.setExpired()
     }
 
@@ -178,7 +178,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         return list
     }
 
-    override fun getList(filter: BaseSearchFilter): List<UserRightDO> {
+    override fun select(filter: BaseSearchFilter): List<UserRightDO> {
         val queryFilter = QueryFilter(filter)
         val myFilter = filter as UserRightFilter
         if (myFilter.user != null) {
@@ -186,7 +186,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         }
         queryFilter.createJoin("user")
         queryFilter.addOrder(asc("user.username")).addOrder(asc("rightIdString"))
-        val list = getList(queryFilter)
+        val list = select(queryFilter)
         return list
     }
 
