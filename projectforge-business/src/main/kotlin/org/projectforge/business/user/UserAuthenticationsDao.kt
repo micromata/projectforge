@@ -98,10 +98,10 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
     /**
      * @param authentications
      * @param userId   If null, then user will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     open fun setUser(authentications: UserAuthenticationsDO, userId: Long) {
-        val user = userDao.getById(userId, checkAccess = false)
+        val user = userDao.find(userId, checkAccess = false)
         authentications.user = user
     }
 
@@ -373,7 +373,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             TOKEN_LIST.forEach { type ->
                 authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             }
-            save(authentications, checkAccess)
+            this.insert(authentications, checkAccess)
         } else {
             checkAndFixAuthenticationTokens(authentications, checkAccess)
         }

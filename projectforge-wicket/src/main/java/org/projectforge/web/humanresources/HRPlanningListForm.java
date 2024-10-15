@@ -143,7 +143,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
       projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new Model<ProjektDO>() {
         @Override
         public ProjektDO getObject() {
-          return WicketSupport.get(ProjektDao.class).getById(filter.getProjektId());
+          return WicketSupport.get(ProjektDao.class).find(filter.getProjektId());
         }
       }, parentPage, "projektId");
       fs.add(projektSelectPanel);

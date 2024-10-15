@@ -168,7 +168,7 @@ public class UserService {
 
     public List<PFUserDO> getAllUsers() {
         try {
-            return userDao.loadAll(false);
+            return userDao.selectAll(false);
         } catch (final Exception ex) {
             log.error("******* Exception while getting users from data-base (OK only in case of migration from older versions): " + ex.getMessage(), ex);
             return new ArrayList<>();
@@ -222,7 +222,7 @@ public class UserService {
                 Validate.notNull(userId);
                 Validate.isTrue(oldPassword.length > 0);
                 Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own password-");
-                final PFUserDO user = userDao.getById(userId, false);
+                final PFUserDO user = userDao.find(userId, false);
                 final PFUserDO userCheck = getUser(user.getUsername(), oldPassword, false);
                 if (userCheck == null) {
                     return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
@@ -249,7 +249,7 @@ public class UserService {
                 Validate.notNull(userId);
                 Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
                 accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-                final PFUserDO user = userDao.getById(userId, false);
+                final PFUserDO user = userDao.find(userId, false);
                 return doPasswordChange(user, null, newPassword);
             });
         } finally {
@@ -292,7 +292,7 @@ public class UserService {
                 return errorMsgKeys;
             }
             persistenceService.runInTransaction(context -> {
-                final PFUserDO user = userDao.getById(userId, false);
+                final PFUserDO user = userDao.find(userId, false);
                 ThreadLocalUserContext.setUser(user);
                 encryptAndSavePassword(user, newPassword);
                 onPasswordChange(user);
@@ -321,7 +321,7 @@ public class UserService {
             Validate.notNull(userId);
             Validate.isTrue(loginPassword.length > 0);
             Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own Wlan/Samba password-");
-            final PFUserDO user = userDao.getById(userId, false);
+            final PFUserDO user = userDao.find(userId, false);
             Validate.notNull(user);
             final PFUserDO userCheck = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
             if (userCheck == null) {
@@ -347,7 +347,7 @@ public class UserService {
             Validate.notNull(userId);
             Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-            final PFUserDO user = userDao.getById(userId, false);
+            final PFUserDO user = userDao.find(userId, false);
             return doWlanPasswordChange(user, newWlanPassword);
         } finally {
             LoginHandler.clearPassword(newWlanPassword);
@@ -437,15 +437,15 @@ public class UserService {
      * @return the user from db (UserDao).
      */
     public PFUserDO getById(Serializable id) {
-        return userDao.getById(id);
+        return userDao.find(id);
     }
 
     public PFUserDO internalGetById(Serializable id) {
-        return userDao.getById(id, false);
+        return userDao.find(id, false);
     }
 
     public Long save(PFUserDO user) {
-        return userDao.save(user, false);
+        return userDao.insert(user, false);
     }
 
     public void markAsDeleted(PFUserDO user, boolean checkAccess) {
@@ -463,10 +463,10 @@ public class UserService {
     /**
      * Without access checking!!! Secret fields are cleared.
      *
-     * @see UserDao#loadAll()
+     * @see UserDao#selectAll()
      */
     public List<PFUserDO> loadAll(boolean checkAccess) {
-        return userDao.loadAll(checkAccess);
+        return userDao.selectAll(checkAccess);
     }
 
     public UserDao getUserDao() {

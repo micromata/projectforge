@@ -65,7 +65,7 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
         entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
         entry.deleted = false
         if (entry.id == null) {
-            save(entry, checkAccess = checkAccess)
+            insert(entry, checkAccess = checkAccess)
         } else {
             update(entry, checkAccess = checkAccess)
         }

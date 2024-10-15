@@ -43,11 +43,11 @@ public class ScriptingDao<O extends ExtendedBaseDO<Long>>
   }
 
   /**
-   * @see BaseDao#getList(BaseSearchFilter)
+   * @see BaseDao#select(BaseSearchFilter)
    */
   public List<O> getList(BaseSearchFilter filter)
   {
-    return __baseDao.getList(filter);
+    return __baseDao.select(filter);
   }
 
   /**
@@ -57,24 +57,24 @@ public class ScriptingDao<O extends ExtendedBaseDO<Long>>
    */
   public List<O> getList()
   {
-    return __baseDao.getList(new QueryFilter());
+    return __baseDao.select(new QueryFilter());
   }
 
   /**
-   * @see BaseDao#getList(QueryFilter)
+   * @see BaseDao#select(QueryFilter)
    */
   public List<O> getList(QueryFilter filter)
   {
-    return __baseDao.getList(filter);
+    return __baseDao.select(filter);
   }
 
   /**
-   * @see BaseDao#getById(Serializable)
+   * @see BaseDao#find(Serializable)
    * @throws AccessException
    */
   public O getById(Serializable id) throws AccessException
   {
-    return __baseDao.getById(id);
+    return __baseDao.find(id);
   }
 
   public Class<?> getDOClass() {

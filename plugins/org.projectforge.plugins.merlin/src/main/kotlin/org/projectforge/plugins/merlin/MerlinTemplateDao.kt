@@ -81,7 +81,7 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
         return MerlinTemplateDO()
     }
 
-    override fun onSave(obj: MerlinTemplateDO) {
+    override fun onInsert(obj: MerlinTemplateDO) {
         if (!obj.variables.isNullOrBlank() || !obj.dependentVariables.isNullOrBlank()) {
             // Variables were changed:
             obj.lastVariableUpdate = Date()

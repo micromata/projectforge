@@ -80,7 +80,7 @@ class DatatransferJCRNotificationBeforeDeletionJob {
     val startTimeInMillis = System.currentTimeMillis()
 
     // First of all, try to check all attachments of active areas:
-    dataTransferAreaDao.loadAll(checkAccess = false).forEach { dbo ->
+    dataTransferAreaDao.selectAll(checkAccess = false).forEach { dbo ->
       dbo.id?.let { id ->
         val expiryDays = dbo.expiryDays ?: 30
         val notifyDaysBeforeDeletion = getNotificationDaysBeforeDeletion(expiryDays)

@@ -54,7 +54,7 @@ class Employee(
      * @see UserService.getUser
      */
     fun restoreDisplayNames(employees: List<Employee>?) {
-      employees?.forEach { it.displayName = employeeDao.getById(it.id, checkAccess = false)?.displayName }
+      employees?.forEach { it.displayName = employeeDao.find(it.id, checkAccess = false)?.displayName }
     }
   }
 }

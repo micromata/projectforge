@@ -197,7 +197,7 @@ class User(
 
     fun getUser(userId: Long?, minimal: Boolean = true): User? {
       userId ?: return null
-      val userDO = userDao.getOrLoad(userId) ?: return null
+      val userDO = userDao.findOrLoad(userId) ?: return null
       val user = User()
       if (minimal) {
         user.copyFromMinimal(userDO)

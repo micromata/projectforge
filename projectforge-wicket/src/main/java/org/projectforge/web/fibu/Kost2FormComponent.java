@@ -107,7 +107,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
       filter.setSearchString(input + "*");
     }
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
-    final List<Kost2DO> list = WicketSupport.get(Kost2Dao.class).getList(filter);
+    final List<Kost2DO> list = WicketSupport.get(Kost2Dao.class).select(filter);
     Collections.sort(list, new Comparator<Kost2DO>()
     {
       @Override

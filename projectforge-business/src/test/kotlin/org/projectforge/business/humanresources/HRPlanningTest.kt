@@ -71,7 +71,7 @@ class HRPlanningTest : AbstractTestBase() {
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 59L
-            kundeDao.save(kunde)
+            kundeDao.insert(kunde)
             projekt1 = initTestDB.addProjekt(kunde, 0, "Web portal")
             projekt2 = initTestDB.addProjekt(kunde, 1, "Order management")
         }
@@ -126,7 +126,7 @@ class HRPlanningTest : AbstractTestBase() {
             )
             logon(TEST_ADMIN_USER)
             user1.addRight(UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY))
-            userRightDao.save(ArrayList(user1.rights))
+            userRightDao.insert(ArrayList(user1.rights))
             userService.update(user1)
             logon(user1)
             Assertions.assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false))
@@ -207,9 +207,9 @@ class HRPlanningTest : AbstractTestBase() {
             Assertions.assertEquals("2010-01-09", planning.week.toString())
             var id: Serializable = -1
             suppressErrorLogs {
-                id = hrPlanningDao.save(planning)
+                id = hrPlanningDao.insert(planning)
             }
-            planning = hrPlanningDao.getById(id)!!
+            planning = hrPlanningDao.find(id)!!
             Assertions.assertEquals("2010-01-04", planning.week.toString())
         }
     }
@@ -235,9 +235,9 @@ class HRPlanningTest : AbstractTestBase() {
             setHours(entry, 6, 5, 4, 3, 2, 1)
             entry.projekt = projekt2
             planning.addEntry(entry)
-            val id: Serializable = hrPlanningDao.save(planning)
+            val id: Serializable = hrPlanningDao.insert(planning)
             // Check saved planning
-            planning = hrPlanningDao.getById(id)!!
+            planning = hrPlanningDao.find(id)!!
             val day = PFDay(planning.week!!)
             assertLocalDate(day.localDate, 2010, Month.JANUARY, 11)
             Assertions.assertEquals(3, planning.entries!!.size)
@@ -248,7 +248,7 @@ class HRPlanningTest : AbstractTestBase() {
             planning.getProjectEntry(projekt1!!)!!.deleted = true
             hrPlanningDao.update(planning)
             // Check deleted entry and re-adding it
-            planning = hrPlanningDao.getById(id)!!
+            planning = hrPlanningDao.find(id)!!
             Assertions.assertTrue(planning.getProjectEntry(projekt1!!)!!.deleted)
             entry = HRPlanningEntryDO()
             setHours(entry, 7, 9, 11, 1, 3, 5)

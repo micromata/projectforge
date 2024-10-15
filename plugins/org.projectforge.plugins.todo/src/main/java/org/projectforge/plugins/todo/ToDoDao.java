@@ -86,7 +86,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public List<ToDoDO> getList(final BaseSearchFilter filter) {
+    public List<ToDoDO> select(final BaseSearchFilter filter) {
         final ToDoFilter myFilter;
         if (filter instanceof ToDoFilter) {
             myFilter = (ToDoFilter) filter;
@@ -139,7 +139,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
             }
         }
         queryFilter.addOrder(SortProperty.desc("created"));
-        final List<ToDoDO> list = getList(queryFilter);
+        final List<ToDoDO> list = select(queryFilter);
         myFilter.setSearchString(searchString); // Restore search string.
         return list;
     }
@@ -155,7 +155,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         final Map<String, Object> data = new HashMap<>();
         data.put("todo", todo);
         data.put("requestUrl", requestUrl);
-        final List<DisplayHistoryEntry> history = getDisplayHistoryEntries(todo);
+        final List<DisplayHistoryEntry> history = selectDisplayHistoryEntries(todo);
         final List<DisplayHistoryEntry> list = new ArrayList<>();
         int i = 0;
         for (final DisplayHistoryEntry entry : history) {
@@ -214,7 +214,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void onSave(final ToDoDO obj) {
+    public void onInsert(final ToDoDO obj) {
         if (!Objects.equals(ThreadLocalUserContext.getLoggedInUserId(), obj.getAssigneeId())) {
             // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
             obj.setRecent(true);
@@ -235,17 +235,17 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void afterSaveOrModify(final ToDoDO obj) {
+    public void afterInsertOrModify(final ToDoDO obj) {
         toDoCache.setExpired(); // Force reload of the menu item counters for open to-do entrie.
     }
 
     public void setAssignee(final ToDoDO todo, final Long userId) {
-        final PFUserDO user = userDao.getOrLoad(userId);
+        final PFUserDO user = userDao.findOrLoad(userId);
         todo.setAssignee(user);
     }
 
     public void setReporter(final ToDoDO todo, final Long userId) {
-        final PFUserDO user = userDao.getOrLoad(userId);
+        final PFUserDO user = userDao.findOrLoad(userId);
         todo.setReporter(user);
     }
 
@@ -255,7 +255,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     public void setGroup(final ToDoDO todo, final Long groupId) {
-        final GroupDO group = groupDao.getOrLoad(groupId);
+        final GroupDO group = groupDao.findOrLoad(groupId);
         todo.setGroup(group);
     }
 

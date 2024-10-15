@@ -96,7 +96,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchFields("title", "taskpath");
     filter.setSearchString(input);
-    final List<TaskDO> list = WicketSupport.getTaskDao().getList(filter);
+    final List<TaskDO> list = WicketSupport.getTaskDao().select(filter);
     final List<TaskDO> choices = new ArrayList<TaskDO>();
     for (final TaskDO task : list) {
       if (autocompleteOnlyTaskBookableForTimesheets == false) {

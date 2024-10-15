@@ -79,12 +79,12 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
      * @param projektId If null, then projekt will be set to null;
      */
     public void setProjekt(final HRPlanningEntryDO sheet, final Long projektId) {
-        final ProjektDO projekt = projektDao.getOrLoad(projektId);
+        final ProjektDO projekt = projektDao.findOrLoad(projektId);
         sheet.setProjekt(projekt);
     }
 
     @Override
-    public List<HRPlanningEntryDO> getList(final BaseSearchFilter filter) {
+    public List<HRPlanningEntryDO> select(final BaseSearchFilter filter) {
         final HRPlanningFilter myFilter = (HRPlanningFilter) filter;
         if (myFilter.getStopDay() != null) {
             final PFDateTime date = PFDateTime.from(myFilter.getStopDay()).getEndOfDay();
@@ -97,7 +97,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
         } else {
             queryFilter.add(QueryFilter.and(QueryFilter.eq("deleted", false), QueryFilter.eq("planning.deleted", false)));
         }
-        final List<HRPlanningEntryDO> list = getList(queryFilter);
+        final List<HRPlanningEntryDO> list = select(queryFilter);
         if (list == null) {
             return null;
         }
@@ -193,7 +193,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
      * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
      */
     @Override
-    public void onSaveOrModify(final HRPlanningEntryDO obj) {
+    public void onInsertOrModify(final HRPlanningEntryDO obj) {
         throw new UnsupportedOperationException(
                 "Please do not save or HRPlanningEntryDO directly, save or update HRPlanningDO instead.");
     }

@@ -93,7 +93,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("username", "firstname", "lastname", "email");
         filter.setSearchString(input);
-        final List<PFUserDO> list = WicketSupport.getUserDao().getList(filter);
+        final List<PFUserDO> list = WicketSupport.getUserDao().select(filter);
         return list;
       }
 

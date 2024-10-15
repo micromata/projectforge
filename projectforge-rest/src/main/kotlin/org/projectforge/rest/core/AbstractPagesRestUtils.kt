@@ -72,7 +72,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
   magicFilter.sortProperties = magicFilter.sortProperties.distinctBy { it.property }.toMutableList()
   MagicFilterProcessor.doIt(baseDao.doClass, magicFilter, queryFilter)
   pagesRest.postProcessMagicFilter(queryFilter, magicFilter)
-  return baseDao.getList(queryFilter, customResultFilters).toMutableList()
+  return baseDao.select(queryFilter, customResultFilters).toMutableList()
 }
 
 fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
@@ -105,7 +105,7 @@ fun <O : ExtendedBaseDO<Long>, DTO : Any, B : BaseDao<O>>
       postData,
       if (obj.id != null) OperationType.UPDATE else OperationType.INSERT
     )
-    baseDao.saveOrUpdate(obj) ?: obj.id
+    baseDao.insertOrUpdate(obj) ?: obj.id
     pagesRest.onAfterSaveOrUpdate(request, obj, postData)
     if (isNew) {
       return ResponseEntity(pagesRest.onAfterSave(obj, postData), HttpStatus.OK)

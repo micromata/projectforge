@@ -246,7 +246,7 @@ class My2FASetupPageRest : AbstractDynamicPageRest() {
     getLastSuccessful2FAResponseEntity(request, response, postData.data)?.let {
       return it
     }
-    val user = userDao.getById(ThreadLocalUserContext.loggedInUserId, checkAccess = false)
+    val user = userDao.find(ThreadLocalUserContext.loggedInUserId, checkAccess = false)
     user!!.mobilePhone = mobilePhone
     userDao.update(user, checkAccess = false)
     ThreadLocalUserContext.loggedInUser?.mobilePhone = mobilePhone // Update for showing the button 'send sms'

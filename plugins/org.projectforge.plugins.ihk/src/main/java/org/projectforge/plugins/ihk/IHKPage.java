@@ -178,6 +178,6 @@ public class IHKPage extends AbstractStandardFormPage implements ISelectCallerPa
     tf.setStopTime(stopDate.getUtilDate());
     tf.setRecursive(true);
 
-    return timesheetDao.getList(tf);
+    return timesheetDao.select(tf);
   }
 }

@@ -80,7 +80,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
 
   public void setAddressId(final Integer addressId) {
     if (addressId != null) {
-      final AddressDO address = WicketSupport.get(AddressDao.class).getById(addressId);
+      final AddressDO address = WicketSupport.get(AddressDao.class).find(addressId);
       form.address = address;
     }
   }
@@ -137,7 +137,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
         final Integer id = NumberHelper.parseInteger(phoneNumber.substring(3));
         if (id != null) {
           form.setPhoneNumber("");
-          final AddressDO address = addressDao.getById(id);
+          final AddressDO address = addressDao.find(id);
           if (address != null) {
             form.setAddress(address);
             final String no = getFirstPhoneNumber();
@@ -155,7 +155,7 @@ public class PhoneCallPage extends AbstractStandardFormPage {
         if (numberPos > 0) {
           final Integer id = NumberHelper.parseInteger(rest.substring(numberPos + 1));
           if (id != null) {
-            final AddressDO address = addressDao.getById(id);
+            final AddressDO address = addressDao.find(id);
             if (address != null) {
               form.setAddress(address);
             }

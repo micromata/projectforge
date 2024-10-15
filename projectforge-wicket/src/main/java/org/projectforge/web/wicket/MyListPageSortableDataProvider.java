@@ -130,7 +130,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
       }
       final Object baseDao = listPage.getBaseDao();
       if (baseDao instanceof BaseDao) {
-        final List<T> list = (List<T>) ((BaseDao<?>) baseDao).load(idList.subList(fromIndex, toIndex), true);
+        final List<T> list = (List<T>) ((BaseDao<?>) baseDao).select(idList.subList(fromIndex, toIndex), true);
         sortList(list);
         return list.iterator();
       } else {

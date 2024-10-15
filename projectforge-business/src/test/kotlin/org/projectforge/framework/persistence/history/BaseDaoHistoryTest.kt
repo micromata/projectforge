@@ -43,7 +43,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         persistenceService.runReadOnly { context ->
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)
-            val entries = rechnungDao.getDisplayHistoryEntries(invoice)
+            val entries = rechnungDao.selectDisplayHistoryEntries(invoice)
             // 6 entries for RechnungDO: 351958
             entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(2972182L) }.let { list ->
                 Assertions.assertEquals(1, list.size)

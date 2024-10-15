@@ -90,7 +90,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
   ) {
     var taskNode: TaskNode? = taskTree.getTaskNodeById(massUpdateData["task"]?.id)
     var kost2Id: Long? = massUpdateData["kost2"]?.id
-    val timesheets = timesheetDao.load(selectedIds)
+    val timesheets = timesheetDao.select(selectedIds)
     if (taskNode == null && timesheets != null) {
       // Try to get a shared task of all time sheets.
       loop@ for (timesheet in timesheets) {
@@ -131,7 +131,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
         }
       }
     }
-    val duration = timesheetDao.load(selectedIds)?.sumOf { it.getDuration() }
+    val duration = timesheetDao.select(selectedIds)?.sumOf { it.getDuration() }
     val durationAsString = dateTimeFormatter.getPrettyFormattedDuration(duration ?: 0)
     layout.add(
       UIAlert(
@@ -223,7 +223,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<TimesheetDO>,
   ): ResponseEntity<*>? {
-    val timesheets = timesheetDao.load(selectedIds)
+    val timesheets = timesheetDao.select(selectedIds)
     if (timesheets.isNullOrEmpty()) {
       return null
     }
@@ -254,7 +254,7 @@ class TimesheetMultiSelectedPageRest : AbstractMultiSelectedPage<TimesheetDO>() 
             }
           }
           if (kost2Id != null) {
-            kost2Dao.getById(kost2Id, checkAccess = false)?.let { kost2 ->
+            kost2Dao.find(kost2Id, checkAccess = false)?.let { kost2 ->
               timesheet.kost2 = kost2
             }
           }

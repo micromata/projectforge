@@ -85,7 +85,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
     @RequestParam("returnToCaller") returnToCaller: String?,
   ): FormLayoutData {
     val id = NumberHelper.parseLong(idString) ?: throw IllegalArgumentException("id not given.")
-    val addressDO = addressDao.getById(id) ?: AddressDO()
+    val addressDO = addressDao.find(id) ?: AddressDO()
     val address = Address()
     address.copyFrom(addressDO)
     address.isFavoriteCard = personalAddressDao.getByAddressId(id)?.isFavoriteCard ?: false
@@ -243,7 +243,7 @@ class AddressViewPageRest : AbstractDynamicPageRest() {
   fun watchFields(@Valid @RequestBody postData: PostData<Address>): ResponseEntity<ResponseAction> {
     val id = postData.data.id ?: throw IllegalAccessException("Parameter id not given.")
     val favorite = postData.data.isFavoriteCard
-    val address = addressDao.getById(id) ?: throw IllegalAccessException("Address not found.")
+    val address = addressDao.find(id) ?: throw IllegalAccessException("Address not found.")
     val owner = ThreadLocalUserContext.loggedInUser!!
     val personalAddress = personalAddressDao.getByAddressId(id, owner) ?: PersonalAddressDO()
     if (personalAddress.id == null) {

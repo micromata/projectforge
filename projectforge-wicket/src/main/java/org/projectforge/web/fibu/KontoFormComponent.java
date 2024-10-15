@@ -106,7 +106,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
   {
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchString(input);
-    final List<KontoDO> list = kontoDao.getList(filter);
+    final List<KontoDO> list = kontoDao.select(filter);
     Collections.sort(list, new Comparator<KontoDO>()
     {
       @Override

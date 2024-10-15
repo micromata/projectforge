@@ -152,7 +152,7 @@ public class TeamCalCache extends AbstractCache
     }
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Long, TeamCalDO> map = new HashMap<>();
-    final List<TeamCalDO> list = dao.loadAll(false);
+    final List<TeamCalDO> list = dao.selectAll(false);
     for (final TeamCalDO cal : list) {
       TeamCalDO put = map.put(cal.getId(), cal);
       if (put != null) {

@@ -57,7 +57,7 @@ public class RechnungCacheTest extends AbstractTestBase {
             auftragsPosition.setTitel("Pos 2");
             auftrag.addPosition(auftragsPosition);
             auftrag.setNummer(auftragDao.getNextNumber(auftrag));
-            auftragDao.save(auftrag);
+            auftragDao.insert(auftrag);
 
             final RechnungDO rechnung1 = new RechnungDO();
             RechnungsPositionDO position = new RechnungsPositionDO();
@@ -74,7 +74,7 @@ public class RechnungCacheTest extends AbstractTestBase {
             rechnung1.setDatum(today.getLocalDate());
             rechnung1.setFaelligkeit(LocalDate.now());
             rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
-            rechnungDao.save(rechnung1);
+            rechnungDao.insert(rechnung1);
 
             final RechnungDO rechnung2 = new RechnungDO();
             position = new RechnungsPositionDO();
@@ -86,7 +86,7 @@ public class RechnungCacheTest extends AbstractTestBase {
             rechnung2.setDatum(today.getLocalDate());
             rechnung2.setFaelligkeit(LocalDate.now());
             rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
-            rechnungDao.save(rechnung2);
+            rechnungDao.insert(rechnung2);
 
             Set<RechnungsPositionVO> set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());
             assertEquals(3, set.size(), "3 invoice positions expected.");
@@ -109,7 +109,7 @@ public class RechnungCacheTest extends AbstractTestBase {
             assertEquals(1, set.size(), "1 invoice positions expected.");
             assertEquals(0, new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)));
 
-            final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
+            final RechnungDO rechnung = rechnungDao.find(rechnung2.getId());
             rechnung.getPositionen().get(0).setAuftragsPosition(null);
             rechnungDao.update(rechnung);
             set = rechnungDao.rechnungCache.getRechnungsPositionVOSetByAuftragId(auftrag.getId());

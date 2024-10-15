@@ -88,7 +88,7 @@ open class AddressbookCache : AbstractCache(), BaseDOChangedListener<Addressbook
         val saved = persistenceService.saveStatsState()
         // This method must not be synchronized because it works with a new copy of maps.
         val newList = mutableListOf<AddressbookDO>()
-        val list = addressbookDao.loadAll(checkAccess = false)
+        val list = addressbookDao.selectAll(checkAccess = false)
         list.forEach {
             if (it.deleted != true) {
                 newList.add(it)

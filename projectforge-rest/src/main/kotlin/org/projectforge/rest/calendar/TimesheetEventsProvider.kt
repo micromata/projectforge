@@ -72,7 +72,7 @@ class TimesheetEventsProvider {
       tsFilter.userId = ThreadLocalUserContext.loggedInUserId
     }
     val timesheetUser = UserGroupCache.getInstance().getUser(userId)
-    val timesheets = timesheetDao.getList(tsFilter)
+    val timesheets = timesheetDao.select(tsFilter)
 
     ctx.days = start.daysBetween(end)
     if (ctx.days < 10) {

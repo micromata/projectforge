@@ -66,7 +66,7 @@ open class MerlinHandler {
   }
 
   internal fun getDto(id: Long): MerlinTemplate {
-    val dbo = merlinTemplateDao.getById(id) ?: return MerlinTemplate()
+    val dbo = merlinTemplateDao.find(id) ?: return MerlinTemplate()
     return getDto(dbo)
   }
 

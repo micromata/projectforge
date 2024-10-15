@@ -342,7 +342,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Long>, P extends
         }
       } else {
         if (origData == null) {
-          origData = getBaseDao().getById(getData().getId());
+          origData = getBaseDao().find(getData().getId());
         }
         createButtonPanel.setVisible(false);
         if (getData().getDeleted() == true) {

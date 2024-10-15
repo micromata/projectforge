@@ -68,7 +68,7 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
         )
     }
 
-    override fun getList(
+    override fun select(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<LeaveAccountEntryDO>>?,
         checkAccess: Boolean,
@@ -77,7 +77,7 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
             filter.addOrder(desc("date"))
             filter.addOrder(asc("employee.user.firstname"))
         }
-        return super.getList(filter, customResultFilters, checkAccess)
+        return super.select(filter, customResultFilters, checkAccess)
     }
 
     override fun hasAccess(

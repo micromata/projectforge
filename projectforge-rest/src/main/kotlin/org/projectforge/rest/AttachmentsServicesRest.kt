@@ -501,7 +501,7 @@ class AttachmentsServicesRest : AbstractDynamicPageRest() {
   }
 
   internal fun getDataObject(pagesRest: AbstractPagesRest<*, *, *>, id: Long): ExtendedBaseDO<Long> {
-    return pagesRest.baseDao.getById(id)
+    return pagesRest.baseDao.find(id)
       ?: throw TechnicalException(
         "Entity with id $id not accessible for category '$pagesRest.category' or doesn't exist.",
         "User without access or id unknown."

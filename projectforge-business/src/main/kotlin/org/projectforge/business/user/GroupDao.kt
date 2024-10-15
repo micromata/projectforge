@@ -23,7 +23,6 @@
 
 package org.projectforge.business.user
 
-import jakarta.persistence.PersistenceContext
 import mu.KotlinLogging
 import org.projectforge.business.login.Login
 import org.projectforge.framework.access.AccessException
@@ -61,7 +60,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         this.supportAfterUpdate = true
     }
 
-    override fun getList(filter: BaseSearchFilter): List<GroupDO> {
+    override fun select(filter: BaseSearchFilter): List<GroupDO> {
         val myFilter = if (filter is GroupFilter) {
             filter
         } else {
@@ -75,7 +74,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 queryFilter.add(eq("localGroup", myFilter.localGroup))
             }
         }
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     /**
@@ -111,7 +110,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
         group.assignedUsers = group.assignedUsers ?: mutableSetOf()
         newAssignedUsers.forEach { user ->
-            val dbUser = userDao.getById(user.id, checkAccess = false)
+            val dbUser = userDao.find(user.id, checkAccess = false)
                 ?: throw RuntimeException(
                     ("User '"
                             + user.id
@@ -127,7 +126,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     /**
      * Creates for every user a history entry if the user is part of this new group.
      */
-    override fun afterSave(obj: GroupDO) {
+    override fun afterInsert(obj: GroupDO) {
         val groupList = listOf(obj)
         // Create history entry of PFUserDO for all assigned users:
         persistenceService.runInTransaction { context -> // Assure a transaction is running.
@@ -276,7 +275,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(group: GroupDO) {
+    override fun afterInsertOrModify(group: GroupDO) {
         userGroupCache.setExpired()
     }
 

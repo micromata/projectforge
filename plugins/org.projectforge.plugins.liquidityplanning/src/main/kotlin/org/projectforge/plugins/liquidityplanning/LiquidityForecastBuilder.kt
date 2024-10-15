@@ -65,7 +65,7 @@ open class LiquidityForecastBuilder {
         if (!historicalForecast) {
             filter.paymentStatus = PaymentStatus.UNPAID
         }
-        val list: MutableList<LiquidityEntryDO> = liquidityEntryDao.getList(filter).toMutableList()
+        val list: MutableList<LiquidityEntryDO> = liquidityEntryDao.select(filter).toMutableList()
         if (historicalForecast) {
             list.removeIf { entry: LiquidityEntryDO -> entry.dateOfPayment!!.isBefore(useBaseDate) }
         }
@@ -78,11 +78,11 @@ open class LiquidityForecastBuilder {
         val rechnungFilter = createRechnungFilter(baseDate, fromDate, toDate, historicalForecast)
         if (!historicalForecast) {
             rechnungFilter.setShowBezahlt()
-            val paidInvoices = rechnungDao.getList(rechnungFilter)
+            val paidInvoices = rechnungDao.select(rechnungFilter)
             forecast.calculateExpectedTimeOfPayments(paidInvoices)
             rechnungFilter.setShowUnbezahlt() // For next query.
         }
-        val invoices = rechnungDao.getList(rechnungFilter).toMutableList()
+        val invoices = rechnungDao.select(rechnungFilter).toMutableList()
         handleHistoricalInvoices(invoices, baseDate, historicalForecast)
         forecast.setInvoices(invoices)
     }
@@ -91,11 +91,11 @@ open class LiquidityForecastBuilder {
         val rechnungFilter = createRechnungFilter(baseDate, fromDate, toDate, historicalForecast)
         if (!historicalForecast) {
             rechnungFilter.setShowBezahlt()
-            val paidInvoices = eingangsrechnungDao.getList(rechnungFilter)
+            val paidInvoices = eingangsrechnungDao.select(rechnungFilter)
             forecast.calculateExpectedTimeOfCreditorPayments(paidInvoices)
             rechnungFilter.setShowUnbezahlt() // For next query.
         }
-        val invoices = eingangsrechnungDao.getList(rechnungFilter).toMutableList()
+        val invoices = eingangsrechnungDao.select(rechnungFilter).toMutableList()
         handleHistoricalInvoices(invoices, baseDate, historicalForecast)
         forecast.setCreditorInvoices(invoices)
     }

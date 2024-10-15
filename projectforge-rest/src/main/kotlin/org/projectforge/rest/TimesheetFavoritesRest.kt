@@ -103,7 +103,7 @@ class TimesheetFavoritesRest {
     }
     if (timesheet.kost2Id != null) {
       // Load without check access. User needs now select access for using kost2.
-      val kost2 = kost2Dao.getById(timesheet.kost2Id, checkAccess = false)
+      val kost2 = kost2Dao.find(timesheet.kost2Id, checkAccess = false)
       timesheet.kost2?.description = kost2?.description
     }
     return result

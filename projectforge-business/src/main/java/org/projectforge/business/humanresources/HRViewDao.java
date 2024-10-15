@@ -84,7 +84,7 @@ public class HRViewDao implements IDao<HRViewData> {
             final TimesheetFilter tsFilter = new TimesheetFilter();
             tsFilter.setStartTime(PFDateTime.fromOrNull(filter.getStartDay()).getBeginOfDay().getUtilDate());
             tsFilter.setStopTime(PFDateTime.fromOrNull(filter.getStopDay()).getEndOfDay().getUtilDate());
-            final List<TimesheetDO> sheets = timesheetDao.getList(tsFilter);
+            final List<TimesheetDO> sheets = timesheetDao.select(tsFilter);
             for (final TimesheetDO sheet : sheets) {
                 final PFUserDO user = userGroupCache.getUser(sheet.getUserId());
                 if (user == null) {
@@ -111,7 +111,7 @@ public class HRViewDao implements IDao<HRViewData> {
             hrFilter.setStartDay(day.getLocalDate());
             day = PFDay.fromOrNow(filter.getStopDay());
             hrFilter.setStopDay(day.getLocalDate());
-            final List<HRPlanningDO> plannings = hrPlanningDao.getList(hrFilter);
+            final List<HRPlanningDO> plannings = hrPlanningDao.select(hrFilter);
             for (final HRPlanningDO planning : plannings) {
                 if (planning.getEntries() == null) {
                     continue;
@@ -171,7 +171,7 @@ public class HRViewDao implements IDao<HRViewData> {
         final List<PFUserDO> users = new ArrayList<>();
         final QueryFilter queryFilter = new QueryFilter(new BaseSearchFilter());
         queryFilter.addOrder(SortProperty.asc("firstname")).addOrder(SortProperty.asc("lastname"));
-        final List<PFUserDO> allUsers = userDao.getList(queryFilter);
+        final List<PFUserDO> allUsers = userDao.select(queryFilter);
         if (allUsers != null) {
             for (final PFUserDO user : allUsers) {
                 final HRViewUserData userData = data.getUserData(user);
@@ -229,10 +229,10 @@ public class HRViewDao implements IDao<HRViewData> {
     /**
      * Throws UnsupportedOperationException.
      *
-     * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
+     * @see org.projectforge.framework.persistence.api.IDao#select(org.projectforge.framework.persistence.api.BaseSearchFilter)
      */
     @Override
-    public List<HRViewData> getList(final BaseSearchFilter filter) {
+    public List<HRViewData> select(final BaseSearchFilter filter) {
         throw new UnsupportedOperationException();
     }
 

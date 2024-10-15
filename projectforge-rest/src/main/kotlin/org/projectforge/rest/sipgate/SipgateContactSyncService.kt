@@ -498,7 +498,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         synchronized(this) {
             val syncContext = SyncContext()
             syncContext.addressList =
-                addressDao.loadAll(checkAccess = false) // Need all for matching contacts, but only active will be used for syncing to Sipgate.
+                addressDao.selectAll(checkAccess = false) // Need all for matching contacts, but only active will be used for syncing to Sipgate.
             updateSyncObjects(syncContext)
 
             // Handle doublets from Sipgate
@@ -618,7 +618,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
                                     val address = from(contact)
                                     if (configuration.updateLocalAddresses) {
                                         log.info { "${getLogInfo(address, contact)}: Creating address: $address" }
-                                        addressDao.save(address, checkAccess = false)
+                                        addressDao.insert(address, checkAccess = false)
                                     } else {
                                         log.info {
                                             "${

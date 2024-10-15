@@ -207,7 +207,7 @@ class AddressPagesRest
 
   override fun onAfterSaveOrUpdate(request: HttpServletRequest, obj: AddressDO, postData: PostData<Address>) {
     val dto = postData.data
-    val address = baseDao.getOrLoad(obj.id!!)
+    val address = baseDao.findOrLoad(obj.id!!)
     val personalAddress = PersonalAddressDO()
     personalAddress.address = address
     personalAddress.isFavoriteCard = dto.isFavoriteCard

@@ -233,7 +233,7 @@ class BirthdayButlerService {
      * return list of users with birthday in selected month. Null, if no address with matching company found or empty, if no address with birthday in selected month found.
      */
     private fun getBirthdayList(month: Month): MutableList<BirthdayUser>? {
-        var addressList = addressDao.loadAllNotDeleted(checkAccess = false).filter {
+        var addressList = addressDao.selectAllUndeleted(checkAccess = false).filter {
             it.organization?.contains(
                 birthdayButlerConfiguration.organization,
                 ignoreCase = true
@@ -249,7 +249,7 @@ class BirthdayButlerService {
         addressList = addressList.filter { address ->
             address.birthday?.month == Month.values()[month.ordinal]
         }
-        val activeUsers = userDao.loadAll(checkAccess = false).filter { it.hasSystemAccess() }
+        val activeUsers = userDao.selectAll(checkAccess = false).filter { it.hasSystemAccess() }
         val foundUsers = mutableListOf<BirthdayUser>()
         addressList.forEach { address ->
             activeUsers.firstOrNull { user ->

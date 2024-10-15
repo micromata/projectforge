@@ -63,10 +63,10 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     /**
      * @param kost2
      * @param projektId If null, then projekt will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setProjekt(kost2: Kost2DO, projektId: Long) {
-        val projekt = projektDao.getOrLoad(projektId)
+        val projekt = projektDao.findOrLoad(projektId)
         if (projekt != null) {
             kost2.projekt = projekt
             kost2.nummernkreis = projekt.nummernkreis
@@ -78,10 +78,10 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
     /**
      * @param kost2
      * @param kost2ArtId If null, then kost2Art will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setKost2Art(kost2: Kost2DO, kost2ArtId: Long) {
-        val kost2Art = kost2ArtDao.getOrLoad(kost2ArtId)
+        val kost2Art = kost2ArtDao.findOrLoad(kost2ArtId)
         kost2.kost2Art = kost2Art
     }
 
@@ -126,7 +126,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         return getActiveKost2(projekt.nummernkreis, projekt.bereich!!, projekt.teilbereich)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<Kost2DO> {
+    override fun select(filter: BaseSearchFilter): List<Kost2DO> {
         val myFilter = if (filter is KostFilter) {
             filter
         } else {
@@ -150,14 +150,14 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
         queryFilter.addOrder(asc("nummernkreis")).addOrder(asc("bereich")).addOrder(asc("teilbereich"))
             .addOrder(asc("kost2Art.id"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
-    override fun onSaveOrModify(obj: Kost2DO) {
+    override fun onInsertOrModify(obj: Kost2DO) {
         if (obj.projektId != null) {
             // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
             val projekt =
-                projektDao.getById(obj.projektId) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
+                projektDao.find(obj.projektId) // Bei Neuanlage ist Projekt nicht wirklich gebunden.
             if (projekt!!.nummernkreis != obj.nummernkreis || projekt.bereich != obj.bereich || projekt.nummer != obj.teilbereich) {
                 throw UserException(
                     ("Inkonsistenz bei Kost2: "
@@ -199,8 +199,8 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
     }
 
-    override fun afterSaveOrModify(obj: Kost2DO) {
-        super.afterSaveOrModify(obj)
+    override fun afterInsertOrModify(obj: Kost2DO) {
+        super.afterInsertOrModify(obj)
         kostCache.updateKost2(obj)
     }
 

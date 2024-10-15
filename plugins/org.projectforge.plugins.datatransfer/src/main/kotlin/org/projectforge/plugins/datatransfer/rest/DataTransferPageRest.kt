@@ -312,7 +312,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     val dbObj =
-      dataTransferAreaDao.getById(id, checkAccess = false)!! // Get entry including external access settings (see DataTransferDao#hasAccess).
+      dataTransferAreaDao.find(id, checkAccess = false)!! // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
@@ -343,7 +343,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
   }
 
   private fun convertData(id: Long): Pair<DataTransferAreaDO, DataTransferArea> {
-    val dbObj = dataTransferAreaDao.getById(id)!!
+    val dbObj = dataTransferAreaDao.find(id)!!
     val dto = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
     if (hasEditAccess(dto, dbObj)) {
       dto.externalPassword = dbObj.externalPassword

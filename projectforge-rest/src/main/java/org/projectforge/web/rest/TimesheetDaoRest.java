@@ -63,7 +63,7 @@ public class TimesheetDaoRest
   private TaskDOConverter taskDOConverter;
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#select(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -89,7 +89,7 @@ public class TimesheetDaoRest
   }
 
   /**
-   * Rest-Call für: {@link TaskDao#getList(BaseSearchFilter)}
+   * Rest-Call für: {@link TaskDao#select(BaseSearchFilter)}
    *
    * @param searchTerm
    */
@@ -127,7 +127,7 @@ public class TimesheetDaoRest
       filter.setNotOpened(notOpened);
     }
     filter.setSearchString(searchTerm);
-    final List<TaskDO> list = taskDao.getList(filter);
+    final List<TaskDO> list = taskDao.select(filter);
     return list;
   }
 

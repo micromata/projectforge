@@ -27,7 +27,6 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.From
 import jakarta.persistence.criteria.JoinType
 import org.hibernate.Hibernate
-import org.jetbrains.kotlin.builtins.StandardNames.FqNames.list
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
@@ -66,20 +65,20 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
     /**
      * @param access
      * @param taskId If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setTask(access: GroupTaskAccessDO, taskId: Long) {
-        val task = taskDao.getOrLoad(taskId)
+        val task = taskDao.findOrLoad(taskId)
         access.task = task
     }
 
     /**
      * @param access
      * @param groupId If null, then group will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setGroup(access: GroupTaskAccessDO, groupId: Long) {
-        val group = groupDao.getOrLoad(groupId)
+        val group = groupDao.findOrLoad(groupId)
         access.group = group
     }
 
@@ -88,7 +87,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      *
      * @return
      */
-    override fun loadAll(checkAccess: Boolean): List<GroupTaskAccessDO> {
+    override fun selectAll(checkAccess: Boolean): List<GroupTaskAccessDO> {
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
@@ -128,7 +127,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         return access
     }
 
-    override fun getList(filter: BaseSearchFilter): List<GroupTaskAccessDO> {
+    override fun select(filter: BaseSearchFilter): List<GroupTaskAccessDO> {
         val myFilter = if (filter is AccessFilter) {
             filter
         } else {
@@ -166,7 +165,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
             group.id = myFilter.groupId
             queryFilter.add(eq("group", group))
         }
-        val qlist = getList(queryFilter)
+        val qlist = select(queryFilter)
         var list: List<GroupTaskAccessDO>
         if (myFilter.taskId != null && myFilter.isInherit && !myFilter.isIncludeAncestorTasks) {
             // Now we have to remove all inherited entries of ancestor nodes which are not declared as recursive.
@@ -301,12 +300,12 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         }
         val group = obj.group
         if (group != null && !Hibernate.isInitialized(group)) {
-            obj.group = groupDao.getOrLoad(obj.groupId!!)
+            obj.group = groupDao.findOrLoad(obj.groupId!!)
         }
     }
 
-    override fun afterSaveOrModify(obj: GroupTaskAccessDO) {
-        super.afterSaveOrModify(obj)
+    override fun afterInsertOrModify(obj: GroupTaskAccessDO) {
+        super.afterInsertOrModify(obj)
         taskTree.setGroupTaskAccess(obj)
     }
 

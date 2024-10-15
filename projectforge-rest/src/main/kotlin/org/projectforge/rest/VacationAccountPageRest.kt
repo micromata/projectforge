@@ -140,7 +140,7 @@ class VacationAccountPageRest {
       // For non HR users, only the user himself is assumed.
       ThreadLocalUserContext.userContext!!.employeeId;
     }
-    val employee = employeeDao.getById(employeeId, checkAccess = false)!!
+    val employee = employeeDao.find(employeeId, checkAccess = false)!!
     val statistics = mutableMapOf<String, Any>()
     val currentStats = vacationService.getVacationStats(employee, Year.now().value)
     val prevStats = vacationService.getVacationStats(employee, Year.now().value - 1)

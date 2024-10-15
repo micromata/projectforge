@@ -240,7 +240,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
    */
   @Override
   protected List<HRPlanningEntryDO> buildList() {
-    final List<HRPlanningEntryDO> list = getBaseDao().getList(form.getSearchFilter());
+    final List<HRPlanningEntryDO> list = getBaseDao().select(form.getSearchFilter());
     return list;
   }
 

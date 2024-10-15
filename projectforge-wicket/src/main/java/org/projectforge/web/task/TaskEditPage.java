@@ -88,7 +88,7 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
     } else if ("kost2Id".equals(property) == true) {
       final Long kost2Id = (Long) selectedValue;
       if (kost2Id != null) {
-        final Kost2DO kost2 = WicketSupport.get(Kost2Dao.class).getById(kost2Id);
+        final Kost2DO kost2 = WicketSupport.get(Kost2Dao.class).find(kost2Id);
         if (kost2 != null) {
           final String newKost2String = TaskHelper.addKost2(TaskTree.getInstance(), getData(), kost2);
           getData().setKost2BlackWhiteList(newKost2String);

@@ -73,7 +73,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * Checks constraint violation.
      */
-    override fun onSaveOrModify(obj: TaskDO) {
+    override fun onInsertOrModify(obj: TaskDO) {
         synchronized(this) {
             checkConstraintVioloation(obj)
         }
@@ -82,10 +82,10 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * @param task
      * @param parentTaskId If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setParentTask(task: TaskDO, parentTaskId: Long): TaskDO {
-        val parentTask = getOrLoad(parentTaskId)
+        val parentTask = findOrLoad(parentTaskId)
         task.parentTask = parentTask
         return task
     }
@@ -93,20 +93,20 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * @param task
      * @param predecessorId If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setGanttPredecessor(task: TaskDO, predecessorId: Long) {
-        val predecessor = getOrLoad(predecessorId)
+        val predecessor = findOrLoad(predecessorId)
         task.ganttPredecessor = predecessor
     }
 
     /**
      * @param task
      * @param responsibleUserId If null, then task will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setResponsibleUser(task: TaskDO, responsibleUserId: Long) {
-        val user = userDao.getOrLoad(responsibleUserId)
+        val user = userDao.findOrLoad(responsibleUserId)
         task.responsibleUser = user
     }
 
@@ -196,7 +196,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: BaseSearchFilter): List<TaskDO> {
+    override fun select(filter: BaseSearchFilter): List<TaskDO> {
         val myFilter = if (filter is TaskFilter) {
             filter
         } else {
@@ -225,7 +225,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         if (log.isDebugEnabled) {
             log.debug(myFilter.toString())
         }
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     /**
@@ -265,7 +265,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         }
     }
 
-    override fun afterSaveOrModify(obj: TaskDO) {
+    override fun afterInsertOrModify(obj: TaskDO) {
         taskTree.addOrUpdateTaskNode(obj)
     }
 

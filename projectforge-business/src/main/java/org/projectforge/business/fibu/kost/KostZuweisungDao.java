@@ -83,21 +83,21 @@ public class KostZuweisungDao extends BaseDao<KostZuweisungDO>
   /**
    * @param kostZuweisung
    * @param kost1Id If null, then kost1 will be set to null;
-   * @see BaseDao#getOrLoad(Long)
+   * @see BaseDao#findOrLoad(Long)
    */
   public void setKost1(final KostZuweisungDO kostZuweisung, Long kost1Id)
   {
-    Kost1DO kost1 = kost1Dao.getOrLoad(kost1Id);
+    Kost1DO kost1 = kost1Dao.findOrLoad(kost1Id);
     kostZuweisung.setKost1(kost1);
   }
 
   /**
    * @param kostZuweisung
-   * @see BaseDao#getOrLoad(Long)
+   * @see BaseDao#findOrLoad(Long)
    */
   public void setKost2(final KostZuweisungDO kostZuweisung, Long kost2Id)
   {
-    Kost2DO kost2 = kost2Dao.getOrLoad(kost2Id);
+    Kost2DO kost2 = kost2Dao.findOrLoad(kost2Id);
     kostZuweisung.setKost2(kost2);
   }
 

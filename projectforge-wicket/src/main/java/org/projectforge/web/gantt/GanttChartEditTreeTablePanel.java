@@ -580,7 +580,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
                 }
               }
               final Set<Serializable> openNodes = getOpenNodes();
-              final Serializable id = WicketSupport.getTaskDao().save(task);
+              final Serializable id = WicketSupport.getTaskDao().insert(task);
               openNodes.remove(ganttObject.getId());
               ganttObject.setId(id);
               openNodes.add(id);

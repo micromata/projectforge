@@ -86,7 +86,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
         }
         log.info("Purge calendars...")
         calendarEntries!!.forEach {
-            val calendar = teamCalDao.getById(it.calendarId, checkAccess = false)
+            val calendar = teamCalDao.find(it.calendarId, checkAccess = false)
             val expiryDays = it.expiryDays ?: 0
             if (calendar == null) {
                 log.error { "No calendar found with id #${it.calendarId}. Can't purge this calendar." }

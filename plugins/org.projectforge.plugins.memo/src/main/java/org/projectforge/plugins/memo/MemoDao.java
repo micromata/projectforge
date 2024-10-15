@@ -59,8 +59,8 @@ public class MemoDao extends BaseDao<MemoDO> {
     }
 
     @Override
-    public void onSaveOrModify(final MemoDO obj) {
-        super.onSaveOrModify(obj);
+    public void onInsertOrModify(final MemoDO obj) {
+        super.onInsertOrModify(obj);
         obj.setOwner(ThreadLocalUserContext.getRequiredLoggedInUser()); // Set always the logged-in user as owner.
     }
 

@@ -223,7 +223,7 @@ class UserPrefCache : AbstractCache() {
             if (log.isDebugEnabled) {
                 log.debug { "Persisting entry to data base: ${ToStringUtil.toJsonString(it.userPrefDO)}" }
             }
-            userPrefDao.saveOrUpdate(it.userPrefDO, checkAccess = false)
+            userPrefDao.insertOrUpdate(it.userPrefDO, checkAccess = false)
         }
     }
 

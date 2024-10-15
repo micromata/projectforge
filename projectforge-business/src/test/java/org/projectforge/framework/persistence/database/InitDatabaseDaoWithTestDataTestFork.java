@@ -107,23 +107,23 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
       assertNull("For security reasons the stay-logged-in-key should be null.", userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
     }
 
-    final List<GroupTaskAccessDO> accessList = accessDao.loadAll(false);
+    final List<GroupTaskAccessDO> accessList = accessDao.selectAll(false);
     assertTrue(accessList.size() > 0);
     for (final GroupTaskAccessDO access : accessList) {
       assertNotNull(access.getAccessEntries(), "Access entries should be serialized.");
       assertTrue(access.getAccessEntries().size() > 0, "Access entries should be serialized.");
     }
 
-    final List<AddressDO> addressList = addressDao.loadAll(false);
+    final List<AddressDO> addressList = addressDao.selectAll(false);
     assertTrue(addressList.size() > 0);
 
-    final List<BookDO> bookList = bookDao.loadAll(false);
+    final List<BookDO> bookList = bookDao.selectAll(false);
     assertTrue(bookList.size() > 2);
 
-    final List<TaskDO> taskList = taskDao.loadAll(false);
+    final List<TaskDO> taskList = taskDao.selectAll(false);
     assertTrue(taskList.size() > 10);
 
-    final List<AuftragDO> orderList = auftragDao.loadAll(false);
+    final List<AuftragDO> orderList = auftragDao.selectAll(false);
     AuftragDO order = null;
     for (final AuftragDO ord : orderList) {
       if (ord.getNummer() == 1) {

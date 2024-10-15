@@ -96,7 +96,7 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
         final AddressFilter addressFilter = new AddressFilter();
         addressFilter.setSearchString(input);
         final List<String> list = new ArrayList<String>();
-        for (final AddressDO address : WicketSupport.get(AddressDao.class).getList(addressFilter)) {
+        for (final AddressDO address : WicketSupport.get(AddressDao.class).select(addressFilter)) {
           buildAutocompleteEntry(list, address, address.getMobilePhone());
           buildAutocompleteEntry(list, address, address.getPrivateMobilePhone());
         }

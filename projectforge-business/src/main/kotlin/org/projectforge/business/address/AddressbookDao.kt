@@ -63,7 +63,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     }
 
     fun setOwner(ab: AddressbookDO, userId: Long) {
-        val user = userDao!!.getOrLoad(userId)
+        val user = userDao!!.findOrLoad(userId)
         ab.owner = user
     }
 
@@ -71,7 +71,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return AddressbookDO()
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressbookDO> {
+    override fun select(filter: BaseSearchFilter): List<AddressbookDO> {
         val myFilter = if (filter is AddressbookFilter) filter
         else {
             AddressbookFilter(filter)
@@ -79,7 +79,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         val user = loggedInUser
         val queryFilter = QueryFilter(myFilter)
         queryFilter.addOrder(asc("title"))
-        val list = getList(queryFilter)
+        val list = select(queryFilter)
         if (myFilter.isDeleted) {
             // No further filtering, show all deleted calendars.
             return list
@@ -130,7 +130,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
             val filter = AddressbookFilter()
             filter.setOwnerType(AddressbookFilter.OwnerType.ALL)
             filter.setFullAccess(true).setReadonlyAccess(false)
-            val resultList = getList(filter).toMutableList()
+            val resultList = select(filter).toMutableList()
             if (resultList.none { it.id == GLOBAL_ADDRESSBOOK_ID }) {
                 // Add global addressbook if not already in list.
                 resultList.add(globalAddressbook)
@@ -142,7 +142,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         get() = globalAddressbookOrNull!!
 
     val globalAddressbookOrNull: AddressbookDO?
-        get() = getById(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
+        get() = find(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
 
     /**
      * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
@@ -200,8 +200,8 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return userService!!.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun getDisplayHistoryEntries(obj: AddressbookDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, checkAccess)
+    override fun selectDisplayHistoryEntries(obj: AddressbookDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
         if (CollectionUtils.isEmpty(list)) {
             return list
         }

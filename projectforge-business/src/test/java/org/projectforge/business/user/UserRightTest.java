@@ -68,7 +68,7 @@ public class UserRightTest extends AbstractTestBase {
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
     Long userId = userService.save(user);
-    userRightDao.save(userRights);
+    userRightDao.insert(userRights);
     user = userService.internalGetById(userId);
 
     Set<UserRightDO> rights = user.getRights();
@@ -127,7 +127,7 @@ public class UserRightTest extends AbstractTestBase {
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
     user = userService.internalGetById(userService.save(user));
-    userRightDao.save(userRights);
+    userRightDao.insert(userRights);
 
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.addUser(user);

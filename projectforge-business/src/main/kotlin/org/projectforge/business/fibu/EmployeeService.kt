@@ -79,7 +79,7 @@ class EmployeeService {
     }
 
     fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
-        return employeeDao.getList(filter)
+        return employeeDao.select(filter)
     }
 
     fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
@@ -111,7 +111,7 @@ class EmployeeService {
     }
 
     fun getDisplayHistoryEntries(obj: EmployeeDO): List<DisplayHistoryEntry> {
-        return employeeDao.getDisplayHistoryEntries(obj)
+        return employeeDao.selectDisplayHistoryEntries(obj)
     }
 
     fun isEmployeeActive(employee: EmployeeDO): Boolean {
@@ -127,9 +127,9 @@ class EmployeeService {
 
     fun findAllActive(checkAccess: Boolean): List<EmployeeDO> {
         val employeeList: Collection<EmployeeDO> = if (checkAccess) {
-            employeeDao.getList(EmployeeFilter())
+            employeeDao.select(EmployeeFilter())
         } else {
-            employeeDao.loadAll(checkAccess = false)
+            employeeDao.selectAll(checkAccess = false)
         }
         return employeeList.filter { employee -> isEmployeeActive(employee) }
     }
@@ -139,7 +139,7 @@ class EmployeeService {
     }
 
     fun getAll(checkAccess: Boolean): List<EmployeeDO> {
-        return if (checkAccess) employeeDao.getList(EmployeeFilter()) else employeeDao.loadAll(checkAccess = false)
+        return if (checkAccess) employeeDao.select(EmployeeFilter()) else employeeDao.selectAll(checkAccess = false)
     }
 
     private fun getValidityPeriodAttrs(
@@ -269,7 +269,7 @@ class EmployeeService {
         attrId: Long,
         type: EmployeeValidityPeriodAttrType,
     ) {
-        val dbEmployee = employeeDao.getById(employee.id)!!
+        val dbEmployee = employeeDao.find(employee.id)!!
         hasLoggedInUserUpdateAccess(dbEmployee, dbEmployee, true)
         val attr = persistenceService.selectById(EmployeeValidityPeriodAttrDO::class.java, attrId)
         if (attr == null || attr.employee?.id != dbEmployee.id || attr.attribute != type) {
@@ -292,7 +292,7 @@ class EmployeeService {
         filter.startTime = monthlyEmployeeReport.fromDate
         filter.stopTime = monthlyEmployeeReport.toDate
         filter.userId = user.id
-        val list = timesheetDao.getList(filter)
+        val list = timesheetDao.select(filter)
         val loggedInUser = ThreadLocalUserContext.requiredLoggedInUser
         if (CollectionUtils.isNotEmpty(list)) {
             for (sheet in list) {

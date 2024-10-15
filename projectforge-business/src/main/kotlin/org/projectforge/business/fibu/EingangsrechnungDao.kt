@@ -87,10 +87,10 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     /**
      * @param eingangsrechnung
      * @param kontoId          If null, then konto will be set to null;
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setKonto(eingangsrechnung: EingangsrechnungDO, kontoId: Long) {
-        val konto = kontoDao!!.getOrLoad(kontoId)
+        val konto = kontoDao!!.findOrLoad(kontoId)
         eingangsrechnung.konto = konto
     }
 
@@ -100,7 +100,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onSaveOrModify(rechnung: EingangsrechnungDO) {
+    override fun onInsertOrModify(rechnung: EingangsrechnungDO) {
         AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung)
 
         if (rechnung.zahlBetrag != null) {
@@ -123,7 +123,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         RechnungDao.writeUiStatusToXml(rechnung)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<EingangsrechnungDO> {
+    override fun select(filter: BaseSearchFilter): List<EingangsrechnungDO> {
         val myFilter = if (filter is EingangsrechnungListFilter) {
             filter
         } else {
@@ -139,7 +139,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("kreditor"))
 
-        val list = getList(queryFilter)
+        val list = select(queryFilter)
         if (myFilter.isShowAll || myFilter.isDeleted) {
             return list
         }
@@ -168,13 +168,13 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     /**
      * Gets history entries of super and adds all history entries of the EingangsrechnungsPositionDO children.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(
+    override fun selectDisplayHistoryEntries(
         obj: EingangsrechnungDO,
         checkAccess: Boolean
     ): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj, checkAccess)
+        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }

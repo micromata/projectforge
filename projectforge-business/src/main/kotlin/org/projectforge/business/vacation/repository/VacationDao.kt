@@ -310,7 +310,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         var empl: EmployeeDO? = employee
         if (employee.userId == null) {
             // Object wasn't loaded from data base:
-            empl = employeeDao.getById(employee.id, checkAccess = false)
+            empl = employeeDao.find(employee.id, checkAccess = false)
         }
         return empl != null && empl.userId == loggedInUser.id
 
@@ -330,15 +330,15 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return false
     }
 
-    override fun onSaveOrModify(obj: VacationDO) {
-        super.onSaveOrModify(obj)
+    override fun onInsertOrModify(obj: VacationDO) {
+        super.onInsertOrModify(obj)
         if (obj.special == null) {
             obj.special = false // Avoid null value of special.
         }
     }
 
-    override fun onSave(obj: VacationDO) {
-        super.onSave(obj)
+    override fun onInsert(obj: VacationDO) {
+        super.onInsert(obj)
         vacationService.validate(obj, null, true)
     }
 
@@ -347,8 +347,8 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         vacationService.validate(obj, dbObj, true)
     }
 
-    override fun afterSave(obj: VacationDO) {
-        super.afterSave(obj)
+    override fun afterInsert(obj: VacationDO) {
+        super.afterInsert(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT)
     }
 
@@ -396,7 +396,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return getVacationForPeriod(employee.id, startVacationDate, endVacationDate, withSpecial)
     }
 
-    override fun getList(filter: BaseSearchFilter): List<VacationDO> {
+    override fun select(filter: BaseSearchFilter): List<VacationDO> {
         val myFilter: VacationFilter = if (filter is VacationFilter) {
             filter
         } else {
@@ -424,7 +424,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             queryFilter.add(eq("status", myFilter.vacationstatus))
         }
         queryFilter.addOrder(asc("startDate"))
-        var resultList = getList(queryFilter)
+        var resultList = select(queryFilter)
         if (myFilter.vacationmode != null) {
             resultList =
                 resultList.stream().filter { vac: VacationDO? -> vac!!.getVacationmode() == myFilter.vacationmode }

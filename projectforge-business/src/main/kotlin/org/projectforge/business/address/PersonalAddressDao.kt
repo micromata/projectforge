@@ -84,7 +84,7 @@ class PersonalAddressDao {
 
      */
     fun setOwner(personalAddress: PersonalAddressDO, ownerId: Long) {
-        val user = userDao.getOrLoad(ownerId)
+        val user = userDao.findOrLoad(ownerId)
         personalAddress.owner = user
     }
 
@@ -133,7 +133,7 @@ class PersonalAddressDao {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
         }
         abIdSet.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID)
-        for (ab in addressbookDao.loadAll(checkAccess = false)) {
+        for (ab in addressbookDao.selectAll(checkAccess = false)) {
             if (!ab.deleted && addressbookRight!!.hasSelectAccess(user, ab)) {
                 abIdSet.add(ab.id)
             }

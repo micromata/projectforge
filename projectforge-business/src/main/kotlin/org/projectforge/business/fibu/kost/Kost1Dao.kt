@@ -71,7 +71,7 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         )
     }
 
-    override fun getList(filter: BaseSearchFilter): List<Kost1DO> {
+    override fun select(filter: BaseSearchFilter): List<Kost1DO> {
         val myFilter = if (filter is KostFilter) {
             filter
         } else {
@@ -94,10 +94,10 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         }
         queryFilter.addOrder(asc("nummernkreis")).addOrder(asc("bereich")).addOrder(asc("teilbereich"))
             .addOrder(asc("endziffer"))
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
-    override fun onSaveOrModify(obj: Kost1DO) {
+    override fun onInsertOrModify(obj: Kost1DO) {
         verifyKost(obj)
         val other = if (obj.id == null) {
             // New entry
@@ -129,8 +129,8 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         if (obj.endziffer < 0 || obj.endziffer > 99) throw UserException("fibu.kost.error.invalidKost")
     }
 
-    override fun afterSaveOrModify(kost1: Kost1DO) {
-        super.afterSaveOrModify(kost1)
+    override fun afterInsertOrModify(kost1: Kost1DO) {
+        super.afterInsertOrModify(kost1)
         kostCache!!.updateKost1(kost1)
     }
 

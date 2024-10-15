@@ -321,7 +321,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         val kost2List = mutableListOf<Kost2DO>()
         val wildcard = blackWhiteList != null && blackWhiteList.size == 1 && "*" == blackWhiteList[0]
         if (useProjekt != null && !Hibernate.isPropertyInitialized(useProjekt, "kunde")) {
-            useProjekt = projektDao.getById(useProjekt.id, checkAccess = false)
+            useProjekt = projektDao.find(useProjekt.id, checkAccess = false)
         }
         if (useProjekt != null) {
             kostCache.getActiveKost2(
@@ -788,7 +788,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         persistenceService.runIsolatedReadOnly { _ ->
             var newRoot: TaskNode? = null
             val nTaskMap = mutableMapOf<Long, TaskNode>()
-            val taskList = taskDao.loadAll(checkAccess = false)
+            val taskList = taskDao.selectAll(checkAccess = false)
             log.debug("Loading list of tasks ...")
             // First create all nodes and put them into the map:
             // The root node is the first node without parent node.
@@ -826,13 +826,13 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             log.debug { root.toString() }
 
             // Now read all explicit group task access' from the database:
-            accessDao.loadAll(checkAccess = false).forEach { access ->
+            accessDao.selectAll(checkAccess = false).forEach { access ->
                 val node = nTaskMap.get(access.taskId)!!
                 node.setGroupTaskAccess(access)
                 log.debug { access.toString() }
             }
             // Now read all projects with their references to tasks:
-            projektDao.loadAll(checkAccess = false).forEach { project ->
+            projektDao.selectAll(checkAccess = false).forEach { project ->
                 if (project.deleted || project.taskId == null) {
                     return@forEach
                 }

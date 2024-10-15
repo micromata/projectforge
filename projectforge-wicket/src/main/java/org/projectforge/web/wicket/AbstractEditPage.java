@@ -130,7 +130,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
     final Long id = WicketUtils.getAsLong(getPageParameters(), PARAMETER_KEY_ID);
     if (data == null) {
       if (id != null) {
-        data = getBaseDao().getById(id);
+        data = getBaseDao().find(id);
       }
       if (data == null) {
         data = (O) WicketUtils.getAsObject(getPageParameters(), PARAMETER_KEY_DATA_PRESET,
@@ -225,7 +225,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
   protected List<DisplayHistoryEntry> getHistory()
   {
     if (historyEntries == null) {
-      historyEntries = getBaseDao().getDisplayHistoryEntries(getData());
+      historyEntries = getBaseDao().selectDisplayHistoryEntries(getData());
     }
     return historyEntries;
   }

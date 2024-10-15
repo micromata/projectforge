@@ -52,7 +52,7 @@ public class SearchDao {
     } else {
       filter.setUseModificationFilter(false);
     }
-    final List<ExtendedBaseDO> list = baseDao.getListForSearchDao(filter);
+    final List<ExtendedBaseDO> list = baseDao.selectForSearchDao(filter);
     if (list == null) {
       // An error occured.
       return null;

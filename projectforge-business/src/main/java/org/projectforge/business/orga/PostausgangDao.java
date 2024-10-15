@@ -61,7 +61,7 @@ public class PostausgangDao extends BaseDao<PostausgangDO> {
     }
 
     @Override
-    public List<PostausgangDO> getList(final BaseSearchFilter filter) {
+    public List<PostausgangDO> select(final BaseSearchFilter filter) {
         final PostFilter myFilter;
         if (filter instanceof PostFilter) {
             myFilter = (PostFilter) filter;
@@ -72,7 +72,7 @@ public class PostausgangDao extends BaseDao<PostausgangDO> {
         queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
         queryFilter.addOrder(SortProperty.desc("datum"));
         queryFilter.addOrder(SortProperty.asc("empfaenger"));
-        final List<PostausgangDO> list = getList(queryFilter);
+        final List<PostausgangDO> list = select(queryFilter);
         return list;
     }
 

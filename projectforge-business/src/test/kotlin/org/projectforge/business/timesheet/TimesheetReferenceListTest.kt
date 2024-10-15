@@ -88,7 +88,7 @@ class TimesheetReferenceListTest : AbstractTestBase() {
         Assertions.assertNotNull(ts.task, "Task $prefix.$taskName not found.")
         ts.user = getUser(user)
         ts.reference = reference
-        timesheetDao.save(ts, checkAccess = false)
+        timesheetDao.insert(ts, checkAccess = false)
     }
 
     companion object {

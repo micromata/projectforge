@@ -161,7 +161,7 @@ class AddressServicesRest {
 
   @GetMapping("exportVCard/{id}")
   fun exportVCard(@PathVariable("id") id: Int?): ResponseEntity<*> {
-    val address = addressDao.getById(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
+    val address = addressDao.find(id) ?: return ResponseEntity<Any>(HttpStatus.NOT_FOUND)
     val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName, true) + "_"
         + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
     val writer = StringWriter()

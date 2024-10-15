@@ -66,7 +66,7 @@ open class DatabaseInitTestDataService {
         scriptDO.parameter2Name = p2Name
         scriptDO.parameter2Type = p2Type
         scriptDO.script = script.toByteArray()
-        scriptDao.save(scriptDO, checkAccess = false)
+        scriptDao.insert(scriptDO, checkAccess = false)
 
     }
 

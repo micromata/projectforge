@@ -109,7 +109,7 @@ public class AddressDaoRest {
       filter.setSearchString(searchTerm);
     }
 
-    final List<AddressDO> list = addressDao.getList(filter);
+    final List<AddressDO> list = addressDao.select(filter);
 
     final List<AddressObject> result = new ArrayList();
     if (modifiedSince == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
@@ -157,7 +157,7 @@ public class AddressDaoRest {
         for (final PersonalAddressDO personalAddress : favorites) {
           if (personalAddress.getLastUpdate() != null
                   && !personalAddress.getLastUpdate().before(modifiedSinceDate)) {
-            final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
+            final AddressDO addressDO = addressDao.find(personalAddress.getAddressId());
             final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressImageDao, addressDO,
                     BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
             if (!personalAddress.isFavorite()) {
@@ -229,7 +229,7 @@ public class AddressDaoRest {
       addressDORequest.setForm(FormOfAddress.UNKNOWN);
     }
 
-    addressDao.saveOrUpdate(addressDORequest);
+    addressDao.insertOrUpdate(addressDORequest);
 
     addressImageDao.saveOrUpdate(addressDORequest.getId(), image);
 

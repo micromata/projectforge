@@ -94,7 +94,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
-        val responsesToDelete = pollResponseDao.loadAll(checkAccess = false).filter {
+        val responsesToDelete = pollResponseDao.selectAll(checkAccess = false).filter {
             it.poll?.id == obj.id
         }
         responsesToDelete.forEach {
@@ -585,7 +585,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     @GetMapping("export")
     fun export(@RequestParam("id") id: String): ResponseEntity<Resource>? {
         val poll = Poll()
-        val pollDo = pollDao.getById(id.toInt())
+        val pollDo = pollDao.find(id.toInt())
         poll.copyFrom(pollDo!!)
         User.restoreDisplayNames(poll.attendees, userService)
         val bytes: ByteArray? = excelExport

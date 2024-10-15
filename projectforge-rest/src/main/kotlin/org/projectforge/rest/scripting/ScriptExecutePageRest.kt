@@ -87,7 +87,7 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
       id = NumberHelper.parseInteger(idString)
     }
     if (id != null) {
-      scriptDO = scriptDao.getById(id) ?: throw IllegalArgumentException("Script not found.")
+      scriptDO = scriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")
       script.copyFrom(scriptDO)
     } else {
       script.availableVariables =

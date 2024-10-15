@@ -205,7 +205,7 @@ class CalendarSubscriptionServiceRest {
         }
       }
 
-      teamCalDao.getById(calId, checkAccess = false)?.let { cal ->
+      teamCalDao.find(calId, checkAccess = false)?.let { cal ->
         processedTeamCals.add(cal)
         if (!cal.includeLeaveDaysForGroups.isNullOrBlank() || !cal.includeLeaveDaysForUsers.isNullOrBlank()) {
           val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()
@@ -253,7 +253,7 @@ class CalendarSubscriptionServiceRest {
     filter.stopTime = stopTime.utilDate
     val startTime = dt.minusMonths(2 * CalendarFeedConst.PERIOD_IN_MONTHS.toLong())
     filter.startTime = startTime.utilDate
-    val timesheetList = timesheetDao.getList(filter) ?: return
+    val timesheetList = timesheetDao.select(filter) ?: return
     // iterate over all timesheets and adds each event to the calendar
     for (timesheet in timesheetList) {
       val uid = TeamCalConfig.get().createTimesheetUid(timesheet.id)

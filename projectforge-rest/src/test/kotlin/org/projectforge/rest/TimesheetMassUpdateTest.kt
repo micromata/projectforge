@@ -146,7 +146,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             val kunde = KundeDO()
             kunde.name = "ACME"
             kunde.id = 50
-            kundeDao.save(kunde)
+            kundeDao.insert(kunde)
             val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
             val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1)
             val t1 = initTestDB.addTask(prefix + "1", "root")
@@ -204,7 +204,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 51
-            kundeDao.save(kunde)
+            kundeDao.insert(kunde)
             val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
             val projekt2 = createProjekt(kunde, 2, "iPhone App", 0, 1)
             val t1 = initTestDB.addTask(prefix + "1", "root")
@@ -283,7 +283,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             val kunde = KundeDO()
             kunde.name = "ACME International"
             kunde.id = 52
-            kundeDao.save(kunde)
+            kundeDao.insert(kunde)
             val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
             initTestDB.addTask(prefix + "1", "root")
             initTestDB.addTask(prefix + "1.1", prefix + "1")
@@ -377,7 +377,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             val kunde = KundeDO()
             kunde.name = "ACME ltd."
             kunde.id = 53
-            kundeDao.save(kunde)
+            kundeDao.insert(kunde)
             val t1 = initTestDB.addTask(prefix + "1", "root")
             val projekt1 = createProjekt(kunde, 1, "Webportal", 0, 1, 2)
             projekt1.task = t1
@@ -427,10 +427,10 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         var ts = dbList.find { it.description == "TS#1" }!!
         assertSheet(ts, list[0], "Task not changed due to protectionUntil")
         assertKost2(ts, 5, 53, 2, 0) // Kost2 unmodified.
-        ts = timesheetDao.getById(list[1].id)!!
+        ts = timesheetDao.find(list[1].id)!!
         Assertions.assertEquals(getTask(prefix + "1.1").id, ts.taskId) // Not moved.
         assertKost2(ts, 5, 53, 1, 0) // Kost2 unmodified.
-        ts = timesheetDao.getById(list[2].id)!!
+        ts = timesheetDao.find(list[2].id)!!
         Assertions.assertEquals(getTask(prefix + "1.2").id, ts.taskId) // Not moved.
         assertKost2(ts, 5, 53, 1, 1) // Kost2 unmodified.
     }
@@ -520,8 +520,8 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             Assertions.assertNotNull(kost2)
             ts.kost2 = kost2
         }
-        val id: Serializable = timesheetDao.save(ts, checkAccess = false)!!
-        return timesheetDao.getById(id)!!
+        val id: Serializable = timesheetDao.insert(ts, checkAccess = false)!!
+        return timesheetDao.find(id)!!
     }
 
     private fun setTimeperiod(
@@ -574,7 +574,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
         }
 
-        val dbList = timesheetDao.load(selectedIds)
+        val dbList = timesheetDao.select(selectedIds)
         return dbList!!
     }
 }

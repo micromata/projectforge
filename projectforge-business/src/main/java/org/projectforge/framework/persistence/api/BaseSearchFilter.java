@@ -151,7 +151,7 @@ public class BaseSearchFilter implements Serializable {
   }
 
   /**
-   * If given {@link BaseDao#getList(BaseSearchFilter)} will only search for entries which last date of modification
+   * If given {@link BaseDao#select(BaseSearchFilter)} will only search for entries which last date of modification
    * AbstractBaseDO.getLastUpdate() isn't before given date.
    *
    * @return the modifiedSince

@@ -49,20 +49,20 @@ class AddressTest : AbstractTestBase() {
         logon(ADMIN)
         val a1 = AddressDO()
         a1.name = "Kai Reinhard"
-        addressDao.save(a1)
+        addressDao.insert(a1)
         log.debug(a1.toString())
 
         a1.name = "Hurzel"
         addressDao.update(a1)
         Assertions.assertEquals("Hurzel", a1.name)
 
-        val a2 = addressDao.getById(a1.id)!!
+        val a2 = addressDao.find(a1.id)!!
         Assertions.assertEquals("Hurzel", a2.name)
         a2.name = "Micromata GmbH"
         addressDao.update(a2)
         log.debug(a2.toString())
 
-        val a3 = addressDao.getById(a1.id)!!
+        val a3 = addressDao.find(a1.id)!!
         Assertions.assertEquals("Micromata GmbH", a3.name)
         log.debug(a3.toString())
     }
@@ -72,16 +72,16 @@ class AddressTest : AbstractTestBase() {
         logon(ADMIN)
         var a1 = AddressDO()
         a1.name = "Test"
-        addressDao.save(a1)
+        addressDao.insert(a1)
 
         val id = a1.id
-        a1 = addressDao.getById(id)!!
+        a1 = addressDao.find(id)!!
         addressDao.markAsDeleted(a1)
-        a1 = addressDao.getById(id)!!
+        a1 = addressDao.find(id)!!
         Assertions.assertEquals(true, a1.deleted, "Should be marked as deleted.")
 
         addressDao.undelete(a1)
-        a1 = addressDao.getById(id)!!
+        a1 = addressDao.find(id)!!
         Assertions.assertEquals(false, a1.deleted, "Should be undeleted.")
     }
 
@@ -91,9 +91,9 @@ class AddressTest : AbstractTestBase() {
         ) {
             var a1 = AddressDO()
             a1.name = "Not deletable"
-            addressDao.save(a1)
+            addressDao.insert(a1)
             val id = a1.id
-            a1 = addressDao.getById(id)!!
+            a1 = addressDao.find(id)!!
             addressDao.delete(a1)
         }
     }
@@ -102,7 +102,7 @@ class AddressTest : AbstractTestBase() {
     fun checkStandardAccess() {
         val testAddressbook = AddressbookDO()
         testAddressbook.title = "testAddressbook"
-        addressbookDao.save(testAddressbook, checkAccess = false)
+        addressbookDao.insert(testAddressbook, checkAccess = false)
         val addressbookSet: MutableSet<AddressbookDO> = HashSet()
         addressbookSet.add(testAddressbook)
 
@@ -112,23 +112,23 @@ class AddressTest : AbstractTestBase() {
 
         val a1 = AddressDO()
         a1.name = "testa1"
-        addressDao.save(a1, checkAccess = false)
+        addressDao.insert(a1, checkAccess = false)
         val a2 = AddressDO()
         a2.name = "testa2"
-        addressDao.save(a2, checkAccess = false)
+        addressDao.insert(a2, checkAccess = false)
         val a3 = AddressDO()
         a3.name = "testa3"
-        addressDao.save(a3, checkAccess = false)
+        addressDao.insert(a3, checkAccess = false)
         val a4 = AddressDO()
         a4.name = "testa4"
         a4.addressbookList = addressbookSet
-        addressDao.save(a4, checkAccess = false)
+        addressDao.insert(a4, checkAccess = false)
         logon(TEST_USER)
 
         // Select
         try {
             suppressErrorLogs {
-                addressDao.getById(a4.id)
+                addressDao.find(a4.id)
             }
             Assertions.fail { "User has no access to select" }
         } catch (ex: AccessException) {
@@ -136,7 +136,7 @@ class AddressTest : AbstractTestBase() {
             Assertions.assertEquals(UserRightId.MISC_ADDRESSBOOK.id, ex.params!![0].toString())
             Assertions.assertEquals("select", ex.params!![1].toString())
         }
-        var address = addressDao.getById(a3.id)!!
+        var address = addressDao.find(a3.id)!!
         Assertions.assertEquals("testa3", address.name)
 
         // Select filter
@@ -144,7 +144,7 @@ class AddressTest : AbstractTestBase() {
         searchFilter.setSearchString("testa*")
         val filter = QueryFilter(searchFilter)
         filter.addOrder(asc("name"))
-        val result = addressDao.getList(filter)
+        val result = addressDao.select(filter)
         Assertions.assertEquals(3, result.size, "Should found 3 address'.")
         val set = HashSet<String?>()
         set.add("testa1")
@@ -162,7 +162,7 @@ class AddressTest : AbstractTestBase() {
         address.addressbookList = addressbookSet
         try {
             suppressErrorLogs {
-                addressDao.save(address)
+                addressDao.insert(address)
             }
             Assertions.fail { "User has no access to insert" }
         } catch (ex: AccessException) {
@@ -171,7 +171,7 @@ class AddressTest : AbstractTestBase() {
             Assertions.assertEquals("insert", ex.params!![1].toString())
         }
         address.addressbookList = null
-        addressDao.save(address)
+        addressDao.insert(address)
         Assertions.assertEquals("test", address.name)
 
         // Update
@@ -188,7 +188,7 @@ class AddressTest : AbstractTestBase() {
         }
         a2.name = "testa2test"
         addressDao.update(a2)
-        address = addressDao.getById(a2.id)!!
+        address = addressDao.find(a2.id)!!
         Assertions.assertEquals("testa2test", address.name)
 
         // Delete
@@ -222,11 +222,11 @@ class AddressTest : AbstractTestBase() {
         val addressbookWithUserAccess = AddressbookDO()
         addressbookWithUserAccess.title = "address book with user access"
         addressbookWithUserAccess.fullAccessUserIds = "" + testUser.id
-        addressbookDao.save(addressbookWithUserAccess)
+        addressbookDao.insert(addressbookWithUserAccess)
 
         val addressbookWithoutUserAccess = AddressbookDO()
         addressbookWithoutUserAccess.title = "address book without user access"
-        addressbookDao.save(addressbookWithoutUserAccess)
+        addressbookDao.insert(addressbookWithoutUserAccess)
 
         val addressbookSet: MutableSet<AddressbookDO> = HashSet()
         addressbookSet.add(addressbookWithUserAccess)
@@ -236,19 +236,19 @@ class AddressTest : AbstractTestBase() {
         var address = AddressDO()
         address.name = "Kai Reinhard"
         address.addressbookList = addressbookSet
-        val id = addressDao.save(address)
+        val id = addressDao.insert(address)
 
-        address = addressDao.getById(id)!!
+        address = addressDao.find(id)!!
         Assertions.assertEquals(2, address.addressbookList!!.size)
 
         logon(testUser)
-        address = addressDao.getById(id)!!
+        address = addressDao.find(id)!!
         Assertions.assertEquals(2, address.addressbookList!!.size)
         address.addressbookList!!.clear()
         address.addressbookList!!.add(addressbookWithUserAccess)
         addressDao.update(address)
 
-        address = addressDao.getById(id)!!
+        address = addressDao.find(id)!!
         Assertions.assertEquals(
             2,
             address.addressbookList!!.size,

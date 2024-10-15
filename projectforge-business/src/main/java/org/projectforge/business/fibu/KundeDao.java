@@ -46,10 +46,10 @@ public class KundeDao extends BaseDao<KundeDO> {
     }
 
     @Override
-    public List<KundeDO> getList(final BaseSearchFilter filter) {
+    public List<KundeDO> select(final BaseSearchFilter filter) {
         final QueryFilter queryFilter = new QueryFilter(filter);
         queryFilter.addOrder(SortProperty.asc("nummer"));
-        return getList(queryFilter);
+        return select(queryFilter);
     }
 
     /**
@@ -106,7 +106,7 @@ public class KundeDao extends BaseDao<KundeDO> {
     }
 
     @Override
-    public void onSave(KundeDO obj) {
+    public void onInsert(KundeDO obj) {
         if (doesNumberAlreadyExist(obj)) {
             obj.setCreated(null);
             throw new UserException("fibu.kunde.validation.existingCustomerNr");
@@ -117,7 +117,7 @@ public class KundeDao extends BaseDao<KundeDO> {
         if (customer == null || customer.getId() == null) {
             return false;
         }
-        KundeDO existingCustomer = getById(customer.getId(), false);
+        KundeDO existingCustomer = find(customer.getId(), false);
         return existingCustomer != null;
     }
 }

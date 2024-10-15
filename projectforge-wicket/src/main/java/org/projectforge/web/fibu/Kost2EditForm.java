@@ -129,7 +129,7 @@ public class Kost2EditForm extends AbstractEditForm<Kost2DO, Kost2EditPage>
       kost2ArtField.setRequired(true);
       kost2ArtField.add((IValidator<Integer>) validatable -> {
         final Integer value = validatable.getValue();
-        if (WicketSupport.get(Kost2ArtDao.class).getById(value) == null) { // Kost2 available but not selected.
+        if (WicketSupport.get(Kost2ArtDao.class).find(value) == null) { // Kost2 available but not selected.
           error(new ValidationError().addKey("fibu.kost2art.error.notFound"));
         }
       });

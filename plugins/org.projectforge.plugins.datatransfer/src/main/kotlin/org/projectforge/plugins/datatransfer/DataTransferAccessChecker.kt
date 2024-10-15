@@ -85,7 +85,7 @@ open class DataTransferAccessChecker(
 
   private fun getDataTransferArea(user: PFUserDO?, id: Any): DataTransferAreaDO? {
     user!!
-    return dataTransferAreaDao.getById(id as Long, checkAccess = false)
+    return dataTransferAreaDao.find(id as Long, checkAccess = false)
   }
 
   /**
@@ -119,7 +119,7 @@ open class DataTransferAccessChecker(
     operationType: OperationType,
     attachment: Attachment
   ): Boolean {
-    val dbo = dataTransferAreaDao.getById(id as Long, false)
+    val dbo = dataTransferAreaDao.find(id as Long, false)
     if (!dbo!!.isPersonalBox()) {
       return true
     }

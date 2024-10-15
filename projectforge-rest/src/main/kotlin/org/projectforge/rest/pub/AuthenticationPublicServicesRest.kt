@@ -88,7 +88,7 @@ open class AuthenticationPublicServicesRest {
             SecurityLogging.logSecurityWarn(this::class.java, "REST AUTHENTICATION FAILED", msg)
             throw IllegalArgumentException("Invalid call.")
         }
-        val user = userDao.getById(uid, checkAccess = false)
+        val user = userDao.find(uid, checkAccess = false)
         if (user == null) {
             val msg = "Oups, no user with id $uid found."
             log.error(msg)

@@ -78,9 +78,9 @@ class CandHHistoryTest : AbstractTestBase() {
         user.lastPasswordChange =
             PFDateTime.withDate(2021, Month.JANUARY, 1, 12, 17, 33, 763, zoneId = PFDateTimeUtils.ZONE_UTC).utilDate
         val hist = createHistoryTester()
-        userDao.save(user)
+        userDao.insert(user)
         hist.loadRecentHistoryEntries(1, 0)
-        userDao.getHistoryEntries(user).let { entries ->
+        userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
         }
@@ -99,7 +99,7 @@ class CandHHistoryTest : AbstractTestBase() {
         hist.loadRecentHistoryEntries(1, 8)
         hist.loadHistory(user, 2, 8)
 
-        userDao.getHistoryEntries(user).let { entries ->
+        userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(2, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, 8)
             (entries[0] as HistoryEntryDO).let { entry ->
@@ -169,7 +169,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.description = "This is a deleted test user."
         userDao.markAsDeleted(user)
         hist.loadRecentHistoryEntries(1, 1)
-        userDao.getHistoryEntries(user).let { entries ->
+        userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, 1)
             (entries[0] as HistoryEntryDO).let { entry ->
@@ -185,7 +185,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.description = "This is a undeleted test user."
         userDao.undelete(user)
         hist.loadRecentHistoryEntries(1, 1)
-        userDao.getHistoryEntries(user).let { entries ->
+        userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(4, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 1)
             (entries[0] as HistoryEntryDO).let { entry ->
@@ -209,7 +209,7 @@ class CandHHistoryTest : AbstractTestBase() {
         suppressErrorLogs {
             try {
                 user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
-                userDao.save(user)
+                userDao.insert(user)
                 fail { "Cascade on saving rights shouldn't work." }
             } catch (ex: Exception) {
                 // OK, expected exception.
@@ -217,14 +217,14 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         user.rights = null
         user.id = null
-        userDao.save(user)
+        userDao.insert(user)
         user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
         user.addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE))
-        userRightDao.saveOrUpdate(user.rights!!, checkAccess = false)
+        userRightDao.insertOrUpdate(user.rights!!, checkAccess = false)
         var rights = userRightDao.getList(user)
         Assertions.assertEquals(2, rights.size)
         hist.loadRecentHistoryEntries(3, 0)
-        userDao.getHistoryEntries(user).let { entries ->
+        userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
             filterHistoryEntries(entries, 1, PFUserDO::class).first().let { entry ->
                 assertHistoryEntry(entry, PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
@@ -238,12 +238,12 @@ class CandHHistoryTest : AbstractTestBase() {
         user.getRight(UserRightId.ORGA_OUTGOING_MAIL).let { right ->
             right!!.value = UserRightValue.READONLY
         }
-        userRightDao.saveOrUpdate(user.rights!!, checkAccess = false)
+        userRightDao.insertOrUpdate(user.rights!!, checkAccess = false)
         rights = userRightDao.getList(user)
         // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)
         hist.loadRecentHistoryEntries(2, 1)
-        userDao.getHistoryEntries(user).let { entries ->
+        userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(5, entries.size)
             entries.filter { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
                 .let { inserts ->
@@ -272,11 +272,11 @@ class CandHHistoryTest : AbstractTestBase() {
         val customer1 = KundeDO()
         customer1.id = 7864872 // Must be manually assigned.
         customer1.name = "7864872 Test customer 1"
-        kundeDao.save(customer1)
+        kundeDao.insert(customer1)
         val customer2 = KundeDO()
         customer2.id = 7864873 // Must be manually assigned.
         customer2.name = "7864873 Test customer 1"
-        kundeDao.save(customer2)
+        kundeDao.insert(customer2)
 
         var invoice = RechnungDO()
         invoice.nummer = rechnungDao.nextNumber
@@ -298,10 +298,10 @@ class CandHHistoryTest : AbstractTestBase() {
             pos.menge = BigDecimal("2")
             pos.einzelNetto = BigDecimal("20")
         }
-        val id = rechnungDao.save(invoice)
+        val id = rechnungDao.insert(invoice)
 
         val hist = createHistoryTester()
-        invoice = rechnungDao.getById(id)!!
+        invoice = rechnungDao.find(id)!!
         invoice.kunde = customer2
         invoice.getAbstractPosition(0).let { pos ->
             pos!!.text = "Test position 1 changed"
@@ -315,7 +315,7 @@ class CandHHistoryTest : AbstractTestBase() {
             pos.einzelNetto = BigDecimal("30")
         }
         rechnungDao.update(invoice)
-        invoice = rechnungDao.getById(id)!!
+        invoice = rechnungDao.find(id)!!
         val count = persistenceService.selectSingleResult(
             "select count(*) from RechnungsPositionDO WHERE rechnung.id = :id",
             Long::class.java,
@@ -324,7 +324,7 @@ class CandHHistoryTest : AbstractTestBase() {
         Assertions.assertEquals(3, count)
         hist.loadRecentHistoryEntries(3, 4)
         // RechungsPositionDO Insert (inserted twice)
-        rechnungDao.getHistoryEntries(invoice).let { entries ->
+        rechnungDao.selectHistoryEntries(invoice).let { entries ->
             Assertions.assertEquals(4, entries.size)
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
                 .let { entry ->

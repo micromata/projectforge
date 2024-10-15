@@ -111,7 +111,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         ensureSecureExternalAccess(obj)
     }
 
-    override fun onSave(obj: DataTransferAreaDO) {
+    override fun onInsert(obj: DataTransferAreaDO) {
         if (obj.isPersonalBox()) {
             if (obj.modifyPersonalBox != true) {
                 // Prevent from saving or changing personal boxes.
@@ -125,7 +125,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     /**
      * Removes personal boxes of other users in result list.
      */
-    override fun getList(
+    override fun select(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<DataTransferAreaDO>>?,
         checkAccess: Boolean,
@@ -140,7 +140,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                 DBPredicate.Equal("adminIds", loggedInUserId.toString()),
             )
         )
-        var result = super.getList(filter, customResultFilters, checkAccess)
+        var result = super.select(filter, customResultFilters, checkAccess)
         // searchString contains trailing %:
         val searchString = filter.fulltextSearchString?.replace("%", "")
         if (searchString == null || searchString.length < 2) { // Search string is given and has at least 2 chars:
@@ -200,7 +200,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         dbo.adminIds = "$userId"
         dbo.observerIds = "$userId"
         dbo.modifyPersonalBox = true
-        save(dbo, checkAccess = false)
+        insert(dbo, checkAccess = false)
         return dbo
     }
 

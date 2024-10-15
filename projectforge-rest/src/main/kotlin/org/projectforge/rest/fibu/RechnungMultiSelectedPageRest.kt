@@ -84,7 +84,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
   ) {
     val lc = LayoutContext(RechnungDO::class.java)
     val stats = RechnungsStatistik()
-    rechnungDao.load(selectedIds)?.forEach { invoice ->
+    rechnungDao.select(selectedIds)?.forEach { invoice ->
       stats.add(invoice)
     }
     layout.add(UIAlert("'${stats.asMarkdown}", color = UIColor.LIGHT, markdown = true))
@@ -104,7 +104,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<RechnungDO>,
   ): ResponseEntity<*>? {
-    val invoices = rechnungDao.load(selectedIds)
+    val invoices = rechnungDao.select(selectedIds)
     if (invoices.isNullOrEmpty()) {
       return null
     }

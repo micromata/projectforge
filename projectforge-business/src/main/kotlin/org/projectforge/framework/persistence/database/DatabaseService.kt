@@ -139,7 +139,7 @@ class DatabaseService {
             adminUser.lastname = "Administrator"
             adminUser.description = "ProjectForge administrator"
             adminUser.timeZone = adminUserTimezone
-            userDao.save(adminUser, checkAccess = false)
+            userDao.insert(adminUser, checkAccess = false)
             adminUser.addRight(UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE))
@@ -153,7 +153,7 @@ class DatabaseService {
             adminUser.addRight(UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE))
             adminUser.addRight(UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE))
-            adminUser.rights!!.forEach(Consumer { obj: UserRightDO -> userRightDao.save(obj, checkAccess = false) })
+            adminUser.rights!!.forEach(Consumer { obj: UserRightDO -> userRightDao.insert(obj, checkAccess = false) })
 
             setUser(adminUser) // Need to login the admin user for avoiding following access exceptions.
 
@@ -244,7 +244,7 @@ class DatabaseService {
         }
         // group.setNestedGroupsAllowed(false);
         group.localGroup = true // Do not synchronize group with external user management system by default.
-        groupDao.save(group, checkAccess = false)
+        groupDao.insert(group, checkAccess = false)
     }
 
     /**

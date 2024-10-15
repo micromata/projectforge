@@ -57,7 +57,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         )
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AddressCampaignValueDO> {
+    override fun select(filter: BaseSearchFilter): List<AddressCampaignValueDO> {
         val myFilter = if (filter is AddressCampaignValueFilter) {
             filter
         } else {
@@ -70,14 +70,14 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         if (myFilter.addressCampaignValue != null) {
             queryFilter.add(eq("value", myFilter.addressCampaign.id!!))
         }
-        return getList(queryFilter)
+        return select(queryFilter)
     }
 
     /**
-     * @see BaseDao.getOrLoad
+     * @see BaseDao.findOrLoad
      */
     fun setAddress(addressCampaignValue: AddressCampaignValueDO, addressId: Long) {
-        val address = addressDao!!.getOrLoad(addressId)
+        val address = addressDao!!.findOrLoad(addressId)
         addressCampaignValue.address = address
     }
 

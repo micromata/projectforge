@@ -173,7 +173,7 @@ class AddressCampaignValuePagesRest :
   internal fun getAddressCampaignDO(request: HttpServletRequest): AddressCampaignDO? {
     val addressCampaignId = MultiSelectionSupport.getRegisteredData(request, AddressCampaignValuePagesRest::class.java)
     if (addressCampaignId != null && addressCampaignId is Long) {
-      return addressCampaignDao.getById(addressCampaignId)
+      return addressCampaignDao.find(addressCampaignId)
     }
     return null
   }

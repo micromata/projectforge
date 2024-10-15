@@ -293,7 +293,7 @@ public class EingangsrechnungListPage
     final RechnungFilter src = form.getSearchFilter();
     filter.setFromDate(src.getFromDate());
     filter.setToDate(src.getToDate());
-    final List<EingangsrechnungDO> rechnungen = WicketSupport.get(EingangsrechnungDao.class).getList(filter);
+    final List<EingangsrechnungDO> rechnungen = WicketSupport.get(EingangsrechnungDao.class).select(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.
       form.addError("validation.error.nothingToExport");

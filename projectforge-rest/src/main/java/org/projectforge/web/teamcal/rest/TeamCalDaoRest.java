@@ -77,11 +77,11 @@ public class TeamCalDaoRest
       filter.setMinimalAccess(false);
       filter.setReadonlyAccess(false);
     }
-    final List<TeamCalDO> list = teamCalDao.getList(filter);
+    final List<TeamCalDO> list = teamCalDao.select(filter);
     Integer[] teamCalBlackListIds = userXmlPreferencesDao
         .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getLoggedInUserId(), TeamCalDO.Companion.getTEAMCALRESTBLACKLIST(), Integer[].class);
     if(teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
-      Arrays.stream(teamCalBlackListIds).forEach(calId -> list.remove(teamCalDao.getById(calId)));
+      Arrays.stream(teamCalBlackListIds).forEach(calId -> list.remove(teamCalDao.find(calId)));
     }
     final List<CalendarObject> result = new LinkedList<>();
     if (list != null && list.size() > 0) {

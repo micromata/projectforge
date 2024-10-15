@@ -109,7 +109,7 @@ open class Favorites<T : AbstractFavorite>() {
     userPrefEntry.value = value
     @Suppress("DEPRECATION")
     userPref.addOrUpdateUserPrefEntry(userPrefEntry)
-    userPrefDao.save(userPref)
+    userPrefDao.insert(userPref)
   }
 
   fun createUserPref(userPrefDao: UserPrefDao, area: String, newFavorite: T) {
@@ -120,7 +120,7 @@ open class Favorites<T : AbstractFavorite>() {
     userPref.name = newFavorite.name
     userPref.id = newFavorite.id
     userPref.valueObject = newFavorite
-    userPrefDao.save(userPref)
+    userPrefDao.insert(userPref)
   }
 
   /**

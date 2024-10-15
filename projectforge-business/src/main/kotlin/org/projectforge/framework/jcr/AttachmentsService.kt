@@ -216,7 +216,7 @@ open class AttachmentsService {
     baseDao?.let {
       var dbObj = data
       if (dbObj == null && id is java.io.Serializable) {
-        dbObj = baseDao.getById(id, checkAccess = false)
+        dbObj = baseDao.find(id, checkAccess = false)
       }
       if (baseDao is AttachmentsEventListener) {
         baseDao.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, dbObj, ThreadLocalUserContext.loggedInUser, userString)
@@ -589,7 +589,7 @@ open class AttachmentsService {
     if (obj !is AttachmentsInfo) {
       return // Nothing to do.
     }
-    val dbObj = baseDao.getById(obj.id, checkAccess = false)
+    val dbObj = baseDao.find(obj.id, checkAccess = false)
     if (dbObj is AttachmentsInfo) {
       // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
       if (subPath != null && subPath != DEFAULT_NODE) {

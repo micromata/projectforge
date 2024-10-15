@@ -272,7 +272,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
     Collection<AddressbookDO> result = new ArrayList<>();
     if (addressbookIds != null) {
       for (Long id : addressbookIds) {
-        result.add(getAddressbookDao().getById(id, false));
+        result.add(getAddressbookDao().find(id, false));
       }
     }
     return result;
