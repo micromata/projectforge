@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.framework.utils.NumberHelper.parseShort
@@ -67,11 +68,16 @@ import java.util.stream.Collectors
 
 @Service
 open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
+    private var toBeInvoicedCounter: Int? = null
+
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
 
     @Autowired
-    private lateinit var userDao: UserDao
+    private lateinit var configurationService: ConfigurationService
+
+    @Autowired
+    private lateinit var historyService: HistoryService
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -80,19 +86,18 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     private lateinit var projektDao: ProjektDao
 
     @Autowired
-    private lateinit var sendMail: SendMail
+    private lateinit var rechnungCache: RechnungCache
 
-    private var toBeInvoicedCounter: Int? = null
+    @Autowired
+    private lateinit var sendMail: SendMail
 
     @Autowired
     private lateinit var taskDao: TaskDao
 
     @Autowired
-    private lateinit var rechnungCache: RechnungCache
+    private lateinit var userDao: UserDao
 
-    @Autowired
-    private lateinit var configurationService: ConfigurationService
-
+    // Not autowired (due to cyclic dependency).
     private lateinit var taskTree: TaskTree
 
     override val additionalHistorySearchDOs: Array<Class<*>>
@@ -284,14 +289,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun getList(filter: BaseSearchFilter): List<AuftragDO> {
-        return getList(filter, true)
-    }
-
-    private fun getList(
-        filter: BaseSearchFilter,
-        checkAccess: Boolean,
-    ): List<AuftragDO> {
+    override fun getList(filter: BaseSearchFilter, checkAccess: Boolean): List<AuftragDO> {
+        super.getList(filter, checkAccess)
         val myFilter = if (filter is AuftragFilter) {
             filter
         } else {
@@ -345,12 +344,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
         queryFilter.addOrder(desc("nummer"))
 
-        var list: List<AuftragDO>
-        if (checkAccess) {
-            list = getList(queryFilter)
-        } else {
-            list = internalGetList(queryFilter)
-        }
+        var list = getList(queryFilter, checkAccess)
 
         list = myFilter.filterFakturiert(list)
 
@@ -687,7 +681,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      */
     fun getNextNumber(auftrag: AuftragDO?): Int {
         if (auftrag?.id != null) {
-            val orig = internalGetById(auftrag.id)
+            val orig = getById(auftrag.id, checkAccess = false)
             if (orig!!.nummer != null) {
                 auftrag.nummer = orig.nummer
                 return orig.nummer!!
@@ -702,15 +696,14 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: AuftragDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(obj: AuftragDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
             for (position in obj.positionenIncludingDeleted!!) {
-                val entries: List<DisplayHistoryEntry> =
-                    internalGetDisplayHistoryEntries(position)
+                val entries = historyService.loadAndConvert(position)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -725,8 +718,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
         if (CollectionUtils.isNotEmpty(obj.paymentSchedules)) {
             for (schedule in obj.paymentSchedules!!) {
-                val entries: List<DisplayHistoryEntry> =
-                    internalGetDisplayHistoryEntries(schedule)
+                val entries = historyService.loadAndConvert(schedule)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {

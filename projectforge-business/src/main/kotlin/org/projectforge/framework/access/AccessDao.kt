@@ -27,6 +27,7 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.From
 import jakarta.persistence.criteria.JoinType
 import org.hibernate.Hibernate
+import org.jetbrains.kotlin.builtins.StandardNames.FqNames.list
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
@@ -87,8 +88,11 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
      *
      * @return
      */
-    override fun internalLoadAll(): List<GroupTaskAccessDO> {
-        return persistenceService.runReadOnly { context ->
+    override fun loadAll(checkAccess: Boolean): List<GroupTaskAccessDO> {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        val list = persistenceService.runReadOnly { context ->
             val em = context.em
             val cb: CriteriaBuilder = em.criteriaBuilder
             val cr = cb.createQuery(GroupTaskAccessDO::class.java)
@@ -104,6 +108,8 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
                 .distinct(true)
             em.createQuery(cr).resultList
         }
+        return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
+
         // from GroupTaskAccessDO g join fetch g.accessEntries where deleted=false order by g.task.id, g.group.id");
     }
 

@@ -33,6 +33,7 @@ import org.projectforge.common.mgc.MGCClassUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
+import org.projectforge.framework.persistence.api.BaseDOPersistenceService.ResultObject
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getClassInfo
@@ -48,7 +49,6 @@ import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.util.*
-import java.util.stream.Collectors
 
 private val log = KotlinLogging.logger {}
 
@@ -86,6 +86,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
 
     @Autowired
     lateinit var accessChecker: AccessChecker
+
+    @Autowired
+    protected lateinit var baseDOPersistenceService: BaseDOPersistenceService
 
     @Autowired
     protected lateinit var dbQuery: DBQuery
@@ -162,27 +165,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     abstract fun newInstance(): O
 
     /**
-     * getOrLoad checks first weather the id is valid or not. Default implementation: id != 0 && id &gt; 0. Overload this,
-     * if the id of the DO can be 0 for example.
-     */
-    protected open fun isIdValid(id: Long?): Boolean {
-        return (id != null && id > 0)
-    }
-
-    /**
      * If the user has select access then the object will be returned. If not, the hibernate proxy object will be get via
      * [jakarta.persistence.EntityManager.getReference] and returned. If the object is not found, null will be returned.
      */
-    fun getOrLoad(id: Long?): O? {
-        if (!isIdValid(id)) {
-            return null
-        }
-        val obj = internalGetById(id)
-        if (obj == null) {
-            log.error("Can't load object of type " + doClass.name + ". Object with given id #" + id + " not found.")
-            return null
-        }
-        if (hasLoggedInUserSelectAccess(obj, false)) {
+    @JvmOverloads
+    fun getOrLoad(id: Long?, checkAccess: Boolean = true): O? {
+        val obj = findById(id) ?: return null
+        if (!checkAccess || hasLoggedInUserSelectAccess(obj, false)) {
+            afterLoad(obj)
             return obj
         }
         return persistenceService.runReadOnly { context ->
@@ -190,12 +180,41 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         }
     }
 
-    fun internalLoadAllNotDeleted(): List<O> {
-        return internalLoadAll().stream().filter { o: O -> !o.deleted }.collect(Collectors.toList())
+    /**
+     * @param id primary key of the base object.
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    open fun getById(id: Serializable?, checkAccess: Boolean = true): O? {
+        val obj = findById(id) ?: return null
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess(obj)
+        }
+        afterLoad(obj)
+        return obj
     }
 
-    open fun internalLoadAll(): List<O> {
-        return persistenceService.runReadOnly { context ->
+    private fun findById(id: Serializable?): O? {
+        id ?: return null
+        val obj = persistenceService.selectById(doClass, id)
+        if (obj == null) {
+            log.error { "Can't load object of type ${doClass.name}. Object with given id #$id not found." }
+            return null
+        }
+        return obj
+    }
+
+    @JvmOverloads
+    fun loadAllNotDeleted(checkAccess: Boolean = true): List<O> {
+        return loadAll(checkAccess).filter { !it.deleted }
+    }
+
+    @JvmOverloads
+    open fun loadAll(checkAccess: Boolean = true): List<O> {
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        val list = persistenceService.runReadOnly { context ->
             val em = context.em
             // Native query: doClass.simpleName doesn't match the table name in the database.
             // val query = em.createNativeQuery("SELECT * FROM ${doClass.simpleName}", doClass)
@@ -207,27 +226,24 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             val query = cq.select(cq.from(doClass))
             em.createQuery(query).resultList
         }
+        return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 
-    fun internalLoad(idList: Collection<Serializable>?): List<O>? {
+    fun load(idList: Collection<Serializable>?, checkAccess: Boolean = true): List<O>? {
         if (idList == null) {
             return null
         }
-        return persistenceService.runReadOnly { context ->
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        val list = persistenceService.runReadOnly { context ->
             val em = context.em
             val cr = em.criteriaBuilder.createQuery(doClass)
             val root = cr.from(doClass)
             cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
             em.createQuery(cr).resultList
         }
-    }
-
-    fun getListByIds(idList: Collection<Serializable>?): List<O>? {
-        if (idList.isNullOrEmpty()) {
-            return null
-        }
-        val list = internalLoad(idList)
-        return extractEntriesWithSelectAccess(list!!)
+        return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 
     /**
@@ -236,8 +252,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      * @see .getList
      */
-    open fun getListForSearchDao(filter: BaseSearchFilter): List<O> {
-        return getList(filter)
+    @JvmOverloads
+    open fun getListForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean = true): List<O> {
+        return getList(filter, checkAccess)
     }
 
     /**
@@ -247,8 +264,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return A list of found entries or empty list. PLEASE NOTE: Returns null only if any error occured.
      */
     override fun getList(filter: BaseSearchFilter): List<O> {
+        return getList(filter, true)
+    }
+
+    open fun getList(filter: BaseSearchFilter, checkAccess: Boolean = true): List<O> {
         val queryFilter = createQueryFilter(filter)
-        return getList(queryFilter)
+        return getList(queryFilter, checkAccess)
     }
 
     open fun createQueryFilter(filter: BaseSearchFilter?): QueryFilter {
@@ -259,27 +280,27 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Gets the list filtered by the given filter.
      */
     @Throws(AccessException::class)
-    open fun getList(filter: QueryFilter): List<O> {
-        return getList(filter, null)
+    @JvmOverloads
+    open fun getList(filter: QueryFilter, checkAccess: Boolean = true): List<O> {
+        return getList(filter, null, checkAccess)
     }
 
     /**
      * Gets the list filtered by the given filter.
      */
     @Throws(AccessException::class)
+    @JvmOverloads
     open fun getList(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<O>>?,
+        checkAccess: Boolean = true,
     ): List<O> {
-        return dbQuery.getList(this, filter, customResultFilters, true)
-    }
-
-    /**
-     * Gets the list filtered by the given filter.
-     */
-    @Throws(AccessException::class)
-    fun internalGetList(filter: QueryFilter): List<O> {
-        return dbQuery.getList(this, filter, null, false)
+        if (checkAccess) {
+            checkLoggedInUserSelectAccess()
+        }
+        val list = dbQuery.getList(this, filter, customResultFilters, checkAccess)
+        list.forEach { afterLoad(it) }
+        return list
     }
 
     /**
@@ -304,19 +325,18 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
 
 
     /**
-     * @return A distinct list.
+     * Filter the given list by calling hasSelectAccess for every object in the list. If checkAccess is false, the list
+     * will be returned without any filtering. If callAfterLoad is true, afterLoad will be called for every object in the
+     * list.
      */
-    protected fun selectUnique(list: List<O>?): List<O> {
-        return list?.distinct() ?: emptyList()
-    }
-
-    fun extractEntriesWithSelectAccess(origList: List<O>): List<O> {
-        val result = mutableListOf<O>()
-        for (obj in origList) {
-            if (hasSelectAccess(obj, requiredLoggedInUser)) {
-                result.add(obj)
-                afterLoad(obj)
-            }
+    protected fun filterAccess(origList: List<O>, checkAccess: Boolean, callAfterLoad: Boolean): List<O> {
+        val result = if (checkAccess) {
+            origList.filter { hasSelectAccess(it, requiredLoggedInUser) }
+        } else {
+            origList
+        }
+        if (callAfterLoad) {
+            result.forEach { afterLoad(it) }
         }
         return result
     }
@@ -332,102 +352,37 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     /**
-     * Overwrite this method for own list sorting. This method returns only the given list.
-     */
-    open fun sorted(list: List<O>): List<O> {
-        return list
-    }
-
-    /**
-     * @param id primary key of the base object.
-     */
-    @Throws(AccessException::class)
-    open fun getById(id: Serializable?): O? {
-        id ?: return null
-        accessChecker.checkRestrictedUser()
-        checkLoggedInUserSelectAccess()
-        val obj = internalGetById(id) ?: return null
-        checkLoggedInUserSelectAccess(obj)
-        return obj
-    }
-
-    open fun internalGetById(id: Serializable?): O? {
-        if (id == null) {
-            return null
-        }
-        val obj = persistenceService.selectSingleResult(
-            "select t from ${doClass.name} t where t.id = :id",
-            doClass,
-            Pair("id", id),
-        ) ?: return null
-        afterLoad(obj)
-        return obj
-    }
-
-    /**
      * Gets the history entries of the object.
      */
-    fun getHistoryEntries(obj: O): List<HistoryEntry> {
-        accessChecker.checkRestrictedUser()
-        checkLoggedInUserHistoryAccess(obj)
-        return internalGetHistoryEntries(obj)
-    }
-
-    fun internalGetHistoryEntries(obj: BaseDO<Long>): List<HistoryEntry> {
-        accessChecker.checkRestrictedUser()
+    @JvmOverloads
+    fun getHistoryEntries(obj: O, checkAccess: Boolean = true): List<HistoryEntry> {
+        if (checkAccess) {
+            checkLoggedInUserHistoryAccess(obj)
+        }
         return historyService.loadHistory(obj)
     }
 
     /**
-     * Will create a new EntityManager.
      * Gets the history entries of the object in flat format.<br></br>
      * Please note: If user has no access an empty list will be returned.
      */
-    open fun getDisplayHistoryEntries(obj: O): MutableList<DisplayHistoryEntry> {
+    @JvmOverloads
+    open fun getDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
-        return internalGetDisplayHistoryEntries(obj)
-    }
-
-    protected fun internalGetDisplayHistoryEntries(
-        obj: BaseDO<Long>,
-    ): MutableList<DisplayHistoryEntry> {
-        accessChecker.checkRestrictedUser()
-        val entries = internalGetHistoryEntries(obj)
-        val list = mutableListOf<DisplayHistoryEntry>()
-        entries.forEach { entry ->
-            val displayEntries = convert(entry)
-            mergeList(list, displayEntries)
-        }
-        return list
+        return historyService.loadAndConvert(baseDO = obj) { entry -> convert(entry) }
     }
 
     /**
      * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
      */
-    fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
-        for (entry in entries) {
-            if (list.none { it.historyEntryId == entry.historyEntryId && it.attributeId == entry.attributeId }) {
-                list.add(entry)
-            }
-        }
+    protected fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
+        historyService.mergeList(list, entries)
     }
 
     open fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
-        entry.attributes.let { attributes ->
-            if (attributes.isNullOrEmpty()) {
-                return listOf(DisplayHistoryEntry(entry))
-            }
-            val result = mutableListOf<DisplayHistoryEntry>()
-            attributes.forEach { attr ->
-                val se = DisplayHistoryEntry(entry, attr)
-                se.initialize(DisplayHistoryEntry.Context(entry.entityName, se))
-                result.add(se)
-            }
-
-            return result
-        }
+        return historyService.convertToDisplayHistoryEntry(entry)
     }
 
     /**
@@ -435,25 +390,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return the generated identifier, if save method is used, otherwise null.
      */
     @Throws(AccessException::class)
-    fun saveOrUpdate(obj: O): Serializable? {
+    @JvmOverloads
+    open fun saveOrUpdate(obj: O, checkAccess: Boolean = true): Serializable? {
         var id: Serializable? = null
         if (obj.id != null && obj.created != null) { // obj.created is needed for KundeDO (id isn't null for inserting new customers).
-            update(obj)
+            update(obj, checkAccess = checkAccess)
         } else {
-            id = save(obj)
-        }
-        return id
-    }
-
-    /**
-     * @return the generated identifier, if save method is used, otherwise null.
-     */
-    open fun internalSaveOrUpdate(obj: O): Serializable? {
-        var id: Serializable? = null
-        if (obj.id != null) {
-            internalUpdate(obj)
-        } else {
-            id = internalSave(obj)
+            id = save(obj, checkAccess = checkAccess)
         }
         return id
     }
@@ -462,10 +405,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Call save(O) for every object in the given list.
      */
     @Throws(AccessException::class)
-    fun save(objects: List<O>) {
+    @JvmOverloads
+    fun save(objects: List<O>, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { _ ->
             for (obj in objects) {
-                save(obj)
+                save(obj, checkAccess)
             }
         }
     }
@@ -474,23 +418,32 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @return the generated identifier.
      */
     @Throws(AccessException::class)
-    fun save(obj: O): Long {
+    @JvmOverloads
+    fun save(obj: O, checkAccess: Boolean = true): Long {
         //long begin = System.currentTimeMillis();
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        beforeSaveOrModify(obj)
-        checkLoggedInUserInsertAccess(obj)
-        val result = internalSave(obj)
-        //long end = System.currentTimeMillis();
-        //log.info("BaseDao.save took: " + (end - begin) + " ms.");
+        val result = persistenceService.runInTransaction { context ->
+            beforeSaveOrModify(obj)
+            if (checkAccess) {
+                checkLoggedInUserInsertAccess(obj)
+            }
+            onSave(obj)
+            onSaveOrModify(obj)
+            val result = baseDOPersistenceService.save(this, obj)
+            afterSaveOrModify(obj)
+            afterSave(obj)
+            result
+        }
         return result!!
     }
 
     @Throws(AccessException::class)
-    fun insert(obj: O): Long {
-        return save(obj)
+    @JvmOverloads
+    fun insert(obj: O, checkAccess: Boolean = true): Long {
+        return save(obj, checkAccess)
     }
 
     /**
@@ -557,7 +510,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @param isModified is true if the object was changed, false if the object wasn't modified.
      */
     open fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean) {
-        callObjectChangedListeners(obj, OperationType.UPDATE)
+        afterUpdate(obj, dbObj)
     }
 
     /**
@@ -602,26 +555,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         }
     }
 
-    /**
-     * This method is for internal use e. g. for updating objects without check access.
-     *
-     * @return the generated identifier.
-     */
-    open fun internalSave(obj: O): Long? {
-        return persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalSave(this, obj, context)
-        }
-    }
-
-    fun saveOrUpdate(col: Collection<O>) {
+    @JvmOverloads
+    fun saveOrUpdate(col: Collection<O>, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { _ ->
             for (obj in col) {
-                saveOrUpdate(obj)
+                saveOrUpdate(obj, checkAccess)
             }
         }
     }
 
-    fun saveOrUpdate(col: Collection<O>, blockSize: Int) {
+    fun saveOrUpdate(col: Collection<O>, blockSize: Int, checkAccess: Boolean = true) {
         persistenceService.runInTransaction { context ->
             val list = mutableListOf<O>()
             var counter = 0
@@ -629,35 +572,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
                 list.add(obj)
                 if (++counter >= blockSize) {
                     counter = 0
-                    saveOrUpdate(list)
+                    saveOrUpdate(list, checkAccess)
                     context.flush()
                     list.clear()
                 }
             }
-            saveOrUpdate(list)
-        }
-    }
-
-    /**
-     * Bulk update.
-     *
-     * @param col Entries to save or update without check access.
-     */
-    fun internalSaveOrUpdate(col: Collection<O>) {
-        persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalSaveOrUpdate(this, col, context)
-        }
-    }
-
-    /**
-     * Bulk update.
-     *
-     * @param col       Entries to save or update without check access.
-     * @param blockSize The block size of commit blocks.
-     */
-    fun internalSaveOrUpdate(col: Collection<O>, blockSize: Int) {
-        persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalSaveOrUpdate(this, col, blockSize, context)
+            saveOrUpdate(list, checkAccess)
         }
     }
 
@@ -666,52 +586,52 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * @see .internalUpdate
      */
     @Throws(AccessException::class)
-    fun update(obj: O): EntityCopyStatus {
+    @JvmOverloads
+    fun update(obj: O, checkAccess: Boolean = true): EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not update object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        return internalUpdate(obj, true)!!
-    }
-
-    /**
-     * Thin wrapper for generic usage.
-     *
-     * @return true, if modifications were done, false if no modification detected.
-     * @see .internalUpdate
-     */
-    @Throws(AccessException::class)
-    fun updateAny(obj: Any): EntityCopyStatus {
-        @Suppress("UNCHECKED_CAST")
-        return update(obj as O)
-    }
-
-    /**
-     * Thin wrapper for generic usage.
-     *
-     * @return true, if modifications were done, false if no modification detected.
-     * @see .internalUpdate
-     */
-    @Throws(AccessException::class)
-    fun internalUpdateAny(obj: Any): EntityCopyStatus? {
-        @Suppress("UNCHECKED_CAST")
-        return internalUpdate(obj as O)
-    }
-
-    /**
-     * This method is for internal use e. g. for updating objects without check access.<br></br>
-     * Please note: update ignores the field deleted. Use markAsDeleted, delete and undelete methods instead.
-     *
-     * @param checkAccess If false, any access check will be ignored.
-     * @return true, if modifications were done, false if no modification detected.
-     */
-    @JvmOverloads
-    open fun internalUpdate(obj: O, checkAccess: Boolean = false): EntityCopyStatus? {
         return persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalUpdate(this, obj, checkAccess, context)
+            val em = context.em
+            beforeSaveOrModify(obj)
+            accessChecker.checkRestrictedOrDemoUser()
+            val dbObj = em.find(doClass, obj.id)
+            if (checkAccess) {
+                checkLoggedInUserUpdateAccess(obj, dbObj)
+            }
+            onSaveOrModify(obj)
+            onChange(obj, dbObj)
+            val res = ResultObject<O>()
+            res.modStatus = baseDOPersistenceService.update(this, obj, checkAccess, dbObj)
+            afterSaveOrModify(obj)
+            if (supportAfterUpdate) {
+                afterUpdate(obj, res.dbObjBackup, isModified = res.modStatus != EntityCopyStatus.NONE)
+                afterUpdate(obj, res.dbObjBackup)
+            } else {
+                afterUpdate(obj, null, res.modStatus != EntityCopyStatus.NONE)
+                afterUpdate(obj, null)
+            }
+            if (res.wantsReindexAllDependentObjects) {
+                reindexDependentObjects(obj)
+            }
+            res.modStatus!!
         }
+    }
+
+    /**
+     * Thin wrapper for generic usage.
+     *
+     * @return true, if modifications were done, false if no modification detected.
+     * @see .internalUpdate
+     */
+    @Throws(AccessException::class)
+    @JvmOverloads
+    fun updateAny(obj: Any, checkAccess: Boolean = true): EntityCopyStatus {
+        @Suppress("UNCHECKED_CAST")
+        return update(obj as O, checkAccess)
     }
 
     /**
@@ -744,7 +664,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be marked as deleted (boolean flag), therefore undelete is always possible without any loss of data.
      */
     @Throws(AccessException::class)
-    fun markAsDeleted(obj: O) {
+    @JvmOverloads
+    open fun markAsDeleted(obj: O, checkAccess: Boolean = true) {
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
             log.error(msg)
@@ -753,14 +674,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         accessChecker.checkRestrictedOrDemoUser()
         persistenceService.runInTransaction { context ->
             val dbObj = context.selectById(doClass, obj.id)!!
-            checkLoggedInUserDeleteAccess(obj, dbObj)
-            internalMarkAsDeleted(obj)
-        }
-    }
-
-    open fun internalMarkAsDeleted(obj: O) {
-        persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalMarkAsDeleted(this, obj, context)
+            if (checkAccess) {
+                checkLoggedInUserDeleteAccess(obj, dbObj)
+            }
+            baseDOPersistenceService.markAsDeleted(this, obj)
         }
     }
 
@@ -769,7 +686,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * privacy protection rules.
      */
     @Throws(AccessException::class)
-    fun forceDelete(obj: O) {
+    @JvmOverloads
+    fun forceDelete(obj: O, checkAccess: Boolean = true) {
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
             log.error(msg)
@@ -782,14 +700,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
                 log.error("Oups, can't delete $doClass #${obj.id}, because database object doesn't exist.")
                 return@runInTransaction
             }
-            checkLoggedInUserDeleteAccess(obj, dbObj)
-            internalForceDelete(obj)
-        }
-    }
-
-    fun internalForceDelete(obj: O) {
-        persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalForceDelete(this, obj, context, historyService)
+            if (checkAccess) {
+                checkLoggedInUserDeleteAccess(obj, dbObj)
+            }
+            baseDOPersistenceService.forceDelete(this, obj)
         }
     }
 
@@ -797,16 +711,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be deleted finally out of the data base.
      */
     @Throws(AccessException::class)
-    fun delete(obj: O) {
+    @JvmOverloads
+    fun delete(obj: O, checkAccess: Boolean = true) {
         accessChecker.checkRestrictedOrDemoUser()
-        internalDelete(obj)
-    }
-
-    /**
-     * Object will be deleted finally out of the data base.
-     */
-    @Throws(AccessException::class)
-    fun internalDelete(obj: O) {
         if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
             val msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString()
             log.error(msg)
@@ -821,7 +728,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             onDelete(obj)
             val dbObj = context.selectById(doClass, obj.id, attached = true)
             if (dbObj != null) {
-                checkLoggedInUserDeleteAccess(obj, dbObj)
+                if (checkAccess) {
+                    checkLoggedInUserDeleteAccess(obj, dbObj)
+                }
                 context.em.remove(dbObj)
                 if (logDatabaseActions) {
                     log.info(doClass.simpleName + " deleted: " + obj.toString())
@@ -838,20 +747,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      * Object will be marked as deleted (booelan flag), therefore undelete is always possible without any loss of data.
      */
     @Throws(AccessException::class)
-    open fun undelete(obj: O) {
+    @JvmOverloads
+    open fun undelete(obj: O, checkAccess: Boolean = true) {
         if (obj.id == null) {
             val msg = "Could not undelete object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        checkLoggedInUserInsertAccess(obj)
-        internalUndelete(obj)
-    }
-
-    open fun internalUndelete(obj: O) {
+        if (checkAccess) {
+            checkLoggedInUserInsertAccess(obj)
+        }
         persistenceService.runInTransaction { context ->
-            BaseDaoSupport.internalUndelete(this, obj, context)
+            baseDOPersistenceService.undelete(this, obj)
         }
     }
 

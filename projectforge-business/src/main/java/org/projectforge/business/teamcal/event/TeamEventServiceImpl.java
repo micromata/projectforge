@@ -126,7 +126,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     @Override
     public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee() {
         List<TeamEventAttendeeDO> resultList = new ArrayList<>();
-        List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted();
+        List<AddressDO> allAddressList = addressDao.loadAllNotDeleted(false);
         List<PFUserDO> allUserList = userService.getAllActiveUsers();
         Set<Long> addedUserIds = new HashSet<>();
         for (AddressDO singleAddress : allAddressList) {
@@ -156,7 +156,7 @@ public class TeamEventServiceImpl implements TeamEventService {
 
     @Override
     public TeamEventAttendeeDO getAttendee(Long attendeeId) {
-        return teamEventAttendeeDao.internalGetById(attendeeId);
+        return teamEventAttendeeDao.getById(attendeeId, false);
     }
 
     @Override
@@ -169,14 +169,14 @@ public class TeamEventServiceImpl implements TeamEventService {
                                 assignAttendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                             }
                             data.addAttendee(assignAttendee);
-                            teamEventAttendeeDao.internalSave(assignAttendee);
+                            teamEventAttendeeDao.save(assignAttendee, false);
                         }
                     }
 
                     if (data.getAttendees() != null && itemsToUnassign != null && itemsToUnassign.size() > 0) {
                         data.getAttendees().removeAll(itemsToUnassign);
                         for (TeamEventAttendeeDO deleteAttendee : itemsToUnassign) {
-                            teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee);
+                            teamEventAttendeeDao.markAsDeleted(deleteAttendee, false);
                         }
                     }
 
@@ -195,7 +195,7 @@ public class TeamEventServiceImpl implements TeamEventService {
             if (attendeesNewState == null || attendeesNewState.isEmpty()) {
                 if (attendeesOldState != null && !attendeesOldState.isEmpty()) {
                     for (TeamEventAttendeeDO attendee : attendeesOldState) {
-                        teamEventAttendeeDao.internalMarkAsDeleted(attendee);
+                        teamEventAttendeeDao.markAsDeleted(attendee, false);
                     }
                 }
 
@@ -211,7 +211,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                         attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                     }
 
-                    teamEventAttendeeDao.internalSave(attendee);
+                    teamEventAttendeeDao.save(attendee, false);
                 }
 
                 return null;
@@ -242,7 +242,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                         attendee.setAddress(attendeeOld.getAddress());
                         attendee.setUser(attendeeOld.getUser());
 
-                        teamEventAttendeeDao.internalSave(attendee);
+                        teamEventAttendeeDao.save(attendee, false);
 
                         break;
                     }
@@ -254,7 +254,7 @@ public class TeamEventServiceImpl implements TeamEventService {
                     if (attendee.getStatus() == null) {
                         attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
                     }
-                    teamEventAttendeeDao.internalSave(attendee);
+                    teamEventAttendeeDao.save(attendee, false);
                 }
             }
 
@@ -273,7 +273,7 @@ public class TeamEventServiceImpl implements TeamEventService {
 
                 if (!found) {
                     // delete attendee
-                    teamEventAttendeeDao.internalMarkAsDeleted(attendee);
+                    teamEventAttendeeDao.markAsDeleted(attendee, false);
                 }
             }
             return null;
@@ -612,11 +612,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     @Override
     public TeamEventAttendeeDO findByAttendeeId(Long attendeeId, boolean checkAccess) {
         TeamEventAttendeeDO result = null;
-        if (checkAccess) {
-            result = teamEventAttendeeDao.getById(attendeeId);
-        } else {
-            result = teamEventAttendeeDao.internalGetById(attendeeId);
-        }
+        result = teamEventAttendeeDao.getById(attendeeId, checkAccess);
         return result;
     }
 
@@ -632,7 +628,7 @@ public class TeamEventServiceImpl implements TeamEventService {
 
     @Override
     public void update(TeamEventDO event, boolean checkAccess) {
-        teamEventDao.internalUpdate(event, checkAccess);
+        teamEventDao.update(event, checkAccess);
     }
 
     @Override
@@ -676,12 +672,8 @@ public class TeamEventServiceImpl implements TeamEventService {
     }
 
     @Override
-    public void updateAttendee(TeamEventAttendeeDO attendee, boolean accesscheck) {
-        if (accesscheck) {
-            teamEventAttendeeDao.update(attendee);
-        } else {
-            teamEventAttendeeDao.internalUpdate(attendee);
-        }
+    public void updateAttendee(TeamEventAttendeeDO attendee, boolean checkAccess) {
+        teamEventAttendeeDao.update(attendee, checkAccess);
     }
 
     @Override

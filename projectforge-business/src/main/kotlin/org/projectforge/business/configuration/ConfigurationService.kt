@@ -389,7 +389,7 @@ open class ConfigurationService {
   }
 
   open fun daoInternalLoadAll(): List<ConfigurationDO> {
-    return configDao.internalLoadAll()
+    return configDao.loadAll(checkAccess = false)
   }
 
   open val timezone: TimeZone?

@@ -110,13 +110,13 @@ internal class My2FABruteForceProtection {
             data.lastFailedTry = System.currentTimeMillis()
         }
         if (counter >= MAX_RETRIES_BEFORE_DEACTIVATING_USER) {
-            val user = userDao.internalGetById(userId)
+            val user = userDao.getById(userId, checkAccess = false)
             if (user == null) {
                 log.error { "Internal error: Oups, user with id $userId not found in the data base. Can't deactivate user!!!!" }
             } else {
                 user.deactivated = true
                 log.warn { "Deactivating user '${user.username}' after $MAX_RETRIES_BEFORE_DEACTIVATING_USER OTP failures." }
-                userDao.internalUpdate(user)
+                userDao.update(user, checkAccess = false)
             }
         }
     }

@@ -41,7 +41,7 @@ abstract class AbstractScriptDao : BaseDao<ScriptDO>(ScriptDO::class.java) {
      */
     open fun loadByNameOrId(name: String): ScriptDO? {
         name.toIntOrNull()?.let { id ->
-            return internalGetById(id)
+            return getById(id, checkAccess = false)
         }
         return persistenceService.selectNamedSingleResult(
             ScriptDO.SELECT_BY_NAME,

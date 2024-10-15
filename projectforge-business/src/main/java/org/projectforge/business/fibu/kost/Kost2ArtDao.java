@@ -59,16 +59,6 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO> {
         return getList(queryFilter);
     }
 
-    /**
-     * id != null && id &gt;= null;
-     *
-     * @see org.projectforge.framework.persistence.api.BaseDao#isIdValid(java.lang.Long)
-     */
-    @Override
-    protected boolean isIdValid(final Long id) {
-        return (id != null && id >= 0);
-    }
-
     @Override
     public Kost2ArtDO newInstance() {
         return new Kost2ArtDO();

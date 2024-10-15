@@ -99,7 +99,7 @@ class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
     val filter = QueryFilter()
     filter.add(QueryFilter.isNotNull("birthday"))
     filter.deleted = false
-    val addressList = addressDao.internalGetList(filter)
+    val addressList = addressDao.getList(filter, checkAccess = false)
     val newList = mutableListOf<BirthdayAddress>()
     addressList.forEach {
       if (it.deleted != true) { // deleted shouldn't occur, already filtered above.

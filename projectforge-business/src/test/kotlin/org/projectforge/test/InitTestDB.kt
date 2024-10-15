@@ -53,7 +53,6 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.DateHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.io.Serializable
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -140,7 +139,7 @@ class InitTestDB {
             userService.save(user) // Save user without rights
             savedSet.forEach { right ->
                 // Now, save the rights.
-                userRightDao.internalSave(right)
+                userRightDao.save(right, checkAccess = false)
             }
         }
         putUser(user)
@@ -166,7 +165,7 @@ class InitTestDB {
         val group = GroupDO()
         group.name = groupname
         group.assignedUsers = usernames.mapNotNull { username -> getUser(username) }.toMutableSet()
-        groupDao.internalSave(group)
+        groupDao.save(group, checkAccess = false)
         putGroup(group)
         userGroupCache.setExpired()
         return group
@@ -198,9 +197,9 @@ class InitTestDB {
         if (shortDescription != null) {
             task.shortDescription = shortDescription
         }
-        val id: Serializable? = taskDao.internalSave(task)
+        val id = taskDao.save(task, checkAccess = false)
         // Test if the task is saved correctly:
-        taskDao.internalGetById(id).let { savedTask ->
+        taskDao.getById(id, checkAccess = false).let { savedTask ->
             requireNotNull(savedTask)
             putTask(savedTask)
             return savedTask
@@ -221,7 +220,7 @@ class InitTestDB {
         timesheet.stopTime = stopTime
         timesheet.task = task
         timesheet.user = user
-        timesheetDao.internalSave(timesheet)
+        timesheetDao.save(timesheet, checkAccess = false)
         return timesheet
     }
 
@@ -279,14 +278,14 @@ class InitTestDB {
         val user = addUser(AbstractTestBase.TEST_EMPLOYEE_USER, AbstractTestBase.TEST_EMPLOYEE_USER_PASSWORD)
         val e = EmployeeDO()
         e.user = user
-        employeeDao.internalSave(e)
+        employeeDao.save(e, checkAccess = false)
     }
 
     private fun initConfiguration() {
         configurationDao.checkAndUpdateDatabaseEntries()
         val entry = configurationDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE)
         entry.timeZone = DateHelper.EUROPE_BERLIN
-        configurationDao.internalUpdate(entry)
+        configurationDao.update(entry, checkAccess = false)
     }
 
     private fun initUsers() {
@@ -330,7 +329,7 @@ class InitTestDB {
         addUser(AbstractTestBase.TEST_USER, AbstractTestBase.TEST_USER_PASSWORD)
         addUser(AbstractTestBase.TEST_USER2)
         user = addUser(AbstractTestBase.TEST_DELETED_USER, AbstractTestBase.TEST_DELETED_USER_PASSWORD)
-        userService.markAsDeleted(user)
+        userService.markAsDeleted(user, false)
         addUser("user1")
         addUser("user2")
         addUser("user3")
@@ -392,7 +391,7 @@ class InitTestDB {
         val kost2Art = Kost2ArtDO()
         kost2Art.id = id
         kost2Art.name = name
-        kost2ArtDao.internalSave(kost2Art)
+        kost2ArtDao.save(kost2Art, checkAccess = false)
     }
 
     private fun initTaskTree() {
@@ -423,7 +422,7 @@ class InitTestDB {
         val access = GroupTaskAccessDO()
         access.group = group
         access.task = task
-        accessDao.internalSave(access)
+        accessDao.save(access, checkAccess = false)
         return access
     }
 
@@ -434,7 +433,7 @@ class InitTestDB {
         val access = createGroupTaskAccess(group, task)
         val entry = access.ensureAndGetAccessEntry(accessType)
         entry.setAccess(accessSelect, accessInsert, accessUpdate, accessDelete)
-        accessDao.internalUpdate(access)
+        accessDao.update(access, checkAccess = false)
         return access
     }
 
@@ -443,7 +442,7 @@ class InitTestDB {
             val access = createGroupTaskAccess(getGroup("group1"), getTask("1"))
             val entry = access.ensureAndGetAccessEntry(AccessType.TASKS)
             entry.setAccess(true, true, true, true)
-            accessDao.internalUpdate(access)
+            accessDao.update(access, checkAccess = false)
         }
         // Access entries must be saved (flushed) before adding tasks.
         persistenceService.runInTransaction { context ->
@@ -491,6 +490,6 @@ class InitTestDB {
         entry.setAccess(selectAccess, insertAccess, updateAccess, deleteAccess)
         entry = access.ensureAndGetAccessEntry(AccessType.OWN_TIMESHEETS)
         entry.setAccess(selectAccess, insertAccess, updateAccess, deleteAccess)
-        accessDao.internalUpdate(access)
+        accessDao.update(access, checkAccess = false)
     }
 }

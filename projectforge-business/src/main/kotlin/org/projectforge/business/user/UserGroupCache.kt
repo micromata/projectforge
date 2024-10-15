@@ -454,7 +454,7 @@ open class UserGroupCache : AbstractCache() {
             this.userMap = uMap
             this.groupMap = gMap
             val nEmployeeMap = mutableMapOf<Long?, EmployeeDO>()
-            employeeDao.internalLoadAll().forEach { employeeDO ->
+            employeeDao.loadAll(checkAccess = false).forEach { employeeDO ->
                 nEmployeeMap[employeeDO.userId] = employeeDO
                 employeeDao.setEmployeeStatus(employeeDO)
             }

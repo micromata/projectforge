@@ -139,10 +139,10 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         }
 
     val globalAddressbook: AddressbookDO
-        get() = internalGetById(GLOBAL_ADDRESSBOOK_ID)!!
+        get() = globalAddressbookOrNull!!
 
     val globalAddressbookOrNull: AddressbookDO?
-        get() = internalGetById(GLOBAL_ADDRESSBOOK_ID)
+        get() = getById(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
 
     /**
      * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
@@ -200,10 +200,8 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return userService!!.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun getDisplayHistoryEntries(
-        obj: AddressbookDO,
-    ): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(obj: AddressbookDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, checkAccess)
         if (CollectionUtils.isEmpty(list)) {
             return list
         }

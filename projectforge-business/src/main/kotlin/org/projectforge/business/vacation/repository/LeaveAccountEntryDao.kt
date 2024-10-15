@@ -71,12 +71,13 @@ open class LeaveAccountEntryDao : BaseDao<LeaveAccountEntryDO>(LeaveAccountEntry
     override fun getList(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<LeaveAccountEntryDO>>?,
+        checkAccess: Boolean,
     ): List<LeaveAccountEntryDO> {
         if (filter.sortProperties.isEmpty()) {
             filter.addOrder(desc("date"))
             filter.addOrder(asc("employee.user.firstname"))
         }
-        return super.getList(filter, customResultFilters)
+        return super.getList(filter, customResultFilters, checkAccess)
     }
 
     override fun hasAccess(

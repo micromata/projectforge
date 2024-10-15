@@ -168,7 +168,7 @@ public class UserService {
 
     public List<PFUserDO> getAllUsers() {
         try {
-            return userDao.internalLoadAll();
+            return userDao.loadAll(false);
         } catch (final Exception ex) {
             log.error("******* Exception while getting users from data-base (OK only in case of migration from older versions): " + ex.getMessage(), ex);
             return new ArrayList<>();
@@ -222,7 +222,7 @@ public class UserService {
                 Validate.notNull(userId);
                 Validate.isTrue(oldPassword.length > 0);
                 Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own password-");
-                final PFUserDO user = userDao.internalGetById(userId);
+                final PFUserDO user = userDao.getById(userId, false);
                 final PFUserDO userCheck = getUser(user.getUsername(), oldPassword, false);
                 if (userCheck == null) {
                     return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
@@ -249,7 +249,7 @@ public class UserService {
                 Validate.notNull(userId);
                 Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
                 accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-                final PFUserDO user = userDao.internalGetById(userId);
+                final PFUserDO user = userDao.getById(userId, false);
                 return doPasswordChange(user, null, newPassword);
             });
         } finally {
@@ -266,7 +266,7 @@ public class UserService {
         }
         encryptAndSavePassword(user, newPassword);
         onPasswordChange(user);
-        userDao.internalUpdate(user);
+        userDao.update(user, false);
         Login.getInstance().passwordChanged(user, newPassword);
         log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
         return Collections.emptyList();
@@ -292,11 +292,11 @@ public class UserService {
                 return errorMsgKeys;
             }
             persistenceService.runInTransaction(context -> {
-                final PFUserDO user = userDao.internalGetById(userId);
+                final PFUserDO user = userDao.getById(userId, false);
                 ThreadLocalUserContext.setUser(user);
                 encryptAndSavePassword(user, newPassword);
                 onPasswordChange(user);
-                userDao.internalUpdate(user);
+                userDao.update(user, false);
                 Login.getInstance().passwordChanged(user, newPassword);
                 log.info("Password changed for user: " + user.getId() + " - " + user.getUsername());
                 return null;
@@ -321,7 +321,7 @@ public class UserService {
             Validate.notNull(userId);
             Validate.isTrue(loginPassword.length > 0);
             Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own Wlan/Samba password-");
-            final PFUserDO user = userDao.internalGetById(userId);
+            final PFUserDO user = userDao.getById(userId, false);
             Validate.notNull(user);
             final PFUserDO userCheck = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
             if (userCheck == null) {
@@ -347,7 +347,7 @@ public class UserService {
             Validate.notNull(userId);
             Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
-            final PFUserDO user = userDao.internalGetById(userId);
+            final PFUserDO user = userDao.getById(userId, false);
             return doWlanPasswordChange(user, newWlanPassword);
         } finally {
             LoginHandler.clearPassword(newWlanPassword);
@@ -357,7 +357,7 @@ public class UserService {
     private List<I18nKeyAndParams> doWlanPasswordChange(final PFUserDO user, final char[] newWlanPassword) {
         Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
         user.setLastWlanPasswordChange(new Date());
-        userDao.internalUpdate(user);
+        userDao.update(user, false);
         log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
         return Collections.emptyList();
     }
@@ -387,7 +387,7 @@ public class UserService {
         if (updateSaltAndPepperIfNeeded && passwordCheckResult.isPasswordUpdateNeeded()) {
             log.info("Giving salt and/or pepper to the password of the user " + user.getId() + ".");
             encryptAndSavePassword(user, password, false);
-            userDao.internalUpdate(user);
+            userDao.update(user, false);
         }
         return user;
     }
@@ -441,15 +441,15 @@ public class UserService {
     }
 
     public PFUserDO internalGetById(Serializable id) {
-        return userDao.internalGetById(id);
+        return userDao.getById(id, false);
     }
 
     public Long save(PFUserDO user) {
-        return userDao.internalSave(user);
+        return userDao.save(user, false);
     }
 
-    public void markAsDeleted(PFUserDO user) {
-        userDao.internalMarkAsDeleted(user);
+    public void markAsDeleted(PFUserDO user, boolean checkAccess) {
+        userDao.markAsDeleted(user, checkAccess);
     }
 
     public boolean doesUsernameAlreadyExist(PFUserDO user) {
@@ -463,10 +463,10 @@ public class UserService {
     /**
      * Without access checking!!! Secret fields are cleared.
      *
-     * @see UserDao#internalLoadAll()
+     * @see UserDao#loadAll()
      */
-    public List<PFUserDO> internalLoadAll() {
-        return userDao.internalLoadAll();
+    public List<PFUserDO> loadAll(boolean checkAccess) {
+        return userDao.loadAll(checkAccess);
     }
 
     public UserDao getUserDao() {
@@ -478,7 +478,7 @@ public class UserService {
     }
 
     public void undelete(PFUserDO dbUser) {
-        userDao.internalUndelete(dbUser);
+        userDao.undelete(dbUser);
     }
 
     public List<PFUserDO> findUserByMail(String email) {

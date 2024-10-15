@@ -63,7 +63,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      */
     fun checkAndUpdateDatabaseEntries() {
         persistenceService.runInTransaction { context ->
-            val list = internalLoadAll()
+            val list = loadAll(checkAccess = false)
             val params: MutableSet<String?> = HashSet()
             for (param in ConfigurationParam.entries) {
                 checkAndUpdateDatabaseEntry(param, list, params)
@@ -71,7 +71,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
             for (entry in list) {
                 if (!params.contains(entry.parameter)) {
                     log.error("Unknown configuration entry. Mark as deleted: " + entry.parameter)
-                    internalMarkAsDeleted(entry)
+                    markAsDeleted(entry, checkAccess = false)
                 }
             }
         }
@@ -165,7 +165,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
                     modified = true
                 }
                 if (modified) {
-                    internalUpdate(configuration)
+                    update(configuration, checkAccess = false)
                 }
                 return
             }
@@ -185,7 +185,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
         if (param.type.isIn(ConfigurationType.BOOLEAN)) {
             configuration.stringValue = param.defaultBooleanValue.toString()
         }
-        internalSave(configuration)
+        save(configuration, checkAccess = false)
     }
 
     companion object {

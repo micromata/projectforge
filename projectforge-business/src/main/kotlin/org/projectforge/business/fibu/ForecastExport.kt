@@ -162,7 +162,7 @@ open class ForecastExport { // open needed by Wicket.
     val queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(invoiceFilter)
     queryFilter.addOrder(desc("datum"))
     queryFilter.addOrder(desc("nummer"))
-    val invoices = rechnungDao.internalGetList(queryFilter)
+    val invoices = rechnungDao.getList(queryFilter, checkAccess = false)
     log.info("Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
     val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
@@ -272,7 +272,7 @@ open class ForecastExport { // open needed by Wicket.
         }
         if (orderPosId != null && order == null) {
           val orderId = pos.auftragsId ?: orderBookDao.getAuftragsPosition(orderPosId)?.auftragId
-          order = orderBookDao.internalGetById(orderId)
+          order = orderBookDao.getById(orderId, checkAccess = false)
           if (order == null) {
             log.error("Shouldn't occur: can't determine order from order position: $orderPosId")
             continue

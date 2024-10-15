@@ -35,7 +35,6 @@ import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.io.Serializable
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -51,28 +50,56 @@ class HistoryService {
         instance = this
     }
 
+    fun convertToDisplayHistoryEntry(entry: HistoryEntry): List<DisplayHistoryEntry> {
+        entry.attributes.let { attributes ->
+            if (attributes.isNullOrEmpty()) {
+                return listOf(DisplayHistoryEntry(entry))
+            }
+            val result = mutableListOf<DisplayHistoryEntry>()
+            attributes.forEach { attr ->
+                val se = DisplayHistoryEntry(entry, attr)
+                se.initialize(DisplayHistoryEntry.Context(entry.entityName, se))
+                result.add(se)
+            }
+
+            return result
+        }
+    }
+
+    @JvmOverloads
+    fun loadAndConvert(
+        baseDO: BaseDO<Long>,
+        convert: ((HistoryEntry) -> List<DisplayHistoryEntry>)? = null,
+    ): MutableList<DisplayHistoryEntry> {
+        val entries = loadHistory(baseDO)
+        val list = mutableListOf<DisplayHistoryEntry>()
+        entries.forEach { entry ->
+            val displayEntries = convert?.invoke(entry) ?: convertToDisplayHistoryEntry(entry)
+            mergeList(list, displayEntries)
+        }
+        return list
+    }
+
     /**
-     * Loads all history entries for the given baseDO by class and id.
+     * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
      */
-    fun loadHistory(baseDO: BaseDO<Long>): List<HistoryEntryDO> {
-        return persistenceService.runReadOnly { context ->
-            loadHistory(baseDO, context)
+    fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
+        for (entry in entries) {
+            if (list.none { it.historyEntryId == entry.historyEntryId && it.attributeId == entry.attributeId }) {
+                list.add(entry)
+            }
         }
     }
 
     /**
      * Loads all history entries for the given baseDO by class and id.
      */
-    fun loadHistory(baseDO: BaseDO<Long>, context: PfPersistenceContext? = null): List<HistoryEntryDO> {
+    fun loadHistory(baseDO: BaseDO<Long>): List<HistoryEntryDO> {
         val allHistoryEntries = mutableListOf<HistoryEntryDO>()
-        if (context != null) {
+        persistenceService.runReadOnly { context ->
             loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
-        } else {
-            persistenceService.runReadOnly { ctx ->
-                loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, ctx)
-            }
+            allHistoryEntries.forEach { entry -> HistoryEntryDOUtils.transformOldAttributes(entry) }
         }
-        allHistoryEntries.forEach { entry -> HistoryEntryDOUtils.transformOldAttributes(entry) }
         return allHistoryEntries
     }
 
@@ -185,7 +212,11 @@ class HistoryService {
     /**
      * Save method will be called automatically by the Dao services.
      */
-    fun save(em: EntityManager, historyEntry: HistoryEntryDO, attrs: Collection<HistoryEntryAttrDO>? = null): Long? {
+    fun save(
+        em: EntityManager,
+        historyEntry: HistoryEntryDO,
+        attrs: Collection<HistoryEntryAttrDO>? = null
+    ): Long? {
         historyEntry.modifiedBy = ThreadLocalUserContext.loggedInUser?.id?.toString() ?: "anon"
         historyEntry.modifiedAt = Date()
         em.persist(historyEntry)

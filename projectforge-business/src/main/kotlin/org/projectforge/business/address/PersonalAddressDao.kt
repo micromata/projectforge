@@ -133,7 +133,7 @@ class PersonalAddressDao {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
         }
         abIdSet.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID)
-        for (ab in addressbookDao.internalLoadAll()) {
+        for (ab in addressbookDao.loadAll(checkAccess = false)) {
             if (!ab.deleted && addressbookRight!!.hasSelectAccess(user, ab)) {
                 abIdSet.add(ab.id)
             }

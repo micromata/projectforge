@@ -101,29 +101,29 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase {
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(initialAdminUser.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(initialAdminUser.getId()));
 
-    final List<PFUserDO> userList = userService.internalLoadAll();
+    final List<PFUserDO> userList = userService.loadAll(false);
     assertTrue(userList.size() > 0);
     for (final PFUserDO user : userList) {
       assertNull("For security reasons the stay-logged-in-key should be null.", userAuthenticationsService.getToken(user.getId(), UserTokenType.STAY_LOGGED_IN_KEY));
     }
 
-    final List<GroupTaskAccessDO> accessList = accessDao.internalLoadAll();
+    final List<GroupTaskAccessDO> accessList = accessDao.loadAll(false);
     assertTrue(accessList.size() > 0);
     for (final GroupTaskAccessDO access : accessList) {
       assertNotNull(access.getAccessEntries(), "Access entries should be serialized.");
       assertTrue(access.getAccessEntries().size() > 0, "Access entries should be serialized.");
     }
 
-    final List<AddressDO> addressList = addressDao.internalLoadAll();
+    final List<AddressDO> addressList = addressDao.loadAll(false);
     assertTrue(addressList.size() > 0);
 
-    final List<BookDO> bookList = bookDao.internalLoadAll();
+    final List<BookDO> bookList = bookDao.loadAll(false);
     assertTrue(bookList.size() > 2);
 
-    final List<TaskDO> taskList = taskDao.internalLoadAll();
+    final List<TaskDO> taskList = taskDao.loadAll(false);
     assertTrue(taskList.size() > 10);
 
-    final List<AuftragDO> orderList = auftragDao.internalLoadAll();
+    final List<AuftragDO> orderList = auftragDao.loadAll(false);
     AuftragDO order = null;
     for (final AuftragDO ord : orderList) {
       if (ord.getNummer() == 1) {

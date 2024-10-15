@@ -116,9 +116,9 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
                 passwords.passwordHash = encryptAndClear(pepperString, salt, clearTextPassword)
             }
             if (passwords.id == null) {
-                internalSave(passwords)
+                save(passwords, checkAccess = false)
             } else {
-                internalUpdate(passwords)
+                update(passwords, checkAccess = false)
             }
         }
     }
@@ -139,7 +139,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         var passwordObj = internalGetByUserId(userId)
         if (passwordObj == null) {
             passwordObj = UserPasswordDO()
-            val user = userDao.internalGetById(userId)
+            val user = userDao.getById(userId, checkAccess = false)
             passwordObj.user = user
         }
         return passwordObj

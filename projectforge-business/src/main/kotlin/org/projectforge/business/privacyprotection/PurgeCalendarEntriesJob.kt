@@ -86,7 +86,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
         }
         log.info("Purge calendars...")
         calendarEntries!!.forEach {
-            val calendar = teamCalDao.internalGetById(it.calendarId)
+            val calendar = teamCalDao.getById(it.calendarId, checkAccess = false)
             val expiryDays = it.expiryDays ?: 0
             if (calendar == null) {
                 log.error { "No calendar found with id #${it.calendarId}. Can't purge this calendar." }
@@ -104,7 +104,7 @@ class PurgeCalendarEntries : IPrivacyProtectionJob {
                         .resultList
                     eventsToPurge.forEach { event ->
                         ++counter
-                        teamEventDao.internalForceDelete(event)
+                        teamEventDao.forceDelete(event, checkAccess = false)
                     }
                     if (counter > 0) {
                         log.info("Removed $counter calendar entries in calendar #${it.calendarId} '${calendar.title}' in the past (before ${expiryDate.isoString}Z).")

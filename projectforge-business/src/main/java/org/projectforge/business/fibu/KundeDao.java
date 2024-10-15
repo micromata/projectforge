@@ -117,7 +117,7 @@ public class KundeDao extends BaseDao<KundeDO> {
         if (customer == null || customer.getId() == null) {
             return false;
         }
-        KundeDO existingCustomer = internalGetById(customer.getId());
+        KundeDO existingCustomer = getById(customer.getId(), false);
         return existingCustomer != null;
     }
 }

@@ -48,7 +48,6 @@ import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.calendar.ICal4JUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
-import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.between
@@ -63,7 +62,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
@@ -85,6 +84,9 @@ private val log = KotlinLogging.logger {}
 @Service
 open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     @Autowired
+    private lateinit var historyService: HistoryService
+
+    @Autowired
     private var teamCalDao: TeamCalDao? = null
 
     @Autowired
@@ -101,11 +103,6 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     init {
         userRightId = UserRightId.PLUGIN_CALENDAR_EVENT
         isForceDeletionSupport = true
-    }
-
-    override fun internalUpdate(obj: TeamEventDO, checkAccess: Boolean): EntityCopyStatus? {
-        logReminderChange(obj)
-        return super.internalUpdate(obj, checkAccess)
     }
 
     private fun logReminderChange(newObj: TeamEventDO) {
@@ -220,6 +217,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     }
 
     override fun onChange(obj: TeamEventDO, dbObj: TeamEventDO) {
+        logReminderChange(obj)
         handleSeriesUpdates(obj)
         // only increment sequence if PF has ownership!
         if (obj.ownership != null && !obj.ownership!!) {
@@ -300,13 +298,13 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Handles deletion of series element (if any) for future and single events of a series.
      */
-    override fun internalMarkAsDeleted(obj: TeamEventDO) {
+    override fun markAsDeleted(obj: TeamEventDO, checkAccess: Boolean) {
         val selectedEvent =
             obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT) as ICalendarEvent? // Must be removed, otherwise update below will handle this attrs again.
         val mode = obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE) as SeriesModificationMode?
         if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
             // Nothing to do special:
-            super.internalMarkAsDeleted(obj)
+            super.markAsDeleted(obj, checkAccess)
             return
         }
         val masterEvent = getById(obj.id)
@@ -399,7 +397,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         val teamEventFilter = filter.clone().setOnlyRecurrence(true)
         val qFilter = buildQueryFilter(teamEventFilter)
         qFilter.add(isNotNull("recurrenceRule"))
-        list = selectUnique(getList(qFilter)).toMutableList()
+        list = getList(qFilter).distinct().toMutableList()
         // add all abo events
         val recurrenceEvents = teamEventExternalSubscriptionCache
             .getRecurrenceEvents(teamEventFilter)
@@ -430,9 +428,10 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     }
 
     /**
+     * @param checkAccess is ignored, only accessible calendars are used.
      * @see org.projectforge.framework.persistence.api.BaseDao.getListForSearchDao
      */
-    override fun getListForSearchDao(filter: BaseSearchFilter): List<TeamEventDO> {
+    override fun getListForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TeamEventDO> {
         val teamEventFilter = TeamEventFilter(filter) // May-be called by SeachPage
         val allAccessibleCalendars = teamCalCache!!.allAccessibleCalendars
         if (CollectionUtils.isEmpty(allAccessibleCalendars)) {
@@ -632,14 +631,14 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun getDisplayHistoryEntries(obj: TeamEventDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(obj: TeamEventDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.attendees)) {
             for (attendee in obj.attendees!!) {
-                val entries = internalGetDisplayHistoryEntries(attendee)
+                val entries = historyService.loadAndConvert(attendee)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {

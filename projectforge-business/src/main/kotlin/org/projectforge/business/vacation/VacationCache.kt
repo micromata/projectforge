@@ -116,7 +116,7 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
         log.info("Refreshing VacationCache ...")
         // This method must not be synchronized because it works with a new copy of maps.
         val map = mutableMapOf<Long?, VacationDO>()
-        vacationDao.internalLoadAll().forEach {
+        vacationDao.loadAll(checkAccess = false).forEach {
             if (!it.deleted) {
                 map[it.id] = it
             }
