@@ -90,7 +90,7 @@ class BankingImportJob(
           readEntry.copyTo(dbEntry)
           dbEntry.bankAccount = bankAccountDO
           dbEntry.checksum = dbEntry.buildCheckSum()
-          bankAccountRecordDao.internalSave(dbEntry)
+          bankAccountRecordDao.save(dbEntry, checkAccess = false)
           result.inserted += 1
         }
       } else {

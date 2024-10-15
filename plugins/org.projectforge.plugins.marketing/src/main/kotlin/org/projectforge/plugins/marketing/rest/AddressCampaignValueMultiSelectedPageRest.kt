@@ -132,7 +132,7 @@ class AddressCampaignValueMultiSelectedPageRest : AbstractMultiSelectedPage<Addr
         ValidationError("plugins.marketing.addressCampaignValue.error.addressOrCampaignNotGiven")
       )
     }
-    addressDao.getListByIds(selectedIds)?.forEach { address ->
+    addressDao.load(selectedIds)?.forEach { address ->
       var addressCampaignValueDO = addressCampaignValueDao.get(address.id, addressCampaignDO.id)
       if (addressCampaignValueDO == null) {
         addressCampaignValueDO = AddressCampaignValueDO()

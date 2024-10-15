@@ -68,7 +68,7 @@ class TaskTest : AbstractTestBase() {
 
     @Test
     fun testTaskDO() {
-        val list = taskDao.internalLoadAll()
+        val list = taskDao.loadAll(checkAccess = false)
         for (task in list) {
             if ("root" == task.title) {
                 Assertions.assertNull(task.parentTaskId, "Only root node has no parent task.")
@@ -182,14 +182,14 @@ class TaskTest : AbstractTestBase() {
             val u2 = taskTree.getTaskNodeById(getTask("u.2").id)
             Assertions.assertEquals(3, u2!!.getChildren().size, "Should have exact 3 children")
             // Now we move u.2.3 to u.1.1:
-            val tu_2_3 = taskDao.internalGetById(getTask("u.2.3").id)
+            val tu_2_3 = taskDao.getById(getTask("u.2.3").id, checkAccess = false)
             tu_2_3!!.title = "u.1.1"
             logon(ADMIN)
             taskDao.setParentTask(tu_2_3, getTask("u.1").id!!)
-            taskDao.internalUpdate(tu_2_3)
+            taskDao.update(tu_2_3, checkAccess = false)
             Assertions.assertEquals(2, u2.getChildren().size, "Should have exact 2 children")
             Assertions.assertEquals(1, u1!!.getChildren().size, "Should have exact 1 child")
-            val tu_1_1 = taskDao.internalGetById(getTask("u.2.3").id)
+            val tu_1_1 = taskDao.getById(getTask("u.2.3").id, checkAccess = false)
             Assertions.assertEquals("u.1.1", tu_1_1!!.title)
             Assertions.assertEquals(getTask("u.1").id, tu_1_1.parentTaskId)
             val u_1_1 = taskTree.getTaskNodeById(tu_1_1.id)
@@ -458,7 +458,7 @@ class TaskTest : AbstractTestBase() {
             task.title = "dT.1.1"
             try {
                 // Try to rename task to same name as a sister task:
-                taskDao.internalUpdate(task)
+                taskDao.update(task, checkAccess = false)
                 Assertions.fail<Any>("Duplicate task was not detected.")
             } catch (ex: UserException) {
                 Assertions.assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.i18nKey)
@@ -467,13 +467,13 @@ class TaskTest : AbstractTestBase() {
             task.parentTask = initTestDB.getTask("dT.1")
             try {
                 // Try to move task from dT.1.2 to dT.1.1 where already a task with the same name exists.
-                taskDao.internalUpdate(task)
+                taskDao.update(task, checkAccess = false)
                 Assertions.fail<Any>("Duplicate task was not detected.")
             } catch (ex: UserException) {
                 Assertions.assertEquals(TaskDao.I18N_KEY_ERROR_DUPLICATE_CHILD_TASKS, ex.i18nKey)
             }
             task.parentTask = initTestDB.getTask("dT.2")
-            taskDao.internalUpdate(task)
+            taskDao.update(task, checkAccess = false)
             null
         }
     }

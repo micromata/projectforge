@@ -395,18 +395,18 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         ts.user!!.copyFromMinimal(user)
       }
       if (it.kost2Id != null) {
-        val kost2DO = kost2Dao.internalGetById(it.kost2Id)
+        val kost2DO = kost2Dao.getById(it.kost2Id, checkAccess = false)
         if (kost2DO != null) {
           val kost2 = Kost2()
           ts.kost2 = kost2
           kost2.copyFromMinimal(kost2DO)
           kost2DO.projektId?.let { projektId ->
-            val projektDO = projektDao.internalGetById(projektId)
+            val projektDO = projektDao.getById(projektId, checkAccess = false)
             if (projektDO != null) {
               val projekt = Project(projektId, name = projektDO.name)
               kost2.project = projekt
               projektDO.kundeId?.let { kundeId ->
-                val kundeDO = kundeDao.internalGetById(kundeId)
+                val kundeDO = kundeDao.getById(kundeId, checkAccess = false)
                 if (kundeDO != null) {
                   val kunde = Customer(kundeId, name = kundeDO.name)
                   projekt.customer = kunde

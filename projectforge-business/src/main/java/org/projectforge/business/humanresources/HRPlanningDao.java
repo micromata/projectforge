@@ -296,7 +296,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj) {
+    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final HRPlanningDO obj, final boolean checkAccess) {
         final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
         if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
             return list;

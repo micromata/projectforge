@@ -27,7 +27,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.projectforge.business.fibu.*
-import org.projectforge.business.user.*
+import org.projectforge.business.user.UserDao
+import org.projectforge.business.user.UserRightDao
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
@@ -217,7 +220,7 @@ class CandHHistoryTest : AbstractTestBase() {
         userDao.save(user)
         user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
         user.addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE))
-        userRightDao.internalSaveOrUpdate(user.rights!!)
+        userRightDao.saveOrUpdate(user.rights!!, checkAccess = false)
         var rights = userRightDao.getList(user)
         Assertions.assertEquals(2, rights.size)
         hist.loadRecentHistoryEntries(3, 0)
@@ -226,7 +229,7 @@ class CandHHistoryTest : AbstractTestBase() {
             filterHistoryEntries(entries, 1, PFUserDO::class).first().let { entry ->
                 assertHistoryEntry(entry, PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
             }
-            filterHistoryEntries(entries, 2, UserRightDO::class).forEach{ entry ->
+            filterHistoryEntries(entries, 2, UserRightDO::class).forEach { entry ->
                 assertHistoryEntry(entry, UserRightDO::class, null, EntityOpType.Insert, ADMIN_USER)
             }
         }
@@ -235,7 +238,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.getRight(UserRightId.ORGA_OUTGOING_MAIL).let { right ->
             right!!.value = UserRightValue.READONLY
         }
-        userRightDao.internalSaveOrUpdate(user.rights!!)
+        userRightDao.saveOrUpdate(user.rights!!, checkAccess = false)
         rights = userRightDao.getList(user)
         // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)

@@ -105,7 +105,7 @@ class ProjectMultiSelectedPageRest : AbstractMultiSelectedPage<ProjektDO>() {
     selectedIds: Collection<Serializable>,
     massUpdateContext: MassUpdateContext<ProjektDO>,
   ): ResponseEntity<*>? {
-    val projects = projektDao.getListByIds(selectedIds)
+    val projects = projektDao.load(selectedIds)
     if (projects.isNullOrEmpty()) {
       return null
     }

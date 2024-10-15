@@ -53,7 +53,7 @@ public class Kost2DOConverter
     }
     if (!Hibernate.isInitialized(kost2DO)) {
       final Long kost2Id = kost2DO.getId();
-      kost2DO = kost2Dao.internalGetById(kost2Id);
+      kost2DO = kost2Dao.getById(kost2Id, false);
       if (kost2DO == null) {
         log.error("Oups, kost2 with id '" + kost2Id + "' not found.");
         return null;

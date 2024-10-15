@@ -50,7 +50,7 @@ class DataTransferAttachmentsActionListener(
     listId: String?
   ): Any {
     if (obj is DataTransferAreaDO) {
-      val dbObj = dataTransferAreaDao.internalGetById(obj.id)!! // Get fresh db version.
+      val dbObj = dataTransferAreaDao.getById(obj.id, checkAccess = false)!! // Get fresh db version.
       val area = DataTransferArea.transformFromDB(dbObj, dataTransferAreaDao, groupService, userService)
       area.attachments = attachmentsService.getAttachments(jcrPath, dbObj.id!!, attachmentsAccessChecker, listId)
       return area

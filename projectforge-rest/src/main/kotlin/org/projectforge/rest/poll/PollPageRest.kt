@@ -94,7 +94,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
     }
 
     override fun onBeforeMarkAsDeleted(request: HttpServletRequest, obj: PollDO, postData: PostData<Poll>) {
-        val responsesToDelete = pollResponseDao.internalLoadAll().filter {
+        val responsesToDelete = pollResponseDao.loadAll(checkAccess = false).filter {
             it.poll?.id == obj.id
         }
         responsesToDelete.forEach {

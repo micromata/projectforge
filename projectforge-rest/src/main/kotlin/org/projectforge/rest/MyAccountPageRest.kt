@@ -112,7 +112,7 @@ class MyAccountPageRest : AbstractDynamicPageRest() {
         validateCsrfToken(request, postData)?.let { return it }
         val data = postData.data
         check(ThreadLocalUserContext.loggedInUserId == data.userId) { "Oups, MyAccountEditPage is called with another than the logged in user!" }
-        val user = userDao.internalGetById(data.userId)!!
+        val user = userDao.getById(data.userId, checkAccess = false)!!
         user.firstname = data.firstname ?: user.firstname
         user.lastname = data.lastname ?: user.lastname
         user.locale = data.locale ?: user.locale

@@ -40,17 +40,17 @@ public class BookTest extends AbstractTestBase {
         final Serializable[] ids = new Long[3];
 
         BookDO book = createTestBook("42");
-        ids[0] = bookDao.internalSave(book);
+        ids[0] = bookDao.save(book, false);
         book = createTestBook(null);
-        ids[1] = bookDao.internalSave(book);
+        ids[1] = bookDao.save(book, false);
 
         book = createTestBook("42");
         assertTrue(bookDao.doesSignatureAlreadyExist(book), "Signature should already exist.");
         book.setSignature("5");
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
-        bookDao.internalSave(book);
+        bookDao.save(book, false);
 
-        BookDO dbBook = bookDao.internalGetById(ids[1]);
+        BookDO dbBook = bookDao.getById(ids[1], false);
         book = new BookDO();
         book.copyValuesFrom(dbBook);
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
@@ -58,13 +58,13 @@ public class BookTest extends AbstractTestBase {
         assertTrue(bookDao.doesSignatureAlreadyExist(book), "Signature should already exist.");
         book.setSignature("4711");
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
-        bookDao.internalUpdate(book);
+        bookDao.update(book, false);
 
-        book = bookDao.internalGetById(ids[1]);
+        book = bookDao.getById(ids[1], false);
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
         book.setSignature(null);
         assertFalse(bookDao.doesSignatureAlreadyExist(book), "Signature should not exist.");
-        bookDao.internalUpdate(book);
+        bookDao.update(book, false);
     }
 
     @Test

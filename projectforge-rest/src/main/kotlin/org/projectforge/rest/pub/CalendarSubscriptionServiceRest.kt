@@ -205,7 +205,7 @@ class CalendarSubscriptionServiceRest {
         }
       }
 
-      teamCalDao.internalGetById(calId)?.let { cal ->
+      teamCalDao.getById(calId, checkAccess = false)?.let { cal ->
         processedTeamCals.add(cal)
         if (!cal.includeLeaveDaysForGroups.isNullOrBlank() || !cal.includeLeaveDaysForUsers.isNullOrBlank()) {
           val userIds = User.toLongArray(cal.includeLeaveDaysForUsers)?.toSet()

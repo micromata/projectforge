@@ -419,7 +419,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    fun save(obj: O, checkAccess: Boolean = true): Long {
+    open fun save(obj: O, checkAccess: Boolean = true): Long {
         //long begin = System.currentTimeMillis();
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
@@ -587,7 +587,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
      */
     @Throws(AccessException::class)
     @JvmOverloads
-    fun update(obj: O, checkAccess: Boolean = true): EntityCopyStatus {
+    open fun update(obj: O, checkAccess: Boolean = true): EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not update object unless id is not given:$obj"
             log.error(msg)

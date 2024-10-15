@@ -511,7 +511,7 @@ constructor(
    * Get the list by ids.
    */
   open fun getListByIds(entityIds: Collection<Serializable>?): List<O> {
-    return baseDao.getListByIds(entityIds) ?: listOf()
+    return baseDao.load(entityIds) ?: listOf()
   }
 
   /**

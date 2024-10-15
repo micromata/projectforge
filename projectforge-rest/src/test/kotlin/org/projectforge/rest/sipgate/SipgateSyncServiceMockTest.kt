@@ -48,17 +48,17 @@ class SipgateSyncServiceMockTest : AbstractTestBase() {
         // Configuration(configurationService)
         val addressDao = object : AddressDao() {
             val addressList = createAddressList()
-            override fun internalLoadAll(): MutableList<AddressDO> {
+            override fun loadAll(checkAccess: Boolean): MutableList<AddressDO> {
                 return addressList
             }
 
-            override fun internalSave(obj: AddressDO): Long {
+            override fun save(obj: AddressDO, checkAccess: Boolean): Long {
                 obj.id = ++addressCounter
                 addressList.add(obj)
                 return obj.id!!
             }
 
-            override fun internalUpdate(obj: AddressDO, checkAccess: Boolean): EntityCopyStatus {
+            override fun update(obj: AddressDO, checkAccess: Boolean): EntityCopyStatus {
                 // Nothing to do, address values are already updated.
                 return EntityCopyStatus.MAJOR
             }

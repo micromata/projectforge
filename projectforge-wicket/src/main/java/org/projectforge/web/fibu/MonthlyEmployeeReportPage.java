@@ -147,7 +147,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
           if (report == null) {
             return "";
           }
-          final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).internalGetById(report.getKost1Id());
+          final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).getById(report.getKost1Id(), false);
           return kost1 != null ? KostFormatter.format(kost1) : "";
         }
       }));
@@ -468,7 +468,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("workingDaysLabel", getString("fibu.common.workingDays"));
     data.put("workingDays", report.getNumberOfWorkingDays());
     data.put("kost1Label", getString("fibu.kost1"));
-    final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).internalGetById(report.getKost1Id());
+    final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).getById(report.getKost1Id(), false);
     data.put("kost1", kost1 != null ? kost1.getFormattedNumber() : "--");
     data.put("kost2Label", getString("fibu.kost2"));
     data.put("kundeLabel", getString("fibu.kunde"));

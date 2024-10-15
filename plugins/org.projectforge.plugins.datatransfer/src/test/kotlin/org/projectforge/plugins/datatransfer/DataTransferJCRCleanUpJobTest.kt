@@ -64,7 +64,7 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
     val file1 = createFile(area, 1)
     val file31OfDeletedArea = createFile(deletedArea, 31, "deleted")
     val file1OfDeletedArea = createFile(deletedArea, 1, "deleted")
-    dataTransferAreaDao.internalDelete(deletedArea)
+    dataTransferAreaDao.delete(deletedArea, checkAccess = false)
     Assertions.assertTrue(repoService.retrieveFile(file31))
     Assertions.assertTrue(repoService.retrieveFile(file1))
     Assertions.assertEquals(3, dataTransferJCRCleanUpJob.execute(), "Number of files, deleted by cleanup job")
