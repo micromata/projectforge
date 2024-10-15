@@ -147,7 +147,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         showOnlyActiveEntries: Boolean = true
     ): List<EmployeeDO> {
         val queryFilter = QueryFilter(filter)
-        var employees = internalGetList(queryFilter)
+        var employees = getList(queryFilter, checkAccess = false)
         if (showOnlyActiveEntries) {
             val now = LocalDate.now()
             employees = employees.filter { employee ->

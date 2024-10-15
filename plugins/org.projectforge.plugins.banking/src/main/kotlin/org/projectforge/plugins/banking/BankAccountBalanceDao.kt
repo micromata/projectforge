@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseDaoSupport
+import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -48,7 +48,7 @@ class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBalanceDO
     ): Boolean {
         val bankAccount = obj?.bankAccount
         if (obj != null && bankAccount == null) {
-            return BaseDaoSupport.returnFalseOrThrowException(
+            return BaseDOPersistenceService.returnFalseOrThrowException(
                 throwException,
                 user,
                 operationType,
@@ -57,7 +57,7 @@ class BankAccountBalanceDao : BaseDao<BankAccountBalanceDO>(BankAccountBalanceDO
         }
         if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP)) {
             // Double check, user isn't member of financial staff.
-            return BaseDaoSupport.returnFalseOrThrowException(
+            return BaseDOPersistenceService.returnFalseOrThrowException(
                 throwException,
                 user,
                 operationType,

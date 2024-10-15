@@ -262,7 +262,7 @@ class UserXmlPreferencesDao {
             isNew = true
             userPrefs = UserXmlPreferencesDO()
             userPrefs.created = date
-            userPrefs.user = userDao.internalGetById(userId)
+            userPrefs.user = userDao.getById(userId, checkAccess = false)
             userPrefs.key = key
         }
         val xml = serialize(userPrefs, entry)

@@ -194,7 +194,7 @@ class DatevImportDao {
                 col.add(konto)
             }
         }
-        kontoDao.internalSaveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE)
+        kontoDao.saveOrUpdate(col, KONTO_INSERT_BLOCK_SIZE, checkAccess = false)
         return col.size
     }
 
@@ -209,7 +209,7 @@ class DatevImportDao {
                 col.add(satz)
             }
         }
-        buchungssatzDao.internalSaveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE)
+        buchungssatzDao.saveOrUpdate(col, BUCHUNGSSATZ_INSERT_BLOCK_SIZE, checkAccess = false)
         return col.size
     }
 

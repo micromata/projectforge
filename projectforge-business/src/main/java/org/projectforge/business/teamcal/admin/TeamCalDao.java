@@ -62,16 +62,16 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
             "owner.lastname"};
 
     @Autowired
-    private UserDao userDao;
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private GroupService groupService;
 
     @Autowired
     private TeamCalCache teamCalCache;
 
     @Autowired
-    private ApplicationContext applicationContext;
-
-    @Autowired
-    private GroupService groupService;
+    private UserDao userDao;
 
     @Autowired
     private UserService userService;

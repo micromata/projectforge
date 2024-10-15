@@ -34,6 +34,7 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -54,6 +55,9 @@ private val log = KotlinLogging.logger {}
 open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
+
+    @Autowired
+    private lateinit var historyService: HistoryService
 
     private var userPasswordDao: UserPasswordDao? = null
 
@@ -234,7 +238,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         accessChecker.checkRestrictedOrDemoUser()
         val contextUser = ThreadLocalUserContext.loggedInUser
         Validate.isTrue(user.id == contextUser!!.id)
-        val dbUser = internalGetById(user.id)
+        val dbUser = getById(user.id, checkAccess = false)
         dbUser!!.timeZone = user.timeZone
         dbUser.dateFormat = user.dateFormat
         dbUser.excelDateFormat = user.excelDateFormat
@@ -247,7 +251,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
         dbUser.description = user.description
         dbUser.gpgPublicKey = user.gpgPublicKey
         dbUser.sshPublicKey = user.sshPublicKey
-        val result = internalUpdate(dbUser)
+        val result = update(dbUser, checkAccess = false)
         if (result != EntityCopyStatus.NONE) {
             log.info("Object updated: $dbUser")
             copyValues(user, contextUser)
@@ -262,14 +266,14 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: PFUserDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(obj: PFUserDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.rights)) {
             for (right in obj.rights!!) {
-                val entries = internalGetDisplayHistoryEntries(right)
+                val entries = historyService.loadAndConvert(right)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {

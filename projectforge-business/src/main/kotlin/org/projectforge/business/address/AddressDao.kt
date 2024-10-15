@@ -139,8 +139,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     }
 
     @Throws(AccessException::class)
-    override fun getList(filter: QueryFilter): List<AddressDO> {
-        super.getList(filter)
+    override fun getList(filter: QueryFilter, checkAccess: Boolean): List<AddressDO> {
         val filters: MutableList<CustomResultFilter<AddressDO>> = ArrayList()
         if (filter.getExtendedBooleanValue("doublets")) {
             filters.add(DoubletsResultFilter())
@@ -148,7 +147,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         if (filter.getExtendedBooleanValue("favorites")) {
             filters.add(FavoritesResultFilter(personalAddressDao))
         }
-        return super.getList(filter, filters)
+        return super.getList(filter, filters, checkAccess)
     }
 
     override fun getList(filter: BaseSearchFilter): List<AddressDO> {
@@ -260,7 +259,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             if (addressbookRight == null) {
                 addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             }
-            for (ab in addressbookDao.internalLoadAll()) {
+            for (ab in addressbookDao.loadAll(checkAccess = false)) {
                 if (!ab.deleted && addressbookRight!!.hasSelectAccess(loggedInUser, ab)) {
                     ab.id?.let {
                         abIdList.add(it)
@@ -337,7 +336,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             }
         } else {
             //Check addressbook changes
-            val dbAddress = internalGetById(obj.id)
+            val dbAddress = getById(obj.id, checkAccess = false)
             val addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             for (dbAddressbook in dbAddress!!.addressbookList!!) {
                 //If user has no right for assigned addressbook, it could not be removed
@@ -657,7 +656,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     }
 
     fun findAll(): List<AddressDO?> {
-        return internalLoadAll()
+        return loadAll(checkAccess = false)
     }
 
     fun findByUid(uid: String?): AddressDO? {
@@ -675,7 +674,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         filter.setSearchString("*$searchNumber*")
         val queryFilter = QueryFilter(filter)
         // Use internal get list method for avoiding access checking (no user is logged-in):
-        val resultList = internalGetList(queryFilter)
+        val resultList = getList(queryFilter, checkAccess = false)
         val buf = StringBuilder()
         if (resultList.isNotEmpty()) {
             var result = resultList[0]

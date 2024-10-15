@@ -80,13 +80,13 @@ class ExtractPFTradingPartners {
     val fromDate = PFDay.now().beginOfYear.minusYears(5).date
     var filter: RechnungFilter = EingangsrechnungListFilter()
     filter.fromDate = fromDate
-    val context = extractTradingVendors(eingangsrechnungDao.getList(filter)!!)
+    val context = extractTradingVendors(eingangsrechnungDao.getList(filter))
 
     filter = RechnungListFilter()
     filter.fromDate = fromDate
-    extractTradingCustomersInvoices(rechnungDao.getList(filter)!!, context)
+    extractTradingCustomersInvoices(rechnungDao.getList(filter), context)
 
-    extractTradingCustomers(kundeDao.internalLoadAll(), context)
+    extractTradingCustomers(kundeDao.loadAll(checkAccess = false), context)
     return context.allPartners
   }
 

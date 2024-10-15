@@ -27,7 +27,7 @@ import org.projectforge.business.common.BaseUserGroupRightUtils
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.BaseDaoSupport
+import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Service
 
@@ -48,7 +48,7 @@ class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
         throwException: Boolean
     ): Boolean {
         if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
-            return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
+            return BaseDOPersistenceService.returnFalseOrThrowException(throwException, operationType = operationType)
         }
         if (accessChecker.isUserMemberOfAdminGroup(user)) {
             // Admins AND Finance staff have always access.
@@ -56,7 +56,7 @@ class BankAccountDao : BaseDao<BankAccountDO>(BankAccountDO::class.java) {
         }
         if (!accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP)) {
             // Only access for financial staff.
-            return BaseDaoSupport.returnFalseOrThrowException(throwException, operationType = operationType)
+            return BaseDOPersistenceService.returnFalseOrThrowException(throwException, operationType = operationType)
         }
         if (obj == null && oldObj == null) {
             // Financial staff has general read access.

@@ -113,7 +113,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         Hibernate.initialize(projekt)
         val projectManagerGroup = projekt.projektManagerGroup
         if (projectManagerGroup != null) {
-            val group = groupDao.internalGetById(projectManagerGroup.id)
+            val group = groupDao.getById(projectManagerGroup.id, checkAccess = false)
             projekt.projektManagerGroup = group
             //Hibernate.initialize(projectManagerGroup); // Does not work.
         }

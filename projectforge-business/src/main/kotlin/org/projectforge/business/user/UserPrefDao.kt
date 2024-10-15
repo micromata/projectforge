@@ -234,7 +234,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             Pair("userId", userId),
             Pair("area", area.id)
         )
-        return selectUnique(list)
+        return list.distinct()
     }
 
     fun getUserPrefs(userId: Long): List<UserPrefDO> {
@@ -243,7 +243,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             UserPrefDO::class.java,
             Pair("userId", userId)
         )
-        return selectUnique(list)
+        return list.distinct()
     }
 
     /**
@@ -475,18 +475,17 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
                 null
             }
         } else if (type.isEnum) {
+            @Suppress("UNCHECKED_CAST")
             return java.lang.Enum.valueOf(type as Class<out Enum<*>>, str)
         }
         log.error("UserPrefDao does not yet support parameters from type: $type")
         return null
     }
 
-    override fun internalGetById(id: Serializable?): UserPrefDO? {
-        val userPref = super.internalGetById(id) ?: return null
-        if (userPref.areaObject != null) {
-            evaluateAnnotations(userPref, userPref.areaObject!!.beanType)
+    override fun afterLoad(obj: UserPrefDO) {
+        if (obj.areaObject != null) {
+            evaluateAnnotations(obj, obj.areaObject!!.beanType)
         }
-        return userPref
     }
 
     /**
@@ -563,10 +562,10 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     }
 
     /**
-     * Checks if the user pref already exists in the data base by querying the data base with user id, area and name.
+     * Checks if the user pref already exists in the database by querying the database with user id, area and name.
      * The id of the given obj is ignored.
      */
-    override fun internalSaveOrUpdate(obj: UserPrefDO): Serializable? {
+    override fun saveOrUpdate(obj: UserPrefDO, checkAccess: Boolean): Serializable? {
         val userId = obj.user?.id
         if (userId == null) {
             log.warn("UserId of UserPrefDO is null (can't save it): $obj")
@@ -577,10 +576,10 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             val dbUserPref = internalQuery(userId, obj.area, obj.name)
             if (dbUserPref == null) {
                 obj.id = null // Add new entry (ignore id of any previous existing entry).
-                return super.internalSaveOrUpdate(obj)
+                return super.saveOrUpdate(obj, checkAccess)
             } else {
                 obj.id = dbUserPref.id
-                super.internalUpdate(obj, false)
+                super.update(obj, checkAccess= false)
                 return obj.id
             }
         }

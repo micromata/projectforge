@@ -195,7 +195,7 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public List<GroupDO> getAllGroups() {
-    return groupDao.internalLoadAll();
+    return groupDao.loadAll(false);
   }
 
 }

@@ -214,12 +214,12 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.getListForSearchDao
      */
-    override fun getListForSearchDao(filter: BaseSearchFilter): List<TimesheetDO> {
+    override fun getListForSearchDao(filter: BaseSearchFilter, checkAccess: Boolean): List<TimesheetDO> {
         val timesheetFilter = TimesheetFilter(filter)
         if (filter.modifiedByUserId == null) {
             timesheetFilter.userId = ThreadLocalUserContext.loggedInUserId
         }
-        return getList(timesheetFilter)
+        return getList(timesheetFilter, checkAccess)
     }
 
     /**
@@ -251,11 +251,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
             myFilter.maxRows = 100000
         }
         val queryFilter = buildQueryFilter(myFilter)
-        var result = if (checkAccess) {
-            getList(queryFilter)
-        } else {
-            internalGetList(queryFilter)
-        }
+        var result = getList(queryFilter, checkAccess = checkAccess)
         if (myFilter.isOnlyBillable) {
             val list: List<TimesheetDO> = result
             result = ArrayList()

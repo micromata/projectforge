@@ -45,24 +45,29 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
      * Mark entry for given employee as deleted (for recalculation), if exist. Otherwise nop.
      * Forces recalculation of remaining leave (carry from previous year).
      */
-    open fun internalMarkAsDeleted(employeeId: Long, year: Int) {
-        val entry = internalGet(employeeId, year, false) ?: return
-        internalMarkAsDeleted(entry)
+    open fun markAsDeleted(employeeId: Long, year: Int, checkAccess: Boolean = true) {
+        val entry = get(employeeId, year, false) ?: return
+        markAsDeleted(entry, checkAccess)
     }
 
-    open fun internalSaveOrUpdate(employee: EmployeeDO, year: Int, remainingLeaveFromPreviousYear: BigDecimal?) {
+    open fun saveOrUpdate(
+        employee: EmployeeDO,
+        year: Int,
+        remainingLeaveFromPreviousYear: BigDecimal?,
+        checkAccess: Boolean = true,
+    ) {
         if (year > Year.now().value) {
             throw IllegalArgumentException("Can't determine remaining vacation days for future year $year.")
         }
-        val entry = internalGet(employee.id, year, false) ?: RemainingLeaveDO()
+        val entry = get(employee.id, year, false) ?: RemainingLeaveDO()
         entry.employee = employee
         entry.year = year
         entry.remainingFromPreviousYear = remainingLeaveFromPreviousYear
         entry.deleted = false
         if (entry.id == null) {
-            internalSave(entry)
+            save(entry, checkAccess = checkAccess)
         } else {
-            internalUpdate(entry)
+            update(entry, checkAccess = checkAccess)
         }
     }
 
@@ -76,11 +81,11 @@ open class RemainingLeaveDao : BaseDao<RemainingLeaveDO>(RemainingLeaveDO::class
         if (year > Year.now().value) {
             return BigDecimal.ZERO // Can't determine remaining vacation days for future years, assuming 0.
         }
-        return internalGet(employeeId, year)?.remainingFromPreviousYear
+        return get(employeeId, year)?.remainingFromPreviousYear
     }
 
     @JvmOverloads
-    open fun internalGet(employeeId: Long?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
+    open fun get(employeeId: Long?, year: Int, ignoreDeleted: Boolean = true): RemainingLeaveDO? {
         employeeId ?: return null
         val result = persistenceService.selectNamedSingleResult(
             RemainingLeaveDO.FIND_BY_EMPLOYEE_ID_AND_YEAR,

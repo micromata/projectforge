@@ -114,7 +114,7 @@ public class SystemService {
     buf.append("| Task integrity (abandoned tasks) |\n");
     buf.append("|                                  |\n");
     buf.append("------------------------------------\n");
-    final List<TaskDO> tasks = taskDao.internalLoadAll();
+    final List<TaskDO> tasks = taskDao.loadAll(false);
     buf.append("Found " + tasks.size() + " tasks.\n");
     final Map<Long, TaskDO> taskMap = new HashMap<>();
     for (final TaskDO task : tasks) {

@@ -216,7 +216,7 @@ open class AttachmentsService {
     baseDao?.let {
       var dbObj = data
       if (dbObj == null && id is java.io.Serializable) {
-        dbObj = baseDao.internalGetById(id)
+        dbObj = baseDao.getById(id, checkAccess = false)
       }
       if (baseDao is AttachmentsEventListener) {
         baseDao.onAttachmentEvent(AttachmentsEventType.DOWNLOAD, fileObject, dbObj, ThreadLocalUserContext.loggedInUser, userString)
@@ -589,7 +589,7 @@ open class AttachmentsService {
     if (obj !is AttachmentsInfo) {
       return // Nothing to do.
     }
-    val dbObj = baseDao.internalGetById(obj.id)
+    val dbObj = baseDao.getById(obj.id, checkAccess = false)
     if (dbObj is AttachmentsInfo) {
       // TODO: multiple subPath support (all attachments of all lists should be used for indexing).
       if (subPath != null && subPath != DEFAULT_NODE) {
@@ -618,7 +618,7 @@ open class AttachmentsService {
         baseDao.onAttachmentEvent(event, fileInfo, dbObj, ThreadLocalUserContext.loggedInUser, userString)
       }
       // Without access checking, because there is no logged-in user or access checking is already done by caller.
-      baseDao.internalUpdateAny(dbObj)
+      baseDao.updateAny(dbObj, checkAccess = false)
     } else {
       val msg =
         "Can't update search index of ${dbObj!!::class.java.name}. Dear developer, it's not of type ${AttachmentsInfo::class.java.name}!"

@@ -704,7 +704,7 @@ class VacationServiceTest : AbstractTestBase() {
             assertNumbers(
                 stats,
                 remainingLeaveFromPreviousYear,
-                remainingLeaveDao.internalGet(stats.employee.id, stats.year)?.remainingFromPreviousYear,
+                remainingLeaveDao.get(stats.employee.id, stats.year)?.remainingFromPreviousYear,
                 "remainingFromPreviousYear in db: $stats"
             )
         }

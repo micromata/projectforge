@@ -165,13 +165,13 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     /**
      * Handles deletion of series element (if any) for future and single events of a series.
      */
-    override fun internalMarkAsDeleted(obj: CalEventDO) {
+    override fun markAsDeleted(obj: CalEventDO, checkAccess: Boolean) {
         val selectedEvent =
             obj.removeTransientAttribute(ATTR_SELECTED_ELEMENT) as ICalendarEvent? // Must be removed, otherwise update below will handle this attrs again.
         val mode = obj.removeTransientAttribute(ATTR_SERIES_MODIFICATION_MODE) as SeriesModificationMode?
         if (selectedEvent == null || mode == null || mode == SeriesModificationMode.ALL) {
             // Nothing to do special:
-            super.internalMarkAsDeleted(obj)
+            super.markAsDeleted(obj, checkAccess = checkAccess)
             return
         }
         val masterEvent = getById(obj.id)
@@ -219,8 +219,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         }
         val teamEventFilter = filter.clone().setOnlyRecurrence(true)
         val qFilter = buildQueryFilter(teamEventFilter)
-        list = getList(qFilter)
-        list = selectUnique(list)
+        list = getList(qFilter).distinct()
         for (eventDO in list) {
             if (!calculateRecurrenceEvents) {
                 result.add(eventDO)

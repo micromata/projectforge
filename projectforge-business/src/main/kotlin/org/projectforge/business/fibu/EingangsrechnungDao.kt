@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -44,6 +45,9 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::class.java) {
+    @Autowired
+    private lateinit var historyService: HistoryService
+
     @Autowired
     private val kontoDao: KontoDao? = null
 
@@ -166,14 +170,17 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.getDisplayHistoryEntries
      */
-    override fun getDisplayHistoryEntries(obj: EingangsrechnungDO): MutableList<DisplayHistoryEntry> {
-        val list = super.getDisplayHistoryEntries(obj)
+    override fun getDisplayHistoryEntries(
+        obj: EingangsrechnungDO,
+        checkAccess: Boolean
+    ): MutableList<DisplayHistoryEntry> {
+        val list = super.getDisplayHistoryEntries(obj, checkAccess)
         if (!hasLoggedInUserHistoryAccess(obj, false)) {
             return list
         }
         if (CollectionUtils.isNotEmpty(obj.positionen)) {
             for (position in obj.positionen!!) {
-                val entries = internalGetDisplayHistoryEntries(position)
+                val entries = historyService.loadAndConvert(position)
                 for (entry in entries) {
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -186,7 +193,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                 mergeList(list, entries)
                 if (CollectionUtils.isNotEmpty(position.kostZuweisungen)) {
                     for (zuweisung in position.kostZuweisungen!!) {
-                        val kostEntries = internalGetDisplayHistoryEntries(zuweisung)
+                        val kostEntries = historyService.loadAndConvert(zuweisung)
                         for (entry in kostEntries) {
                             val propertyName = entry.propertyName
                             if (propertyName != null) {
@@ -202,11 +209,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                 }
             }
         }
-        list.sortWith(Comparator<DisplayHistoryEntry> { o1, o2 ->
-            (o2.timestamp.compareTo(
-                o1.timestamp
-            ))
-        })
+        list.sortWith { o1, o2 -> (o2.timestamp.compareTo(o1.timestamp)) }
         return list
     }
 
@@ -225,10 +228,6 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
             }
         }
         return false
-    }
-
-    override fun sorted(list: List<EingangsrechnungDO>): List<EingangsrechnungDO> {
-        return list.sorted()
     }
 
     override fun newInstance(): EingangsrechnungDO {

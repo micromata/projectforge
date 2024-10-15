@@ -39,6 +39,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
@@ -56,6 +57,9 @@ private val log = KotlinLogging.logger {}
 open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
+    private lateinit var hisoService: HistoryService
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -141,7 +145,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     override fun onSaveOrModify(obj: RechnungDO) {
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
-            val originValue = internalGetById(obj.id)
+            val originValue = getById(obj.id, checkAccess = false)
             if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
                 obj.nummer = getNextNumber(obj)
 
@@ -242,8 +246,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @see org.projectforge.framework.persistence.api.BaseDao.getById
      */
     @Throws(AccessException::class)
-    override fun getById(id: Serializable?): RechnungDO? {
-        val rechnung = super.getById(id)
+    override fun getById(id: Serializable?, checkAccess: Boolean): RechnungDO? {
+        val rechnung = super.getById(id, checkAccess)
         for (pos in rechnung!!.positionen!!) {
             val list: List<KostZuweisungDO>? = pos.kostZuweisungen
             if (list != null && list.size > 0) {
@@ -300,10 +304,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         return result
     }
 
-    override fun sorted(list: List<RechnungDO>): List<RechnungDO> {
-        return list.sorted()
-    }
-
     val nextNumber: Int
         /**
          * Gets the highest Rechnungsnummer.
@@ -319,7 +319,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      */
     fun getNextNumber(rechnung: RechnungDO?): Int {
         if (rechnung?.id != null) {
-            val orig = internalGetById(rechnung.id)
+            val orig = getById(rechnung.id, checkAccess = false)
             if (orig!!.nummer != null) {
                 rechnung.nummer = orig.nummer
                 return orig.nummer!!
@@ -331,14 +331,14 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun getDisplayHistoryEntries(obj: RechnungDO): MutableList<DisplayHistoryEntry> {
+    override fun getDisplayHistoryEntries(obj: RechnungDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
         if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
             return mutableListOf()
         }
         val list = mutableListOf<DisplayHistoryEntry>()
-        super.getDisplayHistoryEntries(obj).let { list.addAll(it) }
+        super.getDisplayHistoryEntries(obj, checkAccess).let { list.addAll(it) }
         obj.positionen?.forEach { position ->
-            val entries: List<DisplayHistoryEntry> = internalGetDisplayHistoryEntries(position)
+            val entries = hisoService.loadAndConvert(position)
             entries.forEach { entry ->
                 val propertyName = entry.propertyName
                 if (propertyName != null) {
@@ -350,8 +350,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             }
             mergeList(list, entries)
             position.kostZuweisungen?.forEach { zuweisung ->
-                val kostEntries: List<DisplayHistoryEntry> =
-                    internalGetDisplayHistoryEntries(zuweisung)
+                val kostEntries = hisoService.loadAndConvert(zuweisung)
                 kostEntries.forEach { entry ->
                     val propertyName = entry.propertyName
                     if (propertyName != null) {

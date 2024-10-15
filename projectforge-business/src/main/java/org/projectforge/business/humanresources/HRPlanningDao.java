@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.HistoryService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
@@ -65,6 +66,12 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
     private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[]{HRPlanningEntryDO.class};
 
     @Autowired
+    private AccessChecker accessChecker;
+
+    @Autowired
+    private HistoryService historyService;
+
+    @Autowired
     private ProjektDao projektDao;
 
     @Autowired
@@ -72,9 +79,6 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
 
     @Autowired
     private UserGroupCache userGroupCache;
-
-    @Autowired
-    private AccessChecker accessChecker;
 
     protected HRPlanningDao() {
         super(HRPlanningDO.class);
@@ -241,7 +245,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
         if (!accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)) {
             HRPlanningDO existingPlanning = null;
             if (obj.getId() != null) {
-                existingPlanning = internalGetById(obj.getId());
+                existingPlanning = getById(obj.getId(), false);
             }
             for (HRPlanningEntryDO entry : obj.getEntries()) {
                 ProjektDO projekt = entry.getProjekt();
@@ -299,7 +303,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
         }
         if (CollectionUtils.isNotEmpty(obj.getEntries())) {
             for (final HRPlanningEntryDO position : obj.getEntries()) {
-                final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
+                var entries = historyService.loadAndConvert(position);
                 for (final DisplayHistoryEntry entry : entries) {
                     final String propertyName = entry.getPropertyName();
                     if (propertyName != null) {

@@ -111,7 +111,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
         group.assignedUsers = group.assignedUsers ?: mutableSetOf()
         newAssignedUsers.forEach { user ->
-            val dbUser = userDao.internalGetById(user.id)
+            val dbUser = userDao.getById(user.id, checkAccess = false)
                 ?: throw RuntimeException(
                     ("User '"
                             + user.id

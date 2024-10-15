@@ -126,7 +126,7 @@ public class ContractDao extends BaseDao<ContractDO> {
     @SuppressWarnings("unchecked")
     public Integer getNextNumber(final ContractDO contract) {
         if (contract.getId() != null) {
-            final ContractDO orig = internalGetById(contract.getId());
+            final ContractDO orig = getById(contract.getId(), false);
             if (orig.getNumber() != null) {
                 contract.setNumber(orig.getNumber());
                 return orig.getNumber();

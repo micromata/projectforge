@@ -101,7 +101,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
      * @see BaseDao.getOrLoad
      */
     open fun setUser(authentications: UserAuthenticationsDO, userId: Long) {
-        val user = userDao.internalGetById(userId)
+        val user = userDao.getById(userId, checkAccess = false)
         authentications.user = user
     }
 
@@ -256,7 +256,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.REST_CLIENT)
             changed = changed || checkAndFixToken(authentications, userId, UserTokenType.STAY_LOGGED_IN_KEY)
             if (changed) {
-                internalUpdate(authentications, checkAccess)
+                update(authentications, checkAccess)
             }
         }
     }
@@ -373,11 +373,7 @@ open class UserAuthenticationsDao : BaseDao<UserAuthenticationsDO>(UserAuthentic
             TOKEN_LIST.forEach { type ->
                 authentications.setToken(type, createEncryptedAuthenticationToken(type), true)
             }
-            if (checkAccess) {
-                this.save(authentications)
-            } else {
-                internalSave(authentications)
-            }
+            save(authentications, checkAccess)
         } else {
             checkAndFixAuthenticationTokens(authentications, checkAccess)
         }

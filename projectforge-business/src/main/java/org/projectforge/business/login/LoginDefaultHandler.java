@@ -150,7 +150,7 @@ public class LoginDefaultHandler implements LoginHandler {
   @Override
   public List<PFUserDO> getAllUsers() {
     try {
-      return userService.internalLoadAll();
+      return userService.loadAll(false);
     } catch (final Exception ex) {
       log.error(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "

@@ -129,7 +129,7 @@ class EmployeeService {
         val employeeList: Collection<EmployeeDO> = if (checkAccess) {
             employeeDao.getList(EmployeeFilter())
         } else {
-            employeeDao.internalLoadAll()
+            employeeDao.loadAll(checkAccess = false)
         }
         return employeeList.filter { employee -> isEmployeeActive(employee) }
     }
@@ -139,7 +139,7 @@ class EmployeeService {
     }
 
     fun getAll(checkAccess: Boolean): List<EmployeeDO> {
-        return if (checkAccess) employeeDao.getList(EmployeeFilter()) else employeeDao.internalLoadAll()
+        return if (checkAccess) employeeDao.getList(EmployeeFilter()) else employeeDao.loadAll(checkAccess = false)
     }
 
     private fun getValidityPeriodAttrs(

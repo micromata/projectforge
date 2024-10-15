@@ -310,7 +310,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         var empl: EmployeeDO? = employee
         if (employee.userId == null) {
             // Object wasn't loaded from data base:
-            empl = employeeDao.internalGetById(employee.id)
+            empl = employeeDao.getById(employee.id, checkAccess = false)
         }
         return empl != null && empl.userId == loggedInUser.id
 
