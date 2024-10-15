@@ -128,8 +128,8 @@ public class GroupTest extends AbstractTestBase {
     GroupDO adminGroup = getGroup(ProjectForgeGroup.ADMIN_GROUP.getName());
     final Long id = adminGroup.getId();
     adminGroup.setName("Changed admin group");
-    groupDao.internalUpdate(adminGroup);
-    adminGroup = groupDao.internalGetById(id);
+    groupDao.update(adminGroup, false);
+    adminGroup = groupDao.getById(id, false);
     assertEquals(ProjectForgeGroup.ADMIN_GROUP.getName(), adminGroup.getName(), "Group's name shouldn't be allowed to change.");
   }
 }

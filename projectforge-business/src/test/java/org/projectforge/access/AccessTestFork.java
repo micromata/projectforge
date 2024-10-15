@@ -63,7 +63,7 @@ public class AccessTestFork extends AbstractTestBase {
     @Test
     public void testAccessDO() {
         logon(AbstractTestBase.TEST_ADMIN_USER);
-        final List<GroupTaskAccessDO> list = accessDao.internalLoadAll();
+        final List<GroupTaskAccessDO> list = accessDao.loadAll(false);
         for (final GroupTaskAccessDO access : list) {
             log.info(access.toString());
         }
@@ -131,13 +131,13 @@ public class AccessTestFork extends AbstractTestBase {
             final long current = System.currentTimeMillis();
             timesheet.setStartTime(new Date(current));
             timesheet.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-            final Serializable timesheetId = timesheetDao.internalSave(timesheet);
+            final Serializable timesheetId = timesheetDao.save(timesheet, false);
             logon(user1); // user1 is in group1, but not in group3
             timesheet = timesheetDao.getById(timesheetId); // OK, because is selectable for group1
             // Move task ctm.child to cTm.2 with no access to user1:
             final TaskDO childTask = getTask("cTm.child");
             childTask.setParentTask(getTask("cTm.2"));
-            taskDao.internalUpdate(childTask);
+            taskDao.update(childTask, false);
             return timesheetId;
         });
 

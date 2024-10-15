@@ -52,7 +52,7 @@ class EmployeeTest : AbstractTestBase() {
     @BeforeEach
     fun init() {
         logon(TEST_FULL_ACCESS_USER)
-        employeeList = employeeDao.internalLoadAll()
+        employeeList = employeeDao.loadAll(checkAccess = false)
         Assertions.assertTrue(employeeList.isNotEmpty(), "Keine Mitarbeiter in der Test DB!")
     }
 
@@ -67,7 +67,7 @@ class EmployeeTest : AbstractTestBase() {
                 baseLog.info("Employee: $e")
                 if (e.deleted) {
                     //Undelete
-                    employeeDao.internalUndelete(e)
+                    employeeDao.undelete(e, checkAccess = false)
                 }
             }
         }
@@ -140,7 +140,7 @@ class EmployeeTest : AbstractTestBase() {
             }
             val employee = EmployeeDO()
             employee.user = user
-            employeeDao.internalSave(employee)
+            employeeDao.save(employee, checkAccess = false)
             employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(30))
             loggedInUser?.let { test.logon(it) }
             return employee

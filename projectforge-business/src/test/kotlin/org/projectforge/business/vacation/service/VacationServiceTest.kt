@@ -634,12 +634,12 @@ class VacationServiceTest : AbstractTestBase() {
         user.lastname = name
         user.username = "$name.$name"
         user.email = "$name@devnull.com"
-        userDao.internalSave(user)
+        userDao.save(user, checkAccess = false)
         val employee = EmployeeDO()
         employee.user = user
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
-        employeeDao.internalSave(employee)
+        employeeDao.save(employee, checkAccess = false)
         joinDate?.let { validFrom ->
             employeeService.addNewAnnualLeaveDays(employee, validFrom, BigDecimal(annualLeaveDays))
         }

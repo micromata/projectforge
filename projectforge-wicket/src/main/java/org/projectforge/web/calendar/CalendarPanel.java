@@ -397,7 +397,7 @@ public class CalendarPanel extends Panel {
 
         // User clicked on a time sheet, show the time sheet:
         final Integer id = NumberHelper.parseInteger(eventId);
-        final TimesheetDO dbTimesheet = timesheetDao.internalGetById(id);
+        final TimesheetDO dbTimesheet = timesheetDao.getById(id, false);
         if (dbTimesheet == null) {
             return;
         }

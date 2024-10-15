@@ -140,7 +140,7 @@ class VacationAccountPageRest {
       // For non HR users, only the user himself is assumed.
       ThreadLocalUserContext.userContext!!.employeeId;
     }
-    val employee = employeeDao.internalGetById(employeeId)!!
+    val employee = employeeDao.getById(employeeId, checkAccess = false)!!
     val statistics = mutableMapOf<String, Any>()
     val currentStats = vacationService.getVacationStats(employee, Year.now().value)
     val prevStats = vacationService.getVacationStats(employee, Year.now().value - 1)
@@ -268,7 +268,7 @@ class VacationAccountPageRest {
     }
     val employeeId = postData.data.employee!!.id!!
 
-    remainingLeaveDao.internalMarkAsDeleted(employeeId, Year.now().value)
+    remainingLeaveDao.markAsDeleted(employeeId, Year.now().value, checkAccess = false)
 
     return buildResponseAction(employeeId)
   }

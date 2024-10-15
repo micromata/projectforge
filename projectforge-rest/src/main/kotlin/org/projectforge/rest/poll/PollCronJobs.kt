@@ -71,7 +71,7 @@ class PollCronJobs {
      * Method to end polls after deadline
      */
     private fun cronEndPolls() {
-        val pollDOs = pollDao.internalLoadAll()
+        val pollDOs = pollDao.loadAll(checkAccess = false)
         // set State.FINISHED for all old polls and export excel
         pollDOs.forEach { pollDO ->
             // try to send mail until successfully changed to FINISHED_AND_MAIL_SENT
@@ -101,7 +101,7 @@ class PollCronJobs {
                         val mailSubject = translateMsg("poll.mail.ended.subject")
                         val mailContent = translateMsg("poll.mail.ended.content", pollDO.title, pollDO.owner?.displayName)
 
-                        pollDao.internalSaveOrUpdate(pollDO)
+                        pollDao.saveOrUpdate(pollDO, checkAccess = false)
                         log.info("Set state of poll (${pollDO.id}) ${pollDO.title} to FINISHED")
                         pollMailService.sendMail(mailFrom, mailTo, mailContent, mailSubject, listOf(mailAttachment))
                         pollDO.state = PollDO.State.FINISHED_AND_MAIL_SENT
@@ -139,18 +139,18 @@ class PollCronJobs {
      * Method to delete old polls
      */
     private fun cronDeletePolls() {
-        val polls = pollDao.internalLoadAll()
+        val polls = pollDao.loadAll(checkAccess = false)
         val pollsMoreThanOneYearPast = polls.filter {
             it.deadline?.isBefore(LocalDate.now().minusYears(1)) == true
         }
         pollsMoreThanOneYearPast.forEach { poll ->
-            val pollResponses = pollResponseDao.internalLoadAll().filter { response ->
+            val pollResponses = pollResponseDao.loadAll(checkAccess = false).filter { response ->
                 response.poll?.id == poll.id
             }
             pollResponses.forEach {
-                pollResponseDao.internalMarkAsDeleted(it)
+                pollResponseDao.markAsDeleted(it, checkAccess = false)
             }
-            pollDao.internalMarkAsDeleted(poll)
+            pollDao.markAsDeleted(poll, checkAccess = false)
         }
     }
 }

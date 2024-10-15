@@ -152,7 +152,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   protected void update() {
     AuftragDO auftrag = getData();
-    AuftragDO dbObj = WicketSupport.get(AuftragDao.class).internalGetById(auftrag.getId());
+    AuftragDO dbObj = WicketSupport.get(AuftragDao.class).getById(auftrag.getId(), false);
     if (dbObj != null) {
       // Update attachments values (if modified in the mean time. They can't be modified on this Wicket page):
       auftrag.setAttachmentsCounter(dbObj.getAttachmentsCounter());

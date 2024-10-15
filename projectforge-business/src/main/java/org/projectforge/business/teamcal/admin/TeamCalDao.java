@@ -258,8 +258,8 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
      * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
      */
     @Override
-    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamCalDO obj) {
-        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj);
+    public List<DisplayHistoryEntry> getDisplayHistoryEntries(final TeamCalDO obj, boolean checkAssess) {
+        final List<DisplayHistoryEntry> list = super.getDisplayHistoryEntries(obj, checkAssess);
         if (CollectionUtils.isEmpty(list)) {
             return list;
         }

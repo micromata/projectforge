@@ -77,8 +77,8 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts.setDescription("A lot of stuff done and more.");
             ts.setStartTime(new Date(current));
             ts.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-            id[0] = timesheetDao.internalSave(ts);
-            timesheetDao.internalSave(ts);
+            id[0] = timesheetDao.save(ts, false);
+            timesheetDao.save(ts, false);
 
             logon(getUser("ts-hasSelectAccess-user"));
             ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
@@ -86,7 +86,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getDescription());
             assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getLocation());
 
-            ts = timesheetDao.internalGetById(id[0]);
+            ts = timesheetDao.getById(id[0], false);
             assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
             assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
             assertEquals("Field should not be overwritten", "Office", ts.getLocation());
@@ -106,27 +106,27 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts1.setStartTime(new Date(current));
             ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
             try {
-                timesheetDao.internalSave(ts1);
+                timesheetDao.save(ts1, false);
                 fail("timesheet without task and/or user should not be possible.");
             } catch (final Exception ex) {
             }
             ts1.setTask(getTask("saveAndModify-task"));
             try {
-                timesheetDao.internalSave(ts1);
+                timesheetDao.save(ts1, false);
                 fail("timesheet without user should not be possible.");
             } catch (final Exception ex) {
             }
             ts1.setTask(null);
             ts1.setUser(getUser("saveAndModify-user"));
             try {
-                timesheetDao.internalSave(ts1);
+                timesheetDao.save(ts1, false);
                 fail("timesheet without task and/or user should not be possible.");
             } catch (final Exception ex) {
             }
             ts1.setTask(getTask("saveAndModify-task"));
             ts1.setStartTime(new Date(current));
             ts1.setStopTime(new Date(current + 2 * 60 * 60 * 1000));
-            timesheetDao.internalSave(ts1);
+            timesheetDao.save(ts1, false);
             // ToDo: Check onSaveOrUpdate: kost2Id vs. task!
             return null;
         });
@@ -145,7 +145,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             ts1.setUser(getUser("timesheet-user"));
             setTimeperiod(ts1, 21, 8, 0, 21, 16, 0); // 11/21 from 8:00 to 16:00
             Serializable id = timesheetDao.save(ts1);
-            ts1 = timesheetDao.internalGetById(id);
+            ts1 = timesheetDao.getById(id, false);
 
             final TimesheetDO ts2 = new TimesheetDO();
             ts2.setTask(getTask("timesheet"));
@@ -178,7 +178,7 @@ public class TimesheetTestFork extends AbstractTestBase {
                 assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
             }
 
-            final TimesheetDO t = timesheetDao.internalGetById(id2);
+            final TimesheetDO t = timesheetDao.getById(id2, false);
             timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
 
             id = timesheetDao.save(ts3); // No overlap, OK.
@@ -208,7 +208,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             task = initTestDB.addTask("tpt.2", "tpt");
             date = date.withDate(2008, Month.OCTOBER, 31, 0, 0, 0);
             task.setProtectTimesheetsUntil(date.getLocalDate());
-            taskDao.internalUpdate(task); // Without check access.
+            taskDao.update(task, false); // Without check access.
             task = initTestDB.addTask("tpt.2.1", "tpt.2");
             TimesheetDO sheet = new TimesheetDO();
             sheet.setUser(getUser("tpt-user"));
@@ -242,7 +242,7 @@ public class TimesheetTestFork extends AbstractTestBase {
             task = getTask("tpt.2");
             date.withDate(2008, Month.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
             task.setProtectTimesheetsUntil(date.getLocalDate());
-            taskDao.internalUpdate(task); // Without check access.
+            taskDao.update(task, false); // Without check access.
             sheet = timesheetDao.getById(id);
             sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.
             timesheetDao.update(sheet);
@@ -281,9 +281,9 @@ public class TimesheetTestFork extends AbstractTestBase {
             setTimeperiod(sheet, 2009, Month.OCTOBER, 1, 7, 0, 1, 8, 15); // 10/01 from 07:00 to 08:15
             timesheetDao.save(sheet);
             task1.setStatus(TaskStatus.C);
-            taskDao.internalUpdate(task1);
+            taskDao.update(task1, false);
             task2.setStatus(TaskStatus.C);
-            taskDao.internalUpdate(task2);
+            taskDao.update(task2, false);
             sheet = new TimesheetDO();
             sheet.setUser(getUser("ttb-user"));
             sheet.setTask(getTask("dB.1.1"));

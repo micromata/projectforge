@@ -85,7 +85,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             pollId = NumberHelper.parseLong(pollStringId) ?: throw IllegalArgumentException("id not given.")
         }
         // used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
-        val pollData = pollDao.internalGetById(pollId) ?: PollDO()
+        val pollData = pollDao.getById(pollId, checkAccess = false) ?: PollDO()
 
         val answerTitle: String
         if (delUser != null && pollDao.hasFullAccess(pollData) && pollDao.isAttendee(pollData, delUser.toLong())) {
@@ -158,7 +158,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
 
-        pollResponseDao.internalLoadAll().firstOrNull { response ->
+        pollResponseDao.loadAll(checkAccess = false).firstOrNull { response ->
             response.owner?.id == questionOwnerId
                     && response.poll?.id == pollData.id
         }?.let {
@@ -261,7 +261,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         postData.data.copyTo(pollResponseDO)
 
         pollResponseDO.owner = userService.getUser(questionOwner)
-        pollResponseDao.internalLoadAll().firstOrNull { pollResponse ->
+        pollResponseDao.loadAll(checkAccess = false).firstOrNull { pollResponse ->
             pollResponse.owner?.id == questionOwner
                     && pollResponse.poll?.id == postData.data.poll?.id
         }?.let {
@@ -309,7 +309,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     fun showDelegatedUser(
         request: HttpServletRequest
     ): ResponseEntity<ResponseAction>? {
-        val poll = pollDao.internalGetById(pollId)
+        val poll = pollDao.getById(pollId, checkAccess = false)
         val attendees = listOfNotNull(
             poll!!.attendeeIds,
             poll.fullAccessUserIds,

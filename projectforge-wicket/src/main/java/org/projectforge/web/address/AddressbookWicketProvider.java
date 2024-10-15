@@ -79,7 +79,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
     final int[] ids = StringHelper.splitToInts(abIds, ",", false);
     final List<String> list = new ArrayList<String>();
     for (final int id : ids) {
-      final AddressbookDO ab = addressbookDao.internalGetById(id);
+      final AddressbookDO ab = addressbookDao.getById(id, false);
       if (ab != null) {
         list.add(ab.getTitle());
       } else {
@@ -101,7 +101,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
     Collection<AddressbookDO> sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
     final int[] ids = StringHelper.splitToInts(abIds, ",", false);
     for (final int id : ids) {
-      final AddressbookDO ab = addressbookDao.internalGetById(id);
+      final AddressbookDO ab = addressbookDao.getById(id, false);
       if (ab != null) {
         sortedAddressbooks.add(ab);
       } else {
@@ -214,7 +214,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
       if (abId == null) {
         continue;
       }
-      final AddressbookDO ab = addressbookDao.internalGetById(abId);
+      final AddressbookDO ab = addressbookDao.getById(abId, false);
       if (ab != null) {
         list.add(ab);
       }

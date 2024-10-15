@@ -64,7 +64,7 @@ class HistoryTester(
         msg: String = "",
     ): List<HistoryEntryHolder>? {
         persistenceService.runReadOnly { context ->
-            loadHistoryEntries(historyService.loadHistory(baseDO, context), context)
+            loadHistoryEntries(historyService.loadHistory(baseDO), context)
         }
         if (expectedNumberOfNewHistoryEntries != null) {
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)

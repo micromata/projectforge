@@ -93,7 +93,7 @@ class DataTransferTestService {
     dbo.accessGroupIds = GroupDO.toLongList(accessGroups)
     dbo.externalDownloadEnabled = externalDownloadEnabled
     dbo.externalUploadEnabled = externalUploadEnabled
-    dataTransferAreaDao.internalSave(dbo)
+    dataTransferAreaDao.save(dbo, checkAccess = false)
     return dbo
   }
 

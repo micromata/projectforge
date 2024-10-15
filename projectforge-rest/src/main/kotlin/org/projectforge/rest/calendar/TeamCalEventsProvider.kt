@@ -203,7 +203,7 @@ open class TeamCalEventsProvider() {
       events.add(event)
     }
     for (calId in teamCalendarIds) {
-      val cal = teamCalDao.internalGetById(calId) ?: continue
+      val cal = teamCalDao.getById(calId, checkAccess = false) ?: continue
       if (cal.includeLeaveDaysForGroups.isNullOrBlank() && cal.includeLeaveDaysForUsers.isNullOrBlank()) {
         continue
       }

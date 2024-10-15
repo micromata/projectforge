@@ -63,7 +63,7 @@ class DatatransferAuditJob {
     val startTimeInMillis = System.currentTimeMillis()
 
     var sentMailCounter = 0
-    val areas = dataTransferAreaDao.internalLoadAll()
+    val areas = dataTransferAreaDao.loadAll(checkAccess = false)
     areas.forEach { area ->
       val auditEntries = dataTransferAuditDao.internalGetQueuedEntriesByAreaId(area.id)
       val downloadAuditEntries = dataTransferAuditDao.internalGetDownloadEntriesByAreaId(area.id)

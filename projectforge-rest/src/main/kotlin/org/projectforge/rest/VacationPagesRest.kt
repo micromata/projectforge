@@ -125,7 +125,7 @@ class VacationPagesRest :
     employeeDO?.id ?: return null
     val employee = Employee()
     employeeDO.id?.let {
-      employee.copyFromMinimal(employeeDao.internalGetById(it)!!)
+      employee.copyFromMinimal(employeeDao.getById(it, checkAccess = false)!!)
     }
     return employee
   }

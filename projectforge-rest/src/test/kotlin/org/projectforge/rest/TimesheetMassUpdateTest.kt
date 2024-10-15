@@ -83,7 +83,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         Configuration.instance.isCostConfigured
         val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)
         costConfigured.booleanValue = true
-        configurationDao.internalUpdate(costConfigured)
+        configurationDao.update(costConfigured, checkAccess = false)
     }
 
     @Test
@@ -520,7 +520,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             Assertions.assertNotNull(kost2)
             ts.kost2 = kost2
         }
-        val id: Serializable = timesheetDao.internalSave(ts)!!
+        val id: Serializable = timesheetDao.save(ts, checkAccess = false)!!
         return timesheetDao.getById(id)!!
     }
 
@@ -574,7 +574,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             throw UserException(BaseDao.MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N)
         }
 
-        val dbList = timesheetDao.getListByIds(selectedIds)
+        val dbList = timesheetDao.load(selectedIds)
         return dbList!!
     }
 }

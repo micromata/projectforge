@@ -312,7 +312,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
       return ResponseEntity.ok(ResponseAction(targetType = TargetType.NOTHING))
     }
     val dbObj =
-      dataTransferAreaDao.internalGetById(id)!! // Get entry including external access settings (see DataTransferDao#hasAccess).
+      dataTransferAreaDao.getById(id, checkAccess = false)!! // Get entry including external access settings (see DataTransferDao#hasAccess).
     val newObservers = dbDto.observers?.toMutableList() ?: mutableListOf()
     if (postData.data.userWantsToObserve == true) {
       val user = User()
@@ -324,7 +324,7 @@ class DataTransferPageRest : AbstractDynamicPageRest() {
     dbObj.observerIds = User.toLongList(newObservers)
     // InternalSave, because user must not be admin to observe this area. Read access is given, because data transfer
     // area was already gotten by user in [DataTransferPageRest#convertData]
-    dataTransferAreaDao.internalUpdate(dbObj)
+    dataTransferAreaDao.update(dbObj, checkAccess = false)
     return ResponseEntity.ok(ResponseAction(targetType = TargetType.UPDATE).addVariable("data", convertData(id).second))
   }
 

@@ -102,27 +102,27 @@ class AddressTest : AbstractTestBase() {
     fun checkStandardAccess() {
         val testAddressbook = AddressbookDO()
         testAddressbook.title = "testAddressbook"
-        addressbookDao.internalSave(testAddressbook)
+        addressbookDao.save(testAddressbook, checkAccess = false)
         val addressbookSet: MutableSet<AddressbookDO> = HashSet()
         addressbookSet.add(testAddressbook)
 
         val globalAddressbook = addressbookDao.globalAddressbook
         globalAddressbook.fullAccessUserIds = "" + getUser(TEST_USER).id
-        addressbookDao.internalUpdate(globalAddressbook, false)
+        addressbookDao.update(globalAddressbook, checkAccess = false)
 
         val a1 = AddressDO()
         a1.name = "testa1"
-        addressDao.internalSave(a1)
+        addressDao.save(a1, checkAccess = false)
         val a2 = AddressDO()
         a2.name = "testa2"
-        addressDao.internalSave(a2)
+        addressDao.save(a2, checkAccess = false)
         val a3 = AddressDO()
         a3.name = "testa3"
-        addressDao.internalSave(a3)
+        addressDao.save(a3, checkAccess = false)
         val a4 = AddressDO()
         a4.name = "testa4"
         a4.addressbookList = addressbookSet
-        addressDao.internalSave(a4)
+        addressDao.save(a4, checkAccess = false)
         logon(TEST_USER)
 
         // Select

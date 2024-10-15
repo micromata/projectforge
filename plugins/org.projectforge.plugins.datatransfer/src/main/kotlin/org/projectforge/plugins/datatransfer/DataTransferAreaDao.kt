@@ -128,6 +128,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
     override fun getList(
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<DataTransferAreaDO>>?,
+        checkAccess: Boolean,
     ): List<DataTransferAreaDO> {
         val loggedInUserId = ThreadLocalUserContext.loggedInUserId
         // Don't search for personal boxes of other users (they will be added afterwards):
@@ -139,7 +140,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
                 DBPredicate.Equal("adminIds", loggedInUserId.toString()),
             )
         )
-        var result = super.getList(filter, customResultFilters)
+        var result = super.getList(filter, customResultFilters, checkAccess)
         // searchString contains trailing %:
         val searchString = filter.fulltextSearchString?.replace("%", "")
         if (searchString == null || searchString.length < 2) { // Search string is given and has at least 2 chars:
@@ -191,7 +192,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         )
         if (dbo != null) {
             securePersonalBox(dbo)
-            internalUpdate(dbo)
+            update(dbo, checkAccess = false)
             return dbo
         }
         dbo = DataTransferAreaDO()
@@ -199,7 +200,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         dbo.adminIds = "$userId"
         dbo.observerIds = "$userId"
         dbo.modifyPersonalBox = true
-        internalSave(dbo)
+        save(dbo, checkAccess = false)
         return dbo
     }
 
