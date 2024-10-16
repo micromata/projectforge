@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu.kost.reporting;
+package org.projectforge.business.fibu.kost.report;
 
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.kost.reporting.Report;

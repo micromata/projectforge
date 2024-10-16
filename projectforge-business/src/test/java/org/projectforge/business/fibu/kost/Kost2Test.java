@@ -21,11 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu.kost;
+package org.projectforge.business.fibu.kost;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.kost.Kost2ArtDO;
-import org.projectforge.business.fibu.kost.Kost2DO;
 
 import java.util.HashMap;
 import java.util.Map;

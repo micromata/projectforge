@@ -21,11 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu.kost;
+package org.projectforge.business.fibu.kost;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.kost.KostHelper;
 
 public class KostHelperTest
 {
