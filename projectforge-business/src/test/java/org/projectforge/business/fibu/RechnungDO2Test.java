@@ -21,17 +21,15 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu;
+package org.projectforge.business.fibu;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungsPositionDO;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class RechnungDOTest
+public class RechnungDO2Test
 {
   @Test
   public void nettoBetrag()

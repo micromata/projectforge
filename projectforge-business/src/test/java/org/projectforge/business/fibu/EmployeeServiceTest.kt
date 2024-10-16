@@ -21,14 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu
+package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.EmployeeService
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate

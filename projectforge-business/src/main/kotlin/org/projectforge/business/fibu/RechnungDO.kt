@@ -157,10 +157,11 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @JsonManagedReference
     @IndexedEmbedded(includeDepth = 3)
     @get:OneToMany(
-        cascade = [CascadeType.MERGE],
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
         fetch = FetchType.LAZY,
         mappedBy = "rechnung",
-        targetEntity = RechnungsPositionDO::class
+        targetEntity = RechnungsPositionDO::class,
     )
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)

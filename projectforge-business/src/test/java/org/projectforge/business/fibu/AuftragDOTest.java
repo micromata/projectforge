@@ -21,12 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu;
+package org.projectforge.business.fibu;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.ProjektDO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

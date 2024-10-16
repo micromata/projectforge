@@ -21,11 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu.kost;
+package org.projectforge.business.fibu.kost;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.kost.BusinessAssessmentConfig;
-import org.projectforge.business.fibu.kost.BusinessAssessmentRowConfig;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.utils.Range;
 import org.projectforge.framework.xmlstream.AliasMap;

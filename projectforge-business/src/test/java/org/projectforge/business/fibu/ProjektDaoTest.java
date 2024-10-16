@@ -21,12 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu;
+package org.projectforge.business.fibu;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.ProjektFilter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.test.AbstractTestBase;

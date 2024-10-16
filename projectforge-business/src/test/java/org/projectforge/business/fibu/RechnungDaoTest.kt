@@ -21,11 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu
+package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.business.fibu.*
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.access.AccessException
 import org.projectforge.test.AbstractTestBase
