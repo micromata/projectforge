@@ -267,15 +267,14 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
     /**
      * Rechecks the time sheet overlaps.
      */
-    override fun afterInsertOrModify(obj: TimesheetDO) {
-        super.afterInsertOrModify(obj)
+    override fun afterInsertOrModify(obj: TimesheetDO, operationType: OperationType) {
         taskTree.resetTotalDuration(obj.taskId!!)
     }
 
     /**
      * Checks the start and stop time. If seconds or millis is not null, a RuntimeException will be thrown.
      */
-    override fun onInsertOrModify(obj: TimesheetDO) {
+    override fun onInsertOrModify(obj: TimesheetDO, operationType: OperationType) {
         validateTimestamp(obj.startTime, "startTime")
         validateTimestamp(obj.stopTime, "stopTime")
         if (obj.getDuration() < 60000) {
@@ -324,7 +323,7 @@ open class TimesheetDao : BaseDao<TimesheetDO>(TimesheetDO::class.java) {
         }
     }
 
-    override fun onChange(obj: TimesheetDO, dbObj: TimesheetDO) {
+    override fun onUpdate(obj: TimesheetDO, dbObj: TimesheetDO) {
         if (compareValues(obj.taskId, dbObj.taskId) != 0) {
             taskTree.resetTotalDuration(dbObj.taskId!!)
         }

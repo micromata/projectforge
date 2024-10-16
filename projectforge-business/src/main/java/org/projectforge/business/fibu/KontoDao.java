@@ -27,6 +27,7 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.i18n.UserException;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class KontoDao extends BaseDao<KontoDO> {
     }
 
     @Override
-    public void afterInsertOrModify(@NotNull final KontoDO obj) {
+    public void afterInsertOrModify(@NotNull final KontoDO obj, final OperationType operationType) {
         getKontoCache().refresh();
     }
 
@@ -72,7 +73,7 @@ public class KontoDao extends BaseDao<KontoDO> {
     }
 
     @Override
-    public void onInsertOrModify(final KontoDO obj) {
+    public void onInsertOrModify(final KontoDO obj, final OperationType operationType) {
         if (obj.getNummer() != null && obj.getNummer() > 0) {
             KontoDO existingAccount = getKonto(obj.getNummer());
             //Insert case

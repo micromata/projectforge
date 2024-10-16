@@ -31,6 +31,7 @@ import org.projectforge.business.teamcal.TeamCalConfig
 import org.projectforge.business.teamcal.event.model.CalEventDO
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.and
@@ -88,7 +89,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
         )
     }
 
-    override fun onChange(obj: CalEventDO, dbObj: CalEventDO) {
+    override fun onUpdate(obj: CalEventDO, dbObj: CalEventDO) {
         handleSeriesUpdates(obj)
         // only increment sequence if PF has ownership!
         /*if (obj.getOwnership() != null && obj.getOwnership() == false) {
@@ -232,8 +233,7 @@ open class CalEventDao : BaseDao<CalEventDO>(CalEventDO::class.java) {
     /**
      * Sets midnight (UTC) of all day events.
      */
-    override fun onInsertOrModify(obj: CalEventDO) {
-        super.onInsertOrModify(obj)
+    override fun onInsertOrModify(obj: CalEventDO, operationType: OperationType) {
         requireNotNull(obj.calendar)
 
         if (obj.allDay) {

@@ -304,8 +304,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
         }
     }
 
-    override fun afterInsertOrModify(obj: GroupTaskAccessDO) {
-        super.afterInsertOrModify(obj)
+    override fun afterInsertOrModify(obj: GroupTaskAccessDO, operationType: OperationType) {
         taskTree.setGroupTaskAccess(obj)
     }
 

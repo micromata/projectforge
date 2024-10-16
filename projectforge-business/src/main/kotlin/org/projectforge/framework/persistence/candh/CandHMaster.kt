@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.ClassUtils
 import org.hibernate.Hibernate
 import org.hibernate.proxy.HibernateProxy
+import org.projectforge.common.KClassUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.api.HibernateUtils
@@ -40,7 +41,6 @@ import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KVisibility
 
 private val log = KotlinLogging.logger {}
 
@@ -168,13 +168,7 @@ object CandHMaster {
         vararg ignoreProperties: String,
     ) {
         log.debug { "copyProperties: Processing class $kClass" }
-        kClass.members.filterIsInstance<KMutableProperty1<*, *>>().forEach { property ->
-            // The following check does not work for Java classes, because the visibility of the fields is never 'public'.
-            // For support of Java classes, the visibility check must be modified.
-            if (property.setter.visibility != KVisibility.PUBLIC || property.getter.visibility != KVisibility.PUBLIC) {
-                log.debug { "copyProperties: Getter and/or setter of property $kClass.${property.name} has not visibility 'public', ignoring it." }
-                return@forEach
-            }
+        KClassUtils.filterPublicMutableProperties(kClass).forEach { property ->
             @Suppress("UNCHECKED_CAST")
             property as KMutableProperty1<BaseDO<*>, Any?>
             val propertyName = property.name

@@ -895,7 +895,7 @@ open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
         return "address '${SipgateContactSyncDO.getName(address)}' (id=${address.id}, contact-id=${contact.id})"
     }
 
-    override fun afterSaveOrModify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterInsertOrModify(changedObject: AddressDO, operationType: OperationType) {
         sync()
     }
 }

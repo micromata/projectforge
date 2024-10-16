@@ -73,7 +73,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
     /**
      * Checks constraint violation.
      */
-    override fun onInsertOrModify(obj: TaskDO) {
+    override fun onInsertOrModify(obj: TaskDO, operationType: OperationType) {
         synchronized(this) {
             checkConstraintVioloation(obj)
         }
@@ -265,7 +265,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         }
     }
 
-    override fun afterInsertOrModify(obj: TaskDO) {
+    override fun afterInsertOrModify(obj: TaskDO, operationType: OperationType) {
         taskTree.addOrUpdateTaskNode(obj)
     }
 

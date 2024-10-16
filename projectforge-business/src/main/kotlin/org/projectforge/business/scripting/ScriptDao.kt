@@ -46,9 +46,9 @@ open class ScriptDao : AbstractScriptDao() {
     /**
      * Copy old script as script backup if modified.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.onChange
+     * @see org.projectforge.framework.persistence.api.BaseDao.onUpdate
      */
-    override fun onChange(obj: ScriptDO, dbObj: ScriptDO) {
+    override fun onUpdate(obj: ScriptDO, dbObj: ScriptDO) {
         if (!Arrays.equals(dbObj.script, obj.script)) {
             obj.scriptBackup = dbObj.script
             val suffix = getScriptSuffix(obj)

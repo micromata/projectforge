@@ -523,7 +523,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return userPref.valueObject
     }
 
-    override fun onInsertOrModify(obj: UserPrefDO) {
+    override fun onInsertOrModify(obj: UserPrefDO, operationType: OperationType) {
         val valueObject = obj.valueObject
         if (valueObject == null) {
             obj.valueString = null

@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.memo;
 
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -59,8 +60,7 @@ public class MemoDao extends BaseDao<MemoDO> {
     }
 
     @Override
-    public void onInsertOrModify(final MemoDO obj) {
-        super.onInsertOrModify(obj);
+    public void onInsertOrModify(final MemoDO obj, final OperationType operationType) {
         obj.setOwner(ThreadLocalUserContext.getRequiredLoggedInUser()); // Set always the logged-in user as owner.
     }
 

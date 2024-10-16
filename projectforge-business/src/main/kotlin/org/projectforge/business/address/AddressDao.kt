@@ -325,7 +325,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun beforeInsertOrModify(obj: AddressDO) {
+    override fun beforeInsertOrModify(obj: AddressDO, operationType: OperationType) {
         if (obj.id == null) {
             if (obj.addressbookList == null) {
                 val addressbookSet = mutableSetOf<AddressbookDO>()
@@ -349,17 +349,12 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
     }
 
-    override fun onInsertOrModify(obj: AddressDO) {
-        beforeInsertOrModify(obj)
-    }
-
-    override fun onChange(obj: AddressDO, dbObj: AddressDO) {
+    override fun onUpdate(obj: AddressDO, dbObj: AddressDO) {
         // Don't modify the following fields:
         if (obj.getTransientAttribute("Modify image modification data") !== "true") {
             obj.image = dbObj.image
             obj.imageLastUpdate = dbObj.imageLastUpdate
         }
-        super.onChange(obj, dbObj)
     }
 
     /**
@@ -411,7 +406,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
      *
      * @param obj
      */
-    override fun afterInsertOrModify(obj: AddressDO) {
+    override fun afterInsertOrModify(obj: AddressDO, operationType: OperationType) {
         birthdayCache.setExpired()
     }
 

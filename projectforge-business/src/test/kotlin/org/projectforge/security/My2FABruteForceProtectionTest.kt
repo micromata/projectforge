@@ -75,7 +75,7 @@ class My2FABruteForceProtectionTest {
         user.deactivated = false
         Assertions.assertEquals(12, protection.getNumberOfFailures(42), "12 failed tries expected.")
         Assertions.assertTrue(protection.isBlocked(42), "Retry shouldn't be allowed after 12 failed tries.")
-        protection.userChangeListener.afterSaveOrModify(user, OperationType.UPDATE)
+        protection.userChangeListener.afterInsertOrModify(user, OperationType.UPDATE)
         Assertions.assertNull(
             protection.getLastFailedTry(42),
             "No last failure millis expected, user should be cleared."

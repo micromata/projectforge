@@ -323,7 +323,6 @@ class CandHHistoryTest : AbstractTestBase() {
         )
         Assertions.assertEquals(3, count)
         hist.loadRecentHistoryEntries(3, 4)
-        // RechungsPositionDO Insert (inserted twice)
         rechnungDao.selectHistoryEntries(invoice).let { entries ->
             Assertions.assertEquals(4, entries.size)
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }

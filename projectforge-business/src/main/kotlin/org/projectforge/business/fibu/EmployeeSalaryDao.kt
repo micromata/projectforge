@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -85,7 +86,7 @@ open class EmployeeSalaryDao : BaseDao<EmployeeSalaryDO>(EmployeeSalaryDO::class
         return list
     }
 
-    override fun onInsertOrModify(obj: EmployeeSalaryDO) {
+    override fun onInsertOrModify(obj: EmployeeSalaryDO, operationType: OperationType) {
         if (obj.id == null) {
             val list = persistenceService.executeQuery(
                 "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",

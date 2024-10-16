@@ -451,7 +451,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun onInsertOrModify(obj: AuftragDO) {
+    override fun onInsertOrModify(obj: AuftragDO, operationType: OperationType) {
         if (obj.nummer == null) {
             throw UserException(
                 "validation.required.valueNotPresent",
@@ -566,8 +566,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?) {
-        super.afterUpdate(obj, dbObj)
+    override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?, isModified: Boolean) {
         auftragsCache.setExpired(obj)
     }
 
@@ -599,8 +598,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         }
     }
 
-    override fun afterInsertOrModify(obj: AuftragDO) {
-        super.afterInsertOrModify(obj)
+    override fun afterInsertOrModify(obj: AuftragDO, operationType: OperationType) {
         taskTree.refreshOrderPositionReferences()
     }
 

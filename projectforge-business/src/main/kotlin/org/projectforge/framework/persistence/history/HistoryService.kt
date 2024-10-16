@@ -100,7 +100,7 @@ class HistoryService {
             loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
             allHistoryEntries.forEach { entry -> HistoryEntryDOUtils.transformOldAttributes(entry) }
         }
-        return allHistoryEntries
+        return allHistoryEntries.sortedByDescending { it.id }
     }
 
     private fun loadAndAddHistory(

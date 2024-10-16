@@ -68,11 +68,11 @@ class CandHCopyTest : AbstractTestBase() {
         val src = GroupDO()
         val dest = GroupDO()
         copyValues(src, dest, EntityCopyStatus.NONE).let { context ->
-            Assertions.assertEquals(0, context.historyEntries!!.size)
+            Assertions.assertEquals(0, context.preparedHistoryEntries(dest, dest)!!.size)
         }
         dest.assignedUsers = mutableSetOf()
         copyValues(src, dest, EntityCopyStatus.NONE).let { context ->
-            Assertions.assertEquals(0, context.historyEntries!!.size)
+            Assertions.assertEquals(0, context.preparedHistoryEntries(dest, dest)!!.size)
         }
 
         val user1 = createUser(1, "user1")
@@ -80,7 +80,7 @@ class CandHCopyTest : AbstractTestBase() {
         val user3 = createUser(3, "user3")
         dest.assignedUsers = mutableSetOf(user1, user2)
         copyValues(src, dest, EntityCopyStatus.MAJOR).let { context ->
-            Assertions.assertEquals(1, context.historyEntries!!.size)
+            Assertions.assertEquals(1, context.preparedHistoryEntries(dest, dest)!!.size)
             assertHistoryEntry(context, "assignedUsers", "", "1,2")
         }
         Assertions.assertTrue(dest.assignedUsers.isNullOrEmpty())

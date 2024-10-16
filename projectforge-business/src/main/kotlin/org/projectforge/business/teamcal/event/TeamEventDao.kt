@@ -45,6 +45,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.calendar.ICal4JUtils
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -216,7 +217,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
         }
     }
 
-    override fun onChange(obj: TeamEventDO, dbObj: TeamEventDO) {
+    override fun onUpdate(obj: TeamEventDO, dbObj: TeamEventDO) {
         logReminderChange(obj)
         handleSeriesUpdates(obj)
         // only increment sequence if PF has ownership!
@@ -342,8 +343,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Sets midnight (UTC) of all day events.
      */
-    override fun onInsertOrModify(obj: TeamEventDO) {
-        super.onInsertOrModify(obj)
+    override fun onInsertOrModify(obj: TeamEventDO, operationType: OperationType) {
         requireNotNull(obj.calendar)
 
         if (obj.allDay) {

@@ -54,7 +54,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      * @see org.projectforge.framework.persistence.api.BaseDao.afterInsertOrModify
      * @see Configuration.setExpired
      */
-    override fun afterInsertOrModify(obj: ConfigurationDO) {
+    override fun afterInsertOrModify(obj: ConfigurationDO, operationType: OperationType) {
         instance.setExpired()
     }
 

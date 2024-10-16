@@ -26,7 +26,6 @@ package org.projectforge.test
 import org.junit.jupiter.api.Assertions
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.history.*
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import kotlin.reflect.KClass
@@ -63,9 +62,7 @@ class HistoryTester(
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
         msg: String = "",
     ): List<HistoryEntryHolder>? {
-        persistenceService.runReadOnly { context ->
-            loadHistoryEntries(historyService.loadHistory(baseDO), context)
-        }
+        loadHistoryEntries(historyService.loadHistory(baseDO))
         if (expectedNumberOfNewHistoryEntries != null) {
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)
         }
@@ -77,13 +74,13 @@ class HistoryTester(
      * entity. The entities are loaded as well if available.
      */
     fun loadAndTailHistoryEntries(maxResults: Int): List<HistoryEntryHolder>? {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runReadOnly { context ->
             context.executeQuery(
                 "from HistoryEntryDO order by id desc",
                 HistoryEntryDO::class.java,
                 maxResults = maxResults,
             ).let { entries ->
-                loadHistoryEntries(entries, context)
+                loadHistoryEntries(entries)
             }
         }
         return recentEntries
@@ -138,19 +135,22 @@ class HistoryTester(
         return result
     }
 
-    private fun loadHistoryEntries(historyEntries: List<HistoryEntryDO>, context: PfPersistenceContext) {
+    private fun loadHistoryEntries(historyEntries: List<HistoryEntryDO>) {
         val result = mutableListOf<HistoryEntryHolder>()
-        historyEntries.forEach { entry ->
-            val entity = entry.entityId?.let {
-                try {
-                    val entityClass = Class.forName(entry.entityName)
-                    context.selectById(entityClass, it)
-                } catch (ex: Exception) {
-                    // Not found, OK.
-                    null
+        persistenceService.runReadOnly { context ->
+            historyEntries.forEach { entry ->
+                val entity = entry.entityId?.let {
+                    try {
+                        val entityClass = Class.forName(entry.entityName)
+                        context.selectById(entityClass, it)
+                    } catch (ex: Exception) {
+                        // Not found, OK.
+                        null
+                    }
                 }
+                result.add(HistoryEntryHolder(entry, entity))
             }
-            result.add(HistoryEntryHolder(entry, entity))
+
         }
         recentEntries = result
     }
@@ -235,9 +235,9 @@ class HistoryTester(
         ): List<HistoryEntry> {
             val found = entries.filter {
                 (entityClass == null || it.entityName == entityClass.java.name) &&
-                    (id == null || it.entityId == id) &&
-                    (opType == null || it.entityOpType == opType) &&
-                    (modUser == null || it.modifiedBy == modUser.id?.toString())
+                        (id == null || it.entityId == id) &&
+                        (opType == null || it.entityOpType == opType) &&
+                        (modUser == null || it.modifiedBy == modUser.id?.toString())
             }
             Assertions.assertEquals(
                 numberOfExpectedEntries,

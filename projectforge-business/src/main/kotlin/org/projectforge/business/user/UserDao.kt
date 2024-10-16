@@ -121,7 +121,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     /**
      * @see org.projectforge.framework.persistence.api.BaseDao.afterInsertOrModify
      */
-    override fun afterInsertOrModify(obj: PFUserDO) {
+    override fun afterInsertOrModify(obj: PFUserDO, operationType: OperationType) {
         if (!obj.isMinorChange) {
             userGroupCache.setExpired()
         }

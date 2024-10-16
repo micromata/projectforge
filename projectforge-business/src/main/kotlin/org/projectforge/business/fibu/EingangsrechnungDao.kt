@@ -30,6 +30,7 @@ import org.apache.commons.lang3.ArrayUtils
 import org.projectforge.business.fibu.AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
@@ -100,7 +101,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onInsertOrModify(rechnung: EingangsrechnungDO) {
+    override fun onInsertOrModify(rechnung: EingangsrechnungDO, operationType: OperationType) {
         AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung)
 
         if (rechnung.zahlBetrag != null) {

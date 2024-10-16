@@ -136,7 +136,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
     }
 
-    override fun afterUpdate(obj: GroupDO, dbObj: GroupDO?) {
+    override fun afterUpdate(obj: GroupDO, dbObj: GroupDO?, isModified: Boolean) {
         if (dbObj == null) {
             log.error { "Oups, shouldn't occur. dbObj is null. Can't determine assigned and unassigned user's in afterUpdate for creating history entries." }
         }
@@ -259,7 +259,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     /**
      * Prevents changing the group name for ProjectForge groups.
      */
-    override fun onChange(obj: GroupDO, dbObj: GroupDO) {
+    override fun onUpdate(obj: GroupDO, dbObj: GroupDO) {
         for (group in ProjectForgeGroup.entries) {
             if (group.getName() == dbObj.name) {
                 // A group of ProjectForge will be changed.
@@ -275,11 +275,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         }
     }
 
-    override fun afterInsertOrModify(group: GroupDO) {
-        userGroupCache.setExpired()
-    }
-
-    override fun afterDelete(obj: GroupDO) {
+    override fun afterInsertOrModify(obj: GroupDO, operationType: OperationType) {
         userGroupCache.setExpired()
     }
 

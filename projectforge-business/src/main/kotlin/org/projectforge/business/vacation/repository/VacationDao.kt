@@ -330,40 +330,33 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return false
     }
 
-    override fun onInsertOrModify(obj: VacationDO) {
-        super.onInsertOrModify(obj)
+    override fun onInsertOrModify(obj: VacationDO, operationType: OperationType) {
         if (obj.special == null) {
             obj.special = false // Avoid null value of special.
         }
     }
 
     override fun onInsert(obj: VacationDO) {
-        super.onInsert(obj)
         vacationService.validate(obj, null, true)
     }
 
-    override fun onChange(obj: VacationDO, dbObj: VacationDO) {
-        super.onChange(obj, dbObj)
+    override fun onUpdate(obj: VacationDO, dbObj: VacationDO) {
         vacationService.validate(obj, dbObj, true)
     }
 
     override fun afterInsert(obj: VacationDO) {
-        super.afterInsert(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.INSERT)
     }
 
-    override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?) {
-        super.afterUpdate(obj, dbObj)
+    override fun afterUpdate(obj: VacationDO, dbObj: VacationDO?, isModified: Boolean) {
         vacationSendMailService.checkAndSendMail(obj, OperationType.UPDATE, dbObj)
     }
 
     override fun afterDelete(obj: VacationDO) {
-        super.afterDelete(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.DELETE)
     }
 
     override fun afterUndelete(obj: VacationDO) {
-        super.afterDelete(obj)
         vacationSendMailService.checkAndSendMail(obj, OperationType.UNDELETE)
     }
 

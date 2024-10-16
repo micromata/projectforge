@@ -30,6 +30,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.*;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
@@ -222,7 +223,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void onChange(final ToDoDO obj, final ToDoDO dbObj) {
+    public void onUpdate(final ToDoDO obj, final ToDoDO dbObj) {
         if (!Objects.equals(ThreadLocalUserContext.getLoggedInUserId(), obj.getAssigneeId())) {
             // To-do is changed by other user than assignee, so set recent flag for this to-do for the assignee.
             final ToDoDO copyOfDBObj = new ToDoDO();
@@ -235,7 +236,7 @@ public class ToDoDao extends BaseDao<ToDoDO> {
     }
 
     @Override
-    public void afterInsertOrModify(final ToDoDO obj) {
+    public void afterInsertOrModify(final ToDoDO obj, final OperationType operationType) {
         toDoCache.setExpired(); // Force reload of the menu item counters for open to-do entrie.
     }
 

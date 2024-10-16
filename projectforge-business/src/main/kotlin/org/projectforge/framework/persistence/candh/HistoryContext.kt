@@ -27,10 +27,8 @@ import mu.KotlinLogging
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
-import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.PropertyOpType
-import org.projectforge.framework.persistence.utils.CollectionUtils
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.jvmErasure
 
@@ -55,35 +53,16 @@ internal class HistoryContext(
     internal val currentHistoryEntryWrapper: CandHHistoryEntryWrapper?
         get() = historyEntryWrapperStack.lastOrNull()
 
-    private class SrcCollectionWithNewEntries(
-        val propertyContext: PropertyContext,
-        /**
-         * Already existing entries in the destination collection. The new src entries are not part of this collection.
-         */
-        val keptEntries: Collection<Any>?,
-    )
-
-    /**
-     * This map is used to store the original collection of the entity for generating history entries later of
-     * new persisted collection entries. The id of the new entries is not known at this point.
-     */
-    private var collectionsWithNewAndUpdatedEntries: MutableCollection<SrcCollectionWithNewEntries>? = null
-
-    /**
-     * Adds a new collection with new entries. The kept entries are already part of the destination collection.
-     */
-    fun addSrcCollectionWithNewEntries(propertyContext: PropertyContext, keptEntries: Collection<Any>?) {
-        collectionsWithNewAndUpdatedEntries = collectionsWithNewAndUpdatedEntries ?: mutableListOf()
-        collectionsWithNewAndUpdatedEntries!!.add(SrcCollectionWithNewEntries(propertyContext, keptEntries))
-    }
-
     /**
      * Returns the prepared history entries. This method should be called after all history entries have been added.
+     * The history entries are prepared and the new collection entries are added.
+     * @param mergedObj The merged object (new collection entries with db ids).
+     * @param destObj The destination object (object used in em.merge()). The ids of the new collection entries are not set.
      */
-    fun getPreparedHistoryEntries(): List<HistoryEntryDO> {
+    fun getPreparedHistoryEntries(mergedObj: BaseDO<*>, destObj: BaseDO<*>): List<HistoryEntryDO> {
         log.debug { "getPreparedHistoryEntries: ${entity::class.simpleName}" }
         val entryList = historyEntryWrappers.map { it.prepareAndGetHistoryEntry() }.toMutableList()
-        collectionsWithNewAndUpdatedEntries?.forEach { entry ->
+        /*collectionsWithNewAndUpdatedEntries?.forEach { entry ->
             val pc = entry.propertyContext
             val dest = pc.dest
 
@@ -99,6 +78,8 @@ internal class HistoryContext(
                 destEntry as IdObject<Long>
                 if (keptEntries?.contains(destEntry) != true) {
                     // This is a new entry, not existing in the dest collection before.
+                    // We need to add this entry to the history.
+                    // We can't use the destEntry here, because the id is not known at this point.
                     added.add(destEntry)
                 }
             }
@@ -107,7 +88,12 @@ internal class HistoryContext(
                 added.forEach { destEntry ->
                     @Suppress("UNCHECKED_CAST")
                     destEntry as IdObject<Long>
-                    entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
+                    if (destEntry.id != null) {
+                        // id is already set, so we are able to add the history insert entry now (should not happen):
+                        entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
+                    } else {
+                        // The insert history entry is added later, when the id is set (in CollectionHandler.handleCollection).
+                    }
                 }
             } else {
                 // The collection is not historizable. We need to check if the collection has been changed.
@@ -122,7 +108,8 @@ internal class HistoryContext(
                 histEntry.add(attr)
                 entryList.add(histEntry)
             }
-        }
+        }*/
+        CollectionHandler.writeInsertHistoryEntriesForNewCollectionEntries(mergedObj, destObj, entryList)
         return entryList
     }
 

@@ -28,6 +28,7 @@ import org.projectforge.business.fibu.ProjektDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -153,7 +154,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         return select(queryFilter)
     }
 
-    override fun onInsertOrModify(obj: Kost2DO) {
+    override fun onInsertOrModify(obj: Kost2DO, operationType: OperationType) {
         if (obj.projektId != null) {
             // Projekt ist gegeben. Dann müssen auch die Ziffern stimmen:
             val projekt =
@@ -199,8 +200,7 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         }
     }
 
-    override fun afterInsertOrModify(obj: Kost2DO) {
-        super.afterInsertOrModify(obj)
+    override fun afterInsertOrModify(obj: Kost2DO, operationType: OperationType) {
         kostCache.updateKost2(obj)
     }
 

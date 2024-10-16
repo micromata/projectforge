@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu.kost;
 
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -47,8 +48,7 @@ public class Kost2ArtDao extends BaseDao<Kost2ArtDO> {
     }
 
     @Override
-    public void afterInsertOrModify(final Kost2ArtDO obj) {
-        super.afterInsertOrModify(obj);
+    public void afterInsertOrModify(final Kost2ArtDO obj, final OperationType operationType) {
         kostCache.updateKost2Arts();
     }
 
