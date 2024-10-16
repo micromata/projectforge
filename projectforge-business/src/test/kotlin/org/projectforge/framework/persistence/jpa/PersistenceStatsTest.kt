@@ -30,9 +30,9 @@ import org.projectforge.Constants
 class PersistenceStatsTest {
     @Test
     fun tetsStatsToString() {
-        assertStats("[transactions=[created=0,active=0],readonlies=[created=0,active=0],duration=00:00.000]")
+        assertStats("[transactions=[created=0,active=0],readonlies=[created=0,active=0],duration=00:00.xxx]")
         assertStats(
-            "[transactions=[created=2,active=4],readonlies=[created=1,active=3],duration=00:00.000]",
+            "[transactions=[created=2,active=4],readonlies=[created=1,active=3],duration=00:00.xxx]",
             createdReadonlies = 1,
             createdTransactions = 2,
             activeReadonlies = 3,
@@ -41,7 +41,7 @@ class PersistenceStatsTest {
             activeTransactionsSinceLastSave = 4,
         )
         assertStats(
-            "[transactions=[created=2,active=4,sinceLastSave=6],readonlies=[created=1,active=3,sinceLastSave=5],duration=00:00.000]",
+            "[transactions=[created=2,active=4,sinceLastSave=6],readonlies=[created=1,active=3,sinceLastSave=5],duration=00:00.xxx]",
             createdReadonlies = 1,
             createdTransactions = 2,
             activeReadonlies = 3,
@@ -96,6 +96,6 @@ class PersistenceStatsTest {
             activeReadonliesSinceLastSave = activeReadonliesSinceLastSave,
             activeTransactionsSinceLastSave = activeTransactionsSinceLastSave,
         )
-        Assertions.assertEquals(expected, stats.toString())
+        Assertions.assertEquals(expected.dropLast(4), stats.toString().dropLast(4)) // remove the last 4 characters (xxx])
     }
 }

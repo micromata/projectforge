@@ -23,6 +23,7 @@
 
 package org.projectforge.plugins.datatransfer
 
+import jakarta.annotation.PostConstruct
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.jcr.FileObject
@@ -51,6 +52,11 @@ class DataTransferJCRCleanUpJobTest : AbstractTestBase() {
 
   init {
     DataTransferTestService.addPluginEntitiesForTestMode()
+  }
+
+  @PostConstruct
+  private fun postConstruct() {
+    initJCRTestRepo(MODUL_NAME, "cleanUpJobTestRepo")
   }
 
   @Test

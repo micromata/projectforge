@@ -256,13 +256,21 @@ class BaseDOPersistenceService {
     /**
      * @param force If true, the object will be deleted without any checks. This is needed to force deleting objects that are historizable.
      */
-    internal fun <O : ExtendedBaseDO<Long>> delete(baseDao: BaseDao<O>, obj: O) {
-        if (HistoryBaseDaoAdapter.isHistorizable(obj) && !baseDao.isForceDeletionSupport) {
-            // Deleting historizable objects is only supported, if the baseDao supports force deletion.
-            val msg = "Force deletion not supported by '${baseDao.doClass.name}'. Use markAsDeleted instead for: $obj"
-            log.error { msg }
-            throw RuntimeException(msg)
+    internal fun <O : ExtendedBaseDO<Long>> delete(baseDao: BaseDao<O>, obj: O, force: Boolean = false) {
+        if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
+            if (!baseDao.isForceDeletionSupport) {
+                val msg =
+                    "Force deletion not supported by '${baseDao.doClass.name}'. Use markAsDeleted instead for: $obj"
+                log.error { msg }
+                throw RuntimeException(msg)
+            }
+            if (!force) {
+                val msg = "Object is historizable. Therefore use markAsDeleted instead (or use force=true)."
+                log.error { msg }
+                throw RuntimeException(msg)
+            }
         }
+
         val id = obj.id
         if (id == null) {
             val msg = "Could not destroy object unless id is not given: $obj"
@@ -273,7 +281,7 @@ class BaseDOPersistenceService {
             baseDao.changedRegistry.onDelete(obj)
             baseDao.changedRegistry.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
-            val dbObj = context.selectById(baseDao.doClass, id)
+            val dbObj = em.find(baseDao.doClass, id)
             em.remove(dbObj)
             em.flush()
             if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
