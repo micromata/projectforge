@@ -34,9 +34,6 @@ class EmployeeServiceTest : AbstractTestBase() {
     @Autowired
     private lateinit var employeeService: EmployeeService
 
-    @Autowired
-    private lateinit var employeeDao: EmployeeDao
-
     @Test
     fun isEmployeeActiveWithoutAustrittsdatumTest() {
         val employee = EmployeeDO()

@@ -62,7 +62,7 @@ open class ConfigurationDao : BaseDao<ConfigurationDO>(ConfigurationDO::class.ja
      * Checks and creates missing database entries. Updates also out-dated descriptions.
      */
     fun checkAndUpdateDatabaseEntries() {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             val list = selectAll(checkAccess = false)
             val params: MutableSet<String?> = HashSet()
             for (param in ConfigurationParam.entries) {

@@ -179,13 +179,12 @@ open class Kost2Dao : BaseDao<Kost2DO>(Kost2DO::class.java) {
         } else if (obj.nummernkreis == 4 || obj.nummernkreis == 5) {
             throw UserException("fibu.kost2.error.projektNeededForNummernkreis")
         }
-        var other: Kost2DO? = null
-        if (obj.id == null) {
+        val other = if (obj.id == null) {
             // New kost entry
-            other = getKost2(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.kost2ArtId!!)
+            getKost2(obj.nummernkreis, obj.bereich, obj.teilbereich, obj.kost2ArtId!!)
         } else {
             // kost entry already exists. Check maybe changed:
-            other = persistenceService.selectNamedSingleResult(
+            persistenceService.selectNamedSingleResult(
                 Kost2DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_KOST2ART,
                 Kost2DO::class.java,
                 Pair("nummernkreis", obj.nummernkreis),

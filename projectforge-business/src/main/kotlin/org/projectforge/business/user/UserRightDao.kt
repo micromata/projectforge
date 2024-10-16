@@ -69,7 +69,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
      */
     @JvmOverloads
     fun updateUserRights(user: PFUserDO, list: List<UserRightVO>, updateUserGroupCache: Boolean = true) {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             val dbList = getList(user)
             // evict all entities from the session cache to avoid that the update is already done in the copy method
             val userGroupCache = userGroupCache

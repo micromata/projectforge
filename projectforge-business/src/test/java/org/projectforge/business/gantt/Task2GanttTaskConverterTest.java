@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+@SuppressWarnings("deprecation")
 public class Task2GanttTaskConverterTest extends AbstractTestBase {
     @Autowired
     private GanttChartDao ganttChartDao;

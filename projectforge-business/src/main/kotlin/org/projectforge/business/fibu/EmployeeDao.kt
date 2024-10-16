@@ -34,6 +34,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -50,10 +52,13 @@ private val log = KotlinLogging.logger {}
 @Service
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     @Autowired
-    private lateinit var userDao: UserDao
+    private lateinit var historyService: HistoryService
 
     @Autowired
     private lateinit var kost1Dao: Kost1Dao
+
+    @Autowired
+    private lateinit var userDao: UserDao
 
     // Set by EmployeeService in PostConstruct for avoiding circular dependencies.
     internal lateinit var employeeService: EmployeeService
@@ -87,7 +92,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return employee
     }
 
-    open fun getEmployeeIdByByUserId(userId: Long?): Long? {
+    open fun findEmployeeIdByByUserId(userId: Long?): Long? {
         userId ?: return null
         return persistenceService.selectNamedSingleResult(
             EmployeeDO.GET_EMPLOYEE_ID_BY_USER_ID,
@@ -217,6 +222,17 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     override fun isAutocompletionPropertyEnabled(property: String?): Boolean {
         return ArrayUtils.contains(ENABLED_AUTOCOMPLETION_PROPERTIES, property)
     }
+
+    /**
+     * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
+     */
+    override fun customizeDisplayHistoryEntries(obj: EmployeeDO, list: MutableList<DisplayHistoryEntry>) {
+        employeeService.selectAllValidityPeriodAttrs(obj).forEach { validityAttr ->
+            val entries = historyService.loadAndConvert(validityAttr)
+            mergeList(list, entries)
+        }
+    }
+
 
     init {
         userRightId = USER_RIGHT_ID

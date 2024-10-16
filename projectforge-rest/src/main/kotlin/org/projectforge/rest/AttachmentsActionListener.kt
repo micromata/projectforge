@@ -37,107 +37,106 @@ import org.springframework.http.ResponseEntity
  * Listener to register. Will be called on actions by attachment service ([AttachmentsServicesRest]).
  */
 open class AttachmentsActionListener(
-  val attachmentsService: AttachmentsService,
-  val allowDuplicateFiles: Boolean = false
+    val attachmentsService: AttachmentsService,
+    val allowDuplicateFiles: Boolean = false
 ) {
 
-  /**
-   * Will be called on upload. If ResponseEntity is returned, further processing of this upload will be prevented.
-   * Useful e. g. to allow only special file extensions etc.
-   */
-  open fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Long>): ResponseEntity<*>? {
-    return null
-  }
+    /**
+     * Will be called on upload. If ResponseEntity is returned, further processing of this upload will be prevented.
+     * Useful e. g. to allow only special file extensions etc.
+     */
+    open fun onBeforeUpload(fileInfo: FileInfo, obj: ExtendedBaseDO<Long>): ResponseEntity<*>? {
+        return null
+    }
 
-  /**
-   * Will be called after upload.
-   */
-  open fun afterUpload(
-    attachment: Attachment,
-    obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
-    attachmentsAccessChecker: AttachmentsAccessChecker,
-    listId: String?
-  ): ResponseEntity<*> {
-    return ResponseEntity.ok()
-      .body(
-        ResponseAction(targetType = TargetType.UPDATE, merge = true)
-          .addVariable("data",  createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
-      )
-  }
+    /**
+     * Will be called after upload.
+     */
+    open fun afterUpload(
+        attachment: Attachment,
+        obj: ExtendedBaseDO<Long>,
+        jcrPath: String,
+        attachmentsAccessChecker: AttachmentsAccessChecker,
+        listId: String?
+    ): ResponseEntity<*> {
+        return ResponseEntity.ok()
+            .body(
+                ResponseAction(targetType = TargetType.UPDATE, merge = true)
+                    .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+            )
+    }
 
-  /**
-   * Will be called after upload.
-   */
-  open fun afterModification(
-    attachment: Attachment,
-    obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
-    attachmentsAccessChecker: AttachmentsAccessChecker,
-    listId: String?
-  ): ResponseEntity<*> {
-    return ResponseEntity.ok()
-      .body(
-        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
-      )
-  }
+    /**
+     * Will be called after upload.
+     */
+    open fun afterModification(
+        attachment: Attachment,
+        obj: ExtendedBaseDO<Long>,
+        jcrPath: String,
+        attachmentsAccessChecker: AttachmentsAccessChecker,
+        listId: String?
+    ): ResponseEntity<*> {
+        return ResponseEntity.ok()
+            .body(
+                ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+                    .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+            )
+    }
 
-  /**
-   * Will be called after upload.
-   */
-  open fun afterDeletion(
-    obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
-    attachmentsAccessChecker: AttachmentsAccessChecker,
-    listId: String?
-  ): ResponseEntity<*> {
-    return ResponseEntity.ok()
-      .body(
-        ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-          .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
-      )
-  }
+    /**
+     * Will be called after upload.
+     */
+    open fun afterDeletion(
+        obj: ExtendedBaseDO<Long>,
+        jcrPath: String,
+        attachmentsAccessChecker: AttachmentsAccessChecker,
+        listId: String?
+    ): ResponseEntity<*> {
+        return ResponseEntity.ok()
+            .body(
+                ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
+                    .addVariable("data", createResponseData(obj, jcrPath, attachmentsAccessChecker, listId))
+            )
+    }
 
-  /**
-   * Calls [AttachmentPageRest.createAttachmentLayout] at default. Override this, if you want to manipulate the layout.
-   * As an example MerlinAttachmentsActionListener disables encryptionSupport.
-   */
-  open fun createAttachmentLayout(
-    id: Long,
-    category: String,
-    fileId: String,
-    listId: String?,
-    attachment: Attachment,
-    writeAccess: Boolean = true,
-    restClass: Class<*> = AttachmentsServicesRest::class.java,
-    encryptionSupport: Boolean = false,
-    data: AttachmentsServicesRest.AttachmentData? = null,
-  ): UILayout {
-    return AttachmentPageRest.createAttachmentLayout(
-      id,
-      category,
-      fileId,
-      listId,
-      attachment,
-      writeAccess,
-      restClass,
-      encryptionSupport,
-      data
-    )
-  }
+    /**
+     * Calls [AttachmentPageRest.createAttachmentLayout] at default. Override this, if you want to manipulate the layout.
+     * As an example MerlinAttachmentsActionListener disables encryptionSupport.
+     */
+    open fun createAttachmentLayout(
+        id: Long,
+        category: String,
+        fileId: String,
+        listId: String?,
+        attachment: Attachment,
+        writeAccess: Boolean = true,
+        restClass: Class<*> = AttachmentsServicesRest::class.java,
+        encryptionSupport: Boolean = false,
+        data: AttachmentsServicesRest.AttachmentData? = null,
+    ): UILayout {
+        return AttachmentPageRest.createAttachmentLayout(
+            id = id,
+            category = category,
+            listId = listId,
+            attachment = attachment,
+            writeAccess = writeAccess,
+            restClass = restClass,
+            encryptionSupport = encryptionSupport,
+            data = data
+        )
+    }
 
-  open fun createResponseData(
-    obj: ExtendedBaseDO<Long>,
-    jcrPath: String,
-    attachmentsAccessChecker: AttachmentsAccessChecker,
-    listId: String?,
-  ): Any {
-    val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId) ?: emptyList()
-    return AttachmentsServicesRest.ResponseData(list)
-  }
+    open fun createResponseData(
+        obj: ExtendedBaseDO<Long>,
+        jcrPath: String,
+        attachmentsAccessChecker: AttachmentsAccessChecker,
+        listId: String?,
+    ): Any {
+        val list = attachmentsService.getAttachments(jcrPath, obj.id!!, attachmentsAccessChecker, listId) ?: emptyList()
+        return AttachmentsServicesRest.ResponseData(list)
+    }
 
-  open fun createDownloadBasefileName(obj: Any): String {
-    return "download"
-  }
+    open fun createDownloadBasefileName(obj: Any): String {
+        return "download"
+    }
 }

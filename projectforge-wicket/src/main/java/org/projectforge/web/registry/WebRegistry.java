@@ -56,10 +56,7 @@ import org.projectforge.web.wicket.ErrorPage;
 import org.projectforge.web.wicket.FeedbackPage;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge). This registry is
@@ -108,7 +105,7 @@ public class WebRegistry
 
   public WebRegistryEntry register(final WebRegistryEntry entry)
   {
-    Validate.notNull(entry);
+    Objects.requireNonNull(entry);
     map.put(entry.getId(), entry);
     orderedList.add(entry);
     return entry;
@@ -145,14 +142,14 @@ public class WebRegistry
   public WebRegistryEntry register(final WebRegistryEntry existingEntry, final boolean insertBefore,
       final WebRegistryEntry entry)
   {
-    Validate.notNull(existingEntry);
-    Validate.notNull(entry);
+    Objects.requireNonNull(existingEntry);
+    Objects.requireNonNull(entry);
     map.put(entry.getId(), entry);
     final int idx = orderedList.indexOf(existingEntry);
     if (idx < 0) {
       log.error("Registry entry '" + existingEntry.getId() + "' not found. Appending the given entry to the list.");
       orderedList.add(entry);
-    } else if (insertBefore == true) {
+    } else if (insertBefore) {
       orderedList.add(idx, entry);
     } else {
       orderedList.add(idx + 1, entry);

@@ -101,27 +101,27 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onInsertOrModify(rechnung: EingangsrechnungDO, operationType: OperationType) {
-        AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung)
+    override fun onInsertOrModify(obj: EingangsrechnungDO, operationType: OperationType) {
+        AuftragAndRechnungDaoHelper.onSaveOrModify(obj)
 
-        if (rechnung.zahlBetrag != null) {
-            rechnung.zahlBetrag = rechnung.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
+        if (obj.zahlBetrag != null) {
+            obj.zahlBetrag = obj.zahlBetrag!!.setScale(2, RoundingMode.HALF_UP)
         }
-        rechnung.recalculate()
-        if (CollectionUtils.isEmpty(rechnung.positionen)) {
+        obj.recalculate()
+        if (CollectionUtils.isEmpty(obj.positionen)) {
             throw UserException("fibu.rechnung.error.rechnungHatKeinePositionen")
         }
-        val size = rechnung.positionen!!.size
+        val size = obj.positionen!!.size
         for (i in size - 1 downTo 1) {
             // Don't remove first position, remove only the last empty positions.
-            val position = rechnung.positionen!![i]
+            val position = obj.positionen!![i]
             if (position.id == null && position.isEmpty) {
-                rechnung.positionen!!.removeAt(i)
+                obj.positionen!!.removeAt(i)
             } else {
                 break
             }
         }
-        RechnungDao.writeUiStatusToXml(rechnung)
+        RechnungDao.writeUiStatusToXml(obj)
     }
 
     override fun select(filter: BaseSearchFilter): List<EingangsrechnungDO> {
@@ -171,14 +171,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun selectDisplayHistoryEntries(
-        obj: EingangsrechnungDO,
-        checkAccess: Boolean
-    ): MutableList<DisplayHistoryEntry> {
-        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
-        if (!hasLoggedInUserHistoryAccess(obj, false)) {
-            return list
-        }
+    override fun customizeDisplayHistoryEntries(obj: EingangsrechnungDO, list: MutableList<DisplayHistoryEntry>) {
         if (CollectionUtils.isNotEmpty(obj.positionen)) {
             for (position in obj.positionen!!) {
                 val entries = historyService.loadAndConvert(position)
@@ -210,8 +203,6 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
                 }
             }
         }
-        list.sortWith { o1, o2 -> (o2.timestamp.compareTo(o1.timestamp)) }
-        return list
     }
 
     /**

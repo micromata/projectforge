@@ -337,7 +337,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
     val script = transformFromDB(scriptDO)
     val effectiveScript = scriptExecution.getEffectiveScript(script, script.parameters, baseDao, this)
     val filename = ReplaceUtils.encodeFilename("${scriptDO.name}-effective.${baseDao.getScriptSuffix(scriptDO)}")
-    return RestUtils.downloadFile(filename, effectiveScript ?: "")
+    return RestUtils.downloadFile(filename, effectiveScript)
   }
 
   override fun onBeforeUpdate(request: HttpServletRequest, obj: ScriptDO, postData: PostData<Script>) {

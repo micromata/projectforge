@@ -148,7 +148,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       )
     )
     val values = mutableListOf<UISelectValue<String>>()
-    bankAccountDao.select(BaseSearchFilter())?.forEach { account ->
+    bankAccountDao.select(BaseSearchFilter()).forEach { account ->
       values.add(UISelectValue("${account.id}", StringUtils.abbreviate(account.name, 20)))
     }
     accountsFilter.values = values

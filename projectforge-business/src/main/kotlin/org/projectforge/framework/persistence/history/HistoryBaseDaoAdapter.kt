@@ -52,7 +52,7 @@ object HistoryBaseDaoAdapter {
             entityClass,
             WithHistory::class.java
         )
-        return !whl.isEmpty()
+        return whl.isNotEmpty()
     }
 
     fun createHistoryEntry(entity: IdObject<Long>, opType: EntityOpType): HistoryEntryDO {

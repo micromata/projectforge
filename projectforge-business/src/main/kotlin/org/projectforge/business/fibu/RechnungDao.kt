@@ -59,7 +59,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     private lateinit var auftragsCache: AuftragsCache
 
     @Autowired
-    private lateinit var hisoService: HistoryService
+    private lateinit var historyService: HistoryService
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -331,14 +331,9 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun selectDisplayHistoryEntries(obj: RechnungDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
-            return mutableListOf()
-        }
-        val list = mutableListOf<DisplayHistoryEntry>()
-        super.selectDisplayHistoryEntries(obj, checkAccess).let { list.addAll(it) }
+    override fun customizeDisplayHistoryEntries(obj: RechnungDO, list: MutableList<DisplayHistoryEntry>) {
         obj.positionen?.forEach { position ->
-            val entries = hisoService.loadAndConvert(position)
+            val entries = historyService.loadAndConvert(position)
             entries.forEach { entry ->
                 val propertyName = entry.propertyName
                 if (propertyName != null) {
@@ -350,7 +345,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             }
             mergeList(list, entries)
             position.kostZuweisungen?.forEach { zuweisung ->
-                val kostEntries = hisoService.loadAndConvert(zuweisung)
+                val kostEntries = historyService.loadAndConvert(zuweisung)
                 kostEntries.forEach { entry ->
                     val propertyName = entry.propertyName
                     if (propertyName != null) {
@@ -364,8 +359,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
                 mergeList(list, kostEntries)
             }
         }
-        list.sortWith(Comparator { o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })
-        return list
     }
 
     /**

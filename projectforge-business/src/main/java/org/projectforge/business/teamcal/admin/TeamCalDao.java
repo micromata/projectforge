@@ -24,6 +24,7 @@
 package org.projectforge.business.teamcal.admin;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.teamcal.admin.TeamCalFilter.OwnerType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -254,15 +255,8 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
         return userService.getSortedUsers(calendar.getMinimalAccessUserIds());
     }
 
-    /**
-     * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
-     */
     @Override
-    public List<DisplayHistoryEntry> selectDisplayHistoryEntries(final TeamCalDO obj, boolean checkAssess) {
-        final List<DisplayHistoryEntry> list = super.selectDisplayHistoryEntries(obj, checkAssess);
-        if (CollectionUtils.isEmpty(list)) {
-            return list;
-        }
+    protected void customizeDisplayHistoryEntries(@NotNull TeamCalDO obj, @NotNull List<DisplayHistoryEntry> list) {
         for (final DisplayHistoryEntry entry : list) {
             if (entry.getPropertyName() == null) {
                 continue;
@@ -290,7 +284,6 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
                 }
             }
         }
-        return list;
     }
 
     /**

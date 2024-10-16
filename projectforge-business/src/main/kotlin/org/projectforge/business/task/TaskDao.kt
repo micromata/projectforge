@@ -55,6 +55,7 @@ private val log = KotlinLogging.logger {}
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@Suppress("DEPRECATION")
 @Service
 open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Serializable needed for Wicket.
     @Autowired

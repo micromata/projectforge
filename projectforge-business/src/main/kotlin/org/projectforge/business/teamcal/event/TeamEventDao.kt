@@ -631,11 +631,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun selectDisplayHistoryEntries(obj: TeamEventDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
-        if (!hasLoggedInUserHistoryAccess(obj, false)) {
-            return list
-        }
+    override fun customizeDisplayHistoryEntries(obj: TeamEventDO, list: MutableList<DisplayHistoryEntry>) {
         if (CollectionUtils.isNotEmpty(obj.attendees)) {
             for (attendee in obj.attendees!!) {
                 val entries = historyService.loadAndConvert(attendee)
@@ -651,8 +647,6 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
                 mergeList(list, entries)
             }
         }
-        list.sortWith(Comparator { o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })
-        return list
     }
 
     /**
