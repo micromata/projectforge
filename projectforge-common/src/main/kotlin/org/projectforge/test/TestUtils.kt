@@ -82,6 +82,7 @@ class TestUtils(modulName: String) {
      *
      * @param action The action to be executed
      */
+    @JvmStatic
     fun suppressErrorLogs(action: () -> Unit) {
       // Access the LoggerContext of the current application
       val loggerContext = LoggerFactory.getILoggerFactory() as LoggerContext

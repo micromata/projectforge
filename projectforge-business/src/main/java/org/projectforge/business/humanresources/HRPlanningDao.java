@@ -295,7 +295,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      */
     @Override
     public List<DisplayHistoryEntry> selectDisplayHistoryEntries(final HRPlanningDO obj, final boolean checkAccess) {
-        final List<DisplayHistoryEntry> list = super.selectDisplayHistoryEntries(obj);
+        final List<DisplayHistoryEntry> list = super.selectDisplayHistoryEntries(obj, checkAccess);
         if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
             return list;
         }

@@ -484,12 +484,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
             log.error(msg)
             throw RuntimeException(msg)
         }
-        accessChecker.checkRestrictedOrDemoUser()
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.UPDATE)
         return persistenceService.runInTransaction { context ->
             val em = context.em
             val dbObj = em.find(doClass, obj.id)
             if (checkAccess) {
+                accessChecker.checkRestrictedOrDemoUser()
                 checkLoggedInUserUpdateAccess(obj, dbObj)
             }
             baseDOPersistenceService.update(this, obj = obj, checkAccess = checkAccess, dbObj = dbObj)!!
@@ -546,11 +546,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
             log.error { msg }
             throw RuntimeException(msg)
         }
-        accessChecker.checkRestrictedOrDemoUser()
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
             val dbObj = context.selectById(doClass, obj.id)!!
             if (checkAccess) {
+                accessChecker.checkRestrictedOrDemoUser()
                 checkLoggedInUserDeleteAccess(obj, dbObj)
             }
             baseDOPersistenceService.markAsDeleted(this, obj)
@@ -569,7 +569,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
             log.error(msg)
             throw RuntimeException(msg)
         }
-        accessChecker.checkRestrictedOrDemoUser()
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
             val dbObj = context.selectById(doClass, obj.id)
@@ -578,9 +577,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
                 return@runInTransaction
             }
             if (checkAccess) {
+                accessChecker.checkRestrictedOrDemoUser()
                 checkLoggedInUserDeleteAccess(obj, dbObj)
             }
-            baseDOPersistenceService.delete(this, obj)
+            baseDOPersistenceService.delete(this, obj, force = true)
         }
     }
 
@@ -590,7 +590,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
     @Throws(AccessException::class)
     @JvmOverloads
     fun delete(obj: O, checkAccess: Boolean = true) {
-        accessChecker.checkRestrictedOrDemoUser()
         if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
             val msg = EXCEPTION_HISTORIZABLE_NOTDELETABLE + obj.toString()
             log.error(msg)
@@ -606,6 +605,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
             val dbObj = context.selectById(doClass, obj.id, attached = true)
             if (dbObj != null) {
                 if (checkAccess) {
+                    accessChecker.checkRestrictedOrDemoUser()
                     checkLoggedInUserDeleteAccess(obj, dbObj)
                 }
                 baseDOPersistenceService.delete(this, obj)
@@ -626,9 +626,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListen
             log.error(msg)
             throw RuntimeException(msg)
         }
-        accessChecker.checkRestrictedOrDemoUser()
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.UNDELETE)
         if (checkAccess) {
+            accessChecker.checkRestrictedOrDemoUser()
             checkLoggedInUserInsertAccess(obj)
         }
         baseDOPersistenceService.undelete(this, obj)
