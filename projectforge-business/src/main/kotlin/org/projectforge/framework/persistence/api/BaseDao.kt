@@ -433,9 +433,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         if (!avoidNullIdCheckBeforeSave) {
             Validate.isTrue(obj.id == null)
         }
-        accessChecker.checkRestrictedOrDemoUser()
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.INSERT)
         if (checkAccess) {
+            accessChecker.checkRestrictedOrDemoUser()
             checkLoggedInUserInsertAccess(obj)
         }
         return baseDOPersistenceService.insert(this, obj)!!
