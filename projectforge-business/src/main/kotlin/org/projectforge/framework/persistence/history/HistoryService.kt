@@ -98,7 +98,7 @@ class HistoryService {
         val allHistoryEntries = mutableListOf<HistoryEntryDO>()
         persistenceService.runReadOnly { context ->
             loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
-            allHistoryEntries.forEach { entry -> HistoryEntryDOUtils.transformOldAttributes(entry) }
+            allHistoryEntries.forEach { entry -> HistoryOldFormatConverter.transformOldAttributes(entry) }
         }
         return allHistoryEntries.sortedByDescending { it.id }
     }
