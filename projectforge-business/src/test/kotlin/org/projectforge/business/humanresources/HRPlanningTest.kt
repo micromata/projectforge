@@ -216,10 +216,12 @@ class HRPlanningTest : AbstractTestBase() {
 
     @Test
     fun overwriteDeletedEntries() {
+        lateinit var planning: HRPlanningDO
+        lateinit var id: Serializable
         persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             // Create planning:
-            var planning = HRPlanningDO()
+            planning = HRPlanningDO()
             planning.user = getUser(TEST_USER)
             planning.week = LocalDate.of(2010, Month.JANUARY, 11)
             assertLocalDate(planning.week!!, 2010, Month.JANUARY, 11)
@@ -235,7 +237,9 @@ class HRPlanningTest : AbstractTestBase() {
             setHours(entry, 6, 5, 4, 3, 2, 1)
             entry.projekt = projekt2
             planning.addEntry(entry)
-            val id: Serializable = hrPlanningDao.insert(planning)
+            id = hrPlanningDao.insert(planning)
+        }
+        persistenceService.runInTransaction { _ ->
             // Check saved planning
             planning = hrPlanningDao.find(id)!!
             val day = PFDay(planning.week!!)
@@ -250,7 +254,7 @@ class HRPlanningTest : AbstractTestBase() {
             // Check deleted entry and re-adding it
             planning = hrPlanningDao.find(id)!!
             Assertions.assertTrue(planning.getProjectEntry(projekt1!!)!!.deleted)
-            entry = HRPlanningEntryDO()
+            var entry = HRPlanningEntryDO()
             setHours(entry, 7, 9, 11, 1, 3, 5)
             entry.projekt = projekt1
             planning.addEntry(entry)

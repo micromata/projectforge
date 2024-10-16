@@ -37,9 +37,9 @@ import java.util.regex.Pattern;
 public class StringHelper {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StringHelper.class);
 
-    private static String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+    private static final String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
-    private static Pattern emailRegexPattern = Pattern.compile(emailRegex);
+    private static final Pattern emailRegexPattern = Pattern.compile(emailRegex);
 
 
     /**
@@ -50,10 +50,10 @@ public class StringHelper {
      * <br/>
      * first = StringBuilder.append(buf, first, myString, ", ");<br/>
      *
-     * @param buf
-     * @param first
+     * @param buf       StringBuilder to append to.
+     * @param first     true if this is the first string to append.
      * @param str       String to append. If null, nothing will be done and first will be returned.
-     * @param delimiter
+     * @param delimiter Delimiter to append before str.
      * @return true if str is not empty and appended to buffer, otherwise first will be returned.
      */
     public static boolean append(final StringBuilder buf, final boolean first, final String str, final String delimiter) {
@@ -135,7 +135,6 @@ public class StringHelper {
      * @param list      List of input strings.
      * @param delimiter The delimiter of the single string in output string.
      * @param sort      If true, the given list will be first sorted.
-     * @return
      */
     public static String listToString(final List<String> list, final String delimiter, final boolean sort) {
         if (sort) {
@@ -174,8 +173,6 @@ public class StringHelper {
     }
 
     /**
-     * @param delimiter
-     * @param strings
      * @see #listToString(List, String, boolean)
      */
     public static String listToString(final String delimiter, final String... strings) {
@@ -184,8 +181,6 @@ public class StringHelper {
     }
 
     /**
-     * @param delimiter
-     * @param strings
      * @see #listToString(List, String, boolean)
      */
     public static String listToString(final StringBuilder buf, final String delimiter, final String... strings) {
@@ -196,7 +191,7 @@ public class StringHelper {
         }
         boolean first = true;
         for (final String s : strings) {
-            if (s == null || s.length() == 0) {
+            if (s == null || s.isEmpty()) {
                 continue;
             }
             first = append(buf, first, s, delimiter);
@@ -205,7 +200,6 @@ public class StringHelper {
     }
 
     /**
-     * @param delimiter
      * @see #listToString(List, String, boolean)
      */
     public static String listToString(final String delimiter, final Object... oa) {
@@ -221,7 +215,7 @@ public class StringHelper {
                 continue;
             }
             final String s = o.toString();
-            if (s == null || s.length() == 0) {
+            if (s == null || s.isEmpty()) {
                 continue;
             }
             first = append(buf, first, s, delimiter);
@@ -230,7 +224,6 @@ public class StringHelper {
     }
 
     /**
-     * @param delimiter
      * @see #listToString(List, String, boolean)
      */
     public static String doublesToString(final String delimiter, final double... oa) {
@@ -246,7 +239,7 @@ public class StringHelper {
                 continue;
             }
             final String s = o.toString();
-            if (s == null || s.length() == 0) {
+            if (s == null || s.isEmpty()) {
                 continue;
             }
             first = append(buf, first, s, delimiter);
@@ -255,11 +248,8 @@ public class StringHelper {
     }
 
     /**
-     * @param delimiter
-     * @param prefix    will be prepended before every string.
-     * @param suffix    will be appended to every string.
-     * @param strings
-     * @return
+     * @param prefix will be prepended before every string.
+     * @param suffix will be appended to every string.
      * @see #listToString(List, String, boolean)
      */
     public static String listToExpressions(final String delimiter, final String prefix, final String suffix,
@@ -279,25 +269,15 @@ public class StringHelper {
         if (array == null || array.length <= 1) {
             return array;
         }
-        final Set<String> set = new TreeSet<>();
-        set.addAll(Arrays.asList(array));
-        final String[] result = (set.toArray(new String[set.size()]));
+        final Set<String> set = new TreeSet<>(Arrays.asList(array));
+        final String[] result = (set.toArray(new String[0]));
         return result;
-    }
-
-    public static String dateToSearchString(final Date date) {
-        if (date == null) {
-            return "";
-        }
-        return date.toString();
     }
 
     /**
      * 0 -&gt; "00", 1 -&gt; "01", ..., 9 -&gt; "09", 10 -&gt; "10", 100 -&gt; "100" etc. Uses StringUtils.leftPad(str, 2,
      * '0');
      *
-     * @param value
-     * @return
      * @see StringUtils#leftPad(String, int, char)
      */
     public static String format2DigitNumber(final Number value) {
@@ -308,8 +288,6 @@ public class StringHelper {
      * 0 -&gt; "000", 1 -&gt; "001", ..., 9 -&gt; "009", 10 -&gt; "010", 100 -&gt; "0100", 1000 -&gt; "1000" etc. Uses
      * StringUtils.leftPad(str, 2, '0');
      *
-     * @param value
-     * @return
      * @see StringUtils#leftPad(String, int, char)
      */
     public static String format3DigitNumber(final int value) {
@@ -318,9 +296,6 @@ public class StringHelper {
 
     /**
      * Remove all non digits from the given string and return the result. If null is given, "" is returned.
-     *
-     * @param str
-     * @return
      */
     public static String removeNonDigits(final String str) {
         if (str == null) {
@@ -353,17 +328,11 @@ public class StringHelper {
     /**
      * Formats string array, each string with max with and separated by separator with a total width. See StringHelperTest
      * for documentation.
-     *
-     * @param strings
-     * @param maxWidth
-     * @param maxTotalLength
-     * @param separator
-     * @return
      */
     public static String abbreviate(final String[] strings, final int[] maxWidth, final int maxTotalLength,
                                     final String separator) {
-        Validate.notNull(strings);
-        Validate.notNull(maxWidth);
+        Objects.requireNonNull(strings);
+        Objects.requireNonNull(maxWidth);
         Validate.isTrue(strings.length == maxWidth.length);
         int rest = maxTotalLength;
         final StringBuilder buf = new StringBuilder();
@@ -412,7 +381,6 @@ public class StringHelper {
      * <li>"Hello", null, "Hello kitty" -&gt; ""</li>
      * </ul>
      *
-     * @param strs
      * @return The wild card string that matches all given strings. If no matching found (null or empty strings given)
      * then an empty string is returned.
      */
@@ -430,6 +398,7 @@ public class StringHelper {
 
     /**
      * Valid characters are ''+'' as first char, ''-'', ''/'' and spaces.
+     *
      * @param countryCodeRequired If true, The leading country code is mandatory, e. g.: +49 561 316793-0
      */
     public static boolean checkPhoneNumberFormat(final String value, final boolean countryCodeRequired) {
@@ -437,21 +406,18 @@ public class StringHelper {
             return true;
         }
         if (!StringUtils.containsOnly(value, "+1234567890 -/")
-            || value.length() < 2
-            // + Only allowed as first char:
-            || value.indexOf('+', 1) != -1) {
+                || value.length() < 2
+                // + Only allowed as first char:
+                || value.indexOf('+', 1) != -1) {
             return false;
         }
         if (countryCodeRequired &&
-            (!value.startsWith("+") || !Character.isDigit(value.charAt(1)))) {
+                (!value.startsWith("+") || !Character.isDigit(value.charAt(1)))) {
             return false;
         }
         final String str = removeWhitespaces(value);
-        if (str.startsWith("+49") && str.charAt(3) == '0') {
-            // +49 0561 123456 is not allowed
-            return false;
-        }
-        return true;
+        // +49 0561 123456 is not allowed
+        return !str.startsWith("+49") || str.charAt(3) != '0';
     }
 
     /**
@@ -463,10 +429,8 @@ public class StringHelper {
      * <li>StringHelper.hideStringEnding(null, 'x', 3) -> "null</li>
      * </ul>
      *
-     * @param str                Original string.
-     * @param ch                 Replace character.
-     * @param numberOfCharacters
-     * @return
+     * @param str Original string.
+     * @param ch  Replace character.
      */
     public static String hideStringEnding(final String str, final char ch, final int numberOfCharacters) {
         if (str == null) {
@@ -500,10 +464,7 @@ public class StringHelper {
     }
 
     /**
-     * @param str
-     * @param delim
      * @param ignoreEmptyItems If true then "1, ,2" returns [1,0,2], otherwise [1,2] is returned.
-     * @return
      */
     public static long[] splitToLongs(final String str, final String delim, final boolean ignoreEmptyItems) {
         if (ignoreEmptyItems) {
@@ -561,10 +522,7 @@ public class StringHelper {
     }
 
     /**
-     * @param str
-     * @param delim
      * @param ignoreEmptyItems If true then "1, ,2" returns [1,0,2], otherwise [1,2] is returned.
-     * @return
      */
     public static int[] splitToInts(final String str, final String delim, final boolean ignoreEmptyItems) {
         if (ignoreEmptyItems) {
@@ -593,9 +551,6 @@ public class StringHelper {
     /**
      * Trims all string of the resulting array.
      *
-     * @param str
-     * @param separatorChars
-     * @return
      * @see StringUtils#split(String, String)
      */
     public static String[] splitAndTrim(final String str, final String separatorChars) {
@@ -613,7 +568,6 @@ public class StringHelper {
     /**
      * Calls !{@link #isBlank(String...)}.
      *
-     * @param strs
      * @return true if one of the given strings is not blank, otherwise false.
      */
     public static boolean isNotBlank(final String... strs) {
@@ -621,7 +575,6 @@ public class StringHelper {
     }
 
     /**
-     * @param strs
      * @return true if one of the given strings is not blank, otherwise false.
      * @see #isNotBlank(String...)
      */
@@ -653,8 +606,6 @@ public class StringHelper {
 
     /**
      * @param keyValues e. g. "name=Horst,street=Baker street"
-     * @param delimiter
-     * @return
      */
     public static Map<String, String> getKeyValues(final String keyValues, final String delimiter) {
         final Map<String, String> map = new HashMap<>();
@@ -682,7 +633,6 @@ public class StringHelper {
     }
 
     /**
-     * @param str
      * @return Normalized string or "" if str is null.
      * @see StringUtils#normalizeSpace(String)
      * @see StringUtils#stripAccents(String)
@@ -692,8 +642,6 @@ public class StringHelper {
     }
 
     /**
-     * @param str
-     * @param toLowerCase
      * @return Normalized string or "" if str is null.
      * @see StringUtils#normalizeSpace(String)
      * @see StringUtils#stripAccents(String)

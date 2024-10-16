@@ -80,7 +80,7 @@ public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<Empl
       if (employeeId == null) {
         continue;
       }
-      EmployeeDO employee = WicketSupport.get(EmployeeDao.class).findByPkDetached(employeeId);
+      EmployeeDO employee = WicketSupport.get(EmployeeDao.class).find(employeeId);
       if (employee != null) {
         list.add(employee);
       }

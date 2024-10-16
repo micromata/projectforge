@@ -246,8 +246,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @see org.projectforge.framework.persistence.api.BaseDao.find
      */
     @Throws(AccessException::class)
-    override fun find(id: Serializable?, checkAccess: Boolean): RechnungDO? {
-        val rechnung = super.find(id, checkAccess)
+    override fun find(id: Serializable?, checkAccess: Boolean, attached: Boolean): RechnungDO? {
+        val rechnung = super.find(id, checkAccess = checkAccess, attached = attached)
         for (pos in rechnung!!.positionen!!) {
             val list: List<KostZuweisungDO>? = pos.kostZuweisungen
             if (list != null && list.size > 0) {

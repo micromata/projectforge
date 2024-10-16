@@ -30,7 +30,7 @@ import org.projectforge.business.sipgate.SipgateConfiguration
 import org.projectforge.business.sipgate.SipgateContact
 import org.projectforge.business.sipgate.SipgateContactSyncDO
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.utils.NumberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,7 +50,7 @@ private val log = KotlinLogging.logger {}
  * @author K. Reinhard (k.reinhard@micromata.de)
  */
 @Service
-open class SipgateContactSyncService : BaseDOChangedListener<AddressDO> {
+open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
     /**
      * Holds result of comparison of local address and remote contact.
      */

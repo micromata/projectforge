@@ -39,33 +39,33 @@ class BaseDaoHistoryTest : AbstractTestBase() {
 
     @Test
     fun testOldInvoiceHistory() {
-        HistoryServiceTest.ensureSetup(persistenceService, historyService)
+        HistoryServiceOldFormatTest.ensureSetup(persistenceService, historyService)
         persistenceService.runReadOnly { context ->
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)
             val entries = rechnungDao.selectDisplayHistoryEntries(invoice)
             // 6 entries for RechnungDO: 351958
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(2972182L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(2972182L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 list[0].apply { Assertions.assertEquals(EntityOpType.Insert, entryType) }
             }
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3042917L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(3042917L) }.let { list ->
                 Assertions.assertEquals(3, list.size)
                 assertHistoryEntry(list[0], RechnungDO::class.java, "bezahlDatum", "", "2010-02-22")
                 assertHistoryEntry(list[1], RechnungDO::class.java, "status", "invoiced", "paid")
                 assertHistoryEntry(list[2], RechnungDO::class.java, "zahlBetrag", "", "4455.00")
             }
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3062919L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(3062919L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(list[0], RechnungDO::class.java, "betreff", "DM 2010 #674", "DM 2010")
             }
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(6191673L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(6191673L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(list[0], RechnungDO::class.java, "konto", "", "12202 - ACME Int.")
             }
 
             // 4 entries for RechnungsPositionDO 351960: 2972178,2985201,3026625,3062923
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3026625L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(3026625L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(
                     list[0],
@@ -77,12 +77,12 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             }
 
             // 4 entries for RechnungsPositionDO 351960: 2972186,2988849,3026621,3062915
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(2988849L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(2988849L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 assertHistoryEntry(list[0], RechnungsPositionDO::class.java, "vat", "0.19000", "0.19")
             }
             // 2 entries for KostZuweisungDO: 382506
-            entries.filter { it.historyEntryId == HistoryServiceTest.getNewHistoryEntryId(3024280L) }.let { list ->
+            entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(3024280L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
                 // Kost2DO#166807 and Kost2DO#331838 aren't in the database.
                 assertHistoryEntry(list[0], KostZuweisungDO::class.java, "kost2", "Kost2DO#166807", "Kost2DO#331838")

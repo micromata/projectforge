@@ -104,3 +104,13 @@
  40312245 | 2023-09-14 14:05:04.091 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
  40312255 | 2023-09-14 14:05:17.443 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
  40312269 | 2023-09-14 14:05:31.785 | 31994523   |  40312219 | org.projectforge.business.orga.VisitorbookDO | Update
+
+-- select pk,modifiedat,modifiedby,entity_id,entity_name,entity_optype from t_pf_history where entity_id=21339579;
+--   pk   |       modifiedat        | modifiedby | entity_id |                entity_name                | entity_optype
+----------+-------------------------+------------+-----------+-------------------------------------------+---------------
+ 21339582 | 2019-03-29 11:43:06.689 | 12982038   |  21339579 | org.projectforge.business.fibu.EmployeeDO | Insert
+ 28816752 | 2020-12-01 11:33:18.742 | 2          |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update
+ 31130252 | 2021-08-06 10:00:50.607 | 28673310   |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update
+ -- manual added:
+ 26289333 | 2020-02-13 09:15:03.798 | 821998     |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update
+ 25952703 | 2020-02-13 09:15:03.798 | 821998     |  21339579 | org.projectforge.business.fibu.EmployeeDO | Update

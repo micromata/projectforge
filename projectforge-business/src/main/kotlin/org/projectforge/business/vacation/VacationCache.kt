@@ -30,7 +30,7 @@ import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -44,7 +44,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
+open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     @Autowired
     private lateinit var vacationDao: VacationDao
 

@@ -56,12 +56,6 @@ private val log = KotlinLogging.logger {}
 @Service
 class EmployeeService {
     @Autowired
-    private lateinit var userDao: UserDao
-
-    @Autowired
-    private lateinit var kost1Dao: Kost1Dao
-
-    @Autowired
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired

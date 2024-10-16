@@ -30,7 +30,7 @@ import org.projectforge.common.DateFormatType
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.TimeLeft
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -70,7 +70,7 @@ internal class My2FABruteForceProtection {
      * This listener handles a reset for a deactivated user after more than 12 failed tries. A admin may re-activate
      * an user and this listener will be notified in this case.
      */
-    internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
+    internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOModifiedListener<PFUserDO> {
         override fun afterInsertOrModify(
             changedObject: PFUserDO,
             operationType: OperationType,

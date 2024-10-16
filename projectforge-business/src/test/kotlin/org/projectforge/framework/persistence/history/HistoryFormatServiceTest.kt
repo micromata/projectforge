@@ -34,7 +34,7 @@ class HistoryFormatServiceTest : AbstractTestBase() {
 
     @Test
     fun testOldInvoiceHistory() {
-        HistoryServiceTest.ensureSetup(persistenceService, historyService)
+        HistoryServiceOldFormatTest.ensureSetup(persistenceService, historyService)
         val invoice = RechnungDO()
         invoice.id = 351958
         historyService.loadHistory(invoice)

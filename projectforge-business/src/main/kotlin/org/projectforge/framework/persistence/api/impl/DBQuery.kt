@@ -149,7 +149,7 @@ open class DBQuery {
                     // Current result object wasn't yet proceeded.
                     ensureUniqueSet.add(id) // Mark current object as already proceeded (ensure uniqueness)
                     if ((!checkAccess || baseDao.hasSelectAccess(next, loggedInUser!!))
-                        && baseDao.containsLong(idSet, next)
+                        && baseDao.contains(idSet, next)
                         && match(list, customResultFilters, resultPredicates, next)
                     ) {
                         // Current result object fits the modified query:

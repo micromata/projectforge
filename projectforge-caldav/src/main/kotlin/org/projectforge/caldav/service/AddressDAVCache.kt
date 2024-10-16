@@ -32,7 +32,7 @@ import org.projectforge.caldav.model.AddressBook
 import org.projectforge.caldav.model.Contact
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
  * Cache needed, because vcard generation takes lot of cpu power....
  */
 @Service
-open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOChangedListener<AddressDO> {
+open class AddressDAVCache : AbstractCache(TICKS_PER_HOUR), BaseDOModifiedListener<AddressDO> {
     @Autowired
     private lateinit var addressDao: AddressDao
 

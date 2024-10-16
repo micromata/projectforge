@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 
 private val log = KotlinLogging.logger {}
 
@@ -36,7 +36,7 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDOChangedListener<AddressDO> {
+class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDOModifiedListener<AddressDO> {
 
     init {
         if (_instance != null) {

@@ -196,7 +196,7 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
    * Throws UserException if vollstaendigFakturiert is true and status is not ABGESCHLOSSEN.
    */
   fun checkVollstaendigFakturiert() {
-    if (vollstaendigFakturiert == true && (status == null || !status!!.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN))) {
+    if (vollstaendigFakturiert == true && (status?.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN) != true)) {
       throw UserException(
         "fibu.auftrag.error.nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein"
       )

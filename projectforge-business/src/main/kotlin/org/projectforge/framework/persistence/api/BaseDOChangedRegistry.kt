@@ -28,112 +28,116 @@ import org.projectforge.framework.access.OperationType
 
 private val log = KotlinLogging.logger {}
 
-class BaseDOChangedRegistry<O : ExtendedBaseDO<Long>> : BaseDOChangedListener<O> {
-    private val objectChangedListeners = mutableListOf<BaseDOChangedListener<O>>()
+class BaseDOChangedRegistry<O : ExtendedBaseDO<Long>>(val baseDao: BaseDao<O>) : BaseDaoPersistenceListener<O> {
+    private val objectChangedListeners = mutableListOf<BaseDOModifiedListener<O>>()
 
     /**
-     * Registers a [BaseDOChangedListener].
+     * Registers a [BaseDOModifiedListener].
      * @param objectChangedListener The listener to register.
-     * @see BaseDOChangedListener
+     * @see BaseDOModifiedListener
      */
-    fun register(objectChangedListener: BaseDOChangedListener<O>) {
+    fun register(objectChangedListener: BaseDOModifiedListener<O>) {
         log.info(javaClass.simpleName + ": Registering " + objectChangedListener.javaClass.name)
         objectChangedListeners.add(objectChangedListener)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.afterLoad].
-     * @see BaseDOChangedListener.afterLoad
+     * Calls [BaseDaoPersistenceListener.afterLoad] for baseDao.
+     * @see BaseDaoPersistenceListener.afterLoad
      */
     override fun afterLoad(obj: O) {
-        objectChangedListeners.forEach { it.afterLoad(obj) }
+        baseDao.afterLoad(obj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.onInsertOrModify].
-     * @see BaseDOChangedListener.onInsertOrModify
-     */
-    override fun onInsertOrModify(obj: O, operationType: OperationType) {
-        objectChangedListeners.forEach { it.onInsertOrModify(obj, operationType) }
-    }
-
-    /**
-     * Calls for all registered [BaseDOChangedListener.beforeInsertOrModify].
-     * @see BaseDOChangedListener.beforeInsertOrModify
+     * Calls [BaseDaoPersistenceListener.beforeInsertOrModify] for baseDao.
+     * Calls for all registered [BaseDOModifiedListener.beforeInsertOrModify].
+     * @see BaseDOModifiedListener.beforeInsertOrModify
      */
     override fun beforeInsertOrModify(obj: O, operationType: OperationType) {
+        baseDao.beforeInsertOrModify(obj, operationType)
         objectChangedListeners.forEach { it.beforeInsertOrModify(obj, operationType) }
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.afterInsertOrModify].
-     * @see BaseDOChangedListener.afterInsertOrModify
+     * Calls [BaseDaoPersistenceListener.afterInsertOrModify] for baseDao.
+     * Calls for all registered [BaseDOModifiedListener.afterInsertOrModify].
+     * @see BaseDOModifiedListener.afterInsertOrModify
      */
-    override fun afterInsertOrModify(changedObject: O, operationType: OperationType) {
-        objectChangedListeners.forEach { it.afterInsertOrModify(changedObject, operationType) }
+    override fun afterInsertOrModify(obj: O, operationType: OperationType) {
+        baseDao.afterInsertOrModify(obj, operationType)
+        objectChangedListeners.forEach { it.afterInsertOrModify(obj, operationType) }
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.onInsert].
-     * @see BaseDOChangedListener.onInsert
+     * Calls [BaseDaoPersistenceListener.onInsertOrModify] for baseDao.
+     * @see BaseDaoPersistenceListener.onInsertOrModify
+     */
+    override fun onInsertOrModify(obj: O, operationType: OperationType) {
+        baseDao.onInsertOrModify(obj, operationType)
+    }
+
+    /**
+     * Calls [BaseDaoPersistenceListener.onInsert] for baseDao.
+     * @see BaseDaoPersistenceListener.onInsert
      */
     override fun onInsert(obj: O) {
-        objectChangedListeners.forEach { it.onInsert(obj) }
+        baseDao.onInsert(obj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.afterInsert].
-     * @see BaseDOChangedListener.afterInsert
+     * Calls [BaseDaoPersistenceListener.afterInsert] for baseDao.
+     * @see BaseDaoPersistenceListener.afterInsert
      */
     override fun afterInsert(obj: O) {
-        objectChangedListeners.forEach { it.afterInsert(obj) }
+        baseDao.afterInsert(obj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.afterUpdate].
-     * @see BaseDOChangedListener.afterUpdate
+     * Calls [BaseDaoPersistenceListener.afterUpdate] for baseDao.
+     * @see BaseDaoPersistenceListener.afterUpdate
      */
     override fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean) {
-        objectChangedListeners.forEach { it.afterUpdate(obj, dbObj, isModified) }
+        baseDao.afterUpdate(obj, dbObj, isModified)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.onUpdate].
-     * @see BaseDOChangedListener.onUpdate
+     * Calls [BaseDaoPersistenceListener.onUpdate] for baseDao.
+     * @see BaseDaoPersistenceListener.onUpdate
      */
     override fun onUpdate(obj: O, dbObj: O) {
-        objectChangedListeners.forEach { it.onUpdate(obj, dbObj) }
+        baseDao.onUpdate(obj, dbObj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.onDelete].
-     * @see BaseDOChangedListener.onDelete
+     * Calls [BaseDaoPersistenceListener.onDelete] for baseDao.
+     * @see BaseDaoPersistenceListener.onDelete
      */
     override fun onDelete(obj: O) {
-        objectChangedListeners.forEach { it.onDelete(obj) }
+        baseDao.onDelete(obj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.afterDelete].
-     * @see BaseDOChangedListener.afterDelete
+     * Calls [BaseDaoPersistenceListener.afterDelete] for baseDao.
+     * @see BaseDaoPersistenceListener.afterDelete
      */
     override fun afterDelete(obj: O) {
-        objectChangedListeners.forEach { it.afterDelete(obj) }
+        baseDao.afterDelete(obj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.onUndelete].
-     * @see BaseDOChangedListener.onUndelete
+     * Calls [BaseDaoPersistenceListener.onUndelete] for baseDao.
+     * @see BaseDaoPersistenceListener.onUndelete
      */
     override fun onUndelete(obj: O) {
-        objectChangedListeners.forEach { it.onUndelete(obj) }
+        baseDao.onUndelete(obj)
     }
 
     /**
-     * Calls for all registered [BaseDOChangedListener.afterUndelete].
-     * @see BaseDOChangedListener.afterUndelete
+     * Calls [BaseDaoPersistenceListener.afterUndelete] for baseDao.
+     * @see BaseDaoPersistenceListener.afterUndelete
      */
     override fun afterUndelete(obj: O) {
-        objectChangedListeners.forEach { it.afterUndelete(obj) }
+        baseDao.afterUndelete(obj)
     }
 }
