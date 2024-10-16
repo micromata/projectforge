@@ -66,7 +66,7 @@ object HistoryOldFormatConverter {
                 val result = propertyName.removePrefix("timeableAttributes.").substringBeforeLast(" ")
                 if (result.startsWith("timeofvisit.")) {
                     if (propertyName.contains("arrive")) {
-                         result.replace("timeofvisit", "arrive")
+                        result.replace("timeofvisit", "arrive")
                     } else if (propertyName.contains("depart")) {
                         result.replace("timeofvisit", "depart")
                     } else {
@@ -74,6 +74,8 @@ object HistoryOldFormatConverter {
                     }
                 } else if (propertyName.contains("employeeannualleave")) {
                     result.replace("employeeannualleave", "annualleave")
+                } else if (propertyName.contains("employeestatus")) {
+                    result.replace("employeestatus", "status")
                 } else {
                     result
                 }
@@ -141,10 +143,15 @@ object HistoryOldFormatConverter {
         newAttr.id = newAttr.id ?: oldAttr.id
         if (oldAttr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
             newAttr.oldValue = oldAttr.value
-            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+            if (oldAttr.propertyName?.contains("startTime") != true) {
+                // timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime:op is of type java.util.Date. Ignore this.
+                newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+            }
         } else if (oldAttr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
             newAttr.value = oldAttr.value
-            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+            if (oldAttr.propertyName?.contains("startTime") != true) {
+                newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+            }
         } else if (oldAttr.propertyName?.endsWith(OP_SUFFIX) == true) {
             newAttr.opType = when (oldAttr.value) {
                 "Insert" -> PropertyOpType.Insert

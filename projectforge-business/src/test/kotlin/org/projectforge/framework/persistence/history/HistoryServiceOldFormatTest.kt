@@ -180,15 +180,13 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         employee.id = 21339579
         val hist = createHistoryTester()
         hist.loadHistory(employee, 5, 6)
-        println ("Employee history entries")
-        // propertyName: timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.employeeannualleavedays, Insert, value=30
-        // propertyName: timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.startTime, Insert, value=2021-03-01 00:00:00:000
-
-        // propertyName: timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime, Insert, value=2019-03-01 00:00:00:000
-        // propertyName: timeableAttributes.employeestatus.2019-03-01 00:00:00:000.status, Insert, value=fibu.employee.status.studentischeHilfskraft
-
-        // propertyName: timeableAttributes.employeestatus.2017-09-01 00:00:00:000.startTime, Delete, value=2017-09-01 00:00:00:000
-        // propertyName: timeableAttributes.employeestatus.2017-09-01 00:00:00:000.status, Delete, value=null
+        hist.getEntry(0, 1).assertAttr("annualleave.2009-11-26", value = "30", oldValue = "32", opType = PropertyOpType.Update, propertyTypeClass = BigDecimal::class)
+        hist.getEntry(1, 1).assertAttr("status.2017-09-01", value = null, oldValue = "2017-09-01 00:00:00:000", opType = PropertyOpType.Delete, propertyTypeClass = null)
+        hist.getEntry(2, 2)
+            .assertAttr("annualleave.2021-03-01", value = "2021-03-01 00:00:00:000", oldValue = null, opType = PropertyOpType.Insert, propertyTypeClass = BigDecimal::class)
+            .assertAttr("status.2021-03-01", value = "fibu.employee.status.festAngestellter", oldValue = null, opType = PropertyOpType.Insert)
+        hist.getEntry(3, 1).assertAttr("status.2020-04-01", value = "fibu.employee.status.aushilfe", oldValue = null, opType = PropertyOpType.Insert)
+        hist.getEntry(4, 1).assertAttr("status.2019-03-01", value = "fibu.employee.status.studentischeHilfskraft", oldValue = null, opType = PropertyOpType.Insert)
     }
 
     private fun ensureSetup() {

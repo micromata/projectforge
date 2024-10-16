@@ -113,6 +113,10 @@ class HistoryOldFormatConverterTest {
             "depart.2023-09-12",
             HistoryOldFormatConverter.getPropertyName(createAttr("timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.depart:nv"))
         )
+        Assertions.assertEquals(
+            "status.2017-09-01",
+            HistoryOldFormatConverter.getPropertyName(createAttr("timeableAttributes.employeestatus.2017-09-01 00:00:00:000.status:op"))
+        )
         Assertions.assertNull(HistoryOldFormatConverter.getPropertyName(createAttr(null)))
     }
 

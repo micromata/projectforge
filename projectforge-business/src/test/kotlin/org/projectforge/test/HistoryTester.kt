@@ -315,7 +315,7 @@ class HistoryTester(
             value: String?,
             oldValue: String?,
             opType: PropertyOpType,
-            propertyTypeClass: KClass<*> = java.lang.String::class,
+            propertyTypeClass: KClass<*>? = java.lang.String::class,
             msg: String = "",
         ) {
             Assertions.assertNotNull(entry.attributes, "$msg: No attributes found in entry")
@@ -329,11 +329,19 @@ class HistoryTester(
                 Assertions.assertEquals(value, attr.value, "$msg: value for ${entry.entityName}.$propertyName")
                 Assertions.assertEquals(oldValue, attr.oldValue, "$msg: oldValue for ${entry.entityName}.$propertyName")
                 Assertions.assertEquals(opType, attr.opType, "$msg: opType for ${entry.entityName}.$propertyName")
-                Assertions.assertEquals(
-                    propertyTypeClass.java.name,
-                    attr.propertyTypeClass,
-                    "$msg: propertyClass for ${entry.entityName}.$propertyName",
-                )
+                if (propertyTypeClass != null) {
+                    Assertions.assertEquals(
+                        propertyTypeClass.java.name,
+                        attr.propertyTypeClass,
+                        "$msg: propertyClass for ${entry.entityName}.$propertyName",
+                    )
+                } else {
+                    Assertions.assertEquals(
+                        "",
+                        attr.propertyTypeClass,
+                        "$msg: propertyClass for ${entry.entityName}.$propertyName"
+                    )
+                }
             }
         }
     }
