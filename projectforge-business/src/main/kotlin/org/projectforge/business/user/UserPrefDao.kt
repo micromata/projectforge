@@ -21,6 +21,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+@file:Suppress("DEPRECATION")
+
 package org.projectforge.business.user
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
@@ -607,14 +609,14 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
 
         private fun <T> fromJson(json: String, classOfT: Class<T>): T? {
-            var json = json
-            if (!isJsonObject(json)) return null
-            json = json.substring(MAGIC_JSON_START.length)
+            var useJson = json
+            if (!isJsonObject(useJson)) return null
+            useJson = useJson.substring(MAGIC_JSON_START.length)
             try {
-                return getObjectMapper().readValue(json, classOfT)
+                return getObjectMapper().readValue(useJson, classOfT)
             } catch (ex: IOException) {
                 log.error(
-                    "Can't deserialize json object (may-be incompatible ProjectForge versions): " + ex.message + " json=" + json,
+                    "Can't deserialize json object (may-be incompatible ProjectForge versions): " + ex.message + " json=" + useJson,
                     ex
                 )
                 return null

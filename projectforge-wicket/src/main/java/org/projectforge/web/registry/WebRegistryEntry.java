@@ -32,10 +32,11 @@ import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Contains more information than a RegistryEntry. This is e. g. needed by general search page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class WebRegistryEntry implements Serializable
@@ -50,26 +51,26 @@ public class WebRegistryEntry implements Serializable
 
   /**
    * Id must be found in {@link Registry}.
-   * 
+   *
    * @param id
    */
   public WebRegistryEntry(Registry registry, final String id)
   {
-    Validate.notNull(id);
+    Objects.requireNonNull(id);
     registryEntry = registry.getEntry(id);
-    Validate.notNull(registryEntry);
+    Objects.requireNonNull(registryEntry);
   }
 
   /**
    * Id must be found in {@link Registry}.
-   * 
+   *
    * @param id
    * @param listPageColumnsCreatorClass Needed for displaying the result-sets by the general search page.
    */
   public WebRegistryEntry(Registry registry, final String id,
       final Class<? extends IListPageColumnsCreator<?>> listPageColumnsCreatorClass)
   {
-    Validate.notNull(id);
+    Objects.requireNonNull(id);
     registryEntry = registry.getEntry(id);
     this.listPageColumnsCreatorClass = listPageColumnsCreatorClass;
     if (registryEntry == null) {
@@ -143,7 +144,7 @@ public class WebRegistryEntry implements Serializable
   /**
    * If true (default) then the search in the web search page is supported for this area. Otherwise this area will not
    * be included in the search.
-   * 
+   *
    * @return the searchable
    * @see RegistryEntry#isSearchable()
    */

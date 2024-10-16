@@ -144,7 +144,7 @@ class DataTransferTestService {
       // Not found or no access
       return null
     }
-    response.body.inputStream.use {
+    response.body?.inputStream.use {
       return IOUtils.toByteArray(it)
     }
   }

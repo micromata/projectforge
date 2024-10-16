@@ -40,6 +40,7 @@ import org.projectforge.registry.RegistryEntry
 import org.projectforge.security.My2FAShortCut
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import java.util.Objects
 import javax.sql.DataSource
 import kotlin.reflect.KFunction
 
@@ -158,7 +159,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * @see Registry.register
      */
     protected fun register(entry: RegistryEntry): RegistryEntry {
-        Validate.notNull(entry)
+        Objects.requireNonNull(entry)
         Registry.getInstance().register(entry)
         return entry
     }

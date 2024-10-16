@@ -364,11 +364,24 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * Please note: If user has no access an empty list will be returned.
      */
     @JvmOverloads
-    open fun selectDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<DisplayHistoryEntry> {
-        if (obj.id == null || !hasLoggedInUserHistoryAccess(obj, false)) {
+    fun selectDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<DisplayHistoryEntry> {
+        if (obj.id == null || (checkAccess && !hasLoggedInUserHistoryAccess(obj, false))) {
             return mutableListOf()
         }
-        return historyService.loadAndConvert(baseDO = obj) { entry -> convert(entry) }
+        val list = historyService.loadAndConvert(baseDO = obj) { entry -> convert(entry) }
+        customizeDisplayHistoryEntries(obj, list)
+        list.sortWith({ o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })
+        return list
+    }
+
+    /**
+     * Override this method if you want to add your own history entries to the list or modify the existing ones.
+     * Called by [selectDisplayHistoryEntries].
+     * Does nothing at default.
+     * @param obj The object for which the history entries are loaded.
+     * @param list The list with entries loaded for given obj. Add here your own entries.
+     */
+    protected open fun customizeDisplayHistoryEntries(obj: O, list: MutableList<DisplayHistoryEntry>) {
     }
 
     /**

@@ -263,7 +263,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
         assertKost2(dbList[0], 5, 51, 1, 0) // Kost2 not transformed.
         assertKost2(dbList[1], 5, 51, 1, 1) // Kost2 not transformed.
         assertKost2(dbList[2], 5, 51, 1, 2) // Kost2 not transformed.
-        kost2 = kost2Dao.getKost2(5, 51, 2, 0) // Kost2 supported by destination task.
+        kost2Dao.getKost2(5, 51, 2, 0) // Kost2 supported by destination task.
         kost2 = kost2Dao.getKost2(5, 51, 2, 0) // Kost2 supported by destination task.
         Assertions.assertNotNull(kost2)
         master.kost2 = kost2
@@ -520,7 +520,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
             Assertions.assertNotNull(kost2)
             ts.kost2 = kost2
         }
-        val id: Serializable = timesheetDao.insert(ts, checkAccess = false)!!
+        val id: Serializable = timesheetDao.insert(ts, checkAccess = false)
         return timesheetDao.find(id)!!
     }
 

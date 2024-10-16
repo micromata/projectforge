@@ -34,6 +34,7 @@ import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.framework.persistence.history.WithHistory
 import java.io.Serializable
 import java.time.LocalDate
 
@@ -52,6 +53,7 @@ private val log = KotlinLogging.logger {}
         name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_id"
     )]
 )
+@WithHistory
 open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
     @get:Id
     @get:GeneratedValue

@@ -23,7 +23,6 @@
 
 package org.projectforge.registry;
 
-import org.apache.commons.lang3.Validate;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.address.PersonalAddressDO;
@@ -54,206 +53,190 @@ import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class Registry
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Registry.class);
+public class Registry {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Registry.class);
 
-  public static final Registry instance = new Registry();
+    public static final Registry instance = new Registry();
 
-  private static final Map<String, RegistryEntry> mapByName = new HashMap<>();
+    private static final Map<String, RegistryEntry> mapByName = new HashMap<>();
 
-  private static final Map<Class<? extends BaseDao<?>>, RegistryEntry> mapByDao = new HashMap<>();
+    private static final Map<Class<? extends BaseDao<?>>, RegistryEntry> mapByDao = new HashMap<>();
 
-  private static final Map<Class<? extends BaseDO<?>>, RegistryEntry> mapByDO = new HashMap<>();
+    private static final Map<Class<? extends BaseDO<?>>, RegistryEntry> mapByDO = new HashMap<>();
 
-  private static final List<RegistryEntry> orderedList = new ArrayList<>();
+    private static final List<RegistryEntry> orderedList = new ArrayList<>();
 
-  public static Registry getInstance()
-  {
-    return instance;
-  }
-
-  @SuppressWarnings("unchecked")
-  public void init(ApplicationContext applicationContext)
-  {
-    register(DaoConst.CONFIGURATION, ConfigurationDao.class, applicationContext.getBean(ConfigurationDao.class),
-        "administration.configuration")
-            .setSearchable(false);
-    register(DaoConst.USER, UserDao.class, applicationContext.getBean(UserDao.class), "user");
-    register(DaoConst.GROUP, GroupDao.class, applicationContext.getBean(GroupDao.class), "group");
-    register(DaoConst.TASK, TaskDao.class, applicationContext.getBean(TaskDao.class), "task"); // needs PFUserDO
-    register(DaoConst.ACCESS, AccessDao.class, applicationContext.getBean(AccessDao.class), "access")
-        .setNestedDOClasses(AccessEntryDO.class);
-
-    register(DaoConst.ADDRESS, AddressDao.class, applicationContext.getBean(AddressDao.class), "address")
-        .setNestedDOClasses(PersonalAddressDO.class);
-    register(DaoConst.ADDRESSBOOK, AddressbookDao.class, applicationContext.getBean(AddressbookDao.class), "addressbook");
-    register(DaoConst.TIMESHEET, TimesheetDao.class, applicationContext.getBean(TimesheetDao.class), "timesheet") //
-        .setSearchFilterClass(TimesheetFilter.class);
-    register(DaoConst.BOOK, BookDao.class, applicationContext.getBean(BookDao.class), "book");
-
-    register(DaoConst.CUSTOMER, KundeDao.class, applicationContext.getBean(KundeDao.class), "fibu.kunde");
-    register(DaoConst.PROJECT, ProjektDao.class, applicationContext.getBean(ProjektDao.class), "fibu.projekt"); // Needs customer
-
-    register(DaoConst.COST1, Kost1Dao.class, applicationContext.getBean(Kost1Dao.class), "fibu.kost1")
-        .setScriptingDao(new Kost1ScriptingDao(applicationContext.getBean(Kost1Dao.class)));
-    register(DaoConst.COST2_Type, Kost2ArtDao.class, applicationContext.getBean(Kost2ArtDao.class), "fibu.kost2art");
-    register(DaoConst.COST2, Kost2Dao.class, applicationContext.getBean(Kost2Dao.class), "fibu.kost2"); // Needs kost2Art and project
-    register(DaoConst.COST_ASSIGNMENT, KostZuweisungDao.class, applicationContext.getBean(KostZuweisungDao.class),
-        "fibu.") // Needs kost, invoices, employee salaries
-            .setFullTextSearchSupport(false).setSearchable(false);
-
-    register(DaoConst.ORDERBOOK, AuftragDao.class, applicationContext.getBean(AuftragDao.class), "fibu.auftrag") // Needs customer, project
-        .setNestedDOClasses(AuftragsPositionDO.class, PaymentScheduleDO.class);
-    register(DaoConst.OUTGOING_INVOICE, RechnungDao.class, applicationContext.getBean(RechnungDao.class),
-        "fibu.rechnung") // Needs customer, project
-            .setNestedDOClasses(RechnungsPositionDO.class);
-    register(DaoConst.INCOMING_INVOICE, EingangsrechnungDao.class,
-        applicationContext.getBean(EingangsrechnungDao.class), "fibu.eingangsrechnung") //
-            .setNestedDOClasses(EingangsrechnungsPositionDO.class);
-    register(DaoConst.ACCOUNTING_RECORD, BuchungssatzDao.class, applicationContext.getBean(BuchungssatzDao.class),
-        "fibu.buchungssatz")
-            .setSearchable(false); // Need account, cost1
-    // and cost2.
-    register(DaoConst.ACCOUNT, KontoDao.class, applicationContext.getBean(KontoDao.class), "fibu.konto");
-    register(DaoConst.EMPLOYEE, EmployeeDao.class, applicationContext.getBean(EmployeeDao.class), "fibu.employee")
-        .setScriptingDao(new EmployeeScriptingDao(applicationContext.getBean(EmployeeDao.class)));
-    register(DaoConst.EMPLOYEE_SALARY, EmployeeDao.class, applicationContext.getBean(EmployeeSalaryDao.class),
-        "fibu.employee.salary")
-            .setSearchable(false);
-
-    register(DaoConst.CONTRACT, ContractDao.class, applicationContext.getBean(ContractDao.class),
-        "legalAffaires.contract");
-    register(DaoConst.OUTGOING_MAIL, PostausgangDao.class, applicationContext.getBean(PostausgangDao.class),
-        "orga.postausgang");
-    register(DaoConst.INCOMING_MAIL, PosteingangDao.class, applicationContext.getBean(PosteingangDao.class),
-        "orga.posteingang");
-
-    register(DaoConst.GANTT, GanttChartDao.class, applicationContext.getBean(GanttChartDao.class), "gantt");
-    register(DaoConst.HR_PLANNING, HRPlanningDao.class, applicationContext.getBean(HRPlanningDao.class), "hr.planning") //
-        .setNestedDOClasses(HRPlanningEntryDO.class).setSearchable(false);
-
-    register(DaoConst.SCRIPT, ScriptDao.class, applicationContext.getBean(ScriptDao.class), "scripting")
-        .setSearchable(false);
-    register(DaoConst.USER_PREF, UserPrefDao.class, applicationContext.getBean(UserPrefDao.class)).setSearchable(false);
-    register(DaoConst.USER_RIGHT, UserRightDao.class, applicationContext.getBean(UserRightDao.class))
-        .setSearchable(false);
-
-    register("teamCal", TeamCalDao.class, applicationContext.getBean(TeamCalDao.class), "plugins.teamcal");
-    register("teamEvent", TeamEventDao.class, applicationContext.getBean(TeamEventDao.class), "plugins.teamcal.event");
-
-  }
-
-  /**
-   * Registers a new dao, which is available
-   *
-   * @param id
-   * @param daoClassType
-   * @param dao
-   * @param i18nPrefix
-   * @return
-   */
-  private RegistryEntry register(final String id, final Class<? extends BaseDao<?>> daoClassType,
-      final BaseDao<?> dao,
-      final String i18nPrefix)
-  {
-    if (dao == null) {
-      log.error("Dao for '" + id + "' is null! Ignoring dao in registry.");
-      return new RegistryEntry(null, null, null); // Create dummy.
+    public static Registry getInstance() {
+        return instance;
     }
-    final RegistryEntry entry = new RegistryEntry(id, daoClassType, dao, i18nPrefix);
-    register(entry);
-    log.debug("Dao '" + id + "' registerd.");
-    return entry;
-  }
 
-  private RegistryEntry register(final String id, final Class<? extends BaseDao<?>> daoClassType,
-      final BaseDao<?> dao)
-  {
-    return register(id, daoClassType, dao, null);
-  }
+    @SuppressWarnings("unchecked")
+    public void init(ApplicationContext applicationContext) {
+        register(DaoConst.CONFIGURATION, ConfigurationDao.class, applicationContext.getBean(ConfigurationDao.class),
+                "administration.configuration")
+                .setSearchable(false);
+        register(DaoConst.USER, UserDao.class, applicationContext.getBean(UserDao.class), "user");
+        register(DaoConst.GROUP, GroupDao.class, applicationContext.getBean(GroupDao.class), "group");
+        register(DaoConst.TASK, TaskDao.class, applicationContext.getBean(TaskDao.class), "task"); // needs PFUserDO
+        register(DaoConst.ACCESS, AccessDao.class, applicationContext.getBean(AccessDao.class), "access")
+                .setNestedDOClasses(AccessEntryDO.class);
 
-  /**
-   * Registers the given entry and appends it to the ordered list of registry entries.
-   *
-   * @param entry The entry to register.
-   * @return this for chaining.
-   */
-  public Registry register(final RegistryEntry entry)
-  {
-    Validate.notNull(entry);
-    mapByName.put(entry.getId(), entry);
-    mapByDao.put(entry.getDaoClassType(), entry);
-    mapByDO.put(entry.getDOClass(), entry);
-    orderedList.add(entry);
-    return instance;
-  }
+        register(DaoConst.ADDRESS, AddressDao.class, applicationContext.getBean(AddressDao.class), "address")
+                .setNestedDOClasses(PersonalAddressDO.class);
+        register(DaoConst.ADDRESSBOOK, AddressbookDao.class, applicationContext.getBean(AddressbookDao.class), "addressbook");
+        register(DaoConst.TIMESHEET, TimesheetDao.class, applicationContext.getBean(TimesheetDao.class), "timesheet") //
+                .setSearchFilterClass(TimesheetFilter.class);
+        register(DaoConst.BOOK, BookDao.class, applicationContext.getBean(BookDao.class), "book");
 
-  /**
-   * Registers the given entry and inserts it to the ordered list of registry entries at the given position.
-   *
-   * @param existingEntry A previous added entry, at which the new entry should be inserted.
-   * @param insertBefore If true then the given entry will be added before the existing entry, otherwise after.
-   * @param entry The entry to register.
-   * @return this for chaining.
-   */
-  public Registry register(final RegistryEntry existingEntry, final boolean insertBefore, final RegistryEntry entry)
-  {
-    Validate.notNull(existingEntry);
-    Validate.notNull(entry);
-    mapByName.put(entry.getId(), entry);
-    mapByDao.put(entry.getDaoClassType(), entry);
-    mapByDO.put(entry.getDOClass(), entry);
-    final int idx = orderedList.indexOf(existingEntry);
-    if (idx < 0) {
-      log.error("Registry entry '" + existingEntry.getId() + "' not found. Appending the given entry to the list.");
-      orderedList.add(entry);
-    } else if (insertBefore) {
-      orderedList.add(idx, entry);
-    } else {
-      orderedList.add(idx + 1, entry);
+        register(DaoConst.CUSTOMER, KundeDao.class, applicationContext.getBean(KundeDao.class), "fibu.kunde");
+        register(DaoConst.PROJECT, ProjektDao.class, applicationContext.getBean(ProjektDao.class), "fibu.projekt"); // Needs customer
+
+        register(DaoConst.COST1, Kost1Dao.class, applicationContext.getBean(Kost1Dao.class), "fibu.kost1")
+                .setScriptingDao(new Kost1ScriptingDao(applicationContext.getBean(Kost1Dao.class)));
+        register(DaoConst.COST2_Type, Kost2ArtDao.class, applicationContext.getBean(Kost2ArtDao.class), "fibu.kost2art");
+        register(DaoConst.COST2, Kost2Dao.class, applicationContext.getBean(Kost2Dao.class), "fibu.kost2"); // Needs kost2Art and project
+        register(DaoConst.COST_ASSIGNMENT, KostZuweisungDao.class, applicationContext.getBean(KostZuweisungDao.class),
+                "fibu.") // Needs kost, invoices, employee salaries
+                .setFullTextSearchSupport(false).setSearchable(false);
+
+        register(DaoConst.ORDERBOOK, AuftragDao.class, applicationContext.getBean(AuftragDao.class), "fibu.auftrag") // Needs customer, project
+                .setNestedDOClasses(AuftragsPositionDO.class, PaymentScheduleDO.class);
+        register(DaoConst.OUTGOING_INVOICE, RechnungDao.class, applicationContext.getBean(RechnungDao.class),
+                "fibu.rechnung") // Needs customer, project
+                .setNestedDOClasses(RechnungsPositionDO.class);
+        register(DaoConst.INCOMING_INVOICE, EingangsrechnungDao.class,
+                applicationContext.getBean(EingangsrechnungDao.class), "fibu.eingangsrechnung") //
+                .setNestedDOClasses(EingangsrechnungsPositionDO.class);
+        register(DaoConst.ACCOUNTING_RECORD, BuchungssatzDao.class, applicationContext.getBean(BuchungssatzDao.class),
+                "fibu.buchungssatz")
+                .setSearchable(false); // Need account, cost1
+        // and cost2.
+        register(DaoConst.ACCOUNT, KontoDao.class, applicationContext.getBean(KontoDao.class), "fibu.konto");
+        register(DaoConst.EMPLOYEE, EmployeeDao.class, applicationContext.getBean(EmployeeDao.class), "fibu.employee")
+                .setScriptingDao(new EmployeeScriptingDao(applicationContext.getBean(EmployeeDao.class)));
+        register(DaoConst.EMPLOYEE_SALARY, EmployeeDao.class, applicationContext.getBean(EmployeeSalaryDao.class),
+                "fibu.employee.salary")
+                .setSearchable(false);
+
+        register(DaoConst.CONTRACT, ContractDao.class, applicationContext.getBean(ContractDao.class),
+                "legalAffaires.contract");
+        register(DaoConst.OUTGOING_MAIL, PostausgangDao.class, applicationContext.getBean(PostausgangDao.class),
+                "orga.postausgang");
+        register(DaoConst.INCOMING_MAIL, PosteingangDao.class, applicationContext.getBean(PosteingangDao.class),
+                "orga.posteingang");
+
+        register(DaoConst.GANTT, GanttChartDao.class, applicationContext.getBean(GanttChartDao.class), "gantt");
+        register(DaoConst.HR_PLANNING, HRPlanningDao.class, applicationContext.getBean(HRPlanningDao.class), "hr.planning") //
+                .setNestedDOClasses(HRPlanningEntryDO.class).setSearchable(false);
+
+        register(DaoConst.SCRIPT, ScriptDao.class, applicationContext.getBean(ScriptDao.class), "scripting")
+                .setSearchable(false);
+        register(DaoConst.USER_PREF, UserPrefDao.class, applicationContext.getBean(UserPrefDao.class)).setSearchable(false);
+        register(DaoConst.USER_RIGHT, UserRightDao.class, applicationContext.getBean(UserRightDao.class))
+                .setSearchable(false);
+
+        register("teamCal", TeamCalDao.class, applicationContext.getBean(TeamCalDao.class), "plugins.teamcal");
+        register("teamEvent", TeamEventDao.class, applicationContext.getBean(TeamEventDao.class), "plugins.teamcal.event");
+
     }
-    return this;
-  }
 
-  public RegistryEntry getEntry(final String id)
-  {
-    return mapByName.get(id);
-  }
+    /**
+     * Registers a new dao, which is available
+     *
+     * @param id
+     * @param daoClassType
+     * @param dao
+     * @param i18nPrefix
+     * @return
+     */
+    private RegistryEntry register(final String id, final Class<? extends BaseDao<?>> daoClassType,
+                                   final BaseDao<?> dao,
+                                   final String i18nPrefix) {
+        if (dao == null) {
+            log.error("Dao for '" + id + "' is null! Ignoring dao in registry.");
+            return new RegistryEntry(null, null, null); // Create dummy.
+        }
+        final RegistryEntry entry = new RegistryEntry(id, daoClassType, dao, i18nPrefix);
+        register(entry);
+        log.debug("Dao '" + id + "' registerd.");
+        return entry;
+    }
 
-  public RegistryEntry getEntry(final Class<? extends BaseDao<?>> daoClass)
-  {
-    return mapByDao.get(daoClass);
-  }
+    private RegistryEntry register(final String id, final Class<? extends BaseDao<?>> daoClassType,
+                                   final BaseDao<?> dao) {
+        return register(id, daoClassType, dao, null);
+    }
 
-  public <T extends BaseDao<?>> T getDao(final Class<T> daoClass)
-  {
-    return (T)mapByDao.get(daoClass).getDao();
-  }
+    /**
+     * Registers the given entry and appends it to the ordered list of registry entries.
+     *
+     * @param entry The entry to register.
+     * @return this for chaining.
+     */
+    public Registry register(final RegistryEntry entry) {
+        Objects.requireNonNull(entry);
+        mapByName.put(entry.getId(), entry);
+        mapByDao.put(entry.getDaoClassType(), entry);
+        mapByDO.put(entry.getDOClass(), entry);
+        orderedList.add(entry);
+        return instance;
+    }
 
-  public RegistryEntry getEntryByDO(final Class<? extends BaseDO<?>> doClass)
-  {
-    return mapByDO.get(doClass);
-  }
+    /**
+     * Registers the given entry and inserts it to the ordered list of registry entries at the given position.
+     *
+     * @param existingEntry A previous added entry, at which the new entry should be inserted.
+     * @param insertBefore  If true then the given entry will be added before the existing entry, otherwise after.
+     * @param entry         The entry to register.
+     * @return this for chaining.
+     */
+    public Registry register(final RegistryEntry existingEntry, final boolean insertBefore, final RegistryEntry entry) {
+        Objects.requireNonNull(existingEntry);
+        Objects.requireNonNull(entry);
+        mapByName.put(entry.getId(), entry);
+        mapByDao.put(entry.getDaoClassType(), entry);
+        mapByDO.put(entry.getDOClass(), entry);
+        final int idx = orderedList.indexOf(existingEntry);
+        if (idx < 0) {
+            log.error("Registry entry '" + existingEntry.getId() + "' not found. Appending the given entry to the list.");
+            orderedList.add(entry);
+        } else if (insertBefore) {
+            orderedList.add(idx, entry);
+        } else {
+            orderedList.add(idx + 1, entry);
+        }
+        return this;
+    }
 
-  /**
-   * @return The list of entries in the order of their registration: the first registered entry is the first of the
-   *         returned list etc.
-   */
-  public List<RegistryEntry> getOrderedList()
-  {
-    return orderedList;
-  }
+    public RegistryEntry getEntry(final String id) {
+        return mapByName.get(id);
+    }
+
+    public RegistryEntry getEntry(final Class<? extends BaseDao<?>> daoClass) {
+        return mapByDao.get(daoClass);
+    }
+
+    public <T extends BaseDao<?>> T getDao(final Class<T> daoClass) {
+        return (T) mapByDao.get(daoClass).getDao();
+    }
+
+    public RegistryEntry getEntryByDO(final Class<? extends BaseDO<?>> doClass) {
+        return mapByDO.get(doClass);
+    }
+
+    /**
+     * @return The list of entries in the order of their registration: the first registered entry is the first of the
+     * returned list etc.
+     */
+    public List<RegistryEntry> getOrderedList() {
+        return orderedList;
+    }
 
 }

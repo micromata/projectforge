@@ -24,7 +24,6 @@
 package org.projectforge.business.user
 
 import mu.KotlinLogging
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.login.Login
@@ -203,9 +202,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      * Does an user with the given username already exists? Works also for existing users (if username was modified).
      */
     fun doesUsernameAlreadyExist(user: PFUserDO): Boolean {
-        Validate.notNull(user)
-        var dbUser: PFUserDO? = null
-        dbUser = if (user.id == null) {
+        val dbUser = if (user.id == null) {
             // New user
             getInternalByName(user.username)
         } else {
@@ -266,32 +263,20 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun selectDisplayHistoryEntries(obj: PFUserDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
-        if (!hasLoggedInUserHistoryAccess(obj, false)) {
-            return list
-        }
-        if (CollectionUtils.isNotEmpty(obj.rights)) {
-            for (right in obj.rights!!) {
-                val entries = historyService.loadAndConvert(right)
-                for (entry in entries) {
-                    val propertyName = entry.propertyName
-                    if (propertyName != null) {
-                        entry.displayPropertyName =
-                            right.rightIdString + ":" + entry.propertyName // Prepend number of positon.
-                    } else {
-                        entry.displayPropertyName = right.rightIdString.toString()
-                    }
+    override fun customizeDisplayHistoryEntries(obj: PFUserDO, list: MutableList<DisplayHistoryEntry>) {
+        obj.rights?.forEach { right ->
+            val entries = historyService.loadAndConvert(right)
+            for (entry in entries) {
+                val propertyName = entry.propertyName
+                if (propertyName != null) {
+                    entry.displayPropertyName =
+                        right.rightIdString + ":" + entry.propertyName // Prepend number of positon.
+                } else {
+                    entry.displayPropertyName = right.rightIdString.toString()
                 }
-                mergeList(list, entries)
             }
+            mergeList(list, entries)
         }
-        list.sortWith({ o1, o2 ->
-            (o2.timestamp.compareTo(
-                o1.timestamp
-            ))
-        })
-        return list
     }
 
     override fun hasHistoryAccess(user: PFUserDO, throwException: Boolean): Boolean {

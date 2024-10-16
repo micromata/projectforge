@@ -109,7 +109,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
      */
     @JvmOverloads
     open fun encryptAndSavePassword(userId: Long, clearTextPassword: CharArray, checkAccess: Boolean = true) {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             val passwords = ensurePassword(userId, checkAccess)
             newSaltString.let { salt ->
                 passwords.passwordSalt = salt

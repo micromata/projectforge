@@ -129,7 +129,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
     override fun afterInsert(obj: GroupDO) {
         val groupList = listOf(obj)
         // Create history entry of PFUserDO for all assigned users:
-        persistenceService.runInTransaction { context -> // Assure a transaction is running.
+        persistenceService.runInTransaction { _ -> // Assure a transaction is running.
             obj.assignedUsers?.forEach { user ->
                 insertHistoryEntry(user, assignedList = groupList, unassignedList = null)
             }

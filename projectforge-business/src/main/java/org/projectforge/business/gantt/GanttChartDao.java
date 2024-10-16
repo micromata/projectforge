@@ -57,6 +57,7 @@ import java.util.Objects;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@SuppressWarnings("deprecation")
 @Service
 public class GanttChartDao extends BaseDao<GanttChartDO> {
     public static final UserRightId USER_RIGHT_ID = UserRightId.PM_GANTT;

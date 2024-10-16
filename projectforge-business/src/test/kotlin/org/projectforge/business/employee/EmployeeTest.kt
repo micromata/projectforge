@@ -116,7 +116,8 @@ class EmployeeTest : AbstractTestBase() {
          * @param email: Optional mail address of the user.
          */
         fun createEmployee(
-            employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase, name: String,
+            employeeService: EmployeeService, employeeDao: EmployeeDao, test: AbstractTestBase,
+            name: String,
             hrAccess: Boolean = false,
             groupDao: GroupDao? = null,
             email: String? = null,
@@ -141,8 +142,8 @@ class EmployeeTest : AbstractTestBase() {
             val employee = EmployeeDO()
             employee.user = user
             employeeDao.insert(employee, checkAccess = false)
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(25))
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(1), BigDecimal(30))
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(25), false)
+            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(1), BigDecimal(30), false)
             loggedInUser?.let { test.logon(it) }
             return employee
         }

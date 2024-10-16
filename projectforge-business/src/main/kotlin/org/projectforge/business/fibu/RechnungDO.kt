@@ -152,7 +152,6 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
             null
         } else projekt!!.id
 
-
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @JsonManagedReference
     @IndexedEmbedded(includeDepth = 3)

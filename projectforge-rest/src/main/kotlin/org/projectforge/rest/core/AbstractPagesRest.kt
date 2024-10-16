@@ -656,7 +656,7 @@ constructor(
    * Resets the current filter from the server.
    */
   @GetMapping("filter/reset")
-  fun resetListFilter(request: HttpServletRequest): ResponseAction {
+  fun resetListFilter(): ResponseAction {
     saveCurrentFilter(MagicFilter())
     agGridSupport.resetGridState(category)
     return ResponseAction(targetType = TargetType.RELOAD)
@@ -925,7 +925,7 @@ constructor(
    * @return ResponseAction with [TargetType.UPDATE] and variable "initial" with all the initial data of [getItemAndLayout] as given for new objects.
    */
   @PostMapping(RestPaths.SET_COLUMN_STATES)
-  fun updateColumnStates(request: HttpServletRequest, @Valid @RequestBody columnStates: List<AGColumnState>): String {
+  fun updateColumnStates(@Valid @RequestBody columnStates: List<AGColumnState>): String {
     agGridSupport.storeColumnState(category, columnStates)
     return "OK"
   }

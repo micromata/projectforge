@@ -82,7 +82,7 @@ class DataTransferJCRCleanUpJob {
           dataTransferAreaPagesRest.jcrPath!!,
           id
         )
-        attachments?.forEach { attachment ->
+        attachments.forEach { attachment ->
           val time = attachment.lastUpdate?.time ?: attachment.created?.time
           if (time == null || startTimeInMillis - time > expiryMillis) {
             log.info { "Deleting expired attachment of area '${dbo.areaName}': $attachment" }

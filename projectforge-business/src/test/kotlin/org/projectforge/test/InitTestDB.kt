@@ -252,7 +252,7 @@ class InitTestDB {
     fun initDatabase() {
         val origUser = loggedInUser
         try {
-            persistenceService.runInTransaction { context ->
+            persistenceService.runInTransaction { _ ->
                 val initUser = PFUserDO()
                 initUser.username = "Init-database-pseudo-user"
                 initUser.id = -1L
@@ -438,14 +438,14 @@ class InitTestDB {
     }
 
     private fun initAccess() {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             val access = createGroupTaskAccess(getGroup("group1"), getTask("1"))
             val entry = access.ensureAndGetAccessEntry(AccessType.TASKS)
             entry.setAccess(true, true, true, true)
             accessDao.update(access, checkAccess = false)
         }
         // Access entries must be saved (flushed) before adding tasks.
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             // Create some test tasks with test access:
             addTask("testAccess", "root")
             addTask(
@@ -455,7 +455,7 @@ class InitTestDB {
             )
             addTask("ta_1_1", "ta_1_siud")
         }
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             var access = createGroupTaskAccess(getGroup(AbstractTestBase.TEST_GROUP), getTask("ta_1_siud"))
             setAllAccessEntries(access, true, true, true, true)
             addTask("ta_2_siux", "testAccess", "Testuser has the access rights: select, insert, update")

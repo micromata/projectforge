@@ -48,14 +48,14 @@ class KundeDaoTest : AbstractTestBase() {
 
         logon(TEST_CONTROLLING_USER)
         kundeDao.find(id)
-        checkNoWriteAccess(id, kunde, "Controlling")
+        checkNoWriteAccess(kunde, "Controlling")
 
         logon(TEST_USER)
         checkNoAccess(id, kunde, "Other")
 
         logon(TEST_PROJECT_MANAGER_USER)
-        checkNoWriteAccess(id, kunde, "Project manager")
-        checkNoHistoryAccess(id, kunde, "Project manager")
+        checkNoWriteAccess(kunde, "Project manager")
+        checkNoHistoryAccess(kunde, "Project manager")
 
         logon(TEST_ADMIN_USER)
         checkNoAccess(id, kunde, "Admin ")
@@ -79,11 +79,11 @@ class KundeDaoTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
         }
-        checkNoHistoryAccess(id, kunde, who)
-        checkNoWriteAccess(id, kunde, who)
+        checkNoHistoryAccess(kunde, who)
+        checkNoWriteAccess(kunde, who)
     }
 
-    private fun checkNoHistoryAccess(id: Serializable, kunde: KundeDO, who: String) {
+    private fun checkNoHistoryAccess(kunde: KundeDO, who: String) {
         Assertions.assertEquals(
             kundeDao.hasLoggedInUserHistoryAccess(false), false,
             "$who users should not have select access to history of customers."
@@ -110,7 +110,7 @@ class KundeDaoTest : AbstractTestBase() {
         }
     }
 
-    private fun checkNoWriteAccess(id: Serializable, kunde: KundeDO, who: String) {
+    private fun checkNoWriteAccess(kunde: KundeDO, who: String) {
         try {
             val ku = KundeDO()
             ku.id = 42L

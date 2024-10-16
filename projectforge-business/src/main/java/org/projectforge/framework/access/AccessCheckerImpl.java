@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.access;
 
-import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
@@ -40,6 +39,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Implementation of AccessChecker.
@@ -81,7 +81,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     public boolean hasPermission(final PFUserDO user, final Long taskId, final AccessType accessType,
                                  final OperationType operationType,
                                  final boolean throwException) {
-        Validate.notNull(user);
+        Objects.requireNonNull(user);
         final TaskNode node = taskTree.getTaskNodeById(taskId);
         if (node == null) {
             log.error("Task with " + taskId + " not found.");
@@ -200,7 +200,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     @Override
     public boolean isUserMemberOfGroup(final PFUserDO user, final boolean throwException,
                                        final ProjectForgeGroup... groups) {
-        Validate.notNull(groups);
+        Objects.requireNonNull(groups);
         if (user == null) {
             // Before user is logged in.
             if (throwException) {
@@ -321,13 +321,13 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
         if (right == null) {
             throw new IllegalArgumentException("Cannot find UserRightId: " + rightId);
         }
-        Validate.notNull(right);
+        Objects.requireNonNull(right);
         boolean result;
         if (right instanceof UserRightAccessCheck<?>) {
             if (origUser == null) {
                 String msg = "Can't check access, user isn't given to hasAccess(user=null, rightId=" + rightId + ", obj=" + obj + ", oldObj=" + oldObj;
                 if (throwException) {
-                    Validate.notNull(origUser, msg);
+                    Objects.requireNonNull(origUser, msg);
                 }
                 log.error(msg);
                 return false;
@@ -533,8 +533,8 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     @Override
     public boolean hasRight(final PFUserDO origUser, final IUserRightId rightId, final boolean throwException,
                             final UserRightValue... values) {
-        Validate.notNull(origUser);
-        Validate.notNull(values);
+        Objects.requireNonNull(origUser);
+        Objects.requireNonNull(values);
         final PFUserDO user = userGroupCache.getUser(origUser.getId());
         if (user == null) {
             if (throwException) {
@@ -626,9 +626,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     public boolean hasHistoryAccess(final PFUserDO origUser, final IUserRightId rightId, final Object obj,
                                     final boolean throwException) {
         final UserRight right = userRights.getRight(rightId);
-        Validate.notNull(right);
+        Objects.requireNonNull(right);
         if (right instanceof UserRightAccessCheck<?>) {
-            Validate.notNull(origUser);
+            Objects.requireNonNull(origUser);
             final PFUserDO user = userGroupCache.getUser(origUser.getId());
             if (((UserRightAccessCheck) right).hasHistoryAccess(user, obj)) {
                 return true;
@@ -781,7 +781,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable {
     @Override
     public boolean hasLoggedInUserAccessToTimesheetsOfOtherUsers() {
         final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
-        Validate.notNull(loggedInUser);
+        Objects.requireNonNull(loggedInUser);
         if (isUserMemberOfGroup(loggedInUser, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
                 ProjectForgeGroup.PROJECT_MANAGER)) {
             return true;

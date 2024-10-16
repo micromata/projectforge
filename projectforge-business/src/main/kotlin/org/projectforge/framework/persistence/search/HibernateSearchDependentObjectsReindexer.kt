@@ -75,11 +75,11 @@ class HibernateSearchDependentObjectsReindexer {
         /**
          * @see java.lang.Object.equals
          */
-        override fun equals(obj: Any?): Boolean {
-            if (obj !is Entry) {
+        override fun equals(other: Any?): Boolean {
+            if (other !is Entry) {
                 return false
             }
-            val o = obj
+            val o = other
             return clazz == o.clazz && fieldName == o.fieldName
         }
 
@@ -128,15 +128,14 @@ class HibernateSearchDependentObjectsReindexer {
                 ?: // Nothing to do
                 return
             val result = getDependents(em, registryEntry, entry, obj)
-            if (result != null) {
-                for (dependentObject in result) {
-                    var dependentObject = dependentObject
-                    if (dependentObject is Array<*> && dependentObject.isArrayOf<Any>()) {
-                        dependentObject = (dependentObject as Array<Any>)[0]
-                    }
-                    if (dependentObject is BaseDO<*>) {
-                        reindexDependents(em, dependentObject, alreadyReindexed)
-                    }
+            for (dependentObject in result) {
+                var useObj = dependentObject
+                if (useObj is Array<*> && useObj.isArrayOf<Any>()) {
+                    @Suppress("UNCHECKED_CAST")
+                    useObj = (useObj as Array<Any>)[0]
+                }
+                if (useObj is BaseDO<*>) {
+                    reindexDependents(em, useObj, alreadyReindexed)
                 }
             }
         }
@@ -234,6 +233,7 @@ class HibernateSearchDependentObjectsReindexer {
                 var list = map[embeddedClass]
                 if (list == null) {
                     list = ArrayList()
+                    @Suppress("UNCHECKED_CAST")
                     val embeddedBaseDOClass = embeddedClass as Class<out BaseDO<*>>
                     map[embeddedBaseDOClass] = list
                 } else {

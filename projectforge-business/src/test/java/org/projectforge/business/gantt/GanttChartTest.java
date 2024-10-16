@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("deprecation")
 public class GanttChartTest extends AbstractTestBase {
     @Autowired
     private GanttChartDao ganttChartDao;

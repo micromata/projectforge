@@ -694,11 +694,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun selectDisplayHistoryEntries(obj: AuftragDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
-        if (!hasLoggedInUserHistoryAccess(obj, false)) {
-            return list
-        }
+    override fun customizeDisplayHistoryEntries(obj: AuftragDO, list: MutableList<DisplayHistoryEntry>) {
         if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
             for (position in obj.positionenIncludingDeleted!!) {
                 val entries = historyService.loadAndConvert(position)
@@ -729,8 +725,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 list.addAll(entries)
             }
         }
-        list.sortWith { o1, o2 -> o2.timestamp.compareTo(o1.timestamp) }
-        return list
     }
 
     /**

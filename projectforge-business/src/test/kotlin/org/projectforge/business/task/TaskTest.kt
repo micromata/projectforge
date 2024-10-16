@@ -297,8 +297,8 @@ class TaskTest : AbstractTestBase() {
             projekt.internKost2_4 = 123
             projekt.name = "Testprojekt"
             projektDao.insert(projekt)
-            checkAccess(TEST_ADMIN_USER, task.id, projekt, kost2)
-            checkAccess(TEST_USER, task.id, projekt, kost2)
+            checkAccess(TEST_ADMIN_USER, task.id)
+            checkAccess(TEST_USER, task.id)
             null
         }
     }
@@ -392,8 +392,6 @@ class TaskTest : AbstractTestBase() {
     private fun checkAccess(
         user: String,
         id: Serializable?,
-        projekt: ProjektDO,
-        kost2: Kost2DO,
     ) {
         logon(user)
         var task = taskDao.find(id)!!
@@ -414,7 +412,7 @@ class TaskTest : AbstractTestBase() {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
         }
-        task = taskDao.find(id)!!
+        taskDao.find(id)!!
         task = TaskDO()
         task.parentTask = getTask("checkAccessTestTask")
         task.protectTimesheetsUntil = LocalDate.now()
@@ -434,7 +432,7 @@ class TaskTest : AbstractTestBase() {
             // OK
             Assertions.assertEquals("task.error.protectionOfPrivacyReadonly", ex.i18nKey)
         }
-        task = taskDao.find(id)!!
+        taskDao.find(id)!!
     }
 
     /**

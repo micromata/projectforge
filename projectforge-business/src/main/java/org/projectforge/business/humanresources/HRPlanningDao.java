@@ -25,8 +25,8 @@ package org.projectforge.business.humanresources;
 
 import kotlin.Pair;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -53,6 +53,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -116,7 +117,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * @return If week or user id is not given, return false.
      */
     public boolean doesEntryAlreadyExist(final HRPlanningDO planning) {
-        Validate.notNull(planning);
+        Objects.requireNonNull(planning);
         return doesEntryAlreadyExist(planning.getId(), planning.getUserId(), planning.getWeek());
     }
 
@@ -294,11 +295,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    public List<DisplayHistoryEntry> selectDisplayHistoryEntries(final HRPlanningDO obj, final boolean checkAccess) {
-        final List<DisplayHistoryEntry> list = super.selectDisplayHistoryEntries(obj, checkAccess);
-        if (!accessChecker.hasLoggedInUserHistoryAccess(userRightId, obj, false)) {
-            return list;
-        }
+    protected void customizeDisplayHistoryEntries(HRPlanningDO obj, @NotNull List<DisplayHistoryEntry> list) {
         if (CollectionUtils.isNotEmpty(obj.getEntries())) {
             for (final HRPlanningEntryDO position : obj.getEntries()) {
                 var entries = historyService.loadAndConvert(position);
@@ -321,8 +318,6 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
                 mergeList(list, entries);
             }
         }
-        list.sort((o1, o2) -> (o2.getTimestamp().compareTo(o1.getTimestamp())));
-        return list;
     }
 
     @Override

@@ -200,11 +200,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return userService!!.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun selectDisplayHistoryEntries(obj: AddressbookDO, checkAccess: Boolean): MutableList<DisplayHistoryEntry> {
-        val list = super.selectDisplayHistoryEntries(obj, checkAccess)
-        if (CollectionUtils.isEmpty(list)) {
-            return list
-        }
+    override fun customizeDisplayHistoryEntries(obj: AddressbookDO, list: MutableList<DisplayHistoryEntry>) {
         for (entry in list) {
             if (entry.propertyName == null) {
                 continue
@@ -232,7 +228,6 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
                 }
             }
         }
-        return list
     }
 
     override fun onDelete(obj: AddressbookDO) {

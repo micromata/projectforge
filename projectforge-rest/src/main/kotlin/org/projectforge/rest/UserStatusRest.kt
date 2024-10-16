@@ -112,7 +112,7 @@ open class UserStatusRest {
     val user = LoginService.getUser(request) ?: return ResponseEntity(HttpStatus.UNAUTHORIZED)
     var employeeId: Long? = user.getTransientAttribute("employeeId") as Long?
     if (employeeId == null) {
-      employeeId = employeeDao.getEmployeeIdByByUserId(user.id) ?: -1
+      employeeId = employeeDao.findEmployeeIdByByUserId(user.id) ?: -1
       user.setTransientAttribute("employeeId", employeeId) // Avoid multiple calls of db
     }
     val firstDayOfWeek = ThreadLocalUserContext.firstDayOfWeek
