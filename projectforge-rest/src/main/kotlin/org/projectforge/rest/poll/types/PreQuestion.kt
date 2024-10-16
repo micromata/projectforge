@@ -25,18 +25,17 @@ package org.projectforge.rest.poll.types
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-
-class Question(
+class PreQuestion (
     val uid: String? = null,
     val question: String? = "",
-    val type: BaseType? = BaseType.PollTextQuestion,
+    val pType: PreType? = PreType.Neujahrsfeier,
     var answers: MutableList<String>? = mutableListOf(""),
     var parent: String? = null,
     var isRequired: Boolean? = false,
     var numberOfSelect: Int? = 1,
 ) {
-    fun toObject(string: String): Question {
-        return ObjectMapper().readValue(string, Question::class.java)
+    fun toObject(string: String): PreQuestion {
+        return ObjectMapper().readValue(string, PreQuestion::class.java)
     }
 
     fun toJson(): String {
@@ -44,6 +43,6 @@ class Question(
     }
 }
 
-enum class BaseType {
-    PollTextQuestion, PollSingleResponseQuestion, PollMultiResponseQuestion,
+enum class PreType {
+    Neujahrsfeier, Sommerfest, Teamessen,
 }

@@ -53,6 +53,7 @@ class QuestionAnswer {
     var uid: String? = null
     var questionUid: String? = ""
     var answers: MutableList<Any>? = mutableListOf()
+    var annotation: MutableList<Any>? = mutableListOf()
 
 
     fun toObject(string: String): QuestionAnswer {
