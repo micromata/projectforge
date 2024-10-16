@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.history
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class HistoryEntryDOUtilsTest {
+class HistoryOldFormatConverterTest {
     @Test
     fun testTransformAttributes() {
         val attrs = mutableListOf<HistoryEntryAttrDO>()
@@ -63,7 +63,7 @@ class HistoryEntryDOUtilsTest {
         attrs.add(createAttr("name", ++id, value = "B", oldValue = "A", opType = PropertyOpType.Update))
         val entry = HistoryEntryDO()
         attrs.forEach { attr -> entry.add(attr) }
-        HistoryEntryDOUtils.transformOldAttributes(entry)
+        HistoryOldFormatConverter.transformOldAttributes(entry)
         Assertions.assertEquals(7, entry.attributes?.size)
         assertAttr(entry.attributes, "city", "New City", "Old City")
         assertAttr(entry.attributes, "street", "New Street", "Old Street")
@@ -89,7 +89,7 @@ class HistoryEntryDOUtilsTest {
         attrs.add(createAttr("address:nv", id, "456", propertyTypeClass = "org.projectforge.business.address.AddressDO\$HibernateProxy\$En8hKwh8"))
         val entry = HistoryEntryDO()
         attrs.forEach { attr -> entry.add(attr) }
-        HistoryEntryDOUtils.transformOldAttributes(entry)
+        HistoryOldFormatConverter.transformOldAttributes(entry)
         Assertions.assertEquals(2, entry.attributes?.size)
         assertAttr(entry.attributes, "account", "123", null, propertyTypeClass = "org.projectforge.business.fibu.KontoDO")
         assertAttr(entry.attributes, "address", "456", null, propertyTypeClass = "org.projectforge.business.address.AddressDO")
@@ -97,16 +97,23 @@ class HistoryEntryDOUtilsTest {
 
     @Test
     fun testGetPropertyName() {
-        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street")))
-        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street:ov")))
-        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street:op")))
-        Assertions.assertEquals("street", HistoryEntryDOUtils.getPropertyName(createAttr("street:nv")))
+        Assertions.assertEquals("street", HistoryOldFormatConverter.getPropertyName(createAttr("street")))
+        Assertions.assertEquals("street", HistoryOldFormatConverter.getPropertyName(createAttr("street:ov")))
+        Assertions.assertEquals("street", HistoryOldFormatConverter.getPropertyName(createAttr("street:op")))
+        Assertions.assertEquals("street", HistoryOldFormatConverter.getPropertyName(createAttr("street:nv")))
         Assertions.assertEquals(
-            "timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive",
-            HistoryEntryDOUtils.getPropertyName(createAttr("timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv"))
+            "annualleave.2021-03-01",
+            HistoryOldFormatConverter.getPropertyName(createAttr("timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.employeeannualleavedays:nv"))
         )
-
-        Assertions.assertNull(HistoryEntryDOUtils.getPropertyName(createAttr(null)))
+        Assertions.assertEquals(
+            "arrive.2023-09-12",
+            HistoryOldFormatConverter.getPropertyName(createAttr("timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv"))
+        )
+        Assertions.assertEquals(
+            "depart.2023-09-12",
+            HistoryOldFormatConverter.getPropertyName(createAttr("timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.depart:nv"))
+        )
+        Assertions.assertNull(HistoryOldFormatConverter.getPropertyName(createAttr(null)))
     }
 
     private fun assertAttr(

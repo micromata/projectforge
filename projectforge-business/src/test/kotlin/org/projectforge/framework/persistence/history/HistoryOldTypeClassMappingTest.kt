@@ -101,7 +101,7 @@ class HistoryOldTypeClassMappingTest {
         val baseTypes = arrayOf("boolean", "int", "void")
         val unknownEntityClasses = mutableSetOf<String>()
         typeNames.forEach { entityClassName ->
-            val entityName = HistoryEntryDOUtils.getFixedClass(entityClassName)
+            val entityName = HistoryOldFormatConverter.getFixedClass(entityClassName)
             if (baseTypes.any { it == entityName }) {
                 // Don't check base types.
                 return@forEach

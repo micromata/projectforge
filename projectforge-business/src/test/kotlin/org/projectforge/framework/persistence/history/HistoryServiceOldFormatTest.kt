@@ -179,7 +179,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         val employee = EmployeeDO()
         employee.id = 21339579
         val hist = createHistoryTester()
-        hist.loadHistory(employee, 5, 11)
+        hist.loadHistory(employee, 5, 6)
         println ("Employee history entries")
         // propertyName: timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.employeeannualleavedays, Insert, value=30
         // propertyName: timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.startTime, Insert, value=2021-03-01 00:00:00:000
@@ -368,13 +368,13 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             val entry = HistoryCreateUtils.createHistoryEntry(entity, operationType)
 
             val attr1 = HistoryCreateUtils.createAttr(
-                GroupDO::class, propertyName = "$propertyName${HistoryEntryDOUtils.NEWVAL_SUFFIX}", value = value
+                GroupDO::class, propertyName = "$propertyName${HistoryOldFormatConverter.NEWVAL_SUFFIX}", value = value
             )
             val attr2 = HistoryCreateUtils.createAttr(
-                oldPropertyClass, "$propertyName${HistoryEntryDOUtils.OP_SUFFIX}", value = operationType.name
+                oldPropertyClass, "$propertyName${HistoryOldFormatConverter.OP_SUFFIX}", value = operationType.name
             )
             val attr3 = HistoryCreateUtils.createAttr(
-                GroupDO::class, "$propertyName${HistoryEntryDOUtils.OLDVAL_SUFFIX}", value = oldValue
+                GroupDO::class, "$propertyName${HistoryOldFormatConverter.OLDVAL_SUFFIX}", value = oldValue
             )
             val attrs = mutableListOf(attr1, attr2, attr3)
 

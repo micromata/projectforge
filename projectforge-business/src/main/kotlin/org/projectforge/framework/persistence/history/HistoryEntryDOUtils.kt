@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.framework.persistence.history.HistoryOldFormatConverter.isOldAttr
 
 /**
  * Creates HistoryEntries from HistoryEntryDO and HistoryEntryAttrDO.
@@ -31,114 +31,11 @@ import org.projectforge.framework.persistence.api.HibernateUtils
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object HistoryEntryDOUtils {
-    const val OP_SUFFIX: String = ":op"
-
-    /**
-     * The Constant OLDVAL_SUFFIX.
-     */
-    const val OLDVAL_SUFFIX: String = ":ov"
-
-    /**
-     * The Constant NEWVAL_SUFFIX.
-     */
-    const val NEWVAL_SUFFIX: String = ":nv"
-
-    fun isOldAttr(attr: HistoryEntryAttrDO): Boolean {
-        // Property names with these suffixes are old attributes.
-        // Remember, there are some property names like 'timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv'
-        attr.propertyName.let { propertyName ->
-            propertyName ?: return false
-            return propertyName.endsWith(OP_SUFFIX)
-                    || propertyName.endsWith(OLDVAL_SUFFIX)
-                    || propertyName.endsWith(NEWVAL_SUFFIX)
-        }
-    }
-
     fun getPlainPropertyName(attr: HistoryEntryAttrDO): String? {
         if (isOldAttr(attr)) {
-            return attr.propertyName?.substringBeforeLast(":")
+            return HistoryOldFormatConverter.getPlainPropertyName(attr)
         } else {
             return attr.propertyName
         }
-    }
-
-    fun getFixedPropertyClass(attr: HistoryEntryAttrDO): String {
-        return getFixedClass(attr.propertyTypeClass)
-    }
-
-    fun getFixedEntityClass(entry: HistoryEntryDO): String {
-        return getFixedClass(entry.entityName)
-    }
-
-    internal fun getFixedClass(className: String?): String {
-        val unifiedClassName = HibernateUtils.getUnifiedClassname(className)
-        return HistoryOldTypeClassMapping.getMappedClass(unifiedClassName)
-    }
-
-    /**
-     * Transforms old attributes to new attributes by merging 3 attribute entries from older PF-Version (MGC)
-     * as one attribute entry.
-     * Concatenates history attributes from older MGC versions.
-     * If no old attributes are found, nothing is done.
-     */
-    fun transformOldAttributes(historyEntry: HistoryEntryDO) {
-        val oldAttrs = historyEntry.attributes ?: return
-        if (oldAttrs.any { isOldAttr(it) }) {
-            // Old attributes found, nothing to do.
-            val transformedAttrs = mutableSetOf<HistoryEntryAttrDO>()
-            var currentEntry: HistoryEntryAttrDO? = null
-            oldAttrs.sortedBy { it.propertyName }.forEach { attr ->
-                currentEntry.let { current ->
-                    if (current != null && current.propertyName == attr.plainPropertyName) {
-                        mergeDiffEntry(current, attr)
-                    } else if (isOldAttr(attr)) {
-                        val newEntry = cloneAndTransformAttr(attr)
-                        transformedAttrs.add(newEntry)
-                        currentEntry = newEntry
-                    } else {
-                        // Nothing to do, because the attribute is already in current format.
-                        transformedAttrs.add(attr)
-                    }
-                }
-            }
-            historyEntry.attributes = transformedAttrs
-        }
-        historyEntry.attributes?.forEach { attr ->
-            attr.propertyTypeClass = getFixedPropertyClass(attr)
-        }
-    }
-
-    private fun cloneAndTransformAttr(attr: HistoryEntryAttrDO): HistoryEntryAttrDO {
-        val clone = HistoryEntryAttrDO()
-        mergeDiffEntry(clone, attr)
-        return clone
-    }
-
-    private fun mergeDiffEntry(newAttr: HistoryEntryAttrDO, oldAttr: HistoryEntryAttrDO) {
-        newAttr.propertyName = newAttr.propertyName ?: oldAttr.plainPropertyName
-        newAttr.parent = newAttr.parent ?: oldAttr.parent
-        newAttr.id = newAttr.id ?: oldAttr.id
-        if (oldAttr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
-            newAttr.oldValue = oldAttr.value
-            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
-        } else if (oldAttr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
-            newAttr.value = oldAttr.value
-            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
-        } else if (oldAttr.propertyName?.endsWith(OP_SUFFIX) == true) {
-            newAttr.opType = when (oldAttr.value) {
-                "Insert" -> PropertyOpType.Insert
-                "Update" -> PropertyOpType.Update
-                else -> PropertyOpType.Undefined
-            }
-        } else {
-            newAttr.value = newAttr.value ?: oldAttr.value
-            newAttr.oldValue = newAttr.oldValue ?: oldAttr.oldValue
-            newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
-            newAttr.opType = newAttr.opType ?: oldAttr.opType
-        }
-    }
-
-    internal fun getPropertyName(attr: HistoryEntryAttrDO): String? {
-        return attr.plainPropertyName
     }
 }
