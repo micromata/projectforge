@@ -28,6 +28,7 @@ import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskTree
 import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.UserRightId
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -163,7 +164,7 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         return select(queryFilter)
     }
 
-    override fun onInsertOrModify(obj: ProjektDO) {
+    override fun onInsertOrModify(obj: ProjektDO, operationType: OperationType) {
         if (obj.kunde != null) {
             // Ein Kundenprojekt kann keine interne Kundennummer haben:
             obj.internKost2_4 = null
@@ -171,22 +172,19 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
         if (obj.status == ProjektStatus.NONE) {
             obj.status = null
         }
-        super.onInsertOrModify(obj)
     }
 
-    override fun afterInsertOrModify(obj: ProjektDO) {
+    override fun afterInsertOrModify(obj: ProjektDO, operationType: OperationType) {
         obj.taskId?.let { taskId ->
             taskTree.internalSetProject(taskId, obj)
         }
-        super.afterInsertOrModify(obj)
     }
 
-    override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?) {
+    override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?, isModified: Boolean) {
         if (dbObj?.taskId != null && obj.taskId == null) {
             // Project task was removed:
             taskTree.internalSetProject(dbObj.taskId!!, null)
         }
-        super.afterUpdate(obj, dbObj)
     }
 
     override fun newInstance(): ProjektDO {

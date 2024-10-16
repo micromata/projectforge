@@ -25,6 +25,8 @@ package org.projectforge.framework.persistence.utils
 
 import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.IdObject
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.jvmErasure
 
 object CollectionUtils {
     class CompareCollectionsResult<T>(
@@ -50,6 +52,10 @@ object CollectionUtils {
     fun getTypeClassOfEntriesOrNull(col: Collection<*>?): Class<*>? {
         col ?: return null
         return col.firstOrNull()?.javaClass
+    }
+
+    fun isCollection(property: kotlin.reflect.KProperty1<*, *>): Boolean {
+        return property.returnType.jvmErasure.isSubclassOf(Collection::class)
     }
 
     /**

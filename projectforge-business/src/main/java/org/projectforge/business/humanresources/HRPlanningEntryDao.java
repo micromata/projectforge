@@ -193,7 +193,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO> {
      * Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.
      */
     @Override
-    public void onInsertOrModify(final HRPlanningEntryDO obj) {
+    public void onInsertOrModify(final HRPlanningEntryDO obj, final OperationType operationType) {
         throw new UnsupportedOperationException(
                 "Please do not save or HRPlanningEntryDO directly, save or update HRPlanningDO instead.");
     }

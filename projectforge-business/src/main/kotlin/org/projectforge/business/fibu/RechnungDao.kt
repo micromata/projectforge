@@ -143,7 +143,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
      * wird.
      */
-    override fun onInsertOrModify(obj: RechnungDO) {
+    override fun onInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         if (RechnungTyp.RECHNUNG == obj.typ && obj.id != null) {
             val originValue = find(obj.id, checkAccess = false)
             if (RechnungStatus.GEPLANT == originValue!!.status && RechnungStatus.GEPLANT != obj.status) {
@@ -231,7 +231,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
     }
 
-    override fun afterInsertOrModify(obj: RechnungDO) {
+    override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
         rechnungCache.setExpired() // Expire the cache because assignments to order position may be changed.
         auftragsCache.setExpired()
     }

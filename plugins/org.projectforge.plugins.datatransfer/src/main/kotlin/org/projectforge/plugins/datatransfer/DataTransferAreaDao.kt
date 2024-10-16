@@ -101,7 +101,7 @@ open class DataTransferAreaDao : BaseDao<DataTransferAreaDO>(DataTransferAreaDO:
         return file
     }
 
-    override fun onChange(obj: DataTransferAreaDO, dbObj: DataTransferAreaDO) {
+    override fun onUpdate(obj: DataTransferAreaDO, dbObj: DataTransferAreaDO) {
         if (dbObj.isPersonalBox()) {
             if (obj.adminIds != dbObj.adminIds || obj.areaName != dbObj.areaName) {
                 throw IllegalArgumentException("Can't modify personal boxes: $obj")

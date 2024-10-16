@@ -102,7 +102,7 @@ open class VacationCache : AbstractCache(), BaseDOChangedListener<VacationDO> {
         return result
     }
 
-    override fun afterSaveOrModify(changedObject: VacationDO, operationType: OperationType) {
+    override fun afterInsertOrModify(changedObject: VacationDO, operationType: OperationType) {
         synchronized(vacationMap) {
             vacationMap[changedObject.id] = changedObject
             vacations = vacationMap.values.toList()

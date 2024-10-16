@@ -31,6 +31,7 @@ import org.projectforge.common.i18n.MessageParam;
 import org.projectforge.common.i18n.MessageParamType;
 import org.projectforge.common.i18n.UserException;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -96,7 +97,7 @@ public class ContractDao extends BaseDao<ContractDO> {
      * A given contract number must be consecutively numbered.
      */
     @Override
-    public void onInsertOrModify(final ContractDO obj) {
+    public void onInsertOrModify(final ContractDO obj, final OperationType operationType) {
         if (obj.getId() == null) {
             // New contract
             final Integer next = getNextNumber(obj);

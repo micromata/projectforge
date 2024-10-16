@@ -1,3 +1,4 @@
+- Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - Auf jeder Wicketseite werden folgende DB-Calls 5x gemacht: getEmployeeByUserId (über hasAccessToVacationService im NavTopPanel),
 - ehcache prüfen, transaction logging checken

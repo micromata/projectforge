@@ -236,7 +236,6 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     }
 
     override fun onDelete(obj: AddressbookDO) {
-        super.onDelete(obj)
         persistenceService.runInTransaction { context ->
             val addressList = context.executeQuery(
                 "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList",

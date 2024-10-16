@@ -88,7 +88,7 @@ open class MerlinTemplateDao : BaseDao<MerlinTemplateDO>(MerlinTemplateDO::class
         }
     }
 
-    override fun onChange(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO) {
+    override fun onUpdate(obj: MerlinTemplateDO, dbObj: MerlinTemplateDO) {
         if (obj.variables != dbObj.variables || obj.dependentVariables != dbObj.dependentVariables) {
             // Variables were changed:
             obj.lastVariableUpdate = Date()

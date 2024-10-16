@@ -34,6 +34,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -148,8 +149,7 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
     }
 
     @Override
-    public void onInsertOrModify(TeamCalDO obj) {
-        super.onInsertOrModify(obj);
+    public void onInsertOrModify(TeamCalDO obj, OperationType operationType) {
         Integer interval = obj.getExternalSubscriptionUpdateInterval();
         if (interval != null && interval < SubscriptionUpdateInterval.FIFTEEN_MINUTES.getInterval()) {
             // Ensures a minimal interval length of 15 minutes.
@@ -299,22 +299,19 @@ public class TeamCalDao extends BaseDao<TeamCalDO> {
      * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
      */
     @Override
-    public void afterInsertOrModify(final TeamCalDO obj) {
-        super.afterInsertOrModify(obj);
+    public void afterInsertOrModify(final TeamCalDO obj, final OperationType operationType) {
         teamCalCache.setExpired();
     }
 
     @Override
     public void afterInsert(final TeamCalDO obj) {
-        super.afterInsert(obj);
         if (obj.getExternalSubscription()) {
             getTeamEventExternalSubscriptionCache().updateCache(obj);
         }
     }
 
     @Override
-    public void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj) {
-        super.afterUpdate(obj, dbObj);
+    public void afterUpdate(final TeamCalDO obj, final TeamCalDO dbObj, final boolean isModified) {
         if (obj != null
                 && dbObj != null
                 && obj.getExternalSubscription()

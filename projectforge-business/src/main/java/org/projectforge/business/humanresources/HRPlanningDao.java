@@ -234,7 +234,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * <ul>
      */
     @Override
-    public void onInsertOrModify(final HRPlanningDO obj) {
+    public void onInsertOrModify(final HRPlanningDO obj, final OperationType operationType) {
         PFDay day = PFDay.from(obj.getWeek());
         if (!day.isBeginOfWeek()) {
             log.error("Date is not begin of week, try to change date: " + day.getIsoString());
@@ -269,8 +269,6 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
                 }
             }
         }
-
-        super.onInsertOrModify(obj);
     }
 
     @Override

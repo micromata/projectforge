@@ -35,6 +35,7 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.BeanHelper;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -99,7 +100,7 @@ public class GanttChartDao extends BaseDao<GanttChartDO> {
     }
 
     @Override
-    public void onInsertOrModify(final GanttChartDO obj) {
+    public void onInsertOrModify(final GanttChartDO obj, final OperationType operationType) {
         final String styleAsXml = XmlObjectWriter.writeAsXml(obj.getStyle());
         obj.setStyleAsXml(styleAsXml);
         final String settingsAsXml = XmlObjectWriter.writeAsXml(obj.getSettings());

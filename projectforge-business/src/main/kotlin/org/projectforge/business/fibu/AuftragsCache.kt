@@ -157,7 +157,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListe
     /**
      * Set order as expired, if any invoice on this order was changed.
      */
-    override fun afterSaveOrModify(changedObject: RechnungDO, operationType: OperationType) {
+    override fun afterInsertOrModify(changedObject: RechnungDO, operationType: OperationType) {
         changedObject.positionen?.forEach { pos ->
             pos.auftragsPosition?.auftrag?.let {
                 setExpired(it)

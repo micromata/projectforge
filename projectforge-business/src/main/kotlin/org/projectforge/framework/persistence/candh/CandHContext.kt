@@ -43,8 +43,16 @@ class CandHContext constructor(
      */
     entityOpType: EntityOpType? = null,
 ) {
-    val historyEntries: List<HistoryEntryDO>?
-        get() = historyContext?.getPreparedHistoryEntries()
+    /**
+     * The history entries created by this context.
+     * Only given after calling [preparedHistoryEntries].
+     */
+    var historyEntries: List<HistoryEntryDO>? = null
+        private set
+
+    fun preparedHistoryEntries(mergedObj: BaseDO<*>, destObj: BaseDO<*>): List<HistoryEntryDO>? {
+        return historyContext?.getPreparedHistoryEntries(mergedObj = mergedObj, destObj = destObj).also { historyEntries = it }
+    }
 
     // Only if entityOpType is given, history entries are created.
     internal val historyContext = if (entityOpType != null) HistoryContext(entity, entityOpType) else null

@@ -145,7 +145,7 @@ open class UserPasswordDao : BaseDao<UserPasswordDO>(UserPasswordDO::class.java)
         return passwordObj
     }
 
-    override fun onInsertOrModify(obj: UserPasswordDO) {
+    override fun onInsertOrModify(obj: UserPasswordDO, operationType: OperationType) {
         obj.checkAndFixPassword()
     }
 

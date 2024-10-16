@@ -130,14 +130,12 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     }
 
     override fun afterUpdate(obj: UserRightDO, dbObj: UserRightDO?, isModified: Boolean) {
-        super.afterUpdate(obj, dbObj, isModified)
         if (isModified) {
             userGroupCache.setExpired()
         }
     }
 
     override fun afterInsert(obj: UserRightDO) {
-        super.afterInsert(obj)
         userGroupCache.setExpired()
     }
 

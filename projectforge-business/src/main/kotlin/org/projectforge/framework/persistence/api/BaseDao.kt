@@ -33,7 +33,6 @@ import org.projectforge.common.mgc.MGCClassUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
-import org.projectforge.framework.persistence.api.BaseDOPersistenceService.ResultObject
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.framework.persistence.api.impl.DBQuery
 import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getClassInfo
@@ -59,8 +58,14 @@ abstract class BaseDao<O : ExtendedBaseDO<Long>>
 /**
  * The setting of the DO class is required.
  */
-protected constructor(open var doClass: Class<O>) : IDao<O> {
-    protected open val objectChangedListeners = mutableListOf<BaseDOChangedListener<O>>()
+protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDOChangedListener<O> {
+    protected val baseDOChangedRegistry = BaseDOChangedRegistry<O>()
+
+    internal val changedRegistry = baseDOChangedRegistry
+
+    init {
+        baseDOChangedRegistry.register(this)
+    }
 
     var identifier: String? = null
         /**
@@ -172,7 +177,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     fun findOrLoad(id: Long?, checkAccess: Boolean = true): O? {
         val obj = findById(id) ?: return null
         if (!checkAccess || hasLoggedInUserSelectAccess(obj, false)) {
-            afterLoad(obj)
+            baseDOChangedRegistry.afterLoad(obj)
             return obj
         }
         return persistenceService.runReadOnly { context ->
@@ -181,7 +186,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     /**
+     * If the user has select access then the object will be returned.
+     * If not, the hibernate proxy object will be get via
+     * [jakarta.persistence.EntityManager.getReference] and returned.
+     * If the object is not found, null will be returned.
+     * Calls [BaseDOChangedRegistry.afterLoad] also for the given object, if found and the user has access.
      * @param id primary key of the base object.
+     * @return the object with the given id or null if not found.
      */
     @Throws(AccessException::class)
     @JvmOverloads
@@ -190,7 +201,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         if (checkAccess) {
             checkLoggedInUserSelectAccess(obj)
         }
-        afterLoad(obj)
+        baseDOChangedRegistry.afterLoad(obj)
         return obj
     }
 
@@ -209,6 +220,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
         return selectAll(checkAccess).filter { !it.deleted }
     }
 
+    /**
+     * @return All objects of this class or empty list if no object found
+     */
     @JvmOverloads
     open fun selectAll(checkAccess: Boolean = true): List<O> {
         if (checkAccess) {
@@ -299,7 +313,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             checkLoggedInUserSelectAccess()
         }
         val list = dbQuery.getList(this, filter, customResultFilters, checkAccess)
-        list.forEach { afterLoad(it) }
+        list.forEach { baseDOChangedRegistry.afterLoad(it) }
         return list
     }
 
@@ -336,7 +350,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             origList
         }
         if (callAfterLoad) {
-            result.forEach { afterLoad(it) }
+            result.forEach { baseDOChangedRegistry.afterLoad(it) }
         }
         return result
     }
@@ -425,128 +439,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             Validate.isTrue(obj.id == null)
         }
         accessChecker.checkRestrictedOrDemoUser()
-        val result = persistenceService.runInTransaction { context ->
-            beforeInsertOrModify(obj)
-            if (checkAccess) {
-                checkLoggedInUserInsertAccess(obj)
-            }
-            onInsert(obj)
-            onInsertOrModify(obj)
-            val result = baseDOPersistenceService.save(this, obj)
-            afterInsertOrModify(obj)
-            afterInsert(obj)
-            result
+        baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.INSERT)
+        if (checkAccess) {
+            checkLoggedInUserInsertAccess(obj)
         }
-        return result!!
-    }
-
-    /**
-     * This method will be called after loading an object from the data base. Does nothing at default. This method is not
-     * called by internalLoadAll.
-     */
-    open fun afterLoad(obj: O) {
-    }
-
-    /**
-     * This method will be called after inserting, updating, deleting or marking the data object as deleted. This method
-     * is for example needed for expiring the UserGroupCache after inserting or updating a user or group data object. Does
-     * nothing at default.
-     */
-    open fun afterInsertOrModify(obj: O) {
-    }
-
-    /**
-     * This method will be called after inserting. Does nothing at default.
-     *
-     * @param obj The inserted object
-     */
-    open fun afterInsert(obj: O) {
-        callObjectChangedListeners(obj, OperationType.INSERT)
-    }
-
-    /**
-     * This method will be called before inserting. Does nothing at default.
-     */
-    open fun onInsert(obj: O) {
-    }
-
-    /**
-     * This method will be called before inserting, updating, deleting or marking the data object as deleted. Does nothing
-     * at default.
-     */
-    open fun onInsertOrModify(obj: O) {
-    }
-
-    /**
-     * This method will be called before access check of inserting and updating the object. Does nothing
-     * at default.
-     */
-    open fun beforeInsertOrModify(obj: O) {
-    }
-
-    /**
-     * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
-     * forget to set [.supportAfterUpdate] to true, otherwise you won't get the origin data base object!
-     *
-     * @param obj   The modified object
-     * @param dbObj The object from data base before modification.
-     */
-    open fun afterUpdate(obj: O, dbObj: O?) {
-        callObjectChangedListeners(obj, OperationType.UPDATE)
-    }
-
-    /**
-     * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
-     * forget to set [.supportAfterUpdate] to true, otherwise you won't get the origin data base object!
-     *
-     * @param obj        The modified object
-     * @param dbObj      The object from data base before modification.
-     * @param isModified is true if the object was changed, false if the object wasn't modified.
-     */
-    open fun afterUpdate(obj: O, dbObj: O?, isModified: Boolean) {
-        afterUpdate(obj, dbObj)
-    }
-
-    /**
-     * This method will be called before updating the data object. Will also called if in internalUpdate no modification
-     * was detected. Please note: Do not modify the object oldVersion! Does nothing at default.
-     *
-     * @param obj   The changed object.
-     * @param dbObj The current database version of this object.
-     */
-    open fun onChange(obj: O, dbObj: O) {
-    }
-
-    /**
-     * This method will be called before deleting. Does nothing at default.
-     *
-     * @param obj The deleted object.
-     */
-    open fun onDelete(obj: O) {
-    }
-
-    /**
-     * This method will be called after deleting as well as after object is marked as deleted. Does nothing at default.
-     *
-     * @param obj The deleted object.
-     */
-    open fun afterDelete(obj: O) {
-        callObjectChangedListeners(obj, OperationType.DELETE)
-    }
-
-    /**
-     * This method will be called after undeleting. Does nothing at default.
-     *
-     * @param obj The deleted object.
-     */
-    open fun afterUndelete(obj: O) {
-        callObjectChangedListeners(obj, OperationType.UNDELETE)
-    }
-
-    fun callObjectChangedListeners(obj: O, operationType: OperationType) {
-        for (objectChangedListener in objectChangedListeners) {
-            objectChangedListener.afterSaveOrModify(obj, operationType)
-        }
+        return baseDOPersistenceService.insert(this, obj)!!
     }
 
     @JvmOverloads
@@ -588,30 +485,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
+        baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.UPDATE)
         return persistenceService.runInTransaction { context ->
             val em = context.em
-            beforeInsertOrModify(obj)
-            accessChecker.checkRestrictedOrDemoUser()
             val dbObj = em.find(doClass, obj.id)
             if (checkAccess) {
                 checkLoggedInUserUpdateAccess(obj, dbObj)
             }
-            onInsertOrModify(obj)
-            onChange(obj, dbObj)
-            val res = ResultObject<O>()
-            res.modStatus = baseDOPersistenceService.update(this, obj, checkAccess, dbObj)
-            afterInsertOrModify(obj)
-            if (supportAfterUpdate) {
-                afterUpdate(obj, res.dbObjBackup, isModified = res.modStatus != EntityCopyStatus.NONE)
-                afterUpdate(obj, res.dbObjBackup)
-            } else {
-                afterUpdate(obj, null, res.modStatus != EntityCopyStatus.NONE)
-                afterUpdate(obj, null)
-            }
-            if (res.wantsReindexAllDependentObjects) {
-                reindexDependentObjects(obj)
-            }
-            res.modStatus!!
+            baseDOPersistenceService.update(this, obj = obj, checkAccess = checkAccess, dbObj = dbObj)!!
         }
     }
 
@@ -662,10 +543,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     open fun markAsDeleted(obj: O, checkAccess: Boolean = true) {
         if (obj.id == null) {
             val msg = "Could not delete object unless id is not given:$obj"
-            log.error(msg)
+            log.error { msg }
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
+        baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
             val dbObj = context.selectById(doClass, obj.id)!!
             if (checkAccess) {
@@ -688,6 +570,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
+        baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
             val dbObj = context.selectById(doClass, obj.id)
             if (dbObj == null) {
@@ -697,7 +580,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             if (checkAccess) {
                 checkLoggedInUserDeleteAccess(obj, dbObj)
             }
-            baseDOPersistenceService.forceDelete(this, obj)
+            baseDOPersistenceService.delete(this, obj)
         }
     }
 
@@ -718,22 +601,17 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             log.error(msg)
             throw RuntimeException(msg)
         }
+        baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
-            onDelete(obj)
             val dbObj = context.selectById(doClass, obj.id, attached = true)
             if (dbObj != null) {
                 if (checkAccess) {
                     checkLoggedInUserDeleteAccess(obj, dbObj)
                 }
-                context.em.remove(dbObj)
-                if (logDatabaseActions) {
-                    log.info(doClass.simpleName + " deleted: " + obj.toString())
-                }
+                baseDOPersistenceService.delete(this, obj)
             } else {
                 log.error("Oups, can't delete $doClass #${obj.id}, not found in database!")
             }
-            afterInsertOrModify(obj)
-            afterDelete(obj)
         }
     }
 
@@ -749,12 +627,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
             throw RuntimeException(msg)
         }
         accessChecker.checkRestrictedOrDemoUser()
+        baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.UNDELETE)
         if (checkAccess) {
             checkLoggedInUserInsertAccess(obj)
         }
-        persistenceService.runInTransaction { context ->
-            baseDOPersistenceService.undelete(this, obj)
-        }
+        baseDOPersistenceService.undelete(this, obj)
     }
 
     /**
@@ -764,7 +641,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     fun checkLoggedInUserSelectAccess() {
         if (!hasUserSelectAccess(requiredLoggedInUser, true)) {
             // Should not occur!
-            log.error("Development error: Subclass should throw an exception instead of returning false.")
+            log.error { "Development error: Subclass should throw an exception instead of returning false." }
             throw UserException(UserException.I18N_KEY_PLEASE_CONTACT_DEVELOPER_TEAM)
         }
     }
@@ -1179,13 +1056,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O> {
     }
 
     /**
-     * Register given listener. The listener is called every time an object was inserted, updated or deleted.
+     * Register given listener.
+     * The listener is called every time an object was selected, inserted, updated or deleted.
      *
      * @param objectChangedListener
      */
     fun register(objectChangedListener: BaseDOChangedListener<O>) {
-        log.info(javaClass.simpleName + ": Registering " + objectChangedListener.javaClass.name)
-        objectChangedListeners.add(objectChangedListener)
+        baseDOChangedRegistry.register(objectChangedListener)
     }
 
     companion object {

@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.kost
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
 import org.projectforge.business.user.UserRightId
 import org.projectforge.common.i18n.UserException
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Service
 @Service
 class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
     @Autowired
-    private val kostCache: KostCache? = null
+    private lateinit var kostCache: KostCache
 
     init {
         userRightId = USER_RIGHT_ID
@@ -97,7 +98,7 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         return select(queryFilter)
     }
 
-    override fun onInsertOrModify(obj: Kost1DO) {
+    override fun onInsertOrModify(obj: Kost1DO, operationType: OperationType) {
         verifyKost(obj)
         val other = if (obj.id == null) {
             // New entry
@@ -129,9 +130,8 @@ class Kost1Dao : BaseDao<Kost1DO>(Kost1DO::class.java) {
         if (obj.endziffer < 0 || obj.endziffer > 99) throw UserException("fibu.kost.error.invalidKost")
     }
 
-    override fun afterInsertOrModify(kost1: Kost1DO) {
-        super.afterInsertOrModify(kost1)
-        kostCache!!.updateKost1(kost1)
+    override fun afterInsertOrModify(obj: Kost1DO, operationType: OperationType) {
+        kostCache.updateKost1(obj)
     }
 
     override fun newInstance(): Kost1DO {

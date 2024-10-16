@@ -71,7 +71,7 @@ internal class My2FABruteForceProtection {
      * an user and this listener will be notified in this case.
      */
     internal class UserChangeListener(val protection: My2FABruteForceProtection) : BaseDOChangedListener<PFUserDO> {
-        override fun afterSaveOrModify(
+        override fun afterInsertOrModify(
             changedObject: PFUserDO,
             operationType: OperationType,
         ) {
