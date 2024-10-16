@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.AuftragDO
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungStatus
 import org.projectforge.framework.persistence.api.BaseDO
@@ -44,7 +45,10 @@ import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-class HistoryServiceTest : AbstractTestBase() {
+/**
+ * Test of old history format (until .
+ */
+class HistoryServiceOldFormatTest : AbstractTestBase() {
     @Test
     fun testOldInvoiceHistory() {
         ensureSetup()
@@ -167,6 +171,24 @@ class HistoryServiceTest : AbstractTestBase() {
         hist.getEntriesByPk(getNewHistoryEntryId(36901229), 1, 18)
         // val orderPos = AuftragsPositionDO()
         // orderPos.id = 36901228
+    }
+
+    @Test
+    fun testOldEmployeeTimedAttrHistory() {
+        ensureSetup()
+        val employee = EmployeeDO()
+        employee.id = 21339579
+        val hist = createHistoryTester()
+        hist.loadHistory(employee, 5, 11)
+        println ("Employee history entries")
+        // propertyName: timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.employeeannualleavedays, Insert, value=30
+        // propertyName: timeableAttributes.employeeannualleave.2021-03-01 00:00:00:000.startTime, Insert, value=2021-03-01 00:00:00:000
+
+        // propertyName: timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime, Insert, value=2019-03-01 00:00:00:000
+        // propertyName: timeableAttributes.employeestatus.2019-03-01 00:00:00:000.status, Insert, value=fibu.employee.status.studentischeHilfskraft
+
+        // propertyName: timeableAttributes.employeestatus.2017-09-01 00:00:00:000.startTime, Delete, value=2017-09-01 00:00:00:000
+        // propertyName: timeableAttributes.employeestatus.2017-09-01 00:00:00:000.status, Delete, value=null
     }
 
     private fun ensureSetup() {

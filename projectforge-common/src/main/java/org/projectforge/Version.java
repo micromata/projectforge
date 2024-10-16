@@ -29,9 +29,9 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a version number (major-release, minor-release, patch-level and build-number).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class Version implements Comparable<Version>, Serializable
 {
@@ -49,7 +49,7 @@ public class Version implements Comparable<Version>, Serializable
   /**
    * Supported formats: "#" ("3"), "#.#" ("3.5"), "#.#.#" ("3.5.4") or "#.#.#.#" ("3.5.4.2"). Append b# for marking
    * version as beta version.
-   * 
+   *
    * @param version
    */
   public Version(final String version)
@@ -198,7 +198,7 @@ public class Version implements Comparable<Version>, Serializable
 
   /**
    * Compares major, minor, patch and build number.
-   * 
+   *
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
   @Override
@@ -290,7 +290,7 @@ public class Version implements Comparable<Version>, Serializable
   private int parseInt(final String version, final String str)
   {
     try {
-      return new Integer(str);
+      return Integer.valueOf(str);
     } catch (final NumberFormatException ex) {
       log.error("Can't parse version string '" + version + "'. '" + str + "'isn't a number");
     }

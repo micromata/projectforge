@@ -70,6 +70,7 @@ class LoggerMemoryAppender : AppenderBase<ILoggingEvent?>() {
     }
   }
 
+  @Suppress("UNUSED_PARAMETER")
   internal fun getSubscription(title: String, user: String, displayTitle: String = title): LogSubscription? {
     synchronized(logSubscriptions) {
       return logSubscriptions.find { it.title == title && it.user == user }

@@ -26,19 +26,10 @@ package org.projectforge.framework.persistence.api
 import org.projectforge.framework.access.OperationType
 
 /**
- * BaseDOChangedListener may be registered at BaseDao and will be called every time an object was changed (added, modified or deleted).
+ * BaseDOPostChangedListener may be registered at BaseDao and will be called every time an object was changed (added, modified or deleted).
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-interface BaseDOChangedListener<O : ExtendedBaseDO<Long>> {
-    /**
-     * This method will be called before access check of inserting and updating the object.
-     * Called outside/before transaction.
-     * Does nothing at default.
-     * @param obj The object to insert or modify.
-     */
-    fun beforeInsertOrModify(obj: O, operationType: OperationType) {
-    }
-
+interface BaseDaoPersistenceListener<O : ExtendedBaseDO<Long>> : BaseDOModifiedListener<O> {
     /**
      * This method will be called before inserting, updating, deleting or marking the data object as deleted.
      * Callsed after access check.
@@ -47,18 +38,6 @@ interface BaseDOChangedListener<O : ExtendedBaseDO<Long>> {
      * @param obj The object to insert or modify.
      */
     fun onInsertOrModify(obj: O, operationType: OperationType) {
-    }
-
-    /**
-     * This method will be called after inserting, updating, deleting or marking the data object as deleted.
-     * This method is for example needed for expiring the UserGroupCache after inserting or updating a user or group
-     * data object.
-     * Called inside transaction.
-     * Does nothing at default.
-     * @param obj The inserted or modified object.
-     * @param operationType The operation type.
-     */
-    fun afterInsertOrModify(obj: O, operationType: OperationType) {
     }
 
     /**

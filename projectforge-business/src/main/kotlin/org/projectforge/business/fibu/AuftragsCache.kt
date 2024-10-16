@@ -26,7 +26,7 @@ package org.projectforge.business.fibu
 import jakarta.annotation.PostConstruct
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.Serializable
@@ -36,7 +36,7 @@ import java.math.BigDecimal
  * Open needed by Wicket's SpringBean.
  */
 @Service
-open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOChangedListener<RechnungDO> {
+open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
 
     class OrderInfo(
         val netSum: BigDecimal,

@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -40,7 +40,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-open class AddressbookCache : AbstractCache(), BaseDOChangedListener<AddressbookDO> {
+open class AddressbookCache : AbstractCache(), BaseDOModifiedListener<AddressbookDO> {
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
 

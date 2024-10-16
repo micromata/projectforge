@@ -27,7 +27,7 @@ import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.api.BaseDOChangedListener
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-open class SkillStatisticsCache : AbstractCache(), BaseDOChangedListener<SkillEntryDO> {
+open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillEntryDO> {
     @Autowired
     private lateinit var skillEntryDao: SkillEntryDao
 

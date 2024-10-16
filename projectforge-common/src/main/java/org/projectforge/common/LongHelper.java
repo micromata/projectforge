@@ -45,12 +45,12 @@ public class LongHelper
       return null;
     }
     value = value.trim();
-    if (value.length() == 0) {
+    if (value.isEmpty()) {
       return null;
     }
     Long result = null;
     try {
-      result = new Long(value);
+      result = Long.valueOf(value);
     } catch (final NumberFormatException ex) {
       log.warn("Can't parse long: '" + value + "'.");
     }

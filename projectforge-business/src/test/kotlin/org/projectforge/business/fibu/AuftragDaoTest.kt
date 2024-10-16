@@ -81,65 +81,66 @@ class AuftragDaoTest : AbstractTestBase() {
     @Test
     fun checkAccess() {
         logon(TEST_FINANCE_USER)
-        var auftrag1 = AuftragDO()
-        auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
-        auftragDao.setContactPerson(auftrag1, getUserId(TEST_FINANCE_USER))
-        var id1: Serializable
-        try {
-            suppressErrorLogs {
-                id1 = auftragDao.insert(auftrag1)
+        lateinit var id1: Serializable
+        lateinit var id2: Serializable
+        lateinit var id3: Serializable
+        persistenceService.runInTransaction { context ->
+            var auftrag1 = AuftragDO()
+            auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
+            auftragDao.setContactPerson(auftrag1, getUserId(TEST_FINANCE_USER))
+            try {
+                suppressErrorLogs {
+                    id1 = auftragDao.insert(auftrag1)
+                }
+                Assertions.fail { "UserException expected: Order should have positions." }
+            } catch (ex: UserException) {
+                Assertions.assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.i18nKey)
             }
-            Assertions.fail { "UserException expected: Order should have positions." }
-        } catch (ex: UserException) {
-            Assertions.assertEquals("fibu.auftrag.error.auftragHatKeinePositionen", ex.i18nKey)
-        }
-        auftrag1.addPosition(AuftragsPositionDO())
-        id1 = auftragDao.insert(auftrag1)
-        dbNumber++ // Needed for getNextNumber test;
-        auftrag1 = auftragDao.find(id1)!!
+            auftrag1.addPosition(AuftragsPositionDO())
+            id1 = auftragDao.insert(auftrag1)
+            dbNumber++ // Needed for getNextNumber test;
+            auftrag1 = auftragDao.find(id1, attached = true)!! // Attached is important, otherwise deadlock.
 
-        val auftrag2 = AuftragDO()
-        auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
-        auftragDao.setContactPerson(auftrag2, getUserId(TEST_PROJECT_MANAGER_USER))
-        auftrag2.addPosition(AuftragsPositionDO())
-        val id2: Serializable = auftragDao.insert(auftrag2)
-        dbNumber++ // Needed for getNextNumber test;
+            val auftrag2 = AuftragDO()
+            auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
+            auftragDao.setContactPerson(auftrag2, getUserId(TEST_PROJECT_MANAGER_USER))
+            auftrag2.addPosition(AuftragsPositionDO())
+            id2 = auftragDao.insert(auftrag2)
+            dbNumber++ // Needed for getNextNumber test;
 
-        val auftrag3 = AuftragDO()
-        auftrag3.nummer = auftragDao.getNextNumber(auftrag3)
-        auftragDao.setContactPerson(auftrag3, getUserId(TEST_PROJECT_MANAGER_USER))
-        val dateTime = now().minusYears(6) // 6 years old.
-        auftrag3.angebotsDatum = dateTime.localDate
-        auftrag3.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
-        val position = AuftragsPositionDO()
-        position.vollstaendigFakturiert = true
-        position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
-        auftrag3.addPosition(position)
-        val id3: Serializable = auftragDao.insert(auftrag3)
-        dbNumber++ // Needed for getNextNumber test;
-
-        logon(TEST_PROJECT_MANAGER_USER)
-        try {
-            suppressErrorLogs {
-                auftragDao.find(id1)
+            val auftrag3 = AuftragDO()
+            auftrag3.nummer = auftragDao.getNextNumber(auftrag3)
+            auftragDao.setContactPerson(auftrag3, getUserId(TEST_PROJECT_MANAGER_USER))
+            val dateTime = now().minusYears(6) // 6 years old.
+            auftrag3.angebotsDatum = dateTime.localDate
+            auftrag3.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
+            val position = AuftragsPositionDO()
+            position.vollstaendigFakturiert = true
+            position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
+            auftrag3.addPosition(position)
+            id3 = auftragDao.insert(auftrag3)
+            dbNumber++ // Needed for getNextNumber test;
+            logon(TEST_PROJECT_MANAGER_USER)
+            try {
+                suppressErrorLogs {
+                    auftragDao.find(id1, attached = true) // Attached is important, otherwise deadlock.
+                }
+                Assertions.fail { "AccessException expected: Projectmanager should not have access to foreign orders." }
+            } catch (ex: AccessException) {
+                // OK
             }
-            Assertions.fail { "AccessException expected: Projectmanager should not have access to foreign orders." }
-        } catch (ex: AccessException) {
-            // OK
-        }
-        auftragDao.find(id2)
-        try {
-            suppressErrorLogs {
-                auftragDao.find(id3)
+            auftragDao.find(id2, attached = true) // Attached is important, otherwise deadlock.
+            try {
+                suppressErrorLogs {
+                    auftragDao.find(id3, attached = true) // Attached is important, otherwise deadlock.
+                }
+                Assertions.fail { "AccessException expected: Projectmanager should not have access to older orders than ${AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER} days." }
+            } catch (ex: AccessException) {
+                // OK
             }
-            Assertions.fail { "AccessException expected: Projectmanager should not have access to older orders than ${AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER} days." }
-        } catch (ex: AccessException) {
-            // OK
-        }
-        val useId = id1
-        persistenceService.runInTransaction { _ ->
+            val useId = id1
             logon(TEST_CONTROLLING_USER)
-            val order = auftragDao.find(useId)!!
+            val order = auftragDao.find(useId, attached = true)!! // Attached is important, otherwise deadlock.
             checkNoWriteAccess(useId, order, "Controller")
 
             logon(TEST_USER)
@@ -163,27 +164,27 @@ class AuftragDaoTest : AbstractTestBase() {
             projekt1.name = "ACME - Webportal 1"
             projekt1.projektManagerGroup = group1
             id = projektDao.insert(projekt1)
-            projekt1 = projektDao.find(id)!!
+            projekt1 = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
             auftrag1 = AuftragDO()
             auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
             auftrag1.projekt = projekt1
             auftrag1.addPosition(AuftragsPositionDO())
             id = auftragDao.insert(auftrag1)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag1 = auftragDao.find(id)!!
+            auftrag1 = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             var projekt2 = ProjektDO()
             projekt2.name = "ACME - Webportal 2"
             projekt2.projektManagerGroup = group2
             id = projektDao.insert(projekt2)
-            projekt2 = projektDao.find(id)!!
+            projekt2 = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
             auftrag2 = AuftragDO()
             auftrag2.nummer = auftragDao.getNextNumber(auftrag2)
             auftrag2.projekt = projekt2
             auftrag2.addPosition(AuftragsPositionDO())
             id = auftragDao.insert(auftrag2)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag2 = auftragDao.find(id)!!
+            auftrag2 = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             logon(TEST_CONTROLLING_USER)
             checkNoWriteAccess(id, auftrag1, "Controlling")
@@ -230,7 +231,7 @@ class AuftragDaoTest : AbstractTestBase() {
             projekt.name = "ACME - Webportal checkPartlyReadwriteAccess"
             projekt.projektManagerGroup = group
             var id: Serializable? = projektDao.insert(projekt)
-            projekt = projektDao.find(id)!!
+            projekt = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             var auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
@@ -239,12 +240,12 @@ class AuftragDaoTest : AbstractTestBase() {
             id = auftragDao.insert(auftrag)
             auftragId = id
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.find(id)!!
+            auftrag = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             logon(user)
             try {
                 suppressErrorLogs {
-                    auftrag = auftragDao.find(id)!!
+                    auftrag = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
                 }
                 Assertions.fail { "Access exception expected." }
             } catch (ex: AccessException) {
@@ -259,7 +260,7 @@ class AuftragDaoTest : AbstractTestBase() {
             logon(user)
             try {
                 suppressErrorLogs {
-                    auftrag = auftragDao.find(id)!!
+                    auftrag = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
                 }
                 Assertions.fail { "Access exception expected." }
             } catch (ex: AccessException) {
@@ -273,23 +274,23 @@ class AuftragDaoTest : AbstractTestBase() {
             right.value = UserRightValue.READWRITE // Full access
             userRightDao.update(right)
             logon(user)
-            val auftrag = auftragDao.find(auftragId)
+            val auftrag = auftragDao.find(auftragId, attached = true) // Attached is important, otherwise deadlock.
             logon(TEST_ADMIN_USER)
             right.value = UserRightValue.PARTLYREADWRITE
             userRightDao.update(right)
             group!!.assignedUsers!!.add(user)
             groupDao.update(group!!) // User is now in project manager group.
             logon(user)
-            auftragDao.find(auftragId)
+            auftragDao.find(auftragId, attached = true)!! // Attached is important, otherwise deadlock.
         }
     }
 
     private fun checkHasUpdateAccess(auftragsId: Serializable?) {
-        var auftrag = auftragDao.find(auftragsId)!!
+        var auftrag = auftragDao.find(auftragsId, attached = true)!! // Attached is important, otherwise deadlock.
         val value = random.nextLong().toString()
         auftrag.bemerkung = value
         auftragDao.update(auftrag)
-        auftrag = auftragDao.find(auftragsId)!!
+        auftrag = auftragDao.find(auftragsId, attached = true)!! // Attached is important, otherwise deadlock.
         Assertions.assertEquals(value, auftrag.bemerkung)
     }
 
@@ -308,9 +309,9 @@ class AuftragDaoTest : AbstractTestBase() {
     private fun checkNoAccess(auftragsId: Serializable?, who: String) {
         try {
             suppressErrorLogs {
-                auftragDao.find(auftragsId)
+                auftragDao.find(auftragsId, attached = true) // Attached is important, otherwise deadlock.
             }
-            Assertions.fail{"AccessException expected: $who users should not have select access to orders."}
+            Assertions.fail { "AccessException expected: $who users should not have select access to orders." }
         } catch (ex: AccessException) {
             // OK
         }
@@ -339,7 +340,7 @@ class AuftragDaoTest : AbstractTestBase() {
             suppressErrorLogs {
                 auftragDao.update(auftrag)
             }
-            Assertions.fail{"AccessException expected: $who users should not have update access to orders."}
+            Assertions.fail { "AccessException expected: $who users should not have update access to orders." }
         } catch (ex: AccessException) {
             // OK
         }
@@ -357,8 +358,10 @@ class AuftragDaoTest : AbstractTestBase() {
             auftragDao.setContactPerson(auftrag1, getUserId(TEST_PROJECT_MANAGER_USER))
             auftrag1.addPosition(AuftragsPositionDO())
             id1 = auftragDao.insert(auftrag1)
+        }
+        persistenceService.runInTransaction { _ ->
             dbNumber++ // Needed for getNextNumber test;
-            auftrag1 = auftragDao.find(id1)!!
+            auftrag1 = auftragDao.find(id1)!! // Attached is important, otherwise deadlock.
 
             position = auftrag1.positionenIncludingDeleted!![0]
             position.vollstaendigFakturiert = true
@@ -366,7 +369,7 @@ class AuftragDaoTest : AbstractTestBase() {
                 suppressErrorLogs {
                     auftragDao.update(auftrag1)
                 }
-                Assertions.fail { "UserException expected: Only orders with state ABGESCHLOSSEN should be set as fully invoiced."}
+                Assertions.fail { "UserException expected: Only orders with state ABGESCHLOSSEN should be set as fully invoiced." }
             } catch (ex: UserException) {
                 Assertions.assertEquals(
                     "fibu.auftrag.error.nurAbgeschlosseneAuftragsPositionenKoennenVollstaendigFakturiertSein",
@@ -375,11 +378,13 @@ class AuftragDaoTest : AbstractTestBase() {
             }
         }
         persistenceService.runInTransaction { _ ->
-            auftrag1 = auftragDao.find(id1)!!
+            auftrag1 = auftragDao.find(id1, attached = true)!! // Attached is important, otherwise deadlock.
             auftrag1.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
             auftragDao.update(auftrag1)
-            auftrag1 = auftragDao.find(id1)!!
+        }
 
+        persistenceService.runInTransaction { _ ->
+            auftrag1 = auftragDao.find(id1)!! // Attached is important, otherwise deadlock.
             logon(TEST_PROJECT_MANAGER_USER)
             position = auftrag1.positionenIncludingDeleted!![0]
             position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
@@ -388,7 +393,7 @@ class AuftragDaoTest : AbstractTestBase() {
                 suppressErrorLogs {
                     auftragDao.update(auftrag1)
                 }
-                Assertions.fail {"AccessException expected: Projectmanager should not able to set order as fully invoiced."}
+                Assertions.fail { "AccessException expected: Projectmanager should not able to set order as fully invoiced." }
             } catch (ex: AccessException) {
                 // OK
                 Assertions.assertEquals("fibu.auftrag.error.vollstaendigFakturiertProtection", ex.i18nKey)
@@ -404,8 +409,8 @@ class AuftragDaoTest : AbstractTestBase() {
 
     @Test
     fun checkEmptyAuftragsPositionen() {
+        logon(TEST_FINANCE_USER)
         persistenceService.runInTransaction { _ ->
-            logon(TEST_FINANCE_USER)
             var auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
             auftrag.addPosition(AuftragsPositionDO())
@@ -414,7 +419,7 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag.addPosition(AuftragsPositionDO())
             var id: Serializable = auftragDao.insert(auftrag)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.find(id)!!
+            auftrag = auftragDao.find(id, attached = true)!!
             Assertions.assertEquals(1, auftrag.positionenIncludingDeleted!!.size)
             auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
@@ -426,11 +431,11 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag.addPosition(AuftragsPositionDO())
             id = auftragDao.insert(auftrag)
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.find(id)!!
+            auftrag = auftragDao.find(id, attached = true)!!
             Assertions.assertEquals(3, auftrag.positionenIncludingDeleted!!.size)
             auftrag.positionenIncludingDeleted!![2].titel = null
             auftragDao.update(auftrag)
-            auftrag = auftragDao.find(id)!!
+            auftrag = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
             Assertions.assertEquals(3, auftrag.positionenIncludingDeleted!!.size)
         }
     }

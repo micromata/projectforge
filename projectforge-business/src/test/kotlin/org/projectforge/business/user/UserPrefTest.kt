@@ -96,8 +96,7 @@ class UserPrefTest : AbstractTestBase() {
         persistenceService.runInTransaction { _ ->
             saveAndUpdateTest("", loggedInUser)
             saveAndUpdateTest("test", loggedInUser)
-
-            var userPref = UserPrefDO()
+            val userPref = UserPrefDO()
             userPref.user = loggedInUser
             userPref.area = "TEST_AREA3"
             userPref.name = ""
@@ -105,14 +104,14 @@ class UserPrefTest : AbstractTestBase() {
             addEntry(userPref, "param2", "value2")
             hist.reset()
             userPrefDao.insertOrUpdate(userPref, checkAccess = false)
-            hist.loadRecentHistoryEntries(0, 0)
-            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "")!!
-            Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
-            Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
-            Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
         }
+        hist.loadRecentHistoryEntries(0, 0)
+        var userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "")!!
+        Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
+        Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
+        Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
         persistenceService.runInTransaction { _ ->
-            val userPref = UserPrefDO()
+            userPref = UserPrefDO()
             userPref.user = loggedInUser
             userPref.area = "TEST_AREA3"
             userPref.name = ""
@@ -121,14 +120,12 @@ class UserPrefTest : AbstractTestBase() {
             userPrefDao.insertOrUpdate(userPref, checkAccess = false)
         }
         hist.loadRecentHistoryEntries(0, 0)
-        persistenceService.runReadOnly { _ ->
-            val userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "")!!
-            Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
-            Assertions.assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"))
-            Assertions.assertEquals("value3", userPref.getUserPrefEntryAsString("param3"))
-        }
+        userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA3", "")!!
+        Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
+        Assertions.assertEquals("value1b", userPref.getUserPrefEntryAsString("param1"))
+        Assertions.assertEquals("value3", userPref.getUserPrefEntryAsString("param3"))
         persistenceService.runInTransaction { _ ->
-            var userPref = UserPrefDO()
+            userPref = UserPrefDO()
             userPref.user = loggedInUser
             userPref.area = "TEST_AREA3"
             userPref.name = ""
@@ -142,24 +139,23 @@ class UserPrefTest : AbstractTestBase() {
             userPref.area = "TEST_AREA4"
             userPref.name = ""
             userPrefDao.insertOrUpdate(userPref, checkAccess = false)
-            hist.loadRecentHistoryEntries(0, 0)
-            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "")!!
-            Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
-
-            userPref = UserPrefDO()
-            userPref.user = loggedInUser
-            userPref.area = "TEST_AREA4"
-            userPref.name = ""
-            addEntry(userPref, "param1", "value1")
-            addEntry(userPref, "param2", "value2")
-            userPrefDao.insertOrUpdate(userPref, checkAccess = false)
-            hist.loadRecentHistoryEntries(0, 0)
-            userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "")!!
-            Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
-            Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
-            Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
-            null
         }
+        hist.loadRecentHistoryEntries(0, 0)
+        userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "")!!
+        Assertions.assertTrue(CollectionUtils.isEmpty(userPref.userPrefEntries))
+
+        userPref = UserPrefDO()
+        userPref.user = loggedInUser
+        userPref.area = "TEST_AREA4"
+        userPref.name = ""
+        addEntry(userPref, "param1", "value1")
+        addEntry(userPref, "param2", "value2")
+        userPrefDao.insertOrUpdate(userPref, checkAccess = false)
+        hist.loadRecentHistoryEntries(0, 0)
+        userPref = userPrefDao.internalQuery(loggedInUser.id!!, "TEST_AREA4", "")!!
+        Assertions.assertEquals(2, userPref.userPrefEntries!!.size)
+        Assertions.assertEquals("value1", userPref.getUserPrefEntryAsString("param1"))
+        Assertions.assertEquals("value2", userPref.getUserPrefEntryAsString("param2"))
         hist.loadRecentHistoryEntries(0, 0)
     }
 

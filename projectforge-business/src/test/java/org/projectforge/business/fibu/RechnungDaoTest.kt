@@ -56,7 +56,7 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung1.nummer = number
             rechnung1.addPosition(createPosition(1, "50.00", "0", "test"))
             var id: Serializable? = rechnungDao.insert(rechnung1)
-            val rechnung1FromDb = rechnungDao.find(id)
+            val rechnung1FromDb = rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
             Assertions.assertEquals(dbNumber++, rechnung1FromDb!!.nummer)
 
             val rechnung2 = RechnungDO()
@@ -81,7 +81,7 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung2.nummer = number
             rechnung2.addPosition(createPosition(1, "50.00", "0", "test"))
             id = rechnungDao.insert(rechnung2)
-            val rechnung2FromDb = rechnungDao.find(id)
+            val rechnung2FromDb = rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
             Assertions.assertEquals(dbNumber++, rechnung2FromDb!!.nummer)
 
             val rechnung3 = RechnungDO()
@@ -91,7 +91,7 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung3.faelligkeit = LocalDate.now()
             rechnung3.projekt = initTestDB.addProjekt(null, 1, "foo")
             id = rechnungDao.insert(rechnung3)
-            val rechnung3FromDb = rechnungDao.find(id)
+            val rechnung3FromDb = rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
             Assertions.assertNull(rechnung3FromDb!!.nummer)
         }
     }
@@ -113,11 +113,11 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung.addPosition(createPosition(1, "50.00", "0", "test"))
             Assertions.assertEquals("289.19", rechnung.grossSum.setScale(2).toString())
             id = rechnungDao.insert(rechnung)
-            rechnung = rechnungDao.find(id)!!
+            rechnung = rechnungDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
         }
         persistenceService.runInTransaction { context ->
             logon(TEST_CONTROLLING_USER)
-            rechnungDao.find(id)
+            rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
             checkNoWriteAccess(id, rechnung, "Controlling")
 
             logon(TEST_USER)
@@ -141,7 +141,7 @@ class RechnungDaoTest : AbstractTestBase() {
             // OK
         }
         try {
-            rechnungDao.find(id)
+            rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
             Assertions.fail<Any>("AccessException expected: $who users should not have select access to invoices.")
         } catch (ex: AccessException) {
             // OK
