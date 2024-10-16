@@ -385,10 +385,15 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "\n" +
                 "Mit Freundlichen Grüßen\n" +
                 "{1}"
-        dto.customemailcontent = content
+        if (dto.customemailcontent.isNullOrEmpty()) {
+            dto.customemailcontent = content
+        }
 
-        val subject = "Sie wurden zu einer Umfrage eingeladen mit dem Titel '{0}' eingeladen."
-        dto.customemailsubject = subject
+        val subject = "Sie wurden zu einer Umfrage mit dem Titel '{0}' eingeladen."
+
+        if (dto.customemailsubject.isNullOrEmpty()) {
+            dto.customemailsubject = subject
+        }
 
         addQuestionFieldset(layout, dto, fieldset)
 
