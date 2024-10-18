@@ -23,23 +23,21 @@
 
 package org.projectforge.business.address
 
-import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.util.CollectionUtils
 
 /**
  * @author Florian blumenstein
@@ -47,13 +45,16 @@ import org.springframework.util.CollectionUtils
 @Service
 open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     @Autowired
-    private val userDao: UserDao? = null
+    private lateinit var userDao: UserDao
 
     @Autowired
-    private val groupService: GroupService? = null
+    private lateinit var groupService: GroupService
 
     @Autowired
-    private val userService: UserService? = null
+    private lateinit var historyFormatUtils: HistoryFormatUtils
+
+    @Autowired
+    private lateinit var userService: UserService
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS
@@ -63,7 +64,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     }
 
     fun setOwner(ab: AddressbookDO, userId: Long) {
-        val user = userDao!!.findOrLoad(userId)
+        val user = userDao.findOrLoad(userId)
         ab.owner = user
     }
 
@@ -151,11 +152,11 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
      * @param fullAccessGroups
      */
     fun setFullAccessGroups(ab: AddressbookDO, fullAccessGroups: Collection<GroupDO?>?) {
-        ab.fullAccessGroupIds = groupService!!.getGroupIds(fullAccessGroups)
+        ab.fullAccessGroupIds = groupService.getGroupIds(fullAccessGroups)
     }
 
     fun getSortedFullAccessGroups(ab: AddressbookDO): Collection<GroupDO> {
-        return groupService!!.getSortedGroups(ab.fullAccessGroupIds)
+        return groupService.getSortedGroups(ab.fullAccessGroupIds)
     }
 
     /**
@@ -165,11 +166,11 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
      * @param fullAccessUsers
      */
     fun setFullAccessUsers(ab: AddressbookDO, fullAccessUsers: Collection<PFUserDO?>) {
-        ab.fullAccessUserIds = userService!!.getUserIds(fullAccessUsers)
+        ab.fullAccessUserIds = userService.getUserIds(fullAccessUsers)
     }
 
     fun getSortedFullAccessUsers(ab: AddressbookDO): Collection<PFUserDO> {
-        return userService!!.getSortedUsers(ab.fullAccessUserIds)
+        return userService.getSortedUsers(ab.fullAccessUserIds)
     }
 
     /**
@@ -179,11 +180,11 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
      * @param readonlyAccessGroups
      */
     fun setReadonlyAccessGroups(ab: AddressbookDO, readonlyAccessGroups: Collection<GroupDO?>?) {
-        ab.readonlyAccessGroupIds = groupService!!.getGroupIds(readonlyAccessGroups)
+        ab.readonlyAccessGroupIds = groupService.getGroupIds(readonlyAccessGroups)
     }
 
     fun getSortedReadonlyAccessGroups(ab: AddressbookDO): Collection<GroupDO> {
-        return groupService!!.getSortedGroups(ab.readonlyAccessGroupIds)
+        return groupService.getSortedGroups(ab.readonlyAccessGroupIds)
     }
 
     /**
@@ -193,41 +194,15 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
      * @param readonlyAccessUsers
      */
     fun setReadonlyAccessUsers(ab: AddressbookDO, readonlyAccessUsers: Collection<PFUserDO?>) {
-        ab.readonlyAccessUserIds = userService!!.getUserIds(readonlyAccessUsers)
+        ab.readonlyAccessUserIds = userService.getUserIds(readonlyAccessUsers)
     }
 
     fun getSortedReadonlyAccessUsers(ab: AddressbookDO): Collection<PFUserDO> {
-        return userService!!.getSortedUsers(ab.readonlyAccessUserIds)
+        return userService.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun customizeDisplayHistoryEntries(obj: AddressbookDO, list: MutableList<DisplayHistoryEntry>) {
-        for (entry in list) {
-            if (entry.propertyName == null) {
-                continue
-            } else if (entry.propertyName!!.endsWith("GroupIds")) {
-                val oldValue = entry.oldValue
-                if (StringUtils.isNotBlank(oldValue) && "null" != oldValue) {
-                    val oldGroupNames = groupService!!.getGroupNames(oldValue)
-                    entry.oldValue = StringHelper.listToString(oldGroupNames, ", ", true)
-                }
-                val newValue = entry.newValue
-                if (StringUtils.isNotBlank(newValue) && "null" != newValue) {
-                    val newGroupNames = groupService!!.getGroupNames(newValue)
-                    entry.newValue = StringHelper.listToString(newGroupNames, ", ", true)
-                }
-            } else if (entry.propertyName!!.endsWith("UserIds")) {
-                val oldValue = entry.oldValue
-                if (StringUtils.isNotBlank(oldValue) && "null" != oldValue) {
-                    val oldGroupNames = userService!!.getUserNames(oldValue)
-                    entry.oldValue = StringHelper.listToString(oldGroupNames, ", ", true)
-                }
-                val newValue = entry.newValue
-                if (StringUtils.isNotBlank(newValue) && "null" != newValue) {
-                    val newGroupNames = userService!!.getUserNames(newValue)
-                    entry.newValue = StringHelper.listToString(newGroupNames, ", ", true)
-                }
-            }
-        }
+    override fun customizeDisplayHistoryEntry(entry: DisplayHistoryEntry) {
+        historyFormatUtils.replaceGroupAndUserIdsValues(entry)
     }
 
     override fun onDelete(obj: AddressbookDO) {

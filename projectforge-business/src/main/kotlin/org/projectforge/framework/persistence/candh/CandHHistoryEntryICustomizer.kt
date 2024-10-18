@@ -21,34 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.test
+package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.persistence.history.HistoryEntryAttrDO
 import org.projectforge.framework.persistence.history.HistoryEntryDO
-import org.projectforge.framework.persistence.history.PropertyOpType
-import kotlin.reflect.KClass
 
-/**
- * For debugging purposes only. Holds a HistoryEntryDO and the corresponding entity, if available.
- * @return this for chaining.
- */
-class HistoryEntryHolder(val entry: HistoryEntryDO, val entity: Any?) {
-    fun assertAttr(
-        propertyName: String,
-        value: String?,
-        oldValue: String?,
-        opType: PropertyOpType = PropertyOpType.Update,
-        propertyTypeClass: KClass<*>? = java.lang.String::class,
-        msg: String = "",
-    ): HistoryEntryHolder {
-        HistoryTester.assertHistoryAttr(entry, propertyName = propertyName, value = value, oldValue = oldValue, opType = opType, propertyTypeClass = propertyTypeClass, msg = msg)
-        return this
-    }
-
-    /**
-     * The attributes of the history entry.
-     */
-    val attributes: Set<HistoryEntryAttrDO>?
-        get() = entry.attributes
+interface CandHHistoryEntryICustomizer {
+    fun customize(historyEntry: HistoryEntryDO)
 }
-

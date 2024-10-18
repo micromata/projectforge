@@ -149,7 +149,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     private lateinit var hibernateSearchDependentObjectsReindexer: HibernateSearchDependentObjectsReindexer
 
     @Autowired
-    private lateinit var historyService: HistoryService
+    protected lateinit var historyService: HistoryService
 
     open val additionalSearchFields: Array<String>?
         /**
@@ -356,7 +356,24 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         if (checkAccess) {
             checkLoggedInUserHistoryAccess(obj)
         }
-        return historyService.loadHistory(obj)
+        val list = historyService.loadHistory(baseDO = obj).toMutableList()
+        customizeHistoryEntries(obj, list)
+        // Sorts the list by the 'modifiedAt' field, placing entries with null values at the beginning.
+        // The first part of the comparator checks if 'modifiedAt' is null and gives it higher priority
+        // (placing null entries first). The second part sorts the remaining entries based on the
+        // non-null 'modifiedAt' values.
+        list.sortByDescending { it.id }
+        return list
+    }
+
+    /**
+     * Override this method if you want to add your own history entries to the list or modify the existing ones.
+     * Called by [selectHistoryEntries].
+     * Does nothing at default.
+     * @param obj The object for which the history entries are loaded.
+     * @param list The list with entries loaded for given obj. Add here your own entries.
+     */
+    protected open fun customizeHistoryEntries(obj: O, list: MutableList<HistoryEntryDO>) {
     }
 
     /**
@@ -368,31 +385,36 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         if (obj.id == null || (checkAccess && !hasLoggedInUserHistoryAccess(obj, false))) {
             return mutableListOf()
         }
-        val list = historyService.loadAndConvert(baseDO = obj) { entry -> convert(entry) }
-        customizeDisplayHistoryEntries(obj, list)
-        list.sortWith({ o1: DisplayHistoryEntry, o2: DisplayHistoryEntry -> (o2.timestamp.compareTo(o1.timestamp)) })
+        val list = mutableListOf<DisplayHistoryEntry>()
+        selectHistoryEntries(obj, false).forEach { entry ->
+            val displayEntries = convertToDisplayHistoryEntries(entry)
+            historyService.mergeHistoryDisplayEntries(list, displayEntries)
+        }
         return list
-    }
-
-    /**
-     * Override this method if you want to add your own history entries to the list or modify the existing ones.
-     * Called by [selectDisplayHistoryEntries].
-     * Does nothing at default.
-     * @param obj The object for which the history entries are loaded.
-     * @param list The list with entries loaded for given obj. Add here your own entries.
-     */
-    protected open fun customizeDisplayHistoryEntries(obj: O, list: MutableList<DisplayHistoryEntry>) {
     }
 
     /**
      * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
      */
-    protected fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
-        historyService.mergeList(list, entries)
+    protected fun mergeHistoryEntries(list: MutableList<HistoryEntryDO>, entries: List<HistoryEntryDO>) {
+        historyService.mergeHistoryEntries(list, entries)
     }
 
-    open fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
-        return historyService.convertToDisplayHistoryEntry(entry)
+    /**
+     * Calls [HistoryService.convertToDisplayHistoryEntry] at default and [customizeDisplayHistoryEntry] for all single
+     * entries before returning the list.
+     */
+    open fun convertToDisplayHistoryEntries(entry: HistoryEntry): List<DisplayHistoryEntry> {
+        return historyService.convertToDisplayHistoryEntry(entry).apply {
+            forEach { customizeDisplayHistoryEntry(it) }
+        }
+    }
+
+    /**
+     * For customizing single [DisplayHistoryEntry]s. Called by [convertToDisplayHistoryEntries].
+     * Does nothing at default.
+     */
+    open fun customizeDisplayHistoryEntry(entry: DisplayHistoryEntry) {
     }
 
     /**
@@ -850,37 +872,6 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     open fun copyValues(src: O, dest: O, vararg ignoreFields: String): EntityCopyStatus? {
         return dest.copyValuesFrom(src, *ignoreFields)
-    }
-
-    /**
-     * Convention: If you want to create a history entry of collections, the oldValue should contain all elements that are removed and the newValue should contain all elements that are added.
-     * @param oldValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
-     * @param newValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
-     * @see HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute
-     */
-    protected fun insertUpdateHistoryEntry(
-        entity: IdObject<Long>,
-        property: String?,
-        propertyTypeClass: Class<*>,
-        oldValue: Any?,
-        newValue: Any?,
-    ) {
-        accessChecker.checkRestrictedOrDemoUser()
-        val contextUser = loggedInUser
-        val userPk = contextUser?.id?.toString()
-        if (userPk == null) {
-            log.warn("No user found for creating history entry.")
-        }
-        persistenceService.runInTransaction { context ->
-            HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(
-                entity = entity,
-                propertyName = property,
-                propertyTypeClass = propertyTypeClass,
-                oldValue = oldValue,
-                newValue = newValue,
-                context,
-            )
-        }
     }
 
     /**

@@ -1,3 +1,6 @@
+- customizeDisplayHistoryEntry: AddressBookDao, ... (check)
+- customizeHistoryEntries: AuftragsDao, ...  (check)
+- DisplayHistoryEntry: Todo in translatePropertyName
 - BaseDOOnChangeListener: Check registration (e. g. UserGroupCache)
 - Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
@@ -44,3 +47,8 @@ employeeannualleave
   # In postgresql.conf (Neustart der Datenbank erforderlich)
   lock_timeout = '300s'   # 5 minutes timeout for locks.
   statement_timeout = '300s'   # 5 minutes timeout for SQL-commands.
+
+
+Rollback:
+update t_configuration set configurationtype='INTEGER' where configurationtype='LONG';
+ALTER TABLE t_configuration ALTER COLUMN longvalue RENAME TO intvalue;

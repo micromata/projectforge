@@ -26,7 +26,6 @@ package org.projectforge.framework.persistence.history
 import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
-import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.HibernateUtils
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
@@ -118,8 +117,22 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     val plainPropertyName: String?
         get() = HistoryEntryDOUtils.getPlainPropertyName(this)
 
+    /**
+     * Used while converting [HistoryEntryAttrDO] to [DisplayHistoryEntry].
+     */
+    @get:Transient
+    var displayPropertyName: String? = null
+
     @get:Column(name = "property_type_class", length = 128)
     override var propertyTypeClass: String? = null
+
+    fun setPropertyTypeClass(clazz: Class<*>) {
+        propertyTypeClass = HibernateUtils.getUnifiedClassname(clazz)
+    }
+
+    fun setPropertyTypeClass(kClass: KClass<*>) {
+        propertyTypeClass = HibernateUtils.getUnifiedClassname(kClass.java)
+    }
 
     /**
      * Serializes the old and new value to a string by using [HistoryValueHandlerRegistry].
@@ -166,7 +179,7 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
             historyEntry: HistoryEntryDO? = null,
         ): HistoryEntryAttrDO {
             val attr = HistoryEntryAttrDO()
-            attr.propertyTypeClass = HibernateUtils.getUnifiedClassname(propertyTypeClass)
+            attr.setPropertyTypeClass(propertyTypeClass)
             attr.opType = opType
             attr.propertyName = propertyName
             attr.parent = historyEntry

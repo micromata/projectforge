@@ -35,8 +35,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -46,9 +46,6 @@ private val log = KotlinLogging.logger {}
 
 @Service
 open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::class.java) {
-    @Autowired
-    private lateinit var historyService: HistoryService
-
     @Autowired
     private val kontoDao: KontoDao? = null
 
@@ -171,36 +168,19 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun customizeDisplayHistoryEntries(obj: EingangsrechnungDO, list: MutableList<DisplayHistoryEntry>) {
-        if (CollectionUtils.isNotEmpty(obj.positionen)) {
-            for (position in obj.positionen!!) {
-                val entries = historyService.loadAndConvert(position)
-                for (entry in entries) {
-                    val propertyName = entry.propertyName
-                    if (propertyName != null) {
-                        entry.propertyName =
-                            "#" + position.number + ":" + entry.propertyName // Prepend number of positon.
-                    } else {
-                        entry.propertyName = "#" + position.number
-                    }
-                }
-                mergeList(list, entries)
-                if (CollectionUtils.isNotEmpty(position.kostZuweisungen)) {
-                    for (zuweisung in position.kostZuweisungen!!) {
-                        val kostEntries = historyService.loadAndConvert(zuweisung)
-                        for (entry in kostEntries) {
-                            val propertyName = entry.propertyName
-                            if (propertyName != null) {
-                                entry.propertyName =
-                                    "#" + position.number + ".kost#" + zuweisung.index + ":" + entry.propertyName // Prepend
-                                // number of positon and index of zuweisung.
-                            } else {
-                                entry.propertyName = "#" + position.number + ".kost#" + zuweisung.index
-                            }
-                        }
-                        list.addAll(kostEntries)
-                    }
-                }
+    override fun customizeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>) {
+        obj.positionen?.forEach { position ->
+            val positionEntries = historyService.loadHistory(position)
+            HistoryFormatUtils.setPropertyNameForListEntries(positionEntries, prefix = "pos", number = position.number)
+            mergeHistoryEntries(list, positionEntries)
+            position.kostZuweisungen?.forEach { zuweisung ->
+                val kostEntries = historyService.loadHistory(zuweisung)
+                HistoryFormatUtils.setPropertyNameForListEntries(
+                    kostEntries,
+                    Pair("pos", position.number),
+                    Pair("kost", zuweisung.index),
+                )
+                mergeHistoryEntries(list, kostEntries)
             }
         }
     }

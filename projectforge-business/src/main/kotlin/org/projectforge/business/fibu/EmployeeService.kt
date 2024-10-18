@@ -29,7 +29,9 @@ import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.api.BaseSearchFilter
+import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -64,6 +66,9 @@ class EmployeeService {
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var baseDOPersistenceService: BaseDOPersistenceService
 
     @PostConstruct
     private fun postConstruct() {
@@ -141,10 +146,10 @@ class EmployeeService {
         requireNotNull(employee.id) { "Employee id must not be null." }
         val list = if (type != null) {
             persistenceService.executeQuery(
-                "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.attribute = :attribute order by a.validFrom desc",
+                "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.type = :type order by a.validFrom desc",
                 EmployeeValidityPeriodAttrDO::class.java,
                 Pair("employeeId", employee.id),
-                Pair("attribute", type)
+                Pair("type", type)
             )
         } else {
             persistenceService.executeQuery(
@@ -162,7 +167,7 @@ class EmployeeService {
         val status = validEntry?.value
         if (status != null) {
             try {
-                return EmployeeStatus.valueOf(status)
+                return EmployeeStatus.safeValueOf(status)
             } catch (e: IllegalArgumentException) {
                 log.error { "Oups, unknown status value in validityPeriodAttr: $validEntry" }
             }
@@ -218,7 +223,7 @@ class EmployeeService {
         annualLeaveDays: BigDecimal,
         checkAccess: Boolean = true,
     ): EmployeeValidityPeriodAttrDO {
-        return addValidityPeriodAttr(
+        return insertValidityPeriodAttr(
             employee,
             validFrom,
             annualLeaveDays.toString(),
@@ -233,7 +238,7 @@ class EmployeeService {
         status: EmployeeStatus,
         checkAccess: Boolean = true,
     ): EmployeeValidityPeriodAttrDO {
-        return addValidityPeriodAttr(
+        return insertValidityPeriodAttr(
             employee,
             validFrom,
             status.toString(),
@@ -242,15 +247,13 @@ class EmployeeService {
         )
     }
 
-    private fun addValidityPeriodAttr(
+    private fun insertValidityPeriodAttr(
         employee: EmployeeDO,
         validFrom: LocalDate,
         value: String,
         type: EmployeeValidityPeriodAttrType,
         checkAccess: Boolean,
     ): EmployeeValidityPeriodAttrDO {
-        //val dbEmployee = employeeDao.internalGetById(employee.id)!!
-        //hasLoggedInUserUpdateAccess(dbEmployee, dbEmployee, true)
         if (checkAccess) {
             employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
@@ -258,17 +261,27 @@ class EmployeeService {
         attr.employee = employee
         attr.validFrom = validFrom
         attr.value = value
-        attr.attribute = type
+        attr.type = type
         attr.created = Date()
         attr.lastUpdate = attr.created
-        persistenceService.runInTransaction { context ->
-            val em = context.em
-            em.persist(attr)
-            log.info("New ${EmployeeValidityPeriodAttrDO::class.simpleName} for employee#${employee.id} ${employee.displayName} added (${attr.id}): $attr")
-            HistoryBaseDaoAdapter.inserted(attr, context)
-            em.flush()
-        }
+        baseDOPersistenceService.insert(attr)
         return attr
+    }
+
+    /**
+     * @param employee The employee to update the attribute for. Needed for checkAccess.
+     * @param attrDO: The attribute to update.
+     * @param checkAccess: If true, the logged in user must have update access to the employee.
+     */
+    fun updateValidityPeriodAttr(
+        employee: EmployeeDO,
+        attrDO: EmployeeValidityPeriodAttrDO,
+        checkAccess: Boolean = true,
+    ): EntityCopyStatus {
+        if (checkAccess) {
+            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
+        }
+        return baseDOPersistenceService.update(attrDO)
     }
 
     private fun removeValidityPeriodAttr(
@@ -279,7 +292,7 @@ class EmployeeService {
         val dbEmployee = employeeDao.find(employee.id)!!
         hasLoggedInUserUpdateAccess(dbEmployee, dbEmployee, true)
         val attr = persistenceService.selectById(EmployeeValidityPeriodAttrDO::class.java, attrId)
-        if (attr == null || attr.employee?.id != dbEmployee.id || attr.attribute != type) {
+        if (attr == null || attr.employee?.id != dbEmployee.id || attr.type != type) {
             throw IllegalArgumentException("No such attribute found for employee#${dbEmployee.id} ${dbEmployee.displayName}: $attrId: $attr")
         }
         persistenceService.runInTransaction { context ->

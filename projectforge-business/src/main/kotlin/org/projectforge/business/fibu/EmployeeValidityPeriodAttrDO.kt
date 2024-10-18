@@ -23,19 +23,19 @@
 
 package org.projectforge.business.fibu
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonIdentityReference
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import jakarta.persistence.*
 import mu.KotlinLogging
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.JsonUtils
+import org.projectforge.framework.persistence.candh.CandHHistoryEntryICustomizer
+import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.WithHistory
 import java.io.Serializable
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger {}
@@ -54,7 +54,7 @@ private val log = KotlinLogging.logger {}
     )]
 )
 @WithHistory
-open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
+open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), CandHHistoryEntryICustomizer {
     @get:Id
     @get:GeneratedValue
     @get:Column(name = "pk")
@@ -67,8 +67,8 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
     open var employee: EmployeeDO? = null
 
     @get:Enumerated(EnumType.STRING)
-    @get:Column(name = "attribute", length = 30)
-    open var attribute: EmployeeValidityPeriodAttrType? = null
+    @get:Column(name = "type", length = 30)
+    open var type: EmployeeValidityPeriodAttrType? = null
 
     @get:Column(name = "valid_from", nullable = false)
     open var validFrom: LocalDate? = null
@@ -78,6 +78,48 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>() {
 
     @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
     open var comment: String? = null
+
+
+    @CandHIgnore
+    @get:Transient
+    var annualLeave: BigDecimal?
+        get() {
+            checkType(EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
+            return value?.let { runCatching { BigDecimal(it) }.getOrNull() }
+        }
+        set(value) {
+            checkType(EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
+            this.value = value?.toString()
+        }
+
+    @get:Transient
+    var status: EmployeeStatus?
+        get() {
+            checkType(EmployeeValidityPeriodAttrType.STATUS)
+            return value?.let { EmployeeStatus.safeValueOf(it) }
+        }
+        set(value) {
+            checkType(EmployeeValidityPeriodAttrType.STATUS)
+            this.value = value?.toString()
+        }
+
+    override fun customize(historyEntry: HistoryEntryDO) {
+        historyEntry.attributes?.filter { it.propertyName == "value" }?.forEach { attr ->
+            if (type == EmployeeValidityPeriodAttrType.ANNUAL_LEAVE) {
+                attr.setPropertyTypeClass(BigDecimal::class)
+                attr.propertyName = "annualLeave"
+            } else if (type == EmployeeValidityPeriodAttrType.STATUS) {
+                attr.setPropertyTypeClass(EmployeeStatus::class)
+                attr.propertyName = "status"
+            }
+        }
+    }
+
+    private fun checkType(type: EmployeeValidityPeriodAttrType) {
+        if (this.type != type) {
+            throw IllegalArgumentException("Attribute is not $type: ${this.type}")
+        }
+    }
 
     override fun toString(): String {
         return JsonUtils.toJson(this)

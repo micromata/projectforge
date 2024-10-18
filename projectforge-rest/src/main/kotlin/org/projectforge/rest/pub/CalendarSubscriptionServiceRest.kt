@@ -253,7 +253,7 @@ class CalendarSubscriptionServiceRest {
     filter.stopTime = stopTime.utilDate
     val startTime = dt.minusMonths(2 * CalendarFeedConst.PERIOD_IN_MONTHS.toLong())
     filter.startTime = startTime.utilDate
-    val timesheetList = timesheetDao.select(filter) ?: return
+    val timesheetList = timesheetDao.select(filter)
     // iterate over all timesheets and adds each event to the calendar
     for (timesheet in timesheetList) {
       val uid = TeamCalConfig.get().createTimesheetUid(timesheet.id)

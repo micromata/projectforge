@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -51,9 +51,6 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
-    @Autowired
-    private lateinit var historyService: HistoryService
-
     @Autowired
     private lateinit var kost1Dao: Kost1Dao
 
@@ -226,13 +223,12 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun customizeDisplayHistoryEntries(obj: EmployeeDO, list: MutableList<DisplayHistoryEntry>) {
+    override fun customizeHistoryEntries(obj: EmployeeDO, list: MutableList<HistoryEntryDO>) {
         employeeService.selectAllValidityPeriodAttrs(obj).forEach { validityAttr ->
-            val entries = historyService.loadAndConvert(validityAttr)
-            mergeList(list, entries)
+            val entries = historyService.loadHistory(validityAttr)
+            mergeHistoryEntries(list, entries)
         }
     }
-
 
     init {
         userRightId = USER_RIGHT_ID

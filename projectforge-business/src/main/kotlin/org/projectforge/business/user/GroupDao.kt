@@ -227,7 +227,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (unassignedList.isNullOrEmpty() && assignedList.isNullOrEmpty()) {
             return
         }
-        insertUpdateHistoryEntry(
+        historyService.insertUpdateHistoryEntry(
             user,
             "assignedGroups",
             GroupDO::class.java,
@@ -247,7 +247,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         if (unassignedList.isNullOrEmpty() && assignedList.isNullOrEmpty()) {
             return
         }
-        insertUpdateHistoryEntry(
+        historyService.insertUpdateHistoryEntry(
             group,
             "assignedUsers",
             PFUserDO::class.java,

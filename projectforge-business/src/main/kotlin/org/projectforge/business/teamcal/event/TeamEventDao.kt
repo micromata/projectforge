@@ -62,8 +62,8 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
@@ -84,9 +84,6 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
-    @Autowired
-    private lateinit var historyService: HistoryService
-
     @Autowired
     private var teamCalDao: TeamCalDao? = null
 
@@ -631,21 +628,11 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun customizeDisplayHistoryEntries(obj: TeamEventDO, list: MutableList<DisplayHistoryEntry>) {
-        if (CollectionUtils.isNotEmpty(obj.attendees)) {
-            for (attendee in obj.attendees!!) {
-                val entries = historyService.loadAndConvert(attendee)
-                for (entry in entries) {
-                    val propertyName = entry.propertyName
-                    if (propertyName != null) {
-                        entry.propertyName =
-                            attendee.toString() + ":" + entry.propertyName // Prepend user name or url to identify.
-                    } else {
-                        entry.propertyName = attendee.toString()
-                    }
-                }
-                mergeList(list, entries)
-            }
+    override fun customizeHistoryEntries(obj: TeamEventDO, list: MutableList<HistoryEntryDO>) {
+        obj.attendees?.forEach { attendee ->
+            val entries = historyService.loadHistory(attendee)
+            HistoryFormatUtils.setPropertyNameForListEntries(entries, attendee.toString())
+            mergeHistoryEntries(list, entries)
         }
     }
 

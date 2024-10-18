@@ -51,7 +51,8 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.framework.utils.NumberHelper.parseShort
@@ -75,9 +76,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
-
-    @Autowired
-    private lateinit var historyService: HistoryService
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -694,36 +692,20 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun customizeDisplayHistoryEntries(obj: AuftragDO, list: MutableList<DisplayHistoryEntry>) {
-        if (CollectionUtils.isNotEmpty(obj.positionenIncludingDeleted)) {
-            for (position in obj.positionenIncludingDeleted!!) {
-                val entries = historyService.loadAndConvert(position)
-                for (entry in entries) {
-                    val propertyName = entry.propertyName
-                    if (propertyName != null) {
-                        entry.displayPropertyName =
-                            "Pos#" + position.number + ":" + entry.propertyName // Prepend number of positon.
-                    } else {
-                        entry.displayPropertyName = "Pos#" + position.number
-                    }
-                }
-                mergeList(list, entries)
+    override fun customizeHistoryEntries(obj: AuftragDO, list: MutableList<HistoryEntryDO>) {
+        obj.positionenIncludingDeleted?.forEach { position ->
+            val entries = historyService.loadHistory(position)
+            entries.forEach { entry ->
+                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
             }
+            mergeHistoryEntries(list, entries)
         }
-        if (CollectionUtils.isNotEmpty(obj.paymentSchedules)) {
-            for (schedule in obj.paymentSchedules!!) {
-                val entries = historyService.loadAndConvert(schedule)
-                for (entry in entries) {
-                    val propertyName = entry.propertyName
-                    if (propertyName != null) {
-                        entry.propertyName =
-                            "PaymentSchedule#" + schedule.number + ":" + entry.propertyName // Prepend number of positon.
-                    } else {
-                        entry.propertyName = "PaymentSchedule#" + schedule.number
-                    }
-                }
-                list.addAll(entries)
+        obj.paymentSchedules?.forEach { schedule ->
+            val entries = historyService.loadHistory(schedule)
+            entries.forEach { entry ->
+                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "paymentSchedule", number = schedule.number)
             }
+            mergeHistoryEntries(list, entries)
         }
     }
 

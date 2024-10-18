@@ -81,9 +81,8 @@ open class MerlinTemplateDefinitionHandler {
    * Creates Template definition by using defined variables or by loading the latest xlsx file, if the file is newer
    * than the last modification time of the template.
    * If the template definition is read from Excel file, the variables of the given dto will be updated.
-   * @param updateDto If true, the variables of the given dto will be updated, if an newer template definition Excel file was found.
    */
-  fun readOrCreateTemplateDefinitionFrom(dto: MerlinTemplate, updateDto: Boolean = false): TemplateDefinition {
+  fun readOrCreateTemplateDefinitionFrom(dto: MerlinTemplate): TemplateDefinition {
     val id = dto.id!!
     // No variables defined, so try to read from uploaded Excel:
     val list = merlinHandler.getAttachments(id) ?: return createTemplateDefinitionFromDto(dto)

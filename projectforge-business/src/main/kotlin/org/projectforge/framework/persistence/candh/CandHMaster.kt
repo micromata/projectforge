@@ -293,6 +293,9 @@ object CandHMaster {
                 return false
             }
         }
+        if (property.annotations.any { it is CandHIgnore }) {
+            return false
+        }
         return true
     }
 }

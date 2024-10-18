@@ -84,7 +84,7 @@ open class AttachmentsService {
   ): List<Attachment>? {
     val loggedInUser = ThreadLocalUserContext.loggedInUser
     accessChecker?.checkSelectAccess(loggedInUser, path = path, id = id, subPath = subPath)
-    return internalGetAttachments(path, id, subPath)?.filter {
+    return internalGetAttachments(path, id, subPath).filter {
       accessChecker?.hasAccess(
         loggedInUser,
         path,

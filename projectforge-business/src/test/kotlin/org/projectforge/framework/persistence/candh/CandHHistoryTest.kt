@@ -103,35 +103,35 @@ class CandHHistoryTest : AbstractTestBase() {
             Assertions.assertEquals(2, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, 8)
             (entries[0] as HistoryEntryDO).let { entry ->
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "username",
                     value = "$PREFIX.test_changed",
                     oldValue = "$PREFIX.test",
                     opType = PropertyOpType.Update,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "email",
                     value = "horst@acme.com",
                     oldValue = "hs@gmail.private",
                     opType = PropertyOpType.Update,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "firstname",
                     value = "Horst",
                     oldValue = null,
                     opType = PropertyOpType.Update,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "lastname",
                     value = "Schlemmer",
                     oldValue = null,
                     opType = PropertyOpType.Update,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "locale",
                     value = "fr",
@@ -139,7 +139,7 @@ class CandHHistoryTest : AbstractTestBase() {
                     opType = PropertyOpType.Update,
                     propertyTypeClass = Locale::class,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "firstDayOfWeekValue",
                     value = "7",
@@ -147,7 +147,7 @@ class CandHHistoryTest : AbstractTestBase() {
                     opType = PropertyOpType.Update,
                     propertyTypeClass = Integer::class,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "timeNotation",
                     value = "H12",
@@ -155,7 +155,7 @@ class CandHHistoryTest : AbstractTestBase() {
                     opType = PropertyOpType.Update,
                     propertyTypeClass = TimeNotation::class,
                 )
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "lastPasswordChange",
                     value = "2024-10-05 08:39:12",
@@ -173,7 +173,7 @@ class CandHHistoryTest : AbstractTestBase() {
             Assertions.assertEquals(3, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, 1)
             (entries[0] as HistoryEntryDO).let { entry ->
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "description",
                     value = "This is a deleted test user.",
@@ -189,7 +189,7 @@ class CandHHistoryTest : AbstractTestBase() {
             Assertions.assertEquals(4, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 1)
             (entries[0] as HistoryEntryDO).let { entry ->
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "description",
                     value = "This is a undeleted test user.",
@@ -253,7 +253,7 @@ class CandHHistoryTest : AbstractTestBase() {
                 .let { historyEntry ->
                     assertHistoryEntry(historyEntry, UserRightDO::class, null, EntityOpType.Update, loggedInUser, 1)
                     (historyEntry as HistoryEntryDO).let { entry ->
-                        HistoryTester.assertAttr(
+                        HistoryTester.assertHistoryAttr(
                             entry,
                             value = "READONLY",
                             oldValue = "READWRITE",
@@ -340,14 +340,14 @@ class CandHHistoryTest : AbstractTestBase() {
                         3
                     )
                     (historyEntry as HistoryEntryDO).let { entry ->
-                        HistoryTester.assertAttr(
+                        HistoryTester.assertHistoryAttr(
                             entry,
                             propertyName = "text",
                             value = "Test position 1 changed",
                             oldValue = "Test position 1",
                             opType = PropertyOpType.Update,
                         )
-                        HistoryTester.assertAttr(
+                        HistoryTester.assertHistoryAttr(
                             entry,
                             value = "1.1",
                             oldValue = "1.00000",
@@ -355,7 +355,7 @@ class CandHHistoryTest : AbstractTestBase() {
                             opType = PropertyOpType.Update,
                             propertyTypeClass = BigDecimal::class,
                         )
-                        HistoryTester.assertAttr(
+                        HistoryTester.assertHistoryAttr(
                             entry,
                             propertyName = "einzelNetto",
                             value = "11",
@@ -375,7 +375,7 @@ class CandHHistoryTest : AbstractTestBase() {
                         loggedInUser,
                         1,
                     )
-                    HistoryTester.assertAttr(
+                    HistoryTester.assertHistoryAttr(
                         entry,
                         value = "7864873",
                         oldValue = "7864872",
