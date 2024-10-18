@@ -40,7 +40,8 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.HistoryEntryDO;
+import org.projectforge.framework.persistence.history.HistoryFormatUtils;
 import org.projectforge.framework.persistence.history.HistoryService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -295,27 +296,13 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    protected void customizeDisplayHistoryEntries(HRPlanningDO obj, @NotNull List<DisplayHistoryEntry> list) {
+    protected void customizeHistoryEntries(HRPlanningDO obj, @NotNull List<HistoryEntryDO> list) {
         if (CollectionUtils.isNotEmpty(obj.getEntries())) {
             for (final HRPlanningEntryDO position : obj.getEntries()) {
-                var entries = historyService.loadAndConvert(position);
-                for (final DisplayHistoryEntry entry : entries) {
-                    final String propertyName = entry.getPropertyName();
-                    if (propertyName != null) {
-                        if (position.getProjekt() != null) {
-                            entry.setDisplayPropertyName(position.getProjektName() + ":" + entry.getPropertyName()); // Prepend name of project
-                        } else {
-                            entry.setDisplayPropertyName(position.getStatus() + ":" + entry.getPropertyName()); // Prepend status
-                        }
-                    } else {
-                        if (position.getProjekt() != null) {
-                            entry.setDisplayPropertyName(position.getProjektName());
-                        } else {
-                            entry.setDisplayPropertyName(String.valueOf(position.getStatus()));
-                        }
-                    }
-                }
-                mergeList(list, entries);
+                var entries = historyService.loadHistory(position);
+                var prefix = position.getProjekt() != null ? position.getProjektName() : String.valueOf(position.getStatus());
+                HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix);
+                mergeHistoryEntries(list, entries);
             }
         }
     }

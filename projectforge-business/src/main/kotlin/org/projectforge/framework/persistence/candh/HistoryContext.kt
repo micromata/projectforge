@@ -62,53 +62,6 @@ internal class HistoryContext(
     fun getPreparedHistoryEntries(mergedObj: BaseDO<*>, destObj: BaseDO<*>): List<HistoryEntryDO> {
         log.debug { "getPreparedHistoryEntries: ${entity::class.simpleName}" }
         val entryList = historyEntryWrappers.map { it.prepareAndGetHistoryEntry() }.toMutableList()
-        /*collectionsWithNewAndUpdatedEntries?.forEach { entry ->
-            val pc = entry.propertyContext
-            val dest = pc.dest
-
-            @Suppress("UNCHECKED_CAST")
-            val property = pc.property as KMutableProperty1<BaseDO<*>, Any?>
-
-            @Suppress("UNCHECKED_CAST")
-            val destCol = property.get(dest) as? Collection<Any>
-            val keptEntries = entry.keptEntries
-            val added = mutableListOf<Any>()
-            destCol?.forEach { destEntry ->
-                @Suppress("UNCHECKED_CAST")
-                destEntry as IdObject<Long>
-                if (keptEntries?.contains(destEntry) != true) {
-                    // This is a new entry, not existing in the dest collection before.
-                    // We need to add this entry to the history.
-                    // We can't use the destEntry here, because the id is not known at this point.
-                    added.add(destEntry)
-                }
-            }
-
-            if (pc.entriesHistorizable == true) {
-                added.forEach { destEntry ->
-                    @Suppress("UNCHECKED_CAST")
-                    destEntry as IdObject<Long>
-                    if (destEntry.id != null) {
-                        // id is already set, so we are able to add the history insert entry now (should not happen):
-                        entryList.add(HistoryEntryDO.create(destEntry, EntityOpType.Insert))
-                    } else {
-                        // The insert history entry is added later, when the id is set (in CollectionHandler.handleCollection).
-                    }
-                }
-            } else {
-                // The collection is not historizable. We need to check if the collection has been changed.
-                @Suppress("UNCHECKED_CAST")
-                val histEntry = HistoryEntryDO.create(pc.src as IdObject<Long>, EntityOpType.Update)
-                val attr = HistoryEntryAttrDO.create(
-                    propertyTypeClass = CollectionUtils.getTypeClassOfEntries(destCol),
-                    opType = PropertyOpType.Update,
-                    propertyName = pc.propertyName,
-                )
-                attr.serializeAndSet(oldValue = null, newValue = added)
-                histEntry.add(attr)
-                entryList.add(histEntry)
-            }
-        }*/
         CollectionHandler.writeInsertHistoryEntriesForNewCollectionEntries(mergedObj, destObj, entryList)
         return entryList
     }
@@ -175,11 +128,11 @@ internal class HistoryContext(
     /**
      * Add a new history entry for the given property context. The current historyEntryWrapper will be used.
      */
-    fun add(propertyContext: PropertyContext, optype: PropertyOpType) {
+    fun add(propertyContext: PropertyContext, opType: PropertyOpType) {
         propertyContext.apply {
             add(
                 property = property,
-                optype = optype,
+                opType = opType,
                 oldValue = destPropertyValue,
                 newValue = srcPropertyValue,
                 propertyName = propertyName,
@@ -192,16 +145,16 @@ internal class HistoryContext(
      */
     fun add(
         property: KMutableProperty1<*, *>,
-        optype: PropertyOpType,
+        opType: PropertyOpType,
         oldValue: Any?,
         newValue: Any?,
         propertyName: String?,
     ) {
-        log.debug { "add: Add history entry: ${property.returnType.jvmErasure}, $optype, oldValue=$oldValue, newValue=$newValue, propertyName=$propertyName" }
+        log.debug { "add: Add history entry: ${property.returnType.jvmErasure}, $opType, oldValue=$oldValue, newValue=$newValue, propertyName=$propertyName" }
         currentHistoryEntryAttrs.add(
             CandHHistoryAttrWrapper.create(
                 property = property,
-                optype = optype,
+                optype = opType,
                 oldValue = oldValue,
                 newValue = newValue,
                 propertyName = propertyName,

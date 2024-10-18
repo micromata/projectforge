@@ -76,9 +76,6 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
   @Autowired
   private lateinit var timesheetRest: TimesheetPagesRest
 
-  @Autowired
-  private lateinit var CalendarEventExternalSubscriptionCache: TeamEventExternalSubscriptionCache
-
   override fun transformForDB(dto: CalEvent): CalEventDO {
     val calendarEventDO = CalEventDO()
     dto.copyTo(calendarEventDO)
@@ -276,12 +273,12 @@ class CalEventPagesRest() : AbstractDTOPagesRest<CalEventDO, CalEvent, CalEventD
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: CalEvent, userAccess: UILayout.UserAccess): UILayout {
-    val calendars = teamCalDao.getAllCalendarsWithFullAccess()
+    val calendars = teamCalDao.allCalendarsWithFullAccess.toMutableList()
     calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
     if (dto.calendar != null && calendars.find { it.id == dto.calendar?.id } == null) {
       // Calendar of event is not in the list of editable calendars. Add this non-editable calendar to show
       // the calendar of the event.
-      calendars.add(0, dto.calendar)
+      calendars.add(0, dto.calendar!!)
     }
     val calendarSelectValues = calendars.map {
       UISelectValue<Long>(it.id!!, it.title!!)

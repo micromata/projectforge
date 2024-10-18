@@ -43,7 +43,7 @@ CREATE TABLE t_fibu_employee_validity_period_attr
     deleted                   BOOLEAN                       NOT NULL,
     last_update               TIMESTAMP WITHOUT TIME ZONE,
     employee_fk               BIGINT                        NOT NULL,
-    attribute                 CHARACTER VARYING(30), -- ANNUAL_LEAVE or STATUS
+    type                      CHARACTER VARYING(30), -- ANNUAL_LEAVE or STATUS
     valid_from                DATE                          NOT NULL,
     value                     CHARACTER VARYING(255),
     comment                   CHARACTER VARYING(4000)

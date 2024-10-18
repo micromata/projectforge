@@ -77,7 +77,6 @@ class BaseDOPersistenceService {
     private fun <O : ExtendedBaseDO<Long>> insert(
         obj: O,
         baseDao: BaseDao<O>? = null,
-        clazz: Class<O>? = null,
         logMessage: Boolean = true,
     ) {
         persistenceService.runInTransaction { context ->
@@ -86,7 +85,7 @@ class BaseDOPersistenceService {
             val em = context.em
             obj.setCreated()
             obj.setLastUpdate()
-            val useClass = clazz ?: baseDao?.doClass!!
+            val useClass = baseDao?.doClass ?: obj.javaClass
             em.persist(obj)
             if (logMessage) {
                 log.info { "New ${useClass.simpleName} added (${obj.id}): $obj" }
@@ -128,11 +127,11 @@ class BaseDOPersistenceService {
     }
 
     fun <O : ExtendedBaseDO<Long>> update(
-        clazz: Class<O>? = null,
         obj: O,
-        res: ResultObject<O>,
-    ) {
-        update(obj, res, clazz = clazz)
+    ): EntityCopyStatus {
+        val res = ResultObject<O>()
+        update(obj, res)
+        return res.modStatus!!
     }
 
     private fun <O : ExtendedBaseDO<Long>> update(
@@ -141,7 +140,6 @@ class BaseDOPersistenceService {
         baseDao: BaseDao<O>? = null,
         checkAccess: Boolean = true,
         dbObj: O? = null,
-        clazz: Class<O>? = null,
         logMessage: Boolean = true,
     ) {
         if (obj.id == null) {
@@ -152,7 +150,7 @@ class BaseDOPersistenceService {
         baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.UPDATE)
         persistenceService.runInTransaction { context ->
             val em = context.em
-            val useClass = clazz ?: baseDao?.doClass!!
+            val useClass = baseDao?.doClass ?: obj.javaClass
             val useDbObj = dbObj ?: requireDbObj(em, useClass, obj.id, "update")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()

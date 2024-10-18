@@ -32,8 +32,8 @@ import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -54,9 +54,6 @@ private val log = KotlinLogging.logger {}
 open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    private lateinit var historyService: HistoryService
 
     private var userPasswordDao: UserPasswordDao? = null
 
@@ -263,19 +260,11 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
      */
-    override fun customizeDisplayHistoryEntries(obj: PFUserDO, list: MutableList<DisplayHistoryEntry>) {
+    override fun customizeHistoryEntries(obj: PFUserDO, list: MutableList<HistoryEntryDO>) {
         obj.rights?.forEach { right ->
-            val entries = historyService.loadAndConvert(right)
-            for (entry in entries) {
-                val propertyName = entry.propertyName
-                if (propertyName != null) {
-                    entry.displayPropertyName =
-                        right.rightIdString + ":" + entry.propertyName // Prepend number of positon.
-                } else {
-                    entry.displayPropertyName = right.rightIdString.toString()
-                }
-            }
-            mergeList(list, entries)
+            val entries = historyService.loadHistory(right)
+            HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())
+            mergeHistoryEntries(list, entries)
         }
     }
 

@@ -58,9 +58,9 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         val msg = "Invoice 40770225, entry 0"
         hist.loadHistory(invoice, 2, 21, msg)
         hist.getEntry(0, 4, msg).let { entry ->
-            HistoryTester.assertAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
-            HistoryTester.assertAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
-            HistoryTester.assertAttr(
+            HistoryTester.assertHistoryAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
+            HistoryTester.assertHistoryAttr(entry, "bemerkung", "PoBa", null, PropertyOpType.Insert, msg = msg)
+            HistoryTester.assertHistoryAttr(
                 entry,
                 "bezahlDatum",
                 "2023-12-29",
@@ -69,7 +69,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
                 LocalDate::class,
                 msg = msg,
             )
-            HistoryTester.assertAttr(
+            HistoryTester.assertHistoryAttr(
                 entry,
                 "status",
                 "BEZAHLT",
@@ -78,7 +78,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
                 RechnungStatus::class,
                 msg = msg,
             )
-            HistoryTester.assertAttr(
+            HistoryTester.assertHistoryAttr(
                 entry,
                 "zahlBetrag",
                 "4765.95",
@@ -130,7 +130,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         val hist = createHistoryTester()
         hist.loadHistory(user, 27, 4)
         hist.getEntriesByPk(getNewHistoryEntryId(34961266), 1, 1).first().let { entry ->
-            HistoryTester.assertAttr(
+            HistoryTester.assertHistoryAttr(
                 entry,
                 "assignedGroups",
                 "1100452,1100063,1826459,33",
@@ -140,7 +140,7 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             )
         }
         hist.getEntriesByPk(getNewHistoryEntryId(38057999), 1, 1).first().let { entry ->
-            HistoryTester.assertAttr(
+            HistoryTester.assertHistoryAttr(
                 entry,
                 "lastPasswordChange",
                 "2023-02-10 13:34:25:184",
@@ -150,8 +150,8 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
             )
         }
         hist.getEntriesByPk(getNewHistoryEntryId(37229748), 1, 2).first().let { entry ->
-            HistoryTester.assertAttr(entry, "locale", "de_DE", "", PropertyOpType.Update, Locale::class)
-            HistoryTester.assertAttr(entry, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
+            HistoryTester.assertHistoryAttr(entry, "locale", "de_DE", "", PropertyOpType.Update, Locale::class)
+            HistoryTester.assertHistoryAttr(entry, "timeZoneString", "Europe/Berlin", null, PropertyOpType.Insert)
         }
     }
 

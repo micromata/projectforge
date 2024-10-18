@@ -34,7 +34,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
  * Wrapper for HistoryEntryDO with additional functionalities.
  * @see CandHHistoryAttrWrapper
  */
-internal class CandHHistoryEntryWrapper(private var historyEntry: HistoryEntryDO) {
+internal class CandHHistoryEntryWrapper(private val historyEntry: HistoryEntryDO, private val entity: IdObject<Long>) {
     internal var attributeWrappers: MutableSet<CandHHistoryAttrWrapper>? = null
 
     fun addAttribute(
@@ -56,10 +56,17 @@ internal class CandHHistoryEntryWrapper(private var historyEntry: HistoryEntryDO
         return attr
     }
 
+    /**
+     * Will prepare the history entry and all attributes.
+     * Calls also [CandHHistoryAttrWrapper.prepareAndGetAttr] for the entry, if entity is [CandHHistoryEntryICustomizer].
+     */
     fun prepareAndGetHistoryEntry(): HistoryEntryDO {
         historyEntry.attributes = mutableSetOf()
         attributeWrappers?.forEach { attrWrapper ->
             attrWrapper.prepareAndGetAttr(historyEntry)
+        }
+        if (entity is CandHHistoryEntryICustomizer) {
+            entity.customize(historyEntry)
         }
         return historyEntry
     }
@@ -74,7 +81,7 @@ internal class CandHHistoryEntryWrapper(private var historyEntry: HistoryEntryDO
         ): CandHHistoryEntryWrapper {
             HistoryEntryDO.create(entity, entityOpType, entityName = entityName, modifiedBy = modifiedBy)
                 .let { entry ->
-                    return CandHHistoryEntryWrapper(entry)
+                    return CandHHistoryEntryWrapper(entry, entity)
                 }
         }
     }

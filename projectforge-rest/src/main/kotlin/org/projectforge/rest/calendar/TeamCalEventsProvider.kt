@@ -74,16 +74,16 @@ open class TeamCalEventsProvider() {
     eventFilter.startDate = start.utilDate
     eventFilter.endDate = end.utilDate
     eventFilter.user = ThreadLocalUserContext.loggedInUser
-    val teamEvents = teamEventDao.getEventList(eventFilter, true) ?: return
+    val teamEvents = teamEventDao.getEventList(eventFilter, true)
     teamEvents.forEach {
       val eventDO: TeamEventDO
-      val recurrentEvent: Boolean
+      //val recurrentEvent: Boolean
       if (it is TeamEventDO) {
         eventDO = it
-        recurrentEvent = false
+        //recurrentEvent = false
       } else {
         eventDO = (it as TeamRecurrenceEvent).master
-        recurrentEvent = true
+        //recurrentEvent = true
       }
       //val recurrentDate = if (recurrentEvent) "?recurrentDate=${it.startDate!!.time / 1000}" else ""
       //val link = "teamEvent/edit/${eventDO.id}$recurrentDate"
@@ -100,15 +100,15 @@ open class TeamCalEventsProvider() {
       }
       val duration = it.endDate!!.time - it.startDate!!.time
       val event = if (allDay) {
-        val start = PFDay.fromOrNow(it.startDate).localDate
-        val end = PFDay.fromOrNow(it.endDate).localDate
+        val useStart = PFDay.fromOrNow(it.startDate).localDate
+        val useEnd = PFDay.fromOrNow(it.endDate).localDate
         FullCalendarEvent.createAllDayEvent(
           id = dbId ?: uid,
           category = FullCalendarEvent.Category.TEAM_CAL_EVENT,
           title = it.subject,
           calendarSettings = settings,
-          start = start,
-          end = end,
+          start = useStart,
+          end = useEnd,
         )
       } else {
         FullCalendarEvent.createEvent(

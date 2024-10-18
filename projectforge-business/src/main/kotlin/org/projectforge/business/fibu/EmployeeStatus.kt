@@ -21,42 +21,40 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.logging
+package org.projectforge.business.fibu
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.spi.ILoggingEvent
 import org.projectforge.common.i18n.I18nEnum
+import java.util.*
 
-enum class LogLevel(val key: String) : I18nEnum {
-    ERROR("error"), WARN("warn"), INFO("info"), DEBUG("debug"), TRACE("trace");
-
-    fun safeValueOf(name: String): LogLevel? {
-        return LogLevel.entries.firstOrNull { it.name == name }
-    }
-
+enum class EmployeeStatus(
     /**
-     * @param threshold
-     * @return True, if this log level is equals or higher than given treshold. ERROR is the highest and TRACE the lowest.
+     * The key will be used e. g. for i18n.
+     *
+     * @return
      */
-    fun matches(threshold: LogLevel?): Boolean {
-        return threshold == null || ordinal <= threshold.ordinal
-    }
+    val key: String
+) : I18nEnum {
+    FEST_ANGESTELLTER("festAngestellter"), BEFRISTET_ANGESTELLTER("befristetAngestellter"), FREELANCER("freelancer"), AUSHILFE(
+        "aushilfe"
+    ),
+    STUDENTISCHE_HILFSKRAFT(
+        "studentischeHilfskraft"
+    ),
+    STUD_ABSCHLUSSARBEIT("studentischeAbschlussarbeit"), PRAKTIKANT("praktikant"), AZUBI("azubi");
 
-    /**
-     * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
-     */
     override val i18nKey: String
-        get() = "log.level.$key"
+        /**
+         * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
+         */
+        get() = "fibu.employee.status.$key"
 
     companion object {
-        fun getLevel(event: ILoggingEvent): LogLevel {
-            return when (event.level.toInt()) {
-                Level.INFO_INT -> INFO
-                Level.DEBUG_INT -> DEBUG
-                Level.WARN_INT -> WARN
-                Level.TRACE_INT -> TRACE
-                else -> ERROR
-            }
+        fun safeValueOf(name: String): EmployeeStatus? {
+            return EmployeeStatus.entries.firstOrNull { it.name == name }
+        }
+
+        fun findByi18nKey(i18nKey: String): EmployeeStatus? {
+            return entries.firstOrNull { it.i18nKey == i18nKey }
         }
     }
 }

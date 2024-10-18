@@ -117,7 +117,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
                     oldAttr.modifiedatA,
                     false,
                     dbAttr.employee!!.id,
-                    dbAttr.attribute!!.name,
+                    dbAttr.type!!.name,
                     dbAttr.validFrom,
                     dbAttr.value,
                 )
@@ -145,10 +145,10 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
                 val status = EmployeeStatus.findByi18nKey(attr.value)
                     ?: throw IllegalStateException("Status not found for '${attr.value}' for attribute: $attr")
                 dbAttr.value = status.name
-                dbAttr.attribute = EmployeeValidityPeriodAttrType.STATUS
+                dbAttr.type = EmployeeValidityPeriodAttrType.STATUS
             } else if (attr.groupName == "employeeannualleave") {
                 dbAttr.value = attr.value
-                dbAttr.attribute = EmployeeValidityPeriodAttrType.ANNUAL_LEAVE
+                dbAttr.type = EmployeeValidityPeriodAttrType.ANNUAL_LEAVE
             } else {
                 throw IllegalStateException("Error, unknown group: ${attr.groupName}")
             }

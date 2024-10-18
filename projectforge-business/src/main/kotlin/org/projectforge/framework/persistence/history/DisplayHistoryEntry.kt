@@ -60,7 +60,7 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
 
         init {
             if (entityClass != null) {
-                entry.displayPropertyName = translatePropertyName(entityClass, propertyName)
+                entry.displayPropertyName = translatePropertyName(entityClass, entry.displayPropertyName ?: propertyName)
             }
         }
     }
@@ -233,6 +233,7 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         /**
          * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
          * If found, the property name will be returned translated, if not, the property will be returned unmodified.
+         * // TODO Handle propertyName such as pos#1.kost1#3.menge
          */
         internal fun translatePropertyName(clazz: Class<*>, propertyName: String?): String? {
             // Try to get the PropertyInfo containing the i18n key of the property for translation.

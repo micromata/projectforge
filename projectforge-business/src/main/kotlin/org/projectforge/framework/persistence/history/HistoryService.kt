@@ -28,11 +28,14 @@ import jakarta.persistence.OneToMany
 import mu.KotlinLogging
 import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.metamodel.HibernateMetaModel
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -43,6 +46,9 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 class HistoryService {
+    @Autowired
+    protected lateinit var accessChecker: AccessChecker
+
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
@@ -66,26 +72,23 @@ class HistoryService {
         }
     }
 
-    @JvmOverloads
-    fun loadAndConvert(
-        baseDO: BaseDO<Long>,
-        convert: ((HistoryEntry) -> List<DisplayHistoryEntry>)? = null,
-    ): MutableList<DisplayHistoryEntry> {
-        val entries = loadHistory(baseDO)
-        val list = mutableListOf<DisplayHistoryEntry>()
-        entries.forEach { entry ->
-            val displayEntries = convert?.invoke(entry) ?: convertToDisplayHistoryEntry(entry)
-            mergeList(list, displayEntries)
-        }
-        return list
-    }
-
     /**
      * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
      */
-    fun mergeList(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
+    fun mergeHistoryDisplayEntries(list: MutableList<DisplayHistoryEntry>, entries: List<DisplayHistoryEntry>) {
         for (entry in entries) {
             if (list.none { it.historyEntryId == entry.historyEntryId && it.attributeId == entry.attributeId }) {
+                list.add(entry)
+            }
+        }
+    }
+
+    /**
+     * Merges the given entries into the list. Already existing entries with same id are not added twice.
+     */
+    fun mergeHistoryEntries(list: MutableList<HistoryEntryDO>, entries: List<HistoryEntryDO>) {
+        for (entry in entries) {
+            if (list.none { it.id == entry.id }) {
                 list.add(entry)
             }
         }
@@ -101,6 +104,37 @@ class HistoryService {
             allHistoryEntries.forEach { entry -> HistoryOldFormatConverter.transformOldAttributes(entry) }
         }
         return allHistoryEntries.sortedByDescending { it.id }
+    }
+
+    /**
+     * Convention: If you want to create a history entry of collections, the oldValue should contain all elements that are removed and the newValue should contain all elements that are added.
+     * @param oldValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     * @param newValue Supports all types supported by [HistoryValueHandlerRegistry]. Also, collections of objects are supported and will be serialized to a csv string.
+     * @see HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute
+     */
+    fun insertUpdateHistoryEntry(
+        entity: IdObject<Long>,
+        property: String?,
+        propertyTypeClass: Class<*>,
+        oldValue: Any?,
+        newValue: Any?,
+    ) {
+        accessChecker.checkRestrictedOrDemoUser()
+        val contextUser = loggedInUser
+        val userPk = contextUser?.id?.toString()
+        if (userPk == null) {
+            log.warn("No user found for creating history entry.")
+        }
+        persistenceService.runInTransaction { context ->
+            HistoryBaseDaoAdapter.insertHistoryUpdateEntryWithSingleAttribute(
+                entity = entity,
+                propertyName = property,
+                propertyTypeClass = propertyTypeClass,
+                oldValue = oldValue,
+                newValue = newValue,
+                context,
+            )
+        }
     }
 
     private fun loadAndAddHistory(

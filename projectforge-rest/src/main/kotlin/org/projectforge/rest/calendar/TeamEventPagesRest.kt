@@ -267,12 +267,12 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
    * LAYOUT Edit page
    */
   override fun createEditLayout(dto: TeamEvent, userAccess: UILayout.UserAccess): UILayout {
-    val calendars = teamCalDao.getAllCalendarsWithFullAccess()
+    val calendars = teamCalDao.allCalendarsWithFullAccess.toMutableList()
     calendars.removeIf { it.externalSubscription } // Remove full access calendars, but subscribed.
     if (dto.calendar != null && calendars.find { it.id == dto.calendar?.id } == null) {
       // Calendar of event is not in the list of editable calendars. Add this non-editable calendar to show
       // the calendar of the event.
-      calendars.add(0, dto.calendar)
+      calendars.add(0, dto.calendar!!)
     }
     val calendarSelectValues = calendars.map {
       UISelectValue<Long>(it.id!!, it.title!!)

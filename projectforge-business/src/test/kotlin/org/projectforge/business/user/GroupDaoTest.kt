@@ -66,7 +66,7 @@ class GroupDaoTest : AbstractTestBase() {
         userDao.selectHistoryEntries(users[0]).let { entries ->
             Assertions.assertEquals(2, entries.size)
             entries[0].let { entry ->
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "assignedGroups",
                     value = group.id.toString(), // assignedGroup
@@ -90,7 +90,7 @@ class GroupDaoTest : AbstractTestBase() {
                 entries.size
             ) // 1. user inserted[3], 2. group assigned[2], 3. group unassigned[0],
             entries[0].let { entry -> // group 1 unassigned
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "assignedGroups",
                     value = null,
@@ -100,7 +100,7 @@ class GroupDaoTest : AbstractTestBase() {
                 )
             }
             entries[1].let { entry -> // group 1 assigned
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     value = group.id.toString(), // assignedGroup
                     oldValue = null,
@@ -123,7 +123,7 @@ class GroupDaoTest : AbstractTestBase() {
                 entries.size
             ) // 1. group inserted, 2. assigned: users[3], unassigned: users[0], users[1]
             entries[0].let { entry -> // group 1 assigned
-                HistoryTester.assertAttr(
+                HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "assignedUsers",
                     value = users[3].id.toString(),          // assigned: users[3]
@@ -330,7 +330,7 @@ class GroupDaoTest : AbstractTestBase() {
     ) {
         val modUser = ThreadLocalUserContext.requiredLoggedInUser
         assertHistoryEntry(holder, GroupDO::class, id, EntityOpType.Update, modUser, 1)
-        HistoryTester.assertAttr(
+        HistoryTester.assertHistoryAttr(
             holder,
             propertyName = "assignedUsers",
             value = newValue,
@@ -348,7 +348,7 @@ class GroupDaoTest : AbstractTestBase() {
     ) {
         val modUser = ThreadLocalUserContext.requiredLoggedInUser
         assertHistoryEntry(holder, PFUserDO::class, id, EntityOpType.Update, modUser, 1)
-        HistoryTester.assertAttr(
+        HistoryTester.assertHistoryAttr(
             holder,
             propertyName = "assignedGroups",
             value = newValue,

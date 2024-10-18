@@ -56,13 +56,17 @@ class HistoryTester(
         totalNumberOfHistoryAttrs = count.second
     }
 
+    /**
+     * Loads the history entries for the given id.
+     * Please note: Any embedded history entries (RechnungDO.positionen) etc. are not loaded!
+     */
     fun loadHistory(
         baseDO: BaseDO<Long>,
         expectedNumberOfNewHistoryEntries: Int? = null,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
         msg: String = "",
     ): List<HistoryEntryHolder>? {
-        loadHistoryEntries(historyService.loadHistory(baseDO))
+        wrapHistoryEntries(historyService.loadHistory(baseDO))
         if (expectedNumberOfNewHistoryEntries != null) {
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)
         }
@@ -80,7 +84,7 @@ class HistoryTester(
                 HistoryEntryDO::class.java,
                 maxResults = maxResults,
             ).let { entries ->
-                loadHistoryEntries(entries)
+                wrapHistoryEntries(entries)
             }
         }
         return recentEntries
@@ -135,7 +139,7 @@ class HistoryTester(
         return result
     }
 
-    private fun loadHistoryEntries(historyEntries: List<HistoryEntryDO>) {
+    private fun wrapHistoryEntries(historyEntries: List<HistoryEntryDO>) {
         val result = mutableListOf<HistoryEntryHolder>()
         persistenceService.runReadOnly { context ->
             historyEntries.forEach { entry ->
@@ -169,12 +173,13 @@ class HistoryTester(
     fun loadRecentHistoryEntries(
         expectedNumberOfNewHistoryEntries: Int,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
+        msg: String = "",
     ): HistoryTester {
         val count = count()
         val numberOfNewHistoryEntries = count.first - totalNumberHistoryEntries
         loadAndTailHistoryEntries(numberOfNewHistoryEntries)
         // ####### For debugging, it's recommended to set the breakpoint at the following line: ##############
-        assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries)
+        assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg = msg)
         totalNumberHistoryEntries = count.first
         totalNumberOfHistoryAttrs = count.second
         return this
@@ -289,7 +294,7 @@ class HistoryTester(
             return entry.attributes
         }
 
-        fun assertAttr(
+        fun assertHistoryAttr(
             wrapper: HistoryEntryHolder,
             propertyName: String,
             value: String?,
@@ -298,7 +303,7 @@ class HistoryTester(
             propertyTypeClass: KClass<*> = java.lang.String::class,
             msg: String = "",
         ) {
-            assertAttr(
+            assertHistoryAttr(
                 wrapper.entry,
                 propertyName = propertyName,
                 value = value,
@@ -309,7 +314,7 @@ class HistoryTester(
             )
         }
 
-        fun assertAttr(
+        fun assertHistoryAttr(
             entry: HistoryEntry,
             propertyName: String,
             value: String?,

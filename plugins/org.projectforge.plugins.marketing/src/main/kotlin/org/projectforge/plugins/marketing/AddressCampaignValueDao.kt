@@ -134,7 +134,7 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
         return map
     }
 
-    override fun convert(entry: HistoryEntry): List<DisplayHistoryEntry> {
+    override fun convertToDisplayHistoryEntries(entry: HistoryEntry): List<DisplayHistoryEntry> {
         val attributes = entry.attributes
         if (attributes.isNullOrEmpty()) {
             val se = DisplayHistoryEntry(entry)
