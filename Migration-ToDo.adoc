@@ -1,5 +1,7 @@
 - customizeDisplayHistoryEntry: AddressBookDao, ... (check)
 - customizeHistoryEntries: AuftragsDao, ...  (check)
+- Besucherbuch
+- Mitarbeitendenseite: Status, annual leave
 - DisplayHistoryEntry: Todo in translatePropertyName
 - BaseDOOnChangeListener: Check registration (e. g. UserGroupCache)
 - Scripte nach Renamings testen
@@ -10,8 +12,6 @@
 - Zeitraumfilter bei Kreditoren
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - Ehcache konfigurieren
-- History
-- Besucherbuch ersetzen durch Seite mit Excel-Download (wird nicht mehr genutzt)
 - Zeitbehaftete Daten
 - Test: SEPA
 - XML-Import für Testsystem

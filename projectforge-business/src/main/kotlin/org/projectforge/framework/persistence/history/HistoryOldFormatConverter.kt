@@ -142,15 +142,15 @@ object HistoryOldFormatConverter {
         newAttr.parent = newAttr.parent ?: oldAttr.parent
         newAttr.id = newAttr.id ?: oldAttr.id
         if (oldAttr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {
-            newAttr.oldValue = oldAttr.value
             if (oldAttr.propertyName?.contains("startTime") != true) {
                 // timeableAttributes.employeestatus.2019-03-01 00:00:00:000.startTime:op is of type java.util.Date. Ignore this.
                 newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+                newAttr.oldValue = oldAttr.value
             }
         } else if (oldAttr.propertyName?.endsWith(NEWVAL_SUFFIX) == true) {
-            newAttr.value = oldAttr.value
             if (oldAttr.propertyName?.contains("startTime") != true) {
                 newAttr.propertyTypeClass = newAttr.propertyTypeClass ?: oldAttr.propertyTypeClass
+                newAttr.value = oldAttr.value
             }
         } else if (oldAttr.propertyName?.endsWith(OP_SUFFIX) == true) {
             newAttr.opType = when (oldAttr.value) {
