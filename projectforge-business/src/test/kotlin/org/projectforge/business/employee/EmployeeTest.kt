@@ -142,8 +142,8 @@ class EmployeeTest : AbstractTestBase() {
             val employee = EmployeeDO()
             employee.user = user
             employeeDao.insert(employee, checkAccess = false)
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(25), false)
-            employeeService.addNewAnnualLeaveDays(employee, LocalDate.now().minusYears(1), BigDecimal(30), false)
+            employeeService.insertAnnualLeaveDays(employee, LocalDate.now().minusYears(2), BigDecimal(25), false)
+            employeeService.insertAnnualLeaveDays(employee, LocalDate.now().minusYears(1), BigDecimal(30), false)
             loggedInUser?.let { test.logon(it) }
             return employee
         }

@@ -217,7 +217,7 @@ class EmployeeService {
         return list
     }
 
-    fun addNewAnnualLeaveDays(
+    fun insertAnnualLeaveDays(
         employee: EmployeeDO,
         validFrom: LocalDate,
         annualLeaveDays: BigDecimal,
@@ -232,7 +232,7 @@ class EmployeeService {
         )
     }
 
-    fun addNewStatus(
+    fun insertStatus(
         employee: EmployeeDO,
         validFrom: LocalDate,
         status: EmployeeStatus,
@@ -264,7 +264,7 @@ class EmployeeService {
         attr.type = type
         attr.created = Date()
         attr.lastUpdate = attr.created
-        baseDOPersistenceService.insert(attr)
+        baseDOPersistenceService.insert(attr, checkAccess = checkAccess)
         return attr
     }
 
@@ -281,27 +281,29 @@ class EmployeeService {
         if (checkAccess) {
             employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
-        return baseDOPersistenceService.update(attrDO)
+        return baseDOPersistenceService.update(attrDO, checkAccess = checkAccess)
     }
 
-    private fun removeValidityPeriodAttr(
+    fun markValidityPeriodAttrAsDeleted(
         employee: EmployeeDO,
-        attrId: Long,
-        type: EmployeeValidityPeriodAttrType,
+        attr: EmployeeValidityPeriodAttrDO,
+        checkAccess: Boolean = true,
     ) {
-        val dbEmployee = employeeDao.find(employee.id)!!
-        hasLoggedInUserUpdateAccess(dbEmployee, dbEmployee, true)
-        val attr = persistenceService.selectById(EmployeeValidityPeriodAttrDO::class.java, attrId)
-        if (attr == null || attr.employee?.id != dbEmployee.id || attr.type != type) {
-            throw IllegalArgumentException("No such attribute found for employee#${dbEmployee.id} ${dbEmployee.displayName}: $attrId: $attr")
+        if (checkAccess) {
+            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
-        persistenceService.runInTransaction { context ->
-            val em = context.em
-            em.persist(attr)
-            log.info("New ${EmployeeValidityPeriodAttrDO::class.simpleName} for employee#${dbEmployee.id} ${dbEmployee.displayName} added (${attr.id}): $attr")
-            HistoryBaseDaoAdapter.inserted(attr, context)
-            em.flush()
+        baseDOPersistenceService.markAsDeleted(obj = attr, checkAccess = checkAccess)
+    }
+
+    fun undeleteValidityPeriodAttr(
+        employee: EmployeeDO,
+        attr: EmployeeValidityPeriodAttrDO,
+        checkAccess: Boolean = true,
+    ) {
+        if (checkAccess) {
+            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
+        baseDOPersistenceService.undelete(obj = attr, checkAccess = checkAccess)
     }
 
     fun getReportOfMonth(year: Int, month: Int?, user: PFUserDO): MonthlyEmployeeReport {

@@ -259,12 +259,19 @@ class HistoryTester(
         fun assertHistoryEntry(
             wrapper: HistoryEntryHolder,
             entityClass: KClass<*>,
-            id: Long?,
+            entityId: Long?,
             opType: EntityOpType,
             modUser: PFUserDO,
             numberOfAttributes: Int = 0,
         ): Set<HistoryEntryAttr>? {
-            return assertHistoryEntry(wrapper.entry, entityClass, id, opType, modUser, numberOfAttributes)
+            return assertHistoryEntry(
+                entry = wrapper.entry,
+                entityClass = entityClass,
+                entityId = entityId,
+                opType = opType,
+                modUser = modUser,
+                numberOfAttributes = numberOfAttributes,
+            )
         }
 
         /**
@@ -274,17 +281,19 @@ class HistoryTester(
         fun assertHistoryEntry(
             entry: HistoryEntry,
             entityClass: KClass<*>,
-            id: Long?,
+            entityId: Long?,
             opType: EntityOpType,
-            modUser: PFUserDO,
+            modUser: PFUserDO? = null,
             numberOfAttributes: Int = 0,
         ): Set<HistoryEntryAttr>? {
             Assertions.assertEquals(entityClass.java.name, entry.entityName)
-            if (id != null) {
-                Assertions.assertEquals(id, entry.entityId)
+            if (entityId != null) {
+                Assertions.assertEquals(entityId, entry.entityId)
             }
             Assertions.assertEquals(opType, entry.entityOpType)
-            Assertions.assertEquals(modUser.id?.toString(), entry.modifiedBy)
+            if (modUser != null) {
+                Assertions.assertEquals(modUser.id?.toString(), entry.modifiedBy)
+            }
             Assertions.assertTrue(
                 System.currentTimeMillis() - entry.modifiedAt!!.time < 10000,
                 "Time difference is too big",
@@ -299,7 +308,7 @@ class HistoryTester(
             propertyName: String,
             value: String?,
             oldValue: String?,
-            opType: PropertyOpType,
+            opType: PropertyOpType = PropertyOpType.Update,
             propertyTypeClass: KClass<*> = java.lang.String::class,
             msg: String = "",
         ) {
@@ -319,7 +328,7 @@ class HistoryTester(
             propertyName: String,
             value: String?,
             oldValue: String?,
-            opType: PropertyOpType,
+            opType: PropertyOpType = PropertyOpType.Update,
             propertyTypeClass: KClass<*>? = java.lang.String::class,
             msg: String = "",
         ) {

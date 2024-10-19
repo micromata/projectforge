@@ -544,7 +544,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     @Throws(AccessException::class)
     @JvmOverloads
     open fun markAsDeleted(obj: O, checkAccess: Boolean = true) {
-        baseDOPersistenceService.markAsDeleted(this, obj, checkAccess = checkAccess)
+        baseDOPersistenceService.markAsDeleted(this, obj, checkAccess = checkAccess, logMessage = logDatabaseActions)
     }
 
     /**

@@ -64,20 +64,34 @@ class BaseDOPersistenceService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    internal fun <O : ExtendedBaseDO<Long>> insert(baseDao: BaseDao<O>, obj: O): Long? {
-        insert(obj, baseDao, logMessage = baseDao.logDatabaseActions)
+    /**
+     * Inserts the object.
+     * @param baseDao The BaseDao of the object. If null, the object must be historizable.
+     * @param obj The object to insert.
+     * @return The id of the object.
+     */
+    internal fun <O : ExtendedBaseDO<Long>> insert(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean = true): Long? {
+        privateInsert(obj, baseDao, checkAccess = checkAccess)
         return obj.id
     }
 
-    fun <O : ExtendedBaseDO<Long>> insert(obj: O): Long? {
-        insert(obj, logMessage = true)
+    /**
+     * Inserts the object.
+     * @param obj The object to insert.
+     * @param checkAccess If true, the access rights are checked.
+     * @param logMessage If true, a log message is written.
+     * @return The id of the object.
+     */
+    fun <O : ExtendedBaseDO<Long>> insert(obj: O, checkAccess: Boolean, logMessage: Boolean = true): Long? {
+        privateInsert(obj, checkAccess = checkAccess, logMessage = logMessage)
         return obj.id
     }
 
-    private fun <O : ExtendedBaseDO<Long>> insert(
+    private fun <O : ExtendedBaseDO<Long>> privateInsert(
         obj: O,
         baseDao: BaseDao<O>? = null,
-        logMessage: Boolean = true,
+        checkAccess: Boolean,
+        logMessage: Boolean = baseDao?.logDatabaseActions ?: true,
     ) {
         persistenceService.runInTransaction { context ->
             baseDao?.changedRegistry?.onInsert(obj)
@@ -87,13 +101,12 @@ class BaseDOPersistenceService {
             obj.setLastUpdate()
             val useClass = baseDao?.doClass ?: obj.javaClass
             em.persist(obj)
-            if (logMessage) {
-                log.info { "New ${useClass.simpleName} added (${obj.id}): $obj" }
-            }
             baseDao?.prepareHibernateSearch(obj, OperationType.INSERT)
             em.merge(obj)
             HistoryBaseDaoAdapter.inserted(obj, context)
-            log.info { "${useClass.simpleName} updated: $obj" }
+            if (logMessage) {
+                log.info { "${useClass.simpleName} updated: $obj" }
+            }
             try {
                 em.flush()
             } catch (ex: Exception) {
@@ -115,32 +128,33 @@ class BaseDOPersistenceService {
         dbObj: O? = null,
     ): EntityCopyStatus {
         val res = ResultObject<O>()
-        update(
+        privateUpdate(
             obj = obj,
             res = res,
             baseDao = baseDao,
             checkAccess = checkAccess,
             dbObj = dbObj,
-            logMessage = baseDao.logDatabaseActions,
         )
         return res.modStatus!!
     }
 
     fun <O : ExtendedBaseDO<Long>> update(
         obj: O,
+        checkAccess: Boolean = true,
+        logMessage: Boolean = true,
     ): EntityCopyStatus {
         val res = ResultObject<O>()
-        update(obj, res)
+        privateUpdate(obj, res, checkAccess = checkAccess, logMessage = logMessage)
         return res.modStatus!!
     }
 
-    private fun <O : ExtendedBaseDO<Long>> update(
+    private fun <O : ExtendedBaseDO<Long>> privateUpdate(
         obj: O,
         res: ResultObject<O>,
         baseDao: BaseDao<O>? = null,
         checkAccess: Boolean = true,
         dbObj: O? = null,
-        logMessage: Boolean = true,
+        logMessage: Boolean = baseDao?.logDatabaseActions ?: true,
     ) {
         if (obj.id == null) {
             val msg = "Could not update object unless id is not given:$obj"
@@ -203,7 +217,24 @@ class BaseDOPersistenceService {
         baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.UPDATE)
     }
 
-    internal fun <O : ExtendedBaseDO<Long>> markAsDeleted(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean) {
+    /**
+     * TODO: Check updating fields und markAsDeleted of already deleted objects.
+     * Marks the object as deleted. This is only possible for historizable objects.
+     * @param baseDao The BaseDao of the object. If null, the object must be historizable.
+     * @param obj The object to mark as deleted.
+     * @param checkAccess If true, the access rights are checked.
+     * @param logMessage If true, a log message is written.
+     * @return The copy status of the object (NONE if no changes were made and the object was already marked as deleted).
+     * @throws IllegalArgumentException If the object has no id.
+     * @throws AccessException If the access rights are not sufficient.
+     * @throws InternalErrorException If the object is not historizable.
+     */
+    fun <O : ExtendedBaseDO<Long>> markAsDeleted(
+        baseDao: BaseDao<O>? = null,
+        obj: O,
+        checkAccess: Boolean,
+        logMessage: Boolean = baseDao?.logDatabaseActions ?: true,
+    ): EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not mark object as deleted unless id is not given:$obj"
             log.error { msg }
@@ -215,82 +246,112 @@ class BaseDOPersistenceService {
             }
             throw InternalErrorException("exception.internalError")
         }
-        baseDao.changedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
-        persistenceService.runInTransaction { context ->
-            baseDao.changedRegistry.onDelete(obj)
-            baseDao.changedRegistry.onInsertOrModify(obj, OperationType.DELETE)
+        baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.DELETE)
+        return persistenceService.runInTransaction { context ->
+            baseDao?.changedRegistry?.onDelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
-            val dbObj = requireDbObj(em, baseDao.doClass, obj.id, "markAsDeleted")
+            val useClass = baseDao?.doClass ?: obj.javaClass
+            val dbObj = requireDbObj(em, useClass, obj.id, "markAsDeleted")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                baseDao.checkLoggedInUserDeleteAccess(obj, dbObj)
+                baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
             }
+            obj.deleted = true
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
-                entityOpType = EntityOpType.Delete
+                entityOpType = EntityOpType.MarkAsDeleted
             ) // If user has made additional changes.
-            dbObj.deleted = true
-            dbObj.setLastUpdate()
-            obj.deleted = true                     // For callee having same object.
-            obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
-            val merged = em.merge(dbObj) //
-            em.flush()
-            candHContext.preparedHistoryEntries(merged, dbObj)
-            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
-            baseDao.changedRegistry.afterDelete(obj)
-            baseDao.changedRegistry.afterInsertOrModify(obj, OperationType.DELETE)
-            if (baseDao.logDatabaseActions) {
-                log.info { "${baseDao.doClass.simpleName} marked as deleted: $dbObj" }
+            val modStatus = candHContext.currentCopyStatus
+            if (modStatus != EntityCopyStatus.NONE) { // May be MINOR if is already marked as deleted before.
+                dbObj.setLastUpdate()
+                obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
+                val merged = em.merge(dbObj) //
+                em.flush()
+                candHContext.preparedHistoryEntries(merged, dbObj)
+                HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
+                baseDao?.changedRegistry?.afterDelete(obj)
+                baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.DELETE)
+                if (logMessage) {
+                    log.info { "${useClass.simpleName} marked as deleted: $dbObj" }
+                }
             }
+            modStatus
         }
     }
 
-    internal fun <O : ExtendedBaseDO<Long>> undelete(baseDao: BaseDao<O>, obj: O, checkAccess: Boolean) {
+    /**
+     *  TODO: Check updating fields und markAsDeleted of already deleted objects.
+     * Undeletes the object. This is only possible for historizable objects.
+     * @param baseDao The BaseDao of the object. If null, the object must be historizable.
+     * @param obj The object to undelete.
+     * @param checkAccess If true, the access rights are checked.
+     * @param logMessage If true, a log message is written.
+     * @return The copy status of the object (NONE if no changes were made and the object was already undeleted).
+     */
+    fun <O : ExtendedBaseDO<Long>> undelete(
+        baseDao: BaseDao<O>? = null,
+        obj: O,
+        logMessage: Boolean = baseDao?.logDatabaseActions ?: true,
+        checkAccess: Boolean
+    ):
+            EntityCopyStatus {
         if (obj.id == null) {
             val msg = "Could not undelete object unless id is not given:$obj"
             log.error(msg)
             throw RuntimeException(msg)
         }
-        baseDao.changedRegistry.beforeInsertOrModify(obj, OperationType.UNDELETE)
-        persistenceService.runInTransaction { context ->
-            baseDao.changedRegistry.onUndelete(obj)
-            baseDao.changedRegistry.onInsertOrModify(obj, OperationType.UNDELETE)
+        baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.UNDELETE)
+        return persistenceService.runInTransaction { context ->
+            baseDao?.changedRegistry?.onUndelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
             val em = context.em
-            val dbObj = requireDbObj(em, baseDao.doClass, obj.id, "undelete")
+            val useClass = baseDao?.doClass ?: obj.javaClass
+            val dbObj = requireDbObj(em, useClass, obj.id, "undelete")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                baseDao.checkLoggedInUserInsertAccess(obj)
+                baseDao?.checkLoggedInUserInsertAccess(obj)
             }
+            obj.deleted = false
             val candHContext = CandHMaster.copyValues(
                 src = obj,
                 dest = dbObj,
                 entityOpType = EntityOpType.Undelete
             ) // If user has made additional changes.
-            dbObj.deleted = false
-            dbObj.setLastUpdate()
-            obj.deleted = false                   // For callee having same object.
-            obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
-            val merged = em.merge(dbObj)
-            em.flush()
-            candHContext.preparedHistoryEntries(merged, dbObj)
-            HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
-            baseDao.changedRegistry.afterUndelete(obj)
-            baseDao.changedRegistry.afterInsertOrModify(obj, OperationType.UNDELETE)
-            if (baseDao.logDatabaseActions) {
-                log.info { "${baseDao.doClass.simpleName} undeleted: $dbObj" }
+            val modStatus = candHContext.currentCopyStatus
+            if (modStatus != EntityCopyStatus.NONE) { // May be MINOR if already was not deleted before.
+                dbObj.setLastUpdate()
+                obj.deleted = false               // For callee having same object.
+                obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
+                val merged = em.merge(dbObj)
+                em.flush()
+                candHContext.preparedHistoryEntries(merged, dbObj)
+                HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
+                baseDao?.changedRegistry?.afterUndelete(obj)
+                baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.UNDELETE)
+                if (logMessage) {
+                    log.info { "${useClass.simpleName} undeleted: $dbObj" }
+                }
             }
+            modStatus
         }
     }
 
     /**
+     * Deletes the object. This is only possible for historizable objects.
+     * @param baseDao The BaseDao of the object. If null, the object must be historizable.
+     * @param obj The object to delete.
+     * @param checkAccess If true, the access rights are checked.
      * @param force If true, the object will be deleted without any checks. This is needed to force deleting objects that are historizable.
+     * @param logMessage If true, a log message is written.
      */
-    internal fun <O : ExtendedBaseDO<Long>> delete(
-        baseDao: BaseDao<O>,
+    fun <O : ExtendedBaseDO<Long>> delete(
+        baseDao: BaseDao<O>? = null,
         obj: O,
         checkAccess: Boolean,
-        force: Boolean = false
+        force: Boolean = false,
+        logMessage: Boolean = baseDao?.logDatabaseActions ?: true,
     ) {
         val id = obj.id
         if (id == null) {
@@ -299,7 +360,7 @@ class BaseDOPersistenceService {
             throw RuntimeException(msg)
         }
         if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
-            if (!baseDao.isForceDeletionSupport) {
+            if (baseDao != null && !baseDao.isForceDeletionSupport) {
                 val msg =
                     "${BaseDao.EXCEPTION_HISTORIZABLE_NOTDELETABLE} Force deletion not supported by '${baseDao.doClass.name}'. Use markAsDeleted instead for: $obj"
                 log.error { msg }
@@ -312,15 +373,16 @@ class BaseDOPersistenceService {
                 throw RuntimeException(msg)
             }
         }
-        baseDao.changedRegistry.beforeInsertOrModify(obj, OperationType.DELETE)
+        baseDao?.changedRegistry?.beforeInsertOrModify(obj, OperationType.DELETE)
         persistenceService.runInTransaction { context ->
-            baseDao.changedRegistry.onDelete(obj)
-            baseDao.changedRegistry.onInsertOrModify(obj, OperationType.DELETE)
+            baseDao?.changedRegistry?.onDelete(obj)
+            baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
-            val dbObj = requireDbObj(em, baseDao.doClass, obj.id, "delete (force=$force)")
+            val useClass = baseDao?.doClass ?: obj.javaClass
+            val dbObj = requireDbObj(em, useClass, obj.id, "delete (force=$force)")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
-                baseDao.checkLoggedInUserDeleteAccess(obj, dbObj)
+                baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
             }
             em.remove(dbObj)
             em.flush()
@@ -329,16 +391,18 @@ class BaseDOPersistenceService {
                 historyService.loadHistory(obj).forEach { historyEntry ->
                     em.remove(historyEntry)
                     val displayHistoryEntry = ToStringUtil.toJsonString(DisplayHistoryEntry(historyEntry))
-                    log.info { "${baseDao.doClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry" }
+                    if (logMessage) {
+                        log.info { "${useClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry" }
+                    }
                 }
             }
-            if (baseDao.logDatabaseActions) {
-                log.info { "${baseDao.doClass.simpleName} (forced) deleted: $dbObj" }
+            if (logMessage) {
+                log.info { "${useClass.simpleName} (forced) deleted: $dbObj" }
             }
             em.detach(dbObj)
         }
-        baseDao.changedRegistry.afterDelete(obj)
-        baseDao.changedRegistry.afterInsertOrModify(obj, OperationType.DELETE)
+        baseDao?.changedRegistry?.afterDelete(obj)
+        baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.DELETE)
     }
 
     /**
