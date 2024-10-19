@@ -70,7 +70,13 @@ object CandHMaster {
     }
 
     /**
+     * Copies the values from the source object to the destination object.
+     * // TODO: Save object after find (for update) and do not compare to database version directly. (Two users may change the same object in parallel.)
+     * @param src The source object.
+     * @param dest The destination object.
      * @param ignoreProperties The names of the properties to ignore.
+     * @param entityOpType The operation type of the entity.
+     * @return The context of the copy operation.
      */
     fun copyValues(
         src: BaseDO<*>,
@@ -90,9 +96,13 @@ object CandHMaster {
     }
 
     /**
-    /**
+     * Copies the values from the source object to the destination object.
+     * The id property is copied if not in the ignoreProperties list.
+     * @param src The source object.
+     * @param dest The destination object.
+     * @param context The context of the copy operation.
      * @param ignoreProperties The names of the properties to ignore.
-    */
+     * @return The status of the copy operation.
      */
     fun copyValues(
         src: BaseDO<*>, dest: BaseDO<*>, context: CandHContext, vararg ignoreProperties: String

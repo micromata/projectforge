@@ -107,12 +107,17 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
         historyEntry.attributes?.filter { it.propertyName == "value" }?.forEach { attr ->
             if (type == EmployeeValidityPeriodAttrType.ANNUAL_LEAVE) {
                 attr.setPropertyTypeClass(BigDecimal::class)
-                attr.propertyName = "annualLeave"
+                attr.propertyName = buildPropertyName("annualLeave")
             } else if (type == EmployeeValidityPeriodAttrType.STATUS) {
                 attr.setPropertyTypeClass(EmployeeStatus::class)
-                attr.propertyName = "status"
+                attr.propertyName = buildPropertyName("status")
             }
         }
+    }
+
+    private fun buildPropertyName(propertyName: String): String {
+        validFrom ?: return propertyName
+        return "$propertyName:$validFrom"
     }
 
     private fun checkType(type: EmployeeValidityPeriodAttrType) {

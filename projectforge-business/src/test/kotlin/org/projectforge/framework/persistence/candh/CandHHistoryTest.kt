@@ -168,10 +168,10 @@ class CandHHistoryTest : AbstractTestBase() {
         }
         user.description = "This is a deleted test user."
         userDao.markAsDeleted(user)
-        hist.loadRecentHistoryEntries(1, 1)
+        hist.loadRecentHistoryEntries(1, 2)
         userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
-            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Delete, ADMIN_USER, 1)
+            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.MarkAsDeleted, ADMIN_USER, 2)
             (entries[0] as HistoryEntryDO).let { entry ->
                 HistoryTester.assertHistoryAttr(
                     entry,
@@ -180,14 +180,22 @@ class CandHHistoryTest : AbstractTestBase() {
                     oldValue = null,
                     opType = PropertyOpType.Update,
                 )
+                HistoryTester.assertHistoryAttr(
+                    entry,
+                    propertyName = "deleted",
+                    value = "true",
+                    oldValue = "false",
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = Boolean::class,
+                )
             }
         }
         user.description = "This is a undeleted test user."
         userDao.undelete(user)
-        hist.loadRecentHistoryEntries(1, 1)
+        hist.loadRecentHistoryEntries(1, 2)
         userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(4, entries.size)
-            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 1)
+            assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 2)
             (entries[0] as HistoryEntryDO).let { entry ->
                 HistoryTester.assertHistoryAttr(
                     entry,
@@ -195,6 +203,14 @@ class CandHHistoryTest : AbstractTestBase() {
                     value = "This is a undeleted test user.",
                     oldValue = "This is a deleted test user.",
                     opType = PropertyOpType.Update,
+                )
+                HistoryTester.assertHistoryAttr(
+                    entry,
+                    propertyName = "deleted",
+                    value = "false",
+                    oldValue = "true",
+                    opType = PropertyOpType.Update,
+                    propertyTypeClass = Boolean::class,
                 )
             }
         }

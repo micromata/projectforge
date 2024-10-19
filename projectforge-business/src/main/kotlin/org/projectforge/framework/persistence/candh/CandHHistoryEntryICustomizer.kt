@@ -25,6 +25,12 @@ package org.projectforge.framework.persistence.candh
 
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 
+/**
+ * Interface to customize history entries.
+ * For example, the EmployeeValidityPeriodAttrDO class uses this interface to customize the propertyName and propertyTypeClass.
+ * [customize] is called by [CandHHistoryEntryWrapper.prepareAndGetHistoryEntry]
+ * @see org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
+ */
 interface CandHHistoryEntryICustomizer {
     fun customize(historyEntry: HistoryEntryDO)
 }
