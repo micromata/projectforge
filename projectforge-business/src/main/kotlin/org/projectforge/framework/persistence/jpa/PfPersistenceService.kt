@@ -329,6 +329,10 @@ open class PfPersistenceService {
 
     /**
      * Saves the current statistics state of the current thread.
+     * Usage:
+     * val saved = persistenceService.saveStatsState()
+     * // Do something...
+     * log.info("Processing done. stats=${persistenceService.formatStats(saved)}")
      * @return The statistics state (a copy for later comparison).
      * @see PersistenceStats
      */

@@ -26,6 +26,11 @@ package org.projectforge.framework.persistence.jpa
 /**
  * Mustn't be thread-safe, because it is used in a thread-local context.
  * If you want to use it in a multi-threaded context, you have to synchronize it.
+ * Usage:
+ *   val saved = persistenceService.saveStatsState()
+ *   // Do something...
+ *   log.info("Processing done. stats=${persistenceService.formatStats(saved)}")
+ *
  */
 class PersistenceStats {
     var createdTransactions = 0
@@ -102,6 +107,7 @@ class PersistenceStats {
         copy.activeTransactionsSinceLastSave = activeTransactions - oldState.activeTransactions
         copy.activeTransactions = activeTransactions
         copy.activeReadonlies = activeReadonlies
+        copy.timeInMillis = oldState.timeInMillis
         return copy
     }
 
