@@ -56,7 +56,7 @@ import org.projectforge.framework.persistence.history.NoHistory
 open class DataTransferAreaDO : AbstractBaseDO<Long>(), AttachmentsInfo, IDataTransferArea {
 
   @get:Id
-  @get:GeneratedValue
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
   @get:Column(name = "pk")
   @PropertyInfo(i18nKey = "id")
   override var id: Long? = null

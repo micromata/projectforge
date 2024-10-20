@@ -34,15 +34,41 @@ import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import jakarta.servlet.http.HttpServletRequest
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.rest.core.ResultSet
+import org.projectforge.rest.dto.Kost1
+import org.projectforge.rest.dto.User
+import org.springframework.beans.factory.annotation.Autowired
 
 @RestController
 @RequestMapping("${Rest.URL}/employee")
 class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
+    @Autowired
+    private lateinit var kostCache: KostCache
+
+    @Autowired
+    private lateinit var userGroupCache: UserGroupCache
+
     override fun transformFromDB(obj: EmployeeDO, editMode: Boolean): Employee {
         val employee = Employee()
         employee.copyFrom(obj)
+        userGroupCache.getUser(obj.userId)?.let { user ->
+            employee.user = User(user)
+        }
+        kostCache.getKost1(obj.kost1Id)?.let { kost ->
+            employee.kost1 = Kost1(kost)
+        }
         return employee
     }
+/*
+    override fun postProcessResultSet(
+        resultSet: ResultSet<EmployeeDO>,
+        request: HttpServletRequest,
+        magicFilter: MagicFilter
+    ): ResultSet<*> {
+        return super.postProcessResultSet(resultSet, request, magicFilter)
+    }*/
 
     override fun transformForDB(dto: Employee): EmployeeDO {
         val employeeDO = EmployeeDO()
@@ -55,13 +81,13 @@ class EmployeePagesRest : AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao
      */
     override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
       layout.add(UITable.createUIResultSetTable()
-                        .add(UITableColumn("fibu.employee.user.name", "name"))
-                        .add(UITableColumn("fibu.employee.user.firstname", "firstName"))
-                        .add(lc, "status", "staffNumber")
-                        .add(UITableColumn("kost1", "fibu.kost1", formatter = UITableColumn.Formatter.COST1))
+                        .add(UITableColumn("user", "name"))
+                        .add(lc, "status", "staffNumber", "kost1")
                         .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
         layout.getTableColumnById("eintrittsDatum").formatter = UITableColumn.Formatter.DATE
         layout.getTableColumnById("austrittsDatum").formatter = UITableColumn.Formatter.DATE
+        layout.getTableColumnById("user").formatter = UITableColumn.Formatter.USER
+        layout.getTableColumnById("kost1").formatter = UITableColumn.Formatter.COST1
     }
 
     /**

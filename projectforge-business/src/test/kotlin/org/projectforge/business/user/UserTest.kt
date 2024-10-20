@@ -124,7 +124,7 @@ class UserTest : AbstractTestBase() {
      */
     @Test
     fun testPasswordQuality() {
-        val minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)
+        val minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH)!!
         minPwLenEntry.longValue = 10
         configurationDao.update(minPwLenEntry, checkAccess = false)
         var passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, null)

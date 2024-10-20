@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 
 private val log = KotlinLogging.logger {}
 
@@ -43,6 +44,9 @@ private val log = KotlinLogging.logger {}
 class ConflictingVacationsCache() : AbstractCache() {
   @Autowired
   private lateinit var employeeService: EmployeeService
+
+  @Autowired
+  private lateinit var persistenceService: PfPersistenceService
 
   @Autowired
   private lateinit var vacationDao: VacationDao
@@ -113,6 +117,7 @@ class ConflictingVacationsCache() : AbstractCache() {
 
   override fun refresh() {
     log.info("Refreshing cache of conflicting vacations...")
+    val saved = persistenceService.saveStatsState()
     val vacationByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
     // First, order all vacations by employee:
     val all = vacationDao.getCurrentAndFutureVacations()
@@ -138,7 +143,7 @@ class ConflictingVacationsCache() : AbstractCache() {
     }
     conflictingVacationsByEmployee = newConflictingVacations
     allConflictingVacations = newAllConflictingVacations
-    log.info("Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees.")
+    log.info("Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees.  stats=${persistenceService.formatStats(saved)}")
   }
 
   private fun ensureEmployeeList(

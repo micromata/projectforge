@@ -105,7 +105,7 @@ class UserPrefEntryDO : BaseDO<Long>, Serializable {
     var isMultiline: Boolean = false
 
     @get:Column(name = "pk")
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Id
     override var id: Long? = null
 

@@ -47,7 +47,7 @@ import org.projectforge.framework.persistence.api.IdObject
 @Table(name = "T_ADDRESS_IMAGE")
 open class AddressImageDO : IdObject<Int> {
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override open var id: Int? = null
 

@@ -36,9 +36,9 @@ import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.AbstractBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.api.UserPrefArea
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_ID
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_AND_AREA_AND_NAME
@@ -128,7 +128,7 @@ class UserPrefDO : AbstractBaseDO<Long>() {
     var userPrefEntries: MutableSet<UserPrefEntryDO>? = null
 
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override var id: Long? = null
 

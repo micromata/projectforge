@@ -41,7 +41,7 @@ import org.projectforge.framework.persistence.api.IdObject
 class UserXmlPreferencesDO : Serializable, IdObject<Long> {
 
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override var id: Long? = null
 

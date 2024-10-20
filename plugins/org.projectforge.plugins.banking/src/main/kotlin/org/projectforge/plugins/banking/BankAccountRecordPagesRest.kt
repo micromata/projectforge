@@ -206,7 +206,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
     return getInitialList(request, magicFilter)
   }
 
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<BankAccountRecordDO>,
     request: HttpServletRequest,
     magicFilter: MagicFilter
@@ -226,7 +226,7 @@ class BankAccountRecordPagesRest : AbstractDTOPagesRest<BankAccountRecordDO, Ban
       stats.add(record.amount)
     }
     resultSet.addResultInfo(stats.asMarkdown)
-    return super.processResultSetBeforeExport(resultSet, request, magicFilter)
+    return super.postProcessResultSet(resultSet, request, magicFilter)
   }
 
 

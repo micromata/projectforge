@@ -66,7 +66,7 @@ import kotlin.reflect.KMutableProperty1
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
 class HistoryEntryAttrDO : HistoryEntryAttr {
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     @get:Id
     override var id: Long? = null

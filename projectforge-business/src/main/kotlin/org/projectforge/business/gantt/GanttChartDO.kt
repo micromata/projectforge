@@ -43,7 +43,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDe
 class GanttChartDO : AbstractBaseDO<Long>() {
 
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override var id: Long? = null
 

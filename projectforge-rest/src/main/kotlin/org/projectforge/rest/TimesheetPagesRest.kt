@@ -195,7 +195,7 @@ class TimesheetPagesRest : AbstractDTOPagesRest<TimesheetDO, Timesheet, Timeshee
         return CalendarServicesRest.redirectToCalendarWithDate(obj.startTime, event)
     }
 
-    override fun processResultSetBeforeExport(
+    override fun postProcessResultSet(
         resultSet: ResultSet<TimesheetDO>,
         request: HttpServletRequest,
         magicFilter: MagicFilter,

@@ -47,7 +47,7 @@ import java.time.LocalDate
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class VisitorbookEntryDO : Serializable, AbstractBaseDO<Long>() {
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override var id: Long? = null
 

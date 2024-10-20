@@ -47,6 +47,7 @@ class AnnotationsUtilsTest {
 
     internal inner class Employee : Person() {
         @get:MyAnnotation(name = "Number")
+        @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         var staffNumber: Integer? = null
     }
 

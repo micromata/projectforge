@@ -68,7 +68,7 @@ class AccessEntryDO : Comparable<AccessEntryDO>, Serializable, BaseDO<Long> {
     var accessDelete = false
 
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override var id: Long? = null
 

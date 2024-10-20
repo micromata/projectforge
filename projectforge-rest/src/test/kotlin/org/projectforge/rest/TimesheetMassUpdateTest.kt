@@ -81,7 +81,7 @@ class TimesheetMassUpdateTest : AbstractTestBase() {
     fun setUp() {
         date = from(Date(), null, Locale.GERMAN).withPrecision(DatePrecision.MINUTE_15)
         Configuration.instance.isCostConfigured
-        val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)
+        val costConfigured = configurationDao.getEntry(ConfigurationParam.COST_CONFIGURED)!!
         costConfigured.booleanValue = true
         configurationDao.update(costConfigured, checkAccess = false)
     }
