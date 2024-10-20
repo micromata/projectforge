@@ -56,7 +56,7 @@ private val log = KotlinLogging.logger {}
 @WithHistory
 open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), CandHHistoryEntryICustomizer {
     @get:Id
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Column(name = "pk")
     override var id: Long? = null
 

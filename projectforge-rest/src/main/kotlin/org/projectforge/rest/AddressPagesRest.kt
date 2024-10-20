@@ -545,7 +545,7 @@ class AddressPagesRest
   /**
    * @return New result set of dto's, transformed from data base objects.
    */
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<AddressDO>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,

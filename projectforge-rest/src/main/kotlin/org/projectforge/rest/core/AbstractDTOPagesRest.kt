@@ -47,9 +47,9 @@ abstract class AbstractDTOPagesRest<
 ) : AbstractPagesRest<O, DTO, B>(baseDaoClazz, i18nKeyPrefix, cloneSupport) {
 
   /**
-   * @return New result set of dto's, transformed from data base objects.
+   * @return New result set of dto's, transformed from database objects.
    */
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<O>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,

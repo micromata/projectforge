@@ -283,7 +283,7 @@ class InitTestDB {
 
     private fun initConfiguration() {
         configurationDao.checkAndUpdateDatabaseEntries()
-        val entry = configurationDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE)
+        val entry = configurationDao.getEntry(ConfigurationParam.DEFAULT_TIMEZONE)!!
         entry.timeZone = DateHelper.EUROPE_BERLIN
         configurationDao.update(entry, checkAccess = false)
     }

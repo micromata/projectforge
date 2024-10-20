@@ -63,7 +63,7 @@ import jakarta.persistence.*
 )
 open class WebAuthnEntryDO {
   @get:Id
-  @get:GeneratedValue
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
   @get:Column(name = "pk")
   open var id: Long? = null
 

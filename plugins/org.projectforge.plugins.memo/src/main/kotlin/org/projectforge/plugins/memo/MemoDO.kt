@@ -46,7 +46,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 open class MemoDO : AbstractBaseDO<Long>() {
 
     @get:Column(name = "pk")
-    @get:GeneratedValue
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Id
     @PropertyInfo(i18nKey = "id")
     override var id: Long? = null

@@ -77,7 +77,7 @@ import jakarta.persistence.*
 class PersonalAddressDO : AbstractBaseDO<Long>() {
 
   @get:Id
-  @get:GeneratedValue
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
   @get:Column(name = "pk")
   override var id: Long? = null
 

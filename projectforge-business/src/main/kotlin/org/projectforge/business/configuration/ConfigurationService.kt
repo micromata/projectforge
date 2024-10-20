@@ -64,7 +64,7 @@ open class ConfigurationService {
   private lateinit var sendMail: SendMail
 
   @Value("\${projectforge.base.dir}")
-  open var applicationHomeDir: String? = null
+  open lateinit var applicationHomeDir: String
 
   @Value("\${projectforge.support.mail}")
   open var pfSupportMailAddress: String? = null
@@ -74,7 +74,7 @@ open class ConfigurationService {
    * Resource directory relative to application's home (default 'resources').
    */
   @Value("\${projectforge.resourcesDirectory}")
-  open var resourceDirName: String? = null
+  open lateinit var resourceDirName: String
     protected set
 
   /**

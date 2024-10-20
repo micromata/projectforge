@@ -117,7 +117,7 @@ class AddressServicesRest {
     val list = addressDao.favoriteVCards.map { it.address!! }
     val magicFilter = MagicFilter(maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS)
     val resultSet = ResultSet(list, null, list.size, magicFilter = magicFilter)
-    addressRest.processResultSetBeforeExport(resultSet, request, magicFilter)
+    addressRest.postProcessResultSet(resultSet, request, magicFilter)
 
     val personalAddressMap = personalAddressDao.personalAddressByAddressId
 

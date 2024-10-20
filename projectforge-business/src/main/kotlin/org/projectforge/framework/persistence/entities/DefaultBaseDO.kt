@@ -38,7 +38,7 @@ import org.projectforge.common.anots.PropertyInfo
 //@Analyzer(impl = ClassicAnalyzer::class)
 open class DefaultBaseDO : AbstractHistorizableBaseDO<Long>() {
     @get:Column(name = "pk")
-    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
     @get:Id
     @PropertyInfo(i18nKey = "id")
     override var id: Long? = null

@@ -239,6 +239,7 @@ class KostCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing KostCache ...")
+        val saved = persistenceService.saveStatsState()
         // This method must not be synchronized because it works with a new copy of maps.
         val map1: MutableMap<Long?, Kost1DO> = HashMap()
         val list1 = persistenceService.executeQuery(
@@ -261,7 +262,7 @@ class KostCache : AbstractCache() {
         }
         this.kost2Map = map2
         updateKost2Arts()
-        log.info("Initializing of KostCache done.")
+        log.info("Initializing of KostCache done. stats=${persistenceService.formatStats(saved)}")
     }
 
     companion object {

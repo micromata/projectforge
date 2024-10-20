@@ -113,12 +113,12 @@ class AddressCampaignValuePagesRest :
     } ?: emptyList()
   }*/
 
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<AddressDO>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,
   ): ResultSet<*> {
-    val newResultSet = super.processResultSetBeforeExport(resultSet, request, magicFilter)
+    val newResultSet = super.postProcessResultSet(resultSet, request, magicFilter)
     @Suppress("UNCHECKED_CAST")
     if (!processList(request, newResultSet.resultSet as List<AddressCampaignValue>)) {
       newResultSet.resultSet = emptyList()

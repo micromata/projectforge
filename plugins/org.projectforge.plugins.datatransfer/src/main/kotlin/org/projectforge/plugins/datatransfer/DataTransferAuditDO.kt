@@ -69,7 +69,7 @@ open class DataTransferAuditDO {
   enum class Action { DELETE, DOWNLOAD, MODIFIED, UPLOAD }
 
   @get:Id
-  @get:GeneratedValue
+  @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
   @get:Column(name = "pk")
   open var id: Long? = null
 

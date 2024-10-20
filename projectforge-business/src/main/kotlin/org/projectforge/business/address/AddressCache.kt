@@ -78,9 +78,9 @@ class AddressCache(private val addressDao: AddressDao) : AbstractCache(), BaseDO
         addressDao.register(this)
     }
 
-    override fun afterInsertOrModify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterInsertOrModify(obj: AddressDO, operationType: OperationType) {
         synchronized(addressMap) {
-            addressMap.remove(changedObject.id)
+            addressMap.remove(obj.id)
         }
     }
 

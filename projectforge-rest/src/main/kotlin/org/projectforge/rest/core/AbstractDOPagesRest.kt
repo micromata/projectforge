@@ -61,7 +61,7 @@ constructor(
     }
   }
 
-  override fun processResultSetBeforeExport(
+  override fun postProcessResultSet(
     resultSet: ResultSet<O>,
     request: HttpServletRequest,
     magicFilter: MagicFilter,

@@ -71,7 +71,7 @@ open class AddressbookCache : AbstractCache(), BaseDOModifiedListener<Addressboo
      * After modification of any address (insert, update, delete, undelete) this address should be removed from
      * this cache.
      */
-    override fun afterInsertOrModify(changedObject: AddressbookDO, operationType: OperationType) {
+    override fun afterInsertOrModify(obj: AddressbookDO, operationType: OperationType) {
         setExpired()
     }
 
