@@ -23,6 +23,7 @@
 
 package org.projectforge.config;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -32,10 +33,7 @@ import org.projectforge.business.user.filter.WicketUserFilter;
 import org.projectforge.caldav.config.PFMiltonInit;
 import org.projectforge.common.EmphasizedLogSupport;
 import org.projectforge.model.rest.RestPaths;
-import org.projectforge.rest.config.CORSFilter;
-import org.projectforge.rest.config.LocaleFilter;
-import org.projectforge.rest.config.Rest;
-import org.projectforge.rest.config.RestUtils;
+import org.projectforge.rest.config.*;
 import org.projectforge.security.LoggingFilter;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.OrphanedLinkFilter;
@@ -60,8 +58,8 @@ public class WebXMLInitializer implements ServletContextInitializer {
     @Value("${projectforge.security.csp-header-value:}") // defaults to empty string
     private String cspHeaderValue;
 
-    @Value("${projectforge.web.development.enableCORSFilter:false}")
-    private boolean webDevelopmentEnableCORSFilter;
+    @Autowired
+    private CORSFilterConfiguration corsFilterConfig;
 
     private static final String PARAM_APP_BEAN = "applicationBean";
 
@@ -94,7 +92,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
         sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
                 "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
 
-        if (webDevelopmentEnableCORSFilter) {
+        if (corsFilterConfig.getEnabled()) {
             new EmphasizedLogSupport(log)
                     .log("ATTENTION!")
                     .log("")
