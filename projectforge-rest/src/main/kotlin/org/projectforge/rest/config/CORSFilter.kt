@@ -48,20 +48,27 @@ class CORSFilter : Filter {
     val request = servletRequest as HttpServletRequest
     servletResponse as HttpServletResponse
     val origin = request.getHeader("Origin")
-    if (origin != null && !origin.isEmpty()) {
-      servletResponse.addHeader("Access-Control-Allow-Origin", origin)
+    if (origin.isNullOrEmpty()) {
+      // ChatGPT: Optionally, you can set a fallback for no Origin header, but "*" cannot be used with credentials
+      servletResponse.addHeader("Access-Control-Allow-Origin", CORSFilterConfiguration.defaultOrigin)
+      // servletResponse.addHeader("Access-Control-Allow-Origin", "*")
     } else {
-      servletResponse.addHeader("Access-Control-Allow-Origin", "*")
+      servletResponse.addHeader("Access-Control-Allow-Origin", origin)
     }
     // Authorize (allow) all domains(the domain the request came from) to consume the content
     //servletResponse.addHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
     servletResponse.addHeader("Access-Control-Allow-Methods", "GET, OPTIONS, HEAD, PUT, POST, DELETE")
     servletResponse.addHeader("Access-Control-Allow-Credentials", "true")
-    servletResponse.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
     // "Content-Disposition" for filenames of downloads.
     servletResponse.addHeader("Access-Control-Expose-Headers", "Content-Disposition")
+    servletResponse.addHeader("Referrer-Policy", "unsafe-url")
     // For HTTP OPTIONS verb/method reply with ACCEPTED status code -- per CORS handshake
-    if (request.method == "OPTIONS") {
+    if (request.method.equals("OPTIONS", ignoreCase = true)) {
+      // Preflight request handling
+      // Add Access-Control-Max-Age to cache preflight requests
+      servletResponse.addHeader("Access-Control-Max-Age", "3600")
+      // Add Access-Control-Allow-Headers to handle custom headers sent by the client
+      servletResponse.addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept")
       servletResponse.status = HttpServletResponse.SC_OK
       // servletResponse.status = HttpServletResponse.SC_ACCEPTED
       return
