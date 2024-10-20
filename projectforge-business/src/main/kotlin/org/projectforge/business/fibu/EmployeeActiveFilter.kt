@@ -21,28 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.business.fibu
 
-import org.projectforge.business.fibu.KostFormatter
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.KostentraegerStatus
+import org.projectforge.framework.configuration.ApplicationContextProvider
+import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
-class Kost1(id: Long? = null,
-            displayName: String? = null,
-            var nummernkreis: Int = 0,
-            var bereich: Int = 0,
-            var teilbereich: Int = 0,
-            var endziffer: Int = 0,
-            var kostentraegerStatus: KostentraegerStatus? = null,
-            var description: String? = null,
-            var formattedNumber: String? = null
-) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName) {
+/**
+ * Filters active employees.
+ */
+class EmployeeActiveFilter : CustomResultFilter<EmployeeDO> {
+    override fun match(list: MutableList<EmployeeDO>, element: EmployeeDO): Boolean {
+        return employeeService.isEmployeeActive(element)
+    }
 
-    /**
-     * @see copyFromMinimal
-     */
-    constructor(src: Kost1DO) : this() {
-        copyFromMinimal(src)
-        formattedNumber = KostFormatter.format(src)
+    companion object {
+        private val employeeService = ApplicationContextProvider.getApplicationContext().getBean(
+            EmployeeService::class.java
+        )
     }
 }

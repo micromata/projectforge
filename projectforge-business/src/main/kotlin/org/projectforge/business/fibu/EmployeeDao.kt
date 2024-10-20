@@ -34,12 +34,10 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.util.*
 
 private val log = KotlinLogging.logger {}
@@ -151,17 +149,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         val queryFilter = QueryFilter(filter)
         var employees = select(queryFilter, checkAccess = false)
         if (showOnlyActiveEntries) {
-            val now = LocalDate.now()
             employees = employees.filter { employee ->
-                val user = employee.user
-                if (employee.austrittsDatum == null && (user == null || user.deactivated || user.deleted)) {
-                    false
-                    // } else if (employee.eintrittsDatum != null && now.isBefore(employee.eintrittsDatum)) {
-                    //  false
-                } else {
-                    // Show also deleted users if austrittsdatum not long ago
-                    employee.austrittsDatum == null || !now.minusMonths(3).isAfter(employee.austrittsDatum)
-                }
+                employeeService.isEmployeeActive(employee)
             }
         }
         setEmployeeStatus(employees)
