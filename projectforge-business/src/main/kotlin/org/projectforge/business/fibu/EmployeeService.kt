@@ -33,11 +33,9 @@ import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -113,12 +111,13 @@ class EmployeeService {
 
     fun isEmployeeActive(employee: EmployeeDO): Boolean {
         employee.austrittsDatum.let { austrittsdatum ->
-            if (austrittsdatum == null) {
-                return true
-            }
-            val now = now()
-            val date = from(austrittsdatum)
-            return now.isBefore(date)
+            val user = employee.user
+            val quitDate = employee.austrittsDatum
+                ?: // No quit date given. Employee is active if user is not deleted or deactivated.
+                return user != null && !user.deactivated && !user.deleted
+
+            val now = LocalDate.now()
+            return !now.minusMonths(3).isAfter(quitDate)
         }
     }
 

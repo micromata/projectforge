@@ -104,6 +104,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
      * Field will be set by EmployeeDao automatically from validity period attr.
      * Field for convenience only. It's not persisted.
      */
+    @PropertyInfo(i18nKey = "fibu.employee.status")
     @get:Transient
     open var status: EmployeeStatus? = null
         internal set

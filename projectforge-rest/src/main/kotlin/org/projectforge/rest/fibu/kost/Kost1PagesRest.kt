@@ -39,9 +39,7 @@ import jakarta.servlet.http.HttpServletRequest
 @RequestMapping("${Rest.URL}/cost1")
 class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::class.java, "fibu.kost1.title") {
     override fun transformFromDB(obj: Kost1DO, editMode: Boolean): Kost1 {
-        val kost1 = Kost1()
-        kost1.copyFrom(obj)
-        kost1.formattedNumber = KostFormatter.format(obj)
+        val kost1 = Kost1(obj)
         return kost1
     }
 
