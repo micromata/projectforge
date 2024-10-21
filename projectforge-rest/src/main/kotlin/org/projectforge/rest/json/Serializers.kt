@@ -134,7 +134,7 @@ class Kost1DOSerializer : StdSerializer<Kost1DO>(Kost1DO::class.java) {
             return
         }
         val kost1 = Kost1(value.id, nummernkreis = value.nummernkreis, bereich = value.bereich, teilbereich = value.teilbereich, endziffer = value.endziffer,
-                description = value.description, formattedNumber = value.formattedNumber)
+                description = value.description)
         jgen.writeObject(kost1)
     }
 }

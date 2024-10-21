@@ -164,8 +164,8 @@ class User(
         }
       }
       assignedGroups = newAssignedGroups.sortedBy { it.displayName?.lowercase() }.toMutableList()
-      PFUserDOConverter.readLdapUserValues(src.ldapValues)?.let { src ->
-        ldapValues = UserLdapValues.create(src)
+      PFUserDOConverter.readLdapUserValues(src.ldapValues)?.let { srcValues ->
+        ldapValues = UserLdapValues.create(srcValues)
       }
     }
   }

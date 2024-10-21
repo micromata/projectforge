@@ -408,7 +408,7 @@ open class UserGroupCache : AbstractCache() {
         val uMap: MutableMap<Long, PFUserDO?> = HashMap()
         // Could not autowire UserDao because of cyclic reference with AccessChecker.
         log.info("Loading all users ...")
-        persistenceService.runIsolatedReadOnly { context ->
+        persistenceService.runIsolatedReadOnly { _ ->
             val users = Login.getInstance().allUsers
             users.forEach { user ->
                 user.id?.let { userId ->

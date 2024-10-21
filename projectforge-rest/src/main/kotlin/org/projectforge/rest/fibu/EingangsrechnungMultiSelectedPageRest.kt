@@ -151,8 +151,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
         param.localDateValue?.let {
           if (!massUpdateData.containsKey("zahlBetrag")) {
             // Add parameter for excel export:
-            val param = MassUpdateParameter()
-            massUpdateData["zahlBetrag"] = param
+            val massParam = MassUpdateParameter()
+            massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = param.localDateValue
           invoice.zahlBetrag = invoice.grossSumWithDiscount
@@ -167,8 +167,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
         if (param.delete == true) {
           if (!massUpdateData.containsKey("zahlBetrag")) {
             // Add parameter for excel export:
-            val param = MassUpdateParameter()
-            massUpdateData["zahlBetrag"] = param
+            val massParam = MassUpdateParameter()
+            massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = null
           invoice.zahlBetrag = null

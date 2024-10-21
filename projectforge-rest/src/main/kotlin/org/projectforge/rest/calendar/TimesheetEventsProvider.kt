@@ -88,91 +88,89 @@ class TimesheetEventsProvider {
         val timesheetStyle = CalendarStyle(settings.timesheetsColorOrDefault)
         val timesheetStatsStyle = CalendarStyle(settings.timesheetsStatsColorOrDefault)
 
-        if (timesheets != null) {
-            var breaksCounter = 0
-            var lastStopTime: PFDateTime? = null
-            for (timesheet in timesheets) {
-                val startTime = PFDateTime.fromOrNow(timesheet.startTime)
-                val stopTime = PFDateTime.fromOrNow(timesheet.stopTime)
-                if (stopTime.isBefore(start) || startTime.isAfter(end)) {
-                    // Time sheet doesn't match time period start - end.
-                    continue
-                }
-                if (showBreaks == true) {
-                    if (lastStopTime != null &&
-                        stopTime.isSameDay(lastStopTime) &&
-                        startTime.epochSeconds - lastStopTime.epochSeconds > 60 // Must be longer than 1 minute
-                    ) {
-                        // Show breaks between time sheets of one day (> 60s).
-                        events.add(
-                            FullCalendarEvent.createEvent(
-                                id = ++breaksCounter,
-                                category = FullCalendarEvent.Category.TIMESHEET_BREAK,
-                                start = lastStopTime.utilDate,
-                                end = startTime.utilDate,
-                                title = translate("timesheet.break"),
-                                classNames = "timesheet-break",
-                                style = breakStyle,
-                                calendarSettings = settings,
-                            )
-                        )
-                        // val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
-                        //  .setStopDate(startTime.millis)
-                        // breaksMap.put(breakId, breakTimesheet)
-                    }
-                    lastStopTime = stopTime
-                }
-                val title: String = CalendarHelper.getTitle(timesheet)
-                val description = CalendarHelper.getDescription(timesheet)
-                val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration())
-                /*var outOfRange: Boolean? = null
-                //if (ctx.longFormat) {
-                // }
-                if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
-                  outOfRange = true
-                }*/
-                //val link = "timesheet/edit/${timesheet.id}"
-                FullCalendarEvent.createEvent(
-                    id = timesheet.id,
-                    category = FullCalendarEvent.Category.TIMESHEET,
-                    title = title,
-                    description = description,
-                    start = timesheet.startTime!!,
-                    end = timesheet.stopTime!!,
-                    editable = true,
-                    formattedDuration = formattedDuration,
-                    classNames = "timesheet",
-                    dbId = timesheet.id,
-                    style = timesheetStyle,
-                    calendarSettings = settings,
-                ).let { event ->
-                    events.add(event)
-                    val tooltipBuilder = TooltipBuilder()
-                    timesheet.kost2?.let { kost2 ->
-                        tooltipBuilder.addPropRow(
-                            translate("fibu.kost2"),
-                            KostFormatter.instance.formatKost2(kost2, formatType = KostFormatter.FormatType.TEXT, 60)
-                        )
-                    }
-                    tooltipBuilder
-                        .addPropRow(
-                            translate("task"),
-                            TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML, abreviationLength = 60),
-                            escapeHtml = false,
-                        )
-                        .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
-                        .addPropRow(translate("description"), timesheet.description, pre = true, abbreviate = true)
-                    event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipBuilder)
-                }
-
-                val duration = timesheet.getDuration()
-                if (ctx.month == null || ctx.month == startTime.month) {
-                    ctx.totalDuration += duration
-                    ctx.addDurationOfDay(startTime.dayOfMonth, duration)
-                }
-                val dayOfYear = startTime.dayOfYear
-                ctx.addDurationOfDayOfYear(dayOfYear, duration)
+        var breaksCounter = 0
+        var lastStopTime: PFDateTime? = null
+        for (timesheet in timesheets) {
+            val startTime = PFDateTime.fromOrNow(timesheet.startTime)
+            val stopTime = PFDateTime.fromOrNow(timesheet.stopTime)
+            if (stopTime.isBefore(start) || startTime.isAfter(end)) {
+                // Time sheet doesn't match time period start - end.
+                continue
             }
+            if (showBreaks == true) {
+                if (lastStopTime != null &&
+                    stopTime.isSameDay(lastStopTime) &&
+                    startTime.epochSeconds - lastStopTime.epochSeconds > 60 // Must be longer than 1 minute
+                ) {
+                    // Show breaks between time sheets of one day (> 60s).
+                    events.add(
+                        FullCalendarEvent.createEvent(
+                            id = ++breaksCounter,
+                            category = FullCalendarEvent.Category.TIMESHEET_BREAK,
+                            start = lastStopTime.utilDate,
+                            end = startTime.utilDate,
+                            title = translate("timesheet.break"),
+                            classNames = "timesheet-break",
+                            style = breakStyle,
+                            calendarSettings = settings,
+                        )
+                    )
+                    // val breakTimesheet = TimesheetDO().setStartDate(lastStopTime.toDate())
+                    //  .setStopDate(startTime.millis)
+                    // breaksMap.put(breakId, breakTimesheet)
+                }
+                lastStopTime = stopTime
+            }
+            val title: String = CalendarHelper.getTitle(timesheet)
+            val description = CalendarHelper.getDescription(timesheet)
+            val formattedDuration = FullCalendarEvent.formatDuration(timesheet.getDuration())
+            /*var outOfRange: Boolean? = null
+            //if (ctx.longFormat) {
+            // }
+            if (ctx.month != null && startTime.month != ctx.month && stopTime.month != ctx.month) {
+              outOfRange = true
+            }*/
+            //val link = "timesheet/edit/${timesheet.id}"
+            FullCalendarEvent.createEvent(
+                id = timesheet.id,
+                category = FullCalendarEvent.Category.TIMESHEET,
+                title = title,
+                description = description,
+                start = timesheet.startTime!!,
+                end = timesheet.stopTime!!,
+                editable = true,
+                formattedDuration = formattedDuration,
+                classNames = "timesheet",
+                dbId = timesheet.id,
+                style = timesheetStyle,
+                calendarSettings = settings,
+            ).let { event ->
+                events.add(event)
+                val tooltipBuilder = TooltipBuilder()
+                timesheet.kost2?.let { kost2 ->
+                    tooltipBuilder.addPropRow(
+                        translate("fibu.kost2"),
+                        KostFormatter.instance.formatKost2(kost2, formatType = KostFormatter.FormatType.TEXT, 60)
+                    )
+                }
+                tooltipBuilder
+                    .addPropRow(
+                        translate("task"),
+                        TaskFormatter.getTaskPath(timesheet.taskId, true, OutputType.HTML, abreviationLength = 60),
+                        escapeHtml = false,
+                    )
+                    .addPropRow(translate("timesheet.location"), timesheet.location, abbreviate = true)
+                    .addPropRow(translate("description"), timesheet.description, pre = true, abbreviate = true)
+                event.setTooltip("${translate("timesheet")}: ${timesheetUser?.displayName}", tooltipBuilder)
+            }
+
+            val duration = timesheet.getDuration()
+            if (ctx.month == null || ctx.month == startTime.month) {
+                ctx.totalDuration += duration
+                ctx.addDurationOfDay(startTime.dayOfMonth, duration)
+            }
+            val dayOfYear = startTime.dayOfYear
+            ctx.addDurationOfDayOfYear(dayOfYear, duration)
         }
         if (showStatistics) { // Show statistics: duration of every day is shown as all day event.
             var day = start

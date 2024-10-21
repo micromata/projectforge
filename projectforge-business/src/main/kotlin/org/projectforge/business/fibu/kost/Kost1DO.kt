@@ -57,9 +57,11 @@ import org.projectforge.framework.persistence.search.ClassBridge
 )
 open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
 
-    override val displayName: String
+    override var displayName: String? = null
         @Transient
-        get() = KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.TEXT)
+        get() {
+            return field ?: KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.FORMATTED_NUMBER)
+        }
 
     @PropertyInfo(i18nKey = "status")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)

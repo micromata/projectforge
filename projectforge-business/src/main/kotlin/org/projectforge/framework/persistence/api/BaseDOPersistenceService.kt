@@ -93,6 +93,10 @@ class BaseDOPersistenceService {
         checkAccess: Boolean,
         logMessage: Boolean = baseDao?.logDatabaseActions ?: true,
     ) {
+        if (checkAccess) {
+            accessChecker.checkRestrictedOrDemoUser()
+            baseDao?.checkLoggedInUserInsertAccess(obj)
+        }
         persistenceService.runInTransaction { context ->
             baseDao?.changedRegistry?.onInsert(obj)
             baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.INSERT)

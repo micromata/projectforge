@@ -70,7 +70,6 @@ object MultiSelectionExcelExport {
         firstRow.createCell().setCellStyle(boldStyle) // empty cells (identifier cells, default is "Element").
       }
       val modifiedFields = mutableSetOf<String>()
-      val colWidth = mutableMapOf<String, Int>() // key is field name.
       massUpdateContext.massUpdateObjects.forEach { massUpdateObject ->
         massUpdateObject.fieldModifications.forEach { (field, modification) ->
           if (!modifiedFields.contains(field)) {
@@ -85,7 +84,7 @@ object MultiSelectionExcelExport {
         sheet.registerColumns(head)
       }
       headRow.fillHeadRow()
-      massUpdateContext.massUpdateData.forEach { (field, param) ->
+      massUpdateContext.massUpdateData.forEach { (field, _) ->
         if (modifiedFields.contains(field)) {
           val colNumber = firstRow.createCell().setCellValue(multiSelectedPage.getFieldTranslation(field)).colNumber
           firstRow.createCell()

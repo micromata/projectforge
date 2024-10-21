@@ -196,7 +196,7 @@ open class ForecastExport { // open needed by Wicket.
         order.projektId?.let { projektId ->
           ctx.projectIds.add(projektId)
         }
-        order?.id?.let { ctx.orderMap[it] = order }
+        order.id?.let { ctx.orderMap[it] = order }
         order.positionen?.forEach { pos ->
           pos.id?.let {
             ctx.orderPositionMap[it] = pos // Register all order positions for invoice handling.

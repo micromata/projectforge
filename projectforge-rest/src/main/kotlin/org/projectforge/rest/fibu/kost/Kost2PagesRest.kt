@@ -44,7 +44,7 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
     override fun transformFromDB(obj: Kost2DO, editMode: Boolean): Kost2 {
         val kost2 = Kost2()
         kost2.copyFrom(obj)
-        kost2.formattedNumber = KostFormatter.instance.formatKost2(obj, KostFormatter.FormatType.FORMATTED_NUMBER)
+        kost2.displayName = KostFormatter.instance.formatKost2(obj, KostFormatter.FormatType.TEXT)
         if (obj.projekt != null) {
             kost2.project = Project()
             kost2.project!!.copyFrom(obj.projekt!!)

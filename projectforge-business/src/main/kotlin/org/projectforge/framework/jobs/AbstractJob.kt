@@ -241,7 +241,7 @@ abstract class AbstractJob(
     if (area != newJob.area) {
       return null
     }
-    var blocked = false
+    val blocked: Boolean
     when (newJob.queueStrategy) {
       QueueStrategy.PER_QUEUE_AND_USER, QueueStrategy.REFUSE_PER_QUEUE_AND_USER -> {
         blocked = ownerId == newJob.ownerId

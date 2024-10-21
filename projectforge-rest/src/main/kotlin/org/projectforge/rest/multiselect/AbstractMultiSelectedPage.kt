@@ -392,8 +392,8 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
         // Do nothing.
       }
     }
-    downloadFileSupport.getDownloadFile(request)?.let { download ->
-      val download = DownloadFileSupport.Download(download)
+    downloadFileSupport.getDownloadFile(request)?.let { downloadFile ->
+      val download = DownloadFileSupport.Download(downloadFile)
       variables["download"] = download
       layout.add(
         UIRow().add(

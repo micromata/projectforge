@@ -201,13 +201,14 @@ class HistoryValueService private constructor() {
         return translate(i18nEnum.i18nKey)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     internal fun formatBinary(valueString: String): String {
         return "[...]"
     }
 
     internal fun formatEntity(valueString: String, propertyType: String): String {
         val clazz = getClass(propertyType) ?: return valueString
-        return valueString
+        return "${clazz.simpleName}#${valueString}"
     }
 
     internal fun getDBObjects(context: DisplayHistoryEntry.Context): List<Any> {

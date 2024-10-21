@@ -159,7 +159,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
     fun exportExcel(request: HttpServletRequest): ResponseEntity<*> {
         val data = getSessionData(request)
         log.info { "Exporting Excel sheet with vacations of groups=[${data?.groups?.joinToString { it.displayName ?: "???" }}] and users=[${data?.employees?.joinToString { it.displayName ?: "???" }}]" }
-        return persistenceService.runReadOnly { context ->
+        return persistenceService.runReadOnly { _ ->
             val employees = mutableSetOf<EmployeeDO>()
             data?.employees?.forEach { employee ->
                 if (employees.none { it.id == employee.id }) {
