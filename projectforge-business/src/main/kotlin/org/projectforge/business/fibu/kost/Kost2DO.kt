@@ -68,9 +68,11 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
         internal const val FIND_ACTIVES_BY_NK_BEREICH_TEILBEREICH = "Kost2DO_FindActivesByNKBereichTeilbereich"
     }
 
-    override val displayName: String
+    override var displayName: String? = null
         @Transient
-        get() = KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.TEXT)
+        get() {
+            return field ?: KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.FORMATTED_NUMBER)
+        }
 
     @PropertyInfo(i18nKey = "status")
     @FullTextField
@@ -143,7 +145,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      */
     val formattedNumber: String
         @Transient
-        get() = OldKostFormatter.format(this)
+        get() = KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
      * @see OldKostFormatter.formatToolTip
@@ -208,6 +210,6 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
      * @see java.lang.Comparable.compareTo
      */
     override fun compareTo(other: Kost2DO): Int {
-        return this.displayName.compareTo(other.displayName)
+        return this.displayName!!.compareTo(other.displayName!!)
     }
 }

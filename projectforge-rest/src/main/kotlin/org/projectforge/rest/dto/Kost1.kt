@@ -36,7 +36,6 @@ class Kost1(
     var endziffer: Int = 0,
     var kostentraegerStatus: KostentraegerStatus? = null,
     var description: String? = null,
-    var formattedNumber: String? = null
 ) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName) {
 
     /**
@@ -44,6 +43,6 @@ class Kost1(
      */
     constructor(src: Kost1DO) : this() {
         copyFromMinimal(src)
-        formattedNumber = KostFormatter.instance.formatKost1(src, KostFormatter.FormatType.FORMATTED_NUMBER)
+        displayName = KostFormatter.instance.formatKost1(src, KostFormatter.FormatType.TEXT)
     }
 }

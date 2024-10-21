@@ -294,8 +294,8 @@ open class PasswordResetPageRest : AbstractDynamicPageRest() {
    */
   private fun securityCheck(request: HttpServletRequest, type: My2FAType? = null): SecurityCheckResult {
     val data = getSessionData(request)
-    data?.let { data ->
-      return SecurityCheckResult(data)
+    data?.let {
+      return SecurityCheckResult(it)
     }
     SecurityLogging.logSecurityWarn(
       request,

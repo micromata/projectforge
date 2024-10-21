@@ -218,12 +218,12 @@ open class LoginService {
             session.invalidate()
         }
         cookieService.clearAllCookies(request, response)
-        user?.let { user ->
-            userXmlPreferencesCache.flushToDB(user.id)
-            userXmlPreferencesCache.clear(user.id)
-            userPrefCache.flushToDB(user.id)
-            userPrefCache.clear(user.id)
-            log.info("User '${user.username}' logged out.")
+        user?.id?.let { userId ->
+            userXmlPreferencesCache.flushToDB(userId)
+            userXmlPreferencesCache.clear(userId)
+            userPrefCache.flushToDB(userId)
+            userPrefCache.clear(userId)
+            log.info("User '${user.username}' (#$userId) logged out.")
         }
     }
 
