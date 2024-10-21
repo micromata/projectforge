@@ -27,7 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.validation.INullAcceptingValidator;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
@@ -128,7 +128,7 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Long>
       setKost2Id(null); // No kost2 list given, therefore set also kost2 to null.
     } else {
       for (final Kost2DO kost2 : kost2List) {
-        kost2ChoiceRenderer.addValue(kost2.getId(), KostFormatter.formatForSelection(kost2));
+        kost2ChoiceRenderer.addValue(kost2.getId(), OldKostFormatter.formatForSelection(kost2));
       }
     }
     setChoiceRenderer(kost2ChoiceRenderer);

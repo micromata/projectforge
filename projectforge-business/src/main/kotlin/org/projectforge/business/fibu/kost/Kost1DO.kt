@@ -23,35 +23,43 @@
 
 package org.projectforge.business.fibu.kost
 
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.TypeBinding
 import org.projectforge.framework.persistence.search.ClassBridge
 
 @Entity
 @Indexed
 @TypeBinding(binder = TypeBinderRef(type = HibernateSearchKost1TypeBinder::class))
 @ClassBridge(name = "nummer") // nummer should be used in HibernateSearchKost1Bridge as field name.
-@Table(name = "T_FIBU_KOST1", uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])])
+@Table(
+    name = "T_FIBU_KOST1",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["nummernkreis", "bereich", "teilbereich", "endziffer"])]
+)
 //@WithHistory
 @NamedQueries(
-        NamedQuery(name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
-                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"),
-        NamedQuery(name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
-                query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"))
+    NamedQuery(
+        name = Kost1DO.FIND_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+        query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer"
+    ),
+    NamedQuery(
+        name = Kost1DO.FIND_OTHER_BY_NK_BEREICH_TEILBEREICH_ENDZIFFER,
+        query = "from Kost1DO where nummernkreis=:nummernkreis and bereich=:bereich and teilbereich=:teilbereich and endziffer=:endziffer and id!=:id"
+    )
+)
 open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = KostFormatter.format(this)
+        get() = KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.TEXT)
 
     @PropertyInfo(i18nKey = "status")
     @GenericField // was: @FullTextField(analyze = Analyze.NO)
@@ -99,11 +107,11 @@ open class Kost1DO : DefaultBaseDO(), DisplayNameCapable {
     /**
      * Format: #.###.##.##
      *
-     * @see KostFormatter.format
+     * @see KostFormatter.formatKost1
      */
     val formattedNumber: String
         @Transient
-        get() = KostFormatter.format(this)
+        get() = KostFormatter.instance.formatKost1(this, KostFormatter.FormatType.FORMATTED_NUMBER)
 
     /**
      * @see KostFormatter.getKostAsInt

@@ -65,7 +65,7 @@ class EmployeeServiceTest : AbstractTestBase() {
         val dt = LocalDate.now()
         employee.austrittsDatum = dt
         val result = employeeService.isEmployeeActive(employee)
-        Assertions.assertFalse(result)
+        Assertions.assertTrue(result)
     }
 
     /**

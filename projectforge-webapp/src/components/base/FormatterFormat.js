@@ -14,9 +14,9 @@ const formatterFormat = (
     let result = value;
     switch (dataType) {
         case 'COST1':
-            return value.formattedNumber;
+            return value.displayName || value.formattedNumber;
         case 'COST2':
-            return value.longDisplayName || value.formattedNumber;
+            return value.displayName || value.formattedNumber;
         case 'CURRENCY':
             return Intl.NumberFormat(locale, {
                 style: 'currency',

@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.kost
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import org.apache.commons.lang3.builder.HashCodeBuilder
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
@@ -35,7 +35,7 @@ import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.bridge.mapping.annotation.TypeBinderRef
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
-import org.projectforge.business.fibu.HibernateSearchAuftragsPositionTypeBinder
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.framework.persistence.search.ClassBridge
 
 @Entity
@@ -70,7 +70,7 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = KostFormatter.format(this)
+        get() = KostFormatter.instance.formatKost2(this, KostFormatter.FormatType.TEXT)
 
     @PropertyInfo(i18nKey = "status")
     @FullTextField
@@ -132,25 +132,25 @@ open class Kost2DO: DefaultBaseDO(), Comparable<Kost2DO>, DisplayNameCapable {
     /**
      * @see KostFormatter.getKostAsInt
      */
-    val nummer: Int?
+    val nummer: Int
         @Transient
         get() = KostFormatter.getKostAsInt(nummernkreis, bereich, teilbereich, kost2Art!!.id!!)
 
     /**
      * Format: #.###.##.##
      *
-     * @see KostFormatter.format
+     * @see OldKostFormatter.format
      */
     val formattedNumber: String
         @Transient
-        get() = KostFormatter.format(this)
+        get() = OldKostFormatter.format(this)
 
     /**
-     * @see KostFormatter.formatToolTip
+     * @see OldKostFormatter.formatToolTip
      */
     val toolTip: String
         @Transient
-        get() = KostFormatter.formatToolTip(this)
+        get() = OldKostFormatter.formatToolTip(this)
 
     val kost2ArtId: Long?
         @Transient

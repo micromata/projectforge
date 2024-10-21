@@ -25,7 +25,7 @@ package org.projectforge.renderer.custom;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.common.OutputType;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.scripting.NullObject;
@@ -81,7 +81,7 @@ public class MicromataFormatter extends Formatter
       if (actionFilter.getUserId() != null) {
         final Kost2DO kost2 = kostCache.getKost2(timesheet.getKost2Id());
         if (kost2 != null) {
-          row.addCell(new CellHolder(KostFormatter.format(kost2)));
+          row.addCell(new CellHolder(OldKostFormatter.format(kost2)));
         } else {
           row.addCell(new CellHolder(""));
         }

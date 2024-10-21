@@ -49,7 +49,7 @@ public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketPro
 
     public void initSortedEmployees() {
         if (sortedEmployees == null) {
-            sortedEmployees = WicketSupport.get(EmployeeDao.class).findAllActive(false);
+            sortedEmployees = WicketSupport.get(EmployeeDao.class).selectWithActiveStatus(false, true);
             Set<EmployeeDO> assignedEmployees = visitorbook.getContactPersons();
             List<EmployeeDO> removeEmployeeList = new ArrayList<>();
             if (assignedEmployees != null) {

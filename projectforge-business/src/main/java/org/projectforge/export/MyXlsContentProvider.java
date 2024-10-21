@@ -78,9 +78,9 @@ public class MyXlsContentProvider extends XlsContentProvider
       final KontoDO konto = (KontoDO) value;
       return konto.formatKonto();
     } else if (value instanceof Kost1DO) {
-      return KostFormatter.format((Kost1DO) value);
+      return OldKostFormatter.format((Kost1DO) value);
     } else if (value instanceof Kost2DO) {
-      return KostFormatter.format((Kost2DO) value);
+      return OldKostFormatter.format((Kost2DO) value);
     } else if (value instanceof KundeDO) {
       return KundeFormatter.formatKundeAsString((KundeDO) value, null);
     } else if (value instanceof ProjektDO) {

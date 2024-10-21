@@ -37,7 +37,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
@@ -176,7 +176,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
       data.setKost2(null); // No kost2 list given, therefore set also kost2 to null.
     } else {
       for (final Kost2DO kost2 : kost2List) {
-        kost2ChoiceRenderer.addValue(kost2.getId(), KostFormatter.formatForSelection(kost2));
+        kost2ChoiceRenderer.addValue(kost2.getId(), OldKostFormatter.formatForSelection(kost2));
       }
     }
     return kost2ChoiceRenderer;

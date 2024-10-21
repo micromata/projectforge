@@ -48,7 +48,7 @@ class VacationServicesRest {
         val filter = BaseSearchFilter()
         filter.searchString = searchString
         filter.setSearchFields(*autoCompleteSearchFields)
-        val employees = employeeDao.internalGetEmployeeList(filter, true)
+        val employees = employeeDao.selectWithActiveStatus(filter, checkAccess = false, showOnlyActiveEntries = true, showRecentlyLeavers = true)
         return employees.map {
             val user = User()
             user.copyFromMinimal(it.user!!)

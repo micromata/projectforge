@@ -80,7 +80,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = KostFormatter.formatProjekt(this)
+        get() = KostFormatter.instance.formatProjekt(this, KostFormatter.FormatType.TEXT)
 
     /**
      * Ziffer 5-6 von KOST2 (00-99)
@@ -176,7 +176,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
 
     val kost: String
         @Transient
-        get() = KostFormatter.format(this)
+        get() = KostFormatter.instance.formatProjekt(this)
 
     /**
      * 1. Ziffer des Kostenträgers: Ist 4 für interne Projekte (kunde nicht gegeben) ansonsten 5.

@@ -30,7 +30,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.datev.DatevImportDao;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
@@ -121,12 +121,12 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
       final Kost1DO kost1 = satz.getKost1();
       Component comp = addCell(cellRepeater, kost1 != null ? kost1.getDisplayName() : null, style);
       if (kost1 != null) {
-        WicketUtils.addTooltip(comp, KostFormatter.formatToolTip(kost1));
+        WicketUtils.addTooltip(comp, OldKostFormatter.formatToolTip(kost1));
       }
       final Kost2DO kost2 = satz.getKost2();
       comp = addCell(cellRepeater, kost2 != null ? kost2.getDisplayName() : null, style);
       if (kost2 != null) {
-        WicketUtils.addTooltip(comp, KostFormatter.formatToolTip(kost2));
+        WicketUtils.addTooltip(comp, OldKostFormatter.formatToolTip(kost2));
       }
     }
   }

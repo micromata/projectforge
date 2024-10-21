@@ -30,7 +30,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserXmlPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -130,7 +130,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
         if (employee == null) {
           return null;
         }
-        return KostFormatter.format(employee.getKost1()) + ": " + employee.getUser().getFullname();
+        return OldKostFormatter.format(employee.getKost1()) + ": " + employee.getUser().getFullname();
       }
 
       @Override
@@ -279,7 +279,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
         + " ("
         + employee.getUser().getFullname()
         + ": "
-        + KostFormatter.format(employee.getKost1())
+        + OldKostFormatter.format(employee.getKost1())
         + ")";
   }
 }

@@ -35,7 +35,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.history.HistoryEntryDO
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -63,15 +62,6 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
 
     override val defaultSortProperties: Array<SortProperty>
         get() = DEFAULT_SORT_PROPERTIES
-
-    open fun findAllActive(checkAccess: Boolean): List<EmployeeDO> {
-        val result = internalGetEmployeeList(EmployeeFilter(), true)
-        if (checkAccess) {
-            return result.filter { hasSelectAccess(it, ThreadLocalUserContext.requiredLoggedInUser) }
-        } else {
-            return result
-        }
-    }
 
     open fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
         return employeeService.getEmployeeStatus(employee)
@@ -142,15 +132,29 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         employee.kost1 = kost1
     }
 
-    open fun internalGetEmployeeList(
+    @JvmOverloads
+    open fun selectWithActiveStatus(
+        checkAccess: Boolean,
+        showOnlyActiveEntries: Boolean,
+        showRecentLeft: Boolean = false,
+    ): List<EmployeeDO> {
+        return selectWithActiveStatus(EmployeeFilter(), checkAccess, showOnlyActiveEntries, showRecentLeft)
+    }
+
+    /**
+     * @see EmployeeService.isEmployeeActive
+     */
+    open fun selectWithActiveStatus(
         filter: BaseSearchFilter,
-        showOnlyActiveEntries: Boolean = true
+        checkAccess: Boolean,
+        showOnlyActiveEntries: Boolean = true,
+        showRecentlyLeavers: Boolean = false,
     ): List<EmployeeDO> {
         val queryFilter = QueryFilter(filter)
         var employees = select(queryFilter, checkAccess = false)
         if (showOnlyActiveEntries) {
             employees = employees.filter { employee ->
-                employeeService.isEmployeeActive(employee)
+                employeeService.isEmployeeActive(employee, showRecentlyLeavers)
             }
         }
         setEmployeeStatus(employees)

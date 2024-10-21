@@ -36,9 +36,9 @@ class HibernateSearchKost1Bridge : TypeBridge<Kost1DO> {
 
     override fun write(target: DocumentElement, bridgedElement: Kost1DO, context: TypeBridgeWriteContext) {
         val sb = StringBuilder()
-        sb.append(KostFormatter.format(bridgedElement))
+        sb.append(KostFormatter.instance.formatKost1(bridgedElement, KostFormatter.FormatType.LONG))
         sb.append(' ')
-        sb.append(KostFormatter.format(bridgedElement, true))
+        sb.append(KostFormatter.instance.formatKost1(bridgedElement, KostFormatter.FormatType.FORMATTED_NUMBER))
         target.addValue("nummer", sb.toString())
     }
 }

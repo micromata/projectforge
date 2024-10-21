@@ -216,7 +216,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")));
     }
     if (isNew() == true) {
-      kost2Arts = WicketSupport.get(KostCache.class).getAllKostArts();
+      kost2Arts = WicketSupport.get(KostCache.class).getCloneOfAllKost2Arts();
     } else {
       kost2Arts = WicketSupport.get(KostCache.class).getAllKost2Arts(getData().getId());
     }

@@ -55,7 +55,7 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
     var employeeDao =  WicketSupport.get(EmployeeDao.class);
     boolean hasMore = false;
     Collection<EmployeeDO> result = new ArrayList<>();
-    Collection<EmployeeDO> employeesWithoutLoggedInUser = employeeDao.findAllActive(false);
+    Collection<EmployeeDO> employeesWithoutLoggedInUser = employeeDao.selectWithActiveStatus(false, true);
     if (CollectionUtils.isEmpty(employeesWithoutLoggedInUser)) {
       employeesWithoutLoggedInUser = new ArrayList<>();
     } else {

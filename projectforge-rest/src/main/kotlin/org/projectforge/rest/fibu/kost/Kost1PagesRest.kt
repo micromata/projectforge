@@ -23,7 +23,6 @@
 
 package org.projectforge.rest.fibu.kost
 
-import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.framework.persistence.api.MagicFilter

@@ -27,15 +27,16 @@ import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.KostentraegerStatus
 
-class Kost1(id: Long? = null,
-            displayName: String? = null,
-            var nummernkreis: Int = 0,
-            var bereich: Int = 0,
-            var teilbereich: Int = 0,
-            var endziffer: Int = 0,
-            var kostentraegerStatus: KostentraegerStatus? = null,
-            var description: String? = null,
-            var formattedNumber: String? = null
+class Kost1(
+    id: Long? = null,
+    displayName: String? = null,
+    var nummernkreis: Int = 0,
+    var bereich: Int = 0,
+    var teilbereich: Int = 0,
+    var endziffer: Int = 0,
+    var kostentraegerStatus: KostentraegerStatus? = null,
+    var description: String? = null,
+    var formattedNumber: String? = null
 ) : BaseDTODisplayObject<Kost1DO>(id, displayName = displayName) {
 
     /**
@@ -43,6 +44,6 @@ class Kost1(id: Long? = null,
      */
     constructor(src: Kost1DO) : this() {
         copyFromMinimal(src)
-        formattedNumber = KostFormatter.format(src)
+        formattedNumber = KostFormatter.instance.formatKost1(src, KostFormatter.FormatType.FORMATTED_NUMBER)
     }
 }

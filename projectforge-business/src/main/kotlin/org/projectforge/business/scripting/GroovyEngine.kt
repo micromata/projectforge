@@ -27,7 +27,7 @@ import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.common.OutputType
 import org.projectforge.business.configuration.ConfigurationService
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.task.TaskDO
@@ -293,24 +293,24 @@ class GroovyEngine @JvmOverloads constructor(
    * Gets the customer's name.
    *
    * @param customer
-   * @see KostFormatter.formatKunde
+   * @see OldKostFormatter.formatKunde
    */
   fun getString(customer: KundeDO?): String {
     return if (customer == null) {
       ""
-    } else KostFormatter.formatKunde(customer)
+    } else OldKostFormatter.formatKunde(customer)
   }
 
   /**
    * Gets the project's name.
    *
    * @param project
-   * @see KostFormatter.formatProjekt
+   * @see OldKostFormatter.formatProjekt
    */
   fun getString(project: ProjektDO?): String {
     return if (project == null) {
       ""
-    } else KostFormatter.formatProjekt(project)
+    } else OldKostFormatter.formatProjekt(project)
   }
 
   /**

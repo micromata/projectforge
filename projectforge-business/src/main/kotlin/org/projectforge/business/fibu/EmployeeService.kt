@@ -36,7 +36,6 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.time.PFDateTime.Companion.now
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -109,25 +108,45 @@ class EmployeeService {
         return employeeDao.selectDisplayHistoryEntries(obj)
     }
 
-    fun isEmployeeActive(employee: EmployeeDO): Boolean {
+    /**
+     * Returns true if the given employee is active.
+     * An employee is active if the austrittsdatum is not set or if the austrittsdatum is in the future.
+     * If showRecentLeft is true, the employee is also active if the austrittsdatum is within the last 3 months.
+     * @param employee The employee to check.
+     * @param showRecentlyLeavers If true, the employee is also active if the austrittsdatum is within the last 3 months.
+     * @return True if the employee is active.
+     */
+    fun isEmployeeActive(employee: EmployeeDO, showRecentlyLeavers: Boolean = false): Boolean {
         employee.austrittsDatum.let { austrittsdatum ->
             val user = employee.user
             val quitDate = employee.austrittsDatum
                 ?: // No quit date given. Employee is active if user is not deleted or deactivated.
-                return user != null && !user.deactivated && !user.deleted
+                return user == null || (!user.deactivated && !user.deleted) // user is only null in tests.
 
-            val now = LocalDate.now()
-            return !now.minusMonths(3).isAfter(quitDate)
+            val date = if (showRecentlyLeavers) {
+                LocalDate.now().minusMonths(3)
+            } else {
+                LocalDate.now()
+            }
+            return !date.isAfter(quitDate)
         }
     }
 
-    fun findAllActive(checkAccess: Boolean): List<EmployeeDO> {
+    /**
+     * Returns all active employees.
+     * An employee is active if the austrittsdatum is not set or if the austrittsdatum is in the future.
+     * If showRecentLeft is true, the employee is also active if the austrittsdatum is within the last 3 months.
+     * @param checkAccess If true, the logged in user must have access to the employee.
+     * @param showRecentLeft If true, the employee is also active if the austrittsdatum is within the last 3 months.
+     * @return List of active employees.
+     */
+    fun findAllActive(checkAccess: Boolean, showRecentLeft: Boolean = false): List<EmployeeDO> {
         val employeeList: Collection<EmployeeDO> = if (checkAccess) {
             employeeDao.select(EmployeeFilter())
         } else {
             employeeDao.selectAll(checkAccess = false)
         }
-        return employeeList.filter { employee -> isEmployeeActive(employee) }
+        return employeeList.filter { employee -> isEmployeeActive(employee, showRecentLeft) }
     }
 
     fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
