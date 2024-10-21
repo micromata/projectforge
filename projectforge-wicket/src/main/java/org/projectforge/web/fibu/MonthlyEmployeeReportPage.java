@@ -182,7 +182,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          final EmployeeDO employee = WicketSupport.get(EmployeeService.class).getEmployeeByUserId(form.filter.getUserId());
+          final EmployeeDO employee = WicketSupport.get(EmployeeService.class).findByUserId(form.filter.getUserId());
           PFDay startOfWorkContract = PFDay.now().getBeginOfMonth();
           if (employee != null && employee.getEintrittsDatum() != null) {
             startOfWorkContract = PFDay.from(employee.getEintrittsDatum());

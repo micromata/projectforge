@@ -133,7 +133,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
         }
 
         //Assertions.assertEquals(4, historyEntries.size) // Employee inserted, 2xannualleave inserted by createEmployee(), 1 status inserted
-        employeeService.selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS).let { list ->
+        employeeService.selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS, deleted = null).let { list ->
             Assertions.assertEquals(1, list.size)
             employeeService.undeleteValidityPeriodAttr(employee, attr, false)
         }

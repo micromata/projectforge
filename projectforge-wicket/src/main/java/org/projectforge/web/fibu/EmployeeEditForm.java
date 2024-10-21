@@ -23,23 +23,17 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.IsoGender;
 import org.projectforge.business.fibu.EmployeeService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WicketSupport;
-import org.projectforge.web.common.BicValidator;
-import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.flowlayout.*;
@@ -80,7 +74,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       userSelectPanel.add((IValidator<PFUserDO>) validatable -> {
         PFUserDO user = validatable.getModel().getObject();
         if (user != null && user.getId() != null) {
-          EmployeeDO employeeByUserId = WicketSupport.get(EmployeeService.class).getEmployeeByUserId(user.getId());
+          EmployeeDO employeeByUserId = WicketSupport.get(EmployeeService.class).findByUserId(user.getId());
           if (employeeByUserId != null && employeeByUserId.getId().equals(data.getId()) == false) {
             validatable.error(new ValidationError().addKey("fibu.employee.error.employeWithUserExists"));
           }

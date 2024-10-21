@@ -136,7 +136,7 @@ public class EmployeeSalaryExcelImporter
     EmployeeDO employee;
     EmployeeSalaryDO employeeSalary = null;
     if (row.getStaffnumber() != null) {
-      employee = employeeService.getEmployeeByStaffnumber(row.getStaffnumber());
+      employee = employeeService.findByStaffnumber(row.getStaffnumber());
       // validate ID and USER: make sure that full name has not changed
       if (employee == null) {
         element.putErrorProperty(I18nHelper.getLocalizedMessage("fibu.employee.staffNumber"), row.getStaffnumber());

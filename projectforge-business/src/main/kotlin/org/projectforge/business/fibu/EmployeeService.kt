@@ -72,11 +72,11 @@ class EmployeeService {
         employeeDao.employeeService = this
     }
 
-    fun getList(filter: BaseSearchFilter): List<EmployeeDO> {
+    fun select(filter: BaseSearchFilter): List<EmployeeDO> {
         return employeeDao.select(filter)
     }
 
-    fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
+    fun findByUserId(userId: Long?): EmployeeDO? {
         return employeeDao.findByUserId(userId)
     }
 
@@ -140,7 +140,7 @@ class EmployeeService {
      * @param showRecentLeft If true, the employee is also active if the austrittsdatum is within the last 3 months.
      * @return List of active employees.
      */
-    fun findAllActive(checkAccess: Boolean, showRecentLeft: Boolean = false): List<EmployeeDO> {
+    fun selectAllActive(checkAccess: Boolean, showRecentLeft: Boolean = false): List<EmployeeDO> {
         val employeeList: Collection<EmployeeDO> = if (checkAccess) {
             employeeDao.select(EmployeeFilter())
         } else {
@@ -149,19 +149,25 @@ class EmployeeService {
         return employeeList.filter { employee -> isEmployeeActive(employee, showRecentLeft) }
     }
 
-    fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
+    fun findByStaffnumber(staffnumber: String): EmployeeDO? {
         return employeeDao.getEmployeeByStaffnumber(staffnumber)
     }
 
-    fun getAll(checkAccess: Boolean): List<EmployeeDO> {
-        return if (checkAccess) employeeDao.select(EmployeeFilter()) else employeeDao.selectAll(checkAccess = false)
-    }
-
+    /**
+     * @param employee The employee to select the attribute for.
+     * @param type The type of the attribute to select.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     */
     internal fun selectAllValidityPeriodAttrs(
         employee: EmployeeDO,
         type: EmployeeValidityPeriodAttrType? = null,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true,
     ): List<EmployeeValidityPeriodAttrDO> {
         requireNotNull(employee.id) { "Employee id must not be null." }
+        if (checkAccess) {
+            employeeDao.checkLoggedInUserSelectAccess(employee)
+        }
         val list = if (type != null) {
             persistenceService.executeQuery(
                 "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.type = :type order by a.validFrom desc",
@@ -176,11 +182,28 @@ class EmployeeService {
                 Pair("employeeId", employee.id),
             )
         }
+        if (deleted != null) {
+            return list.filter { it.deleted == deleted }
+        }
         return list
     }
 
-    fun getEmployeeStatus(employee: EmployeeDO): EmployeeStatus? {
-        val list = selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS)
+    /**
+     * @param employee The employee to select the attribute for.
+     * @param checkAccess If true, the logged in user must have access to the employee.
+     * @return The attribute that is currently valid.
+     */
+    fun getEmployeeStatus(
+        employee: EmployeeDO,
+        deleted: Boolean? = null,
+        checkAccess: Boolean = true
+    ): EmployeeStatus? {
+        val list = selectAllValidityPeriodAttrs(
+            employee,
+            EmployeeValidityPeriodAttrType.STATUS,
+            deleted = false,
+            checkAccess = checkAccess
+        )
         val validEntry = getActiveEntry(list)
         val status = validEntry?.value
         if (status != null) {
@@ -201,7 +224,10 @@ class EmployeeService {
         if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
             return null
         }
-        return getActiveEntry(getAnnualLeaveDayEntries(employee), validAtDate)?.value?.toBigDecimal()
+        return getActiveEntry(
+            selectAnnualLeaveDayEntries(employee, deleted = false),
+            validAtDate
+        )?.value?.toBigDecimal()
     }
 
     private fun ensure(validAtDate: LocalDate?): LocalDate {
@@ -216,7 +242,7 @@ class EmployeeService {
         // example
         // null (active before 2021-01-01), 2021-01-01, 2023-05-08 (active)
         val useDate = validAtDate ?: LocalDate.now()
-        entries.forEach { entry ->
+        entries.filter { !it.deleted }.forEach { entry ->
             if (useDate >= ensure(entry.validFrom)) {
                 found.let { f ->
                     if (f == null) {
@@ -230,9 +256,22 @@ class EmployeeService {
         return found
     }
 
-    fun getAnnualLeaveDayEntries(employee: EmployeeDO): List<EmployeeValidityPeriodAttrDO> {
-        val list = selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
-        return list
+    /**
+     * @param employee The employee to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged in user must have access to the employee.
+     */
+    fun selectAnnualLeaveDayEntries(
+        employee: EmployeeDO,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidityPeriodAttrDO> {
+        return selectAllValidityPeriodAttrs(
+            employee,
+            EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+            deleted = deleted,
+            checkAccess = checkAccess
+        )
     }
 
     fun insertAnnualLeaveDays(
@@ -246,6 +285,24 @@ class EmployeeService {
             validFrom,
             annualLeaveDays.toString(),
             EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+            checkAccess = checkAccess,
+        )
+    }
+
+    /**
+     * @param employee The employee to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged in user must have access to the employee.
+     */
+    fun selectStatusEntries(
+        employee: EmployeeDO,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidityPeriodAttrDO> {
+        return selectAllValidityPeriodAttrs(
+            employee,
+            EmployeeValidityPeriodAttrType.STATUS,
+            deleted = deleted,
             checkAccess = checkAccess,
         )
     }

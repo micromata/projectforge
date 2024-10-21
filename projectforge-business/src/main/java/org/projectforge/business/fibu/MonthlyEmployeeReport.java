@@ -212,7 +212,7 @@ public class MonthlyEmployeeReport implements Serializable {
     this.user = user;
     this.employeeService = employeeService;
     this.vacationService = vacationService;
-    setEmployee(employeeService.getEmployeeByUserId(user.getId()));
+    setEmployee(employeeService.findByUserId(user.getId()));
   }
 
   /**
@@ -239,7 +239,7 @@ public class MonthlyEmployeeReport implements Serializable {
 
   public void init() {
     if (this.user != null) {
-      this.employee = employeeService.getEmployeeByUserId(this.user.getId());
+      this.employee = employeeService.findByUserId(this.user.getId());
     }
     // Create the weeks:
     this.weeks = new ArrayList<>();

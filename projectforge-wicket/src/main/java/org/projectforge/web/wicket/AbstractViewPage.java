@@ -54,7 +54,7 @@ public abstract class AbstractViewPage extends AbstractSecuredPage
   {
     super.onInitialize();
     currentUser = ThreadLocalUserContext.getLoggedInUser();
-    currentEmployee = WicketSupport.get(EmployeeService.class).getEmployeeByUserId(currentUser.getId());
+    currentEmployee = WicketSupport.get(EmployeeService.class).findByUserId(currentUser.getId());
   }
 
   @Override

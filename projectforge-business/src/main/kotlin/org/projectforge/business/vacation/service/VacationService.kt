@@ -359,7 +359,7 @@ open class VacationService {
     }
 
     open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
-        val employee = employeeService.getEmployeeByUserId(user.id)
+        val employee = employeeService.findByUserId(user.id)
         return if (employee == null) {
             0
         } else {
@@ -377,7 +377,7 @@ open class VacationService {
     ): Boolean {
         if (user?.id == null)
             return false
-        val employee = employeeService.getEmployeeByUserId(user.id)
+        val employee = employeeService.findByUserId(user.id)
         val annualLeaveDays = employeeService.getAnnualLeaveDays(employee) ?: BigDecimal.ZERO
         return when {
             employee == null -> {
