@@ -1,3 +1,4 @@
+- Employee edit: Kost1-select: description hinzufügen.
 - customizeDisplayHistoryEntry: AddressBookDao, ... (check)
 - customizeHistoryEntries: AuftragsDao, ...  (check)
 - Besucherbuch

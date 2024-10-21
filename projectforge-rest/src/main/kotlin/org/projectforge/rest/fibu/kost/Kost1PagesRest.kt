@@ -72,4 +72,6 @@ class Kost1PagesRest : AbstractDTOPagesRest<Kost1DO, Kost1, Kost1Dao>(Kost1Dao::
                                 .add(lc, "description", "kostentraegerStatus")))
         return LayoutUtils.processEditPage(layout, dto, this)
     }
+
+    override val autoCompleteSearchFields = arrayOf("description", "nummer")
 }

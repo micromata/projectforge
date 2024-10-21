@@ -67,7 +67,7 @@ import java.util.*
 @Indexed
 //@ClassBridge(impl = HistoryMasterClassBridge::class)
 class HistoryEntryDO : HistoryEntry {
-    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Column(name = "pk")
     @get:Id
     override var id: Long? = null
