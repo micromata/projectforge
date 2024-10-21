@@ -175,7 +175,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      */
     open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
         employeeDO ?: return
-        employeeDO.status = employeeService.getEmployeeStatus(employeeDO)
+        employeeDO.status = employeeService.getEmployeeStatus(employeeDO, checkAccess = false)
     }
 
     override fun select(filter: BaseSearchFilter): List<EmployeeDO> {
@@ -217,7 +217,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
     override fun customizeHistoryEntries(obj: EmployeeDO, list: MutableList<HistoryEntryDO>) {
-        employeeService.selectAllValidityPeriodAttrs(obj).forEach { validityAttr ->
+        employeeService.selectAllValidityPeriodAttrs(obj, deleted = null).forEach { validityAttr ->
             val entries = historyService.loadHistory(validityAttr)
             mergeHistoryEntries(list, entries)
         }

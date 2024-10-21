@@ -106,7 +106,7 @@ class ConflictingVacationsCache() : AbstractCache() {
   }
 
   fun numberOfConflicts(userId: Long): Int {
-    employeeService.getEmployeeByUserId(userId)?.id?.let { employeeId ->
+    employeeService.findByUserId(userId)?.id?.let { employeeId ->
       checkRefresh()
       synchronized(allConflictingVacations) {
         return conflictingVacationsByEmployee[employeeId]?.size ?: 0

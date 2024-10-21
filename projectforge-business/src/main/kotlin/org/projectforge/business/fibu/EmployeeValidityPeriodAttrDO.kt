@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIdentityReference
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import mu.KotlinLogging
 import org.projectforge.Constants
@@ -70,17 +71,20 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
     @get:Column(name = "type", length = 30)
     open var type: EmployeeValidityPeriodAttrType? = null
 
+    @PropertyInfo(i18nKey = "attr.validFrom")
     @get:Column(name = "valid_from", nullable = false)
     open var validFrom: LocalDate? = null
 
+    @PropertyInfo(i18nKey = "value")
     @get:Column(name = "value", length = 255)
     open var value: String? = null
 
+    @PropertyInfo(i18nKey = "comment")
     @get:Column(name = "comment", length = Constants.LENGTH_TEXT)
     open var comment: String? = null
 
-
     @CandHIgnore
+    @get:JsonIgnore
     @get:Transient
     var annualLeave: BigDecimal?
         get() {
@@ -92,6 +96,8 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
             this.value = value?.toString()
         }
 
+    @CandHIgnore
+    @get:JsonIgnore
     @get:Transient
     var status: EmployeeStatus?
         get() {

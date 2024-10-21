@@ -112,7 +112,7 @@ class VacationPagesRest :
     }
     if (employeeDO == null) {
       // For non HR staff members, choose always the logged in employee:
-      employeeDO = employeeService.getEmployeeByUserId(ThreadLocalUserContext.loggedInUserId)
+      employeeDO = employeeService.findByUserId(ThreadLocalUserContext.loggedInUserId)
     }
     result.employee = createEmployee(employeeDO!!)
     vacation.manager?.let { result.manager = createEmployee(it) }

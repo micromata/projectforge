@@ -456,11 +456,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             Validate.isTrue(obj.id == null)
         }
         baseDOChangedRegistry.beforeInsertOrModify(obj, OperationType.INSERT)
-        if (checkAccess) {
-            accessChecker.checkRestrictedOrDemoUser()
-            checkLoggedInUserInsertAccess(obj)
-        }
-        return baseDOPersistenceService.insert(this, obj)!!
+        return baseDOPersistenceService.insert(this, obj, checkAccess = checkAccess)!!
     }
 
     @JvmOverloads
@@ -588,7 +584,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     @Throws(AccessException::class)
-    protected fun checkLoggedInUserSelectAccess(obj: O) {
+    fun checkLoggedInUserSelectAccess(obj: O) {
         if (!hasUserSelectAccess(requiredLoggedInUser, obj, true)) {
             // Should not occur!
             log.error("Development error: Subclass should throw an exception instead of returning false.")

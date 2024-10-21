@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.EmployeeActiveFilter
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
@@ -37,6 +38,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.dto.Employee
+import org.projectforge.rest.dto.EmployeeValidityPeriodAttr
 import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
@@ -49,6 +51,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("${Rest.URL}/employee")
 class EmployeePagesRest :
     AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
+
+    @Autowired
+    private lateinit var employeeService: EmployeeService
+
     @Autowired
     private lateinit var kostCache: KostCache
 
@@ -66,9 +72,13 @@ class EmployeePagesRest :
             }
         }
         kostCache.getKost1(obj.kost1Id)?.let { kost ->
-            employee.kost1 = Kost1(kost)
+            Kost1(kost).let { dto ->
+                employee.kost1 = dto
+            }
         }
-        employee.status = obj.status
+        employee.statusEntries = employeeService.selectStatusEntries(obj).map { EmployeeValidityPeriodAttr(it) }
+        employee.annualLeaveEntries =
+            employeeService.selectAnnualLeaveDayEntries(obj).map { EmployeeValidityPeriodAttr(it) }
         return employee
     }
 
@@ -87,7 +97,7 @@ class EmployeePagesRest :
         magicFilter: MagicFilter,
         userAccess: UILayout.UserAccess
     ) {
-        val agGrid = agGridSupport.prepareUIGrid4ListPage(
+        agGridSupport.prepareUIGrid4ListPage(
             request,
             layout,
             magicFilter,
@@ -108,14 +118,6 @@ class EmployeePagesRest :
                 "austrittsDatum",
                 "comment"
             )
-
-        /*        layout.add(UITable.createUIResultSetTable()
-                                .add(lc, "user.lastname", "user.firstname", "status", "staffNumber", "kost1")
-                                .add(lc, "position", "abteilung", "eintrittsDatum", "austrittsDatum", "comment"))
-                layout.getTableColumnById("eintrittsDatum").formatter = UITableColumn.Formatter.DATE
-                layout.getTableColumnById("austrittsDatum").formatter = UITableColumn.Formatter.DATE
-                // layout.getTableColumnById("user").formatter = UITableColumn.Formatter.USER
-                layout.getTableColumnById("kost1").formatter = UITableColumn.Formatter.COST1*/
     }
 
     override fun addMagicFilterElements(elements: MutableList<UILabelledElement>) {
@@ -173,11 +175,31 @@ class EmployeePagesRest :
             )
             .add(
                 UIRow()
-                    .add(UICol().add(lc, "statusAttr", "annualLeaveAttr"))
+                    .add(UICol().add(lc, "comment"))
             )
             .add(
                 UIRow()
-                    .add(UICol().add(lc, "comment"))
+                    .add(
+                        UICol().add(
+                            UIFieldset(title = "fibu.employee.urlaubstage").add(
+                                UIAgGrid("annualLeaveEntries")
+                                    .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
+                                    .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
+                                    .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                            )
+                        )
+                    )
+                    .add(
+                        UICol().add(
+                            UIFieldset(title = "fibu.employee.status").add(
+                                UIAgGrid("statusEntries")
+                                    .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
+                                    .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
+                                    .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment")
+                                    )
+                            )
+                        )
+                    )
             )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
@@ -188,6 +210,11 @@ class EmployeePagesRest :
         request: HttpServletRequest,
         filter: BaseSearchFilter
     ): MutableList<EmployeeDO> {
-        return baseDao.selectWithActiveStatus(filter, checkAccess = true, showOnlyActiveEntries = true, showRecentlyLeavers = true).toMutableList()
+        return baseDao.selectWithActiveStatus(
+            filter,
+            checkAccess = true,
+            showOnlyActiveEntries = true,
+            showRecentlyLeavers = true
+        ).toMutableList()
     }
 }

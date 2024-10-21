@@ -365,7 +365,7 @@ class MerlinExecutionPageRest : AbstractDynamicPageRest() {
     sheet.reset()
     if (employees) {
       // Add employees
-      employeeService.findAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
+      employeeService.selectAllActive(false).filter { it.user?.hasSystemAccess() == true }.forEach { employee ->
         val row = sheet.createRow()
         sheet.reset()
         employee.user?.let { user ->

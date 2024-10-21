@@ -25,36 +25,37 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class Employee(
-  id: Long? = null,
-  displayName: String? = null,
-  var user: User? = null,
-  var kost1: Kost1? = null,
-  var status: EmployeeStatus? = null,
-  var position: String? = null,
-  var eintrittsDatum: LocalDate? = null,
-  var austrittsDatum: LocalDate? = null,
-  var abteilung: String? = null,
-  var staffNumber: String? = null,
-  var urlaubstage: Int? = null,
-  var weeklyWorkingHours: BigDecimal? = null,
-  var comment: String? = null,
+    id: Long? = null,
+    displayName: String? = null,
+    var user: User? = null,
+    var kost1: Kost1? = null,
+    var position: String? = null,
+    var eintrittsDatum: LocalDate? = null,
+    var austrittsDatum: LocalDate? = null,
+    var abteilung: String? = null,
+    var staffNumber: String? = null,
+    var urlaubstage: Int? = null,
+    var weeklyWorkingHours: BigDecimal? = null,
+    var comment: String? = null,
 ) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
-  companion object {
-    private val employeeDao = ApplicationContextProvider.getApplicationContext().getBean(EmployeeDao::class.java)
+    var annualLeaveEntries: List<EmployeeValidityPeriodAttr>? = null
+    var statusEntries: List<EmployeeValidityPeriodAttr>? = null
 
-    /**
-     * Set display names of any existing user in the given list.
-     * @see UserService.getUser
-     */
-    fun restoreDisplayNames(employees: List<Employee>?) {
-      employees?.forEach { it.displayName = employeeDao.find(it.id, checkAccess = false)?.displayName }
+    companion object {
+        private val employeeDao = ApplicationContextProvider.getApplicationContext().getBean(EmployeeDao::class.java)
+
+        /**
+         * Set display names of any existing user in the given list.
+         * @see UserService.getUser
+         */
+        fun restoreDisplayNames(employees: List<Employee>?) {
+            employees?.forEach { it.displayName = employeeDao.find(it.id, checkAccess = false)?.displayName }
+        }
     }
-  }
 }
