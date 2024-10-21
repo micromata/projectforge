@@ -26,7 +26,7 @@ package org.projectforge.business.fibu.kost;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -241,7 +241,7 @@ public class BusinessAssessment implements Serializable {
       buf.append("business assessment (not defined in config.xml, see AdministrationGuide).");
     }
     if (year > 0) {
-      buf.append(": ").append(KostFormatter.formatBuchungsmonat(year, month));
+      buf.append(": ").append(OldKostFormatter.formatBuchungsmonat(year, month));
     }
     if (title != null) {
       buf.append(" \"").append(title).append("\"");

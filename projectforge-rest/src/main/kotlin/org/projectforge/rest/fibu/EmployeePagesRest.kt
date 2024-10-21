@@ -29,8 +29,6 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserGroupCache
-import org.projectforge.business.vacation.model.VacationConflictsFilter
-import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.MagicFilter
@@ -175,7 +173,7 @@ class EmployeePagesRest :
             )
             .add(
                 UIRow()
-                    .add(UICol().add(lc,  "statusAttr", "annualLeaveAttr"))
+                    .add(UICol().add(lc, "statusAttr", "annualLeaveAttr"))
             )
             .add(
                 UIRow()
@@ -190,6 +188,6 @@ class EmployeePagesRest :
         request: HttpServletRequest,
         filter: BaseSearchFilter
     ): MutableList<EmployeeDO> {
-        return baseDao.internalGetEmployeeList(filter, showOnlyActiveEntries = true).toMutableList()
+        return baseDao.selectWithActiveStatus(filter, checkAccess = true, showOnlyActiveEntries = true, showRecentlyLeavers = true).toMutableList()
     }
 }

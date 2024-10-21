@@ -29,7 +29,7 @@ import de.micromata.merlin.excel.importer.ImportLogger
 import de.micromata.merlin.excel.importer.ImportStorage
 import de.micromata.merlin.excel.importer.ImportedSheet
 import org.projectforge.business.fibu.KontoDao
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.kost.BuchungssatzDO
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -157,7 +157,7 @@ class BuchungssatzExcelImporter(
                 }
                 if (day.monthValue > month) {
                     val msg = "Buchungssätze können nicht in die Zukunft für den aktuellen Monat '${
-                        KostFormatter.formatBuchungsmonat(
+                        OldKostFormatter.formatBuchungsmonat(
                             year,
                             day.monthValue
                         )
@@ -166,7 +166,7 @@ class BuchungssatzExcelImporter(
                     element.putErrorProperty("datum", msg)
                 } else if (day.monthValue < month) {
                     val msg =
-                        "Buchungssatz liegt vor Monat '${KostFormatter.formatBuchungsmonat(year, month)}' (OK)."
+                        "Buchungssatz liegt vor Monat '${OldKostFormatter.formatBuchungsmonat(year, month)}' (OK)."
                     importedSheet.logger.info(msg, row, Cols.DATUM)
                 }
                 satz.year = year
@@ -206,7 +206,7 @@ class BuchungssatzExcelImporter(
             importedSheet.addElement(element)
             //log.debug(satz.toString())
         }
-        importedSheet.name = KostFormatter.formatBuchungsmonat(year, month)
+        importedSheet.name = OldKostFormatter.formatBuchungsmonat(year, month)
         importedSheet.setProperty("year", year)
         importedSheet.setProperty("month", month)
         log.info("Importing sheet '${importedSheet.name}' takes ${System.currentTimeMillis() - now}ms.")

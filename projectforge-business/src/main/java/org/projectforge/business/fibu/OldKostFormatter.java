@@ -30,7 +30,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
-public class KostFormatter {
+public class OldKostFormatter {
   public static final int MAX_VALUE = 99999999;
 
   /**

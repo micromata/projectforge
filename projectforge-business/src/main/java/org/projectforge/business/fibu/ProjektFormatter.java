@@ -108,9 +108,9 @@ public class ProjektFormatter extends BaseFormatter
       return null;
     } else if (projekt != null) {
       if (showOnlyNumber) {
-        sb.append(KostFormatter.format(projekt));
+        sb.append(KostFormatter.getInstance().formatProjekt(projekt, KostFormatter.FormatType.FORMATTED_NUMBER));
       } else {
-        sb.append(KostFormatter.formatProjekt(projekt));
+        sb.append(KostFormatter.getInstance().formatProjekt(projekt, KostFormatter.FormatType.TEXT));
       }
     }
 

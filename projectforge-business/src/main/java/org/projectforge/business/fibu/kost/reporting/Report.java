@@ -25,7 +25,7 @@ package org.projectforge.business.fibu.kost.reporting;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
@@ -376,7 +376,7 @@ public class Report implements Serializable
 
   public String getZeitraum()
   {
-    return KostFormatter.formatZeitraum(fromYear, fromMonth, toYear, toMonth);
+    return OldKostFormatter.formatZeitraum(fromYear, fromMonth, toYear, toMonth);
   }
 
   /**
@@ -390,8 +390,8 @@ public class Report implements Serializable
       public boolean evaluate(final Object obj)
       {
         final BuchungssatzDO satz = (BuchungssatzDO) obj;
-        final String kost1 = KostFormatter.format(satz.getKost1());
-        final String kost2 = KostFormatter.format(satz.getKost2());
+        final String kost1 = OldKostFormatter.format(satz.getKost1());
+        final String kost2 = OldKostFormatter.format(satz.getKost2());
 
         // 1st of all the Blacklists
         if (match(reportObjective.getKost1ExcludeRegExpList(), kost1, false)) {

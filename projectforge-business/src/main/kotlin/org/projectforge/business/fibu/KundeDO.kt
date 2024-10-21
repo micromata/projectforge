@@ -44,7 +44,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
 
     override val displayName: String
         @Transient
-        get() = KostFormatter.formatKunde(this)
+        get() = OldKostFormatter.formatKunde(this)
 
     /**
      * Kundennummer.
@@ -110,7 +110,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
      * @return "5.###" ("5.<kunde id>")</kunde> */
     open val kost: String
         @Transient
-        get() = "5." + KostFormatter.format3Digits(nummer)
+        get() = "5." + OldKostFormatter.format3Digits(nummer)
 
     /**
      * 1. Ziffer des Kostenträgers: Ist für Kunden immer 5.

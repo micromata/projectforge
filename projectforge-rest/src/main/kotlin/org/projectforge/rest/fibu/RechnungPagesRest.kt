@@ -23,7 +23,7 @@
 
 package org.projectforge.rest.fibu
 
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.framework.configuration.Configuration
@@ -168,7 +168,7 @@ class RechnungPagesRest :
     rechnung.kost1Info = kost1Sorted.joinToString(separator = " | ") { it.description ?: it.formattedNumber }
     val kost2Sorted = obj.sortedKost2
     rechnung.kost2List = kost2Sorted.joinToString { it.formattedNumber }
-    rechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { KostFormatter.format(it, 60) }
+    rechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { OldKostFormatter.format(it, 60) }
     return rechnung
   }
 }

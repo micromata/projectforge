@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.fibu.kost.KostFilter;
@@ -94,7 +94,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     if (kost2 == null) {
       return "";
     }
-    return KostFormatter.format(kost2) + " - " + KostFormatter.formatToolTip(kost2);
+    return OldKostFormatter.format(kost2) + " - " + OldKostFormatter.formatToolTip(kost2);
   }
 
   @Override
@@ -113,7 +113,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
       @Override
       public int compare(final Kost2DO o1, final Kost2DO o2)
       {
-        return (o1.getNummer().compareTo(o2.getNummer()));
+        return (Integer.valueOf(o1.getNummer()).compareTo(o2.getNummer()));
       }
     });
     return list;
@@ -134,7 +134,7 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     if (value == null) {
       return "";
     }
-    return KostFormatter.format(value) + " - " + KostFormatter.formatToolTip(value);
+    return OldKostFormatter.format(value) + " - " + OldKostFormatter.formatToolTip(value);
   }
 
   @Override

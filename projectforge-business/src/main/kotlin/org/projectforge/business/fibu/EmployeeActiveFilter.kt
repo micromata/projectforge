@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
  */
 class EmployeeActiveFilter : CustomResultFilter<EmployeeDO> {
     override fun match(list: MutableList<EmployeeDO>, element: EmployeeDO): Boolean {
-        return employeeService.isEmployeeActive(element)
+        return employeeService.isEmployeeActive(element, showRecentlyLeavers = true)
     }
 
     companion object {

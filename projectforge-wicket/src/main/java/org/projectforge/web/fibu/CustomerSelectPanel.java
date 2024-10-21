@@ -101,7 +101,7 @@ public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
       public String getObject()
       {
         final KundeDO kunde = getModelObject();
-        return kundeFormatter.format(kunde, false);
+        return kundeFormatter.format(kunde);
       }
     });
     add(kundeAsStringLabel);

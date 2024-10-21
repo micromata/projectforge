@@ -38,11 +38,11 @@ public class Kost2Test
   public void testGetNummer()
   {
     Kost2DO kost2 = createKost2(5, 0, 0, 0);
-    assertEquals(50000000, kost2.getNummer().intValue());
+    assertEquals(50000000, kost2.getNummer());
     kost2 = createKost2(5, 999, 99, 99);
-    assertEquals(59999999, kost2.getNummer().intValue());
+    assertEquals(59999999, kost2.getNummer());
     kost2 = createKost2(1, 1, 2, 3);
-    assertEquals(10010203, kost2.getNummer().intValue());
+    assertEquals(10010203, kost2.getNummer());
   }
 
   private Kost2DO createKost2(int nummernkreis, int bereich, int teilbereich, int art)

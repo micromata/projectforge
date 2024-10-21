@@ -88,9 +88,9 @@ public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
     Collection<EmployeeDO> result = new ArrayList<>();
     Collection<EmployeeDO> resultList = new ArrayList<>();
     if (withOwnUser) {
-      resultList = employeeDao.findAllActive(false);
+      resultList = employeeDao.selectWithActiveStatus(false, true);
     } else {
-      resultList = employeeDao.findAllActive(false).stream()
+      resultList = employeeDao.selectWithActiveStatus(false, true).stream()
           .filter(emp -> emp.getUser().getId().equals(ThreadLocalUserContext.getLoggedInUserId()) == false)
           .collect(Collectors.toList());
     }

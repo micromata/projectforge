@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.KostFilter;
@@ -94,7 +94,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     if (kost1 == null) {
       return "";
     }
-    return KostFormatter.format(kost1) + " - " + KostFormatter.formatToolTip(kost1);
+    return OldKostFormatter.format(kost1) + " - " + OldKostFormatter.formatToolTip(kost1);
   }
 
   @Override

@@ -32,9 +32,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.business.fibu.KostFormatter;
+import org.projectforge.business.fibu.OldKostFormatter;
 import org.projectforge.business.fibu.kost.*;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
@@ -169,7 +168,7 @@ public class AccountingRecordListPage
             if (kost1 == null) {
               return null;
             } else {
-              return KostFormatter.formatToolTip(kost1);
+              return OldKostFormatter.formatToolTip(kost1);
             }
           }
         });
@@ -184,7 +183,7 @@ public class AccountingRecordListPage
             if (kost2 == null) {
               return null;
             } else {
-              return KostFormatter.formatToolTip(kost2);
+              return OldKostFormatter.formatToolTip(kost2);
             }
           }
         });

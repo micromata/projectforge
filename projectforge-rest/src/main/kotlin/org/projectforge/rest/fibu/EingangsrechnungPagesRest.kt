@@ -26,7 +26,7 @@ package org.projectforge.rest.fibu
 import org.projectforge.business.fibu.EingangsrechnungDO
 import org.projectforge.business.fibu.EingangsrechnungDao
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.MagicFilter
 import org.projectforge.rest.config.Rest
@@ -176,7 +176,7 @@ class EingangsrechnungPagesRest : AbstractDTOPagesRest<EingangsrechnungDO, Einga
     eingangsrechnung.kost1Info = kost1Sorted.joinToString(separator = " | ") { it.description ?: it.formattedNumber }
     val kost2Sorted = obj.sortedKost2
     eingangsrechnung.kost2List = kost2Sorted.joinToString { it.formattedNumber }
-    eingangsrechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { KostFormatter.format(it, 60) }
+    eingangsrechnung.kost2Info = kost2Sorted.joinToString(separator = " | ") { OldKostFormatter.format(it, 60) }
     return eingangsrechnung
   }
 }

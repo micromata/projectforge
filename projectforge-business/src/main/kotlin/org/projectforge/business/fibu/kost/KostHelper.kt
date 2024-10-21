@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.kost
 
-import org.projectforge.business.fibu.KostFormatter
+import org.projectforge.business.fibu.OldKostFormatter
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 
@@ -62,7 +62,7 @@ object KostHelper {
     if (kost2List.isNullOrEmpty()) {
       return wildCard
     }
-    val asFormattedNumbers = kost2List.map { KostFormatter.format(it) }.toTypedArray()
+    val asFormattedNumbers = kost2List.map { OldKostFormatter.format(it) }.toTypedArray()
     return StringHelper2.getWildCard(asFormattedNumbers, wildCard)
   }
 
@@ -70,7 +70,7 @@ object KostHelper {
   fun getFormattedNumberLines(kost2List: List<Kost2DO>?): String {
     val sb = java.lang.StringBuilder()
     kost2List?.forEach { kost ->
-      val number = KostFormatter.format(kost, 40)
+      val number = OldKostFormatter.format(kost, 40)
       if (!number.isNullOrEmpty()) {
         sb.appendLine(number)
       }

@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.fibu.kost
 
+import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.Kost2Dao
@@ -35,7 +36,6 @@ import org.projectforge.rest.dto.Project
 import org.projectforge.ui.*
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @RequestMapping("${Rest.URL}/cost2")
@@ -44,16 +44,16 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
     override fun transformFromDB(obj: Kost2DO, editMode: Boolean): Kost2 {
         val kost2 = Kost2()
         kost2.copyFrom(obj)
-        kost2.formattedNumber = KostFormatter.format(obj)
-        if(obj.projekt != null){
+        kost2.formattedNumber = KostFormatter.instance.formatKost2(obj, KostFormatter.FormatType.FORMATTED_NUMBER)
+        if (obj.projekt != null) {
             kost2.project = Project()
             kost2.project!!.copyFrom(obj.projekt!!)
-            if(obj.projekt!!.kunde != null){
+            if (obj.projekt!!.kunde != null) {
                 kost2.project!!.customer = Customer()
                 kost2.project!!.customer!!.copyFrom(obj.projekt!!.kunde!!)
             }
         }
-        if(obj.kost2Art != null){
+        if (obj.kost2Art != null) {
             kost2.kost2Art!!.copyFrom(obj.kost2Art!!)
         }
         return kost2
@@ -71,11 +71,27 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
     /**
      * LAYOUT List page
      */
-    override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
-      layout.add(UITable.createUIResultSetTable()
-                        .add(UITableColumn("formattedNumber", title = "fibu.kost2"))
-                        .add(UITableColumn("kost2Art.name", title = "fibu.kost2.art"))
-                        .add(lc, "kost2Art.fakturiert", "workFraction", "projekt.kunde.name", "projekt.name", "kostentraegerStatus", "description", "comment"))
+    override fun createListLayout(
+        request: HttpServletRequest,
+        layout: UILayout,
+        magicFilter: MagicFilter,
+        userAccess: UILayout.UserAccess
+    ) {
+        layout.add(
+            UITable.createUIResultSetTable()
+                .add(UITableColumn("formattedNumber", title = "fibu.kost2"))
+                .add(UITableColumn("kost2Art.name", title = "fibu.kost2.art"))
+                .add(
+                    lc,
+                    "kost2Art.fakturiert",
+                    "workFraction",
+                    "projekt.kunde.name",
+                    "projekt.name",
+                    "kostentraegerStatus",
+                    "description",
+                    "comment"
+                )
+        )
     }
 
     /**
@@ -83,11 +99,15 @@ class Kost2PagesRest : AbstractDTOPagesRest<Kost2DO, Kost2, Kost2Dao>(Kost2Dao::
      */
     override fun createEditLayout(dto: Kost2, userAccess: UILayout.UserAccess): UILayout {
         val layout = super.createEditLayout(dto, userAccess)
-                .add(UIRow()
-                        .add(UICol()
-                                .add(UISelect.createProjectSelect(lc, "projekt", false, "fibu.projekt"))
-                                .add(UICustomized("cost.number"))
-                                .add(lc, "workFraction", "description", "comment", "kostentraegerStatus")))
+            .add(
+                UIRow()
+                    .add(
+                        UICol()
+                            .add(UISelect.createProjectSelect(lc, "projekt", false, "fibu.projekt"))
+                            .add(UICustomized("cost.number"))
+                            .add(lc, "workFraction", "description", "comment", "kostentraegerStatus")
+                    )
+            )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 }

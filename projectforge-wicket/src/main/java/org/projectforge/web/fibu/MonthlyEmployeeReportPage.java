@@ -148,7 +148,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             return "";
           }
           final Kost1DO kost1 = WicketSupport.get(Kost1Dao.class).find(report.getKost1Id(), false);
-          return kost1 != null ? KostFormatter.format(kost1) : "";
+          return kost1 != null ? OldKostFormatter.format(kost1) : "";
         }
       }));
     }
@@ -404,7 +404,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       final ProjektDO project = cost2.getProjekt();
       final KundeDO customer = project != null ? project.getKunde() : null;
       final Kost2ArtDO costType = cost2.getKost2Art();
-      link.add(new Label("label", KostFormatter.format(cost2)));
+      link.add(new Label("label", OldKostFormatter.format(cost2)));
       if (project != null) {
         row.add(new Label("customer", customer != null ? customer.getName() : ""));
         row.add(new Label("project", project.getName()));
