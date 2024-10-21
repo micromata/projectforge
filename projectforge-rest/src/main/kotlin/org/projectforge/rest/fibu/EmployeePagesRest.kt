@@ -169,23 +169,14 @@ class EmployeePagesRest :
                     .add(
                         UICol()
                             .add(
-                                lc, "staffNumber", "weeklyWorkingHours", "urlaubstage", "previousyearleave",
-                                "previousyearleaveused", "eintrittsDatum", "austrittsDatum"
+                                lc, "staffNumber", "weeklyWorkingHours", "eintrittsDatum", "austrittsDatum"
                             )
                     )
             )
             .add(
                 UIRow()
-                    .add(UICol().add(lc, "street", "zipCode", "city"))
-                    .add(UICol().add(lc, "country", "state"))
-                    .add(UICol().add(lc, "birthday", "gender"))
-                    .add(UICol().add(lc, "accountHolder", "iban", "bic"))
+                    .add(UICol().add(lc,  "statusAttr", "annualLeaveAttr"))
             )
-            .add(
-                UIRow()
-                    .add(UICol().add(lc, "status"))
-            )
-            .add(UILabel("TODO: Custom properties here"))
             .add(
                 UIRow()
                     .add(UICol().add(lc, "comment"))

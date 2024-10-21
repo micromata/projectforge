@@ -25,6 +25,8 @@ package org.projectforge.ui
 
 import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeDO
+import org.projectforge.business.fibu.kost.Kost1DO
+import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.i18n.I18nEnum
@@ -114,7 +116,7 @@ object ElementsRegistry {
                         dataType = dataType!!
                     )
 
-                    PFUserDO::class.java, GroupDO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(
+                    PFUserDO::class.java, GroupDO::class.java, Kost1DO::class.java, Kost2DO::class.java, EmployeeDO::class.java, TaskDO::class.java -> UIInput(
                         property,
                         required = elementInfo.required,
                         layoutContext = lc,
