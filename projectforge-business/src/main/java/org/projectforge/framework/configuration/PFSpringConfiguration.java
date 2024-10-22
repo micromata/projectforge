@@ -23,7 +23,9 @@
 
 package org.projectforge.framework.configuration;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
+import org.projectforge.common.EmphasizedLogSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -55,11 +57,25 @@ import javax.sql.DataSource;
 public class PFSpringConfiguration {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFSpringConfiguration.class);
 
+    private static PFSpringConfiguration instance;
+
     @Value("${projectforge.base.dir}")
     private String applicationDir;
 
+    @Value("${projectforge.web.development.enableCORSFilter}")
+    private Boolean corsFilterEnabled;
+
+    public Boolean getCorsFilterEnabled() {
+        return corsFilterEnabled;
+    }
+
     @Autowired
     private DataSource dataSource;
+
+    @PostConstruct
+    private void postConstruct() {
+        instance = this;
+    }
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
@@ -80,26 +96,20 @@ public class PFSpringConfiguration {
         return new PersistenceExceptionTranslationPostProcessor();
     }
 
- /* @Bean
-  public TimeableService timeableService()
-  {
-    return new TimeableServiceImpl();
-  }
+    public static PFSpringConfiguration getInstance() {
+        return instance;
+    }
 
-  @PostConstruct
-  public void initEmgrFactory()
-  {
-    springEmgrFilterBean.registerEmgrFilter(pfEmgrFactory);
-    HistoryServiceManager.get().setHistoryService(new HistoryServiceImpl()
-    {
-
-      @Override
-      public Class<? extends HistoryMasterBaseDO<?, ?>> getHistoryMasterClass()
-      {
-        return HistoryEntryDO.class;
-      }
-
-    });
-  }*/
-
+    public static void logCorsFilterWarning(org.slf4j.Logger log) {
+        if (instance.getCorsFilterEnabled()) {
+            new EmphasizedLogSupport(log)
+                    .log("ATTENTION!")
+                    .log("")
+                    .log("Running in dev mode!")
+                    .log("")
+                    .log("Don't deliver this app in dev mode due to security reasons!")
+                    .log("(cross origin allowed)")
+                    .logEnd();
+        }
+    }
 }
