@@ -1,15 +1,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
 import { Modal, ModalBody } from '../../../components/design';
 import history from '../../../utilities/history';
 import FormPage from './FormPage';
+import { callAction } from '../../../actions';
 
 function FormModal(props) {
-    const { baseUrl } = props;
+    const { baseUrl, callAction } = props;
 
     return (
         <Modal
-            toggle={() => history.push(baseUrl)}
+            toggle={() => callAction({responseAction: {targetType: "CLOSE_MODAL"}})}
             isOpen
             className="modal-xl"
         >
@@ -22,8 +24,13 @@ function FormModal(props) {
 
 FormModal.propTypes = {
     baseUrl: PropTypes.string.isRequired,
+    onCallAction: PropTypes.func.isRequired,
 };
 
 FormModal.defaultProps = {};
 
-export default FormModal;
+const actions = {
+    onCallAction: callAction,
+}
+
+export default connect(() => ({}), actions)(FormModal);
