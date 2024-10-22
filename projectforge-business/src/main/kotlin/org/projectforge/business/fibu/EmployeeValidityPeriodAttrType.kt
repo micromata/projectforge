@@ -25,5 +25,12 @@ package org.projectforge.business.fibu
 
 enum class EmployeeValidityPeriodAttrType {
     ANNUAL_LEAVE,
-    STATUS,
+    STATUS;
+
+    companion object {
+        fun safeValueOf(name: String?): EmployeeValidityPeriodAttrType? {
+            name ?: return null
+            return EmployeeValidityPeriodAttrType.entries.firstOrNull { it.name == name }
+        }
+    }
 }

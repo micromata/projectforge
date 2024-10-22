@@ -71,7 +71,7 @@ class PfPersistenceContext internal constructor(
         log.info { "Created EntityManager: $em (${openEntityManagers.size} opened entity managers)." }
     }*/
 
-    fun <T> selectById(
+    fun <T> find(
         entityClass: Class<T>,
         id: Any?,
         attached: Boolean = false,
@@ -274,13 +274,13 @@ class PfPersistenceContext internal constructor(
     }
 
     /**
-     * First selects the entity by id via [selectById] and then calls [EntityManager.remove].
+     * First selects the entity by id via [find] and then calls [EntityManager.remove].
      */
     fun <T> delete(
         entityClass: Class<T>,
         id: Any,
     ) {
-        selectById(entityClass, id, attached = true)?.let { dbObj ->
+        find(entityClass, id, attached = true)?.let { dbObj ->
             em.remove(dbObj)
         }
     }

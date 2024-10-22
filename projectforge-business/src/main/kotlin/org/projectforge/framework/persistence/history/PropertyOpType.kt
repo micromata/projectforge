@@ -48,21 +48,4 @@ enum class PropertyOpType {
      * The Delete.
      */
     Delete;
-
-    companion object {
-        /**
-         * From string.
-         *
-         * @param key the key
-         * @return the property op type
-         */
-        fun fromString(key: String): PropertyOpType {
-            for (v in entries) {
-                if (v.name == key == true) {
-                    return v
-                }
-            }
-            return Undefined
-        }
-    }
 }

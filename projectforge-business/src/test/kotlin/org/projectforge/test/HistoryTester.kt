@@ -146,7 +146,7 @@ class HistoryTester(
                 val entity = entry.entityId?.let {
                     try {
                         val entityClass = Class.forName(entry.entityName)
-                        context.selectById(entityClass, it)
+                        context.find(entityClass, it)
                     } catch (ex: Exception) {
                         // Not found, OK.
                         null

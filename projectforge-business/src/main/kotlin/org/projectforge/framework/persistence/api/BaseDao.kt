@@ -204,7 +204,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
 
     private fun findById(id: Serializable?, attached: Boolean = false): O? {
         id ?: return null
-        val obj = persistenceService.selectById(doClass, id, attached = attached)
+        val obj = persistenceService.find(doClass, id, attached = attached)
         if (obj == null) {
             log.error { "Can't load object of type ${doClass.name}. Object with given id #$id not found." }
             return null

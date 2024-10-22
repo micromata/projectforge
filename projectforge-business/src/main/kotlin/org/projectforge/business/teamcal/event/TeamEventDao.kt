@@ -106,7 +106,7 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     private fun logReminderChange(newObj: TeamEventDO) {
         var reminderHasChanged = false
         val message = StringBuilder()
-        val dbObj = persistenceService.selectById(TeamEventDO::class.java, newObj.id) ?: return
+        val dbObj = persistenceService.find(TeamEventDO::class.java, newObj.id) ?: return
         if ((dbObj.reminderActionType == null && newObj.reminderActionType != null)
             || (dbObj.reminderDuration == null && newObj.reminderDuration != null)
             || (dbObj.reminderDurationUnit == null && newObj.reminderDurationUnit != null)

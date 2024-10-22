@@ -88,6 +88,9 @@ class EmployeeTest : AbstractTestBase() {
         val updatdEmployee = employeeDao.find(e.id)
         Assertions.assertTrue(updatdEmployee!!.deleted)
         employeeDao.update(e)
+
+        // TODO: Test unique constraint violation
+        // TODO: Insert deleted validity attr again (to be implemented)
     }
 
     @Test

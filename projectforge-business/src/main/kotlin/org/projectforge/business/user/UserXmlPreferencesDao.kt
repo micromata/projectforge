@@ -282,7 +282,7 @@ class UserXmlPreferencesDao {
                 if (log.isDebugEnabled) {
                     log.debug("Updating user preference for user '" + userPrefs.userId + "': " + xml)
                 }
-                context.selectById(
+                context.find(
                     UserXmlPreferencesDO::class.java,
                     userPrefsForDB.id,
                     attached = true,

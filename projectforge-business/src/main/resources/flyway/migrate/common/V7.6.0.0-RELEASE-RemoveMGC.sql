@@ -58,3 +58,6 @@ CREATE INDEX idx_t_fibu_employee_validity_period_attr_fk_employee
 ALTER TABLE t_fibu_employee_validity_period_attr
     ADD CONSTRAINT t_fibu_employee_validity_period_attr_fk_employee FOREIGN KEY (employee_fk) REFERENCES t_fibu_employee (pk);
 
+ALTER TABLE t_fibu_employee_validity_period_attr
+    ADD CONSTRAINT unique_t_fibu_employee_validity_period_attr UNIQUE (employee_fk, type, valid_from);
+

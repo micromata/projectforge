@@ -1,4 +1,4 @@
-- Employee edit: Kost1-select: description hinzufügen.
+- Uniquique in EmployeeValidityAttrDO einführen und testen (auch gelöschte überschreiben)
 - customizeDisplayHistoryEntry: AddressBookDao, ... (check)
 - customizeHistoryEntries: AuftragsDao, ...  (check)
 - Besucherbuch
