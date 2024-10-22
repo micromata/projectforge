@@ -183,7 +183,7 @@ class PersonalAddressDao {
     private fun internalUpdate(obj: PersonalAddressDO, context: PfPersistenceContext): Boolean {
         var dbObj: PersonalAddressDO? = null
         if (obj.id != null) {
-            dbObj = context.selectById(
+            dbObj = context.find(
                 PersonalAddressDO::class.java,
                 obj.id,
                 attached = true,

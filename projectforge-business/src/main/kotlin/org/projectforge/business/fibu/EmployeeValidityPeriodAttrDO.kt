@@ -50,6 +50,7 @@ private val log = KotlinLogging.logger {}
 //@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(
     name = "t_fibu_employee_validity_period_attr",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["employee_fk", "type", "valid_from"])],
     indexes = [Index(
         name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_id"
     )]

@@ -117,12 +117,11 @@ class EmployeeService {
      * @return True if the employee is active.
      */
     fun isEmployeeActive(employee: EmployeeDO, showRecentlyLeavers: Boolean = false): Boolean {
-        employee.austrittsDatum.let { austrittsdatum ->
+        employee.austrittsDatum.let { quitDate ->
             val user = employee.user
-            val quitDate = employee.austrittsDatum
+            quitDate
                 ?: // No quit date given. Employee is active if user is not deleted or deactivated.
                 return user == null || (!user.deactivated && !user.deleted) // user is only null in tests.
-
             val date = if (showRecentlyLeavers) {
                 LocalDate.now().minusMonths(3)
             } else {
@@ -130,6 +129,20 @@ class EmployeeService {
             }
             return !date.isAfter(quitDate)
         }
+    }
+
+    fun findValidityPeriodAttr(
+        id: Long?,
+        expectedType: EmployeeValidityPeriodAttrType,
+        checkAccess: Boolean = true
+    ): EmployeeValidityPeriodAttrDO? {
+        id ?: return null
+        if (checkAccess) {
+            employeeDao.checkLoggedInUserSelectAccess()
+        }
+        val result = persistenceService.find(EmployeeValidityPeriodAttrDO::class.java, id) ?: return null
+        require(result.type == expectedType) { "Expected type $expectedType, but got ${result.type}." }
+        return result
     }
 
     /**
@@ -195,7 +208,6 @@ class EmployeeService {
      */
     fun getEmployeeStatus(
         employee: EmployeeDO,
-        deleted: Boolean? = null,
         checkAccess: Boolean = true
     ): EmployeeStatus? {
         val list = selectAllValidityPeriodAttrs(

@@ -168,10 +168,10 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
         persistenceService.runInTransaction { context ->
             var assignedGroups: MutableList<GroupDO>? = null
             var unassignedGroups: MutableList<GroupDO>? = null
-            val dbUser = context.selectById(PFUserDO::class.java, user.id, attached = true)
+            val dbUser = context.find(PFUserDO::class.java, user.id, attached = true)
                 ?: throw RuntimeException("User with id ${user.id} not found.")
             groupsToAssign?.filterNotNull()?.forEach { groupId ->
-                val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
+                val dbGroup = context.find(GroupDO::class.java, groupId, attached = true)
                     ?: throw RuntimeException("Group with id $groupId not found.")
                 dbGroup.assignedUsers = dbGroup.assignedUsers ?: mutableSetOf()
                 dbGroup.assignedUsers!!.let { assignedUsers ->
@@ -187,7 +187,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                 }
             }
             groupsToUnassign?.filterNotNull()?.forEach { groupId ->
-                val dbGroup = context.selectById(GroupDO::class.java, groupId, attached = true)
+                val dbGroup = context.find(GroupDO::class.java, groupId, attached = true)
                     ?: throw RuntimeException("Group with id $groupId not found.")
                 dbGroup.assignedUsers?.let { assignedUsers ->
                     if (assignedUsers.any { it.id == dbUser.id }) { // Check if the user is assigned. Use id check instead of equals.

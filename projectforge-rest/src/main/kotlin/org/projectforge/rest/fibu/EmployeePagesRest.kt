@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.EmployeeValidityPeriodAttr
 import org.projectforge.rest.dto.Kost1
@@ -186,6 +187,23 @@ class EmployeePagesRest :
                                     .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
                                     .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                    .withRowClickRedirectUrl(
+                                        "${
+                                            PagesResolver.getDynamicPageUrl(
+                                                EmployeeValidityPeriodAttrPageRest::class.java,
+                                                absolute = true,
+                                            )
+                                        }/id"
+                                    )
+                            ).add(
+                                UIButton.createAddButton(
+                                    responseAction = ResponseAction(
+                                        PagesResolver.getDynamicPageUrl(
+                                            EmployeeValidityPeriodAttrPageRest::class.java,
+                                            absolute = true,
+                                        ), targetType = TargetType.MODAL
+                                    )
+                                )
                             )
                         )
                     )
@@ -193,9 +211,16 @@ class EmployeePagesRest :
                         UICol().add(
                             UIFieldset(title = "fibu.employee.status").add(
                                 UIAgGrid("statusEntries")
-                                    .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
+                                    .add(
+                                        UIAgGridColumnDef.createCol(
+                                            lc,
+                                            "validFrom",
+                                            headerName = "attr.validFrom"
+                                        )
+                                    )
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
-                                    .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment")
+                                    .add(
+                                        UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment")
                                     )
                             )
                         )

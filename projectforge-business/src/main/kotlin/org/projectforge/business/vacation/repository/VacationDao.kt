@@ -402,7 +402,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             )
         ) {
             val employeeId = myFilter.employeeId
-            persistenceService.selectById(EmployeeDO::class.java, employeeId)?.let { employeeFromFilter ->
+            persistenceService.find(EmployeeDO::class.java, employeeId)?.let { employeeFromFilter ->
                 queryFilter.createJoin("replacement")
                 queryFilter.add(
                     or(

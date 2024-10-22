@@ -185,14 +185,14 @@ open class PfPersistenceService {
 
     /**
      * Encapsulated in [runReadOnly].
-     * @see PfPersistenceContext.selectById
+     * @see PfPersistenceContext.find
      */
     @JvmOverloads
-    fun <T> selectById(
+    fun <T> find(
         entityClass: Class<T>, id: Any?, attached: Boolean = false
     ): T? {
         return runReadOnly { context ->
-            context.selectById(entityClass, id, attached)
+            context.find(entityClass, id, attached)
         }
     }
 

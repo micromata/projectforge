@@ -273,7 +273,7 @@ object CandHMaster {
             return
         }
         // The property is historizable, so we have to handle it.
-        log.debug { "handleHistoryEntry: Adding history entry for property ${propertyContext.propertyName}, type=${PropertyOpType}: pc=$propertyContext" }
+        log.debug { "handleHistoryEntry: Adding history entry for property ${propertyContext.propertyName}, type=${type}: pc=$propertyContext" }
         context.historyContext.add(propertyContext, type)
     }
 

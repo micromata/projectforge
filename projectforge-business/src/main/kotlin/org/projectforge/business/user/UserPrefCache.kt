@@ -212,7 +212,7 @@ class UserPrefCache : AbstractCache() {
                 // No access.
                 return
             }
-            val user = persistenceService.selectById(PFUserDO::class.java, userId)
+            val user = persistenceService.find(PFUserDO::class.java, userId)
             if (AccessChecker.isDemoUser(user)) {
                 // Do nothing for demo user.
                 return

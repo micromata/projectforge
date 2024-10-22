@@ -171,7 +171,7 @@ public class UserXmlPreferencesCache extends AbstractCache
         // No access.
         return;
       }
-      PFUserDO user = persistenceService.selectById(PFUserDO.class, userId);
+      PFUserDO user = persistenceService.find(PFUserDO.class, userId);
       if (AccessChecker.isDemoUser(user)) {
         // Do nothing for demo user.
         return;
