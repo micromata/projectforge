@@ -25,6 +25,11 @@ package org.projectforge.development
 
 import org.projectforge.i18n.I18nKeysUsage
 
+/**
+ * Main class for development tasks.
+ * Should be called before committing changes and releasing a new version.
+ * It checks and fixes source file headers, sorts and checks I18n properties and analyzes and saves i18n key usage.
+ */
 fun main(args: Array<String>) {
   println("*************************************************")
   println("**** Checking and fixing source file headers. ***")

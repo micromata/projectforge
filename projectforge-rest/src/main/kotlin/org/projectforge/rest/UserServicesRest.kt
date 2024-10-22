@@ -39,7 +39,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -67,7 +66,6 @@ open class UserServicesRest {
   fun renewToken(
     @RequestParam("token", required = true) tokenString: String,
     request: HttpServletRequest,
-    response: HttpServletResponse,
     @RequestBody postData: PostData<MyAccountPageRest.MyAccountData>
   ): ResponseEntity<*> {
     sessionCsrfService.validateCsrfToken(request, postData, "Renewing Token")?.let { return it }

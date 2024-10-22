@@ -185,27 +185,14 @@ class EmployeePagesRest :
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
                                     .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                                     .withRowClickRedirectUrl(
-                                        PagesResolver.getDynamicPageUrl(
-                                            EmployeeValidityPeriodAttrPageRest::class.java,
-                                            params = mapOf(
-                                                "employeeId" to dto.id,
-                                                "type" to EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
-                                            ),
-                                            absolute = true,
-                                        ),
+                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE),
                                         openModal = true,
                                     )
                             ).add(
                                 UIButton.createAddButton(
                                     responseAction = ResponseAction(
-                                        PagesResolver.getDynamicPageUrl(
-                                            EmployeeValidityPeriodAttrPageRest::class.java,
-                                            params = mapOf(
-                                                "employeeId" to dto.id,
-                                                "type" to EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
-                                            ),
-                                            absolute = true,
-                                        ), targetType = TargetType.MODAL
+                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE, true),
+                                        targetType = TargetType.MODAL
                                     )
                                 )
                             )
@@ -215,17 +202,20 @@ class EmployeePagesRest :
                         UICol().add(
                             UIFieldset(title = "fibu.employee.status").add(
                                 UIAgGrid("statusEntries")
-                                    .add(
-                                        UIAgGridColumnDef.createCol(
-                                            lc,
-                                            "validFrom",
-                                            headerName = "attr.validFrom"
-                                        )
-                                    )
+                                    .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
-                                    .add(
-                                        UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment")
+                                    .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
+                                    .withRowClickRedirectUrl(
+                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.STATUS),
+                                        openModal = true,
                                     )
+                            ).add(
+                                UIButton.createAddButton(
+                                    responseAction = ResponseAction(
+                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.STATUS, true),
+                                        targetType = TargetType.MODAL
+                                    )
+                                )
                             )
                         )
                     )
@@ -245,5 +235,21 @@ class EmployeePagesRest :
             showOnlyActiveEntries = true,
             showRecentlyLeavers = true
         ).toMutableList()
+    }
+
+    private fun createModalUrl(
+        employee: Employee,
+        type: EmployeeValidityPeriodAttrType,
+        newEntry: Boolean = false
+    ): String {
+        return PagesResolver.getDynamicPageUrl(
+            EmployeeValidityPeriodAttrPageRest::class.java,
+            id = if (newEntry) "-1" else "{id}",
+            params = mapOf(
+                "employeeId" to employee.id,
+                "type" to type,
+            ),
+            absolute = true,
+        )
     }
 }

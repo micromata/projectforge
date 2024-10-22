@@ -2,9 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useLocation, useHistory } from 'react-router-dom';
 import { Modal, ModalBody } from 'reactstrap';
+import { connect } from 'react-redux';
+import { callAction } from '../actions';
 
 function ModalRoutes(props) {
-    const { getRoutesWithLocation } = props;
+    const { getRoutesWithLocation, onCallAction } = props;
     const location = useLocation();
     const realLocation = location.action ? location.location : location;
     const history = useHistory();
@@ -16,7 +18,7 @@ function ModalRoutes(props) {
             <Modal
                 size="xl"
                 isOpen={!!background}
-                toggle={() => history.push(background)}
+                toggle={() => onCallAction({ responseAction: { targetType: 'CLOSE_MODAL' } })}
             >
                 <ModalBody>
                     {background && getRoutesWithLocation(realLocation)}
@@ -28,6 +30,11 @@ function ModalRoutes(props) {
 
 ModalRoutes.propTypes = {
     getRoutesWithLocation: PropTypes.func.isRequired,
+    onCallAction: PropTypes.func.isRequired,
 };
 
-export default ModalRoutes;
+const actions = {
+    onCallAction: callAction,
+};
+
+export default connect(() => ({}), actions)(ModalRoutes);

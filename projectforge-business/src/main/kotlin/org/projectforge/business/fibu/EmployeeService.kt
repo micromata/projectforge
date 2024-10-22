@@ -5,6 +5,7 @@
 //
 // Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
 //
+//
 // ProjectForge is dual-licensed.
 //
 // This community edition is free software; you can redistribute it and/or
@@ -133,7 +134,7 @@ class EmployeeService {
 
     fun findValidityPeriodAttr(
         id: Long?,
-        expectedType: EmployeeValidityPeriodAttrType,
+        expectedType: EmployeeValidityPeriodAttrType? = null,
         checkAccess: Boolean = true
     ): EmployeeValidityPeriodAttrDO? {
         id ?: return null
@@ -141,7 +142,9 @@ class EmployeeService {
             employeeDao.checkLoggedInUserSelectAccess()
         }
         val result = persistenceService.find(EmployeeValidityPeriodAttrDO::class.java, id) ?: return null
-        require(result.type == expectedType) { "Expected type $expectedType, but got ${result.type}." }
+        if (expectedType != null) {
+            require(result.type == expectedType) { "Expected type $expectedType, but got ${result.type}." }
+        }
         return result
     }
 
@@ -269,9 +272,23 @@ class EmployeeService {
     }
 
     /**
+     * @param employeeId The employee (as id) to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
+     */
+    fun selectAnnualLeaveDayEntries(
+        employeeId: Long,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidityPeriodAttrDO> {
+        val employee = employeeDao.find(employeeId)!!
+        return selectAnnualLeaveDayEntries(employee, deleted, checkAccess)
+    }
+
+    /**
      * @param employee The employee to select the attribute for.
      * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
-     * @param checkAccess If true, the logged in user must have access to the employee.
+     * @param checkAccess If true, the logged-in user must have access to the employee.
      */
     fun selectAnnualLeaveDayEntries(
         employee: EmployeeDO,
@@ -299,6 +316,43 @@ class EmployeeService {
             EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
             checkAccess = checkAccess,
         )
+    }
+
+    fun insert(
+        employeeId: Long,
+        attrDO: EmployeeValidityPeriodAttrDO,
+        checkAccess: Boolean = true,
+    ): Long? {
+        val employee = employeeDao.find(employeeId)!!
+        return insert(employee, attrDO, checkAccess)
+    }
+
+    fun insert(
+        employee: EmployeeDO,
+        attrDO: EmployeeValidityPeriodAttrDO,
+        checkAccess: Boolean = true,
+    ): Long? {
+        if (employee.id != attrDO.employee?.id) {
+            throw IllegalArgumentException("Employee id of attribute does not match employee id.")
+        }
+        if (checkAccess) {
+            employeeDao.checkLoggedInUserInsertAccess(employee)
+        }
+        return baseDOPersistenceService.insert(attrDO, checkAccess = checkAccess)
+    }
+
+    /**
+     * @param employeeId The employee (as id) to select the attribute for.
+     * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
+     * @param checkAccess If true, the logged in user must have access to the employee.
+     */
+    fun selectStatusEntries(
+        employeeId: Long,
+        deleted: Boolean? = false,
+        checkAccess: Boolean = true
+    ): List<EmployeeValidityPeriodAttrDO> {
+        val employee = employeeDao.find(employeeId)!!
+        return selectStatusEntries(employee, deleted, checkAccess)
     }
 
     /**
@@ -356,15 +410,32 @@ class EmployeeService {
     }
 
     /**
+     * @param employeeId The employee (by id) to update the attribute for. Needed for checkAccess.
+     * @param attrDO: The attribute to update.
+     * @param checkAccess: If true, the logged-in user must have update access to the employee.
+     */
+    fun updateValidityPeriodAttr(
+        employeeId: Long?,
+        attrDO: EmployeeValidityPeriodAttrDO,
+        checkAccess: Boolean = true,
+    ): EntityCopyStatus {
+        val employee = employeeDao.find(employeeId)!!
+        return updateValidityPeriodAttr(employee, attrDO, checkAccess)
+    }
+
+    /**
      * @param employee The employee to update the attribute for. Needed for checkAccess.
      * @param attrDO: The attribute to update.
-     * @param checkAccess: If true, the logged in user must have update access to the employee.
+     * @param checkAccess: If true, the logged-in user must have update access to the employee.
      */
     fun updateValidityPeriodAttr(
         employee: EmployeeDO,
         attrDO: EmployeeValidityPeriodAttrDO,
         checkAccess: Boolean = true,
     ): EntityCopyStatus {
+        if (employee.id != attrDO.employee?.id) {
+            throw IllegalArgumentException("Employee id of attribute does not match employee id.")
+        }
         if (checkAccess) {
             employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
@@ -372,10 +443,21 @@ class EmployeeService {
     }
 
     fun markValidityPeriodAttrAsDeleted(
+        employeeId: Long?,
+        attrId: Long?,
+        checkAccess: Boolean = true,
+    ) {
+        val employee = employeeDao.find(employeeId)!!
+        val attr = findValidityPeriodAttr(attrId, checkAccess = checkAccess)!!
+        markValidityPeriodAttrAsDeleted(employee, attr, checkAccess)
+    }
+
+    fun markValidityPeriodAttrAsDeleted(
         employee: EmployeeDO,
         attr: EmployeeValidityPeriodAttrDO,
         checkAccess: Boolean = true,
     ) {
+        require(attr.employee!!.id == employee.id!!) { "Employee id of attribute does not match employee id." }
         if (checkAccess) {
             employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }

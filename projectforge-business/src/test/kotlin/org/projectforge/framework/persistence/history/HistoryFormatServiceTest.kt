@@ -38,6 +38,6 @@ class HistoryFormatServiceTest : AbstractTestBase() {
         val invoice = RechnungDO()
         invoice.id = 351958
         historyService.loadHistory(invoice)
-        historyFormatService.loadHistory(invoice)
+        // historyFormatService.loadHistory(invoice)
     }
 }

@@ -50,7 +50,7 @@ class CORSFilter : Filter {
     val origin = request.getHeader("Origin")
     if (origin.isNullOrEmpty()) {
       // ChatGPT: Optionally, you can set a fallback for no Origin header, but "*" cannot be used with credentials
-      servletResponse.addHeader("Access-Control-Allow-Origin", CORSFilterConfiguration.defaultOrigin)
+      servletResponse.addHeader("Access-Control-Allow-Origin", CORSFilterConfiguration.instance.defaultOrigin)
       // servletResponse.addHeader("Access-Control-Allow-Origin", "*")
     } else {
       servletResponse.addHeader("Access-Control-Allow-Origin", origin)
