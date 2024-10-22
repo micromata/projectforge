@@ -85,6 +85,8 @@ DynamicInputResolver.propTypes = {
         'STRING',
         'DATE',
         'EMPLOYEE',
+        'COST1',
+        'COST2',
         'TIMESTAMP',
         'TASK',
         'USER',

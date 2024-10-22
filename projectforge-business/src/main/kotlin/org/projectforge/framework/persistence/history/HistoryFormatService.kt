@@ -28,8 +28,6 @@ import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -45,12 +43,6 @@ private val log = KotlinLogging.logger {}
 class HistoryFormatService {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    private lateinit var historyService: HistoryService
-
-    @Autowired
-    private lateinit var persistenceService: PfPersistenceService
 
     private val historyServiceAdapters =
         mutableMapOf<Class<out BaseDO<*>>, HistoryFormatAdapter>()
@@ -89,42 +81,28 @@ class HistoryFormatService {
         this.historyServiceAdapters[clazz] = historyServiceAdapter
     }
 
-    fun <O : BaseDO<Long>> loadHistory(item: O): List<DisplayHistoryEntryDTO> {
-        return persistenceService.runReadOnly { context ->
-            loadHistory(context, item)
-        }
-    }
-
-    fun <O : BaseDO<Long>> loadHistory(context: PfPersistenceContext, item: O): List<DisplayHistoryEntryDTO> {
-        val entries = historyService.loadHistory(item)
-        return convertAsFormatted(context, item, entries)
-    }
-
     /**
      * Creates a list of formatted history entries (get the user names etc.)
      */
     fun <O : BaseDO<*>> convertAsFormatted(
-        context: PfPersistenceContext,
         item: O,
         orig: List<HistoryEntry>
     ): List<DisplayHistoryEntryDTO> {
         val entries = mutableListOf<DisplayHistoryEntryDTO>()
         orig.forEach { historyEntry ->
-            entries.add(convert(context, item, historyEntry))
+            entries.add(convert(item, historyEntry))
         }
         val adapter = historyServiceAdapters[item::class.java]
-        adapter?.convertEntries(context, item, entries)
+        adapter?.convertEntries(item, entries)
         return entries.sortedByDescending { it.modifiedAt }
     }
 
     fun <O : BaseDO<*>> convert(
-        context: PfPersistenceContext,
         item: O,
         historyEntry: HistoryEntry
     ): DisplayHistoryEntryDTO {
         val adapter = historyServiceAdapters[item::class.java]
-        return adapter?.convert(context, item, historyEntry) ?: stdHistoryFormatAdapter.convert(
-            context,
+        return adapter?.convert(item, historyEntry) ?: stdHistoryFormatAdapter.convert(
             item,
             historyEntry
         )

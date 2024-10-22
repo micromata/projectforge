@@ -26,31 +26,30 @@ package org.projectforge.framework.persistence.history
 import mu.KotlinLogging
 import org.projectforge.business.user.UserRightDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.springframework.context.ApplicationContext
 
 private val log = KotlinLogging.logger {}
 
 class HistoryFormatUserAdapter(
-  applicationContext: ApplicationContext,
+    applicationContext: ApplicationContext,
 ) : HistoryFormatAdapter() {
 
-  private val userRightDao = applicationContext.getBean(UserRightDao::class.java)
+    private val userRightDao = applicationContext.getBean(UserRightDao::class.java)
 
-    override fun convertEntries(context: PfPersistenceContext, item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
-    if (item !is PFUserDO) {
-      log.warn { "Can't handle history entries for entity of type ${item::class.java.name}" }
-      return
-    }
-    item.rights?.forEach { right ->
-      userRightDao.selectHistoryEntries(right).forEach { entry ->
-        val dto = convert(context, item, entry)
-        dto.diffEntries.firstOrNull { it.property == "value" }?.let { diffEntry ->
-          diffEntry.property = right.rightIdString.toString()
-          dto.diffEntries = mutableListOf(diffEntry) // Drop all other entries, only the value rules.
+    override fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
+        if (item !is PFUserDO) {
+            log.warn { "Can't handle history entries for entity of type ${item::class.java.name}" }
+            return
         }
-        entries.add(dto)
-      }
+        item.rights?.forEach { right ->
+            userRightDao.selectHistoryEntries(right).forEach { entry ->
+                val dto = convert(item, entry)
+                dto.diffEntries.firstOrNull { it.property == "value" }?.let { diffEntry ->
+                    diffEntry.property = right.rightIdString.toString()
+                    dto.diffEntries = mutableListOf(diffEntry) // Drop all other entries, only the value rules.
+                }
+                entries.add(dto)
+            }
+        }
     }
-  }
 }

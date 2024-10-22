@@ -5,7 +5,6 @@
 //
 // Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
 //
-//
 // ProjectForge is dual-licensed.
 //
 // This community edition is free software; you can redistribute it and/or
