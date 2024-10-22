@@ -23,7 +23,6 @@
 
 package org.projectforge.config;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterRegistration;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -58,9 +57,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
     @Value("${projectforge.security.csp-header-value:}") // defaults to empty string
     private String cspHeaderValue;
 
-    @Autowired
-    private CORSFilterConfiguration corsFilterConfig;
-
     private static final String PARAM_APP_BEAN = "applicationBean";
 
     @Autowired
@@ -91,20 +87,6 @@ public class WebXMLInitializer implements ServletContextInitializer {
 
         sc.addFilter("locale", new LocaleFilter()).addMappingForUrlPatterns(null, false,
                 "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
-
-        if (corsFilterConfig.getEnabled()) {
-            new EmphasizedLogSupport(log)
-                    .log("ATTENTION!")
-                    .log("")
-                    .log("Running in dev mode!")
-                    .log("")
-                    .log("Don't deliver this app in dev mode due to security reasons!")
-                    .log("(cross origin allowed)")
-                    .logEnd();
-            sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
-                    "/" + RestPaths.REST + "/*",
-                    "/" + RestPaths.REST_PUBLIC + "/*"); // Needed for login service.
-        }
 
         RestUtils.registerFilter(sc, "restUserFilter", RestUserFilter.class, false,
                 "/" + RestPaths.OLD_REST + "/*",

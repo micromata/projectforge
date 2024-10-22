@@ -35,6 +35,7 @@ import org.projectforge.common.StringModifier;
 import org.projectforge.database.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.PFSpringConfiguration;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -161,6 +162,7 @@ public class ProjectForgeApp {
   public void startApp() {
     internalInit();
     finalizeInitialization();
+    PFSpringConfiguration.logCorsFilterWarning(log);
   }
 
   @PreDestroy

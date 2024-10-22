@@ -25,20 +25,44 @@ package org.projectforge.config;
 
 import org.projectforge.Constants;
 import org.projectforge.caldav.config.DAVMethodsInterceptor;
+import org.projectforge.common.EmphasizedLogSupport;
+import org.projectforge.framework.configuration.PFSpringConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebApplicationConfig implements WebMvcConfigurer {
-  @Override
-  public void addViewControllers(ViewControllerRegistry registry) {
-    registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
-  }
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebApplicationConfig.class);
 
-  @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new DAVMethodsInterceptor());
-  }
+    @Autowired
+    private PFSpringConfiguration pfSpringConfiguration;
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/" + Constants.REACT_APP_PATH + "**").setViewName("forward:/react-app.html");
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new DAVMethodsInterceptor());
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+       if (pfSpringConfiguration.getCorsFilterEnabled()) {
+           PFSpringConfiguration.logCorsFilterWarning(log);
+            // Allow maximum access for development on localhost
+            registry.addMapping("/**")
+                    .allowedOriginPatterns("*")  // Allow all origins (this is the most permissive)
+                    .allowedMethods("*")  // Allow all HTTP methods (GET, POST, PUT, DELETE, OPTIONS, etc.)
+                    .allowedHeaders("*")  // Allow all headers
+                    .allowCredentials(true)  // Allow credentials (cookies, authorization headers)
+                    .maxAge(3600);  // Cache the preflight response for 1 hour
+        }
+    }
 }
