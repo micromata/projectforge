@@ -381,8 +381,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
                 "Wir möchten Ihnen mitteilen, dass eine Umfrage erstellt wurde mit dem Titel \"{0}\", und Sie wurden herzlichst eingeladen bei dieser Abzustimmen.\n" +
                 "\n" +
                 "Die Umfrage zu welcher sie Eingeladen wurden, endet am {4}. Eine Kurze Beschreibung des Themas finden sie hier: \"{3}\"\n" +
-                "Hier kommst du direkt zur {2}\n" +
-                "\n" +
+                "{2}\n" +
                 "Mit Freundlichen Grüßen\n" +
                 "{1}"
         if (dto.customemailcontent.isNullOrEmpty()) {
