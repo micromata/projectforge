@@ -49,7 +49,8 @@ enum class EmployeeStatus(
         get() = "fibu.employee.status.$key"
 
     companion object {
-        fun safeValueOf(name: String): EmployeeStatus? {
+        fun safeValueOf(name: String?): EmployeeStatus? {
+            name ?: return null
             return EmployeeStatus.entries.firstOrNull { it.name == name }
         }
 

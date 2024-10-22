@@ -9,6 +9,7 @@ ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedat DROP NOT NULL; -- parent.m
 ALTER TABLE t_pf_history_attr ALTER COLUMN modifiedby DROP NOT NULL; -- parent.modifieby is used instead.
 ALTER TABLE t_pf_history_attr ALTER COLUMN updatecounter DROP NOT NULL;
 ALTER TABLE t_pf_history_attr ALTER COLUMN type DROP NOT NULL;
+ALTER TABLE t_pf_history_attr ALTER COLUMN withdata DROP NOT NULL;
 
 DROP VIEW IF EXISTS v_t_pf_user; -- Very old view, not used anymore.
 DROP TABLE IF EXISTS t_address_attrdata; -- Unused empty table.

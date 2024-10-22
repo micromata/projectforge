@@ -42,10 +42,8 @@ open class CORSFilterConfiguration {
     }
 
     companion object {
-        val defaultOrigin: String
-            get() = instance.defaultOrigin!!
-        val enabled: Boolean
-            get() = instance.enabled
-        private lateinit var instance: CORSFilterConfiguration
+        @JvmStatic
+        lateinit var instance: CORSFilterConfiguration
+            private set
     }
 }
