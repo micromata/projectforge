@@ -26,6 +26,7 @@ function DynamicAgGrid(props) {
         rowMultiSelectWithClick,
         rowClickRedirectUrl,
         rowClickFunction,
+        rowClickOpenModal,
         onCellClicked,
         onColumnStatesChangedUrl,
         onGridApiReady,
@@ -153,7 +154,18 @@ function DynamicAgGrid(props) {
             // Do nothing
             return;
         }
-        history.push(modifyRedirectUrl(rowClickRedirectUrl, event.data.id));
+        const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data.id);
+        if (rowClickOpenModal) {
+            const historyState = { ...history.location.state };
+
+            if (rowClickOpenModal === true) {
+                historyState.background = history.location;
+            }
+
+            history.push(redirectUrl, historyState);
+        } else {
+            history.push(redirectUrl);
+        }
     };
 
     /*
@@ -331,6 +343,7 @@ DynamicAgGrid.propTypes = {
     rowSelection: PropTypes.string,
     rowMultiSelectWithClick: PropTypes.bool,
     rowClickRedirectUrl: PropTypes.string,
+    rowClickOpenModal: PropTypes.bool,
     rowClickFunction: PropTypes.func,
     onColumnStatesChangedUrl: PropTypes.string,
     pagination: PropTypes.bool,

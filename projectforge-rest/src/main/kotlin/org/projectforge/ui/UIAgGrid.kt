@@ -68,6 +68,11 @@ open class UIAgGrid(
   var rowClickRedirectUrl: String? = null
 
   /**
+   * If true, a modal dialog should be opened after row click.
+   */
+  var rowClickOpenModal: Boolean? = null
+
+  /**
    * Call this url (GET) for getting url to redirect to.
    */
   var handleCancelUrl: String? = null
@@ -302,8 +307,9 @@ open class UIAgGrid(
     return this
   }
 
-  fun withRowClickRedirectUrl(rowClickRedirectUrl: String): UIAgGrid {
+  fun withRowClickRedirectUrl(rowClickRedirectUrl: String, openModal: Boolean = false): UIAgGrid {
     this.rowClickRedirectUrl = rowClickRedirectUrl
+    this.rowClickOpenModal = openModal
     return this
   }
 }

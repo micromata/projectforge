@@ -24,10 +24,7 @@
 package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.business.fibu.EmployeeActiveFilter
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.EmployeeDao
-import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.translate
@@ -188,18 +185,25 @@ class EmployeePagesRest :
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
                                     .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                                     .withRowClickRedirectUrl(
-                                        "${
-                                            PagesResolver.getDynamicPageUrl(
-                                                EmployeeValidityPeriodAttrPageRest::class.java,
-                                                absolute = true,
-                                            )
-                                        }/id"
+                                        PagesResolver.getDynamicPageUrl(
+                                            EmployeeValidityPeriodAttrPageRest::class.java,
+                                            params = mapOf(
+                                                "employeeId" to dto.id,
+                                                "type" to EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+                                            ),
+                                            absolute = true,
+                                        ),
+                                        openModal = true,
                                     )
                             ).add(
                                 UIButton.createAddButton(
                                     responseAction = ResponseAction(
                                         PagesResolver.getDynamicPageUrl(
                                             EmployeeValidityPeriodAttrPageRest::class.java,
+                                            params = mapOf(
+                                                "employeeId" to dto.id,
+                                                "type" to EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+                                            ),
                                             absolute = true,
                                         ), targetType = TargetType.MODAL
                                     )
