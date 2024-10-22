@@ -25,11 +25,16 @@ package org.projectforge.rest.fibu
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.Valid
 import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
 import org.projectforge.business.fibu.EmployeeValidityPeriodAttrType
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
+import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.core.RestResolver
+import org.projectforge.rest.dto.Employee
 import org.projectforge.rest.dto.EmployeeValidityPeriodAttr
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
@@ -71,15 +76,9 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
         } else {
             "fibu.employee.urlaubstage"
         }
+        val lc = LayoutContext(EmployeeValidityPeriodAttrDO::class.java)
         val layout = UILayout(title)
-        layout
-            .add(
-                UIInput(
-                    "displayName",
-                    label = "webauthn.entry.displayName",
-                    tooltip = "webauthn.entry.displayName.info"
-                )
-            )
+        layout.add(lc, "validFrom", "value", "comment")
         if (id == null) {
             // New entry
             layout.addAction(
