@@ -1,4 +1,6 @@
 - Uniquique in EmployeeValidityAttrDO einführen und testen (auch gelöschte überschreiben)
+- Import von alten Daten in EmployeeValidityAttrDO: 2013-10-31 23:00:00 (Achim Brelle)!!!
+- Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
 - customizeDisplayHistoryEntry: AddressBookDao, ... (check)
 - customizeHistoryEntries: AuftragsDao, ...  (check)
 - Besucherbuch

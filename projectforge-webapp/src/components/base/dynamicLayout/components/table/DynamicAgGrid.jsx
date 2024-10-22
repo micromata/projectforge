@@ -156,11 +156,13 @@ function DynamicAgGrid(props) {
         }
         const redirectUrl = modifyRedirectUrl(rowClickRedirectUrl, event.data.id);
         if (rowClickOpenModal) {
-            const historyState = { ...history.location.state };
+            // const historyState = { serverData: action.variables };
+            // TODO: Fin, wie bekomme ich action.variables hier? Wenn das Modal geschlossen wird,
+            // kann ich nicht mehr das Formular ändern.
+            // Ich wollte das von hier kopieren: form.js:121
+            const historyState = { };
 
-            if (rowClickOpenModal === true) {
-                historyState.background = history.location;
-            }
+            historyState.background = history.location;
 
             history.push(redirectUrl, historyState);
         } else {
