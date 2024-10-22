@@ -57,11 +57,11 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("location", label = "location", value = translate("poll.location")))
+                .add(UIReadOnlyField("location", label = "poll.location", value = translate("poll.location")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("owner", label = "owner", value = translate("poll.owner")))
+                .add(UIReadOnlyField("owner", label = "poll.owner", value = translate("poll.owner")))
         )
         field.add(
             UICol()
