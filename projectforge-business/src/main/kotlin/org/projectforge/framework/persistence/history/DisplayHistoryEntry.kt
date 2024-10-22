@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
 import org.projectforge.business.address.AddressbookDO
@@ -33,12 +32,10 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 
-private val log = KotlinLogging.logger {}
-
 /**
- * For storing the hibernate history entries in flat format.
+ * For displaying the hibernate history entries in flat format.
  *
- * TODO: Instead of overwriting getObjectValue() and formatObject() we should use a registry with handler for entity classes.
+ * Only used by Wicket pages.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
@@ -60,7 +57,8 @@ open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
 
         init {
             if (entityClass != null) {
-                entry.displayPropertyName = translatePropertyName(entityClass, entry.displayPropertyName ?: propertyName)
+                entry.displayPropertyName =
+                    translatePropertyName(entityClass, entry.displayPropertyName ?: propertyName)
             }
         }
     }

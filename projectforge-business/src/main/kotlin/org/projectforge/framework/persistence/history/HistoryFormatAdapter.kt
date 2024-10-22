@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.history
 
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.i18n.TimeAgo
-import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
@@ -40,11 +39,11 @@ open class HistoryFormatAdapter {
      * @param item Item the history entries are related to.
      * @param entries All found history entries for customization.
      */
-    open fun convertEntries(context: PfPersistenceContext, item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
+    open fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
     }
 
     open fun convert(
-        context: PfPersistenceContext, item: Any, historyEntry: HistoryEntry
+        item: Any, historyEntry: HistoryEntry
     ): HistoryFormatService.DisplayHistoryEntryDTO {
         var user: PFUserDO? = null
         try {
