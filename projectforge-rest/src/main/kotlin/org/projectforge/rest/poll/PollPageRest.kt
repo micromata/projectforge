@@ -380,7 +380,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
         val content = "Liebe Teilnehmer:innen\n" +
                 "Wir möchten Ihnen mitteilen, dass eine Umfrage erstellt wurde mit dem Titel \"{0}\", und Sie wurden herzlichst eingeladen bei dieser Abzustimmen.\n" +
                 "\n" +
-                "Die Umfrage zu welcher sie Eingeladen worden endet am {4} eine Kurze Beschreibung um was es geht gibt es hier nochmal '{3}'\n" +
+                "Die Umfrage zu welcher sie Eingeladen wurden, endet am {4}. Eine Kurze Beschreibung des Themas finden sie hier: \"{3}\"\n" +
                 "Hier kommst du direkt zur {2}\n" +
                 "\n" +
                 "Mit Freundlichen Grüßen\n" +
@@ -389,7 +389,7 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
             dto.customemailcontent = content
         }
 
-        val subject = "Sie wurden zu einer Umfrage mit dem Titel '{0}' eingeladen."
+        val subject = "Sie wurden zu einer Umfrage mit dem Titel \"{0}\" eingeladen."
 
         if (dto.customemailsubject.isNullOrEmpty()) {
             dto.customemailsubject = subject
@@ -399,6 +399,8 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
         layout.watchFields.add("delegationUser")
         layout.watchFields.addAll(listOf("groupAttendees"))
+        layout.watchFields.addAll(listOf("fullAccessGroups"))
+
 
         val processedLayout = LayoutUtils.processEditPage(layout, dto, this)
         if (!dto.isFinished()) {
@@ -663,6 +665,22 @@ class PollPageRest : AbstractDTOPagesRest<PollDO, Poll, PollDao>(PollDao::class.
 
             dto.groupAttendees = mutableListOf()
             dto.attendees = allUsers.sortedBy { it.displayName }
+        }
+        if (watchFieldsTriggered?.get(0) == "fullAccessGroups") {
+            val groupIds = dto.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toIntArray()
+            val userIds = UserService().getUserIds(groupService.getGroupUsers(groupIds))
+            val users = User.toUserList(userIds)
+            User.restoreDisplayNames(users, userService)
+            val allUsers = dto.fullAccessUsers?.toMutableList() ?: mutableListOf()
+
+            users?.forEach { user ->
+                if (allUsers.none { it.id == user.id }) {
+                    allUsers.add(user)
+                }
+            }
+
+            dto.fullAccessGroups = mutableListOf()
+            dto.fullAccessUsers = allUsers.sortedBy { it.displayName }
         }
         dto.owner = userService.getUser(dto.owner?.id)
 
