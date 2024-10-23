@@ -81,7 +81,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
         @RequestParam("questionOwner") delUser: String?,
         @RequestParam("returnToCaller") returnToCaller: String?,
     ): FormLayoutData {
-        if (pollId === null || pollStringId != null) {
+        if (pollId == null || pollStringId != null) {
             pollId = NumberHelper.parseLong(pollStringId) ?: throw IllegalArgumentException("id not given.")
         }
         // used to load answers, is an attendee chosen by a fullAccessUser in order to answer for them or the ThreadLocal User
@@ -126,10 +126,9 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.location, label = translateMsg("poll.location")))
             .add(UIReadOnlyField(value = pollDto.owner?.displayName, label = translateMsg("poll.owner")))
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
-            .add(UISpacer())
-            .add(UISpacer())
 
-        if (!pollDto.isFinished() && ThreadLocalUserContext.loggedInUserId === questionOwnerId) {
+      /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
+        if (pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId && pollDao.hasFullAccess(pollData)) {
             val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
             fieldSetDelegationUser.add(
                 UIInput(
@@ -155,6 +154,8 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             layout.add(fieldSetDelegationUser)
         }
 
+       */
+
         val pollResponse = PollResponse()
         pollResponse.poll = pollData
 
@@ -178,23 +179,23 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
 
             val col = UICol()
 
-            if (field.type == BaseType.TextQuestion) {
+            if (field.type == BaseType.PollTextQuestion) {
                 col.add(
                     PollPageRest.getUiElement(
                         pollDto.isFinished(),
                         "responses[$index].answers[0]",
-                        "poll.question.textQuestion",
+                        "poll.question.TextQuestion",
                         UIDataType.STRING
                     )
                 )
             }
 
-            if (field.type == BaseType.MultiResponseQuestion || field.type === BaseType.SingleResponseQuestion) {
+            if (field.type == BaseType.PollMultiResponseQuestion || field.type === BaseType.PollSingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)
                     }
-                    if (field.type == BaseType.MultiResponseQuestion) {
+                    if (field.type == BaseType.PollMultiResponseQuestion) {
                         col.add(
                             UICheckbox(
                                 "responses[$index].answers[$index2]",
@@ -211,7 +212,16 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                         )
                     }
                 }
+                col.add(
+                    UITextArea(
+                        "responses[$index].annotation[0]",
+                        label = "poll.Annotations",
+                        additionalLabel = "poll.annotations.description"
+                    )
+                )
+
             }
+
             fieldSetQuestions.add(UIRow().add(col))
             fieldset.add(fieldSetQuestions)
         }
@@ -254,7 +264,6 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
 
     @PostMapping("addResponse")
     fun addResponse(
-        request: HttpServletRequest,
         @RequestBody postData: PostData<PollResponse>, @RequestParam("questionOwner") questionOwner: Long?
     ): ResponseEntity<ResponseAction>? {
         val pollResponseDO = PollResponseDO()
@@ -306,9 +315,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
     }
 
     @GetMapping("showDelegatedUser")
-    fun showDelegatedUser(
-        request: HttpServletRequest
-    ): ResponseEntity<ResponseAction>? {
+    fun showDelegatedUser(): ResponseEntity<ResponseAction>? {
         val poll = pollDao.find(pollId, checkAccess = false)
         val attendees = listOfNotNull(
             poll!!.attendeeIds,

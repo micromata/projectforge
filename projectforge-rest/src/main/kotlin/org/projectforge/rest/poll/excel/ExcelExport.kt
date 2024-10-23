@@ -78,42 +78,40 @@ class ExcelExport {
                 createNewRow(excelSheet, emptyRow, anzNewRows)
                 setFirstRow(excelSheet, style, poll)
 
-
-
-                poll.attendees?.sortedBy { it.displayName }
-                poll.attendees?.forEachIndexed { index, user ->
-                    val res = PollResponse()
-                    responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                    setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
-                }
-
-                val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
-                val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
-                val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
-                val accessUsers = User.toUserList(accessUserIds)
-                User.restoreDisplayNames(accessUsers, userService)
-
-                accessUsers?.forEach { user ->
-                    if (fullAccessUser.none { it.id == user.id }) {
-                        fullAccessUser.add(user)
-                    }
-                }
-
-                var owner = User.getUser(poll.owner?.id, false)
-                if (owner != null) {
-                    fullAccessUser.add(owner)
-                }
-
-                User.restoreDisplayNames(fullAccessUser, userService)
-                fullAccessUser.forEachIndexed { _, user ->
-                    var number = (anzNewRows)
-                    if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
+                if (responses.isNotEmpty()) {
+                    poll.attendees?.sortedBy { it.displayName }
+                    poll.attendees?.forEachIndexed { index, user ->
                         val res = PollResponse()
                         responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
-                        // User add a Response
-                        if (res.id != null) {
-                            // Put data in the Row
-                            setNewRows(excelSheet, poll, user, res, number)
+                        setNewRows(excelSheet, poll, user, res, index + FIRST_DATA_ROW_NUM)
+                    }
+
+                    val fullAccessUser = poll.fullAccessUsers?.toMutableList() ?: mutableListOf()
+                    val accessGroupIds = poll.fullAccessGroups?.filter { it.id != null }?.map { it.id!! }?.toLongArray()
+                    val accessUserIds = UserService().getUserIds(groupService.getGroupUsers(accessGroupIds))
+                    val accessUsers = User.toUserList(accessUserIds)
+                    User.restoreDisplayNames(accessUsers, userService)
+
+                    accessUsers?.forEach { user ->
+                        if (fullAccessUser.none { it.id == user.id }) {
+                            fullAccessUser.add(user)
+                        }
+                    }
+
+                    val owner = User.getUser(poll.owner?.id, false)
+                    if (owner != null) {
+                        fullAccessUser.add(owner)
+                    }
+
+                    User.restoreDisplayNames(fullAccessUser, userService)
+                    fullAccessUser.forEachIndexed { _, user ->
+                        val number = (anzNewRows)
+                        if (poll.attendees?.map { it.id }?.contains(user.id) == false) {
+                            val res = PollResponse()
+                            responses.find { it.owner?.id == user.id }?.let { res.copyFrom(it) }
+                            if (res.id != null) {
+                                setNewRows(excelSheet, poll, user, res, number)
+                            }
                         }
                     }
                 }
@@ -129,16 +127,22 @@ class ExcelExport {
     }
 
 
+
     private fun setFirstRow(excelSheet: ExcelSheet, style: CellStyle, poll: Poll) {
         val excelRow = excelSheet.getRow(0)
         val excelRow1 = excelSheet.getRow(1)
+
 
         style.alignment = HorizontalAlignment.CENTER
 
         var merge = 1
         poll.inputFields?.forEach { question ->
             val answers = question.answers
-            if (question.type == BaseType.MultiResponseQuestion || question.type == BaseType.SingleResponseQuestion) {
+            if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
+                if (!question.answers!!.contains("Anmerkung")) {
+                    val ind = question.answers!!.size
+                    question.answers!!.add(ind,"Anmerkung")
+                }
                 var counter = merge
                 question.answers?.forEach { answer ->
                     excelRow1.getCell(counter).setCellValue(answer)
@@ -170,36 +174,52 @@ class ExcelExport {
 
 
         excelRow.getCell(0).setCellValue(user.displayName)
-        excelSheet.autosize(0)
         var cell = 0
+        excelSheet.autosize(0)
 
         var largestAnswer = ""
         poll.inputFields?.forEachIndexed { _, question ->
-            val questionAnswer = res?.responses?.find { it.questionUid == question.uid }
+            val questionpossibilities = res?.responses?.find { it.questionUid == question.uid }
 
-            if (questionAnswer?.answers.isNullOrEmpty()) {
-                cell += question.answers?.size ?: 0
-            }
-            questionAnswer?.answers?.forEachIndexed { ind, answer ->
+            var index: Int
+            question.answers?.forEachIndexed { ind, answer ->
+                index = question.answers!!.size - 1
                 cell++
-                if (question.type == BaseType.MultiResponseQuestion) {
-                    if (answer is Boolean && answer == true) {
-                        excelRow.getCell(cell).setCellValue("X")
+
+                if (question.type == BaseType.PollMultiResponseQuestion || question.type == BaseType.PollSingleResponseQuestion) {
+                    if (index == ind && questionpossibilities != null) {
+                        excelSheet.autosize(cell)
+                        if (questionpossibilities.annotation != null && questionpossibilities.annotation!!.size != 0) {
+                            excelRow.getCell(cell).setCellValue(questionpossibilities.annotation?.get(0))
+                        }
                     }
-                } else if (question.type == BaseType.SingleResponseQuestion) {
-                    if (answer is String && answer.equals(question.answers?.get(ind))) {
+                }
+
+                if (question.type == BaseType.PollMultiResponseQuestion) {
+                    questionpossibilities?.answers?.forEach {
+                        excelSheet.autosize(cell)
+                        if (questionpossibilities.answers?.get(ind)!!.equals(true) && ind != index) {
+                            excelRow.getCell(cell).setCellValue("X")
+                        }
+                    }
+                } else if (question.type == BaseType.PollSingleResponseQuestion) {
+                    excelSheet.autosize(cell)
+                    if (answer == questionpossibilities?.answers?.get(0) && ind != index) {
                         excelRow.getCell(cell).setCellValue("X")
                     }
                 } else {
-                    excelRow.getCell(cell).setCellValue(answer.toString())
-                    if (countLines(answer.toString()) > countLines(largestAnswer)) {
-                        largestAnswer = answer.toString()
+                    if (questionpossibilities?.answers?.isNotEmpty() == true) {
+                        excelSheet.autosize(cell)
+                        excelRow.getCell(cell).setCellValue(questionpossibilities.answers?.get(0).toString())
+                        if (countLines(answer) > countLines(largestAnswer)) {
+                            largestAnswer = answer
+                        }
                     }
                 }
-                excelSheet.autosize(cell)
             }
         }
 
+        largestAnswer = "i"
         val puffer: String = largestAnswer
         var counterOfBreaking = 0
         var counterOfOverlength = 0
@@ -209,13 +229,14 @@ class ExcelExport {
         // check for line-breaks
         for (i in pufferSplit.indices) {
             counterOfBreaking++
-            counterOfOverlength += pufferSplit[i].length / 70
+            counterOfOverlength += pufferSplit[i].length / 20
         }
         excelRow.setHeight((14 + counterOfOverlength * 14 + counterOfBreaking * 14).toFloat())
     }
 
     private fun countLines(str: String): Int {
         val lines = str.split("\r\n|\r|\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+
         return lines.size
     }
 

@@ -526,7 +526,7 @@ constructor(
     private fun getFilterFavorites(): Favorites<MagicFilter> {
         var favorites: Favorites<MagicFilter>? = null
         try {
-            @Suppress("UNCHECKED_CAST", "USELESS_ELVIS")
+            @Suppress("UNCHECKED_CAST")
             favorites =
                 userPrefService.getEntry(
                     category,
@@ -906,8 +906,7 @@ constructor(
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
         val item = baseDao.find(id) ?: return ResponseEntity(HttpStatus.BAD_REQUEST)
-        val historyEntries = baseDao.selectHistoryEntries(item)
-        val historyDTOs = historyFormatService.convertAsFormatted(item, historyEntries)
+        val historyDTOs = historyFormatService.selectAsDisplayEntries(baseDao, item)
         return ResponseEntity(historyDTOs, HttpStatus.OK)
     }
 

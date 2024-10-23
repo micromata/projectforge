@@ -39,6 +39,17 @@ open class HistoryFormatAdapter {
      * @param item Item the history entries are related to.
      * @param entries All found history entries for customization.
      */
+    open fun customizeEntries(item: Any, entries: MutableList<HistoryEntry>) {
+    }
+
+    open fun customize(item: Any, historyEntry: HistoryEntry) {}
+
+    /**
+     * A customized adapter may manipulate all found history entries by modifying, deleting or adding entries.
+     * Does nothing at default.
+     * @param item Item the history entries are related to.
+     * @param entries All found history entries for customization.
+     */
     open fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
     }
 

@@ -27,6 +27,7 @@ import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -79,6 +80,11 @@ class HistoryFormatService {
             return
         }
         this.historyServiceAdapters[clazz] = historyServiceAdapter
+    }
+
+    fun <O : ExtendedBaseDO<Long>> selectAsDisplayEntries(baseDao: BaseDao<O>, item: O): List<DisplayHistoryEntryDTO> {
+        val historyEntries = baseDao.selectHistoryEntries(item)
+        return convertAsFormatted(item, historyEntries)
     }
 
     /**
