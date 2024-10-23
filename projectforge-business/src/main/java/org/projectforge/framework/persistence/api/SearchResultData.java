@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.api;
 
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -35,7 +35,7 @@ public class SearchResultData
 
   protected ExtendedBaseDO<Integer> dataObject;
 
-  protected List<DisplayHistoryEntry> propertyChanges;
+  protected List<FlatDisplayHistoryEntry> propertyChanges;
 
   protected HistoryEntry historyEntry;
 
@@ -57,7 +57,7 @@ public class SearchResultData
    *
    * @return
    */
-  public List<DisplayHistoryEntry> getPropertyChanges()
+  public List<FlatDisplayHistoryEntry> getPropertyChanges()
   {
     return propertyChanges;
   }

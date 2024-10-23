@@ -50,7 +50,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
@@ -629,8 +629,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         data["contactPerson"] = contactPerson
         data["auftrag"] = auftrag
         data["requestUrl"] = requestUrl
-        val history: List<DisplayHistoryEntry> = selectDisplayHistoryEntries(auftrag)
-        val list: MutableList<DisplayHistoryEntry> = ArrayList()
+        val history: List<FlatDisplayHistoryEntry> = selectFlatDisplayHistoryEntries(auftrag)
+        val list: MutableList<FlatDisplayHistoryEntry> = ArrayList()
         var i = 0
         for (entry in history) {
             list.add(entry)
@@ -690,7 +690,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the AuftragsPositionDO children.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
     override fun customizeHistoryEntries(obj: AuftragDO, list: MutableList<HistoryEntryDO>) {
         obj.positionenIncludingDeleted?.forEach { position ->

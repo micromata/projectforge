@@ -32,7 +32,7 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.candh.CandHMaster
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryService
@@ -394,7 +394,7 @@ class BaseDOPersistenceService {
                 // Remove all history entries (including all attributes) from the database:
                 historyService.loadHistory(obj).forEach { historyEntry ->
                     em.remove(historyEntry)
-                    val displayHistoryEntry = ToStringUtil.toJsonString(DisplayHistoryEntry(historyEntry))
+                    val displayHistoryEntry = ToStringUtil.toJsonString(FlatDisplayHistoryEntry(historyEntry))
                     if (logMessage) {
                         log.info { "${useClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry" }
                     }

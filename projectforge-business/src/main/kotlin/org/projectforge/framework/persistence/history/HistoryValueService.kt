@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.user.UserGroupCache
@@ -211,7 +210,7 @@ class HistoryValueService private constructor() {
         return "${clazz.simpleName}#${valueString}"
     }
 
-    internal fun getDBObjects(context: DisplayHistoryEntry.Context): List<Any> {
+    internal fun getDBObjects(context: FlatDisplayHistoryEntry.Context): List<Any> {
         val propertyClass = context.propertyClass ?: return emptyList()
         val propertyName = context.propertyName
         val ret = mutableListOf<Any>()

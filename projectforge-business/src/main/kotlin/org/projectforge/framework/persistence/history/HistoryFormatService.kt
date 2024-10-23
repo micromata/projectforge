@@ -37,7 +37,7 @@ import java.util.*
 private val log = KotlinLogging.logger {}
 
 /**
- * History entries will be transformed into human readable formats.
+ * History entries will be transformed into human-readable formats.
  */
 @Component
 class HistoryFormatService {

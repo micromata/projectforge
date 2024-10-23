@@ -29,7 +29,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryEntry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -132,38 +132,6 @@ open class AddressCampaignValueDao : BaseDao<AddressCampaignValueDO>(AddressCamp
             map[addressCampaignValue.addressId!!] = addressCampaignValue
         }
         return map
-    }
-
-    override fun convertToDisplayHistoryEntries(entry: HistoryEntry): List<DisplayHistoryEntry> {
-        val attributes = entry.attributes
-        if (attributes.isNullOrEmpty()) {
-            val se = DisplayHistoryEntry(entry)
-            return listOf(se)
-        }
-        val result: MutableList<DisplayHistoryEntry> = ArrayList()
-        attributes.forEach { attr ->
-            val se: DisplayHistoryEntry = object : DisplayHistoryEntry(entry, attr) {
-                override fun getObjectValue(context: Context): Any? {
-                    if (context.propertyName == null) {
-                        return null
-                    }
-
-                    val type = context.propertyType
-
-                    if (AddressDO::class.java.name == type) {
-                        return context.value
-                    }
-                    if (AddressCampaignDO::class.java.name == type) {
-                        return context.value
-                    }
-
-                    return super.getObjectValue(context)
-                }
-            }
-            result.add(se)
-        }
-
-        return result
     }
 
     fun setAddressDao(addressDao: AddressDao?) {

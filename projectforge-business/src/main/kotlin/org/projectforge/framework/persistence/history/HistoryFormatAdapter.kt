@@ -60,7 +60,7 @@ open class HistoryFormatAdapter {
             operation = HistoryFormatService.translate(historyEntry.entityOpType)
         )
         historyEntry.attributes?.forEach { attr ->
-            val dhe = DisplayHistoryEntry(historyEntry, attr)
+            val dhe = FlatDisplayHistoryEntry(historyEntry, attr)
             val diffEntryDTO = HistoryFormatService.DisplayHistoryDiffEntryDTO(
                 operationType = attr.opType,
                 operation = HistoryFormatService.translate(attr.opType),

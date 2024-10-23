@@ -45,7 +45,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry;
 import org.projectforge.framework.persistence.history.HistoryServiceUtils;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -74,7 +74,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
 
   protected F form;
 
-  protected List<DisplayHistoryEntry> historyEntries;
+  protected List<FlatDisplayHistoryEntry> historyEntries;
 
   protected boolean showHistory;
 
@@ -149,55 +149,55 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
       showModificationTimes = false;
     }
     body.add(new Label("tabTitle", getTitle()).setRenderBodyOnly(true));
-    final List<IColumn<DisplayHistoryEntry, String>> columns = new ArrayList<IColumn<DisplayHistoryEntry, String>>();
-    final CellItemListener<DisplayHistoryEntry> cellItemListener = new CellItemListener<DisplayHistoryEntry>()
+    final List<IColumn<FlatDisplayHistoryEntry, String>> columns = new ArrayList<IColumn<FlatDisplayHistoryEntry, String>>();
+    final CellItemListener<FlatDisplayHistoryEntry> cellItemListener = new CellItemListener<FlatDisplayHistoryEntry>()
     {
       @Override
-      public void populateItem(final Item<ICellPopulator<DisplayHistoryEntry>> item, final String componentId,
-          final IModel<DisplayHistoryEntry> rowModel)
+      public void populateItem(final Item<ICellPopulator<FlatDisplayHistoryEntry>> item, final String componentId,
+                               final IModel<FlatDisplayHistoryEntry> rowModel)
       {
         // Later a link should show the history entry as popup.
         item.add(AttributeModifier.append("class", new Model<String>("notrlink")));
       }
     };
-    final DatePropertyColumn<DisplayHistoryEntry> timestampColumn = new DatePropertyColumn<DisplayHistoryEntry>(
+    final DatePropertyColumn<FlatDisplayHistoryEntry> timestampColumn = new DatePropertyColumn<FlatDisplayHistoryEntry>(
         dateTimeFormatter,
         getString("timestamp"), null, "timestamp", cellItemListener);
     timestampColumn.setDatePattern(DateFormats.getFormatString(DateFormatType.DATE_TIME_SHORT_MINUTES));
     columns.add(timestampColumn);
     columns
-        .add(new UserPropertyColumn<DisplayHistoryEntry>(getUserGroupCache(), getString("user"), null, "user",
+        .add(new UserPropertyColumn<FlatDisplayHistoryEntry>(getUserGroupCache(), getString("user"), null, "user",
             cellItemListener)
             .withUserFormatter(userFormatter));
     columns
-        .add(new CellItemListenerPropertyColumn<DisplayHistoryEntry>(getString("history.entryType"), null, "entryType",
+        .add(new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.entryType"), null, "entryType",
             cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<DisplayHistoryEntry>(getString("history.propertyName"), null, "propertyName",
+        new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.propertyName"), null, "propertyName",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<DisplayHistoryEntry>(getString("history.newValue"), null, "newValue",
+    columns.add(new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.newValue"), null, "newValue",
         cellItemListener)
     {
       @Override
-      public void populateItem(final Item<ICellPopulator<DisplayHistoryEntry>> item, final String componentId,
-          final IModel<DisplayHistoryEntry> rowModel)
+      public void populateItem(final Item<ICellPopulator<FlatDisplayHistoryEntry>> item, final String componentId,
+                               final IModel<FlatDisplayHistoryEntry> rowModel)
       {
-        final DisplayHistoryEntry historyEntry = rowModel.getObject();
+        final FlatDisplayHistoryEntry historyEntry = rowModel.getObject();
         item.add(
             new DiffTextPanel(componentId, Model.of(historyEntry.getNewValue()), Model.of(historyEntry.getOldValue())));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    final IDataProvider<DisplayHistoryEntry> dataProvider = new ListDataProvider<DisplayHistoryEntry>(getHistory());
-    final DataTable<DisplayHistoryEntry, String> dataTable = new DataTable<DisplayHistoryEntry, String>("historyTable",
+    final IDataProvider<FlatDisplayHistoryEntry> dataProvider = new ListDataProvider<FlatDisplayHistoryEntry>(getHistory());
+    final DataTable<FlatDisplayHistoryEntry, String> dataTable = new DataTable<FlatDisplayHistoryEntry, String>("historyTable",
         columns,
         dataProvider, 100)
     {
       @Override
-      protected Item<DisplayHistoryEntry> newRowItem(final String id, final int index,
-          final IModel<DisplayHistoryEntry> model)
+      protected Item<FlatDisplayHistoryEntry> newRowItem(final String id, final int index,
+                                                         final IModel<FlatDisplayHistoryEntry> model)
       {
-        return new OddEvenItem<DisplayHistoryEntry>(id, index, model);
+        return new OddEvenItem<FlatDisplayHistoryEntry>(id, index, model);
       }
 
       @Override
@@ -222,10 +222,10 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
     this.editPageSupport = new EditPageSupport<>(this, getBaseDao());
   }
 
-  protected List<DisplayHistoryEntry> getHistory()
+  protected List<FlatDisplayHistoryEntry> getHistory()
   {
     if (historyEntries == null) {
-      historyEntries = getBaseDao().selectDisplayHistoryEntries(getData());
+      historyEntries = getBaseDao().selectFlatDisplayHistoryEntries(getData());
     }
     return historyEntries;
   }

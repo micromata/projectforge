@@ -166,7 +166,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     /**
      * Gets history entries of super and adds all history entries of the EingangsrechnungsPositionDO children.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
     override fun customizeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>) {
         obj.positionen?.forEach { position ->

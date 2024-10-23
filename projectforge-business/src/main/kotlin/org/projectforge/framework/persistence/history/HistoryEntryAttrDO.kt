@@ -118,7 +118,7 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
         get() = HistoryEntryDOUtils.getPlainPropertyName(this)
 
     /**
-     * Used while converting [HistoryEntryAttrDO] to [DisplayHistoryEntry].
+     * Used while converting [HistoryEntryAttrDO] to [FlatDisplayHistoryEntry].
      */
     @get:Transient
     var displayPropertyName: String? = null

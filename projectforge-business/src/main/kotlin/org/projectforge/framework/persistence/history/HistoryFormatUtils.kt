@@ -39,27 +39,33 @@ class HistoryFormatUtils {
     @Autowired
     private lateinit var userService: UserService
 
-    fun replaceGroupAndUserIdsValues(entry: DisplayHistoryEntry) {
-        val propertyName = entry.propertyName ?: return
+    fun replaceGroupAndUserIdsValues(entry: HistoryEntry) {
+        entry.attributes?.forEach { attr ->
+            replaceGroupAndUserIdsValues(attr)
+        }
+    }
+
+    fun replaceGroupAndUserIdsValues(attr: HistoryEntryAttr) {
+        val propertyName = attr.propertyName ?: return
         if (propertyName.endsWith("GroupIds")) {
-            entry.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                entry.oldValue = groupService.getGroupNames(value)
+            attr.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
+                attr.oldValue = groupService.getGroupNames(value)
                     .sorted()
                     .joinToString(", ")
             }
-            entry.newValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                entry.newValue = groupService.getGroupNames(value)
+            attr.value?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
+                attr.value = groupService.getGroupNames(value)
                     .sorted()
                     .joinToString(", ")
             }
         } else if (propertyName.endsWith("UserIds")) {
-            entry.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                entry.oldValue = userService.getUserNames(value)
+            attr.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
+                attr.oldValue = userService.getUserNames(value)
                     .sorted()
                     .joinToString(", ")
             }
-            entry.newValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                entry.newValue = userService.getUserNames(value)
+            attr.value?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
+                attr.value = userService.getUserNames(value)
                     .sorted()
                     .joinToString(", ")
             }
