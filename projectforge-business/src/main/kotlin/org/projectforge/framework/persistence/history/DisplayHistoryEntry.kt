@@ -42,7 +42,7 @@ class DisplayHistoryEntry {
     var modifiedByUser: String? = null
     var operationType: EntityOpType? = null
     var operation: String? = null
-    var attributes: MutableList<DisplayHistoryEntryAttr>? = null
+    var attributes = mutableListOf<DisplayHistoryEntryAttr>()
 
     companion object {
         internal fun create(historyEntry: HistoryEntry, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntry {

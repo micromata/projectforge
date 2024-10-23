@@ -24,7 +24,7 @@ function getTypeSymbol(type) {
 function HistoryEntry(
     {
         entry: {
-            diffEntries,
+            attributes,
             timeAgo,
             modifiedAt,
             modifiedByUser,
@@ -35,7 +35,7 @@ function HistoryEntry(
     const [active, setActive] = React.useState(false);
     const diffSummary = {};
 
-    diffEntries.forEach(({ operation, operationType }) => {
+    attributes.forEach(({ operation, operationType }) => {
         let diff = diffSummary[operationType];
 
         if (!diff) {
@@ -83,7 +83,7 @@ function HistoryEntry(
                     <span>
                         Felder:
                         {' '}
-                        {diffEntries
+                        {attributes
                             .map((diff) => diff.property)
                             .join(', ')}
                     </span>
@@ -108,12 +108,13 @@ function HistoryEntry(
                             :
                         </strong>
                     </h5>
-                    {diffEntries.map((
+                    {attributes.map((
                         {
                             operationType,
                             property,
                             oldValue,
                             newValue,
+                            id,
                         },
                     ) => {
                         let diff;
@@ -139,7 +140,7 @@ function HistoryEntry(
 
                         return (
                             <span
-                                key={`history-diff-at-${modifiedAt}-details-${property}`}
+                                key={`history-diff-at-${id}`}
                                 className={style.detail}
                             >
                                 <span className={style[operationType]}>
@@ -160,16 +161,18 @@ function HistoryEntry(
 
 HistoryEntry.propTypes = {
     entry: PropTypes.shape({
-        diffEntries: PropTypes.arrayOf(PropTypes.shape({
+        attributes: PropTypes.arrayOf(PropTypes.shape({
+            id: PropTypes.number,
             newValue: PropTypes.string,
             oldValue: PropTypes.string,
             operation: PropTypes.string,
             operationType: PropTypes.string,
             property: PropTypes.string,
         })),
+        id: PropTypes.number,
         modifiedAt: PropTypes.string,
         modifiedByUser: PropTypes.string,
-        modifiedByUserId: PropTypes.string,
+        modifiedByUserId: PropTypes.number,
         operation: PropTypes.string,
         operationType: PropTypes.string,
         timeAgo: PropTypes.string,

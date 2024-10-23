@@ -93,7 +93,6 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
     register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
     //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
-    register(MenuItemDefId.EMPLOYEE_LIST, EmployeeListPage.class);
     register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
     register(MenuItemDefId.ORDER_LIST, AuftragListPage.class);
     // createdMenuEntry.setNewCounterModel(new MenuNewCounterOrder());

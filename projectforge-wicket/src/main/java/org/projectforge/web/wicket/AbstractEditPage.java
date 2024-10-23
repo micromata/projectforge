@@ -166,7 +166,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
                         cellItemListener)
                         .withUserFormatter(userFormatter));
         columns
-                .add(new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.entryType"), null, "entryType",
+                .add(new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.opType"), null, "opType",
                         cellItemListener));
         columns.add(
                 new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.propertyName"), null, "propertyName",

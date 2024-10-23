@@ -65,7 +65,7 @@ enum class MenuItemDefId constructor(val i18nKey: String, val url: String? = nul
     DATEV_IMPORT("menu.fibu.datevImport", "wa/datevImport"), //
     DOCUMENTATION("menu.documentation"), //
     DVELOP("menu.dvelop", getReactDynamicPageUrl("dvelop")), //
-    EMPLOYEE_LIST("menu.fibu.employees", "wa/employeeList"), //
+    EMPLOYEE_LIST("menu.fibu.employees", getReactListUrl("employee")), //
     EMPLOYEE_SALARY_LIST("menu.fibu.employeeSalaries", "wa/employeeSalaryList"), //
     EMPLOYEE_LEAVE_ACCOUNT_ENTRIES("menu.vacation.leaveAccountEntry", getReactListUrl("leaveAccountEntry")), //
     FEEDBACK("menu.gear.feedback", url = "wa/feedback"), //
