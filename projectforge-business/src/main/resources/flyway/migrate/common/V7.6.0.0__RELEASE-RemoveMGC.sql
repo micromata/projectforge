@@ -36,7 +36,7 @@ ALTER TABLE t_orga_visitorbook_entry
 
 -- Replaces tables t_fibu_employee_timed, t_fibu_employee_timedattr and t_fibu_employee_timedattrdata.
 -- t_fibu_employee_timedattrdata wasn't in use and empty.
-CREATE TABLE t_fibu_employee_validity_period_attr
+CREATE TABLE t_fibu_employee_valid_since_attr
 (
     pk                        BIGINT                        NOT NULL,
     created                   TIMESTAMP WITHOUT TIME ZONE,
@@ -44,20 +44,20 @@ CREATE TABLE t_fibu_employee_validity_period_attr
     last_update               TIMESTAMP WITHOUT TIME ZONE,
     employee_fk               BIGINT                        NOT NULL,
     type                      CHARACTER VARYING(30), -- ANNUAL_LEAVE or STATUS
-    valid_from                DATE                          NOT NULL,
+    valid_since               DATE                          NOT NULL,
     value                     CHARACTER VARYING(255),
     comment                   CHARACTER VARYING(4000)
 );
 
-ALTER TABLE t_fibu_employee_validity_period_attr
-    ADD CONSTRAINT t_fibu_employee_validity_period_attr_pkey PRIMARY KEY (pk);
+ALTER TABLE t_fibu_employee_valid_since_attr
+    ADD CONSTRAINT t_fibu_employee_valid_since_attr_pkey PRIMARY KEY (pk);
 
-CREATE INDEX idx_t_fibu_employee_validity_period_attr_fk_employee
-    ON t_fibu_employee_validity_period_attr (employee_fk);
+CREATE INDEX idx_t_fibu_employee_valid_since_attr_fk_employee
+    ON t_fibu_employee_valid_since_attr (employee_fk);
 
-ALTER TABLE t_fibu_employee_validity_period_attr
-    ADD CONSTRAINT t_fibu_employee_validity_period_attr_fk_employee FOREIGN KEY (employee_fk) REFERENCES t_fibu_employee (pk);
+ALTER TABLE t_fibu_employee_valid_since_attr
+    ADD CONSTRAINT t_fibu_employee_valid_since_attr_fk_employee FOREIGN KEY (employee_fk) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE t_fibu_employee_validity_period_attr
-    ADD CONSTRAINT unique_t_fibu_employee_validity_period_attr UNIQUE (employee_fk, type, valid_from);
+ALTER TABLE t_fibu_employee_valid_since_attr
+    ADD CONSTRAINT unique_t_fibu_employee_valid_since_attr UNIQUE (employee_fk, type, valid_since);
 

@@ -1,4 +1,3 @@
-- Unique in EmployeeValidityAttrDO einführen und testen (auch gelöschte überschreiben)
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
 - customizeDisplayHistoryEntry: AddressBookDao, ... (check)

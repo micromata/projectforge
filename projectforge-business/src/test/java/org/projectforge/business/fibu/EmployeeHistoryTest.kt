@@ -54,13 +54,13 @@ class EmployeeHistoryTest : AbstractTestBase() {
         ) // Employee inserted, 2xannualleave inserted by createEmployee(), 1 status inserted
         Assertions.assertEquals(
             3,
-            historyEntries.count { it.entityName == EmployeeValidityPeriodAttrDO::class.qualifiedName })
-        val statusList = employeeService.selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS)
+            historyEntries.count { it.entityName == EmployeeValidSinceAttrDO::class.qualifiedName })
+        val statusList = employeeService.selectAllValidSinceAttrs(employee, EmployeeValidSinceAttrType.STATUS)
         Assertions.assertEquals(1, statusList.size)
         val validAttr = statusList[0]
         validAttr.status = EmployeeStatus.FREELANCER
-        validAttr.validFrom = LocalDate.of(2024, 5, 1)
-        employeeService.updateValidityPeriodAttr(employee, validAttr)
+        validAttr.validSince = LocalDate.of(2024, 5, 1)
+        employeeService.updateValidSinceAttr(employee, validAttr)
         historyEntries = employeeDao.selectHistoryEntries(employee, false)
         Assertions.assertEquals(5, historyEntries.size)
         historyEntries[0].let { entry ->
@@ -74,26 +74,26 @@ class EmployeeHistoryTest : AbstractTestBase() {
             )
             HistoryTester.assertHistoryAttr(
                 entry,
-                "validFrom",
+                "validSince",
                 value = "2024-05-01",
                 oldValue = "2024-01-01",
                 opType = PropertyOpType.Update,
                 propertyTypeClass = LocalDate::class,
             )
         }
-        val attr: EmployeeValidityPeriodAttrDO
-        employeeService.selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS).let { list ->
+        val attr: EmployeeValidSinceAttrDO
+        employeeService.selectAllValidSinceAttrs(employee, EmployeeValidSinceAttrType.STATUS).let { list ->
             attr = list[0]
             attr.status = EmployeeStatus.STUDENTISCHE_HILFSKRAFT
             Assertions.assertEquals(1, list.size)
-            employeeService.markValidityPeriodAttrAsDeleted(employee, attr, false)
+            employeeService.markValidSinceAttrAsDeleted(employee, attr, false)
         }
         historyEntries = employeeDao.selectHistoryEntries(employee, false)
         Assertions.assertEquals(6, historyEntries.size)
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryEntry(
                 entry,
-                EmployeeValidityPeriodAttrDO::class,
+                EmployeeValidSinceAttrDO::class,
                 entityId = attr.id,
                 EntityOpType.MarkAsDeleted,
                 numberOfAttributes = 2,
@@ -108,20 +108,20 @@ class EmployeeHistoryTest : AbstractTestBase() {
             )
         }
         attr.deleted = false
-        employeeService.markValidityPeriodAttrAsDeleted(employee, attr, false)
+        employeeService.markValidSinceAttrAsDeleted(employee, attr, false)
         historyEntries = employeeDao.selectHistoryEntries(employee, false)
         Assertions.assertEquals(
             6,
             historyEntries.size
         ) // No more history entries, object was already marked as deleted.
         attr.status = EmployeeStatus.AZUBI
-        employeeService.markValidityPeriodAttrAsDeleted(employee, attr, false)
+        employeeService.markValidSinceAttrAsDeleted(employee, attr, false)
         historyEntries = employeeDao.selectHistoryEntries(employee, false)
         Assertions.assertEquals(7, historyEntries.size) // attr.status changed.
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryEntry(
                 entry,
-                EmployeeValidityPeriodAttrDO::class,
+                EmployeeValidSinceAttrDO::class,
                 entityId = attr.id,
                 EntityOpType.MarkAsDeleted,
                 numberOfAttributes = 1,
@@ -133,16 +133,16 @@ class EmployeeHistoryTest : AbstractTestBase() {
         }
 
         //Assertions.assertEquals(4, historyEntries.size) // Employee inserted, 2xannualleave inserted by createEmployee(), 1 status inserted
-        employeeService.selectAllValidityPeriodAttrs(employee, EmployeeValidityPeriodAttrType.STATUS, deleted = null).let { list ->
+        employeeService.selectAllValidSinceAttrs(employee, EmployeeValidSinceAttrType.STATUS, deleted = null).let { list ->
             Assertions.assertEquals(1, list.size)
-            employeeService.undeleteValidityPeriodAttr(employee, attr, false)
+            employeeService.undeleteValidSinceAttr(employee, attr, false)
         }
         historyEntries = employeeDao.selectHistoryEntries(employee, false)
         Assertions.assertEquals(8, historyEntries.size)
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryEntry(
                 entry,
-                EmployeeValidityPeriodAttrDO::class,
+                EmployeeValidSinceAttrDO::class,
                 entityId = attr.id,
                 EntityOpType.Undelete,
                 numberOfAttributes = 1,

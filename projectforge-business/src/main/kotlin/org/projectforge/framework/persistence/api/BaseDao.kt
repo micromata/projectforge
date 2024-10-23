@@ -385,7 +385,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * For customizing each single [HistoryEntry]. Called before converting to (flat)display history entries.
+     * For customizing each single [HistoryEntry]. Called before converting to display history entries.
      * Does nothing at default.
      */
     open fun customizeHistoryEntry(entry: HistoryEntry) {

@@ -24,30 +24,30 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrType
+import org.projectforge.business.fibu.EmployeeValidSinceAttrDO
+import org.projectforge.business.fibu.EmployeeValidSinceAttrType
 import java.time.LocalDate
 
-class EmployeeValidityPeriodAttr(
-    var validFrom: LocalDate? = null,
+class EmployeeValidSinceAttr(
+    var validSince: LocalDate? = null,
     var value: String? = null,
     var comment: String? = null,
-    var type: EmployeeValidityPeriodAttrType? = null,
+    var type: EmployeeValidSinceAttrType? = null,
     var employeeId: Long? = null,
-) : BaseDTODisplayObject<EmployeeValidityPeriodAttrDO>() {
-    constructor(src: EmployeeValidityPeriodAttrDO?) : this() {
+) : BaseDTODisplayObject<EmployeeValidSinceAttrDO>() {
+    constructor(src: EmployeeValidSinceAttrDO?) : this() {
         id = src?.id
-        validFrom = src?.validFrom
+        validSince = src?.validSince
         value = src?.value
         comment = src?.comment
         type = src?.type
         employeeId = src?.employee?.id
     }
 
-    fun cloneAsDO(): EmployeeValidityPeriodAttrDO {
-        val result = EmployeeValidityPeriodAttrDO()
+    fun cloneAsDO(): EmployeeValidSinceAttrDO {
+        val result = EmployeeValidSinceAttrDO()
         result.id = id
-        result.validFrom = validFrom
+        result.validSince = validSince
         result.value = value
         result.comment = comment
         result.type = type

@@ -91,8 +91,6 @@ ALTER TABLE t_fibu_employee ALTER COLUMN user_id TYPE bigint;
 ALTER TABLE t_fibu_employee ALTER COLUMN kost1_id TYPE bigint;
 ALTER TABLE t_fibu_employee_salary ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_fibu_employee_salary ALTER COLUMN employee_id TYPE bigint;
-ALTER TABLE t_fibu_employee_validity_period_attr ALTER COLUMN pk TYPE bigint;
-ALTER TABLE t_fibu_employee_validity_period_attr ALTER COLUMN employee_fk TYPE bigint;
 ALTER TABLE t_fibu_konto ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_fibu_kost1 ALTER COLUMN pk TYPE bigint;
 ALTER TABLE t_fibu_kost2 ALTER COLUMN pk TYPE bigint;

@@ -257,15 +257,15 @@ class HistoryTester(
          * @return The attributes of the history entry (migth be null).
          */
         fun assertHistoryEntry(
-            wrapper: HistoryEntryHolder,
+            holder: HistoryEntryHolder,
             entityClass: KClass<*>,
             entityId: Long?,
             opType: EntityOpType,
-            modUser: PFUserDO,
+            modUser: PFUserDO? = null,
             numberOfAttributes: Int = 0,
         ): Set<HistoryEntryAttr>? {
             return assertHistoryEntry(
-                entry = wrapper.entry,
+                entry = holder.entry,
                 entityClass = entityClass,
                 entityId = entityId,
                 opType = opType,

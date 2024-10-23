@@ -73,43 +73,43 @@ class EmployeeServiceTest : AbstractTestBase() {
      */
     @Test
     fun validityTest() {
-        Assertions.assertNull(employeeService.getActiveEntry(emptyList()))
-        Assertions.assertNull(employeeService.getActiveEntry(emptyList(), LocalDate.of(2024, Month.SEPTEMBER, 8)))
+        Assertions.assertNull(employeeService.findActiveEntry(emptyList()))
+        Assertions.assertNull(employeeService.findActiveEntry(emptyList(), LocalDate.of(2024, Month.SEPTEMBER, 8)))
         val list = mutableListOf(createValidityEntry(0, null))
         // 0 - null
         // 1 - 2023-09-01
         // 2 - 2024-09-01
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list)!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list)!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
         list.add(createValidityEntry(2, LocalDate.of(2024, Month.SEPTEMBER, 1)))
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list)!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
         // Test other list order:
         list.removeAt(1)
         list.add(0, createValidityEntry(2, LocalDate.of(2024, Month.SEPTEMBER, 1))) // prepend entry
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list)!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
 
         list.add(createValidityEntry(1, LocalDate.of(2023, Month.SEPTEMBER, 1)))
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
-        Assertions.assertEquals(1, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2023, Month.JANUARY, 8))!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list)!!.id)
+        Assertions.assertEquals(1, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2023, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
 
         list.reverse() // Check in reverse order
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
-        Assertions.assertEquals(2, employeeService.getActiveEntry(list)!!.id)
-        Assertions.assertEquals(1, employeeService.getActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2023, Month.JANUARY, 8))!!.id)
-        Assertions.assertEquals(0, employeeService.getActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.SEPTEMBER, 8))!!.id)
+        Assertions.assertEquals(2, employeeService.findActiveEntry(list)!!.id)
+        Assertions.assertEquals(1, employeeService.findActiveEntry(list, LocalDate.of(2024, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2023, Month.JANUARY, 8))!!.id)
+        Assertions.assertEquals(0, employeeService.findActiveEntry(list, LocalDate.of(2022, Month.JANUARY, 8))!!.id)
     }
 
-    private fun createValidityEntry(id: Long?, validFrom: LocalDate?): EmployeeValidityPeriodAttrDO {
-        val entry = EmployeeValidityPeriodAttrDO()
-        entry.validFrom = validFrom
+    private fun createValidityEntry(id: Long?, validSince: LocalDate?): EmployeeValidSinceAttrDO {
+        val entry = EmployeeValidSinceAttrDO()
+        entry.validSince = validSince
         entry.id = id
         return entry
     }

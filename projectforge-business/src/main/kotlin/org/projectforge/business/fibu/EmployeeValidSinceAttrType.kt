@@ -23,14 +23,14 @@
 
 package org.projectforge.business.fibu
 
-enum class EmployeeValidityPeriodAttrType {
+enum class EmployeeValidSinceAttrType {
     ANNUAL_LEAVE,
     STATUS;
 
     companion object {
-        fun safeValueOf(name: String?): EmployeeValidityPeriodAttrType? {
+        fun safeValueOf(name: String?): EmployeeValidSinceAttrType? {
             name ?: return null
-            return EmployeeValidityPeriodAttrType.entries.firstOrNull { it.name == name }
+            return EmployeeValidSinceAttrType.entries.firstOrNull { it.name == name }
         }
     }
 }
