@@ -34,11 +34,12 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.test.AbstractTestBase
+import org.projectforge.test.HistoryTester
+import org.projectforge.test.HistoryTester.Companion.assertHistoryEntry
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -97,21 +98,17 @@ class EmployeeTest : AbstractTestBase() {
     fun testStaffNumber() {
         Assertions.assertTrue(employeeList.isNotEmpty())
         val e = employeeList[0]
-        val historyEntriesBefore = employeeDao.selectFlatDisplayHistoryEntries(e)
+        val historyEntriesBefore = employeeDao.selectHistoryEntries(e)
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
         Assertions.assertEquals(e.staffNumber, staffNumber)
         employeeDao.update(e)
 
         // test history
-        val historyEntriesAfter = employeeDao.selectFlatDisplayHistoryEntries(e)
+        val historyEntriesAfter = employeeDao.selectHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
-        assertHistoryEntry(historyEntriesAfter[0], "staffNumber", staffNumber)
-    }
+        HistoryTester.assertHistoryAttr(historyEntriesAfter[0], "staffNumber", value = staffNumber, oldValue = null)
 
-    private fun assertHistoryEntry(historyEntry: FlatDisplayHistoryEntry, propertyName: String, newValue: String) {
-        Assertions.assertEquals(historyEntry.propertyName, propertyName)
-        Assertions.assertEquals(historyEntry.newValue, newValue)
     }
 
     companion object {

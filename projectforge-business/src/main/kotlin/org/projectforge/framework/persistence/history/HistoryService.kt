@@ -56,33 +56,6 @@ class HistoryService {
         instance = this
     }
 
-    fun convertToDisplayHistoryEntry(entry: HistoryEntry): List<FlatDisplayHistoryEntry> {
-        entry.attributes.let { attributes ->
-            if (attributes.isNullOrEmpty()) {
-                return listOf(FlatDisplayHistoryEntry(entry))
-            }
-            val result = mutableListOf<FlatDisplayHistoryEntry>()
-            attributes.forEach { attr ->
-                val se = FlatDisplayHistoryEntry(entry, attr)
-                se.initialize(FlatDisplayHistoryEntry.Context(entry.entityName, se))
-                result.add(se)
-            }
-
-            return result
-        }
-    }
-
-    /**
-     * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
-     */
-    fun mergeHistoryDisplayEntries(list: MutableList<FlatDisplayHistoryEntry>, entries: List<FlatDisplayHistoryEntry>) {
-        for (entry in entries) {
-            if (list.none { it.historyEntryId == entry.historyEntryId && it.attributeId == entry.attributeId }) {
-                list.add(entry)
-            }
-        }
-    }
-
     /**
      * Merges the given entries into the list. Already existing entries with same id are not added twice.
      */

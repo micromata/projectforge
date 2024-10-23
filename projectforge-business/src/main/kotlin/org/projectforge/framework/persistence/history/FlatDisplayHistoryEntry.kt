@@ -35,7 +35,7 @@ import java.io.Serializable
 /**
  * For displaying the hibernate history entries in flat format.
  *
- * Only used by Wicket pages.
+ * Used by Wicket pages as well as by AuftragDao in e-mail-notifications.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
