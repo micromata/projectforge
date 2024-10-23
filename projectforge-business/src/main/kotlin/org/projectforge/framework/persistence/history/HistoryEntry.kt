@@ -73,4 +73,11 @@ interface HistoryEntry : IdObject<Long> {
      * @return the entity id
      */
     val entityId: Long?
+
+    /**
+     * The displayName is optional and useful for some entities for identifying the entity in lists.
+     * For example, the user adds a new list entry (e. g. position in invoice) and the invoice is displayed as newly
+     * inserted.
+     */
+    var displayName: String?
 }

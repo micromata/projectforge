@@ -29,8 +29,8 @@ import org.flywaydb.core.api.migration.Context
 import org.projectforge.Constants
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeStatus
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrType
+import org.projectforge.business.fibu.EmployeeValidSinceAttrDO
+import org.projectforge.business.fibu.EmployeeValidSinceAttrType
 import org.projectforge.business.orga.VisitorbookDO
 import org.projectforge.business.orga.VisitorbookEntryDO
 import org.springframework.dao.DuplicateKeyException
@@ -63,7 +63,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
         var parent = HistoryAttr(-1, "", true)
         while (resultSet.next()) {
             val value = resultSet.getString("datacol")
-            val rowNumber = resultSet.getInt("datarow")
+            resultSet.getInt("datarow")
             val parentPk = resultSet.getLong("parent_pk")
             if (parentPk != parent.pk) {
                 if (parent.pk != -1L) {
@@ -109,7 +109,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
         readEmployees(dataSource).forEach { dbAttr ->
             val oldAttr = dbAttr.getTransientAttribute("oldAttr") as TimedAttr
             val sqlInsert =
-                "INSERT INTO t_fibu_employee_validity_period_attr (pk, created, last_update, deleted, employee_fk, type, valid_from, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO t_fibu_employee_valid_since_attr (pk, created, last_update, deleted, employee_fk, type, valid_since, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             try {
                 jdbcTemplate.update(
                     sqlInsert,
@@ -119,17 +119,17 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
                     false,
                     dbAttr.employee!!.id,
                     dbAttr.type!!.name,
-                    dbAttr.validFrom,
+                    dbAttr.validSince,
                     dbAttr.value,
                 )
                 log.info { "Migrated employee attribute: $dbAttr" }
             } catch (ex: DuplicateKeyException) {
-                log.info { "Employee already migrated (migration called twice?). Don't overwrite entry t_fibu_employee_validity_period_attr.${dbAttr.id}." }
+                log.info { "Employee already migrated (migration called twice?). Don't overwrite entry t_fibu_employee_valid_since_attr.${dbAttr.id}." }
             }
         }
     }
 
-    internal fun readEmployees(dataSource: DataSource): List<EmployeeValidityPeriodAttrDO> {
+    internal fun readEmployees(dataSource: DataSource): List<EmployeeValidSinceAttrDO> {
         val list = read(
             dataSource,
             "t_fibu_employee",
@@ -138,18 +138,18 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
                     + "WHERE a.group_name IN ('employeestatus', 'employeeannualleave') ORDER BY a.pk",
             type = TYPE.EMPLOYEE,
         )
-        val resultList = mutableListOf<EmployeeValidityPeriodAttrDO>()
+        val resultList = mutableListOf<EmployeeValidSinceAttrDO>()
         list.forEach { attr ->
-            val dbAttr = EmployeeValidityPeriodAttrDO()
+            val dbAttr = EmployeeValidSinceAttrDO()
             dbAttr.id = attr.pk2 // Re-use the pk.
             if (attr.groupName == "employeestatus") {
-                val status = EmployeeStatus.findByi18nKey(attr.value)
+                val status = EmployeeStatus.findByi18nKey(attr.value ?: "???")
                     ?: throw IllegalStateException("Status not found for '${attr.value}' for attribute: $attr")
                 dbAttr.value = status.name
-                dbAttr.type = EmployeeValidityPeriodAttrType.STATUS
+                dbAttr.type = EmployeeValidSinceAttrType.STATUS
             } else if (attr.groupName == "employeeannualleave") {
                 dbAttr.value = attr.value
-                dbAttr.type = EmployeeValidityPeriodAttrType.ANNUAL_LEAVE
+                dbAttr.type = EmployeeValidSinceAttrType.ANNUAL_LEAVE
             } else {
                 throw IllegalStateException("Error, unknown group: ${attr.groupName}")
             }
@@ -157,7 +157,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
             employee.id = attr.objectId
             dbAttr.employee = employee
             attr.startTime?.let { startTime ->
-                dbAttr.validFrom = startTime.toLocalDate()
+                dbAttr.validSince = startTime.toLocalDate()
             }
             dbAttr.setTransientAttribute("oldAttr", attr)
             resultList.add(dbAttr)
@@ -413,7 +413,7 @@ fun main() {
         this.password = password
     }
     // V7_6_0_2__RemoveMGC().readEmployees(dataSource)
-    // V7_6_0_2__RemoveMGC().migrateEmployees(dataSource)
+    V7_6_0_2__RemoveMGC().migrateEmployees(dataSource)
     // V7_6_0_2__RemoveMGC().readVisitorBook(dataSource)
     // V7_6_0_2__RemoveMGC().migrateVisitorbook(dataSource)
     // V7_6_0_2__RemoveMGC().migrateHistoryAttrWithData(dataSource)

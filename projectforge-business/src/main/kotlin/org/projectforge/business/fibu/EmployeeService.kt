@@ -29,6 +29,7 @@ import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.vacation.service.VacationService
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -38,8 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.Month
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -52,6 +51,9 @@ private val log = KotlinLogging.logger {}
 class EmployeeService {
     @Autowired
     private lateinit var employeeDao: EmployeeDao
+
+    @Autowired
+    private lateinit var employeeServiceSupport: EmployeeServiceSupport
 
     @Autowired
     private lateinit var vacationService: VacationService
@@ -97,22 +99,6 @@ class EmployeeService {
         }
     }
 
-    fun findValidityPeriodAttr(
-        id: Long?,
-        expectedType: EmployeeValidityPeriodAttrType? = null,
-        checkAccess: Boolean = true
-    ): EmployeeValidityPeriodAttrDO? {
-        id ?: return null
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserSelectAccess()
-        }
-        val result = persistenceService.find(EmployeeValidityPeriodAttrDO::class.java, id) ?: return null
-        if (expectedType != null) {
-            require(result.type == expectedType) { "Expected type $expectedType, but got ${result.type}." }
-        }
-        return result
-    }
-
     /**
      * Returns all active employees.
      * An employee is active if the austrittsdatum is not set or if the austrittsdatum is in the future.
@@ -134,39 +120,31 @@ class EmployeeService {
         return employeeDao.getEmployeeByStaffnumber(staffnumber)
     }
 
+    fun findValidSinceAttr(
+        id: Long?,
+        expectedType: EmployeeValidSinceAttrType? = null,
+        checkAccess: Boolean = true
+    ): EmployeeValidSinceAttrDO? {
+        return employeeServiceSupport.findValidSinceAttr(id, expectedType, checkAccess)
+    }
+
     /**
      * @param employee The employee to select the attribute for.
      * @param type The type of the attribute to select.
      * @param deleted If true, only deleted attributes will be returned, if false, only not deleted attributes will be returned. If null, deleted and not deleted attributes will be returned.
      */
-    internal fun selectAllValidityPeriodAttrs(
+    internal fun selectAllValidSinceAttrs(
         employee: EmployeeDO,
-        type: EmployeeValidityPeriodAttrType? = null,
+        type: EmployeeValidSinceAttrType? = null,
         deleted: Boolean? = false,
         checkAccess: Boolean = true,
-    ): List<EmployeeValidityPeriodAttrDO> {
-        requireNotNull(employee.id) { "Employee id must not be null." }
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserSelectAccess(employee)
-        }
-        val list = if (type != null) {
-            persistenceService.executeQuery(
-                "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId and a.type = :type order by a.validFrom desc",
-                EmployeeValidityPeriodAttrDO::class.java,
-                Pair("employeeId", employee.id),
-                Pair("type", type)
-            )
-        } else {
-            persistenceService.executeQuery(
-                "from EmployeeValidityPeriodAttrDO a where a.employee.id = :employeeId order by a.validFrom desc",
-                EmployeeValidityPeriodAttrDO::class.java,
-                Pair("employeeId", employee.id),
-            )
-        }
-        if (deleted != null) {
-            return list.filter { it.deleted == deleted }
-        }
-        return list
+    ): List<EmployeeValidSinceAttrDO> {
+        return employeeServiceSupport.selectAllValidSinceAttrs(
+            employee,
+            type,
+            deleted = deleted,
+            checkAccess = checkAccess,
+        )
     }
 
     /**
@@ -178,22 +156,7 @@ class EmployeeService {
         employee: EmployeeDO,
         checkAccess: Boolean = true
     ): EmployeeStatus? {
-        val list = selectAllValidityPeriodAttrs(
-            employee,
-            EmployeeValidityPeriodAttrType.STATUS,
-            deleted = false,
-            checkAccess = checkAccess
-        )
-        val validEntry = getActiveEntry(list)
-        val status = validEntry?.value
-        if (status != null) {
-            try {
-                return EmployeeStatus.safeValueOf(status)
-            } catch (e: IllegalArgumentException) {
-                log.error { "Oups, unknown status value in validityPeriodAttr: $validEntry" }
-            }
-        }
-        return null
+        return employeeServiceSupport.getEmployeeStatus(employee, checkAccess = checkAccess)
     }
 
     fun getAnnualLeaveDays(employee: EmployeeDO?): BigDecimal? {
@@ -201,39 +164,14 @@ class EmployeeService {
     }
 
     fun getAnnualLeaveDays(employee: EmployeeDO?, validAtDate: LocalDate?): BigDecimal? {
-        if (employee == null || validAtDate == null) { // Should only occur in CallAllPagesTest (Wicket).
-            return null
-        }
-        return getActiveEntry(
-            selectAnnualLeaveDayEntries(employee, deleted = false),
-            validAtDate
-        )?.value?.toBigDecimal()
+        return employeeServiceSupport.getAnnualLeaveDays(employee, validAtDate)
     }
 
-    private fun ensure(validAtDate: LocalDate?): LocalDate {
-        return validAtDate ?: LocalDate.of(1970, Month.JANUARY, 1)
-    }
-
-    internal fun getActiveEntry(
-        entries: List<EmployeeValidityPeriodAttrDO>,
+    internal fun findActiveEntry(
+        entries: List<EmployeeValidSinceAttrDO>,
         validAtDate: LocalDate? = null,
-    ): EmployeeValidityPeriodAttrDO? {
-        var found: EmployeeValidityPeriodAttrDO? = null
-        // example
-        // null (active before 2021-01-01), 2021-01-01, 2023-05-08 (active)
-        val useDate = validAtDate ?: LocalDate.now()
-        entries.filter { !it.deleted }.forEach { entry ->
-            if (useDate >= ensure(entry.validFrom)) {
-                found.let { f ->
-                    if (f == null) {
-                        found = entry
-                    } else if (ensure(f.validFrom) < ensure(entry.validFrom)) {
-                        found = entry // entry is newer!
-                    }
-                }
-            }
-        }
-        return found
+    ): EmployeeValidSinceAttrDO? {
+        return employeeServiceSupport.getActiveEntry(entries, validAtDate)
     }
 
     /**
@@ -244,10 +182,13 @@ class EmployeeService {
     fun selectAnnualLeaveDayEntries(
         employeeId: Long,
         deleted: Boolean? = false,
-        checkAccess: Boolean = true
-    ): List<EmployeeValidityPeriodAttrDO> {
-        val employee = employeeDao.find(employeeId)!!
-        return selectAnnualLeaveDayEntries(employee, deleted, checkAccess)
+        checkAccess: Boolean = true,
+    ): List<EmployeeValidSinceAttrDO> {
+        return employeeServiceSupport.selectAnnualLeaveDayEntries(
+            employeeId,
+            deleted = deleted,
+            checkAccess = checkAccess
+        )
     }
 
     /**
@@ -259,51 +200,56 @@ class EmployeeService {
         employee: EmployeeDO,
         deleted: Boolean? = false,
         checkAccess: Boolean = true
-    ): List<EmployeeValidityPeriodAttrDO> {
-        return selectAllValidityPeriodAttrs(
+    ): List<EmployeeValidSinceAttrDO> {
+        return selectAllValidSinceAttrs(
             employee,
-            EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE,
             deleted = deleted,
             checkAccess = checkAccess
         )
     }
 
+    /**
+     * @return Error message, if any. Null if given object can be modified or inserted.
+     */
+    fun validate(attr: EmployeeValidSinceAttrDO): String? {
+        try {
+            employeeServiceSupport.validate(attr)
+            return null
+        } catch (ex: Exception) {
+            return translateMsg("attr.validation.error.entryWithDateDoesAlreadyExist", attr.validSince)
+        }
+    }
+
     fun insertAnnualLeaveDays(
         employee: EmployeeDO,
-        validFrom: LocalDate,
+        validSince: LocalDate,
         annualLeaveDays: BigDecimal,
         checkAccess: Boolean = true,
-    ): EmployeeValidityPeriodAttrDO {
-        return insertValidityPeriodAttr(
+    ): EmployeeValidSinceAttrDO {
+        return employeeServiceSupport.insertValidSinceAttr(
             employee,
-            validFrom,
+            validSince,
             annualLeaveDays.toString(),
-            EmployeeValidityPeriodAttrType.ANNUAL_LEAVE,
+            EmployeeValidSinceAttrType.ANNUAL_LEAVE,
             checkAccess = checkAccess,
         )
     }
 
     fun insert(
         employeeId: Long,
-        attrDO: EmployeeValidityPeriodAttrDO,
+        attrDO: EmployeeValidSinceAttrDO,
         checkAccess: Boolean = true,
     ): Long? {
-        val employee = employeeDao.find(employeeId)!!
-        return insert(employee, attrDO, checkAccess)
+        return employeeServiceSupport.insert(employeeId, attrDO, checkAccess = checkAccess)
     }
 
     fun insert(
         employee: EmployeeDO,
-        attrDO: EmployeeValidityPeriodAttrDO,
+        attrDO: EmployeeValidSinceAttrDO,
         checkAccess: Boolean = true,
     ): Long? {
-        if (employee.id != attrDO.employee?.id) {
-            throw IllegalArgumentException("Employee id of attribute does not match employee id.")
-        }
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserInsertAccess(employee)
-        }
-        return baseDOPersistenceService.insert(attrDO, checkAccess = checkAccess)
+        return employeeServiceSupport.insert(employee, attrDO, checkAccess = checkAccess)
     }
 
     /**
@@ -315,7 +261,7 @@ class EmployeeService {
         employeeId: Long,
         deleted: Boolean? = false,
         checkAccess: Boolean = true
-    ): List<EmployeeValidityPeriodAttrDO> {
+    ): List<EmployeeValidSinceAttrDO> {
         val employee = employeeDao.find(employeeId)!!
         return selectStatusEntries(employee, deleted, checkAccess)
     }
@@ -329,10 +275,10 @@ class EmployeeService {
         employee: EmployeeDO,
         deleted: Boolean? = false,
         checkAccess: Boolean = true
-    ): List<EmployeeValidityPeriodAttrDO> {
-        return selectAllValidityPeriodAttrs(
+    ): List<EmployeeValidSinceAttrDO> {
+        return selectAllValidSinceAttrs(
             employee,
-            EmployeeValidityPeriodAttrType.STATUS,
+            EmployeeValidSinceAttrType.STATUS,
             deleted = deleted,
             checkAccess = checkAccess,
         )
@@ -340,38 +286,17 @@ class EmployeeService {
 
     fun insertStatus(
         employee: EmployeeDO,
-        validFrom: LocalDate,
+        validSince: LocalDate,
         status: EmployeeStatus,
         checkAccess: Boolean = true,
-    ): EmployeeValidityPeriodAttrDO {
-        return insertValidityPeriodAttr(
+    ): EmployeeValidSinceAttrDO {
+        return employeeServiceSupport.insertValidSinceAttr(
             employee,
-            validFrom,
+            validSince,
             status.toString(),
-            EmployeeValidityPeriodAttrType.STATUS,
+            EmployeeValidSinceAttrType.STATUS,
             checkAccess = checkAccess,
         )
-    }
-
-    private fun insertValidityPeriodAttr(
-        employee: EmployeeDO,
-        validFrom: LocalDate,
-        value: String,
-        type: EmployeeValidityPeriodAttrType,
-        checkAccess: Boolean,
-    ): EmployeeValidityPeriodAttrDO {
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
-        }
-        val attr = EmployeeValidityPeriodAttrDO()
-        attr.employee = employee
-        attr.validFrom = validFrom
-        attr.value = value
-        attr.type = type
-        attr.created = Date()
-        attr.lastUpdate = attr.created
-        baseDOPersistenceService.insert(attr, checkAccess = checkAccess)
-        return attr
     }
 
     /**
@@ -379,13 +304,13 @@ class EmployeeService {
      * @param attrDO: The attribute to update.
      * @param checkAccess: If true, the logged-in user must have update access to the employee.
      */
-    fun updateValidityPeriodAttr(
+    fun updateValidSinceAttr(
         employeeId: Long?,
-        attrDO: EmployeeValidityPeriodAttrDO,
+        attrDO: EmployeeValidSinceAttrDO,
         checkAccess: Boolean = true,
     ): EntityCopyStatus {
         val employee = employeeDao.find(employeeId)!!
-        return updateValidityPeriodAttr(employee, attrDO, checkAccess)
+        return updateValidSinceAttr(employee, attrDO, checkAccess)
     }
 
     /**
@@ -393,51 +318,36 @@ class EmployeeService {
      * @param attrDO: The attribute to update.
      * @param checkAccess: If true, the logged-in user must have update access to the employee.
      */
-    fun updateValidityPeriodAttr(
+    fun updateValidSinceAttr(
         employee: EmployeeDO,
-        attrDO: EmployeeValidityPeriodAttrDO,
+        attrDO: EmployeeValidSinceAttrDO,
         checkAccess: Boolean = true,
     ): EntityCopyStatus {
-        if (employee.id != attrDO.employee?.id) {
-            throw IllegalArgumentException("Employee id of attribute does not match employee id.")
-        }
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
-        }
-        return baseDOPersistenceService.update(attrDO, checkAccess = checkAccess)
+        return employeeServiceSupport.updateValidSinceAttr(employee, attrDO, checkAccess = checkAccess)
     }
 
-    fun markValidityPeriodAttrAsDeleted(
+    fun markValidSinceAttrAsDeleted(
         employeeId: Long?,
         attrId: Long?,
         checkAccess: Boolean = true,
     ) {
-        val employee = employeeDao.find(employeeId)!!
-        val attr = findValidityPeriodAttr(attrId, checkAccess = checkAccess)!!
-        markValidityPeriodAttrAsDeleted(employee, attr, checkAccess)
+        return employeeServiceSupport.markValidSinceAttrAsDeleted(employeeId, attrId, checkAccess = checkAccess)
     }
 
-    fun markValidityPeriodAttrAsDeleted(
+    fun markValidSinceAttrAsDeleted(
         employee: EmployeeDO,
-        attr: EmployeeValidityPeriodAttrDO,
+        attr: EmployeeValidSinceAttrDO,
         checkAccess: Boolean = true,
     ) {
-        require(attr.employee!!.id == employee.id!!) { "Employee id of attribute does not match employee id." }
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
-        }
-        baseDOPersistenceService.markAsDeleted(obj = attr, checkAccess = checkAccess)
+        return employeeServiceSupport.markValidSinceAttrAsDeleted(employee, attr, checkAccess = checkAccess)
     }
 
-    fun undeleteValidityPeriodAttr(
+    fun undeleteValidSinceAttr(
         employee: EmployeeDO,
-        attr: EmployeeValidityPeriodAttrDO,
+        attr: EmployeeValidSinceAttrDO,
         checkAccess: Boolean = true,
     ) {
-        if (checkAccess) {
-            employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
-        }
-        baseDOPersistenceService.undelete(obj = attr, checkAccess = checkAccess)
+        return employeeServiceSupport.undeleteValidSinceAttr(employee, attr, checkAccess = checkAccess)
     }
 
     fun getReportOfMonth(year: Int, month: Int?, user: PFUserDO): MonthlyEmployeeReport {

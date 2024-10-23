@@ -26,14 +26,15 @@ package org.projectforge.rest.fibu
 import jakarta.servlet.http.HttpServletRequest
 import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.business.fibu.EmployeeStatus
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrDO
-import org.projectforge.business.fibu.EmployeeValidityPeriodAttrType
+import org.projectforge.business.fibu.EmployeeValidSinceAttrDO
+import org.projectforge.business.fibu.EmployeeValidSinceAttrType
+import org.projectforge.framework.i18n.I18nKeyAndParams
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
-import org.projectforge.rest.dto.EmployeeValidityPeriodAttr
+import org.projectforge.rest.dto.EmployeeValidSinceAttr
 import org.projectforge.rest.dto.FormLayoutData
 import org.projectforge.rest.dto.PostData
 import org.projectforge.ui.*
@@ -46,13 +47,11 @@ import org.springframework.web.bind.annotation.*
  * Dialog for registering a new token or modifying/deleting an existing one.
  */
 @RestController
-@RequestMapping("${Rest.URL}/employeePeriodAttr")
-class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
-    // class PostData(var data: EmployeeValidityPeriodAttr) : AbstractPostData()
-
+@RequestMapping("${Rest.URL}/employeeValidSinceAttr")
+class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
     class ResponseData(
-        var annualLeaveEntries: List<EmployeeValidityPeriodAttr>? = null,
-        var statusEntries: List<EmployeeValidityPeriodAttr>? = null,
+        var annualLeaveEntries: List<EmployeeValidSinceAttr>? = null,
+        var statusEntries: List<EmployeeValidSinceAttr>? = null,
     )
 
     @Autowired
@@ -65,23 +64,23 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
         @RequestParam("employeeId") employeeId: Long?,
         @RequestParam("type") typeString: String?,
     ): FormLayoutData {
-        val type = EmployeeValidityPeriodAttrType.safeValueOf(typeString)
+        val type = EmployeeValidSinceAttrType.safeValueOf(typeString)
         val id = idString?.toLongOrNull()
         requiredFields(id, employeeId, type)
         val data = if (id!! > 0) {
-            EmployeeValidityPeriodAttr(employeeService.findValidityPeriodAttr(id, type!!))
+            EmployeeValidSinceAttr(employeeService.findValidSinceAttr(id, type!!))
         } else {
-            EmployeeValidityPeriodAttr(employeeId = employeeId, type = type)
+            EmployeeValidSinceAttr(employeeId = employeeId, type = type)
         }
-        val title = if (type == EmployeeValidityPeriodAttrType.STATUS) {
+        val title = if (type == EmployeeValidSinceAttrType.STATUS) {
             "fibu.employee.status"
         } else {
             "fibu.employee.urlaubstage"
         }
-        val lc = LayoutContext(EmployeeValidityPeriodAttrDO::class.java)
+        val lc = LayoutContext(EmployeeValidSinceAttrDO::class.java)
         val layout = UILayout(title)
-        layout.add(lc, "validFrom")
-        if (type == EmployeeValidityPeriodAttrType.STATUS) {
+        layout.add(lc, "validSince")
+        if (type == EmployeeValidSinceAttrType.STATUS) {
             layout.add(
                 UISelect<EmployeeStatus>(
                     "value",
@@ -133,10 +132,10 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
     }
 
     @PostMapping("delete")
-    fun delete(@RequestBody postData: PostData<EmployeeValidityPeriodAttr>): ResponseEntity<*> {
+    fun delete(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<*> {
         requiredFields(postData.data)
         val dto = postData.data
-        employeeService.markValidityPeriodAttrAsDeleted(employeeId = dto.employeeId, attrId = dto.id)
+        employeeService.markValidSinceAttrAsDeleted(employeeId = dto.employeeId, attrId = dto.id)
         return closeModal(dto)
     }
 
@@ -144,12 +143,12 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
      * Updates only the displayName.
      */
     @PostMapping("update")
-    fun update(@RequestBody postData: PostData<EmployeeValidityPeriodAttr>): ResponseEntity<ResponseAction> {
+    fun update(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<ResponseAction> {
         requiredFields(postData.data)
         val dto = postData.data
         validate(dto)?.let { return it }
         val attrDO = dto.cloneAsDO()
-        employeeService.updateValidityPeriodAttr(employeeId = dto.employeeId, attrDO = attrDO)
+        employeeService.updateValidSinceAttr(employeeId = dto.employeeId, attrDO = attrDO)
         return closeModal(dto)
     }
 
@@ -157,7 +156,7 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
      * Updates only the displayName.
      */
     @PostMapping("insert")
-    fun insert(@RequestBody postData: PostData<EmployeeValidityPeriodAttr>): ResponseEntity<ResponseAction> {
+    fun insert(@RequestBody postData: PostData<EmployeeValidSinceAttr>): ResponseEntity<ResponseAction> {
         requiredFields(postData.data, idNull = true)
         validate(postData.data)?.let { return it }
         val dto = postData.data
@@ -166,42 +165,42 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
         return closeModal(dto)
     }
 
-    private fun closeModal(dto: EmployeeValidityPeriodAttr): ResponseEntity<ResponseAction> {
+    private fun closeModal(dto: EmployeeValidSinceAttr): ResponseEntity<ResponseAction> {
         val responseAction = ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true)
-        if (dto.type == EmployeeValidityPeriodAttrType.STATUS) {
-            val attrs = employeeService.selectStatusEntries(dto.employeeId!!).map { EmployeeValidityPeriodAttr(it) }
+        if (dto.type == EmployeeValidSinceAttrType.STATUS) {
+            val attrs = employeeService.selectStatusEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
             responseAction.addVariable("data", ResponseData(statusEntries = attrs))
         } else {
             val attrs =
-                employeeService.selectAnnualLeaveDayEntries(dto.employeeId!!).map { EmployeeValidityPeriodAttr(it) }
+                employeeService.selectAnnualLeaveDayEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
             responseAction.addVariable("data", ResponseData(annualLeaveEntries = attrs))
         }
         return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
 
     }
 
-    private fun requiredFields(dto: EmployeeValidityPeriodAttr, idNull: Boolean = false) {
+    private fun requiredFields(dto: EmployeeValidSinceAttr, idNull: Boolean = false) {
         requiredFields(dto.id, dto.employeeId, dto.type, idNull)
     }
 
     private fun requiredFields(
         id: Long?,
         employeeId: Long?,
-        type: EmployeeValidityPeriodAttrType?,
+        type: EmployeeValidSinceAttrType?,
         idNull: Boolean = false,
     ) {
         if (idNull) {
-            require(id == null) { "Can't insert EmployeeValidityPeriodAttr entry with given id." }
+            require(id == null) { "Can't insert EmployeeValidSinceAttr entry with given id." }
         } else {
-            requireNotNull(id) { "Can't update/delete EmployeeValidityPeriodAttr entry without id." }
+            requireNotNull(id) { "Can't update/delete EmployeeValidSinceAttr entry without id." }
         }
-        requireNotNull(employeeId) { "Can't update EmployeeValidityPeriodAttr entry without employeeId." }
-        requireNotNull(type) { "Can't update EmployeeValidityPeriodAttr entry without type." }
+        requireNotNull(employeeId) { "Can't update EmployeeValidSinceAttr entry without employeeId." }
+        requireNotNull(type) { "Can't update EmployeeValidSinceAttr entry without type." }
     }
 
-    private fun validate(dto: EmployeeValidityPeriodAttr): ResponseEntity<ResponseAction>? {
+    private fun validate(dto: EmployeeValidSinceAttr): ResponseEntity<ResponseAction>? {
         val validationErrors = mutableListOf<ValidationError>()
-        if (dto.type == EmployeeValidityPeriodAttrType.STATUS) {
+        if (dto.type == EmployeeValidSinceAttrType.STATUS) {
             val status = EmployeeStatus.safeValueOf(dto.value)
             if (status == null) {
                 validationErrors.add(
@@ -231,13 +230,17 @@ class EmployeeValidityPeriodAttrPageRest : AbstractDynamicPageRest() {
                 }
             }
         }
-        if (dto.validFrom == null) {
+        if (dto.validSince == null) {
             validationErrors.add(
                 ValidationError.createFieldRequired(
-                    EmployeeValidityPeriodAttrDO::class.java,
-                    fieldId = "validFrom",
+                    EmployeeValidSinceAttrDO::class.java,
+                    fieldId = "validSince",
                 )
             )
+        } else {
+            employeeService.validate(dto.cloneAsDO())?.let { msg ->
+                validationErrors.add(ValidationError.create(msg))
+            }
         }
         if (validationErrors.isNotEmpty()) {
             return ResponseEntity(

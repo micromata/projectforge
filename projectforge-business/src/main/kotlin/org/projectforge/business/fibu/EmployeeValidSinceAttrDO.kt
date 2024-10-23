@@ -26,7 +26,6 @@ package org.projectforge.business.fibu
 import com.fasterxml.jackson.annotation.JsonIdentityReference
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
-import mu.KotlinLogging
 import org.projectforge.Constants
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.json.JsonUtils
@@ -39,8 +38,6 @@ import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
 
-private val log = KotlinLogging.logger {}
-
 /**
  * Represents timeable attributes of an employee (annual leave days and status).
  *
@@ -49,14 +46,24 @@ private val log = KotlinLogging.logger {}
 @Entity
 //@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider::class, param = "employee")
 @Table(
-    name = "t_fibu_employee_validity_period_attr",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["employee_fk", "type", "valid_from"])],
+    name = "t_fibu_employee_valid_since_attr",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["employee_fk", "type", "valid_since"])],
     indexes = [Index(
         name = "idx_fk_t_fibu_employee_val_per_employee_id", columnList = "employee_id"
     )]
 )
+@NamedQueries(
+    NamedQuery(
+        name = EmployeeValidSinceAttrDO.FIND_BY_TYPE_AND_DATE,
+        query = "from EmployeeValidSinceAttrDO where employee.id=:employeeId and type=:type and validSince=:validSince",
+    ),
+    NamedQuery(
+        name = EmployeeValidSinceAttrDO.FIND_OTHER_BY_TYPE_AND_DATE,
+        query = "from EmployeeValidSinceAttrDO where employee.id=:employeeId and type=:type and validSince=:validSince and id!=:id",
+    ),
+)
 @WithHistory
-open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), CandHHistoryEntryICustomizer {
+open class EmployeeValidSinceAttrDO : Serializable, AbstractBaseDO<Long>(), CandHHistoryEntryICustomizer {
     @get:Id
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Column(name = "pk")
@@ -70,11 +77,11 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
 
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "type", length = 30)
-    open var type: EmployeeValidityPeriodAttrType? = null
+    open var type: EmployeeValidSinceAttrType? = null
 
-    @PropertyInfo(i18nKey = "attr.validFrom")
-    @get:Column(name = "valid_from", nullable = false)
-    open var validFrom: LocalDate? = null
+    @PropertyInfo(i18nKey = "attr.validSince")
+    @get:Column(name = "valid_since", nullable = false)
+    open var validSince: LocalDate? = null
 
     @PropertyInfo(i18nKey = "value")
     @get:Column(name = "value", length = 255)
@@ -89,11 +96,11 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
     @get:Transient
     var annualLeave: BigDecimal?
         get() {
-            checkType(EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
+            checkType(EmployeeValidSinceAttrType.ANNUAL_LEAVE)
             return value?.let { runCatching { BigDecimal(it) }.getOrNull() }
         }
         set(value) {
-            checkType(EmployeeValidityPeriodAttrType.ANNUAL_LEAVE)
+            checkType(EmployeeValidSinceAttrType.ANNUAL_LEAVE)
             this.value = value?.toString()
         }
 
@@ -102,20 +109,31 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
     @get:Transient
     var status: EmployeeStatus?
         get() {
-            checkType(EmployeeValidityPeriodAttrType.STATUS)
+            checkType(EmployeeValidSinceAttrType.STATUS)
             return value?.let { EmployeeStatus.safeValueOf(it) }
         }
         set(value) {
-            checkType(EmployeeValidityPeriodAttrType.STATUS)
+            checkType(EmployeeValidSinceAttrType.STATUS)
             this.value = value?.toString()
         }
 
+    /**
+     * Copies validSince, value and comment from other.
+     * Please note: type, id and employee are not copied.
+     * @param other the other EmployeeValidSinceAttrDO to copy from.
+     */
+    fun copyFrom(other: EmployeeValidSinceAttrDO) {
+        this.validSince = other.validSince
+        this.value = other.value
+        this.comment = other.comment
+    }
+
     override fun customize(historyEntry: HistoryEntryDO) {
         historyEntry.attributes?.filter { it.propertyName == "value" }?.forEach { attr ->
-            if (type == EmployeeValidityPeriodAttrType.ANNUAL_LEAVE) {
+            if (type == EmployeeValidSinceAttrType.ANNUAL_LEAVE) {
                 attr.setPropertyTypeClass(BigDecimal::class)
                 attr.propertyName = buildPropertyName("annualLeave")
-            } else if (type == EmployeeValidityPeriodAttrType.STATUS) {
+            } else if (type == EmployeeValidSinceAttrType.STATUS) {
                 attr.setPropertyTypeClass(EmployeeStatus::class)
                 attr.propertyName = buildPropertyName("status")
             }
@@ -123,11 +141,11 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
     }
 
     private fun buildPropertyName(propertyName: String): String {
-        validFrom ?: return propertyName
-        return "$propertyName:$validFrom"
+        validSince ?: return propertyName
+        return "$propertyName:$validSince"
     }
 
-    private fun checkType(type: EmployeeValidityPeriodAttrType) {
+    private fun checkType(type: EmployeeValidSinceAttrType) {
         if (this.type != type) {
             throw IllegalArgumentException("Attribute is not $type: ${this.type}")
         }
@@ -135,5 +153,10 @@ open class EmployeeValidityPeriodAttrDO : Serializable, AbstractBaseDO<Long>(), 
 
     override fun toString(): String {
         return JsonUtils.toJson(this)
+    }
+
+    companion object {
+        internal const val FIND_BY_TYPE_AND_DATE = "EmployeeValidSinceAttr_FindByTypeAndDate"
+        internal const val FIND_OTHER_BY_TYPE_AND_DATE = "EmployeeValidSinceAttr_FindOtherByTypeAndDate"
     }
 }

@@ -28,13 +28,13 @@ import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
- * You may register history adapters for customizing convertion of history entries.
+ * You may register history adapters for customizing conversion of history entries.
  */
 open class HistoryFormatAdapter {
     protected val userGroupCache = UserGroupCache.getInstance()
 
     /**
-     * A customized adapter may manipulate all found history entries by modifing, deleting or adding entries.
+     * A customized adapter may manipulate all found history entries by modifying, deleting or adding entries.
      * Does nothing at default.
      * @param item Item the history entries are related to.
      * @param entries All found history entries for customization.

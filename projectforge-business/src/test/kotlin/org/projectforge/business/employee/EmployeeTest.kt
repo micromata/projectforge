@@ -39,7 +39,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.test.AbstractTestBase
 import org.projectforge.test.HistoryTester
-import org.projectforge.test.HistoryTester.Companion.assertHistoryEntry
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
 import java.time.LocalDate

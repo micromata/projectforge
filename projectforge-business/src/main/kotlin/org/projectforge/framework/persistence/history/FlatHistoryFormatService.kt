@@ -29,9 +29,22 @@ import org.springframework.stereotype.Service
 
 /**
  * History entries will be transformed into human-readable formats.
+ * This flat format is used by Wicket pages as well as in e-mail notifications (e. g. AuftragDao and TodoDao).
  */
 @Service
 class FlatHistoryFormatService {
+    /**
+     * Select the history entries of the given item and convert them into flat format.
+     * Please note: If user has no access an empty list will be returned.
+     * @param baseDao The DAO of the item.
+     * @param item The item.
+     * @param checkAccess If true, the access rights of the user will be checked.
+     * @return The history entries in flat format.
+     * @param O The type of the item.
+     * @param Long The type of the primary key.
+     * @see BaseDao.selectHistoryEntries
+     * @see convertToFlatDisplayHistoryEntries
+     */
     @JvmOverloads
     fun <O : ExtendedBaseDO<Long>> selectHistoryEntriesAndConvert(
         baseDao: BaseDao<O>,
@@ -43,11 +56,13 @@ class FlatHistoryFormatService {
     }
 
     /**
-     * Only used by Wicket pages:
+     * Only used by Wicket pages and e-mail notifications:
      * Gets the history entries of the object in flat format.
-     * Please note: If user has no access an empty list will be returned.
+     * @param baseDao The DAO of the item.
+     * @param historyEntries The history entries.
+     * @return The history entries in flat format.
      */
-    fun convertToFlatDisplayHistoryEntries(
+    private fun convertToFlatDisplayHistoryEntries(
         baseDao: BaseDao<*>,
         historyEntries: List<HistoryEntry>
     ): MutableList<FlatDisplayHistoryEntry> {
@@ -86,6 +101,4 @@ class FlatHistoryFormatService {
             }
         }
     }
-
-
 }

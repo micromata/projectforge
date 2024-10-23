@@ -36,7 +36,7 @@ import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDTOPagesRest
 import org.projectforge.rest.core.PagesResolver
 import org.projectforge.rest.dto.Employee
-import org.projectforge.rest.dto.EmployeeValidityPeriodAttr
+import org.projectforge.rest.dto.EmployeeValidSinceAttr
 import org.projectforge.rest.dto.Kost1
 import org.projectforge.rest.dto.User
 import org.projectforge.ui.*
@@ -74,9 +74,9 @@ class EmployeePagesRest :
                 employee.kost1 = dto
             }
         }
-        employee.statusEntries = employeeService.selectStatusEntries(obj).map { EmployeeValidityPeriodAttr(it) }
+        employee.statusEntries = employeeService.selectStatusEntries(obj).map { EmployeeValidSinceAttr(it) }
         employee.annualLeaveEntries =
-            employeeService.selectAnnualLeaveDayEntries(obj).map { EmployeeValidityPeriodAttr(it) }
+            employeeService.selectAnnualLeaveDayEntries(obj).map { EmployeeValidSinceAttr(it) }
         return employee
     }
 
@@ -181,17 +181,17 @@ class EmployeePagesRest :
                         UICol().add(
                             UIFieldset(title = "fibu.employee.urlaubstage").add(
                                 UIAgGrid("annualLeaveEntries")
-                                    .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
+                                    .add(UIAgGridColumnDef.createCol(lc, "validSince", headerName = "attr.validSince"))
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "days"))
                                     .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                                     .withRowClickRedirectUrl(
-                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE),
+                                        createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE),
                                         openModal = true,
                                     )
                             ).add(
                                 UIButton.createAddButton(
                                     responseAction = ResponseAction(
-                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.ANNUAL_LEAVE, true),
+                                        createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE, true),
                                         targetType = TargetType.MODAL
                                     )
                                 )
@@ -202,17 +202,17 @@ class EmployeePagesRest :
                         UICol().add(
                             UIFieldset(title = "fibu.employee.status").add(
                                 UIAgGrid("statusEntries")
-                                    .add(UIAgGridColumnDef.createCol(lc, "validFrom", headerName = "attr.validFrom"))
+                                    .add(UIAgGridColumnDef.createCol(lc, "validSince", headerName = "attr.validSince"))
                                     .add(UIAgGridColumnDef.createCol(lc, "value", headerName = "status"))
                                     .add(UIAgGridColumnDef.createCol(lc, "comment", headerName = "comment"))
                                     .withRowClickRedirectUrl(
-                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.STATUS),
+                                        createModalUrl(dto, EmployeeValidSinceAttrType.STATUS),
                                         openModal = true,
                                     )
                             ).add(
                                 UIButton.createAddButton(
                                     responseAction = ResponseAction(
-                                        createModalUrl(dto, EmployeeValidityPeriodAttrType.STATUS, true),
+                                        createModalUrl(dto, EmployeeValidSinceAttrType.STATUS, true),
                                         targetType = TargetType.MODAL
                                     )
                                 )
@@ -239,11 +239,11 @@ class EmployeePagesRest :
 
     private fun createModalUrl(
         employee: Employee,
-        type: EmployeeValidityPeriodAttrType,
+        type: EmployeeValidSinceAttrType,
         newEntry: Boolean = false
     ): String {
         return PagesResolver.getDynamicPageUrl(
-            EmployeeValidityPeriodAttrPageRest::class.java,
+            EmployeeValidSinceAttrPageRest::class.java,
             id = if (newEntry) "-1" else "{id}",
             params = mapOf(
                 "employeeId" to employee.id,

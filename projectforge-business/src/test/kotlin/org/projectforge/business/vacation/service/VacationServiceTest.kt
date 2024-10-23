@@ -640,8 +640,8 @@ class VacationServiceTest : AbstractTestBase() {
         employee.eintrittsDatum = joinDate
         employee.austrittsDatum = leaveDate
         employeeDao.insert(employee, checkAccess = false)
-        joinDate?.let { validFrom ->
-            employeeService.insertAnnualLeaveDays(employee, validFrom, BigDecimal(annualLeaveDays), checkAccess = false)
+        joinDate?.let { joinDate ->
+            employeeService.insertAnnualLeaveDays(employee, joinDate, BigDecimal(annualLeaveDays), checkAccess = false)
         }
         annualLeaveDayEntries?.forEach {
             employeeService.insertAnnualLeaveDays(employee, LocalDate.of(it.year, Month.JUNE, 1), BigDecimal(it.value), checkAccess = false)

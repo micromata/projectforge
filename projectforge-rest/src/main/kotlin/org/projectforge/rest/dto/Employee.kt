@@ -44,8 +44,8 @@ class Employee(
     var weeklyWorkingHours: BigDecimal? = null,
     var comment: String? = null,
 ) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
-    var annualLeaveEntries: List<EmployeeValidityPeriodAttr>? = null
-    var statusEntries: List<EmployeeValidityPeriodAttr>? = null
+    var annualLeaveEntries: List<EmployeeValidSinceAttr>? = null
+    var statusEntries: List<EmployeeValidSinceAttr>? = null
 
     companion object {
         private val employeeDao = ApplicationContextProvider.getApplicationContext().getBean(EmployeeDao::class.java)
