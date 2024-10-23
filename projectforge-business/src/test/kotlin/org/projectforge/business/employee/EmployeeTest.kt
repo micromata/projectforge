@@ -34,7 +34,7 @@ import org.projectforge.business.user.GroupDao
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
@@ -97,19 +97,19 @@ class EmployeeTest : AbstractTestBase() {
     fun testStaffNumber() {
         Assertions.assertTrue(employeeList.isNotEmpty())
         val e = employeeList[0]
-        val historyEntriesBefore = employeeDao.selectDisplayHistoryEntries(e)
+        val historyEntriesBefore = employeeDao.selectFlatDisplayHistoryEntries(e)
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
         Assertions.assertEquals(e.staffNumber, staffNumber)
         employeeDao.update(e)
 
         // test history
-        val historyEntriesAfter = employeeDao.selectDisplayHistoryEntries(e)
+        val historyEntriesAfter = employeeDao.selectFlatDisplayHistoryEntries(e)
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
         assertHistoryEntry(historyEntriesAfter[0], "staffNumber", staffNumber)
     }
 
-    private fun assertHistoryEntry(historyEntry: DisplayHistoryEntry, propertyName: String, newValue: String) {
+    private fun assertHistoryEntry(historyEntry: FlatDisplayHistoryEntry, propertyName: String, newValue: String) {
         Assertions.assertEquals(historyEntry.propertyName, propertyName)
         Assertions.assertEquals(historyEntry.newValue, newValue)
     }

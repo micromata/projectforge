@@ -258,7 +258,7 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the UserRightDO children.
      *
-     * @see org.projectforge.framework.persistence.api.BaseDao.selectDisplayHistoryEntries
+     * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
     override fun customizeHistoryEntries(obj: PFUserDO, list: MutableList<HistoryEntryDO>) {
         obj.rights?.forEach { right ->

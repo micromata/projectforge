@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry.Companion.translatePropertyName
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry.Companion.translatePropertyName
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -43,7 +43,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
         persistenceService.runReadOnly { context ->
             val invoice = context.em.find(RechnungDO::class.java, 351958)
             logon(TEST_FINANCE_USER)
-            val entries = rechnungDao.selectDisplayHistoryEntries(invoice)
+            val entries = rechnungDao.selectFlatDisplayHistoryEntries(invoice)
             // 6 entries for RechnungDO: 351958
             entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(2972182L) }.let { list ->
                 Assertions.assertEquals(1, list.size)
@@ -97,7 +97,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
     }
 
     private fun assertHistoryEntry(
-        entry: DisplayHistoryEntry,
+        entry: FlatDisplayHistoryEntry,
         clazz: Class<*>?,
         propertyName: String,
         oldValue: String?,

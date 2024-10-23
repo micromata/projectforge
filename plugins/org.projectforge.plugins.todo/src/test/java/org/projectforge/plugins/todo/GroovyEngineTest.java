@@ -28,7 +28,7 @@ import org.projectforge.ProjectForgeVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +69,7 @@ public class GroovyEngineTest extends AbstractTestBase {
     todo.setAssignee(user);
     engine.putVariable("todo", todo);
     engine.putVariable("title", "ToDo");
-    engine.putVariable("history", new ArrayList<DisplayHistoryEntry>());
+    engine.putVariable("history", new ArrayList<FlatDisplayHistoryEntry>());
     engine.putVariable("requestUrl", "https://localhost:8443/wa/toDoEditPage/id/42");
     final String result = engine.executeTemplateFile("mail/todoChangeNotification.html");
     assertTrue(result.contains("hoch"), "I18n priority expected.");

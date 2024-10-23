@@ -31,7 +31,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
+import org.projectforge.framework.persistence.history.HistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -201,7 +202,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
         return userService.getSortedUsers(ab.readonlyAccessUserIds)
     }
 
-    override fun customizeDisplayHistoryEntry(entry: DisplayHistoryEntry) {
+    override fun customizeHistoryEntry(entry: HistoryEntry) {
         historyFormatUtils.replaceGroupAndUserIdsValues(entry)
     }
 

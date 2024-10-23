@@ -39,8 +39,8 @@ import java.io.Serializable
  *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
-open class DisplayHistoryEntry(entry: HistoryEntry) : Serializable {
-    class Context(val entityName: String?, entry: DisplayHistoryEntry) {
+open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
+    class Context(val entityName: String?, entry: FlatDisplayHistoryEntry) {
         val propertyName: String? = entry.propertyName
         val propertyType: String? = entry.propertyType
         val historyValueService: HistoryValueService = HistoryValueService.instance

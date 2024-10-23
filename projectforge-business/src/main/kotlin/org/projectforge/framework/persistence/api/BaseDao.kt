@@ -377,15 +377,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Gets the history entries of the object in flat format.<br></br>
+     * Only used by Wicket pages:
+     * Gets the history entries of the object in flat format.
      * Please note: If user has no access an empty list will be returned.
      */
     @JvmOverloads
-    fun selectDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<DisplayHistoryEntry> {
+    fun selectFlatDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<FlatDisplayHistoryEntry> {
         if (obj.id == null || (checkAccess && !hasLoggedInUserHistoryAccess(obj, false))) {
             return mutableListOf()
         }
-        val list = mutableListOf<DisplayHistoryEntry>()
+        val list = mutableListOf<FlatDisplayHistoryEntry>()
         selectHistoryEntries(obj, false).forEach { entry ->
             val displayEntries = convertToDisplayHistoryEntries(entry)
             historyService.mergeHistoryDisplayEntries(list, displayEntries)
@@ -401,20 +402,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Calls [HistoryService.convertToDisplayHistoryEntry] at default and [customizeDisplayHistoryEntry] for all single
+     * Calls [HistoryService.convertToDisplayHistoryEntry] at default and [customizeHistoryEntry] for all single
      * entries before returning the list.
      */
-    open fun convertToDisplayHistoryEntries(entry: HistoryEntry): List<DisplayHistoryEntry> {
-        return historyService.convertToDisplayHistoryEntry(entry).apply {
-            forEach { customizeDisplayHistoryEntry(it) }
-        }
+    fun convertToDisplayHistoryEntries(entry: HistoryEntry): List<FlatDisplayHistoryEntry> {
+        customizeHistoryEntry(entry)
+        return historyService.convertToDisplayHistoryEntry(entry)
     }
 
     /**
-     * For customizing single [DisplayHistoryEntry]s. Called by [convertToDisplayHistoryEntries].
+     * For customizing each single [HistoryEntry]. Called before converting to (flat)display history entries.
      * Does nothing at default.
      */
-    open fun customizeDisplayHistoryEntry(entry: DisplayHistoryEntry) {
+    open fun customizeHistoryEntry(entry: HistoryEntry) {
     }
 
     /**

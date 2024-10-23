@@ -33,7 +33,7 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.*;
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -156,10 +156,10 @@ public class ToDoDao extends BaseDao<ToDoDO> {
         final Map<String, Object> data = new HashMap<>();
         data.put("todo", todo);
         data.put("requestUrl", requestUrl);
-        final List<DisplayHistoryEntry> history = selectDisplayHistoryEntries(todo);
-        final List<DisplayHistoryEntry> list = new ArrayList<>();
+        final List<FlatDisplayHistoryEntry> history = selectFlatDisplayHistoryEntries(todo);
+        final List<FlatDisplayHistoryEntry> list = new ArrayList<>();
         int i = 0;
-        for (final DisplayHistoryEntry entry : history) {
+        for (final FlatDisplayHistoryEntry entry : history) {
             list.add(entry);
             if (++i >= 10) {
                 break;
