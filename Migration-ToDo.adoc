@@ -1,3 +1,4 @@
+- Historyentries bei Änderungen von GroupTaskAccessDO nicht da!
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
 - customizeDisplayHistoryEntry: AddressBookDao, ... (check)

@@ -24,6 +24,8 @@
 package org.projectforge.framework.persistence.history
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
+import org.projectforge.business.user.UserGroupCache
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 
 /**
@@ -46,6 +48,8 @@ open class FlatDisplayHistoryEntry : Serializable {
      * the id of the HistoryEntryAttrDO (t_pf_history_attr)
      */
     var attributeId: Long? = null
+
+    var user: PFUserDO? = null
 
     /**
      * @return the entryType
@@ -165,6 +169,7 @@ open class FlatDisplayHistoryEntry : Serializable {
                 it.opType = entry.operationType
                 it.timestamp = entry.modifiedAt
                 it.attributeId = attr?.id
+                it.user = UserGroupCache.getInstance().getUser(entry.modifiedByUserId)
                 it.propertyName = attr?.propertyName
                 it.displayPropertyName = attr?.displayPropertyName
                 it.oldValue = attr?.oldValue

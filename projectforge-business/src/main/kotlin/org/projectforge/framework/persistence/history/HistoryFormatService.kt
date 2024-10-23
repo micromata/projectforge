@@ -97,8 +97,7 @@ class HistoryFormatService {
             context.currentHistoryEntryAttr = attr
             val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
                 ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
-            displayHistoryEntry.attributes = displayHistoryEntry.attributes ?: mutableListOf()
-            displayHistoryEntry.attributes!!.add(displayAttr)
+            displayHistoryEntry.attributes.add(displayAttr)
             context.currentHistoryEntryAttr = null
         }
         context.currentDisplayHistoryEntry = null

@@ -112,7 +112,7 @@ object HistoryOldFormatConverter {
             var currentEntry: HistoryEntryAttrDO? = null
             oldAttrs.sortedBy { it.propertyName }.forEach { attr ->
                 currentEntry.let { current ->
-                    if (current != null && current.propertyName == attr.plainPropertyName) {
+                    if (current != null && current.propertyName == HistoryFormatUtils.getPlainPropertyName(attr)) {
                         mergeDiffEntry(current, attr)
                     } else if (isOldAttr(attr)) {
                         val newEntry = cloneAndTransformAttr(attr)
@@ -138,7 +138,7 @@ object HistoryOldFormatConverter {
     }
 
     private fun mergeDiffEntry(newAttr: HistoryEntryAttrDO, oldAttr: HistoryEntryAttrDO) {
-        newAttr.propertyName = newAttr.propertyName ?: oldAttr.plainPropertyName
+        newAttr.propertyName = newAttr.propertyName ?: HistoryFormatUtils.getPlainPropertyName(oldAttr)
         newAttr.parent = newAttr.parent ?: oldAttr.parent
         newAttr.id = newAttr.id ?: oldAttr.id
         if (oldAttr.propertyName?.endsWith(OLDVAL_SUFFIX) == true) {

@@ -113,11 +113,6 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     @get:Column(name = "propertyname", length = 255)
     override var propertyName: String? = null
 
-    @Deprecated("Will be removed after migration.")
-    @get:Transient
-    val plainPropertyName: String?
-        get() = HistoryFormatUtils.getPlainPropertyName(this)
-
     @get:Column(name = "property_type_class", length = 128)
     override var propertyTypeClass: String? = null
 

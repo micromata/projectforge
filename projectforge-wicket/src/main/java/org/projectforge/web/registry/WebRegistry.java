@@ -276,8 +276,6 @@ public class WebRegistry
     addMountPages(DaoConst.COST2_Type, Kost2ArtListPage.class, Kost2ArtEditPage.class);
     register(DaoConst.CUSTOMER, CustomerListPage.class);
     addMountPages(DaoConst.CUSTOMER, CustomerListPage.class, CustomerEditPage.class);
-    register(DaoConst.EMPLOYEE, EmployeeListPage.class);
-    addMountPages(DaoConst.EMPLOYEE, EmployeeListPage.class, EmployeeEditPage.class);
     register(DaoConst.PROJECT, ProjektListPage.class);
     addMountPages(DaoConst.PROJECT, ProjektListPage.class, ProjektEditPage.class);
 

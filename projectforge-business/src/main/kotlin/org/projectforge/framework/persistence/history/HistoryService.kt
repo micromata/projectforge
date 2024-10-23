@@ -138,7 +138,7 @@ class HistoryService {
                 // Check all result history entries for embedded objects:
                 result.forEach { entry ->
                     entry.attributes?.forEach attributes@{ attr ->
-                        attr.plainPropertyName?.let { propertyName ->
+                        attr.propertyName?.let { propertyName ->
                             oneToManyProps.find { it.propertyName == propertyName } ?: return@attributes
                             attr.propertyTypeClass?.let { propertyTypeClass ->
                                 // oneToMany.targetEntity not always given, using propertyName instead:
