@@ -33,40 +33,25 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
 /**
- * History entries will be transformed into human-readable formats.
+ * History entries will be transformed from [HistoryEntry] and [HistoryEntryAttr] into human-readable
+ * formats [DisplayHistoryEntry] and [DisplayHistoryEntryAttr].
  */
 @Component
 class HistoryFormatService {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
+    @Autowired
+    private lateinit var historyValueService: HistoryValueService
+
     private val historyServiceAdapters =
         mutableMapOf<Class<out BaseDO<*>>, HistoryFormatAdapter>()
 
     private lateinit var stdHistoryFormatAdapter: HistoryFormatAdapter
-
-    data class DisplayHistoryEntryDTO(
-        var modifiedAt: Date? = null,
-        var timeAgo: String? = null,
-        var modifiedByUserId: String? = null,
-        var modifiedByUser: String? = null,
-        var operationType: EntityOpType? = null,
-        var operation: String? = null,
-        var diffEntries: MutableList<DisplayHistoryDiffEntryDTO> = mutableListOf()
-    )
-
-    data class DisplayHistoryDiffEntryDTO(
-        var operationType: PropertyOpType? = null,
-        var operation: String? = null,
-        var property: String? = null,
-        var oldValue: String? = null,
-        var newValue: String? = null
-    )
 
     @PostConstruct
     private fun postConstruct() {
@@ -82,36 +67,43 @@ class HistoryFormatService {
         this.historyServiceAdapters[clazz] = historyServiceAdapter
     }
 
-    fun <O : ExtendedBaseDO<Long>> selectAsDisplayEntries(baseDao: BaseDao<O>, item: O): List<DisplayHistoryEntryDTO> {
-        val historyEntries = baseDao.selectHistoryEntries(item)
-        return convertAsFormatted(item, historyEntries)
-    }
-
-    /**
-     * Creates a list of formatted history entries (get the user names etc.)
-     */
-    fun <O : BaseDO<*>> convertAsFormatted(
+    fun <O : ExtendedBaseDO<Long>> selectAsDisplayEntries(
+        baseDao: BaseDao<O>,
         item: O,
-        orig: List<HistoryEntry>
-    ): List<DisplayHistoryEntryDTO> {
-        val entries = mutableListOf<DisplayHistoryEntryDTO>()
-        orig.forEach { historyEntry ->
-            entries.add(convert(item, historyEntry))
+        checkAccess: Boolean = true,
+    ): List<DisplayHistoryEntry> {
+        val context = DisplayHistoryConvertContext(baseDao, item, historyValueService)
+        val historyEntries = baseDao.selectHistoryEntries(item, checkAccess = checkAccess)
+        val entries = mutableListOf<DisplayHistoryEntry>()
+        historyEntries.forEach { historyEntry ->
+            entries.add(convert(item, historyEntry, context))
         }
         val adapter = historyServiceAdapters[item::class.java]
-        adapter?.convertEntries(item, entries)
+        adapter?.convertEntries(item, entries, context)
         return entries.sortedByDescending { it.modifiedAt }
     }
 
     fun <O : BaseDO<*>> convert(
         item: O,
-        historyEntry: HistoryEntry
-    ): DisplayHistoryEntryDTO {
+        historyEntry: HistoryEntry,
+        context: DisplayHistoryConvertContext<*>,
+    ): DisplayHistoryEntry {
+        context.currentHistoryEntry = historyEntry
         val adapter = historyServiceAdapters[item::class.java]
-        return adapter?.convert(item, historyEntry) ?: stdHistoryFormatAdapter.convert(
-            item,
-            historyEntry
-        )
+        val displayHistoryEntry = adapter?.convertHistoryEntry(item, context)
+            ?: stdHistoryFormatAdapter.convertHistoryEntry(item, context)
+        context.currentDisplayHistoryEntry = displayHistoryEntry
+        historyEntry.attributes?.forEach { attr ->
+            context.currentHistoryEntryAttr = attr
+            val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
+                ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
+            displayHistoryEntry.attributes = displayHistoryEntry.attributes ?: mutableListOf()
+            displayHistoryEntry.attributes!!.add(displayAttr)
+            context.currentHistoryEntryAttr = null
+        }
+        context.currentDisplayHistoryEntry = null
+        context.currentHistoryEntry = null
+        return displayHistoryEntry
     }
 
     companion object {

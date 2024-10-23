@@ -114,9 +114,6 @@ class HistoryEntryDO : HistoryEntry {
     )
     override var attributes: MutableSet<HistoryEntryAttrDO>? = null
 
-    @get:Transient
-    override var displayName: String? = null
-
     fun add(attrDO: HistoryEntryAttrDO) {
         attributes = attributes ?: mutableSetOf()
         attributes!!.add(attrDO)

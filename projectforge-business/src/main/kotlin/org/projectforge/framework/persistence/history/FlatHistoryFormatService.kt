@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.history
 
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
@@ -33,6 +34,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class FlatHistoryFormatService {
+    @Autowired
+    private lateinit var historyFormatService: HistoryFormatService
     /**
      * Select the history entries of the given item and convert them into flat format.
      * Please note: If user has no access an empty list will be returned.
@@ -51,8 +54,8 @@ class FlatHistoryFormatService {
         item: O,
         checkAccess: Boolean = true,
     ): List<FlatDisplayHistoryEntry> {
-        val history = baseDao.selectHistoryEntries(item, checkAccess = checkAccess)
-        return convertToFlatDisplayHistoryEntries(baseDao, history)
+        val entries = historyFormatService.selectAsDisplayEntries(baseDao, item, checkAccess = checkAccess)
+        return convertToFlatDisplayHistoryEntries(baseDao, entries)
     }
 
     /**
@@ -64,27 +67,24 @@ class FlatHistoryFormatService {
      */
     private fun convertToFlatDisplayHistoryEntries(
         baseDao: BaseDao<*>,
-        historyEntries: List<HistoryEntry>
+        historyEntries: List<DisplayHistoryEntry>
     ): MutableList<FlatDisplayHistoryEntry> {
         val list = mutableListOf<FlatDisplayHistoryEntry>()
         historyEntries.forEach { entry ->
-            baseDao.customizeHistoryEntry(entry)
             val displayEntries = convertToFlatDisplayHistoryEntries(entry)
             mergeEntries(list, displayEntries)
         }
         return list
     }
 
-    private fun convertToFlatDisplayHistoryEntries(entry: HistoryEntry): List<FlatDisplayHistoryEntry> {
+    private fun convertToFlatDisplayHistoryEntries(entry: DisplayHistoryEntry): List<FlatDisplayHistoryEntry> {
         entry.attributes.let { attributes ->
             if (attributes.isNullOrEmpty()) {
-                return listOf(FlatDisplayHistoryEntry(entry))
+                return listOf(FlatDisplayHistoryEntry.create(entry))
             }
             val result = mutableListOf<FlatDisplayHistoryEntry>()
             attributes.forEach { attr ->
-                val se = FlatDisplayHistoryEntry(entry, attr)
-                se.initialize(FlatDisplayHistoryEntry.Context(entry.entityName, se))
-                result.add(se)
+                result.add(FlatDisplayHistoryEntry.create(entry, attr))
             }
 
             return result

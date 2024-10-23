@@ -39,7 +39,7 @@ class RechnungDaoTest : AbstractTestBase() {
 
     @Test
     fun testNextNumber() {
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             var dbNumber = rechnungDao.nextNumber
             logon(TEST_FINANCE_USER)
             val rechnung1 = RechnungDO()
@@ -82,7 +82,7 @@ class RechnungDaoTest : AbstractTestBase() {
             rechnung2.addPosition(createPosition(1, "50.00", "0", "test"))
             id = rechnungDao.insert(rechnung2)
             val rechnung2FromDb = rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
-            Assertions.assertEquals(dbNumber++, rechnung2FromDb!!.nummer)
+            Assertions.assertEquals(dbNumber, rechnung2FromDb!!.nummer)
 
             val rechnung3 = RechnungDO()
             rechnung3.datum = LocalDate.now()
@@ -118,7 +118,7 @@ class RechnungDaoTest : AbstractTestBase() {
         persistenceService.runInTransaction { context ->
             logon(TEST_CONTROLLING_USER)
             rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
-            checkNoWriteAccess(id, rechnung, "Controlling")
+            checkNoWriteAccess(rechnung, "Controlling")
 
             logon(TEST_USER)
             checkNoAccess(id, rechnung, "Other")
@@ -146,11 +146,11 @@ class RechnungDaoTest : AbstractTestBase() {
         } catch (ex: AccessException) {
             // OK
         }
-        checkNoHistoryAccess(id, rechnung, who)
-        checkNoWriteAccess(id, rechnung, who)
+        checkNoHistoryAccess(rechnung, who)
+        checkNoWriteAccess(rechnung, who)
     }
 
-    private fun checkNoHistoryAccess(id: Serializable, rechnung: RechnungDO, who: String) {
+    private fun checkNoHistoryAccess(rechnung: RechnungDO, who: String) {
         Assertions.assertFalse(
             rechnungDao.hasLoggedInUserHistoryAccess(false),
             "$who users should not have select access to history of invoices."
@@ -173,7 +173,7 @@ class RechnungDaoTest : AbstractTestBase() {
         }
     }
 
-    private fun checkNoWriteAccess(id: Serializable, rechnung: RechnungDO, who: String) {
+    private fun checkNoWriteAccess(rechnung: RechnungDO, who: String) {
         try {
             val re = RechnungDO()
             val number = rechnungDao.getNextNumber(re)

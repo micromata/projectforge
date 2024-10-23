@@ -25,6 +25,9 @@ package org.projectforge.framework.persistence.history
 
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.history.HistoryOldFormatConverter.isOldAttr
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -74,6 +77,31 @@ class HistoryFormatUtils {
 
 
     companion object {
+        fun getPlainPropertyName(attr: HistoryEntryAttr): String? {
+            if (isOldAttr(attr)) {
+                return HistoryOldFormatConverter.getPlainPropertyName(attr)
+            } else {
+                return attr.propertyName
+            }
+        }
+
+        /**
+         * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
+         * If found, the property name will be returned translated, if not, the property will be returned unmodified.
+         * // TODO Handle propertyName such as pos#1.kost1#3.menge
+         */
+        internal fun translatePropertyName(clazz: Class<*>, propertyName: String?): String? {
+            // Try to get the PropertyInfo containing the i18n key of the property for translation.
+            var usePropertyName = PropUtils.get(clazz, propertyName)?.i18nKey
+            if (usePropertyName != null) {
+                // translate the i18n key:
+                usePropertyName = translate(usePropertyName)
+            } else {
+                usePropertyName = propertyName
+            }
+            return usePropertyName
+        }
+
         /**
          * Calls [setPropertyNameForListEntries] for each given attribute.
          */
@@ -106,7 +134,9 @@ class HistoryFormatUtils {
          */
         fun setPropertyNameForListEntries(historyEntry: HistoryEntryDO, prefix: String, number: Number? = null) {
             historyEntry.attributes?.forEach { attr ->
-                attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefix, number)
+                // TODO: Migrate
+                println("************ Migrate")
+                // attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefix, number)
             }
         }
 
@@ -115,7 +145,9 @@ class HistoryFormatUtils {
          */
         fun setPropertyNameForListEntries(historyEntry: HistoryEntryDO, vararg prefixes: Pair<String, Number?>) {
             historyEntry.attributes?.forEach { attr ->
-                attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefixes = prefixes)
+                // TODO: Migrate
+                println("************ Migrate")
+                // attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefixes = prefixes)
             }
         }
 

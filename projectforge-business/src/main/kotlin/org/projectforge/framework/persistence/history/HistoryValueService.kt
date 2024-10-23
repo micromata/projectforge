@@ -25,6 +25,8 @@ package org.projectforge.framework.persistence.history
 
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.DisplayNameCapable
@@ -32,7 +34,6 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -94,13 +95,36 @@ class HistoryValueService private constructor() {
         }
     }
 
-    internal fun getUser(userId: String?): PFUserDO? {
-        if (userId.isNullOrBlank()) {
+    fun getObjectValue(value: String?, context: DisplayHistoryConvertContext<*>): Any? {
+        value ?: return null
+        val attr = context.currentHistoryEntryAttr ?: return null
+        val valueType = getValueType(attr.propertyTypeClass)
+        if (valueType != ValueType.ENTITY) {
             return null
         }
-        val id = parseLong(userId) ?: return null
-        return userGroupCache.getUser(id)
+        val propertyTypeClass = getClass(attr.propertyTypeClass) ?: return null
+        if (propertyTypeClass == PFUserDO::class.java) {
+            if (value.isNotBlank() && !value.contains(",")) {
+                // Single user expected.
+                return userGroupCache.getUserById(value) ?: "###"
+            }
+        }
+        if (propertyTypeClass == EmployeeDO::class.java || propertyTypeClass == AddressbookDO::class.java) {
+            val sb = StringBuilder()
+            getDBObjects(value, context).forEach { dbObject ->
+                if (dbObject is EmployeeDO) {
+                    sb.append("${dbObject.user?.getFullname() ?: "???"};")
+                }
+                if (dbObject is AddressbookDO) {
+                    sb.append("${dbObject.title};")
+                }
+            }
+            sb.deleteCharAt(sb.length - 1)
+            return sb.toString()
+        }
+        return getDBObjects(value, context)
     }
+
 
     /**
      * @param propertyType The property type in the history table (must be unified before!).
@@ -210,11 +234,16 @@ class HistoryValueService private constructor() {
         return "${clazz.simpleName}#${valueString}"
     }
 
-    internal fun getDBObjects(context: FlatDisplayHistoryEntry.Context): List<Any> {
-        val propertyClass = context.propertyClass ?: return emptyList()
-        val propertyName = context.propertyName
+    /**
+     * Loads the objects from the database, references as id's in the given value.
+     * @param value The old or new value from the history entry attr.
+     */
+    private fun getDBObjects(value: String?, context: DisplayHistoryConvertContext<*>): List<Any> {
+        val currentAttr = context.currentHistoryEntryAttr ?: return emptyList()
+        val propertyClass = getClass(currentAttr.propertyTypeClass) ?: return emptyList()
+        val propertyName = currentAttr.propertyName
         val ret = mutableListOf<Any>()
-        val ids = StringUtils.split(context.value, ", ")
+        val ids = StringUtils.split(value, ", ")
         if (ids.isEmpty()) {
             return emptyList()
         }
@@ -238,15 +267,14 @@ class HistoryValueService private constructor() {
         return ret
     }
 
-
-    internal fun toShortNames(value: Any?): String {
+    internal fun toDisplayNames(value: Any?): String {
         value ?: return ""
         return if (value is Collection<*>) {
-            value.map { input -> toShortName(input) }.sorted().joinToString()
-        } else toShortName(value)
+            value.map { input -> toDisplayName(input) }.sorted().joinToString()
+        } else toDisplayName(value)
     }
 
-    internal fun toShortName(obj: Any?): String {
+    internal fun toDisplayName(obj: Any?): String {
         obj ?: return ""
         return if (obj is DisplayNameCapable) obj.displayName ?: "---" else obj.toString()
     }

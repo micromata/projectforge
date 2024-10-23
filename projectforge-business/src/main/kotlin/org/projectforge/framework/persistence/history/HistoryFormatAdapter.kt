@@ -23,64 +23,66 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.projectforge.business.user.UserGroupCache
-import org.projectforge.framework.i18n.TimeAgo
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.apache.fop.util.text.AdvancedMessageFormat.formatObject
 
 /**
  * You may register history adapters for customizing conversion of history entries.
  */
 open class HistoryFormatAdapter {
-    protected val userGroupCache = UserGroupCache.getInstance()
-
     /**
      * A customized adapter may manipulate all found history entries by modifying, deleting or adding entries.
      * Does nothing at default.
      * @param item Item the history entries are related to.
      * @param entries All found history entries for customization.
      */
-    open fun customizeEntries(item: Any, entries: MutableList<HistoryEntry>) {
+    open fun convertEntries(
+        item: Any,
+        entries: MutableList<DisplayHistoryEntry>,
+        context: DisplayHistoryConvertContext<*>
+    ) {
     }
-
-    open fun customize(item: Any, historyEntry: HistoryEntry) {}
 
     /**
-     * A customized adapter may manipulate all found history entries by modifying, deleting or adding entries.
-     * Does nothing at default.
-     * @param item Item the history entries are related to.
-     * @param entries All found history entries for customization.
+     * A customized adapter may manipulate a single history entry.
+     * This method gets the modifiedBy-user and creates a DisplayHistoryEntry including any attributes.
+     * @param item Item the history entry is related to.
+     * @param historyEntry The history entry for customization.
+     * @return The customized history entry.
      */
-    open fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
+    open fun convertHistoryEntry(item: Any, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntry {
+        return DisplayHistoryEntry.create(context.requiredHistoryEntry, context)
     }
 
-    open fun convert(
-        item: Any, historyEntry: HistoryEntry
-    ): HistoryFormatService.DisplayHistoryEntryDTO {
-        var user: PFUserDO? = null
-        try {
-            user = userGroupCache.getUser(historyEntry.modifiedBy?.toLong())
-        } catch (e: NumberFormatException) {
-            // Ignore error.
-        }
-        val entryDTO = HistoryFormatService.DisplayHistoryEntryDTO(
-            modifiedAt = historyEntry.modifiedAt,
-            timeAgo = TimeAgo.getMessage(historyEntry.modifiedAt),
-            modifiedByUserId = historyEntry.modifiedBy,
-            modifiedByUser = user?.getFullname(),
-            operationType = historyEntry.entityOpType,
-            operation = HistoryFormatService.translate(historyEntry.entityOpType)
-        )
-        historyEntry.attributes?.forEach { attr ->
-            val dhe = FlatDisplayHistoryEntry(historyEntry, attr)
-            val diffEntryDTO = HistoryFormatService.DisplayHistoryDiffEntryDTO(
-                operationType = attr.opType,
-                operation = HistoryFormatService.translate(attr.opType),
-                property = dhe.propertyName,
-                oldValue = dhe.oldValue,
-                newValue = dhe.newValue
+    open fun convertHistoryEntryAttr(item: Any, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntryAttr {
+        val historyAttr = context.requiredHistoryEntryAttr
+        val displayAttr = DisplayHistoryEntryAttr.create(historyAttr, context)
+        val oldObjectValue = context.getObjectValue(displayAttr.oldValue, context)
+        val newObjectValue = context.getObjectValue(displayAttr.newValue, context)
+        val propertyClass = context.getClass(historyAttr.propertyTypeClass)
+        if (oldObjectValue != null) {
+            displayAttr.oldValue =
+                formatObject(
+                valueObject = oldObjectValue,
+                typeClass = propertyClass,
+                propertyName = historyAttr.propertyName,
             )
-            entryDTO.diffEntries.add(diffEntryDTO)
+        } else {
+            displayAttr.oldValue = context.historyValueService.format(historyAttr.oldValue, propertyType = historyAttr.propertyTypeClass)
         }
-        return entryDTO
+        if (newObjectValue != null) {
+            displayAttr.newValue = formatObject(newObjectValue, propertyClass, propertyName = historyAttr.propertyName)
+        } else {
+            displayAttr.newValue = context.historyValueService.format(historyAttr.value, propertyType = historyAttr.propertyTypeClass)
+        }
+
+        return displayAttr
+    }
+
+    /**
+     * You may overwrite this method to provide a custom formatting for the object value.
+     * Will format the object(s) by displayName, if available
+     */
+    protected open fun formatObject(valueObject: Any?, typeClass: Class<*>?, propertyName: String?): String {
+        return HistoryValueService.instance.toDisplayNames(valueObject)
     }
 }

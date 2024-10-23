@@ -122,6 +122,16 @@ open class UserGroupCache : AbstractCache() {
         return groupMap[groupId]
     }
 
+    fun getUserById(userId: String?): PFUserDO? {
+        userId ?: return null
+        try {
+            return getUser(userId.toLongOrNull())
+        } catch (e: NumberFormatException) {
+            // Ignore error.
+        }
+        return null
+    }
+
     fun getUser(userId: Long?): PFUserDO? {
         userId ?: return null
         checkRefresh()
