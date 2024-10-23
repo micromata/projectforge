@@ -43,6 +43,7 @@ import org.projectforge.framework.jcr.AttachmentsDaoAccessChecker
 import org.projectforge.framework.jcr.AttachmentsService
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.impl.CustomResultFilter
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatService
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.jcr.FileSizeStandardChecker
@@ -901,7 +902,7 @@ constructor(
      * @param id Id of the item to get the history entries for.
      */
     @GetMapping("history/{id}")
-    fun getHistory(@PathVariable("id") id: Long?): ResponseEntity<List<HistoryFormatService.DisplayHistoryEntryDTO>> {
+    fun getHistory(@PathVariable("id") id: Long?): ResponseEntity<List<DisplayHistoryEntry>> {
         if (id == null) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }

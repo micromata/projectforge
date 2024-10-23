@@ -394,7 +394,7 @@ class BaseDOPersistenceService {
                 // Remove all history entries (including all attributes) from the database:
                 historyService.loadHistory(obj).forEach { historyEntry ->
                     em.remove(historyEntry)
-                    val displayHistoryEntry = ToStringUtil.toJsonString(FlatDisplayHistoryEntry(historyEntry))
+                    val displayHistoryEntry = ToStringUtil.toJsonString(historyEntry)
                     if (logMessage) {
                         log.info { "${useClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry" }
                     }

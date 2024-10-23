@@ -36,19 +36,21 @@ class HistoryFormatUserAdapter(
 
     private val userRightDao = applicationContext.getBean(UserRightDao::class.java)
 
-    override fun convertEntries(item: Any, entries: MutableList<HistoryFormatService.DisplayHistoryEntryDTO>) {
+    override fun convertEntries(item: Any, entries: MutableList<DisplayHistoryEntry>, context: DisplayHistoryConvertContext<*>) {
         if (item !is PFUserDO) {
             log.warn { "Can't handle history entries for entity of type ${item::class.java.name}" }
             return
         }
         item.rights?.forEach { right ->
             userRightDao.selectHistoryEntries(right).forEach { entry ->
-                val dto = convert(item, entry)
-                dto.diffEntries.firstOrNull { it.property == "value" }?.let { diffEntry ->
-                    diffEntry.property = right.rightIdString.toString()
-                    dto.diffEntries = mutableListOf(diffEntry) // Drop all other entries, only the value rules.
+                context.currentHistoryEntry = entry
+                val dto = convertHistoryEntry(item, context)
+                dto.attributes?.firstOrNull { it.propertyName == "value" }?.let { attr ->
+                    attr.propertyName = right.rightIdString.toString()
+                    dto.attributes = mutableListOf(attr) // Drop all other entries, only the value rules.
                 }
                 entries.add(dto)
+                context.currentHistoryEntry = null
             }
         }
     }

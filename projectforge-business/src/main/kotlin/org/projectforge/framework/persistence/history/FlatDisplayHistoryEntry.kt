@@ -23,46 +23,19 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder
-import org.projectforge.business.address.AddressbookDO
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.common.props.PropUtils
-import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 
 /**
  * For displaying the hibernate history entries in flat format.
  *
+ * The history entries [HistoryEntryDO] will first be converted to [DisplayHistoryEntry] and then to [FlatDisplayHistoryEntry].
+ *
  * Used by Wicket pages as well as by AuftragDao in e-mail-notifications.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
-open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
-    class Context(val entityName: String?, entry: FlatDisplayHistoryEntry) {
-        val propertyName: String? = entry.propertyName
-        val propertyType: String? = entry.propertyType
-        val historyValueService: HistoryValueService = HistoryValueService.instance
-
-        val entityClass: Class<*>? = historyValueService.getClass(entityName)
-        val propertyClass = historyValueService.getClass(propertyType)
-        var value: String? = null
-            private set
-
-        internal fun setProp(value: String?): Context {
-            this.value = value
-            return this
-        }
-
-        init {
-            if (entityClass != null) {
-                entry.displayPropertyName =
-                    translatePropertyName(entityClass, entry.displayPropertyName ?: propertyName)
-            }
-        }
-    }
-
+open class FlatDisplayHistoryEntry : Serializable {
     /**
      * For information / testing purposes: the id of the HistoryEntryDO (t_pf_history)
      */
@@ -74,12 +47,10 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
      */
     var attributeId: Long? = null
 
-    var user: PFUserDO? = null
-
     /**
      * @return the entryType
      */
-    val entryType: EntityOpType
+    var opType: EntityOpType? = null
 
     /**
      * @return the propertyName
@@ -87,15 +58,9 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     var propertyName: String? = null
 
     /**
-     * The property name to display (i18n). If not set, the propertyName will be used.
+     * @return the propertyName to display (e.g. translated)
      */
     var displayPropertyName: String? = null
-
-    /**
-     * @return the propertyType
-     */
-    var propertyType: String? = null
-        private set
 
     /**
      * @return the oldValue
@@ -110,35 +75,9 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     /**
      * Timestamp of the history entry.
      */
-    val timestamp: java.util.Date
+    var timestamp: java.util.Date? = null
 
-    private fun getUser(userId: String?): PFUserDO? {
-        return HistoryValueService.instance.getUser(userId)
-    }
-
-    init {
-        timestamp = entry.modifiedAt!!
-        val str = entry.modifiedBy
-        if (StringUtils.isNotEmpty(str) && "anon" != str) { // Anonymous user, see PfEmgrFactory.java
-            user = getUser(entry.modifiedBy)
-        }
-        // entry.getClassName();
-        // entry.getComment();
-        entryType = entry.entityOpType!!
-        historyEntryId = entry.id
-        // entry.getEntityId();
-    }
-
-    constructor(
-        entry: HistoryEntry, attr: HistoryEntryAttr,
-    ) : this(entry) {
-        attributeId = attr.id
-        propertyName = attr.propertyName
-        propertyType = HistoryValueService.getUnifiedTypeName(attr.propertyTypeClass)
-        oldValue = attr.oldValue
-        newValue = attr.value
-    }
-
+    /*
     fun initialize(context: Context) {
         val oldObjectValue = getObjectValue(context.setProp(oldValue))
         val newObjectValue = getObjectValue(context.setProp(newValue))
@@ -157,12 +96,13 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
         } else {
             newValue = context.historyValueService.format(newValue, propertyType = propertyType)
         }
-    }
+    }*/
 
     /**
      * You may overwrite this method to provide a custom formatting for the object value.
      * @return null if nothing done and nothing to proceed.
      */
+    /*
     protected open fun getObjectValue(context: Context): Any? {
         val value = context.value ?: return null
         val valueType = HistoryValueService.instance.getValueType(propertyType)
@@ -190,22 +130,23 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
             return sb.toString()
         }
         return HistoryValueService.instance.getDBObjects(context)
-    }
+    }*/
 
     /**
      * Loads the DB objects for the given property. The objects are given as coma separated id list.
      */
+    /*
     protected fun getDBObjects(context: Context): List<Any> {
         return HistoryValueService.instance.getDBObjects(context)
     }
-
+*/
     /**
      * You may overwrite this method to provide a custom formatting for the object value.
-     */
+     *//*
     protected open fun formatObject(valueObject: Any?, typeClass: Class<*>?, propertyName: String?): String {
         return HistoryValueService.instance.toShortNames(valueObject)
     }
-
+*/
     /**
      * Returns string containing all fields (except the password, via ReflectionToStringBuilder).
      *
@@ -218,6 +159,19 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
     companion object {
         private const val serialVersionUID = 3900345445639438747L
 
+        fun create(entry: DisplayHistoryEntry, attr: DisplayHistoryEntryAttr? = null): FlatDisplayHistoryEntry {
+            return FlatDisplayHistoryEntry().also {
+                it.historyEntryId = entry.id
+                it.opType = entry.operationType
+                it.timestamp = entry.modifiedAt
+                it.attributeId = attr?.id
+                it.propertyName = attr?.propertyName
+                it.displayPropertyName = attr?.displayPropertyName
+                it.oldValue = attr?.oldValue
+                it.newValue = attr?.newValue
+            }
+        }
+
         /*private val basicDateTypes = arrayOf(
             String::class.java.name,
             Date::class.java.name,
@@ -227,22 +181,5 @@ open class FlatDisplayHistoryEntry(entry: HistoryEntry) : Serializable {
             Long::class.java.name,
             Int::class.java.name,
         )*/
-
-        /**
-         * Tries to find a PropertyInfo annotation for the property field referred in the given diffEntry.
-         * If found, the property name will be returned translated, if not, the property will be returned unmodified.
-         * // TODO Handle propertyName such as pos#1.kost1#3.menge
-         */
-        internal fun translatePropertyName(clazz: Class<*>, propertyName: String?): String? {
-            // Try to get the PropertyInfo containing the i18n key of the property for translation.
-            var usePropertyName = PropUtils.get(clazz, propertyName)?.i18nKey
-            if (usePropertyName != null) {
-                // translate the i18n key:
-                usePropertyName = translate(usePropertyName)
-            } else {
-                usePropertyName = propertyName
-            }
-            return usePropertyName
-        }
     }
 }

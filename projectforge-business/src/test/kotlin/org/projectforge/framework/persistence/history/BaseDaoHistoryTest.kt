@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.RechnungDO
 import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.business.fibu.RechnungsPositionDO
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry.Companion.translatePropertyName
+import org.projectforge.framework.persistence.history.HistoryFormatUtils.Companion.translatePropertyName
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -51,7 +51,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(2972182L) }
                 .let { list ->
                     Assertions.assertEquals(1, list.size)
-                    list[0].apply { Assertions.assertEquals(EntityOpType.Insert, entryType) }
+                    list[0].apply { Assertions.assertEquals(EntityOpType.Insert, opType) }
                 }
             entries.filter { it.historyEntryId == HistoryServiceOldFormatTest.getNewHistoryEntryId(3042917L) }
                 .let { list ->
@@ -127,7 +127,7 @@ class BaseDaoHistoryTest : AbstractTestBase() {
             )
         }
         Assertions.assertEquals(propertyName, entry.propertyName, "$clazz.$propertyName")
-        Assertions.assertEquals(EntityOpType.Update, entry.entryType, "$clazz.$propertyName")
+        Assertions.assertEquals(EntityOpType.Update, entry.opType, "$clazz.$propertyName")
         Assertions.assertEquals(oldValue, entry.oldValue, "$clazz.$propertyName")
         Assertions.assertEquals(newValue, entry.newValue, "$clazz.$propertyName")
     }

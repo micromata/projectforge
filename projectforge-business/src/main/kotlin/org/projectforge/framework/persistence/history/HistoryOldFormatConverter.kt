@@ -43,7 +43,7 @@ object HistoryOldFormatConverter {
      */
     const val NEWVAL_SUFFIX: String = ":nv"
 
-    fun isOldAttr(attr: HistoryEntryAttrDO): Boolean {
+    fun isOldAttr(attr: HistoryEntryAttr): Boolean {
         // Property names with these suffixes are old attributes.
         // Remember, there are some property names like 'timeableAttributes.timeofvisit.2023-09-12 00:00:00:000.arrive:nv'
         attr.propertyName.let { propertyName ->
@@ -59,7 +59,7 @@ object HistoryOldFormatConverter {
      * timeableAttributes.timeofvisit.2023-09-11 00:00:00:000.depart:nv -> depart.2023-09-11
      * timeableAttributes.employeeannualleave.2009-11-26 00:00:00:000.employeeannualleavedays:ov -> annualleave.2009-11-26
      */
-    fun getPlainPropertyName(attr: HistoryEntryAttrDO): String? {
+    fun getPlainPropertyName(attr: HistoryEntryAttr): String? {
         attr.propertyName.let { propertyName ->
             propertyName ?: return null
             return if (propertyName.startsWith("timeableAttributes.")) {
