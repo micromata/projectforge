@@ -51,6 +51,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
 import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
+import org.projectforge.framework.persistence.history.FlatHistoryFormatService
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
@@ -76,6 +77,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
+
+    @Autowired
+    private lateinit var flatHistoryFormatService: FlatHistoryFormatService
 
     @Autowired
     private lateinit var kundeDao: KundeDao
@@ -629,16 +633,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         data["contactPerson"] = contactPerson
         data["auftrag"] = auftrag
         data["requestUrl"] = requestUrl
-        val history: List<FlatDisplayHistoryEntry> = selectFlatDisplayHistoryEntries(auftrag)
-        val list: MutableList<FlatDisplayHistoryEntry> = ArrayList()
-        var i = 0
-        for (entry in history) {
-            list.add(entry)
-            if (++i >= 10) {
-                break
-            }
-        }
-        data["history"] = list
+        data["history"] = flatHistoryFormatService.selectHistoryEntriesAndConvert(this, auftrag).take(10)
         val msg = Mail()
         msg.setTo(contactPerson)
         val subject = if (operationType == OperationType.INSERT) {
@@ -703,7 +698,11 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         obj.paymentSchedules?.forEach { schedule ->
             val entries = historyService.loadHistory(schedule)
             entries.forEach { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "paymentSchedule", number = schedule.number)
+                HistoryFormatUtils.setPropertyNameForListEntries(
+                    entry,
+                    prefix = "paymentSchedule",
+                    number = schedule.number
+                )
             }
             mergeHistoryEntries(list, entries)
         }

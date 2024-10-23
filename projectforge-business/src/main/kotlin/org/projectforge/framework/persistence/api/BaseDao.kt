@@ -350,11 +350,12 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
 
     /**
      * Gets the history entries of the object.
+     * If the user has no access an empty list will be returned.
      */
     @JvmOverloads
     fun selectHistoryEntries(obj: O, checkAccess: Boolean = true): List<HistoryEntry> {
-        if (checkAccess) {
-            checkLoggedInUserHistoryAccess(obj)
+        if (obj.id == null || (checkAccess && !hasLoggedInUserHistoryAccess(obj, false))) {
+            return mutableListOf()
         }
         val list = historyService.loadHistory(baseDO = obj).toMutableList()
         customizeHistoryEntries(obj, list)
@@ -377,37 +378,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     /**
-     * Only used by Wicket pages:
-     * Gets the history entries of the object in flat format.
-     * Please note: If user has no access an empty list will be returned.
-     */
-    @JvmOverloads
-    fun selectFlatDisplayHistoryEntries(obj: O, checkAccess: Boolean = true): MutableList<FlatDisplayHistoryEntry> {
-        if (obj.id == null || (checkAccess && !hasLoggedInUserHistoryAccess(obj, false))) {
-            return mutableListOf()
-        }
-        val list = mutableListOf<FlatDisplayHistoryEntry>()
-        selectHistoryEntries(obj, false).forEach { entry ->
-            val displayEntries = convertToDisplayHistoryEntries(entry)
-            historyService.mergeHistoryDisplayEntries(list, displayEntries)
-        }
-        return list
-    }
-
-    /**
      * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
      */
     protected fun mergeHistoryEntries(list: MutableList<HistoryEntryDO>, entries: List<HistoryEntryDO>) {
         historyService.mergeHistoryEntries(list, entries)
-    }
-
-    /**
-     * Calls [HistoryService.convertToDisplayHistoryEntry] at default and [customizeHistoryEntry] for all single
-     * entries before returning the list.
-     */
-    fun convertToDisplayHistoryEntries(entry: HistoryEntry): List<FlatDisplayHistoryEntry> {
-        customizeHistoryEntry(entry)
-        return historyService.convertToDisplayHistoryEntry(entry)
     }
 
     /**
