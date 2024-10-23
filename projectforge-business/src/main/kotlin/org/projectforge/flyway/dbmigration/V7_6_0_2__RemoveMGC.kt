@@ -49,6 +49,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
     override fun migrate(context: Context) {
         log.info { "Migrating attributes with period validity from mgc: Employee (annual leave, status) and entries from Visitorbook" }
         val dataSource = context.configuration.dataSource
+        migrateHistoryAttrWithData(dataSource)
         migrateEmployees(dataSource)
         migrateVisitorbook(dataSource)
     }
@@ -108,7 +109,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
         readEmployees(dataSource).forEach { dbAttr ->
             val oldAttr = dbAttr.getTransientAttribute("oldAttr") as TimedAttr
             val sqlInsert =
-                "INSERT INTO t_fibu_employee_validity_period_attr (pk, created, last_update, deleted, employee_fk, attribute, valid_from, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO t_fibu_employee_validity_period_attr (pk, created, last_update, deleted, employee_fk, type, valid_from, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             try {
                 jdbcTemplate.update(
                     sqlInsert,
@@ -155,7 +156,9 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
             val employee = EmployeeDO()
             employee.id = attr.objectId
             dbAttr.employee = employee
-            dbAttr.validFrom = attr.startTime?.toLocalDate()
+            attr.startTime?.let { startTime ->
+                dbAttr.validFrom = startTime.toLocalDate()
+            }
             dbAttr.setTransientAttribute("oldAttr", attr)
             resultList.add(dbAttr)
             log.info { "Read employee attribute: $dbAttr" }
@@ -409,9 +412,9 @@ fun main() {
         this.username = username
         this.password = password
     }
-    // V7_6_0_2___RemoveMGC().readEmployees(dataSource)
-    // V7_6_0_2___RemoveMGC().migrateEmployees(dataSource)
-    // V7_6_0_2___RemoveMGC().readVisitorBook(dataSource)
-    // V7_6_0_2___RemoveMGC().migrateVisitorbook(dataSource)
-    // V7_6_0_2___RemoveMGC().migrateHistoryAttrWithData(dataSource)
+    // V7_6_0_2__RemoveMGC().readEmployees(dataSource)
+    // V7_6_0_2__RemoveMGC().migrateEmployees(dataSource)
+    // V7_6_0_2__RemoveMGC().readVisitorBook(dataSource)
+    // V7_6_0_2__RemoveMGC().migrateVisitorbook(dataSource)
+    // V7_6_0_2__RemoveMGC().migrateHistoryAttrWithData(dataSource)
 }
