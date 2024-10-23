@@ -57,11 +57,11 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("location", label = "location", value = translate("poll.location")))
+                .add(UIReadOnlyField("location", label = "poll.location", value = translate("poll.location")))
         )
         field.add(
             UICol()
-                .add(UIReadOnlyField("owner", label = "owner", value = translate("poll.owner")))
+                .add(UIReadOnlyField("owner", label = "poll.owner", value = translate("poll.owner")))
         )
         field.add(
             UICol()
@@ -79,36 +79,36 @@ class PollInfoPageRest : AbstractDynamicPageRest() {
         layout.add(field)
 
         layout.add(
-            UIFieldset().add(UILabel("Single Response " + translate("poll.question"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.singletitel"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
-                            label = "poll.question",
+                            label = "poll.question.single",
                             value = translate("poll.manual.singleResponse")
                         )
                     )
             )
         )
         layout.add(
-            UIFieldset().add(UILabel("Multiple Response " + translate("poll.question"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.multititle"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
-                            label = "poll.question",
+                            label = "poll.question.multi",
                             value = translate("poll.manual.multiResponse")
                         )
                     )
             )
         )
         layout.add(
-            UIFieldset().add(UILabel("Text " + translate("poll.question"))).add(
+            UIFieldset().add(UILabel(translate("poll.question.texttitle"))).add(
                 UICol()
                     .add(
                         UIReadOnlyField(
                             "question",
-                            label = "poll.question",
+                            label = "poll.question.text",
                             value = translate("poll.manual.textQuestion")
                         )
                     )
