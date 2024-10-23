@@ -30,9 +30,7 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.persistence.api.BaseDOPersistenceService
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.framework.persistence.history.DisplayHistoryEntry
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -72,40 +70,8 @@ class EmployeeService {
         employeeDao.employeeService = this
     }
 
-    fun select(filter: BaseSearchFilter): List<EmployeeDO> {
-        return employeeDao.select(filter)
-    }
-
     fun findByUserId(userId: Long?): EmployeeDO? {
         return employeeDao.findByUserId(userId)
-    }
-
-    fun hasLoggedInUserInsertAccess(): Boolean {
-        return employeeDao.hasLoggedInUserInsertAccess()
-    }
-
-    fun hasLoggedInUserInsertAccess(obj: EmployeeDO, throwException: Boolean): Boolean {
-        return employeeDao.hasLoggedInUserInsertAccess(obj, throwException)
-    }
-
-    fun hasLoggedInUserUpdateAccess(obj: EmployeeDO, dbObj: EmployeeDO, throwException: Boolean): Boolean {
-        return employeeDao.hasLoggedInUserUpdateAccess(obj, dbObj, throwException)
-    }
-
-    fun hasLoggedInUserDeleteAccess(obj: EmployeeDO, dbObj: EmployeeDO, throwException: Boolean): Boolean {
-        return employeeDao.hasLoggedInUserDeleteAccess(obj, dbObj, throwException)
-    }
-
-    fun hasDeleteAccess(user: PFUserDO, obj: EmployeeDO, dbObj: EmployeeDO, throwException: Boolean): Boolean {
-        return employeeDao.hasDeleteAccess(user, obj, dbObj, throwException)
-    }
-
-    fun getAutocompletion(property: String, searchString: String): List<String> {
-        return employeeDao.getAutocompletion(property, searchString)
-    }
-
-    fun getDisplayHistoryEntries(obj: EmployeeDO): List<DisplayHistoryEntry> {
-        return employeeDao.selectDisplayHistoryEntries(obj)
     }
 
     /**
