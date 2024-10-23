@@ -62,13 +62,13 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
             jdbcTemplate.queryForRowSet("select t.datacol, t.datarow, t.parent_pk from t_pf_history_attr_data as t order by parent_pk, datarow")
         var parent = HistoryAttr(-1, "", true)
         while (resultSet.next()) {
-            val value = resultSet.getString("datacol")
+            val datacol = resultSet.getString("datacol")
             resultSet.getInt("datarow")
             val parentPk = resultSet.getLong("parent_pk")
             if (parentPk != parent.pk) {
                 if (parent.pk != -1L) {
                     // Update parent before processing next parent.
-                    updateParent(jdbcTemplate, parent.pk, parent.value, parent.alreadyProcessed)
+                    updateParent(parent.pk, parent.value, parent.alreadyProcessed)
                 }
                 val parentMap =
                     jdbcTemplate.queryForList("select t.pk, t.value from t_pf_history_attr as t where pk = ?", parentPk)
@@ -83,9 +83,9 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
                     }
                 parent = HistoryAttr(parentPk, value, alreadyProcessed)
             }
-            parent.value += value
+            parent.value += datacol
         }
-        updateParent(jdbcTemplate, parent.pk, parent.value, parent.alreadyProcessed)
+        updateParent(parent.pk, parent.value, parent.alreadyProcessed)
         val userIds = mutableSetOf<Long>()
         resultSet = jdbcTemplate.queryForRowSet("select t.pk as pk from t_pf_user as t")
         while (resultSet.next()) {
@@ -93,7 +93,7 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
         }
     }
 
-    private fun updateParent(jdbcTemplate: JdbcTemplate, pk: Long, value: String, alreadyProcessed: Boolean) {
+    private fun updateParent(pk: Long, value: String, alreadyProcessed: Boolean) {
         if (!alreadyProcessed) {
             if (value.length > 50000) {
                 throw IllegalArgumentException("Value too long: ${value.length} (> 50.000)")
@@ -205,7 +205,6 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
             "t_orga_visitorbook",
             "select a.pk as pk1, a.createdat, a.createdby, a.modifiedat, a.modifiedby, a.start_time, a.visitor_id as object_id, a.group_name, b.pk as pk2, b.value, b.propertyname, b.createdby as createdby_b, b.createdat as createdat_b, b.modifiedby as modifiedby_b, b.modifiedat as modifiedat_b "
                     + "from t_orga_visitorbook_timed a JOIN t_orga_visitorbook_timedattr b ON a.pk=b.parent ORDER BY a.pk",
-            readEndTime = false,
             type = TYPE.VISITORBOOK,
         )
         val result = mutableListOf<VisitorbookEntryDO>()
@@ -257,7 +256,6 @@ class V7_6_0_2__RemoveMGC : BaseJavaMigration() {
         dataSource: DataSource,
         masterTable: String,
         joinSelectSql: String,
-        readEndTime: Boolean = true,
         type: TYPE,
     ): List<TimedAttr> {
         val jdbcTemplate = JdbcTemplate(dataSource)
