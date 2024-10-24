@@ -260,10 +260,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun customizeHistoryEntries(obj: PFUserDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(obj: PFUserDO, list: MutableList<HistoryEntryDO>) {
         obj.rights?.forEach { right ->
             val entries = historyService.loadHistory(right)
-            HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())
+            HistoryFormatUtils.putPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())
             mergeHistoryEntries(list, entries)
         }
     }

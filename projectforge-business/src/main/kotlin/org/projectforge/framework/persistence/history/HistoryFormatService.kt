@@ -85,7 +85,7 @@ class HistoryFormatService {
 
     fun <O : BaseDO<*>> convert(
         item: O,
-        historyEntry: HistoryEntry,
+        historyEntry: HistoryEntryDO,
         context: DisplayHistoryConvertContext<*>,
     ): DisplayHistoryEntry {
         context.currentHistoryEntry = historyEntry
@@ -98,8 +98,12 @@ class HistoryFormatService {
             val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
                 ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
             displayHistoryEntry.attributes.add(displayAttr)
+            context.currentDisplayHistoryEntryAttr = displayAttr
+            context.baseDao.customizeHistoryEntryAttr(context)
+            context.currentDisplayHistoryEntryAttr = null
             context.currentHistoryEntryAttr = null
         }
+        context.baseDao.customizeHistoryEntry(context)
         context.currentDisplayHistoryEntry = null
         context.currentHistoryEntry = null
         return displayHistoryEntry

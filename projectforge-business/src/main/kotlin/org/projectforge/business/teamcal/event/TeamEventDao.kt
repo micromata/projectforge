@@ -628,10 +628,10 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun customizeHistoryEntries(obj: TeamEventDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(obj: TeamEventDO, list: MutableList<HistoryEntryDO>) {
         obj.attendees?.forEach { attendee ->
             val entries = historyService.loadHistory(attendee)
-            HistoryFormatUtils.setPropertyNameForListEntries(entries, attendee.toString())
+            HistoryFormatUtils.putPropertyNameForListEntries(entries, attendee.toString())
             mergeHistoryEntries(list, entries)
         }
     }

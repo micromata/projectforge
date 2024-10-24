@@ -264,7 +264,7 @@ class GroupDaoTest : AbstractTestBase() {
         val sb = StringBuilder()
         sb.append("userMatrix = arrayOf(")//arrayOf(0, 1), arrayOf(0, 1), arrayOf(1), arrayOf())")
         print("Current users of groups: ")
-        testContext.groups.forEachIndexed { index, groupDO ->
+        testContext.groups.forEachIndexed { _, groupDO ->
             groupDao.find(groupDO.id)?.let { group ->
                 if (!group.assignedUsers.isNullOrEmpty()) {
                     dbGroups.add(group)
@@ -279,7 +279,7 @@ class GroupDaoTest : AbstractTestBase() {
         }
         println()
         print("Current groups of users: ")
-        testContext.users.forEachIndexed { index, userDO ->
+        testContext.users.forEachIndexed { _, userDO ->
             val assignedGroups = dbGroups.filter { it.assignedUsers?.any { it.id == userDO.id } == true }
             if (assignedGroups.isNotEmpty()) {
                 print(

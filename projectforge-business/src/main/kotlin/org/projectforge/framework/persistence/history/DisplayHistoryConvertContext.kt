@@ -34,21 +34,25 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(val baseDao: BaseDao<O>, val item: O, val historyValueService: HistoryValueService) {
     internal val userGroupCache = UserGroupCache.getInstance()
 
-    var currentHistoryEntry: HistoryEntry? = null
+    var currentHistoryEntry: HistoryEntryDO? = null
 
-    val requiredHistoryEntry: HistoryEntry
+    val requiredHistoryEntry: HistoryEntryDO
         get() = currentHistoryEntry ?: throw IllegalStateException("No current history entry set in DisplayHistoryConvertContext.")
 
-    var currentHistoryEntryAttr: HistoryEntryAttr? = null
+    var currentHistoryEntryAttr: HistoryEntryAttrDO? = null
 
-    val requiredHistoryEntryAttr: HistoryEntryAttr
+    val requiredHistoryEntryAttr: HistoryEntryAttrDO
         get() = currentHistoryEntryAttr ?: throw IllegalStateException("No current history entry attr set in DisplayHistoryConvertContext.")
 
     var currentDisplayHistoryEntry: DisplayHistoryEntry? = null
 
     val requiredDisplayHistoryEntry: DisplayHistoryEntry
-        get() = currentDisplayHistoryEntry ?: throw IllegalStateException("No current display history entry attr set in DisplayHistoryConvertContext.")
+        get() = currentDisplayHistoryEntry ?: throw IllegalStateException("No current display history entry set in DisplayHistoryConvertContext.")
 
+    var currentDisplayHistoryEntryAttr: DisplayHistoryEntryAttr? = null
+
+    val requiredDisplayHistoryEntryAttr: DisplayHistoryEntryAttr
+        get() = currentDisplayHistoryEntryAttr ?: throw IllegalStateException("No current display history entry attr set in DisplayHistoryConvertContext.")
 
     fun getObjectValue(value: String?, context: DisplayHistoryConvertContext<*>): Any? {
         return context.historyValueService.getObjectValue(value, context)

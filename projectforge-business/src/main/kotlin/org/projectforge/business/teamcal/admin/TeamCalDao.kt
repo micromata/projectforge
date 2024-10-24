@@ -37,6 +37,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
+import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
 import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.HistoryEntry
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
@@ -242,8 +243,8 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
         return userService.getSortedUsers(calendar.minimalAccessUserIds)
     }
 
-    override fun customizeHistoryEntry(entry: HistoryEntry) {
-        historyFormatUtils.replaceGroupAndUserIdsValues(entry)
+    override fun customizeHistoryEntry(context: DisplayHistoryConvertContext<*>) {
+        historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
     }
 
     /**
