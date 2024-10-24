@@ -50,7 +50,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
+import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
@@ -687,18 +687,18 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun customizeHistoryEntries(obj: AuftragDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(obj: AuftragDO, list: MutableList<HistoryEntryDO>) {
         obj.positionenIncludingDeleted?.forEach { position ->
             val entries = historyService.loadHistory(position)
             entries.forEach { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
+                HistoryFormatUtils.putPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
             }
             mergeHistoryEntries(list, entries)
         }
         obj.paymentSchedules?.forEach { schedule ->
             val entries = historyService.loadHistory(schedule)
             entries.forEach { entry ->
-                HistoryFormatUtils.setPropertyNameForListEntries(
+                HistoryFormatUtils.putPropertyNameForListEntries(
                     entry,
                     prefix = "paymentSchedule",
                     number = schedule.number
@@ -706,6 +706,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             }
             mergeHistoryEntries(list, entries)
         }
+    }
+
+    override fun customizeHistoryEntryAttr(context: DisplayHistoryConvertContext<*>) {
+        val attr = context.requiredHistoryEntryAttr
+        val displayAttr = context.requiredDisplayHistoryEntryAttr
+        displayAttr.displayPropertyName = attr.context.getDisplayPropertyName()
     }
 
     /**

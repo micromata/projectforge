@@ -328,14 +328,14 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun customizeHistoryEntries(obj: RechnungDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(obj: RechnungDO, list: MutableList<HistoryEntryDO>) {
         obj.positionen?.forEach { position ->
             val entries = historyService.loadHistory(position)
-            HistoryFormatUtils.setPropertyNameForListEntries(entries, "pos", position.number)
+            HistoryFormatUtils.putPropertyNameForListEntries(entries, "pos", position.number)
             mergeHistoryEntries(list, entries)
             position.kostZuweisungen?.forEach { zuweisung ->
                 val kostEntries = historyService.loadHistory(zuweisung)
-                HistoryFormatUtils.setPropertyNameForListEntries(
+                HistoryFormatUtils.putPropertyNameForListEntries(
                     entries,
                     Pair("pos", position.number),
                     Pair("kost", zuweisung.index),

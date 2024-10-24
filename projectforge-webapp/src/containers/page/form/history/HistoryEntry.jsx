@@ -24,6 +24,7 @@ function getTypeSymbol(type) {
 function HistoryEntry(
     {
         entry: {
+            id: masterId,
             attributes,
             timeAgo,
             modifiedAt,
@@ -72,7 +73,7 @@ function HistoryEntry(
                             .map((diffType) => (
                                 <span
                                     className={style[diffType]}
-                                    key={`history-diff-at-${modifiedAt}-${diffType}`}
+                                    key={`history-diff-${masterId}`}
                                 >
                                     {`${diffSummary[diffType].amount} ${diffSummary[diffType].operation}`}
                                 </span>
@@ -84,7 +85,7 @@ function HistoryEntry(
                         Felder:
                         {' '}
                         {attributes
-                            .map((diff) => diff.property)
+                            .map((diff) => diff.displayPropertyName)
                             .join(', ')}
                     </span>
                 </Col>
@@ -111,10 +112,9 @@ function HistoryEntry(
                     {attributes.map((
                         {
                             operationType,
-                            property,
+                            displayPropertyName,
                             oldValue,
                             newValue,
-                            id,
                         },
                     ) => {
                         let diff;
@@ -140,13 +140,13 @@ function HistoryEntry(
 
                         return (
                             <span
-                                key={`history-diff-at-${id}`}
+                                key={`history-diff-${masterId}`}
                                 className={style.detail}
                             >
                                 <span className={style[operationType]}>
                                     {getTypeSymbol(operationType)}
                                     {' '}
-                                    {property}
+                                    {displayPropertyName}
                                     {': '}
                                 </span>
                                 {diff}
@@ -167,7 +167,7 @@ HistoryEntry.propTypes = {
             oldValue: PropTypes.string,
             operation: PropTypes.string,
             operationType: PropTypes.string,
-            property: PropTypes.string,
+            displayPropertyName: PropTypes.string,
         })),
         id: PropTypes.number,
         modifiedAt: PropTypes.string,

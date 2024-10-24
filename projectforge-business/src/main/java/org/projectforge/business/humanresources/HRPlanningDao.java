@@ -296,12 +296,12 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    protected void customizeHistoryEntries(HRPlanningDO obj, @NotNull List<HistoryEntryDO> list) {
+    protected void mergeHistoryEntries(HRPlanningDO obj, @NotNull List<HistoryEntryDO> list) {
         if (CollectionUtils.isNotEmpty(obj.getEntries())) {
             for (final HRPlanningEntryDO position : obj.getEntries()) {
                 var entries = historyService.loadHistory(position);
                 var prefix = position.getProjekt() != null ? position.getProjektName() : String.valueOf(position.getStatus());
-                HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix);
+                HistoryFormatUtils.putPropertyNameForListEntries(entries, prefix);
                 mergeHistoryEntries(list, entries);
             }
         }

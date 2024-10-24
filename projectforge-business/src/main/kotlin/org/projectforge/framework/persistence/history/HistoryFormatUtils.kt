@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
+import org.apache.naming.SelectorContext.prefix
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.props.PropUtils
@@ -42,13 +43,13 @@ class HistoryFormatUtils {
     @Autowired
     private lateinit var userService: UserService
 
-    fun replaceGroupAndUserIdsValues(entry: HistoryEntry) {
-        entry.attributes?.forEach { attr ->
+    fun replaceGroupAndUserIdsValues(entry: DisplayHistoryEntry) {
+        entry.attributes.forEach { attr ->
             replaceGroupAndUserIdsValues(attr)
         }
     }
 
-    fun replaceGroupAndUserIdsValues(attr: HistoryEntryAttr) {
+    fun replaceGroupAndUserIdsValues(attr: DisplayHistoryEntryAttr) {
         val propertyName = attr.propertyName ?: return
         if (propertyName.endsWith("GroupIds")) {
             attr.oldValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
@@ -56,8 +57,8 @@ class HistoryFormatUtils {
                     .sorted()
                     .joinToString(", ")
             }
-            attr.value?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                attr.value = groupService.getGroupNames(value)
+            attr.newValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
+                attr.newValue = groupService.getGroupNames(value)
                     .sorted()
                     .joinToString(", ")
             }
@@ -67,8 +68,8 @@ class HistoryFormatUtils {
                     .sorted()
                     .joinToString(", ")
             }
-            attr.value?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
-                attr.value = userService.getUserNames(value)
+            attr.newValue?.takeIf { it.isNotBlank() && it != "null" }?.let { value ->
+                attr.newValue = userService.getUserNames(value)
                     .sorted()
                     .joinToString(", ")
             }
@@ -103,51 +104,47 @@ class HistoryFormatUtils {
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [putPropertyNameForListEntries] for each given attribute.
          */
         @JvmOverloads
         @JvmStatic
-        fun setPropertyNameForListEntries(
+        fun putPropertyNameForListEntries(
             historyEntries: Collection<HistoryEntryDO>,
             prefix: String,
             number: Number? = null
         ) {
             historyEntries.forEach { entry ->
-                setPropertyNameForListEntries(entry, prefix = prefix, number = number)
+                putPropertyNameForListEntries(entry, prefix = prefix, number = number)
             }
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [putPropertyNameForListEntries] for each given attribute.
          */
-        fun setPropertyNameForListEntries(
+        fun putPropertyNameForListEntries(
             historyEntries: Collection<HistoryEntryDO>,
             vararg prefixes: Pair<String, Number?>
         ) {
             historyEntries.forEach { entry ->
-                setPropertyNameForListEntries(entry, prefixes = prefixes)
+                putPropertyNameForListEntries(entry, prefixes = prefixes)
             }
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [putPropertyNameForListEntries] for each given attribute.
          */
-        fun setPropertyNameForListEntries(historyEntry: HistoryEntryDO, prefix: String, number: Number? = null) {
+        fun putPropertyNameForListEntries(historyEntry: HistoryEntryDO, prefix: String, number: Number? = null) {
             historyEntry.attributes?.forEach { attr ->
-                // TODO: Migrate
-                println("************ Migrate")
-                // attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefix, number)
+                attr.context.putDisplayPropertyName(getPropertyNameForEmbedded(attr.propertyName, prefix, number))
             }
         }
 
         /**
-         * Calls [setPropertyNameForListEntries] for each given attribute.
+         * Calls [putPropertyNameForListEntries] for each given attribute.
          */
-        fun setPropertyNameForListEntries(historyEntry: HistoryEntryDO, vararg prefixes: Pair<String, Number?>) {
+        fun putPropertyNameForListEntries(historyEntry: HistoryEntryDO, vararg prefixes: Pair<String, Number?>) {
             historyEntry.attributes?.forEach { attr ->
-                // TODO: Migrate
-                println("************ Migrate")
-                // attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefixes = prefixes)
+                attr.context.putDisplayPropertyName(getPropertyNameForEmbedded(attr.propertyName, prefixes = prefixes))
             }
         }
 

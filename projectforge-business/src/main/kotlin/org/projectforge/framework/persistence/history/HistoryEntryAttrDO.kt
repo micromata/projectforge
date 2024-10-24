@@ -116,6 +116,12 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     @get:Column(name = "property_type_class", length = 128)
     override var propertyTypeClass: String? = null
 
+    /**
+     * Usable during converting [HistoryEntryDO] to [DisplayHistoryEntry].
+     */
+    @get:Transient
+    var context = HistoryEntryContext()
+
     fun setPropertyTypeClass(clazz: Class<*>) {
         propertyTypeClass = HibernateUtils.getUnifiedClassname(clazz)
     }

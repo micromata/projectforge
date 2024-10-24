@@ -168,14 +168,14 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun customizeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>) {
         obj.positionen?.forEach { position ->
             val positionEntries = historyService.loadHistory(position)
-            HistoryFormatUtils.setPropertyNameForListEntries(positionEntries, prefix = "pos", number = position.number)
+            HistoryFormatUtils.putPropertyNameForListEntries(positionEntries, prefix = "pos", number = position.number)
             mergeHistoryEntries(list, positionEntries)
             position.kostZuweisungen?.forEach { zuweisung ->
                 val kostEntries = historyService.loadHistory(zuweisung)
-                HistoryFormatUtils.setPropertyNameForListEntries(
+                HistoryFormatUtils.putPropertyNameForListEntries(
                     kostEntries,
                     Pair("pos", position.number),
                     Pair("kost", zuweisung.index),

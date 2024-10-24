@@ -102,7 +102,7 @@ class CandHHistoryTest : AbstractTestBase() {
         userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(2, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, 8)
-            (entries[0] as HistoryEntryDO).let { entry ->
+            entries[0].let { entry ->
                 HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "username",
@@ -172,7 +172,7 @@ class CandHHistoryTest : AbstractTestBase() {
         userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(3, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.MarkAsDeleted, ADMIN_USER, 2)
-            (entries[0] as HistoryEntryDO).let { entry ->
+            entries[0].let { entry ->
                 HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "description",
@@ -196,7 +196,7 @@ class CandHHistoryTest : AbstractTestBase() {
         userDao.selectHistoryEntries(user).let { entries ->
             Assertions.assertEquals(4, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 2)
-            (entries[0] as HistoryEntryDO).let { entry ->
+            entries[0].let { entry ->
                 HistoryTester.assertHistoryAttr(
                     entry,
                     propertyName = "description",
@@ -268,7 +268,7 @@ class CandHHistoryTest : AbstractTestBase() {
             entries.single { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Update }
                 .let { historyEntry ->
                     assertHistoryEntry(historyEntry, UserRightDO::class, null, EntityOpType.Update, loggedInUser, 1)
-                    (historyEntry as HistoryEntryDO).let { entry ->
+                    historyEntry.let { entry ->
                         HistoryTester.assertHistoryAttr(
                             entry,
                             value = "READONLY",
@@ -355,7 +355,7 @@ class CandHHistoryTest : AbstractTestBase() {
                         loggedInUser,
                         3
                     )
-                    (historyEntry as HistoryEntryDO).let { entry ->
+                    historyEntry.let { entry ->
                         HistoryTester.assertHistoryAttr(
                             entry,
                             propertyName = "text",

@@ -45,7 +45,7 @@ class HistoryFormatUserAdapter(
             userRightDao.selectHistoryEntries(right).forEach { entry ->
                 context.currentHistoryEntry = entry
                 val dto = convertHistoryEntry(item, context)
-                dto.attributes?.firstOrNull { it.propertyName == "value" }?.let { attr ->
+                dto.attributes.firstOrNull { it.propertyName == "value" }?.let { attr ->
                     attr.propertyName = right.rightIdString.toString()
                     dto.attributes = mutableListOf(attr) // Drop all other entries, only the value rules.
                 }
