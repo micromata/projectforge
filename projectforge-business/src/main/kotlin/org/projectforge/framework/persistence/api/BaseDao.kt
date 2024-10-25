@@ -215,8 +215,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     @JvmOverloads
-    fun selectAllUndeleted(checkAccess: Boolean = true): List<O> {
-        return selectAll(checkAccess).filter { !it.deleted }
+    fun selectAllNotDeleted(checkAccess: Boolean = true): List<O> {
+        return select(deleted = false, checkAccess)
     }
 
     /**
@@ -224,13 +224,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     @JvmOverloads
     open fun selectAll(checkAccess: Boolean = true): List<O> {
-        return selectAll(checkAccess = checkAccess, useRoot = null)
+        return select(deleted = null, checkAccess = checkAccess, useRoot = null)
     }
 
     /**
      * @return All objects of this class or empty list if no object found
      */
-    fun selectAll(checkAccess: Boolean = true, useRoot: ((Root<O>) -> Unit)? = null): List<O> {
+    fun select(deleted: Boolean? = null, checkAccess: Boolean = true, useRoot: ((Root<O>) -> Unit)? = null): List<O> {
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
@@ -249,6 +249,10 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
                 useRoot(root)
             }
             cq.select(root)
+            if (deleted != null) {
+                val deletedPredicate = cb.equal(root.get<Boolean>("deleted"), deleted)
+                cq.where(deletedPredicate)  // Fügen Sie die Bedingung zur Abfrage hinzu
+            }
             val query = em.createQuery(cq)
             query.resultList
         }

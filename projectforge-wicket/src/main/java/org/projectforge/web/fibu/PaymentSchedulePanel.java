@@ -34,10 +34,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -53,8 +50,10 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivType;
 import org.projectforge.web.wicket.flowlayout.FieldProperties;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 /**
@@ -62,6 +61,18 @@ import java.util.stream.Collectors;
  */
 public class PaymentSchedulePanel extends Panel {
   private static final long serialVersionUID = 2669766778018430028L;
+
+  class MyBooleanSupplier implements BooleanSupplier, Serializable {
+    private TextField<String> textField;
+    public MyBooleanSupplier(TextField<String> textField) {
+      this.textField = textField;
+    }
+
+    @Override
+    public boolean getAsBoolean() {
+      return StringUtils.isNotBlank(textField.getValue());
+    }
+  }
 
   private RepeatingView entrysRepeater;
 
@@ -132,7 +143,7 @@ public class PaymentSchedulePanel extends Panel {
         item.add(amount);
 
         // date is required when an amount is entered
-        datePanel.setRequiredSupplier(() -> StringUtils.isNotBlank(amount.getValue()));
+        datePanel.setRequiredSupplier(new MyBooleanSupplier(amount));
 
         // comment
         item.add(new MaxLengthTextField("comment", new PropertyModel<>(entry, "comment")));

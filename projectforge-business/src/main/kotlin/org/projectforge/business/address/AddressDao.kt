@@ -259,7 +259,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             if (addressbookRight == null) {
                 addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
             }
-            for (ab in addressbookDao.selectAll(checkAccess = false)) {
+            for (ab in addressbookDao.selectAllNotDeleted(checkAccess = false)) {
                 if (!ab.deleted && addressbookRight!!.hasSelectAccess(loggedInUser, ab)) {
                     ab.id?.let {
                         abIdList.add(it)
