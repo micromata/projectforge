@@ -35,6 +35,7 @@ internal object PfPersistenceContextThreadLocal {
     private val threadLocalReadonly = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalTransactional = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalPersistenceStats = ThreadLocal<PersistenceStats?>()
+    private val threadLocalPersistenceCallsStats = ThreadLocal<PersistenceCallsStats?>()
 
     /**
      * Gets context of ThreadLocal with transaction, if exists, or readonly context, if exists. Null, if no context exist.
@@ -63,7 +64,7 @@ internal object PfPersistenceContextThreadLocal {
     fun setReadonly(context: PfPersistenceContext) {
         require(context.type == PfPersistenceContext.ContextType.READONLY) { "Context must be of type READONLY." }
         threadLocalReadonly.set(context)
-        // Can't be used here (becauese of restoring thread values): getStatsState().readonlyCreated()
+        // Can't be used here (because of restoring thread values): getStatsState().readonlyCreated()
     }
 
     /**
@@ -72,7 +73,7 @@ internal object PfPersistenceContextThreadLocal {
     fun setTransactional(context: PfPersistenceContext) {
         require(context.type == PfPersistenceContext.ContextType.TRANSACTION) { "Context must be of type TRANSACTION." }
         threadLocalTransactional.set(context)
-        // Can't be used here (becauese of restoring thread values): getStatsState().transactionCreated()
+        // Can't be used here (because of restoring thread values): getStatsState().transactionCreated()
     }
 
     /**
@@ -81,7 +82,7 @@ internal object PfPersistenceContextThreadLocal {
     fun removeReadonly(): PfPersistenceContext? {
         val ret = threadLocalReadonly.get()
         threadLocalReadonly.remove()
-        // Can't be used here (becauese of restoring thread values): getStatsState().readonlyClosed()
+        // Can't be used here (because of restoring thread values): getStatsState().readonlyClosed()
         return ret
     }
 
@@ -91,7 +92,7 @@ internal object PfPersistenceContextThreadLocal {
     fun removeTransactional(): PfPersistenceContext? {
         val ret = threadLocalTransactional.get()
         threadLocalTransactional.remove()
-        // Can't be used here (becauese of restoring thread values): getStatsState().transactionClosed()
+        // Can't be used here (because of restoring thread values): getStatsState().transactionClosed()
         return ret
     }
 
@@ -105,5 +106,28 @@ internal object PfPersistenceContextThreadLocal {
     fun getStatsState(): PersistenceStats {
         return threadLocalPersistenceStats.get()
             ?: PersistenceStats().also { threadLocalPersistenceStats.set(it) }
+    }
+
+    /**
+     * Gets [PersistenceCallsStats] of ThreadLocal, if exists. Null, if no context exist.
+     */
+    fun getPersistenceCallsStats(): PersistenceCallsStats? {
+        return threadLocalPersistenceCallsStats.get()
+    }
+
+    /**
+     * Creates [PersistenceCallsStats] int ThreadLocal.
+     */
+    fun createPersistenceCallsStats(extended: Boolean = false) {
+        threadLocalPersistenceCallsStats.set(PersistenceCallsStats(extended))
+    }
+
+    /**
+     * Removes [PersistenceCallsStats] of ThreadLocal, if exists.
+     */
+    fun removePersistenceCallsStats(): PersistenceCallsStats? {
+        val ret = threadLocalPersistenceCallsStats.get()
+        threadLocalPersistenceCallsStats.remove()
+        return ret
     }
 }

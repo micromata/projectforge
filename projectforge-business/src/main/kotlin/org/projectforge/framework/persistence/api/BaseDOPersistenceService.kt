@@ -32,10 +32,10 @@ import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.candh.CandHMaster
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter
 import org.projectforge.framework.persistence.history.HistoryService
+import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -104,9 +104,9 @@ class BaseDOPersistenceService {
             obj.setCreated()
             obj.setLastUpdate()
             val useClass = baseDao?.doClass ?: obj.javaClass
-            em.persist(obj)
+            context.insert(obj) // Don't use em.persist directly, due to PersistenceCallsStats.
             baseDao?.prepareHibernateSearch(obj, OperationType.INSERT)
-            em.merge(obj)
+            context.update(obj) // Don't use em.merge directly, due to PersistenceCallsStats.
             HistoryBaseDaoAdapter.inserted(obj, context)
             if (logMessage) {
                 log.info { "${useClass.simpleName} updated: $obj" }
@@ -169,7 +169,7 @@ class BaseDOPersistenceService {
         persistenceService.runInTransaction { context ->
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
-            val useDbObj = dbObj ?: requireDbObj(em, useClass, obj.id, "update")
+            val useDbObj = dbObj ?: requireDbObj(context, useClass, obj.id, "update")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
                 baseDao?.checkLoggedInUserUpdateAccess(obj, useDbObj)
@@ -188,7 +188,7 @@ class BaseDOPersistenceService {
             if (modStatus != EntityCopyStatus.NONE) {
                 useDbObj.setLastUpdate()
                 baseDao?.prepareHibernateSearch(obj, OperationType.UPDATE)
-                val merged = em.merge(useDbObj)
+                val merged = context.update(useDbObj) // Don't use em.merge directly, due to PersistenceCallsStats.
                 try {
                     em.flush()
                 } catch (ex: Exception) {
@@ -256,7 +256,7 @@ class BaseDOPersistenceService {
             baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
-            val dbObj = requireDbObj(em, useClass, obj.id, "markAsDeleted")
+            val dbObj = requireDbObj(context, useClass, obj.id, "markAsDeleted")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
                 baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
@@ -271,7 +271,7 @@ class BaseDOPersistenceService {
             if (modStatus != EntityCopyStatus.NONE) { // May be MINOR if is already marked as deleted before.
                 dbObj.setLastUpdate()
                 obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
-                val merged = em.merge(dbObj) //
+                val merged = context.update(dbObj) // Don't use em.merge directly, due to PersistenceCallsStats.
                 em.flush()
                 candHContext.preparedHistoryEntries(merged, srcObj = obj)
                 HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
@@ -312,7 +312,7 @@ class BaseDOPersistenceService {
             baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.UNDELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
-            val dbObj = requireDbObj(em, useClass, obj.id, "undelete")
+            val dbObj = requireDbObj(context, useClass, obj.id, "undelete")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
                 baseDao?.checkLoggedInUserInsertAccess(obj)
@@ -328,7 +328,7 @@ class BaseDOPersistenceService {
                 dbObj.setLastUpdate()
                 obj.deleted = false               // For callee having same object.
                 obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
-                val merged = em.merge(dbObj)
+                val merged = context.update(dbObj) // Don't use em.merge directly, due to PersistenceCallsStats.
                 em.flush()
                 candHContext.preparedHistoryEntries(merged, srcObj = obj)
                 HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
@@ -383,17 +383,17 @@ class BaseDOPersistenceService {
             baseDao?.changedRegistry?.onInsertOrModify(obj, OperationType.DELETE)
             val em = context.em
             val useClass = baseDao?.doClass ?: obj.javaClass
-            val dbObj = requireDbObj(em, useClass, obj.id, "delete (force=$force)")
+            val dbObj = requireDbObj(context, useClass, obj.id, "delete (force=$force)")
             if (checkAccess) {
                 accessChecker.checkRestrictedOrDemoUser()
                 baseDao?.checkLoggedInUserDeleteAccess(obj, dbObj)
             }
-            em.remove(dbObj)
+            context.delete(dbObj) // Don't use em.remove directly, due to PersistenceCallsStats.
             em.flush()
             if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
                 // Remove all history entries (including all attributes) from the database:
                 historyService.loadHistory(obj).forEach { historyEntry ->
-                    em.remove(historyEntry)
+                    context.delete(historyEntry) // Don't use em.remove directly, due to PersistenceCallsStats.
                     val displayHistoryEntry = ToStringUtil.toJsonString(historyEntry)
                     if (logMessage) {
                         log.info { "${useClass.simpleName}:$id (forced) deletion of history entry: $displayHistoryEntry" }
@@ -417,10 +417,10 @@ class BaseDOPersistenceService {
      * @return The object.
      */
     @Throws(IllegalArgumentException::class)
-    private fun <O> requireDbObj(em: EntityManager, entityClass: Class<O>, id: Long?, caller: String): O {
+    private fun <O> requireDbObj(context: PfPersistenceContext, entityClass: Class<O>, id: Long?, caller: String): O {
         id
             ?: throw IllegalArgumentException("Can't load object ${entityClass.simpleName} with id=null, caller=$caller.")
-        val dbOj = em.find(entityClass, id)
+        val dbOj = context.find(entityClass, id, attached = true) // Don't call em.find directly due to PersistenceCallsStats.
             ?: throw IllegalArgumentException("Object ${entityClass.simpleName} not found by id $id, caller=$caller.")
         return dbOj
     }

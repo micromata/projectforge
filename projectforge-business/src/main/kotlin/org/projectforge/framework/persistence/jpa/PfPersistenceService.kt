@@ -42,11 +42,6 @@ private val log = KotlinLogging.logger {}
 @Service
 open class PfPersistenceService {
     // private val openedTransactions = mutableSetOf<EntityTransaction>()
-    companion object {
-        @JvmStatic
-        lateinit var instance: PfPersistenceService
-            private set
-    }
 
     @Autowired
     private lateinit var entityManagerFactory: EntityManagerFactory
@@ -346,5 +341,27 @@ open class PfPersistenceService {
 
     fun formatStats(oldState: PersistenceStats, withDuration: Boolean = true): String {
         return getStats(oldState).asString(withDuration)
+    }
+
+    companion object {
+        @JvmStatic
+        lateinit var instance: PfPersistenceService
+            private set
+
+        fun startCallStatsRecording(extended: Boolean = false) {
+            PfPersistenceContextThreadLocal.createPersistenceCallsStats(extended)
+        }
+
+        fun stopCallStatsRecording() {
+            PfPersistenceContextThreadLocal.removePersistenceCallsStats()
+        }
+
+        fun showCallStatsRecording(extended: Boolean = false): String? {
+            return PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.toString(extended)
+        }
+
+        internal fun getCallStats(): PersistenceCallsStats? {
+            return PfPersistenceContextThreadLocal.getPersistenceCallsStats()
+        }
     }
 }
