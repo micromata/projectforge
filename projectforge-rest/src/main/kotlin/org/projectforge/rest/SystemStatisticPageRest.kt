@@ -49,7 +49,7 @@ class SystemStatisticPageRest : AbstractDynamicPageRest() {
     val layout = UILayout("system.statistics.title")
 
     statsData.groups.forEach { group ->
-      val fieldset = UIFieldset(title = "'${group.capitalize()}")
+      val fieldset = UIFieldset(title = "'${group.replaceFirstChar { it.uppercase() }}")
       statsData.filterEntries(group).forEach {
         fieldset.add(createRow(it.title, it.valueAsString()))
       }

@@ -117,10 +117,10 @@ class HistoryEntryAttrDO : HistoryEntryAttr {
     override var propertyTypeClass: String? = null
 
     /**
-     * Usable during converting [HistoryEntryDO] to [DisplayHistoryEntry].
+     * Used for converting into human-readable format.
      */
     @get:Transient
-    var context = HistoryEntryContext()
+    var displayPropertyName: String? = null
 
     fun setPropertyTypeClass(clazz: Class<*>) {
         propertyTypeClass = HibernateUtils.getUnifiedClassname(clazz)

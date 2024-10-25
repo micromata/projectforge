@@ -161,7 +161,12 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         val order = AuftragDO()
         order.id = 36901223
         val hist = createHistoryTester()
-        hist.loadHistory(order, 26, 46)
+        hist.loadHistory(
+            order,
+            26,
+            46,
+            "The history entries of the embedded positions should be found, because they are part of an history attr entry: 36901224,36901225,36901226,36901227,36901228."
+        )
         hist.getEntriesByEntityId(36901223L, 9, 27)
         hist.getEntriesByEntityId(36901224L, 3, 3)
         hist.getEntriesByEntityId(36901225L, 3, 3)
@@ -180,13 +185,46 @@ class HistoryServiceOldFormatTest : AbstractTestBase() {
         employee.id = 21339579
         val hist = createHistoryTester()
         hist.loadHistory(employee, 5, 6)
-        hist.getEntry(0, 1).assertAttr("annualleave.2009-11-26", value = "30", oldValue = "32", opType = PropertyOpType.Update, propertyTypeClass = BigDecimal::class)
-        hist.getEntry(1, 1).assertAttr("status.2017-09-01", value = null, oldValue = null, opType = PropertyOpType.Delete, propertyTypeClass = null)
+        hist.getEntry(0, 1).assertAttr(
+            "annualleave.2009-11-26",
+            value = "30",
+            oldValue = "32",
+            opType = PropertyOpType.Update,
+            propertyTypeClass = BigDecimal::class
+        )
+        hist.getEntry(1, 1).assertAttr(
+            "status.2017-09-01",
+            value = null,
+            oldValue = null,
+            opType = PropertyOpType.Delete,
+            propertyTypeClass = null
+        )
         hist.getEntry(2, 2)
-            .assertAttr("annualleave.2021-03-01", value = "30", oldValue = null, opType = PropertyOpType.Insert, propertyTypeClass = BigDecimal::class)
-            .assertAttr("status.2021-03-01", value = "fibu.employee.status.festAngestellter", oldValue = null, opType = PropertyOpType.Insert)
-        hist.getEntry(3, 1).assertAttr("status.2020-04-01", value = "fibu.employee.status.aushilfe", oldValue = null, opType = PropertyOpType.Insert)
-        hist.getEntry(4, 1).assertAttr("status.2019-03-01", value = "fibu.employee.status.studentischeHilfskraft", oldValue = null, opType = PropertyOpType.Insert)
+            .assertAttr(
+                "annualleave.2021-03-01",
+                value = "30",
+                oldValue = null,
+                opType = PropertyOpType.Insert,
+                propertyTypeClass = BigDecimal::class
+            )
+            .assertAttr(
+                "status.2021-03-01",
+                value = "fibu.employee.status.festAngestellter",
+                oldValue = null,
+                opType = PropertyOpType.Insert
+            )
+        hist.getEntry(3, 1).assertAttr(
+            "status.2020-04-01",
+            value = "fibu.employee.status.aushilfe",
+            oldValue = null,
+            opType = PropertyOpType.Insert
+        )
+        hist.getEntry(4, 1).assertAttr(
+            "status.2019-03-01",
+            value = "fibu.employee.status.studentischeHilfskraft",
+            oldValue = null,
+            opType = PropertyOpType.Insert
+        )
     }
 
     private fun ensureSetup() {

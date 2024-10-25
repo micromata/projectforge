@@ -70,9 +70,9 @@ class HistoryFormatService {
     fun <O : ExtendedBaseDO<Long>> selectAsDisplayEntries(
         baseDao: BaseDao<O>,
         item: O,
+        context: DisplayHistoryConvertContext<*> = DisplayHistoryConvertContext(baseDao, item),
         checkAccess: Boolean = true,
     ): List<DisplayHistoryEntry> {
-        val context = DisplayHistoryConvertContext(baseDao, item, historyValueService)
         val historyEntries = baseDao.selectHistoryEntries(item, checkAccess = checkAccess)
         val entries = mutableListOf<DisplayHistoryEntry>()
         historyEntries.forEach { historyEntry ->

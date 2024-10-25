@@ -31,28 +31,53 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 /**
  * Context for converting history entries into human-readable formats.
  */
-class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(val baseDao: BaseDao<O>, val item: O, val historyValueService: HistoryValueService) {
+class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(
+    val baseDao: BaseDao<O>,
+    val item: O,
+) {
+
+    class HistoryEntryMap {
+        var historyEntry: HistoryEntryDO? = null
+        var displayHistoryEntry: DisplayHistoryEntry? = null
+        var map = mutableMapOf<String, Any?>()
+    }
+
+    class HistoryEntryAttrMap {
+        var historyEntryAttr: HistoryEntryAttrDO? = null
+        var displayHistoryEntryAttr: DisplayHistoryEntryAttr? = null
+        var map = mutableMapOf<String, Any?>()
+    }
+
+    var historyEntryMap = mutableMapOf<Long, HistoryEntryMap>()
+    var historyEntryAttrMap = mutableMapOf<Long, HistoryEntryAttrMap>()
+
     internal val userGroupCache = UserGroupCache.getInstance()
+
+    val historyValueService = HistoryValueService.instance
 
     var currentHistoryEntry: HistoryEntryDO? = null
 
     val requiredHistoryEntry: HistoryEntryDO
-        get() = currentHistoryEntry ?: throw IllegalStateException("No current history entry set in DisplayHistoryConvertContext.")
+        get() = currentHistoryEntry
+            ?: throw IllegalStateException("No current history entry set in DisplayHistoryConvertContext.")
 
     var currentHistoryEntryAttr: HistoryEntryAttrDO? = null
 
     val requiredHistoryEntryAttr: HistoryEntryAttrDO
-        get() = currentHistoryEntryAttr ?: throw IllegalStateException("No current history entry attr set in DisplayHistoryConvertContext.")
+        get() = currentHistoryEntryAttr
+            ?: throw IllegalStateException("No current history entry attr set in DisplayHistoryConvertContext.")
 
     var currentDisplayHistoryEntry: DisplayHistoryEntry? = null
 
     val requiredDisplayHistoryEntry: DisplayHistoryEntry
-        get() = currentDisplayHistoryEntry ?: throw IllegalStateException("No current display history entry set in DisplayHistoryConvertContext.")
+        get() = currentDisplayHistoryEntry
+            ?: throw IllegalStateException("No current display history entry set in DisplayHistoryConvertContext.")
 
     var currentDisplayHistoryEntryAttr: DisplayHistoryEntryAttr? = null
 
     val requiredDisplayHistoryEntryAttr: DisplayHistoryEntryAttr
-        get() = currentDisplayHistoryEntryAttr ?: throw IllegalStateException("No current display history entry attr set in DisplayHistoryConvertContext.")
+        get() = currentDisplayHistoryEntryAttr
+            ?: throw IllegalStateException("No current display history entry attr set in DisplayHistoryConvertContext.")
 
     fun getObjectValue(value: String?, context: DisplayHistoryConvertContext<*>): Any? {
         return context.historyValueService.getObjectValue(value, context)
@@ -64,5 +89,14 @@ class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(val baseDao: BaseDa
 
     internal fun getUser(id: String?): PFUserDO? {
         return userGroupCache.getUserById(id)
+    }
+
+    fun getDisplayPropertyName(attr: HistoryEntryAttrDO): String? {
+        return historyEntryAttrMap[attr.id]?.map?.get("displayPropertyName") as? String
+    }
+
+    private fun ensureDisplayHistoryEntryAttr(attrId: Long?): HistoryEntryAttrMap {
+        attrId ?: throw IllegalArgumentException("attrId must not be null.")
+        return historyEntryAttrMap.getOrPut(attrId) { HistoryEntryAttrMap() }
     }
 }

@@ -141,7 +141,7 @@ open class CollectionHandler : CandHIHandler {
                 }
             }
         }
-        if (!compareResults.removed.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
+        if (updated.isNotEmpty() || !compareResults.removed.isNullOrEmpty() || !compareResults.added.isNullOrEmpty()) {
             if (collectionManagedByOwnerEntity) {
                 if (propertyContext.entriesHistorizable == true) {
                     // If collection is managed by this class and the entries are to be historized themselves,
@@ -242,11 +242,10 @@ open class CollectionHandler : CandHIHandler {
          */
         internal fun writeInsertHistoryEntriesForNewCollectionEntries(
             mergedObj: BaseDO<*>?,
-            destObj: BaseDO<*>?,
+            srcObj: BaseDO<*>?,
             entryList: MutableList<HistoryEntryDO>,
         ) {
             mergedObj ?: return
-            destObj ?: return
             KClassUtils.filterPublicMutableProperties(mergedObj::class).forEach { property ->
                 @Suppress("UNCHECKED_CAST")
                 property as KMutableProperty1<BaseDO<*>, Any?>
@@ -256,19 +255,21 @@ open class CollectionHandler : CandHIHandler {
                 }
                 val mergedCol = property.get(mergedObj) as Collection<*>?
                 val firstOrNull = mergedCol?.firstOrNull() ?: return@forEach // Collection is empty, continue.
-                val destCol =
-                    property.get(destObj) as Collection<*>? ?: return@forEach // Collection is empty, continue.
+                val srcCol = if (srcObj != null) {
+                    property.get(srcObj) as Collection<*>? ?: return@forEach // Collection is empty, continue.
+                } else {
+                    null
+                }
                 if (firstOrNull !is BaseDO<*>) {
                     // Collection entry isn't a BaseDO, so we can't call setIdValuesOfCollectionEntries recursively.
                     return@forEach
                 }
                 @Suppress("UNCHECKED_CAST")
                 mergedCol as Collection<BaseDO<Long>>
-                @Suppress("UNCHECKED_CAST")
-                destCol as Collection<BaseDO<Long>>
                 val newCollectionEntriesWithIdNull = mutableListOf<BaseDO<Long>>()
                 mergedCol.forEach { mergedEntry ->
-                    if (destCol.none { it.id == mergedEntry.id }) {
+                    @Suppress("UNCHECKED_CAST")
+                    if (srcCol == null || (srcCol as Collection<BaseDO<Long>>).none { it.id == mergedEntry.id }) {
                         // Entry is new, so we have to get the id values of the new collection entries.
                         newCollectionEntriesWithIdNull.add(mergedEntry)
                     }

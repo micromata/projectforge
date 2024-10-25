@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.apache.naming.SelectorContext.prefix
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.props.PropUtils
@@ -104,47 +103,54 @@ class HistoryFormatUtils {
         }
 
         /**
-         * Calls [putPropertyNameForListEntries] for each given attribute.
+         * Calls [setPropertyNameForListEntries] for each given attribute.
          */
         @JvmOverloads
         @JvmStatic
-        fun putPropertyNameForListEntries(
+        fun setPropertyNameForListEntries(
             historyEntries: Collection<HistoryEntryDO>,
             prefix: String,
             number: Number? = null
         ) {
             historyEntries.forEach { entry ->
-                putPropertyNameForListEntries(entry, prefix = prefix, number = number)
+                setPropertyNameForListEntries(entry, prefix = prefix, number = number)
             }
         }
 
         /**
-         * Calls [putPropertyNameForListEntries] for each given attribute.
+         * Calls [setPropertyNameForListEntries] for each given attribute.
          */
-        fun putPropertyNameForListEntries(
+        fun setPropertyNameForListEntries(
             historyEntries: Collection<HistoryEntryDO>,
             vararg prefixes: Pair<String, Number?>
         ) {
             historyEntries.forEach { entry ->
-                putPropertyNameForListEntries(entry, prefixes = prefixes)
+                setPropertyNameForListEntries(entry, prefixes = prefixes)
             }
         }
 
         /**
-         * Calls [putPropertyNameForListEntries] for each given attribute.
+         * Calls [setPropertyNameForListEntries] for each given attribute.
          */
-        fun putPropertyNameForListEntries(historyEntry: HistoryEntryDO, prefix: String, number: Number? = null) {
+        fun setPropertyNameForListEntries(
+            historyEntry: HistoryEntryDO,
+            prefix: String,
+            number: Number? = null
+        ) {
             historyEntry.attributes?.forEach { attr ->
-                attr.context.putDisplayPropertyName(getPropertyNameForEmbedded(attr.propertyName, prefix, number))
+                attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefix, number)
             }
         }
 
         /**
-         * Calls [putPropertyNameForListEntries] for each given attribute.
+         * Calls [setPropertyNameForListEntries] for each given attribute.
          */
-        fun putPropertyNameForListEntries(historyEntry: HistoryEntryDO, vararg prefixes: Pair<String, Number?>) {
+        fun setPropertyNameForListEntries(
+            historyEntry: HistoryEntryDO,
+            vararg prefixes: Pair<String, Number?>
+        ) {
             historyEntry.attributes?.forEach { attr ->
-                attr.context.putDisplayPropertyName(getPropertyNameForEmbedded(attr.propertyName, prefixes = prefixes))
+                attr.displayPropertyName = getPropertyNameForEmbedded(attr.propertyName, prefixes = prefixes)
             }
         }
 
@@ -154,7 +160,7 @@ class HistoryFormatUtils {
          * The displayPropertyName is set to the prefix + '#' + number + ':' + propertyName.
          * If the propertyName is null or empty, the displayPropertyName is set to prefix + '#' + number.
          * Example: "pos#1:propertyName" or "pos#1".
-         * @param attribute The attribute to set the displayPropertyName for.
+         * @param propertyName The property to get the displayPropertyName for.
          * @param prefix The prefix to use.
          * @param number The number to use.
          */
@@ -169,7 +175,7 @@ class HistoryFormatUtils {
          * If the propertyName is null or empty, the displayPropertyName is set to prefix + '#' + number.
          * Example: "pos#1:propertyName" or "pos#1".
          * Example with multiple prefixes: "prefix1#number1.prefix2#number2:propertyName" or "prefix1#number1.prefix2#number2".
-         * @param attribute The attribute to set the displayPropertyName for.
+         * @param propertyName The property to get the displayPropertyName for.
          * @param prefixes The prefixes to use: (prefix1, number1), (prefix2, number2), ...
          */
         fun getPropertyNameForEmbedded(propertyName: String?, vararg prefixes: Pair<String, Number?>): String {

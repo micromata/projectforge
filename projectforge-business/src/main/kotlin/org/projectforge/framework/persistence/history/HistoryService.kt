@@ -30,6 +30,7 @@ import org.projectforge.common.ClassUtils
 import org.projectforge.common.StringHelper2
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -69,12 +70,13 @@ class HistoryService {
 
     /**
      * Loads all history entries for the given baseDO by class and id.
+     * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
+     * Please use [BaseDao.selectHistoryEntries] for getting all embedded history entries.
      */
     fun loadHistory(baseDO: BaseDO<Long>): List<HistoryEntryDO> {
         val allHistoryEntries = mutableListOf<HistoryEntryDO>()
         persistenceService.runReadOnly { context ->
             loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
-            allHistoryEntries.forEach { entry -> HistoryOldFormatConverter.transformOldAttributes(entry) }
         }
         return allHistoryEntries.sortedByDescending { it.id }
     }
@@ -126,6 +128,7 @@ class HistoryService {
                 Pair("entityName", entityClass.name),
             ),
         )
+        result.forEach { entry -> HistoryOldFormatConverter.transformOldAttributes(entry) }
         allHistoryEntries.addAll(result)
         // Check all history entries for embedded objects:
         HibernateMetaModel.getEntityInfo(entityClass)?.getPropertiesWithAnnotation(OneToMany::class)

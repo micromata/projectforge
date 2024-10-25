@@ -197,7 +197,7 @@ class BaseDOPersistenceService {
                     log.error(ex) { "${ex.message} while updating object: ${ToStringUtil.toJsonString(obj)}" }
                     throw ex
                 }
-                candHContext.preparedHistoryEntries(merged, useDbObj)
+                candHContext.preparedHistoryEntries(merged, srcObj = obj)
                 HistoryBaseDaoAdapter.updated(merged, candHContext.historyEntries, context)
                 em.flush()
                 if (logMessage) {
@@ -273,7 +273,7 @@ class BaseDOPersistenceService {
                 obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
                 val merged = em.merge(dbObj) //
                 em.flush()
-                candHContext.preparedHistoryEntries(merged, dbObj)
+                candHContext.preparedHistoryEntries(merged, srcObj = obj)
                 HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
                 baseDao?.changedRegistry?.afterDelete(obj)
                 baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.DELETE)
@@ -330,7 +330,7 @@ class BaseDOPersistenceService {
                 obj.lastUpdate = dbObj.lastUpdate // For callee having same object.
                 val merged = em.merge(dbObj)
                 em.flush()
-                candHContext.preparedHistoryEntries(merged, dbObj)
+                candHContext.preparedHistoryEntries(merged, srcObj = obj)
                 HistoryBaseDaoAdapter.updated(dbObj, candHContext.historyEntries, context)
                 baseDao?.changedRegistry?.afterUndelete(obj)
                 baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.UNDELETE)

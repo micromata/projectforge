@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -121,6 +122,9 @@ class HistoryValueService private constructor() {
             }
             sb.deleteCharAt(sb.length - 1)
             return sb.toString()
+        }
+        if (propertyTypeClass == AccessEntryDO::class.java) {
+            return value
         }
         return getDBObjects(value, context)
     }

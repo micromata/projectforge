@@ -114,17 +114,6 @@ class HistoryEntryDO : HistoryEntry {
     )
     override var attributes: MutableSet<HistoryEntryAttrDO>? = null
 
-    /**
-     * Usable during converting [HistoryEntryDO] to [DisplayHistoryEntry].
-     */
-    @get:Transient
-    var convertContextMap: MutableMap<String, Any>? = null
-
-    fun putConvertContextMap(key: String, value: Any) {
-        convertContextMap = convertContextMap ?: mutableMapOf()
-        convertContextMap!![key] = value
-    }
-
     fun add(attrDO: HistoryEntryAttrDO) {
         attributes = attributes ?: mutableSetOf()
         attributes!!.add(attrDO)

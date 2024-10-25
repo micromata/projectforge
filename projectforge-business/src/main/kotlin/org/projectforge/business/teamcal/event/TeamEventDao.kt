@@ -62,6 +62,7 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.lt
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
+import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.timeZone
@@ -628,10 +629,14 @@ open class TeamEventDao : BaseDao<TeamEventDO>(TeamEventDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the TeamEventAttendeeDO children.
      */
-    override fun mergeHistoryEntries(obj: TeamEventDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(
+        obj: TeamEventDO,
+        list: MutableList<HistoryEntryDO>,
+        context: DisplayHistoryConvertContext<*>,
+    ) {
         obj.attendees?.forEach { attendee ->
             val entries = historyService.loadHistory(attendee)
-            HistoryFormatUtils.putPropertyNameForListEntries(entries, attendee.toString())
+            HistoryFormatUtils.setPropertyNameForListEntries(entries,attendee.toString())
             mergeHistoryEntries(list, entries)
         }
     }

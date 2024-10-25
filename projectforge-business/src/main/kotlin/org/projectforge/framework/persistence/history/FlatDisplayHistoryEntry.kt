@@ -171,7 +171,7 @@ open class FlatDisplayHistoryEntry : Serializable {
                 it.attributeId = attr?.id
                 it.user = UserGroupCache.getInstance().getUser(entry.modifiedByUserId)
                 it.propertyName = attr?.propertyName
-                it.displayPropertyName = attr?.displayPropertyName
+                it.displayPropertyName = attr?.displayPropertyName ?: attr?.propertyName
                 it.oldValue = attr?.oldValue
                 it.newValue = attr?.newValue
             }
