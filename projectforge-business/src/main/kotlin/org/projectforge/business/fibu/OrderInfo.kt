@@ -24,14 +24,17 @@
 package org.projectforge.business.fibu
 
 import jakarta.persistence.Transient
+import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.i18n.I18nHelper
 import java.io.Serializable
 import java.math.BigDecimal
 
+private val log = KotlinLogging.logger {}
+
 class OrderInfo(val order: AuftragDO) : Serializable {
-    class PositionInfo(positions: AuftragsPositionDO): Serializable {
-        val id = positions.id
+    class PositionInfo(position: AuftragsPositionDO): Serializable {
+        val id = position.id
         var invoicedSum = BigDecimal.ZERO
     }
 
@@ -111,10 +114,14 @@ class OrderInfo(val order: AuftragDO) : Serializable {
         paymentSchedulesReached =
             paymentSchedules?.any { !it.deleted && it.reached && !it.vollstaendigFakturiert } ?: false
         if (paymentSchedulesReached) {
+            log.debug("Payment schedules reached for order: ${order.id}")
             toBeInvoiced = true
         } else {
             if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || usePositions?.any { it.status == AuftragsPositionsStatus.ABGESCHLOSSEN } == true) {
-                toBeInvoiced = positions?.any { it.toBeInvoiced } == true
+                toBeInvoiced = (positions?.any { it.toBeInvoiced } == true)
+                if (toBeInvoiced) {
+                    log.debug("Finished order and/or positions and to be invoiced: ${order.id}")
+                }
             }
         }
         order.auftragsStatus.let { status ->

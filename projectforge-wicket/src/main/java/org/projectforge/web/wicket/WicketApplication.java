@@ -317,6 +317,8 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         Application.get().getMarkupSettings().setStripWicketTags(true);
       }
       getDebugSettings().setOutputMarkupContainerClassName(true);
+
+      // For getting more information of deserialization issues: use jvm parameter --add-opens java.base/java.io=ALL-UNNAMED
     }
     try {
       final UserContext internalSystemAdminUserContext = UserContext

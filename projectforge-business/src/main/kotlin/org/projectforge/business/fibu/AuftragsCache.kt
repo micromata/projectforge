@@ -155,7 +155,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
                     "SELECT pos FROM PaymentScheduleDO pos WHERE pos.deleted = false",
                     PaymentScheduleDO::class.java
                 ).groupBy { it.auftragId }
-                val orders = auftragDao.selectAll(false)
+                val orders = auftragDao.selectAll(checkAccess = false)
                 orders.forEach { order ->
                     map[order.id!!] = readOrderInfo(order, orderPositions[order.id], paymentSchedules[order.id])
                 }

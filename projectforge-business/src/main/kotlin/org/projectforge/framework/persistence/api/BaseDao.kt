@@ -224,14 +224,13 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     @JvmOverloads
     open fun selectAll(checkAccess: Boolean = true): List<O> {
-        return selectAll(checkAccess = checkAccess, null)
+        return selectAll(checkAccess = checkAccess, useRoot = null)
     }
 
     /**
      * @return All objects of this class or empty list if no object found
      */
-    @JvmOverloads
-    fun selectAll(checkAccess: Boolean = true, useRoot: ((Root<O>) -> Unit)?): List<O> {
+    fun selectAll(checkAccess: Boolean = true, useRoot: ((Root<O>) -> Unit)? = null): List<O> {
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
@@ -242,14 +241,16 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             // val query = em.createQuery("SELECT e FROM ${doClass.simpleName} e", doClass)
             // @Suppress("UNCHECKED_CAST")
             // return query.resultList as List<O>
+
             val cb = em.criteriaBuilder
             val cq = cb.createQuery(doClass)
+            val root = cq.from(doClass)
             useRoot?.let {
-                val root = cq.from(doClass)
                 useRoot(root)
             }
-            val query = cq.select(cq.from(doClass))
-            em.createQuery(query).resultList
+            cq.select(root)
+            val query = em.createQuery(cq)
+            query.resultList
         }
         PfPersistenceService.getCallsStats()?.add(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "selectAll")
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)

@@ -45,6 +45,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This panel shows the actual customer.
@@ -343,39 +345,36 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   private ProjektDO getProjekt(final String input)
   {
+    if (StringUtils.isBlank(input)) {
+      return null;
+    }
     try {
-      int kundeId, kost2;
-      String nummernkreis, kId, nummer;
-      kundeId = kost2 = -1;
-      nummernkreis = kId = nummer = "";
-      final int ind1 = input.indexOf(".");
-      if (ind1 < 0) {
+      // Regex to capture the three numeric parts only
+      Pattern pattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+).*");
+      Matcher matcher = pattern.matcher(input);
+      int nummernKreis, kundeNummer, nummer;
+      if (matcher.matches()) {
+        try {
+          // Parse the captured groups as integers
+          nummernKreis = Integer.parseInt(matcher.group(1));
+          kundeNummer = Integer.parseInt(matcher.group(2));
+          nummer = Integer.parseInt(matcher.group(3));
+        } catch (NumberFormatException e) {
+          log.error("Can't parse project from input (5.123.04: ... expected): " + input);
+          return null;
+        }
+      } else {
+        log.error("Can't parse project from input (5.123.04: ... expected): " + input);
         return null;
       }
-      nummernkreis = input.substring(0, ind1);
-      final int ind2 = input.indexOf(".", ind1 + 1);
-      if (ind2 < 0) {
-        return null;
-      }
-      kId = input.substring(ind1 + 1, ind2);
-      final int ind3 = input.indexOf(" -", ind2 + 1);
-      if (ind3 < 0) {
-        return null;
-      }
-      nummer = input.substring(ind2 + 1, ind3);
-      kundeId = Integer.parseInt(kId);
-      kost2 = Integer.parseInt(nummer);
-      if (kundeId < 0 || kost2 < 0) {
-        return null;
-      }
-      if (nummernkreis.equals("4") == true) {
-        return WicketSupport.get(ProjektDao.class).getProjekt(kundeId, kost2);
-      } else if (nummernkreis.equals("5") == true) {
-        final KundeDO kunde = WicketSupport.get(KundeDao.class).find(kundeId);
+      if (nummernKreis == 4) {
+        return WicketSupport.get(ProjektDao.class).getProjekt(kundeNummer, nummer);
+      } else if (nummernKreis == 5) {
+        final KundeDO kunde = WicketSupport.get(KundeDao.class).find(kundeNummer);
         if (kunde == null) {
           return null;
         }
-        return WicketSupport.get(ProjektDao.class).getProjekt(kunde, kost2);
+        return WicketSupport.get(ProjektDao.class).getProjekt(kunde, nummer);
       }
     } catch (Exception e) {
       log.error("An exception accured while parsing customer id and kost2.", e);
