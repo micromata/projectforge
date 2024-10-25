@@ -126,7 +126,7 @@ public class TeamEventServiceImpl implements TeamEventService {
     @Override
     public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee() {
         List<TeamEventAttendeeDO> resultList = new ArrayList<>();
-        List<AddressDO> allAddressList = addressDao.selectAllUndeleted(false);
+        List<AddressDO> allAddressList = addressDao.selectAllNotDeleted(false);
         List<PFUserDO> allUserList = userService.getAllActiveUsers();
         Set<Long> addedUserIds = new HashSet<>();
         for (AddressDO singleAddress : allAddressList) {
