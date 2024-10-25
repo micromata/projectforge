@@ -23,6 +23,7 @@
 
 package org.projectforge.business.user
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
@@ -31,6 +32,7 @@ import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.AccessEntryDO
 import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.GroupTaskAccessDO
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,11 +79,14 @@ class AccessDaoTest : AbstractTestBase() {
             it.accessInsert = true
         }
         accessDao.insertOrUpdate(access)
-        hist.loadRecentHistoryEntries(1, 1)
+        hist.loadRecentHistoryEntries(2, 1)
         val value = "TIMESHEETS={false,true,false,false}"
         val oldValue = "TIMESHEETS={true,false,false,false}"
-        hist.getEntry(0)
+        hist.recentEntries!!.find { it.entry.entityOpType == EntityOpType.Update }!!
             .assertAttr("accessEntries", value = value, oldValue = oldValue, propertyTypeClass = AccessEntryDO::class)
+        hist.recentEntries!!.find { it.entry.entityOpType == EntityOpType.Insert }!!.let { holder ->
+            Assertions.assertEquals(AccessEntryDO::class.qualifiedName, holder.entry.entityName)
+        }
     }
 
     private fun createAccessEntry(

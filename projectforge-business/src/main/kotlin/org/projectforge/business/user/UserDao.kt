@@ -32,6 +32,7 @@ import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
+import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -260,10 +261,12 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun mergeHistoryEntries(obj: PFUserDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(
+        obj: PFUserDO, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>,
+    ) {
         obj.rights?.forEach { right ->
             val entries = historyService.loadHistory(right)
-            HistoryFormatUtils.putPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())
+            HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())
             mergeHistoryEntries(list, entries)
         }
     }

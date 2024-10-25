@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.SortProperty;
+import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext;
 import org.projectforge.framework.persistence.history.HistoryEntryDO;
 import org.projectforge.framework.persistence.history.HistoryFormatUtils;
 import org.projectforge.framework.persistence.history.HistoryService;
@@ -296,12 +297,15 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO> {
      * Gets history entries of super and adds all history entries of the HRPlanningEntryDO children.
      */
     @Override
-    protected void mergeHistoryEntries(HRPlanningDO obj, @NotNull List<HistoryEntryDO> list) {
+    protected void mergeHistoryEntries(HRPlanningDO obj, @NotNull List<HistoryEntryDO> list, @NotNull DisplayHistoryConvertContext<?> context) {
         if (CollectionUtils.isNotEmpty(obj.getEntries())) {
             for (final HRPlanningEntryDO position : obj.getEntries()) {
                 var entries = historyService.loadHistory(position);
                 var prefix = position.getProjekt() != null ? position.getProjektName() : String.valueOf(position.getStatus());
-                HistoryFormatUtils.putPropertyNameForListEntries(entries, prefix);
+                if (prefix == null) {
+                    prefix = ""; // Just in case.
+                }
+                HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix);
                 mergeHistoryEntries(list, entries);
             }
         }

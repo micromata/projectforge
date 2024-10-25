@@ -162,16 +162,16 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
         timestampColumn.setDatePattern(DateFormats.getFormatString(DateFormatType.DATE_TIME_SHORT_MINUTES));
         columns.add(timestampColumn);
         columns
-                .add(new UserPropertyColumn<FlatDisplayHistoryEntry>(getUserGroupCache(), getString("user"), null, "user",
+                .add(new UserPropertyColumn<>(getUserGroupCache(), getString("user"), null, "user",
                         cellItemListener)
                         .withUserFormatter(userFormatter));
         columns
-                .add(new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.opType"), null, "opType",
+                .add(new CellItemListenerPropertyColumn<>(getString("history.opType"), null, "opType",
                         cellItemListener));
         columns.add(
-                new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.propertyName"), null, "propertyName",
+                new CellItemListenerPropertyColumn<>(getString("history.propertyName"), null, "displayPropertyName",
                         cellItemListener));
-        columns.add(new CellItemListenerPropertyColumn<FlatDisplayHistoryEntry>(getString("history.newValue"), null, "newValue",
+        columns.add(new CellItemListenerPropertyColumn<>(getString("history.newValue"), null, "newValue",
                 cellItemListener) {
             @Override
             public void populateItem(final Item<ICellPopulator<FlatDisplayHistoryEntry>> item, final String componentId,
@@ -472,8 +472,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
     /**
      * Calls getString(key) with key "[i18nPrefix].title.edit" or "[i18nPrefix].title.add" dependent weather the data
      * object is already existing or new.
-     *
-     * @see org.projectforge.web.wicket.AbstractUnsecurePage#getTitle()
      */
     @Override
     protected String getTitle() {

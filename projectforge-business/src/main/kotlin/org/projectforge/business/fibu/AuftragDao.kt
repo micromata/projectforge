@@ -682,23 +682,22 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         return persistenceService.getNextNumber("AuftragDO", "nummer", START_NUMBER)
     }
 
-    /**
-     * Gets history entries of super and adds all history entries of the AuftragsPositionDO children.
-     *
-     * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
-     */
-    override fun mergeHistoryEntries(obj: AuftragDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(
+        obj: AuftragDO,
+        list: MutableList<HistoryEntryDO>,
+        context: DisplayHistoryConvertContext<*>
+    ) {
         obj.positionenIncludingDeleted?.forEach { position ->
             val entries = historyService.loadHistory(position)
             entries.forEach { entry ->
-                HistoryFormatUtils.putPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
+                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
             }
             mergeHistoryEntries(list, entries)
         }
         obj.paymentSchedules?.forEach { schedule ->
             val entries = historyService.loadHistory(schedule)
             entries.forEach { entry ->
-                HistoryFormatUtils.putPropertyNameForListEntries(
+                HistoryFormatUtils.setPropertyNameForListEntries(
                     entry,
                     prefix = "paymentSchedule",
                     number = schedule.number
@@ -706,12 +705,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             }
             mergeHistoryEntries(list, entries)
         }
-    }
-
-    override fun customizeHistoryEntryAttr(context: DisplayHistoryConvertContext<*>) {
-        val attr = context.requiredHistoryEntryAttr
-        val displayAttr = context.requiredDisplayHistoryEntryAttr
-        displayAttr.displayPropertyName = attr.context.getDisplayPropertyName()
     }
 
     /**

@@ -25,6 +25,8 @@ package org.projectforge.test
 
 import org.junit.jupiter.api.Assertions
 import org.projectforge.framework.persistence.api.BaseDO
+import org.projectforge.framework.persistence.api.BaseDao
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -58,15 +60,21 @@ class HistoryTester(
 
     /**
      * Loads the history entries for the given id.
-     * Please note: Any embedded history entries (RechnungDO.positionen) etc. are not loaded!
+     * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
+     * Please use [BaseDao.selectHistoryEntries] for getting all embedded history entries.
+     * @param baseDO The baseDO to load the history entries for.
+     * @param expectedNumberOfNewHistoryEntries The expected number of new history entries.
+     * @param expectedNumberOfNewHistoryAttrEntries The expected number of new history attributes.
+     * @param msg The message for the assertion error.
      */
-    fun loadHistory(
-        baseDO: BaseDO<Long>,
+    fun <O: ExtendedBaseDO<Long>>loadHistory(
+        baseDO: O,
         expectedNumberOfNewHistoryEntries: Int? = null,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
         msg: String = "",
     ): List<HistoryEntryHolder>? {
-        wrapHistoryEntries(historyService.loadHistory(baseDO))
+        val entries = historyService.loadHistory(baseDO)
+        wrapHistoryEntries(entries)
         if (expectedNumberOfNewHistoryEntries != null) {
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)
         }

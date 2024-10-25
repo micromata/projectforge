@@ -358,7 +358,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             return mutableListOf()
         }
         val list = historyService.loadHistory(baseDO = obj).toMutableList()
-        mergeHistoryEntries(obj, list)
+        mergeHistoryEntries(obj, list, DisplayHistoryConvertContext(this, obj))
         // Sorts the list by the 'modifiedAt' field, placing entries with null values at the beginning.
         // The first part of the comparator checks if 'modifiedAt' is null and gives it higher priority
         // (placing null entries first). The second part sorts the remaining entries based on the
@@ -374,7 +374,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * @param obj The object for which the history entries are loaded.
      * @param list The list with entries loaded for given obj. Add here your own entries.
      */
-    protected open fun mergeHistoryEntries(obj: O, list: MutableList<HistoryEntryDO>) {
+    protected open fun mergeHistoryEntries(obj: O, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>) {
     }
 
     /**

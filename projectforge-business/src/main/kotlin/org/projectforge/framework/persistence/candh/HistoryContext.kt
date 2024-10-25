@@ -59,10 +59,10 @@ internal class HistoryContext(
      * @param mergedObj The merged object (new collection entries with db ids).
      * @param destObj The destination object (object used in em.merge()). The ids of the new collection entries are not set.
      */
-    fun getPreparedHistoryEntries(mergedObj: BaseDO<*>, destObj: BaseDO<*>): List<HistoryEntryDO> {
+    fun getPreparedHistoryEntries(mergedObj: BaseDO<*>,srcObj: BaseDO<*>): List<HistoryEntryDO> {
         log.debug { "getPreparedHistoryEntries: ${entity::class.simpleName}" }
         val entryList = historyEntryWrappers.map { it.prepareAndGetHistoryEntry() }.toMutableList()
-        CollectionHandler.writeInsertHistoryEntriesForNewCollectionEntries(mergedObj, destObj, entryList)
+        CollectionHandler.writeInsertHistoryEntriesForNewCollectionEntries(mergedObj, srcObj, entryList)
         return entryList
     }
 

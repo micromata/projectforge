@@ -50,8 +50,8 @@ class CandHContext constructor(
     var historyEntries: List<HistoryEntryDO>? = null
         private set
 
-    fun preparedHistoryEntries(mergedObj: BaseDO<*>, destObj: BaseDO<*>): List<HistoryEntryDO>? {
-        return historyContext?.getPreparedHistoryEntries(mergedObj = mergedObj, destObj = destObj).also { historyEntries = it }
+    fun preparedHistoryEntries(mergedObj: BaseDO<*>, srcObj: BaseDO<*>): List<HistoryEntryDO>? {
+        return historyContext?.getPreparedHistoryEntries(mergedObj = mergedObj, srcObj = srcObj).also { historyEntries = it }
     }
 
     // Only if entityOpType is given, history entries are created.

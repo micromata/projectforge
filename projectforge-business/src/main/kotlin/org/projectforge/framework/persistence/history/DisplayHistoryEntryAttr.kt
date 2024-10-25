@@ -33,7 +33,7 @@ class DisplayHistoryEntryAttr {
     var newValue: String? = null
 
     companion object {
-        fun create(attr: HistoryEntryAttr, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntryAttr {
+        fun create(attr: HistoryEntryAttrDO, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntryAttr {
             val entry = context.requiredHistoryEntry
             val entityClass = HistoryValueService.instance.getClass(entry.entityName)
             return DisplayHistoryEntryAttr().also {
@@ -41,7 +41,8 @@ class DisplayHistoryEntryAttr {
                 it.operationType = attr.opType
                 it.operation = HistoryFormatService.translate(attr.opType)
                 it.propertyName = HistoryFormatUtils.getPlainPropertyName(attr)
-                if (entityClass != null)
+                it.displayPropertyName = attr.displayPropertyName
+                if (it.displayPropertyName == null && entityClass != null)
                     it.displayPropertyName = HistoryFormatUtils.translatePropertyName(entityClass, attr.propertyName)
                 it.oldValue = attr.oldValue
                 it.newValue = attr.value

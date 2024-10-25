@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
+import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
 import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
@@ -168,14 +169,14 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun mergeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>) {
+    override fun mergeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>) {
         obj.positionen?.forEach { position ->
             val positionEntries = historyService.loadHistory(position)
-            HistoryFormatUtils.putPropertyNameForListEntries(positionEntries, prefix = "pos", number = position.number)
+            HistoryFormatUtils.setPropertyNameForListEntries(positionEntries, prefix = "pos", number = position.number)
             mergeHistoryEntries(list, positionEntries)
             position.kostZuweisungen?.forEach { zuweisung ->
                 val kostEntries = historyService.loadHistory(zuweisung)
-                HistoryFormatUtils.putPropertyNameForListEntries(
+                HistoryFormatUtils.setPropertyNameForListEntries(
                     kostEntries,
                     Pair("pos", position.number),
                     Pair("kost", zuweisung.index),
