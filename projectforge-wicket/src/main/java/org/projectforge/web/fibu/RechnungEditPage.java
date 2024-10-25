@@ -49,7 +49,6 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
 
   public RechnungEditPage(final PageParameters parameters) {
     super(parameters, "fibu.rechnung");
-    var invoiceService = WicketSupport.get(InvoiceService.class);
     init();
     if (isNew()) {
       final DayHolder day = new DayHolder();
@@ -59,7 +58,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     } else {
       final ContentMenuEntryPanel exportMenu = new ContentMenuEntryPanel(getNewContentMenuChildId(), getString("fibu.rechnung.exportInvoice"));
       addContentMenuEntry(exportMenu);
-      for (String variant : invoiceService.getTemplateVariants()) {
+      for (String variant : WicketSupport.get(InvoiceService.class).getTemplateVariants()) {
         String variantTitle;
         if (StringUtils.isNotBlank(variant)) {
           variantTitle = variant;
@@ -72,9 +71,9 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           @Override
           public void onSubmit() {
             log.debug("Export invoice.");
-            ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData(), variant);
+            ByteArrayOutputStream baos = WicketSupport.get(InvoiceService.class).getInvoiceWordDocument(getData(), variant);
             if (baos != null) {
-              String filename = invoiceService.getInvoiceFilename(getData());
+              String filename = WicketSupport.get(InvoiceService.class).getInvoiceFilename(getData());
               DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
             }
           }

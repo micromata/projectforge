@@ -457,7 +457,7 @@ open class UserGroupCache : AbstractCache() {
                 employeeDao.selectAllNotDeleted(checkAccess = false).forEach { employeeDO ->
                     employeeDO.userId?.let { userId ->
                         nEmployeeMap[userId] = employeeDO
-                        employeeDao.setEmployeeStatus(employeeDO)
+                        // employeeDao.setEmployeeStatus(employeeDO)
                     }
                 }
                 this.employeeMap = nEmployeeMap
