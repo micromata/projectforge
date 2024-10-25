@@ -93,7 +93,6 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
   @SuppressWarnings("serial")
   @Override
   public List<IColumn<RechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
-    var kontoCache = WicketSupport.get(KontoCache.class);
     final List<IColumn<RechnungDO, String>> columns = new ArrayList<IColumn<RechnungDO, String>>();
     final CellItemListener<RechnungDO> cellItemListener = new CellItemListener<RechnungDO>() {
       @Override
@@ -147,7 +146,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     columns.add(
         new CellItemListenerPropertyColumn<RechnungDO>(getString("fibu.projekt"), getSortable("projekt.name", sortable),
             "projekt.name", cellItemListener));
-    if (kontoCache.isEmpty() == false) {
+    if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
       columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener) {
         /**
          * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -157,7 +156,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
                                  final IModel<RechnungDO> rowModel) {
           final RechnungDO invoice = rowModel.getObject();
-          final KontoDO konto = kontoCache.getKonto(invoice);
+          final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(invoice);
           item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
           cellItemListener.populateItem(item, componentId, rowModel);
         }

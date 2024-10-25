@@ -3,7 +3,7 @@
   <tr>
     <th><%= pf.getI18nString("timestamp") %></th>
     <th><%= pf.getI18nString("user") %></th>
-    <th><%= pf.getI18nString("history.entryType") %></th>
+    <th><%= pf.getI18nString("history.opType") %></th>
     <th><%= pf.getI18nString("history.propertyName") %></th>
     <th><%= pf.getI18nString("history.newValue") %></th>
     <th><%= pf.getI18nString("history.oldValue") %></th>
@@ -15,7 +15,7 @@
     <tr class="${style}">
       <td><%= pf.getString(entry.timestamp) %></td>
       <td><%= pf.getString(entry.user.fullname) %></td>
-      <td><%= pf.getString(entry.entryType) %></td>
+      <td><%= pf.getString(entry.opType) %></td>
       <td><%= pf.getString(entry.propertyName) %></td>
       <td><%= pf.getString(entry.newValue) %></td>
       <td><%= pf.getString(entry.oldValue) %></td>

@@ -28,8 +28,10 @@ import org.hibernate.ScrollableResults
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
+import mu.KotlinLogging
 import org.hibernate.Hibernate
 
+private val log = KotlinLogging.logger {}
 
 /**
  * Generic interface for iterating over database search results (after criteria search as well as after full text query).
@@ -72,13 +74,18 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
     }
 
     override fun next(): O? {
-        if (++counter % 100 == 0) {
-            entityManager.clear()  // Flushing and clearing session
-        }
-        if (!scrollableResults.next()) {
+        try {
+            if (++counter % 100 == 0) {
+                entityManager.clear()  // Flushing and clearing session
+            }
+            if (!scrollableResults.next()) {
+                return null
+            }
+            return scrollableResults.get()
+        } catch (ex: Exception) {
+            log.error(ex) {"Error in DBCriteriaResultIterator.next(): "}
             return null
         }
-        return scrollableResults.get()
     }
 
     override fun sort(list: List<O>): List<O> {

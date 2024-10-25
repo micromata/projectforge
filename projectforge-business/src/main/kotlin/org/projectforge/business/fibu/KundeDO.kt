@@ -61,7 +61,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
-    var nummer: Long? = null
+    open var nummer: Long? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
     @FullTextField

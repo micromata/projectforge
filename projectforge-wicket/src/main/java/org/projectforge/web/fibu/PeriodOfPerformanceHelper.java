@@ -47,6 +47,31 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 
 class PeriodOfPerformanceHelper implements Serializable {
+    class MyBooleanSeeAboveSupplier implements BooleanSupplier, Serializable {
+        @Override
+        public boolean getAsBoolean() {
+            for (FormComponent dropdown : performanceDropDowns) {
+                String rawInput = dropdown.getRawInput();
+                if (PeriodOfPerformanceType.SEEABOVE.name().equals(rawInput)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    class MyBooleanSeeOwnPerformanceSupplier implements BooleanSupplier, Serializable {
+        private DropDownChoice<PeriodOfPerformanceType> performanceTypeDropDown;
+        public MyBooleanSeeOwnPerformanceSupplier(DropDownChoice<PeriodOfPerformanceType> performanceTypeDropDown) {
+            this.performanceTypeDropDown = performanceTypeDropDown;
+        }
+
+        @Override
+        public boolean getAsBoolean() {
+            return hasOwnPeriodOfPerformance(performanceTypeDropDown);
+        }
+    }
+
     @Serial
     private static final long serialVersionUID = -1L;
 
@@ -64,11 +89,8 @@ class PeriodOfPerformanceHelper implements Serializable {
     }
 
     public void createPeriodOfPerformanceFields(final FieldsetPanel fs, final IModel<LocalDate> periodOfPerformanceBeginModel, final IModel<LocalDate> periodOfPerformanceEndModel) {
-        final BooleanSupplier isAnyPerformanceTypeSeeAboveSelected = () -> performanceDropDowns.stream()
-                .map(FormComponent::getRawInput) // need to use getRawInput here instead of getModelObject, because model is not updated at time of validation
-                .anyMatch(PeriodOfPerformanceType.SEEABOVE.name()::equals);
-
         fromDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(periodOfPerformanceBeginModel));
+        MyBooleanSeeAboveSupplier isAnyPerformanceTypeSeeAboveSelected = new MyBooleanSeeAboveSupplier();
         fromDatePanel.setRequiredSupplier(isAnyPerformanceTypeSeeAboveSelected);
         fs.add(fromDatePanel);
 
@@ -104,7 +126,7 @@ class PeriodOfPerformanceHelper implements Serializable {
         fs.add(performanceTypeDropDown);
         performanceDropDowns.add(performanceTypeDropDown);
 
-        final BooleanSupplier hasOwnPeriodOfPerformanceSupplier = () -> hasOwnPeriodOfPerformance(performanceTypeDropDown);
+        final MyBooleanSeeOwnPerformanceSupplier hasOwnPeriodOfPerformanceSupplier = new MyBooleanSeeOwnPerformanceSupplier(performanceTypeDropDown);
 
         // from date
         final LocalDatePanel fromDatePanel = new LocalDatePanel(fs.newChildId(), new LocalDateModel(periodOfPerformanceBeginModel));
