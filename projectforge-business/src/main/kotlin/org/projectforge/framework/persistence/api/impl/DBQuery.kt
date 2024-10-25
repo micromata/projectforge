@@ -28,6 +28,8 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.jpa.PersistenceCallsStats
+import org.projectforge.framework.persistence.jpa.PersistenceCallsStatsBuilder
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -52,7 +54,7 @@ open class DBQuery {
      * @return
      */
     @JvmOverloads
-    open fun <O : ExtendedBaseDO<Long>> getList(
+    open fun <O : ExtendedBaseDO<Long>> select(
         baseDao: BaseDao<O>,
         filter: QueryFilter,
         customResultFilters: List<CustomResultFilter<O>>?,
@@ -77,9 +79,15 @@ open class DBQuery {
                 val dbFilter = filter.createDBFilter()
                 val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
                 // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-
-                val dbResultIterator: DBResultIterator<O>
-                dbResultIterator = queryBuilder.result()
+                PfPersistenceService.getCallsStats()?.add(
+                    PersistenceCallsStats.CallType.QUERY,
+                    baseDao.doClass.simpleName,
+                    PersistenceCallsStatsBuilder()
+                        .param("filter", filter)
+                        .param("dbFilter", dbFilter)
+                        .param("customFilters", customResultFilters?.joinToString { it.javaClass.simpleName })
+                )
+                val dbResultIterator = queryBuilder.result()
                 val historSearchParams = DBHistorySearchParams(
                     filter.modifiedByUserId,
                     filter.modifiedFrom,

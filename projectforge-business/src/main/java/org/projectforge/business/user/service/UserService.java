@@ -219,7 +219,7 @@ public class UserService {
     public List<I18nKeyAndParams> changePassword(final Long userId, final char[] oldPassword, final char[] newPassword) {
         try {
             return persistenceService.runInTransaction(context -> {
-                Validate.notNull(userId);
+                Objects.requireNonNull(userId);
                 Validate.isTrue(oldPassword.length > 0);
                 Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own password-");
                 final PFUserDO user = userDao.find(userId, false);
@@ -246,7 +246,7 @@ public class UserService {
     public List<I18nKeyAndParams> changePasswordByAdmin(final Long userId, final char[] newPassword) {
         try {
             return persistenceService.runInTransaction(context -> {
-                Validate.notNull(userId);
+                Objects.requireNonNull(userId);
                 Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
                 accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
                 final PFUserDO user = userDao.find(userId, false);
@@ -258,7 +258,7 @@ public class UserService {
     }
 
     private List<I18nKeyAndParams> doPasswordChange(final PFUserDO user, final char[] oldPassword, final char[] newPassword) {
-        Validate.notNull(user);
+        Objects.requireNonNull(user);
         Validate.isTrue(newPassword.length > 0);
         final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
         if (!errorMsgKeys.isEmpty()) {
@@ -283,7 +283,7 @@ public class UserService {
      */
     public List<I18nKeyAndParams> internalChangePasswordAfterPasswordReset(final Long userId, final char[] newPassword) {
         try {
-            Validate.notNull(userId);
+            Objects.requireNonNull(userId);
             Validate.isTrue(newPassword.length > 0);
             Validate.isTrue(ThreadLocalUserContext.getLoggedInUser() == null, "ThreadLocalUser mustn't be given on password reset.");
 
@@ -318,11 +318,11 @@ public class UserService {
      */
     public List<I18nKeyAndParams> changeWlanPassword(final Long userId, final char[] loginPassword, final char[] newWlanPassword) {
         try {
-            Validate.notNull(userId);
+            Objects.requireNonNull(userId);
             Validate.isTrue(loginPassword.length > 0);
             Validate.isTrue(Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "User is only allowed to change his own Wlan/Samba password-");
             final PFUserDO user = userDao.find(userId, false);
-            Validate.notNull(user);
+            Objects.requireNonNull(user);
             final PFUserDO userCheck = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
             if (userCheck == null) {
                 return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
@@ -344,7 +344,7 @@ public class UserService {
      */
     public List<I18nKeyAndParams> changeWlanPasswordByAdmin(final Long userId, final char[] newWlanPassword) {
         try {
-            Validate.notNull(userId);
+            Objects.requireNonNull(userId);
             Validate.isTrue(!Objects.equals(userId, ThreadLocalUserContext.getLoggedInUserId()), "Admin user is not allowed to change his own password without entering his login password-");
             accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
             final PFUserDO user = userDao.find(userId, false);
@@ -399,7 +399,7 @@ public class UserService {
      * @param password
      */
     public PFUserDO authenticateUser(final String username, final char[] password) {
-        Validate.notNull(username);
+        Objects.requireNonNull(username);
         Validate.isTrue(password.length > 0);
 
         PFUserDO user = getUser(username, password, true);

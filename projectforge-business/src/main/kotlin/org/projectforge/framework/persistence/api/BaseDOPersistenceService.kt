@@ -212,10 +212,10 @@ class BaseDOPersistenceService {
                     isModified = res.modStatus != EntityCopyStatus.NONE
                 )
             } else {
-                baseDao?.changedRegistry?.afterUpdate(obj, null, res.modStatus != EntityCopyStatus.NONE)
+                baseDao?.changedRegistry?.afterUpdate(useDbObj, null, res.modStatus != EntityCopyStatus.NONE)
             }
             if (res.wantsReindexAllDependentObjects) {
-                baseDao?.reindexDependentObjects(obj)
+                baseDao?.reindexDependentObjects(useDbObj)
             }
         }
         baseDao?.changedRegistry?.afterInsertOrModify(obj, OperationType.UPDATE)

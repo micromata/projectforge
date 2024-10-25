@@ -58,6 +58,7 @@ function DynamicInputResolver(
             additionalProps.type = dataType;
             break;
         case 'INT':
+        case 'LONG':
         case 'DECIMAL':
         case 'NUMBER':
             Tag = DynamicInput;
@@ -91,6 +92,7 @@ DynamicInputResolver.propTypes = {
         'TASK',
         'USER',
         'INT',
+        'LONG',
         'KONTO',
         'DECIMAL',
         'NUMBER',

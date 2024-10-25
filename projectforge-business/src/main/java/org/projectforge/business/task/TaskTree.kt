@@ -328,7 +328,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                 useProjekt.nummernkreis,
                 useProjekt.bereich!!,
                 useProjekt.nummer
-            )?.run {
+            ).run {
                 forEach { kost2 ->
                     if (wildcard) { // black-white-list is "*".
                         if (kost2IsBlackList) {

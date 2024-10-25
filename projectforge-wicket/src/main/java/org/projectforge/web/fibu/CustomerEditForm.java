@@ -35,109 +35,102 @@ import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.*;
-import org.projectforge.web.wicket.converter.IntegerConverter;
+import org.projectforge.web.wicket.converter.LongConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.slf4j.Logger;
 
-public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage>
-{
-  private static final long serialVersionUID = -6018131069720611834L;
+public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage> {
+    private static final long serialVersionUID = -6018131069720611834L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerEditForm.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerEditForm.class);
 
-  @SpringBean
-  KontoCache kontoCache;
+    @SpringBean
+    KontoCache kontoCache;
 
-  public CustomerEditForm(final CustomerEditPage parentPage, final KundeDO data)
-  {
-    super(parentPage, data);
-  }
+    public CustomerEditForm(final CustomerEditPage parentPage, final KundeDO data) {
+        super(parentPage, data);
+    }
 
-  @SuppressWarnings("serial")
-  @Override
-  protected void init()
-  {
-    super.init();
-    /* GRID16 - BLOCK */
-    gridBuilder.newGridPanel();
-    {
-      // Number
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.nummer"));
-      final MinMaxNumberField<Integer> number = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(data, "id"), 0, KundeDO.MAX_ID)
-      {
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        @Override
-        public IConverter getConverter(final Class type)
+    @SuppressWarnings("serial")
+    @Override
+    protected void init() {
+        super.init();
+        /* GRID16 - BLOCK */
+        gridBuilder.newGridPanel();
         {
-          return new IntegerConverter(3);
+            // Number
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.nummer"));
+            final MinMaxNumberField<Long> number = new MinMaxNumberField<Long>(InputPanel.WICKET_ID,
+                    new PropertyModel(data, "nummer"), 0L, KundeDO.MAX_ID) {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                @Override
+                public IConverter getConverter(final Class type) {
+                    return new LongConverter(3);
+                }
+            };
+            number.setRequired(true);
+            WicketUtils.setSize(number, 7);
+            fs.add(number);
+            if (isNew() == true) {
+                WicketUtils.setFocus(number);
+            }
         }
-      };
-      number.setRequired(true);
-      WicketUtils.setSize(number, 7);
-      fs.add(number);
-      if (isNew() == true) {
-        WicketUtils.setFocus(number);
-      }
+        {
+            // Name
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.name"));
+            final RequiredMaxLengthTextField name = new RequiredMaxLengthTextField(InputPanel.WICKET_ID,
+                    new PropertyModel<String>(data, "name"));
+            fs.add(name);
+            if (isNew() == false) {
+                WicketUtils.setFocus(name);
+            }
+        }
+        if (kontoCache.isEmpty() == false) {
+            // Show this field only if DATEV accounts does exist.
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto"));
+            final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
+                    new PropertyModel<KontoDO>(data, "konto"), null,
+                    "kontoId");
+            kontoSelectPanel.setKontoNumberRanges(AccountingConfig.getInstance().getDebitorsAccountNumberRanges()).init();
+            fs.addHelpIcon(getString("fibu.kunde.konto.tooltip"));
+            fs.add(kontoSelectPanel);
+        }
+        {
+            // Identifier
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.identifier"));
+            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "identifier")));
+        }
+        {
+            // Identifier
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.division"));
+            fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "division")));
+        }
+        {
+            // Identifier
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
+            fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")));
+        }
+        {
+            // Status drop down box:
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("status"));
+            final LabelValueChoiceRenderer<KundeStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<KundeStatus>(fs,
+                    KundeStatus.values());
+            final DropDownChoice<KundeStatus> statusChoice = new DropDownChoice<KundeStatus>(fs.getDropDownChoiceId(),
+                    new PropertyModel<KundeStatus>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
+            statusChoice.setNullValid(false).setRequired(true);
+            fs.add(statusChoice);
+        }
     }
-    {
-      // Name
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.name"));
-      final RequiredMaxLengthTextField name = new RequiredMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "name"));
-      fs.add(name);
-      if (isNew() == false) {
-        WicketUtils.setFocus(name);
-      }
-    }
-    if (kontoCache.isEmpty() == false) {
-      // Show this field only if DATEV accounts does exist.
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto"));
-      final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),
-          new PropertyModel<KontoDO>(data, "konto"), null,
-          "kontoId");
-      kontoSelectPanel.setKontoNumberRanges(AccountingConfig.getInstance().getDebitorsAccountNumberRanges()).init();
-      fs.addHelpIcon(getString("fibu.kunde.konto.tooltip"));
-      fs.add(kontoSelectPanel);
-    }
-    {
-      // Identifier
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.identifier"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "identifier")));
-    }
-    {
-      // Identifier
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde.division"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "division")));
-    }
-    {
-      // Identifier
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
-      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")));
-    }
-    {
-      // Status drop down box:
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("status"));
-      final LabelValueChoiceRenderer<KundeStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<KundeStatus>(fs,
-          KundeStatus.values());
-      final DropDownChoice<KundeStatus> statusChoice = new DropDownChoice<KundeStatus>(fs.getDropDownChoiceId(),
-          new PropertyModel<KundeStatus>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
-      statusChoice.setNullValid(false).setRequired(true);
-      fs.add(statusChoice);
-    }
-  }
 
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 
-  @Override
-  public boolean isNew()
-  {
-    return parentPage.isNew();
-  }
+    @Override
+    public boolean isNew() {
+        return parentPage.isNew();
+    }
 }

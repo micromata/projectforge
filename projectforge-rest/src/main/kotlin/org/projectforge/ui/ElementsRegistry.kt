@@ -123,7 +123,7 @@ object ElementsRegistry {
                         dataType = dataType!!
                     )
 
-                    Integer::class.java, BigDecimal::class.java -> UIInput(
+                    Integer::class.java, Long::class.java, BigDecimal::class.java -> UIInput(
                         property,
                         required = elementInfo.required,
                         layoutContext = lc,

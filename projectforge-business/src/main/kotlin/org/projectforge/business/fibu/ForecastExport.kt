@@ -66,6 +66,9 @@ open class ForecastExport { // open needed by Wicket.
   private lateinit var orderBookDao: AuftragDao
 
   @Autowired
+  private lateinit var ordersCache: AuftragsCache
+
+  @Autowired
   private lateinit var rechnungCache: RechnungCache
 
   @Autowired
@@ -206,7 +209,7 @@ open class ForecastExport { // open needed by Wicket.
         if (order.deleted || order.positionenExcludingDeleted.isEmpty()) {
           continue
         }
-        orderBookDao.calculateInvoicedSum(order)
+
         if (ForecastUtils.auftragsStatusToShow.contains(order.auftragsStatus)) {
           for (pos in order.positionenExcludingDeleted) {
             if (pos.status != null && ForecastUtils.auftragsPositionsStatusToShow.contains(pos.status!!)) {
@@ -369,8 +372,10 @@ open class ForecastExport { // open needed by Wicket.
         ?: BigDecimal.ZERO
     ).cellStyle = ctx.currencyCellStyle
 
+    val orderInfo = ordersCache.getOrderInfo(order)
+    val posInfo = orderInfo.getInfoPosition(pos.id)
     val netSum = pos.nettoSumme ?: BigDecimal.ZERO
-    val invoicedSum = pos.invoicedSum ?: BigDecimal.ZERO
+    val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
     val probabilityNetSum = ForecastUtils.computeProbabilityNetSum(order, pos)
     val toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO
 

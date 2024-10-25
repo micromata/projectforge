@@ -77,14 +77,14 @@ class ScriptExecutePageRest : AbstractScriptExecutePageRest() {
   ): FormLayoutData {
     var scriptDO: ScriptDO? = null
     val script = Script()
-    var id: Int? = null
+    var id: Long? = null
     var exampleIdx: Int? = null // fix, because idString is like ?example=#
     if (example != null) {
       exampleIdx = example
     } else if (idString?.startsWith("?example=") == true) {
       exampleIdx = idString.removePrefix("?example=").toIntOrNull()
     } else {
-      id = NumberHelper.parseInteger(idString)
+      id = NumberHelper.parseLong(idString)
     }
     if (id != null) {
       scriptDO = scriptDao.find(id) ?: throw IllegalArgumentException("Script not found.")

@@ -28,7 +28,7 @@ import java.io.Serializable
 import java.math.BigDecimal
 
 /**
- * Repräsentiert einee Position innerhalb eines Auftrags als Übersichtsobject (value object) zur Verwendung z. B. im TaskTree.
+ * Repräsentiert eine Position innerhalb eines Auftrags als Übersichtsobject (value object) zur Verwendung z. B. im TaskTree.
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<AuftragsPositionVO>, Serializable {
@@ -82,7 +82,7 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
             this.auftragNummer = auftrag.nummer
             this.auftragTitle = auftrag.titel
             this.auftragsStatus = auftrag.auftragsStatus
-            this.auftragsPersonDays = auftrag.personDays
+            this.auftragsPersonDays = auftragsCache.getOrderInfo(auftrag).personDays
         }
         this.taskId = auftragsPosition.taskId
         this.art = auftragsPosition.art
@@ -114,5 +114,9 @@ class AuftragsPositionVO(auftragsPosition: AuftragsPositionDO) : Comparable<Auft
         val cmp = compareValues(this.auftragNummer, other.auftragNummer)
         if (cmp != 0) return cmp
         return compareValues(this.number, other.number)
+    }
+
+    companion object {
+        private val auftragsCache = AuftragsCache.instance
     }
 }

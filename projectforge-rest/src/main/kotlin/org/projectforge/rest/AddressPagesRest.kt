@@ -362,7 +362,7 @@ class AddressPagesRest
                       .add(
                         createFavoriteRow(
                           "isFavoriteCard",
-                          UISelect<Int>(
+                          UISelect<Long>(
                             "addressbookList", lc,
                             multi = true,
                             autoCompletion = AutoCompletion<Int>(

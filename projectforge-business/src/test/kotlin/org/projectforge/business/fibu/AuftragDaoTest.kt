@@ -84,7 +84,7 @@ class AuftragDaoTest : AbstractTestBase() {
         lateinit var id1: Serializable
         lateinit var id2: Serializable
         lateinit var id3: Serializable
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             var auftrag1 = AuftragDO()
             auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
             auftragDao.setContactPerson(auftrag1, getUserId(TEST_FINANCE_USER))
@@ -141,7 +141,7 @@ class AuftragDaoTest : AbstractTestBase() {
             val useId = id1
             logon(TEST_CONTROLLING_USER)
             val order = auftragDao.find(useId, attached = true)!! // Attached is important, otherwise deadlock.
-            checkNoWriteAccess(useId, order, "Controller")
+            checkNoWriteAccess(order, "Controller")
 
             logon(TEST_USER)
             checkNoAccess(useId, order, "Other")
@@ -187,7 +187,7 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag2 = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             logon(TEST_CONTROLLING_USER)
-            checkNoWriteAccess(id, auftrag1, "Controlling")
+            checkNoWriteAccess(auftrag1, "Controlling")
 
             logon(TEST_USER)
             checkNoAccess(id, auftrag1, "Other")
@@ -196,14 +196,14 @@ class AuftragDaoTest : AbstractTestBase() {
             logon(TEST_PROJECT_MANAGER_USER)
             projektDao.select(ProjektFilter())
             checkNoAccess(auftrag1.id, "Project manager")
-            checkNoWriteAccess(auftrag1.id, auftrag1, "Project manager")
+            checkNoWriteAccess(auftrag1, "Project manager")
             checkHasUpdateAccess(auftrag2.id)
 
             logon(TEST_PROJECT_ASSISTANT_USER)
             projektDao.select(ProjektFilter())
             checkHasUpdateAccess(auftrag1.id)
             checkNoAccess(auftrag2.id, "Project assistant")
-            checkNoWriteAccess(auftrag2.id, auftrag2, "Project assistant")
+            checkNoWriteAccess(auftrag2, "Project assistant")
 
             logon(TEST_ADMIN_USER)
             checkNoAccess(id, auftrag1, "Admin ")
@@ -274,7 +274,7 @@ class AuftragDaoTest : AbstractTestBase() {
             right.value = UserRightValue.READWRITE // Full access
             userRightDao.update(right)
             logon(user)
-            val auftrag = auftragDao.find(auftragId, attached = true) // Attached is important, otherwise deadlock.
+            auftragDao.find(auftragId, attached = true) // Attached is important, otherwise deadlock.
             logon(TEST_ADMIN_USER)
             right.value = UserRightValue.PARTLYREADWRITE
             userRightDao.update(right)
@@ -320,10 +320,10 @@ class AuftragDaoTest : AbstractTestBase() {
     private fun checkNoAccess(id: Serializable, auftrag: AuftragDO, who: String) {
         checkNoAccess(who)
         checkNoAccess(id, who)
-        checkNoWriteAccess(id, auftrag, who)
+        checkNoWriteAccess(auftrag, who)
     }
 
-    private fun checkNoWriteAccess(id: Serializable?, auftrag: AuftragDO, who: String) {
+    private fun checkNoWriteAccess(auftrag: AuftragDO, who: String) {
         try {
             val auf = AuftragDO()
             val number = auftragDao.getNextNumber(auf)
@@ -351,14 +351,12 @@ class AuftragDaoTest : AbstractTestBase() {
         lateinit var auftrag1: AuftragDO
         lateinit var id1: Serializable
         lateinit var position: AuftragsPositionDO
-        persistenceService.runInTransaction { _ ->
-            logon(TEST_FINANCE_USER)
-            auftrag1 = AuftragDO()
-            auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
-            auftragDao.setContactPerson(auftrag1, getUserId(TEST_PROJECT_MANAGER_USER))
-            auftrag1.addPosition(AuftragsPositionDO())
-            id1 = auftragDao.insert(auftrag1)
-        }
+        logon(TEST_FINANCE_USER)
+        auftrag1 = AuftragDO()
+        auftrag1.nummer = auftragDao.getNextNumber(auftrag1)
+        auftragDao.setContactPerson(auftrag1, getUserId(TEST_PROJECT_MANAGER_USER))
+        auftrag1.addPosition(AuftragsPositionDO())
+        id1 = auftragDao.insert(auftrag1)
         persistenceService.runInTransaction { _ ->
             dbNumber++ // Needed for getNextNumber test;
             auftrag1 = auftragDao.find(id1)!! // Attached is important, otherwise deadlock.
@@ -398,12 +396,14 @@ class AuftragDaoTest : AbstractTestBase() {
                 // OK
                 Assertions.assertEquals("fibu.auftrag.error.vollstaendigFakturiertProtection", ex.i18nKey)
             }
-
+        }
+        persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             position = auftrag1.positionenIncludingDeleted!![0]
             position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
             position.vollstaendigFakturiert = true
             auftragDao.update(auftrag1)
+            println("*************************")
         }
     }
 

@@ -487,10 +487,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   @SuppressWarnings("unchecked")
   protected List<O> buildList() {
     List<O> list = (List<O>) getBaseDao().select(form.getSearchFilter());
-    int size = 0;
-    if (list != null) {
-      size = list.size();
-    }
     int maxRows = form.getSearchFilter().getMaxRows();
     if (maxRows <= 0) {
       maxRows = QueryFilter.QUERY_FILTER_MAX_ROWS;

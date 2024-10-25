@@ -82,7 +82,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
                                final IModel<AuftragDO> rowModel) {
         final AuftragDO auftrag = rowModel.getObject();
-        WicketSupport.get(AuftragsCache.class).setValues(auftrag);
+        final OrderInfo orderInfo = WicketSupport.get(AuftragsCache.class).getOrderInfo(auftrag);
         if (auftrag.getAuftragsStatus() == null) {
           // Should not occur:
           return;
@@ -92,7 +92,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         appendCssClasses(item, auftrag.getId(), auftrag.getDeleted());
         if (isDeleted) {
           // Do nothing further.
-        } else if (auftrag.getToBeInvoiced()) {
+        } else if (orderInfo.getToBeInvoiced()) {
           appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
         } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI)) {
           appendCssClasses(item, RowCssClass.SUCCESS_ROW);
@@ -157,7 +157,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         if (sb.length() > 1 && (sb.lastIndexOf("\n") == sb.length() - 1)) {
           sb.delete(sb.length() - 1, sb.length());
         }
-        WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
+        final OrderInfo orderInfo = WicketSupport.get(AuftragsCache.class).getOrderInfo(auftrag);
+        WicketUtils.addTooltip(label, NumberFormatter.format(orderInfo.getPersonDays())
             + " "
             + getString("projectmanagement.personDays.short"), sb.toString());
 
@@ -175,7 +176,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
                                final IModel<AuftragDO> rowModel) {
-        item.add(new Label(componentId, NumberFormatter.format(rowModel.getObject().getPersonDays())));
+        final OrderInfo orderInfo = WicketSupport.get(AuftragsCache.class).getOrderInfo(rowModel.getObject());
+        item.add(new Label(componentId, NumberFormatter.format(orderInfo.getPersonDays())));
         item.add(AttributeModifier.append("style", new Model<String>("text-align: right;")));
         cellItemListener.populateItem(item, componentId, rowModel);
       }

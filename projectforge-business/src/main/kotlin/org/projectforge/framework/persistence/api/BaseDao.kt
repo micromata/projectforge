@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.api
 
+import jakarta.persistence.criteria.Root
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
@@ -39,6 +40,7 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getCl
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.jpa.PersistenceCallsStats
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
@@ -222,6 +224,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      */
     @JvmOverloads
     open fun selectAll(checkAccess: Boolean = true): List<O> {
+        return selectAll(checkAccess = checkAccess, null)
+    }
+
+    /**
+     * @return All objects of this class or empty list if no object found
+     */
+    @JvmOverloads
+    fun selectAll(checkAccess: Boolean = true, useRoot: ((Root<O>) -> Unit)?): List<O> {
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
@@ -234,9 +244,14 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             // return query.resultList as List<O>
             val cb = em.criteriaBuilder
             val cq = cb.createQuery(doClass)
+            useRoot?.let {
+                val root = cq.from(doClass)
+                useRoot(root)
+            }
             val query = cq.select(cq.from(doClass))
             em.createQuery(query).resultList
         }
+        PfPersistenceService.getCallsStats()?.add(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "selectAll")
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 
@@ -254,6 +269,8 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
             em.createQuery(cr).resultList
         }
+        PfPersistenceService.getCallsStats()
+            ?.add(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "select by ids=${idList.joinToString()}")
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 
@@ -309,7 +326,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
         if (checkAccess) {
             checkLoggedInUserSelectAccess()
         }
-        val list = dbQuery.getList(this, filter, customResultFilters, checkAccess)
+        val list = dbQuery.select(this, filter, customResultFilters, checkAccess)
         list.forEach { baseDOChangedRegistry.afterLoad(it) }
         return list
     }
@@ -340,7 +357,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
 
     /**
      * @param obj          The object to check.
-     * @param loggedInUser The currend logged in user.
+     * @param loggedInUser The current logged-in user.
      * @return true if loggedInUser has select access.
      * @see .hasUserSelectAccess
      */
@@ -374,7 +391,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * @param obj The object for which the history entries are loaded.
      * @param list The list with entries loaded for given obj. Add here your own entries.
      */
-    protected open fun mergeHistoryEntries(obj: O, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>) {
+    protected open fun mergeHistoryEntries(
+        obj: O,
+        list: MutableList<HistoryEntryDO>,
+        context: DisplayHistoryConvertContext<*>
+    ) {
     }
 
     /**

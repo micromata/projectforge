@@ -28,9 +28,13 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.LongNode
+import com.fasterxml.jackson.databind.node.NumericNode
+import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.math.BigDecimal
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Deserialization for Integers.
@@ -111,9 +115,14 @@ class TextDeserializer : StdDeserializer<String>(String::class.java) {
 class PFUserDODeserializer : StdDeserializer<PFUserDO>(PFUserDO::class.java) {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): PFUserDO? {
         val node: JsonNode = p.codec.readTree(p)
-        val id = (node.get("id") as LongNode).numberValue() as Long
-        val user = PFUserDO()
-        user.id = id
-        return user
+        try {
+            val id = (node.get("id") as NumericNode).numberValue().toLong()
+            val user = PFUserDO()
+            user.id = id
+            return user
+        } catch (ex: Exception) {
+            log.warn("Can't deserialize PFUserDO: $node. Id not readable: ${node.get("id")}")
+            return null
+        }
     }
 }

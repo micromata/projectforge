@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
+import kotlinx.collections.immutable.toImmutableList
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -33,11 +34,11 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.jcr.AttachmentsInfo
-import org.projectforge.framework.persistence.history.PersistenceBehavior
+import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.history.NoHistory
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -208,26 +209,6 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Column(name = "beauftragungs_datum")
     open var beauftragungsDatum: LocalDate? = null
 
-    @PropertyInfo(i18nKey = "fibu.fakturiert")
-    @get:Transient
-    open var invoicedSum: BigDecimal? = null
-        /**
-         * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
-         *
-         * @see AuftragDao.calculateInvoicedSum
-         */
-        get() {
-            if (field == null) {
-                field = BigDecimal.ZERO
-                positionenExcludingDeleted.forEach { pos ->
-                    if (NumberHelper.isNotZero(pos.invoicedSum)) {
-                        field = field!!.add(pos.invoicedSum)
-                    }
-                }
-            }
-            return field!!
-        }
-
     /**
      * The user interface status of an order. The [AuftragUIStatus] is stored as XML.
      *
@@ -312,61 +293,6 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Column(length = 10000, name = "attachments_last_user_action")
     override var attachmentsLastUserAction: String? = null
 
-    /**
-     * Adds all net sums of the positions (without not ordered positions) and return the total sum.
-     */
-    val nettoSumme: BigDecimal
-        @Transient
-        get() {
-            var sum = BigDecimal.ZERO
-            positionenExcludingDeleted.forEach { pos ->
-                val nettoSumme = pos.nettoSumme
-                if (nettoSumme != null && pos.status != AuftragsPositionsStatus.ABGELEHNT && pos.status != AuftragsPositionsStatus.ERSETZT) {
-                    sum = sum.add(nettoSumme)
-                }
-            }
-            return sum
-        }
-
-    /**
-     * Adds all net sums of the positions (only ordered positions) and return the total sum. The order itself
-     * must be of state LOI, commissioned (beauftragt) or escalation.
-     */
-    val beauftragtNettoSumme: BigDecimal
-        @Transient
-        get() {
-            var sum = BigDecimal.ZERO
-            if (auftragsStatus?.isIn(
-                    AuftragsStatus.LOI,
-                    AuftragsStatus.BEAUFTRAGT,
-                    AuftragsStatus.ESKALATION,
-                    AuftragsStatus.ABGESCHLOSSEN
-                ) == true
-            ) {
-                positionenExcludingDeleted.forEach { pos ->
-                    val nettoSumme = pos.nettoSumme
-                    if (nettoSumme != null
-                        && pos.status != null
-                        && pos.status!!.isIn(AuftragsPositionsStatus.ABGESCHLOSSEN, AuftragsPositionsStatus.BEAUFTRAGT)
-                    ) {
-                        sum = sum.add(nettoSumme)
-                    }
-                }
-            }
-            return sum
-        }
-
-    /**
-     * @return FAKTURIERT if isVollstaendigFakturiert == true, otherwise AuftragsStatus as String.
-     */
-    val auftragsStatusAsString: String?
-        @Transient
-        get() {
-            if (isVollstaendigFakturiert) {
-                return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
-            }
-            return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus!!.i18nKey) else null
-        }
 
     /**
      * @see ProjektFormatter.formatProjektKundeAsString
@@ -409,60 +335,22 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         }
 
     /**
-     * @return true wenn alle Auftragspositionen vollständig fakturiert sind.
-     * @see AuftragsPositionDO.vollstaendigFakturiert
-     */
-    val isVollstaendigFakturiert: Boolean
-        @Transient
-        get() {
-            if (auftragsStatus != AuftragsStatus.ABGESCHLOSSEN) {
-                return false
-            }
-            positionenExcludingDeleted.forEach { pos ->
-                if (pos.vollstaendigFakturiert != true && (pos.status == null || !pos.status!!.isIn(
-                        AuftragsPositionsStatus.ABGELEHNT,
-                        AuftragsPositionsStatus.ERSETZT
-                    ))
-                ) {
-                    return false
-                }
-            }
-            paymentSchedules?.forEach { paymentSchedule ->
-                if (paymentSchedule.valid && !paymentSchedule.vollstaendigFakturiert) {
-                    positionen?.find { it.number == paymentSchedule.number }?.let { pos ->
-                        if (pos.deleted != true && pos.status?.isIn(
-                                AuftragsPositionsStatus.ABGESCHLOSSEN,
-                                AuftragsPositionsStatus.BEAUFTRAGT,
-                                AuftragsPositionsStatus.ESKALATION,
-                            ) == true && pos.vollstaendigFakturiert != true
-                        ) {
-                            return false
-                        }
-                    }
-                }
-            }
-            return true
-        }
-
-    /**
      * Get list of AuftragsPosition including elements that are marked as deleted.
-     * **Attention: Changes in this list will be persisted**.
      *
      * @return Returns the full list of linked AuftragsPositionen.
      */
     val positionenIncludingDeleted: List<AuftragsPositionDO>?
         @Transient
-        get() = this.positionen
+        get() = this.positionen?.toImmutableList()
 
     /**
      * Get list of AuftragsPosition excluding elements that are marked as deleted.
-     * **Attention: Changes in this list will not be persisted.**
      *
      * @return Returns a filtered list of AuftragsPosition excluding marked as deleted elements.
      */
     val positionenExcludingDeleted: List<AuftragsPositionDO>
         @Transient
-        get() = positionen?.filter { it.deleted != true } ?: emptyList()
+        get() = positionen?.filter { !it.deleted }?.toImmutableList() ?: emptyList()
 
     /**
      * Get list of PaymentScheduleDO excluding elements that are marked as deleted.
@@ -471,73 +359,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     val paymentSchedulesExcludingDeleted: List<PaymentScheduleDO>
         @Transient
-        get() = paymentSchedules?.filter { it.deleted != true } ?: emptyList()
-
-
-    /**
-     * @return The sum of person days of all positions.
-     */
-    val personDays: BigDecimal
-        @Transient
-        get() {
-            var result = BigDecimal.ZERO
-            if (this.positionen != null) {
-                for (pos in this.positionen!!) {
-                    if (pos.deleted == true) {
-                        continue
-                    }
-                    if (pos.personDays != null && pos.status != AuftragsPositionsStatus.ABGELEHNT && pos.status != AuftragsPositionsStatus.ERSETZT) {
-                        result = result.add(pos.personDays)
-                    }
-                }
-            }
-            return result
-        }
-
-    /**
-     * Gets the sum of reached payment schedules amounts and finished positions (abgeschlossen) but not yet invoiced.
-     */
-    open var toBeInvoicedSum: BigDecimal? = null
-        @Transient
-        get() {
-            if (field == null) {
-                var sum = BigDecimal.ZERO
-                val posWithPaymentReached = mutableSetOf<Short?>()
-                this.paymentSchedules?.forEach { paymentSchedule ->
-                    if (paymentSchedule.toBeInvoiced) {
-                        posWithPaymentReached.add(paymentSchedule.positionNumber)
-                        paymentSchedule.amount?.let { amount ->
-                            sum = sum.add(amount)
-                        }
-                    }
-                }
-                positionenExcludingDeleted.forEach { pos ->
-                    if (pos.toBeInvoiced) {
-                        if (!posWithPaymentReached.contains(pos.number)) {
-                            // Amount wasn't already added from payment schedule:
-                            pos.nettoSumme?.let { nettoSumme ->
-                                sum = sum.add(nettoSumme)
-                            }
-                        }
-                    }
-                }
-                field = sum
-            }
-            return field
-        }
-
-    val toBeInvoiced: Boolean
-        @Transient
-        get() = (toBeInvoicedSum ?: BigDecimal.ZERO) > BigDecimal.ZERO
-
-    open var notYetInvoicedSum: BigDecimal? = null
-        @Transient
-        get() {
-            if (field == null) {
-                field = beauftragtNettoSumme - (invoicedSum ?: BigDecimal.ZERO)
-            }
-            return field
-        }
+        get() = paymentSchedules?.filter { !it.deleted }?.toImmutableList() ?: emptyList()
 
     val projectManagerId: Long?
         @Transient
@@ -560,6 +382,47 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
             addUser(result, salesManager)
             addUser(result, contactPerson)
             return result.joinToString("; ")
+        }
+
+    /**
+     * Must be calculated before use.
+     * @see OrderInfo.calculateAll
+     */
+    @get:Transient
+    @JsonIgnore
+    @CandHIgnore
+    var info = OrderInfo(this)
+
+    @Deprecated("Use info.netSum instead.")
+    @get:Transient
+    val nettoSumme: BigDecimal
+        get() = info.netSum
+
+    @Deprecated("Use info.orderedNetSum instead.")
+    @get:Transient
+    val beauftragtNettoSumme: BigDecimal
+        get() = info.orderedNetSum
+
+    @Deprecated("Use info.invoicedSum instead.")
+    @get:Transient
+    val invoicedSum: BigDecimal
+        get() = info.invoicedSum
+
+    @Deprecated("Use info.notYetInvoicedSum instead.")
+    @get:Transient
+    val notYetInvoicedSum: BigDecimal
+        get() = info.notYetInvoicedSum
+
+    /**
+     * @return FAKTURIERT if isVollstaendigFakturiert == true, otherwise AuftragsStatus as String.
+     */
+    @get:Transient
+    val auftragsStatusAsString: String?
+        get() {
+            if (info.isVollstaendigFakturiert) {
+                return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
+            }
+            return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus!!.i18nKey) else null
         }
 
     private fun addUser(result: ArrayList<String>, user: PFUserDO?) {

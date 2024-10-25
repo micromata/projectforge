@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDate
 
-open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
+open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
   AbstractEditForm<AuftragDO?, AuftragEditPage?>(parentPage, data) {
   private val periodOfPerformanceHelper = PeriodOfPerformanceHelper()
   var isSendEMailNotification = true
@@ -83,7 +83,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
 
   override fun init() {
     super.init()
-    WicketSupport.get(AuftragDao::class.java).calculateInvoicedSum(data)
+    WicketSupport.get(AuftragDao::class.java)
+    data!!.info = AuftragsCache.instance.getOrderInfo(data!!)
 
     /* GRID8 - BLOCK */gridBuilder.newSplitPanel(GridSize.COL50)
     run {
@@ -111,22 +112,22 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
       val fs = gridBuilder.newFieldset(getString("fibu.auftrag.nettoSumme")).suppressLabelForWarning()
       val netPanel = DivTextPanel(fs.newChildId(), object : Model<String>() {
         override fun getObject(): String {
-          return CurrencyFormatter.format(data!!.nettoSumme)
+          return CurrencyFormatter.format(data!!.info.netSum)
         }
       }, TextStyle.FORM_TEXT)
       fs.add(netPanel)
       fs.add(DivTextPanel(fs.newChildId(), ", " + getString("fibu.auftrag.commissioned") + ": "))
       val orderedPanel = DivTextPanel(fs.newChildId(), object : Model<String>() {
         override fun getObject(): String {
-          return CurrencyFormatter.format(data!!.beauftragtNettoSumme)
+          return CurrencyFormatter.format(data!!.info.orderedNetSum)
         }
       }, TextStyle.FORM_TEXT)
       fs.add(orderedPanel)
       val orderInvoiceInfo = I18nHelper.getLocalizedMessage(
         "fibu.auftrag.invoice.info", CurrencyFormatter.format(
-          data!!.invoicedSum
+          data!!.info.invoicedSum
         ),
-        CurrencyFormatter.format(data!!.notYetInvoicedSum)
+        CurrencyFormatter.format(data!!.info.notYetInvoicedSum)
       )
       fs.add(DivTextPanel(fs.newChildId(), orderInvoiceInfo))
     }
@@ -636,8 +637,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO?) :
         // not invoiced
         val fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert.not")).suppressLabelForWarning()
         if (position.nettoSumme != null) {
-          var invoiced = BigDecimal.ZERO
-          invoiced = if (showInvoices == true) {
+          var invoiced = if (showInvoices == true) {
             val invoicedSumForPosition = RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId)
             val notInvoicedSumForPosition = position.nettoSumme!!.subtract(invoicedSumForPosition)
             notInvoicedSumForPosition
