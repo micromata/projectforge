@@ -400,110 +400,119 @@ open class UserGroupCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized.
      */
     override fun refresh() {
-        log.info("Initializing UserGroupCache...")
-        val saved = persistenceService.saveStatsState()
-        // This method must not be synchronized because it works with a new copy of maps.
-        val uMap: MutableMap<Long, PFUserDO> = HashMap()
-        // Could not autowire UserDao because of cyclic reference with AccessChecker.
-        log.info("Loading all users ...")
-        persistenceService.runIsolatedReadOnly { _ ->
-            val users = Login.getInstance().allUsers
-            users.forEach { user ->
-                user.id?.let { userId ->
-                    uMap[userId] = user
-                }
-            }
-            if (users.size != uMap.size) {
-                log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
-                log.info("For debugging UserCache fuck-up: " + ToStringUtil.toJsonString(users))
-                return@runIsolatedReadOnly
-            }
-            log.info("Loading all groups ...")
-            val groups = Login.getInstance().allGroups
-            val gMap = mutableMapOf<Long, GroupDO>()
-            val ugIdMap = mutableMapOf<Long, MutableSet<Long>>()
-            val nAdminUsers = mutableSetOf<Long>()
-            val nFinanceUser = mutableSetOf<Long>()
-            val nControllingUsers = mutableSetOf<Long>()
-            val nProjectManagers = mutableSetOf<Long>()
-            val nProjectAssistants = mutableSetOf<Long>()
-            val nMarketingUsers = mutableSetOf<Long>()
-            val nOrgaUsers = mutableSetOf<Long>()
-            val nhrUsers = mutableSetOf<Long>()
-            for (group in groups) {
-                val groupId = group.id ?: continue
-                gMap[groupId] = group
-                group.assignedUsers?.forEach { user ->
-                    val userId = user.id ?: return@forEach
-                    val groupIdSet = ugIdMap.getOrPut(userId) { mutableSetOf() }
-                    groupIdSet.add(groupId)
-                    when {
-                        ProjectForgeGroup.ADMIN_GROUP.matches(group.name) -> nAdminUsers.add(userId)
-                        ProjectForgeGroup.FINANCE_GROUP.matches(group.name) -> nFinanceUser.add(userId)
-                        ProjectForgeGroup.CONTROLLING_GROUP.matches(group.name) -> nControllingUsers.add(userId)
-                        ProjectForgeGroup.PROJECT_MANAGER.matches(group.name) -> nProjectManagers.add(userId)
-                        ProjectForgeGroup.PROJECT_ASSISTANT.matches(group.name) -> nProjectAssistants.add(userId)
-                        ProjectForgeGroup.MARKETING_GROUP.matches(group.name) -> nMarketingUsers.add(userId)
-                        ProjectForgeGroup.ORGA_TEAM.matches(group.name) -> nOrgaUsers.add(userId)
-                        ProjectForgeGroup.HR_GROUP.matches(group.name) -> nhrUsers.add(userId)
+        try {
+            PfPersistenceService.startCallsStatsRecording()
+            log.info("Initializing UserGroupCache...")
+            val saved = persistenceService.saveStatsState()
+            // This method must not be synchronized because it works with a new copy of maps.
+            val uMap: MutableMap<Long, PFUserDO> = HashMap()
+            // Could not autowire UserDao because of cyclic reference with AccessChecker.
+            log.info("Loading all users ...")
+            persistenceService.runIsolatedReadOnly { _ ->
+                val users = Login.getInstance().allUsers
+                users.forEach { user ->
+                    user.id?.let { userId ->
+                        uMap[userId] = user
                     }
                 }
-            }
-            this.userMap = uMap
-            this.groupMap = gMap
-            val nEmployeeMap = mutableMapOf<Long, EmployeeDO>()
-            employeeDao.selectAll(checkAccess = false).forEach { employeeDO ->
-                employeeDO.userId?.let { userId ->
-                    nEmployeeMap[userId] = employeeDO
-                    employeeDao.setEmployeeStatus(employeeDO)
+                if (users.size != uMap.size) {
+                    log.warn("********** Load ${users.size} from the backend, but added only ${uMap.size} users to cache!")
+                    log.info("For debugging UserCache fuck-up: " + ToStringUtil.toJsonString(users))
+                    return@runIsolatedReadOnly
                 }
-            }
-            this.employeeMap = nEmployeeMap
-            this.adminUsers = nAdminUsers
-            this.financeUsers = nFinanceUser
-            this.controllingUsers = nControllingUsers
-            this.projectManagers = nProjectManagers
-            this.projectAssistants = nProjectAssistants
-            this.marketingUsers = nMarketingUsers
-            this.orgaUsers = nOrgaUsers
-            this.hrUsers = nhrUsers
-            this.userGroupIdMap = ugIdMap
-            val rMap = mutableMapOf<Long, List<UserRightDO>>()
-            val rights = try {
-                userRightDao.internalGetAllOrdered()
-            } catch (ex: Exception) {
-                log.error(
-                    "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
-                            + ex.message,
-                    ex
-                )
-                ArrayList()
-            }
-            var list: MutableList<UserRightDO>? = null
-            var userId: Long? = null
-            for (right in rights) {
-                if (right.userId == null) {
-                    log.warn("Oups, userId = null: $right")
-                    continue
-                }
-                if (right.userId != userId) {
-                    list = ArrayList()
-                    userId = right.userId
-                    if (userId != null) {
-                        rMap[userId] = list
+                log.info("Loading all groups ...")
+                val groups = Login.getInstance().allGroups
+                val gMap = mutableMapOf<Long, GroupDO>()
+                val ugIdMap = mutableMapOf<Long, MutableSet<Long>>()
+                val nAdminUsers = mutableSetOf<Long>()
+                val nFinanceUser = mutableSetOf<Long>()
+                val nControllingUsers = mutableSetOf<Long>()
+                val nProjectManagers = mutableSetOf<Long>()
+                val nProjectAssistants = mutableSetOf<Long>()
+                val nMarketingUsers = mutableSetOf<Long>()
+                val nOrgaUsers = mutableSetOf<Long>()
+                val nhrUsers = mutableSetOf<Long>()
+                for (group in groups) {
+                    val groupId = group.id ?: continue
+                    gMap[groupId] = group
+                    group.assignedUsers?.forEach { user ->
+                        val userId = user.id ?: return@forEach
+                        val groupIdSet = ugIdMap.getOrPut(userId) { mutableSetOf() }
+                        groupIdSet.add(groupId)
+                        when {
+                            ProjectForgeGroup.ADMIN_GROUP.matches(group.name) -> nAdminUsers.add(userId)
+                            ProjectForgeGroup.FINANCE_GROUP.matches(group.name) -> nFinanceUser.add(userId)
+                            ProjectForgeGroup.CONTROLLING_GROUP.matches(group.name) -> nControllingUsers.add(userId)
+                            ProjectForgeGroup.PROJECT_MANAGER.matches(group.name) -> nProjectManagers.add(userId)
+                            ProjectForgeGroup.PROJECT_ASSISTANT.matches(group.name) -> nProjectAssistants.add(userId)
+                            ProjectForgeGroup.MARKETING_GROUP.matches(group.name) -> nMarketingUsers.add(userId)
+                            ProjectForgeGroup.ORGA_TEAM.matches(group.name) -> nOrgaUsers.add(userId)
+                            ProjectForgeGroup.HR_GROUP.matches(group.name) -> nhrUsers.add(userId)
+                        }
                     }
                 }
-                if (userRights.getRight(right.rightIdString) != null
-                    && userRights.getRight(right.rightIdString).isAvailable(right.user, getUserGroupDOs(right.user))
-                ) {
-                    list!!.add(right)
+                this.userMap = uMap
+                this.groupMap = gMap
+                val nEmployeeMap = mutableMapOf<Long, EmployeeDO>()
+                employeeDao.selectAll(checkAccess = false).forEach { employeeDO ->
+                    employeeDO.userId?.let { userId ->
+                        nEmployeeMap[userId] = employeeDO
+                        employeeDao.setEmployeeStatus(employeeDO)
+                    }
                 }
+                this.employeeMap = nEmployeeMap
+                this.adminUsers = nAdminUsers
+                this.financeUsers = nFinanceUser
+                this.controllingUsers = nControllingUsers
+                this.projectManagers = nProjectManagers
+                this.projectAssistants = nProjectAssistants
+                this.marketingUsers = nMarketingUsers
+                this.orgaUsers = nOrgaUsers
+                this.hrUsers = nhrUsers
+                this.userGroupIdMap = ugIdMap
+                val rMap = mutableMapOf<Long, List<UserRightDO>>()
+                val rights = try {
+                    userRightDao.internalGetAllOrdered()
+                } catch (ex: Exception) {
+                    log.error(
+                        "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
+                                + ex.message,
+                        ex
+                    )
+                    ArrayList()
+                }
+                var list: MutableList<UserRightDO>? = null
+                var userId: Long? = null
+                for (right in rights) {
+                    if (right.userId == null) {
+                        log.warn("Oups, userId = null: $right")
+                        continue
+                    }
+                    if (right.userId != userId) {
+                        list = ArrayList()
+                        userId = right.userId
+                        if (userId != null) {
+                            rMap[userId] = list
+                        }
+                    }
+                    if (userRights.getRight(right.rightIdString) != null
+                        && userRights.getRight(right.rightIdString).isAvailable(right.user, getUserGroupDOs(right.user))
+                    ) {
+                        list!!.add(right)
+                    }
+                }
+                this.rightMap = rMap
+                log.info("Initializing of UserGroupCache done. Found ${uMap.size} entries.")
+                Login.getInstance().afterUserGroupCacheRefresh(users, groups)
             }
-            this.rightMap = rMap
-            log.info("Initializing of UserGroupCache done. Found ${uMap.size} entries.")
-            Login.getInstance().afterUserGroupCacheRefresh(users, groups)
+            log.info(
+                "UserGroupCache.refresh done. stats=${persistenceService.formatStats(saved)}, callsStats=${
+                    PfPersistenceService.showCallsStatsRecording()
+                }"
+            )
+        } finally {
+            PfPersistenceService.stopCallsStatsRecording()
         }
-        log.info("UserGroupCache.refresh done. stats=${persistenceService.formatStats(saved)}")
         Thread {
             jobHandler.checkStatus()
         }.start()

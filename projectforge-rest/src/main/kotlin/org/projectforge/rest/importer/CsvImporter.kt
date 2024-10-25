@@ -99,6 +99,10 @@ object CsvImporter {
                 fieldSettings.parseInt(value)
               }
 
+              Long::class.java -> {
+                fieldSettings.parseLong(value)
+              }
+
               Boolean::class.java -> {
                 fieldSettings.parseBoolean(value)
               }

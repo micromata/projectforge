@@ -21,56 +21,31 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.web.wicket.converter;
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
 
 /**
+ * Format digits, e. g. "001" instead of "1".
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public enum AuftragsPositionsStatus implements I18nEnum
-{
-  IN_ERSTELLUNG("in_erstellung"),
-  POTENZIAL("potenzial"),
-  GELEGT("gelegt"),
-  LOI("loi"),
-  BEAUFTRAGT("beauftragt"),
-  ABGESCHLOSSEN("abgeschlossen"),
-  ABGELEHNT("abgelehnt"),
-  ERSETZT("ersetzt"),
-  ESKALATION("eskalation"),
-  OPTIONAL("optional");
+public class LongConverter extends org.apache.wicket.util.convert.converter.LongConverter {
+    private static final long serialVersionUID = 8150882431021230194L;
 
-  private String key;
+    private final int digits;
 
-  /**
-   * @return The key suffix will be used e. g. for i18n.
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  /**
-   * @return The full i18n key including the i18n prefix "fibu.auftrag.position.status.".
-   */
-  public String getI18nKey()
-  {
-    return "fibu.auftrag.position.status." + key;
-  }
-
-  AuftragsPositionsStatus(String key)
-  {
-    this.key = key;
-  }
-
-  public boolean isIn(AuftragsPositionsStatus... status)
-  {
-    for (AuftragsPositionsStatus st : status) {
-      if (this == st) {
-        return true;
-      }
+    public LongConverter(final int digits) {
+        this.digits = digits;
     }
-    return false;
-  }
+
+    @Override
+    public String convertToString(final Long value, final Locale locale) {
+        if (value == null) {
+            return "";
+        }
+        return StringUtils.leftPad(value.toString(), digits, '0');
+    }
 }

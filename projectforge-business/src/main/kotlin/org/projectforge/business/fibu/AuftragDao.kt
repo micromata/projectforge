@@ -70,8 +70,6 @@ import java.util.stream.Collectors
 
 @Service
 open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
-    private var toBeInvoicedCounter: Int? = null
-
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
 
@@ -175,27 +173,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     /**
-     * Get all invoices and set the field fakturiertSum for the given order.
-     *
-     * @param order
-     * @see RechnungCache.getRechnungsPositionVOSetByAuftragsPositionId
-     */
-    fun calculateInvoicedSum(order: AuftragDO?) {
-        if (order == null) {
-            return
-        }
-        auftragsCache.setExpired(order) // Refresh cache
-        auftragsCache.setValues(order) // Get and set new values.
-        for (pos in order.positionenExcludingDeleted) {
-            val set = rechnungCache
-                .getRechnungsPositionVOSetByAuftragsPositionId(pos.id)
-            if (set != null) {
-                pos.invoicedSum = RechnungDao.getNettoSumme(set)
-            }
-        }
-    }
-
-    /**
      * @param auftrag
      * @param contactPersonId If null, then contact person will be set to null;
      */
@@ -268,27 +245,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             AuftragsPositionDO::class.java,
             Pair("id", id),
         )
-    }
-
-    /**
-     * Number of all orders (finished, signed or escalated) which has to be invoiced.
-     */
-    @Synchronized
-    fun getToBeInvoicedCounter(): Int {
-        if (toBeInvoicedCounter != null) {
-            return toBeInvoicedCounter!!
-        }
-        val filter = AuftragFilter()
-        filter.auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ZU_FAKTURIEREN
-        try {
-            val list = select(filter, false)
-            toBeInvoicedCounter = list.size
-            return toBeInvoicedCounter!!
-        } catch (ex: Exception) {
-            log.error("Exception occured while getting number of closed and not invoiced orders: " + ex.message, ex)
-            // Exception e. g. if data-base update is needed.
-            return 0
-        }
     }
 
     override fun select(filter: BaseSearchFilter, checkAccess: Boolean): List<AuftragDO> {
@@ -496,7 +452,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         positionen?.forEach { position ->
             position.checkVollstaendigFakturiert()
         }
-        toBeInvoicedCounter = null
         val uiStatusAsXml = XmlObjectWriter.writeAsXml(obj.getUiStatus())
         obj.uiStatusAsXml = uiStatusAsXml
         val paymentSchedules: List<PaymentScheduleDO>? = obj.paymentSchedules
@@ -566,6 +521,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 positions
             )
         }
+    }
+
+    override fun afterLoad(obj: AuftragDO) {
+        auftragsCache.setOrderInfo(obj)
     }
 
     override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?, isModified: Boolean) {

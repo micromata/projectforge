@@ -143,7 +143,7 @@ class TeamEventPagesRest() : AbstractDTOPagesRest<TeamEventDO, TeamEvent, TeamEv
         )
       }
     } else {
-      val calendarId = NumberHelper.parseInteger(request.getParameter("calendar"))
+      val calendarId = NumberHelper.parseLong(request.getParameter("calendar"))
       if (calendarId != null && calendarId > 0) {
         dto.calendar = teamCalDao.find(calendarId)
       }

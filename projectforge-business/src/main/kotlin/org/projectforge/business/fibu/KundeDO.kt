@@ -46,6 +46,13 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         @Transient
         get() = OldKostFormatter.formatKunde(this)
 
+    @get:Transient
+    override var id: Long?
+        get() = nummer
+        set(value) {
+            nummer = value
+        }
+
     /**
      * Kundennummer.
      *
@@ -54,15 +61,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     @PropertyInfo(i18nKey = "fibu.kunde.nummer")
     @get:Id
     @get:Column(name = "pk")
-    override var id: Long? = null
-
-    @get:Transient
-    open var nummer: Long?
-        get() = id
-        set(value) {
-            id = value
-        }
-
+    var nummer: Long? = null
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
     @FullTextField
@@ -135,6 +134,6 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         get() = if (konto != null) konto!!.id else null
 
     companion object {
-        const val MAX_ID = 999
+        const val MAX_ID = 999L
     }
 }

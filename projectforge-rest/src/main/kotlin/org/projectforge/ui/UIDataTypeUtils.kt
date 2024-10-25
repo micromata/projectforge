@@ -58,6 +58,7 @@ class UIDataTypeUtils {
                 Kost1DO::class.java -> UIDataType.COST1
                 Kost2DO::class.java -> UIDataType.COST2
                 Integer::class.java -> UIDataType.INT
+                Long::class.java -> UIDataType.LONG
                 BigDecimal::class.java -> UIDataType.DECIMAL
                 TaskDO::class.java -> UIDataType.TASK
                 Locale::class.java -> UIDataType.LOCALE

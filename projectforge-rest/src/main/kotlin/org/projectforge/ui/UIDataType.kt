@@ -34,6 +34,7 @@ enum class UIDataType {
     EMPLOYEE,
     GROUP,
     INT,
+    LONG,
     KONTO,
     LOCALE,
     PASSWORD,

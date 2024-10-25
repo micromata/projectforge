@@ -30,7 +30,7 @@ import java.time.LocalTime
 import java.util.*
 
 /**
- * Contains a field for mass update (string, int, number, date, task, user etc.) and the checkbox
+ * Contains a field for mass update (string, long, number, date, task, user etc.) and the checkbox
  * either the field should be changed or not.
  */
 class MassUpdateParameter: DisplayNameCapable {
@@ -99,7 +99,7 @@ class MassUpdateParameter: DisplayNameCapable {
    */
   var id: Long? = null
   var textValue: String? = null
-  var intValue: Int? = null
+  var longValue: Int? = null
   var decimalValue: BigDecimal? = null
   var localDateValue: LocalDate? = null
   var timestampValue: Date? = null
@@ -109,7 +109,7 @@ class MassUpdateParameter: DisplayNameCapable {
 
   fun isEmpty(): Boolean {
     return textValue.isNullOrBlank() &&
-        intValue == null &&
+        longValue == null &&
         decimalValue == null &&
         localDateValue == null &&
         timestampValue == null &&

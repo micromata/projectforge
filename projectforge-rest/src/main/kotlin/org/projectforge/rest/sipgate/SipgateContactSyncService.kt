@@ -505,7 +505,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
             // Gelöschte Adressen in Sipgate?
 
             syncContext.localCounter.total = syncContext.addressList.size
-            persistenceService.runInTransaction { context ->
+            persistenceService.runInTransaction { _ ->
                 syncContext.addressList.forEach { address ->
                     val syncDO = syncContext.syncDOList.find { it.address?.id == address.id }
                     val contactId = syncDO?.sipgateContactId
@@ -605,7 +605,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
                 }
             }
             log.debug { "sync: Processing all remote ${syncContext.remoteContacts.size} contacts..." }
-            persistenceService.runInTransaction { context ->
+            persistenceService.runInTransaction { _ ->
                 syncContext.remoteContacts.forEach { contact ->
                     // log.debug { "sync: Processing remote contact: $contact" }
                     syncContext.syncDOList.find { it.sipgateContactId == contact.id }.let { syncDO ->
@@ -895,7 +895,7 @@ open class SipgateContactSyncService : BaseDOModifiedListener<AddressDO> {
         return "address '${SipgateContactSyncDO.getName(address)}' (id=${address.id}, contact-id=${contact.id})"
     }
 
-    override fun afterInsertOrModify(changedObject: AddressDO, operationType: OperationType) {
+    override fun afterInsertOrModify(obj: AddressDO, operationType: OperationType) {
         sync()
     }
 }

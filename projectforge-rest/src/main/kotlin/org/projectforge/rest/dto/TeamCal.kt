@@ -53,10 +53,10 @@ class TeamCal(var title: String? = null,
                */
               var externalSubscriptionUpdateInterval: Int? = null,
               var externalSubscriptionUrlAnonymized: String? = null,
-              var vacation4Groups: List<Int>? = null,
-              var vacation4Users: List<Int>? = null
+              var vacation4Groups: List<Long>? = null,
+              var vacation4Users: List<Long>? = null
 ) : BaseDTO<TeamCalDO>() {
-    // The user and group ids are stored as csv list of integers in the data base.
+    // The user and group ids are stored as csv list of longs in the database.
     override fun copyFrom(src: TeamCalDO) {
         super.copyFrom(src)
         fullAccessGroups = Group.toGroupList(src.fullAccessGroupIds)
@@ -84,7 +84,7 @@ class TeamCal(var title: String? = null,
         accessStatus?.let { accessStatusString = translate(it.i18nKey) }
     }
 
-    // The user and group ids are stored as csv list of integers in the data base.
+    // The user and group ids are stored as csv list of longs in the database.
     override fun copyTo(dest: TeamCalDO) {
         super.copyTo(dest)
         dest.fullAccessGroupIds = Group.toLongList(fullAccessGroups)

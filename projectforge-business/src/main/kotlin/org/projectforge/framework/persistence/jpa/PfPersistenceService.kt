@@ -348,19 +348,19 @@ open class PfPersistenceService {
         lateinit var instance: PfPersistenceService
             private set
 
-        fun startCallStatsRecording(extended: Boolean = false) {
+        fun startCallsStatsRecording(extended: Boolean = false) {
             PfPersistenceContextThreadLocal.createPersistenceCallsStats(extended)
         }
 
-        fun stopCallStatsRecording() {
+        fun stopCallsStatsRecording() {
             PfPersistenceContextThreadLocal.removePersistenceCallsStats()
         }
 
-        fun showCallStatsRecording(extended: Boolean = false): String? {
+        fun showCallsStatsRecording(extended: Boolean = false): String? {
             return PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.toString(extended)
         }
 
-        internal fun getCallStats(): PersistenceCallsStats? {
+        internal fun getCallsStats(): PersistenceCallsStats? {
             return PfPersistenceContextThreadLocal.getPersistenceCallsStats()
         }
     }

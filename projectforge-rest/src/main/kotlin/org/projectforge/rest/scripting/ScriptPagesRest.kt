@@ -316,7 +316,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   }
 
   @GetMapping("downloadBackupScripts/{id}")
-  fun downloadBackupScripts(@PathVariable("id") id: Int?): ResponseEntity<*> {
+  fun downloadBackupScripts(@PathVariable("id") id: Long?): ResponseEntity<*> {
     log.info("Downloading backup script of script with id=$id")
     val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
     val zip = ExportZipArchive("${scriptDO.name}-backups.zip")
@@ -331,7 +331,7 @@ class ScriptPagesRest : AbstractDTOPagesRest<ScriptDO, Script, ScriptDao>(
   }
 
   @GetMapping("downloadEffectiveScript/{id}")
-  fun downloadEffectiveScript(@PathVariable("id") id: Int?): ResponseEntity<*> {
+  fun downloadEffectiveScript(@PathVariable("id") id: Long?): ResponseEntity<*> {
     log.info("Downloading effective script of script with id=$id")
     val scriptDO = baseDao.find(id) ?: throw IllegalArgumentException("Script not found.")
     val script = transformFromDB(scriptDO)

@@ -106,7 +106,7 @@ class MassUpdateParameterTest {
     param.change = change
     param.booleanValue = booleanValue
     param.decimalValue = decimalValue
-    param.intValue = intValue
+    param.longValue = intValue
     param.timeValue = timeValue
     param.timestampValue = timestampValue
     param.id = id

@@ -96,8 +96,8 @@ class UISelect<T>(
       additionalLabel: String? = null,
       tooltip: String? = null,
       showOnlyActiveUsers: Boolean = true
-    ): UISelect<Int> {
-      return UISelect<Int>(
+    ): UISelect<Long> {
+      return UISelect<Long>(
         id,
         lc,
         multi = multi,
@@ -116,7 +116,7 @@ class UISelect<T>(
       additionalLabel: String? = null,
       tooltip: String? = null,
       showOnlyActiveEmployees: Boolean = true
-    ): UISelect<Int> {
+    ): UISelect<Long> {
       return UISelect(
         id,
         lc,
@@ -135,8 +135,8 @@ class UISelect<T>(
       label: String? = null,
       additionalLabel: String? = null,
       tooltip: String? = null
-    ): UISelect<Int> {
-      return UISelect<Int>(
+    ): UISelect<Long> {
+      return UISelect<Long>(
         id,
         lc,
         multi = multi,
@@ -154,8 +154,8 @@ class UISelect<T>(
       label: String? = null,
       additionalLabel: String? = null,
       tooltip: String? = null
-    ): UISelect<Int> {
-      return UISelect<Int>(
+    ): UISelect<Long> {
+      return UISelect<Long>(
         id,
         lc,
         multi = multi,
@@ -173,8 +173,8 @@ class UISelect<T>(
       label: String? = null,
       additionalLabel: String? = null,
       tooltip: String? = null
-    ): UISelect<Int> {
-      return UISelect<Int>(
+    ): UISelect<Long> {
+      return UISelect<Long>(
         id,
         lc,
         multi = multi,

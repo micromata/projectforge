@@ -32,10 +32,11 @@ private val log = KotlinLogging.logger {}
  * Mustn't be thread-safe, because it is used in a thread-local context.
  * Multiple calls stats aren't supported, the last one wins and overwrites any exiting stats.
  * If you want to use it in a multithreaded context, you have to synchronize it.
+ * Please note, that the indirect database calls e.g. on lazy loading aren't counted.
  */
 class PersistenceCallsStats(val extended: Boolean) {
     enum class CallType { CRITERIA_UPDATE, FIND, GET_REFERENCE, MERGE, PERSIST, REMOVE, UPDATE, QUERY, SELECT }
-    data class Call(val method: CallType, val sql: String, val detail: String? = null): Comparable<Call> {
+    data class Call(val method: CallType, val sql: String, val detail: String? = null) : Comparable<Call> {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is Call) return false
@@ -61,6 +62,10 @@ class PersistenceCallsStats(val extended: Boolean) {
     val usage = mutableListOf<Call>()
     val countMap = mutableMapOf<Call, Int>()
 
+    fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
+        add(method, entity, detail.toString())
+    }
+
     fun add(method: CallType, entity: String, detail: String? = null) {
         log.debug { "PersistenceCallsStats.add: $method $entity $detail" }
         val call = Call(method, entity, detail)
@@ -72,7 +77,7 @@ class PersistenceCallsStats(val extended: Boolean) {
 
     fun toString(extended: Boolean = false): String {
         val sb = StringBuilder()
-        sb.append("PersistenceCallsStats={")
+        sb.append("PersistenceCallsStats(direct calls)={")
         sb.append("total=").append(countMap.values.sum()).append(",")
         sb.append("read=").append(countMap.filter { readOperations.contains(it.key.method) }.values.sum()).append(",")
         sb.append("write=").append(countMap.filter { writeOperations.contains(it.key.method) }.values.sum()).append("}")
@@ -81,7 +86,8 @@ class PersistenceCallsStats(val extended: Boolean) {
             countMap.toSortedMap().forEach { (call, count) ->
                 sb.append("method=").append(call.method).append(",")
                     .append("call=").append(call.sql).append(",")
-                    .append("detail=").append(call.detail).append("}")
+                    .append("count=").append(count).append(",")
+                    .append("}")
                     .appendLine()
             }
         }
@@ -90,6 +96,7 @@ class PersistenceCallsStats(val extended: Boolean) {
 
     companion object {
         val readOperations = arrayOf(CallType.FIND, CallType.GET_REFERENCE, CallType.QUERY, CallType.SELECT)
-        val writeOperations = arrayOf(CallType.CRITERIA_UPDATE, CallType.MERGE, CallType.PERSIST, CallType.REMOVE, CallType.UPDATE)
+        val writeOperations =
+            arrayOf(CallType.CRITERIA_UPDATE, CallType.MERGE, CallType.PERSIST, CallType.REMOVE, CallType.UPDATE)
     }
 }

@@ -237,7 +237,7 @@ class MigrateTradingPartnersTest {
 
   private fun createKunde(number: Long, name: String, identifier: String? = null, konto: KontoDO? = null): KundeDO {
     val kunde = KundeDO()
-    kunde.nummer = number
+    kunde.id = number
     kunde.name = name
     kunde.identifier = identifier
     kunde.konto = konto

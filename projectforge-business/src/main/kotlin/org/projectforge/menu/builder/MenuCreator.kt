@@ -74,6 +74,8 @@ open class MenuCreator {
     }
   }
 
+  @Autowired
+  private lateinit var auftragsCache: AuftragsCache
   private var menuItemDefHolder = MenuItemDefHolder()
 
   @Autowired
@@ -261,7 +263,7 @@ open class MenuCreator {
           },
           badgeCounter = {
             if (isInGroup(*FIBU_ORGA_GROUPS))
-              auftragDao.getToBeInvoicedCounter()
+              auftragsCache.getToBeInvoicedCounter()
             else
               0
           })
@@ -344,7 +346,7 @@ open class MenuCreator {
       MenuItemDef(MenuItemDefId.ORDER_LIST,
         requiredGroups = FIBU_ORGA_GROUPS,
         badgeCounter =
-        { auftragDao.getToBeInvoicedCounter() })
+        { auftragsCache.getToBeInvoicedCounter() })
     )
 
     //////////////////////////////////////

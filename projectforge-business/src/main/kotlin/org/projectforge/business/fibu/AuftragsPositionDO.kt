@@ -128,14 +128,6 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   open var personDays: BigDecimal? = null
 
   /**
-   * Must be set in all positions before usage. The value is not calculated automatically!
-   *
-   * @see AuftragDao.calculateInvoicedSum
-   */
-  @get:Transient
-  open var invoicedSum: BigDecimal? = null
-
-  /**
    * Dieses Flag wird manuell von der FiBu gesetzt und kann nur für abgeschlossene Aufträge gesetzt werden.
    */
   @get:Column(name = "vollstaendig_fakturiert", nullable = false)
@@ -158,6 +150,9 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   val toBeInvoiced: Boolean
     @Transient
     get() {
+      if (deleted) {
+        return false
+      }
       if (status != null && status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
         return false
       }

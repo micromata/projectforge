@@ -102,7 +102,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
         )
             .add(
 
-                UISelect<Int>(
+                UISelect<Long>(
                     Data::employees.name,
                     multi = true,
                     label = translate("fibu.employees"),
@@ -110,7 +110,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
                 )
             )
             .add(
-                UISelect<Int>(
+                UISelect<Long>(
                     Data::groups.name, multi = true,
                     label = translate("group.groups"),
                     autoCompletion = AutoCompletion.getAutoCompletion4Groups(),
