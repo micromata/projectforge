@@ -23,10 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import mu.KotlinLogging
-
-private val log = KotlinLogging.logger {}
-
 /**
  * For performance measurement of persistence calls. Each call of persistenceService (CRUD) is counted.
  * Mustn't be thread-safe, because it is used in a thread-local context.
@@ -62,12 +58,11 @@ class PersistenceCallsStats(val extended: Boolean) {
     val usage = mutableListOf<Call>()
     val countMap = mutableMapOf<Call, Int>()
 
-    fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
+    internal fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
         add(method, entity, detail.toString())
     }
 
-    fun add(method: CallType, entity: String, detail: String? = null) {
-        log.debug { "PersistenceCallsStats.add: $method $entity $detail" }
+    internal fun add(method: CallType, entity: String, detail: String? = null) {
         val call = Call(method, entity, detail)
         if (extended) {
             usage.add(call)

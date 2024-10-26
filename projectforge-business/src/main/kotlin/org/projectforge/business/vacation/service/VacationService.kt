@@ -24,9 +24,11 @@
 package org.projectforge.business.vacation.service
 
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
@@ -77,6 +79,9 @@ open class VacationService {
 
     @Autowired
     private lateinit var employeeService: EmployeeService
+
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
 
     @Autowired
     private lateinit var remainingLeaveDao: RemainingLeaveDao
@@ -359,7 +364,7 @@ open class VacationService {
     }
 
     open fun getOpenLeaveApplicationsForUser(user: PFUserDO): Int {
-        val employee = employeeService.findByUserId(user.id)
+        val employee = employeeCache.getEmployeeByUserId(user.id)
         return if (employee == null) {
             0
         } else {
@@ -377,8 +382,8 @@ open class VacationService {
     ): Boolean {
         if (user?.id == null)
             return false
-        val employee = employeeService.findByUserId(user.id)
-        val annualLeaveDays = employeeService.getAnnualLeaveDays(employee) ?: BigDecimal.ZERO
+        val employee = employeeCache.getEmployeeByUserId(user.id)
+        val annualLeaveDays = employee?.annualLeave ?: BigDecimal.ZERO
         return when {
             employee == null -> {
                 if (throwException) {

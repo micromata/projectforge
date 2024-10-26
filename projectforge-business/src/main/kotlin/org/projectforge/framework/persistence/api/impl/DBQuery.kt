@@ -79,7 +79,7 @@ open class DBQuery {
                 val dbFilter = filter.createDBFilter()
                 val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
                 // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
-                PfPersistenceService.getCallsStats()?.add(
+                context.logAndAdd(
                     PersistenceCallsStats.CallType.QUERY,
                     baseDao.doClass.simpleName,
                     PersistenceCallsStatsBuilder()

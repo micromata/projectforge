@@ -32,6 +32,7 @@ import org.hibernate.NonUniqueResultException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
+import org.projectforge.framework.persistence.jpa.PersistenceCallsStats.CallType
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext.ContextType
 
 private val log = KotlinLogging.logger {}
@@ -79,8 +80,8 @@ class PfPersistenceContext internal constructor(
         lockModeType: LockModeType? = null,
     ): T? {
         id ?: return null
-        PfPersistenceService.getCallsStats()?.add(
-            PersistenceCallsStats.CallType.FIND,
+        logAndAdd(
+            CallType.FIND,
             entityClass.simpleName,
             PersistenceCallsStatsBuilder()
                 .resultClass(entityClass)
@@ -141,8 +142,8 @@ class PfPersistenceContext internal constructor(
         namedQuery: Boolean = false,
     ): T? {
         val result = try {
-            PfPersistenceService.getCallsStats()?.add(
-                PersistenceCallsStats.CallType.QUERY, sql,
+            logAndAdd(
+                CallType.QUERY, sql,
                 PersistenceCallsStatsBuilder()
                     .resultClass(resultClass)
                     .keyValues(keyValues)
@@ -154,7 +155,8 @@ class PfPersistenceContext internal constructor(
                 sql = sql,
                 resultClass = resultClass,
                 keyValues = keyValues,
-                namedQuery = namedQuery
+                namedQuery = namedQuery,
+                debugLog = false, // Log already done, see above.
             ).singleResult
         } catch (ex: NoResultException) {
             if (!nullAllowed) {
@@ -208,15 +210,18 @@ class PfPersistenceContext internal constructor(
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
     ): List<T> {
-        val q = createQuery(sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery)
+        val q = createQuery(
+            sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery,
+            debugLog = false, // Log already done, see below.
+        )
         if (lockModeType != null) {
             q.lockMode = lockModeType
         }
         if (maxResults != null) {
             q.maxResults = maxResults
         }
-        PfPersistenceService.getCallsStats()?.add(
-            PersistenceCallsStats.CallType.QUERY, sql,
+        logAndAdd(
+            CallType.QUERY, sql,
             PersistenceCallsStatsBuilder()
                 .resultClass(resultClass)
                 .keyValues(keyValues)
@@ -263,6 +268,7 @@ class PfPersistenceContext internal constructor(
         resultClass: Class<T>,
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
+        debugLog: Boolean = true,
     ): TypedQuery<T> {
         val query: TypedQuery<T> = if (namedQuery) {
             em.createNamedQuery(sql, resultClass)
@@ -272,13 +278,15 @@ class PfPersistenceContext internal constructor(
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
-        PfPersistenceService.getCallsStats()?.add(
-            PersistenceCallsStats.CallType.QUERY, sql,
-            PersistenceCallsStatsBuilder()
-                .resultClass(resultClass)
-                .keyValues(keyValues)
-                .param("namedQuery", namedQuery)
-        )
+        if (debugLog) {
+            logAndAdd(
+                CallType.QUERY, sql,
+                PersistenceCallsStatsBuilder()
+                    .resultClass(resultClass)
+                    .keyValues(keyValues)
+                    .param("namedQuery", namedQuery)
+            )
+        }
         return query
     }
 
@@ -289,14 +297,12 @@ class PfPersistenceContext internal constructor(
         dbObj: Any,
     ) {
         em.persist(dbObj)
-        PfPersistenceService.getCallsStats()?.apply {
-            add(
-                PersistenceCallsStats.CallType.PERSIST,
-                "${dbObj::class.simpleName}",
-                PersistenceCallsStatsBuilder()
-                    .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
-            )
-        }
+        logAndAdd(
+            CallType.PERSIST,
+            "${dbObj::class.simpleName}",
+            PersistenceCallsStatsBuilder()
+                .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
+        )
     }
 
     /**
@@ -305,14 +311,12 @@ class PfPersistenceContext internal constructor(
     fun <T : Any> update(
         dbObj: T,
     ): T {
-        PfPersistenceService.getCallsStats()?.apply {
-            add(
-                PersistenceCallsStats.CallType.MERGE,
-                "${dbObj::class.simpleName}",
-                PersistenceCallsStatsBuilder()
-                    .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
-            )
-        }
+        logAndAdd(
+            PersistenceCallsStats.CallType.MERGE,
+            "${dbObj::class.simpleName}",
+            PersistenceCallsStatsBuilder()
+                .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
+        )
         return em.merge(dbObj)
     }
 
@@ -323,14 +327,12 @@ class PfPersistenceContext internal constructor(
         dbObj: Any,
     ) {
         em.remove(dbObj)
-        PfPersistenceService.getCallsStats()?.apply {
-            add(
-                PersistenceCallsStats.CallType.REMOVE,
-                "${dbObj::class.simpleName}",
-                PersistenceCallsStatsBuilder()
-                    .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
-            )
-        }
+        logAndAdd(
+            CallType.REMOVE,
+            "${dbObj::class.simpleName}",
+            PersistenceCallsStatsBuilder()
+                .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
+        )
     }
 
     /**
@@ -355,8 +357,7 @@ class PfPersistenceContext internal constructor(
         val root = criteriaUpdate.from(entityClass)
         update(cb, root, criteriaUpdate)
         em.createQuery(criteriaUpdate).executeUpdate()
-        PfPersistenceService.getCallsStats()
-            ?.add(PersistenceCallsStats.CallType.CRITERIA_UPDATE, entityClass.simpleName)
+        logAndAdd(CallType.CRITERIA_UPDATE, entityClass.simpleName)
     }
 
     /**
@@ -376,11 +377,7 @@ class PfPersistenceContext internal constructor(
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
-        PfPersistenceService.getCallsStats()
-            ?.add(
-                PersistenceCallsStats.CallType.UPDATE, sql,
-                PersistenceCallsStatsBuilder().keyValues(keyValues)
-            )
+        logAndAdd(CallType.UPDATE, sql, PersistenceCallsStatsBuilder().keyValues(keyValues))
         return query.executeUpdate()
     }
 
@@ -405,12 +402,11 @@ class PfPersistenceContext internal constructor(
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
-        PfPersistenceService.getCallsStats()
-            ?.add(
-                PersistenceCallsStats.CallType.UPDATE, sql,
-                PersistenceCallsStatsBuilder().keyValues(keyValues)
-                    .param("native", true)
-            )
+        logAndAdd(
+            CallType.UPDATE, sql,
+            PersistenceCallsStatsBuilder().keyValues(keyValues)
+                .param("native", true)
+        )
         return query.executeUpdate()
     }
 
@@ -425,23 +421,18 @@ class PfPersistenceContext internal constructor(
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
-        PfPersistenceService.getCallsStats()
-            ?.add(
-                PersistenceCallsStats.CallType.SELECT, sql,
-                PersistenceCallsStatsBuilder().keyValues(keyValues)
-                    .param("native", true)
-            )
+        logAndAdd(
+            CallType.SELECT, sql,
+            PersistenceCallsStatsBuilder().keyValues(keyValues)
+                .param("native", true)
+        )
         return query.resultList
     }
 
     fun <T> getReference(
         entityClass: Class<T>, id: Any
     ): T {
-        PfPersistenceService.getCallsStats()
-            ?.add(
-                PersistenceCallsStats.CallType.GET_REFERENCE, entityClass.simpleName,
-                PersistenceCallsStatsBuilder().param("id", id)
-            )
+        logAndAdd(CallType.GET_REFERENCE, entityClass.simpleName, PersistenceCallsStatsBuilder().param("id", id))
         return em.getReference(entityClass, id)
     }
 
@@ -503,5 +494,14 @@ class PfPersistenceContext internal constructor(
         var readonlyContextCounter = 0L
             private set
         //    private val openEntityManagers = mutableSetOf<EntityManager>()
+    }
+
+    internal fun logAndAdd(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
+        logAndAdd(method, entity, detail.toString())
+    }
+
+    internal fun logAndAdd(method: CallType, entity: String, detail: String? = null) {
+        log.debug { "DB: $method $entity $detail" }
+        PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.add(method, entity, detail)
     }
 }

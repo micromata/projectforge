@@ -25,6 +25,7 @@ package org.projectforge.business.vacation
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.repository.VacationDao
@@ -46,10 +47,13 @@ private val log = KotlinLogging.logger {}
 @Component
 open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     @Autowired
-    private lateinit var vacationDao: VacationDao
+    private lateinit var employeeCache: EmployeeCache
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
+
+    @Autowired
+    private lateinit var vacationDao: VacationDao
 
     private var vacationMap = mutableMapOf<Long?, VacationDO>()
 
@@ -84,7 +88,7 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
             if (!vacationDao.hasSelectAccess(vacation, ThreadLocalUserContext.requiredLoggedInUser)) {
                 continue
             }
-            val employeeUser = userGroupCache.getUser(vacation.employee) ?: continue
+            val employeeUser = employeeCache.getUser(vacation.employee) ?: continue
             var match = groupIds?.any { gid ->
                 userGroupCache.getGroup(gid)?.assignedUsers?.any { user ->
                     user.id == employeeUser.id // The employee matches with one assigned user of the group.

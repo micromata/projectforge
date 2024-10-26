@@ -359,9 +359,5 @@ open class PfPersistenceService {
         fun showCallsStatsRecording(extended: Boolean = false): String? {
             return PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.toString(extended)
         }
-
-        internal fun getCallsStats(): PersistenceCallsStats? {
-            return PfPersistenceContextThreadLocal.getPersistenceCallsStats()
-        }
     }
 }
