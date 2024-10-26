@@ -23,25 +23,26 @@
 
 package org.projectforge.web;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.wicket.Page;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.address.SendSmsPage;
-import org.projectforge.web.admin.*;
+import org.projectforge.web.admin.AdminPage;
+import org.projectforge.web.admin.ConfigurationListPage;
+import org.projectforge.web.admin.PluginListPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
 import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.UserPrefListPage;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,69 +57,68 @@ import java.util.Map;
  */
 @Component
 public class MenuItemRegistry implements Serializable {
-  private static final long serialVersionUID = -6988615451822648295L;
+    private static final long serialVersionUID = -6988615451822648295L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuItemRegistry.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuItemRegistry.class);
 
-  private final Map<String, Class<? extends Page>> wicketClassesMap = new HashMap<>();
+    private final Map<String, Class<? extends Page>> wicketClassesMap = new HashMap<>();
 
-  @PostConstruct
-  public void init() {
-    initialize(this);
-  }
+    @PostConstruct
+    public void init() {
+        initialize(this);
+    }
 
-  public Class<? extends Page> getPageClass(String menuItemDefId) {
-    return wicketClassesMap.get(menuItemDefId);
-  }
+    public Class<? extends Page> getPageClass(String menuItemDefId) {
+        return wicketClassesMap.get(menuItemDefId);
+    }
 
-  /**
-   * Registers all Wicket page classes.
-   */
-  private void initialize(final MenuItemRegistry reg) {
-    // register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
-    // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
+    /**
+     * Registers all Wicket page classes.
+     */
+    private void initialize(final MenuItemRegistry reg) {
+        // register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
+        // createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
 
-    register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
-    register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
-    // createdMenuEntry.setNewCounterModel(new MenuNewCounterMeb());
-    register(MenuItemDefId.SEARCH, SearchPage.class);
-    register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
-    register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
-    register(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, MonthlyEmployeeReportPage.class);
-    register(MenuItemDefId.PERSONAL_STATISTICS, PersonalStatisticsPage.class);
-    register(MenuItemDefId.HR_VIEW, HRListPage.class);
-    register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
-    register(MenuItemDefId.GANTT, GanttChartListPage.class);
-    register(MenuItemDefId.OUTGOING_INVOICE_LIST, RechnungListPage.class);
-    register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
-    register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
-    //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
-    register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
-    register(MenuItemDefId.ORDER_LIST, AuftragListPage.class);
-    // createdMenuEntry.setNewCounterModel(new MenuNewCounterOrder());
-    // createdMenuEntry.setNewCounterTooltip("menu.fibu.orderbook.htmlSuffixTooltip");
-    register(MenuItemDefId.ACCOUNT_LIST, KontoListPage.class);
-    register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
-    register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
-    register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
-    register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
-    register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
-    register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
-    register(MenuItemDefId.VISITORBOOK, VisitorbookListPage.class);
-    register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
-    //register(MenuItemDefId.USER_LIST, UserListPage.class);
-    //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
-    register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
-    register(MenuItemDefId.SYSTEM, AdminPage.class);
-    register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
-    register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
-  }
+        register(MenuItemDefId.PHONE_CALL, PhoneCallPage.class);
+        register(MenuItemDefId.SEND_SMS, SendSmsPage.class);
+        // createdMenuEntry.setNewCounterModel(new MenuNewCounterMeb());
+        register(MenuItemDefId.SEARCH, SearchPage.class);
+        register(MenuItemDefId.TASK_TREE, TaskTreePage.class);
+        register(MenuItemDefId.TIMESHEET_LIST, TimesheetListPage.class);
+        register(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, MonthlyEmployeeReportPage.class);
+        register(MenuItemDefId.PERSONAL_STATISTICS, PersonalStatisticsPage.class);
+        register(MenuItemDefId.HR_VIEW, HRListPage.class);
+        register(MenuItemDefId.HR_PLANNING_LIST, HRPlanningListPage.class);
+        register(MenuItemDefId.GANTT, GanttChartListPage.class);
+        register(MenuItemDefId.OUTGOING_INVOICE_LIST, RechnungListPage.class);
+        register(MenuItemDefId.INCOMING_INVOICE_LIST, EingangsrechnungListPage.class);
+        register(MenuItemDefId.CUSTOMER_LIST, CustomerListPage.class);
+        //register(MenuItemDefId.PROJECT_LIST, ProjektListPage.class);
+        register(MenuItemDefId.EMPLOYEE_SALARY_LIST, EmployeeSalaryListPage.class);
+        register(MenuItemDefId.ORDER_LIST, AuftragListPage.class);
+        // createdMenuEntry.setNewCounterModel(new MenuNewCounterOrder());
+        // createdMenuEntry.setNewCounterTooltip("menu.fibu.orderbook.htmlSuffixTooltip");
+        register(MenuItemDefId.ACCOUNT_LIST, KontoListPage.class);
+        register(MenuItemDefId.COST1_LIST, Kost1ListPage.class);
+        register(MenuItemDefId.COST2_LIST, Kost2ListPage.class);
+        register(MenuItemDefId.COST2_TYPE_LIST, Kost2ArtListPage.class);
+        register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
+        register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
+        register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
+        register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
+        //register(MenuItemDefId.USER_LIST, UserListPage.class);
+        //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);
+        register(MenuItemDefId.ACCESS_LIST, AccessListPage.class);
+        register(MenuItemDefId.SYSTEM, AdminPage.class);
+        register(MenuItemDefId.CONFIGURATION, ConfigurationListPage.class);
+        register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
+    }
 
-  public void register(MenuItemDefId defId, Class<? extends Page> pageClass) {
-    register(defId.getId(), pageClass);
-  }
+    public void register(MenuItemDefId defId, Class<? extends Page> pageClass) {
+        register(defId.getId(), pageClass);
+    }
 
-  public void register(String menuItemId, Class<? extends Page> pageClass) {
-    this.wicketClassesMap.put(menuItemId, pageClass);
-  }
+    public void register(String menuItemId, Class<? extends Page> pageClass) {
+        this.wicketClassesMap.put(menuItemId, pageClass);
+    }
 }

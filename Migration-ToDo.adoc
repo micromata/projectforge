@@ -33,6 +33,9 @@ Aktuell:
 - Alte UserPrefDO im Frontend testen.
 - History of AddressCampaignValueDO's (AddressCampaignValueDao.convertToDisplayHistoryEntries removed)
 
+Später
+- UserPreference neu machen
+
 - pom.xml:
 Some problems were encountered while building the effective model for org.projectforge:projectforge-business:jar:7.5.1-SNAPSHOT
 [WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.springframework.boot:spring-boot-starter-cache:jar -> version (?) vs ${spring.boot.version} @ line 188, column 21

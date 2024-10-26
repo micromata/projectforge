@@ -23,8 +23,8 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ApplicationContextProvider
@@ -49,6 +49,7 @@ class Employee(
      * Read-only field.
      */
     var annualLeave: BigDecimal? = null
+
     /**
      * Read-only field.
      */
@@ -58,14 +59,15 @@ class Employee(
     var statusEntries: List<EmployeeValidSinceAttr>? = null
 
     companion object {
-        private val employeeDao = ApplicationContextProvider.getApplicationContext().getBean(EmployeeDao::class.java)
+        private val employeeCache =
+            ApplicationContextProvider.getApplicationContext().getBean(EmployeeCache::class.java)
 
         /**
          * Set display names of any existing user in the given list.
          * @see UserService.getUser
          */
         fun restoreDisplayNames(employees: List<Employee>?) {
-            employees?.forEach { it.displayName = employeeDao.find(it.id, checkAccess = false)?.displayName }
+            employees?.forEach { it.displayName = employeeCache.getEmployee(it.id)?.displayName }
         }
     }
 }

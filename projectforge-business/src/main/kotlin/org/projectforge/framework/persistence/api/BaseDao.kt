@@ -615,7 +615,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
     }
 
     @Throws(AccessException::class)
-    internal fun checkLoggedInUserInsertAccess(obj: O) {
+    fun checkLoggedInUserInsertAccess(obj: O) {
         checkInsertAccess(requiredLoggedInUser, obj)
     }
 

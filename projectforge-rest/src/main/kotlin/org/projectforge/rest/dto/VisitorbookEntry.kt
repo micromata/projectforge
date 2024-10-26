@@ -23,23 +23,38 @@
 
 package org.projectforge.rest.dto
 
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.orga.VisitorType
 import org.projectforge.business.orga.VisitorbookDO
+import org.projectforge.business.orga.VisitorbookEntryDO
+import java.time.LocalDate
 
-class Visitorbook(var lastname: String? = null,
-                  var firstname: String? = null,
-                  var company: String? = null,
-                  var contactPersons: Set<EmployeeDO>? = null,
-                  var visitortype: VisitorType? = null
-) : BaseDTO<VisitorbookDO>() {
+class VisitorbookEntry(
+    var dateOfVisit: LocalDate? = null,
+    var arrived: String? = null,
+    var departed: String? = null,
+    var comment: String? = null,
+    var visitorbookId: Long? = null,
+) : BaseDTO<VisitorbookEntryDO>() {
 
-    var latestArrived: String? = null
+    constructor(src: VisitorbookEntryDO?) : this() {
+        id = src?.id
+        dateOfVisit = src?.dateOfVisit
+        arrived = src?.arrived
+        departed = src?.departed
+        comment = src?.comment
+        visitorbookId = src?.visitorbook?.id
+    }
 
-    var latestDeparted: String? = null
-
-    var numberOfVisits: Int? = 0
-
-    var entries: List<VisitorbookEntry>? = null
+    fun cloneAsDO(): VisitorbookEntryDO {
+        val result = VisitorbookEntryDO()
+        result.id = id
+        result.dateOfVisit = dateOfVisit
+        result.arrived = arrived
+        result.departed = departed
+        result.comment = comment
+        visitorbookId?.let {
+            result.visitorbook = VisitorbookDO().also { it.id = visitorbookId }
+        }
+        return result
+    }
 
 }

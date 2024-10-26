@@ -44,6 +44,9 @@ private val log = KotlinLogging.logger {}
 @Service
 internal class EmployeeServiceSupport {
     @Autowired
+    private lateinit var baseDOPersistenceService: BaseDOPersistenceService
+
+    @Autowired
     private lateinit var employeeCache: EmployeeCache
 
     @Autowired
@@ -51,9 +54,6 @@ internal class EmployeeServiceSupport {
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
-
-    @Autowired
-    private lateinit var baseDOPersistenceService: BaseDOPersistenceService
 
     /**
      * @param id The id of the attribute to select.
@@ -344,6 +344,7 @@ internal class EmployeeServiceSupport {
         val employee = employeeDao.find(employeeId)!!
         val attrDO = findValidSinceAttr(attrId, checkAccess = checkAccess)!!
         markValidSinceAttrAsDeleted(employee, attrDO, checkAccess)
+        employeeCache.setExpired()
     }
 
     fun markValidSinceAttrAsDeleted(
