@@ -96,8 +96,7 @@ class VisitorbookDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
 */
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "visitorbook")
-    @Fetch(FetchMode.SELECT)
+    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "visitorbook", targetEntity = VisitorbookEntryDO::class)
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
     var entries: MutableList<VisitorbookEntryDO>? = null
 

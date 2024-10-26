@@ -84,11 +84,11 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
     registerShortCutValues(
       My2FAShortCut.HR_WRITE,
       "WRITE:employee;WRITE:leaveAccountEntry;WRITE:employee;",
-      "/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hrPlanningEdit"
+      "/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hrPlanningEdit"
     )
     registerShortCutValues(
       My2FAShortCut.HR,
-      "WRITE:employee;/wa/employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hr"
+      "WRITE:employee;/wa/wicket/bookmarkable/org.projectforge.plugins.eed;/wa/hr"
     )
     registerShortCutClasses(
       My2FAShortCut.HR,
@@ -128,11 +128,7 @@ open class ProjectForge2FAInitialization : IProjectForge2FAInitialization {
 
     my2FARequestHandler.registerShortCutValues(
       My2FAShortCut.ORGA_WRITE,
-      "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;WRITE:visitorBook;/wa/.*VisitorbookEdit"
-    )
-    my2FARequestHandler.registerShortCutValues(
-      My2FAShortCut.ORGA,
-      "/wa/.*Visitorbook"
+      "WRITE:incomingMail;WRITE:outgoingMail;WRITE:contract;WRITE:visitorbook"
     )
     registerShortCutClasses(
       My2FAShortCut.ORGA,

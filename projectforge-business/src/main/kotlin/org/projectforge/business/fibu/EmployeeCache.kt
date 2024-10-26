@@ -57,7 +57,8 @@ open class EmployeeCache : AbstractCache() {
      */
     private var employeeMap: Map<Long, EmployeeDO> = emptyMap()
 
-    fun getEmployee(id: Long): EmployeeDO? {
+    fun getEmployee(id: Long?): EmployeeDO? {
+        id ?: return null
         checkRefresh()
         return employeeMap[id]
     }
@@ -144,7 +145,7 @@ open class EmployeeCache : AbstractCache() {
             queryAllValidSinceValues,
             EmployeeValidSinceAttrDO::class.java,
             Pair("type", type),
-        ).groupBy { it.employee?.id } // Group by employee ID
+        ).groupBy { it.employee?.id } // Group by employee id
             .mapValues { entry -> entry.value.first() } // Get the first record (latest) in each group
             .values // Extract the results as a collection of latest records
     }

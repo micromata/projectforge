@@ -403,7 +403,6 @@ class AuftragDaoTest : AbstractTestBase() {
             position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
             position.vollstaendigFakturiert = true
             auftragDao.update(auftrag1)
-            println("*************************")
         }
     }
 

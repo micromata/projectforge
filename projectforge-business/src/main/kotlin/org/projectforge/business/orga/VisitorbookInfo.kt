@@ -21,25 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.dto
+package org.projectforge.business.orga
 
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.orga.VisitorType
-import org.projectforge.business.orga.VisitorbookDO
+import java.time.LocalDate
 
-class Visitorbook(var lastname: String? = null,
-                  var firstname: String? = null,
-                  var company: String? = null,
-                  var contactPersons: Set<EmployeeDO>? = null,
-                  var visitortype: VisitorType? = null
-) : BaseDTO<VisitorbookDO>() {
-
+/**
+ * Used by [VisitorbookCache] for caching visitorbook info entries, containing last visit date and number of visits.
+ */
+class VisitorbookInfo() {
+    var lastVisitDate: LocalDate? = null
     var latestArrived: String? = null
-
     var latestDeparted: String? = null
-
-    var numberOfVisits: Int? = 0
-
-    var entries: List<VisitorbookEntry>? = null
-
+    var numberOfVisits: Int = 0
 }
