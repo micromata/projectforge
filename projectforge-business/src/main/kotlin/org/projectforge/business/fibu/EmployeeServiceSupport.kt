@@ -44,6 +44,9 @@ private val log = KotlinLogging.logger {}
 @Service
 internal class EmployeeServiceSupport {
     @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
     private lateinit var employeeDao: EmployeeDao
 
     @Autowired
@@ -272,7 +275,9 @@ internal class EmployeeServiceSupport {
             undeleteValidSinceAttr(employee, attrDO = other, checkAccess = checkAccess)
             return other.id
         }
-        return baseDOPersistenceService.insert(attrDO, checkAccess = checkAccess)
+        val result = baseDOPersistenceService.insert(attrDO, checkAccess = checkAccess)
+        employeeCache.setExpired()
+        return result
     }
 
     internal fun insertValidSinceAttr(
@@ -311,20 +316,24 @@ internal class EmployeeServiceSupport {
             employeeDao.checkLoggedInUserUpdateAccess(employee, employee)
         }
         val other = validate(attrDO)
-        if (other != null) {
-            // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
-            // the users can't add or modify entries with the validSince date of the deleted ones.
-            // Please remember: There are no unique constraints in the database!
-            findValidSinceAttr(attrDO.id, expectedType = attrDO.type, checkAccess = checkAccess).let { dbEntry ->
-                requireNotNull(dbEntry) { "Can't update EmployeeValidSinceAttr entry without exisiting id." }
-                // Mark current entry as deleted and modify existing deleted entry with desired validSince date.
-                markValidSinceAttrAsDeleted(employee, dbEntry, checkAccess)
+        try {
+            if (other != null) {
+                // This algorithm is needed to handle deleted entries. Otherwise, they aren't visible for the users and
+                // the users can't add or modify entries with the validSince date of the deleted ones.
+                // Please remember: There are no unique constraints in the database!
+                findValidSinceAttr(attrDO.id, expectedType = attrDO.type, checkAccess = checkAccess).let { dbEntry ->
+                    requireNotNull(dbEntry) { "Can't update EmployeeValidSinceAttr entry without exisiting id." }
+                    // Mark current entry as deleted and modify existing deleted entry with desired validSince date.
+                    markValidSinceAttrAsDeleted(employee, dbEntry, checkAccess)
+                }
+                other.copyFrom(attrDO)
+                // Undeleting and updating existing entry instead of inserting new entry.
+                return baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)
             }
-            other.copyFrom(attrDO)
-            // Undeleting and updating existing entry instead of inserting new entry.
-            return baseDOPersistenceService.undelete(obj = other, checkAccess = checkAccess)
+            return baseDOPersistenceService.update(attrDO, checkAccess = checkAccess)
+        } finally {
+            employeeCache.setExpired()
         }
-        return baseDOPersistenceService.update(attrDO, checkAccess = checkAccess)
     }
 
     fun markValidSinceAttrAsDeleted(
@@ -348,6 +357,7 @@ internal class EmployeeServiceSupport {
         }
         validate(attrDO)
         baseDOPersistenceService.markAsDeleted(obj = attrDO, checkAccess = checkAccess)
+        employeeCache.setExpired()
     }
 
     fun undeleteValidSinceAttr(
@@ -360,5 +370,6 @@ internal class EmployeeServiceSupport {
         }
         validate(attrDO)
         baseDOPersistenceService.undelete(obj = attrDO, checkAccess = checkAccess)
+        employeeCache.setExpired()
     }
 }

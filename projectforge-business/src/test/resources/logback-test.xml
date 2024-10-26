@@ -9,6 +9,9 @@
         <appender-ref ref="MEMORY"/>
     </root>
 
+    <!-- Log Persistence calls -->
+    <!--logger name="org.projectforge.framework.persistence.jpa.PfPersistenceContext" level="debug"/-->
+
     <!-- Log Hibernate SQL Statements, Log SQL Bind Parameters, Optional: Log DDL operations -->
     <!--logger name="org.hibernate.SQL" level="DEBUG" />
     <logger name="org.hibernate.transaction" level="DEBUG" />

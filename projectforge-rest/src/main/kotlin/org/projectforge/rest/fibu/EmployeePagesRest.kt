@@ -51,6 +51,9 @@ class EmployeePagesRest :
     AbstractDTOPagesRest<EmployeeDO, Employee, EmployeeDao>(EmployeeDao::class.java, "fibu.employee.title") {
 
     @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
     private lateinit var employeeService: EmployeeService
 
     @Autowired
@@ -74,9 +77,9 @@ class EmployeePagesRest :
                 employee.kost1 = dto
             }
         }
-        employee.statusEntries = employeeService.selectStatusEntries(obj).map { EmployeeValidSinceAttr(it) }
-        employee.annualLeaveEntries =
-            employeeService.selectAnnualLeaveDayEntries(obj).map { EmployeeValidSinceAttr(it) }
+        employeeCache.setStatusAndAnnualLeave(obj)
+        employee.status = obj.status
+        employee.annualLeave = obj.annualLeave
         return employee
     }
 
@@ -84,6 +87,14 @@ class EmployeePagesRest :
         val employeeDO = EmployeeDO()
         dto.copyTo(employeeDO)
         return employeeDO
+    }
+
+    override fun onBeforeGetItemAndLayout(request: HttpServletRequest, dto: Employee, userAccess: UILayout.UserAccess) {
+        dto.id?.let { id ->
+        dto.statusEntries = employeeService.selectStatusEntries(id).map { EmployeeValidSinceAttr(it) }
+        dto.annualLeaveEntries =
+            employeeService.selectAnnualLeaveDayEntries(id).map { EmployeeValidSinceAttr(it) }
+        }
     }
 
     /**
@@ -193,7 +204,8 @@ class EmployeePagesRest :
                                     responseAction = ResponseAction(
                                         createModalUrl(dto, EmployeeValidSinceAttrType.ANNUAL_LEAVE, true),
                                         targetType = TargetType.MODAL
-                                    )
+                                    ),
+                                    default = false,
                                 )
                             )
                         )
@@ -214,7 +226,8 @@ class EmployeePagesRest :
                                     responseAction = ResponseAction(
                                         createModalUrl(dto, EmployeeValidSinceAttrType.STATUS, true),
                                         targetType = TargetType.MODAL
-                                    )
+                                    ),
+                                    default = false,
                                 )
                             )
                         )

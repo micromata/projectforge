@@ -30,6 +30,7 @@ import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.kost.Kost1Dao
 import org.projectforge.business.user.UserDao
 import org.projectforge.business.user.UserRightId
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
@@ -174,6 +175,10 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         }
         employeeCache.setStatusAndAnnualLeave(list)
         return list
+    }
+
+    override fun afterInsertOrModify(obj: EmployeeDO, operationType: OperationType) {
+        employeeCache.setExpired()
     }
 
     override fun newInstance(): EmployeeDO {

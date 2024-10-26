@@ -1,7 +1,7 @@
 Aktuell:
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 
-- Employee.status wird nun nicht mehr automatisch gesetzt.
+- history-entries bei EmployeeValidityAttrDO nichtssagend.
 - TeamCalDO: Beim Ändern (rest) werden auch die Felder minimalAccessUserIds, fullAccessGroupIds, fullAccessUserIds, readonlyAccessGroupIds, readonlyAccessUserIds als geändert angezeigt.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.

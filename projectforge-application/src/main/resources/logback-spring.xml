@@ -58,6 +58,8 @@
         <appender-ref ref="MEMORY"/>
     </root>
 
+    <!-- Log Persistence calls -->
+    <!--logger name="org.projectforge.framework.persistence.jpa.PfPersistenceContext" level="debug"/-->
     <!-- Log Hibernate SQL Statements -->
     <!--logger name="org.hibernate.SQL" level="DEBUG" />
     <logger name="org.hibernate.transaction" level="DEBUG" /-->
@@ -65,6 +67,8 @@
     <!--logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/-->
     <!-- Optional: Log DDL operations -->
     <!--logger name="org.hibernate.orm.tool.schema.internal" level="DEBUG"/-->
+
+    <!--logger name="org.apache.wicket.serialize and org.apache.wicket" level="DEBUG" /-->
 
     <!-- custom logging levels -->
     <!--logger name="org.projectforge.framework.persistence.jpa" level="DEBUG" /-->

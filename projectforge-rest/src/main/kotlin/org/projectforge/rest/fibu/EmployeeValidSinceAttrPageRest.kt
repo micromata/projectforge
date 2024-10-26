@@ -175,7 +175,7 @@ class EmployeeValidSinceAttrPageRest : AbstractDynamicPageRest() {
                 employeeService.selectAnnualLeaveDayEntries(dto.employeeId!!).map { EmployeeValidSinceAttr(it) }
             responseAction.addVariable("data", ResponseData(annualLeaveEntries = attrs))
         }
-        return ResponseEntity.ok().body(ResponseAction(targetType = TargetType.CLOSE_MODAL, merge = true))
+        return ResponseEntity.ok().body(responseAction)
 
     }
 
