@@ -25,6 +25,7 @@ package org.projectforge.rest.dto
 
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
+import org.projectforge.business.fibu.EmployeeStatus
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.configuration.ApplicationContextProvider
 import java.math.BigDecimal
@@ -44,6 +45,15 @@ class Employee(
     var weeklyWorkingHours: BigDecimal? = null,
     var comment: String? = null,
 ) : BaseDTODisplayObject<EmployeeDO>(id, displayName = displayName) {
+    /**
+     * Read-only field.
+     */
+    var annualLeave: BigDecimal? = null
+    /**
+     * Read-only field.
+     */
+    var status: EmployeeStatus? = null
+
     var annualLeaveEntries: List<EmployeeValidSinceAttr>? = null
     var statusEntries: List<EmployeeValidSinceAttr>? = null
 

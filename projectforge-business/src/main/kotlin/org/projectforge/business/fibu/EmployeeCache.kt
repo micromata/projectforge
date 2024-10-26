@@ -108,8 +108,9 @@ open class EmployeeCache : AbstractCache() {
             ).forEach { employee ->
                 map[employee.id!!] = employee
             }
-            getAllCurrentValidSinceEntries(EmployeeValidSinceAttrType.STATUS)
+            getLatestValidSinceEntries(EmployeeValidSinceAttrType.STATUS)
                 .forEach { validSinceEntry ->
+                    log.debug { "EmployeeCache.refresh: Processing $validSinceEntry" }
                     validSinceEntry.employee?.id?.let { employeeId ->
                         map[employeeId]?.let { employee ->
                             employee.status = validSinceEntry.status
@@ -117,8 +118,9 @@ open class EmployeeCache : AbstractCache() {
                         }
                     }
                 }
-            getAllCurrentValidSinceEntries(EmployeeValidSinceAttrType.ANNUAL_LEAVE)
+            getLatestValidSinceEntries(EmployeeValidSinceAttrType.ANNUAL_LEAVE)
                 .forEach { validSinceEntry ->
+                    log.debug { "EmployeeCache.refresh: Processing $validSinceEntry" }
                     validSinceEntry.employee?.id?.let { employeeId ->
                         map[employeeId]?.let { employee ->
                             employee.annualLeave = validSinceEntry.annualLeave
@@ -137,12 +139,14 @@ open class EmployeeCache : AbstractCache() {
         }
     }
 
-    private fun getAllCurrentValidSinceEntries(type: EmployeeValidSinceAttrType): List<EmployeeValidSinceAttrDO> {
+    private fun getLatestValidSinceEntries(type: EmployeeValidSinceAttrType): Collection<EmployeeValidSinceAttrDO> {
         return persistenceService.executeQuery(
-            queryAllValidSinceMaxValues,
+            queryAllValidSinceValues,
             EmployeeValidSinceAttrDO::class.java,
             Pair("type", type),
-        )
+        ).groupBy { it.employee?.id } // Group by employee ID
+            .mapValues { entry -> entry.value.first() } // Get the first record (latest) in each group
+            .values // Extract the results as a collection of latest records
     }
 
     companion object {
@@ -150,17 +154,22 @@ open class EmployeeCache : AbstractCache() {
         lateinit var instance: EmployeeCache
             private set
 
+        // select * from t_fibu_employee_valid_since_attr t where type='STATUS' AND t.deleted=false order by t.employee_fk, t.valid_since desc;
+        const val queryAllValidSinceValues = "SELECT t FROM EmployeeValidSinceAttrDO t WHERE t.type=:type AND t.deleted=false ORDER BY t.employee.id, t.validSince DESC"
+
+        // Following query didn't work properly with PostgreSQL (some entries were missing):
         // Gets the validSince attribute for all employees and takes the last (max) entry.
-        const val queryAllValidSinceMaxValues =
+        //  SELECT e FROM t_fibu_employee_valid_since_attr e WHERE e.valid_since = (SELECT MAX(innerE.valid_since) FROM t_fibu_employee_valid_since_attr innerE WHERE innerE.employee_fk = e.employee_fk) AND e.type='STATUS' ORDER BY e.employee_fk, e.valid_since DESC;
+        /*const val queryAllValidSinceMaxValues =
             """
             SELECT e FROM EmployeeValidSinceAttrDO e
             WHERE e.validSince = (
-                SELECT MAX(innerE.validSince) 
-                FROM EmployeeValidSinceAttrDO innerE 
+                SELECT MAX(innerE.validSince)
+                FROM EmployeeValidSinceAttrDO innerE
                 WHERE innerE.employee.id = e.employee.id
             )
-            AND e.type = :type
+            AND e.type = :type AND e.deleted = false
             ORDER BY e.employee.id, e.validSince DESC
-            """
+            """*/
     }
 }

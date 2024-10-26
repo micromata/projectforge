@@ -784,6 +784,7 @@ constructor(
     /**
      * Will be called after getting the item from the database before calling [onGetItemAndLayout]. No initial layout
      * is available.
+     * Does nothing at default.
      */
     protected open fun onBeforeGetItemAndLayout(
         request: HttpServletRequest,
