@@ -42,7 +42,7 @@ open class KontoCache : AbstractCache() {
     private lateinit var persistenceService: PfPersistenceService
 
     /**
-     * The key is the order id.
+     * The key is the database id.
      */
     private var accountMapById: Map<Long?, KontoDO?>? = null
 

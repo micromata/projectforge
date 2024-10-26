@@ -109,6 +109,15 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
     open var status: EmployeeStatus? = null
         internal set
 
+    /**
+     * Field will be set by EmployeeDao automatically from validity period attr.
+     * Field for convenience only. It's not persisted.
+     */
+    @PropertyInfo(i18nKey = "fibu.employee.urlaubstage")
+    @get:Transient
+    open var annualLeave: BigDecimal? = null
+        internal set
+
     @PropertyInfo(i18nKey = "address.positionText")
     @FullTextField
     @get:Column(name = "position_text", length = 244)

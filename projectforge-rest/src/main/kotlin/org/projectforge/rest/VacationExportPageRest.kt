@@ -25,6 +25,7 @@ package org.projectforge.rest
 
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
+import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.group.service.GroupService
@@ -69,6 +70,9 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
             employees = other.employees
         }
     }
+
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
 
     @Autowired
     private lateinit var employeeDao: EmployeeDao
@@ -169,7 +173,7 @@ class VacationExportPageRest : AbstractDynamicPageRest() {
             }
             data?.groups?.forEach { group ->
                 userGroupCache.getGroup(group.id)?.assignedUsers?.forEach { user ->
-                    employeeDao.findByUserId(user.id)?.let { employeeDO ->
+                    employeeCache.getEmployeeByUserId(user.id)?.let { employeeDO ->
                         employees.add(employeeDO)
                     }
                 }

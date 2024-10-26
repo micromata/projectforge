@@ -254,9 +254,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
                 cq.where(deletedPredicate)  // Fügen Sie die Bedingung zur Abfrage hinzu
             }
             val query = em.createQuery(cq)
+            context.logAndAdd(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "selectAll")
             query.resultList
         }
-        PfPersistenceService.getCallsStats()?.add(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "selectAll")
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 
@@ -272,10 +272,9 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             val cr = em.criteriaBuilder.createQuery(doClass)
             val root = cr.from(doClass)
             cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
+            context.logAndAdd(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "select by ids=${idList.joinToString()}")
             em.createQuery(cr).resultList
         }
-        PfPersistenceService.getCallsStats()
-            ?.add(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "select by ids=${idList.joinToString()}")
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
     }
 

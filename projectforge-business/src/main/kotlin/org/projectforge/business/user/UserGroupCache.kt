@@ -25,8 +25,6 @@ package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.projectforge.business.fibu.EmployeeDO
-import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
 import org.projectforge.framework.ToStringUtil
@@ -57,9 +55,6 @@ open class UserGroupCache : AbstractCache() {
 
     @Autowired
     private lateinit var userRightDao: UserRightDao
-
-    @Autowired
-    private lateinit var employeeDao: EmployeeDao
 
     @Autowired
     private lateinit var jobHandler: JobHandler
@@ -99,10 +94,6 @@ open class UserGroupCache : AbstractCache() {
      */
     private var userMap = mutableMapOf<Long, PFUserDO>()
 
-    /**
-     * Key is user id.
-     */
-    private var employeeMap = mapOf<Long, EmployeeDO>()
     private var adminUsers = setOf<Long>()
     private var financeUsers = setOf<Long>()
     private var controllingUsers = setOf<Long>()
@@ -367,25 +358,6 @@ open class UserGroupCache : AbstractCache() {
         return userGroupIdMap
     }
 
-    fun getEmployeeId(userId: Long?): Long? {
-        userId ?: return null
-        checkRefresh()
-        return employeeMap[userId]?.id
-    }
-
-    fun getEmployeeByUser(userId: Long?): EmployeeDO? {
-        userId ?: return null
-        checkRefresh()
-        return employeeMap[userId]
-    }
-
-    fun getUser(employeeDO: EmployeeDO?): PFUserDO? {
-        employeeDO ?: return null
-        checkRefresh()
-        val userId = employeeMap.values.find { it.id == employeeDO.id }?.userId
-        return getUser(userId)
-    }
-
     /**
      * Should be called after user modifications.
      */
@@ -453,14 +425,6 @@ open class UserGroupCache : AbstractCache() {
                 }
                 this.userMap = uMap
                 this.groupMap = gMap
-                val nEmployeeMap = mutableMapOf<Long, EmployeeDO>()
-                employeeDao.selectAllNotDeleted(checkAccess = false).forEach { employeeDO ->
-                    employeeDO.userId?.let { userId ->
-                        nEmployeeMap[userId] = employeeDO
-                        // employeeDao.setEmployeeStatus(employeeDO)
-                    }
-                }
-                this.employeeMap = nEmployeeMap
                 this.adminUsers = nAdminUsers
                 this.financeUsers = nFinanceUser
                 this.controllingUsers = nControllingUsers

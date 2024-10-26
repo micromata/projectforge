@@ -55,6 +55,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     @Autowired
     private lateinit var userDao: UserDao
 
+    @Autowired
+    private lateinit var employeeCache: EmployeeCache
+
     // Set by EmployeeService in PostConstruct for avoiding circular dependencies.
     internal lateinit var employeeService: EmployeeService
 
@@ -74,7 +77,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             EmployeeDO::class.java,
             Pair("userId", userId),
         )
-        setEmployeeStatus(employee)
+        employeeCache.setStatusAndAnnualLeave(employee)
         return employee
     }
 
@@ -107,7 +110,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             Pair("firstname", firstname),
             Pair("lastname", lastname),
         )
-        setEmployeeStatus(employee)
+        employeeCache.setStatusAndAnnualLeave(employee)
         return employee
     }
 
@@ -158,25 +161,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
                 employeeService.isEmployeeActive(employee, showRecentlyLeavers)
             }
         }
-        setEmployeeStatus(employees)
+        employeeCache.setStatusAndAnnualLeave(employees)
         return employees
-    }
-
-    /**
-     * Sets the (deprecated) employee status from timeableAttributes.
-     */
-    private fun setEmployeeStatus(employees: List<EmployeeDO>) {
-        for (employeeDO in employees) {
-            setEmployeeStatus(employeeDO)
-        }
-    }
-
-    /**
-     * Sets the employee status from validity period attrs.
-     */
-    open fun setEmployeeStatus(employeeDO: EmployeeDO?) {
-        employeeDO ?: return
-        employeeDO.status = employeeService.getEmployeeStatus(employeeDO, checkAccess = false)
     }
 
     override fun select(filter: BaseSearchFilter): List<EmployeeDO> {
@@ -186,7 +172,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         if (myFilter.isShowOnlyActiveEntries) {
             list = list.filter { it.active }
         }
-        setEmployeeStatus(list)
+        employeeCache.setStatusAndAnnualLeave(list)
         return list
     }
 
@@ -206,7 +192,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         } catch (ex: NoResultException) {
             log.warn("No employee found for staffnumber: $staffnumber")
         }
-        setEmployeeStatus(result)
+        employeeCache.setStatusAndAnnualLeave(result)
         return result
     }
 

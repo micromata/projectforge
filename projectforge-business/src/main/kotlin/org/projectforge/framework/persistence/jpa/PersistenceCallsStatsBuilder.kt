@@ -26,6 +26,15 @@ package org.projectforge.framework.persistence.jpa
 /**
  */
 class PersistenceCallsStatsBuilder {
+    companion object {
+        /**
+         * Any values of these keys containing one of the values in dataProtectionKeys will be replaced by "xxx" in the log output.
+         * This is useful for hiding sensitive data in log output.
+         * The check is case-insensitive.
+         */
+        private val dataProtectionKeys = arrayOf("password", "token")
+    }
+
     val sb = StringBuilder()
     private var firstEntry = true
     fun resultClass(resultClass: Class<*>): PersistenceCallsStatsBuilder {
@@ -34,15 +43,22 @@ class PersistenceCallsStatsBuilder {
         return this
     }
 
-    fun keyValues(keyValues: Array<out Pair<Any, Any?>>): PersistenceCallsStatsBuilder {
+    fun keyValues(keyValues: Array<out Pair<String, Any?>>): PersistenceCallsStatsBuilder {
         if (keyValues.isEmpty()) {
             return this
         }
         appendComma()
         sb.append("keyValues={")
-            .append(keyValues.joinToString(",") { "${it.first}=${it.second}" })
+            .append(keyValues.joinTo(buffer = sb, separator = ",") { keyValueAsString(it) })
         sb.append("}")
         return this
+    }
+
+    private fun keyValueAsString(keyValue: Pair<String, Any?>): String {
+        if (dataProtectionKeys.any { keyValue.first.contains(it, ignoreCase = true) }) {
+            return "${keyValue.first}=xxx"
+        }
+        return "${keyValue.first}=${keyValue.second}"
     }
 
     fun param(name: String, value: Any?): PersistenceCallsStatsBuilder {
