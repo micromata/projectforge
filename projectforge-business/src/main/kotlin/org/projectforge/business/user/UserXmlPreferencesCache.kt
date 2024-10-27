@@ -156,6 +156,7 @@ class UserXmlPreferencesCache : AbstractCache() {
      * logout. If the user data isn't modified, then nothing will be done.
      */
     fun flushAllToDB() {
+        log.info("Flushing all user preferences to database....")
         synchronized(allPreferences) {
             allPreferences.keys.forEach { userId ->
                 flushToDB(userId, checkAccess = false)
@@ -220,8 +221,7 @@ class UserXmlPreferencesCache : AbstractCache() {
             log.info("It seems to be running in test mode. No sync to database in UserPrefCache.")
             return
         }
-        log.info("Syncing all user preferences to database.")
-        this.forceReload()
+        flushAllToDB()
     }
 
     companion object {
