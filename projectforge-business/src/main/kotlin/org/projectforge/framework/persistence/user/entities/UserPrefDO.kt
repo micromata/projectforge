@@ -32,6 +32,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
+import org.projectforge.business.user.IUserPref
 import org.projectforge.business.user.UserPrefAreaRegistry
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.api.BaseDO
@@ -96,16 +97,23 @@ private val log = KotlinLogging.logger {}
         query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"
     )
 )
-class UserPrefDO : AbstractBaseDO<Long>() {
+class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_fk", nullable = false)
-    var user: PFUserDO? = null
+    override var user: PFUserDO? = null
 
     @FullTextField
     @get:Column(length = 255, nullable = false)
     var name: String? = null
+
+    @get:Transient
+    override var identifier: String?
+        get() = name
+        set(value) {
+            name = value
+        }
 
     @get:Transient
     var areaObject: UserPrefArea? = null // 20;
@@ -136,7 +144,7 @@ class UserPrefDO : AbstractBaseDO<Long>() {
      * The value as string representation (e. g. json).
      */
     @get:Column(name = "value_string", length = 100000) // 100.000, should be space enough.
-    var valueString: String? = null
+    override var serializedValue: String? = null
 
     /**
      * The type of the value (class name). It's not of type class because types are may-be refactored or removed.
@@ -168,13 +176,13 @@ class UserPrefDO : AbstractBaseDO<Long>() {
 
     @get:Transient
     val getIntValue: Int?
-        get() = valueString?.toInt()
+        get() = serializedValue?.toInt()
 
     /**
-     * User pref's ar
+     * User pref's area
      */
     @get:Column(length = UserPrefArea.MAX_ID_LENGTH, nullable = false)
-    var area: String? = null
+    override var area: String? = null
 
     val sortedUserPrefEntries: Set<UserPrefEntryDO>
         @Transient
@@ -283,6 +291,14 @@ class UserPrefDO : AbstractBaseDO<Long>() {
             }
         }
         return list
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return IUserPref.equals(this, other)
+    }
+
+    override fun hashCode(): Int {
+        return IUserPref.hashCode()
     }
 
     companion object {

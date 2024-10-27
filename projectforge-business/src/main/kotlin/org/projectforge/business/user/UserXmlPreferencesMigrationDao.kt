@@ -101,26 +101,25 @@ open class UserXmlPreferencesMigrationDao {
     }
 
     protected fun migrateUserPrefs(userPrefs: UserXmlPreferencesDO): String {
-        val userId = userPrefs.userId
-        Validate.notNull(userId)
+        val userId = userPrefs.user?.id ?: return ""
         val buf = StringBuilder()
         buf.append("Checking user preferences for user '")
-        val user = userGroupCache.getUser(userPrefs.userId)
+        val user = userGroupCache.getUser(userId)
         if (user != null) {
             buf.append(user.username)
         } else {
-            buf.append(userPrefs.userId)
+            buf.append(userId)
         }
-        buf.append("': " + userPrefs.key + " ... ")
+        buf.append("': ").append(userPrefs.identifier).append(" ... ")
         if (userPrefs.version >= getCurrentVersion()) {
             buf.append("version ").append(userPrefs.version).append(" (up to date)\n")
             return buf.toString()
         }
         migrate(userPrefs)
-        val data = userXmlPreferencesDao.deserialize(userId!!, userPrefs, true)
+        val data = userXmlPreferencesDao.deserialize(userPrefs)
         buf.append("version ")
         buf.append(userPrefs.version)
-        if (data != null || "<null/>" == userPrefs.serializedSettings) {
+        if (data != null || "<null/>" == userPrefs.serializedValue) {
             buf.append(" OK ")
         } else {
             buf.append(" ***not re-usable*** ")

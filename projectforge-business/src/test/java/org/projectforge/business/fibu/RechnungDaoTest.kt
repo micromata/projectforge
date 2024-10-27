@@ -100,7 +100,7 @@ class RechnungDaoTest : AbstractTestBase() {
     fun checkAccess() {
         lateinit var rechnung: RechnungDO
         lateinit var id: Serializable
-        persistenceService.runInTransaction<Any?> { context ->
+        persistenceService.runInTransaction<Any?> { _ ->
             logon(TEST_FINANCE_USER)
             rechnung = RechnungDO()
             val number = rechnungDao.getNextNumber(rechnung)
@@ -115,7 +115,7 @@ class RechnungDaoTest : AbstractTestBase() {
             id = rechnungDao.insert(rechnung)
             rechnung = rechnungDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
         }
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction { _ ->
             logon(TEST_CONTROLLING_USER)
             rechnungDao.find(id, attached = true) // Attached is important, otherwise deadlock.
             checkNoWriteAccess(rechnung, "Controlling")

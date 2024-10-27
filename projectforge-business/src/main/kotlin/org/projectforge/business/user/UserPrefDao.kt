@@ -519,7 +519,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     fun deserizalizeValueObject(userPref: UserPrefDO?): Any? {
         userPref ?: return null
         val valueType = userPref.valueType ?: return null
-        val valueString = userPref.valueString ?: return null
+        val valueString = userPref.serializedValue ?: return null
         if (userPref.valueType == null) return null
         userPref.valueObject = fromJson(valueString, valueType)
         return userPref.valueObject
@@ -528,10 +528,10 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
     override fun onInsertOrModify(obj: UserPrefDO, operationType: OperationType) {
         val valueObject = obj.valueObject
         if (valueObject == null) {
-            obj.valueString = null
+            obj.serializedValue = null
             obj.valueTypeString = null
         } else {
-            obj.valueString = toJson(valueObject)
+            obj.serializedValue = toJson(valueObject)
             obj.valueTypeString = valueObject.javaClass.name
         }
     }
@@ -567,22 +567,18 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      * Checks if the user pref already exists in the database by querying the database with user id, area and name.
      * The id of the given obj is ignored.
      */
-    override fun insertOrUpdate(obj: UserPrefDO, checkAccess: Boolean): Serializable? {
-        val userId = obj.user?.id
-        if (userId == null) {
-            log.warn("UserId of UserPrefDO is null (can't save it): $obj")
-            return null
-        }
+    fun saveOrUpdate(userPref: UserPrefDO, checkAccess: Boolean): Serializable? {
+        val userId = userPref.user?.id ?: return null
         synchronized(this) {
             // Avoid parallel insert, update, delete operations.
-            val dbUserPref = internalQuery(userId, obj.area, obj.name)
+            val dbUserPref = internalQuery(userId, userPref.area, userPref.name)
             if (dbUserPref == null) {
-                obj.id = null // Add new entry (ignore id of any previous existing entry).
-                return super.insertOrUpdate(obj, checkAccess)
+                userPref.id = null // Add new entry (ignore id of any previous existing entry).
+                return super.insertOrUpdate(userPref, checkAccess)
             } else {
-                obj.id = dbUserPref.id
-                super.update(obj, checkAccess= false)
-                return obj.id
+                userPref.id = dbUserPref.id
+                super.update(userPref, checkAccess= false)
+                return userPref.id
             }
         }
     }
@@ -595,7 +591,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
 
         private const val MAGIC_JSON_START: String = "^JSON:"
 
-        private fun toJson(obj: Any): String {
+        internal fun toJson(obj: Any): String {
             try {
                 return MAGIC_JSON_START + getObjectMapper().writeValueAsString(obj)
             } catch (ex: JsonProcessingException) {

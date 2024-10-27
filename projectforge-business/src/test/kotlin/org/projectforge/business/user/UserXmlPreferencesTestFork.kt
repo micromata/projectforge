@@ -26,13 +26,11 @@ package org.projectforge.business.user
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessException
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class UserXmlPreferencesTestFork : AbstractTestBase() {
-    @Autowired
-    private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
-
     @Autowired
     private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
@@ -41,38 +39,41 @@ class UserXmlPreferencesTestFork : AbstractTestBase() {
         val user1 = getUser("user1")
         val user2 = getUser("user2")
         logon(user1)
-        userXmlPreferencesCache.putEntry(user1.id!!, "msg", "Hurzel", true)
-        Assertions.assertEquals("Hurzel", userXmlPreferencesCache.getEntry(user1.id!!, "msg"))
-        assert(user1.id, "msg", true,"New entry should be modified.")
+        userXmlPreferencesCache.putEntry(null, "msg", "Hurzel", true, user1.id!!)
+        Assertions.assertEquals("Hurzel", userXmlPreferencesCache.getEntry(null, "msg", user1.id!!))
+        assert(user1.id, "msg", true, "New entry should be modified.")
         userXmlPreferencesCache.refresh()
-        assert(user1.id, "msg", false,"Entry should be flushed to db and shouldn't be modified.")
-        userXmlPreferencesCache.putEntry(user1.id!!, "value", 42, true)
-        assert(user1.id, "value", true,"New entry should be modified.")
+        assert(user1.id, "msg", false, "Entry should be flushed to db and shouldn't be modified.")
+        userXmlPreferencesCache.putEntry(null, "value", 42, true, user1.id!!)
+        assert(user1.id, "value", true, "New entry should be modified.")
         userXmlPreferencesCache.refresh()
-        userXmlPreferencesCache.putEntry(user1.id!!, "value", 42, true)
-        assert(user1.id, "value", false,"Entry has original value and shouldn't be modified.")
-        userXmlPreferencesCache.putEntry(user1.id!!, "application", "ProjectForge", false)
-        Assertions.assertEquals("ProjectForge", userXmlPreferencesCache.getEntry(user1.id!!, "application"))
+        userXmlPreferencesCache.putEntry(null, "value", 42, true, user1.id!!)
+        assert(user1.id, "value", false, "Entry has original value and shouldn't be modified.")
+        userXmlPreferencesCache.putEntry(null, "application", "ProjectForge", false, user1.id!!)
+        Assertions.assertEquals("ProjectForge", userXmlPreferencesCache.getEntry(null, "application", user1.id!!))
         try {
-            userXmlPreferencesCache.putEntry(user2.id!!, "msg", "Hurzel2", true)
+            userXmlPreferencesCache.putEntry(null, "msg", "Hurzel2", true, user2.id!!)
             Assertions.fail<Any>("User 1 should not have access to entry of user 2")
         } catch (ex: AccessException) {
             // OK
         }
         logon(TEST_ADMIN_USER)
-        userXmlPreferencesCache.putEntry(user2.id!!, "msg", "Hurzel2", true)
-        Assertions.assertEquals("Hurzel", userXmlPreferencesCache.getEntry(user1.id!!, "msg"))
+        userXmlPreferencesCache.putEntry(null, "msg", "Hurzel2", true, user2.id!!)
+        Assertions.assertEquals("Hurzel", userXmlPreferencesCache.getEntry(null, "msg", user1.id!!))
         logon(user2)
-        Assertions.assertEquals("ProjectForge", userXmlPreferencesCache.getEntry(user1.id!!, "application"))
+        Assertions.assertEquals("ProjectForge", userXmlPreferencesCache.getEntry(null, "application", user1.id!!))
     }
 
     private fun assert(userId: Long?, key: String, expectedModified: Boolean, msg: String? = null) {
         val data = userXmlPreferencesCache.ensureAndGetUserPreferencesData(userId!!)
-        val value = data.getEntry(key)
+        val value = data.getEntry(null, key)
+        val userPref = UserXmlPreferencesDO()
+        userPref.user = PFUserDO().also { it.id = userId }
+        userPref.key = key
         if (expectedModified) {
-            Assertions.assertTrue(userXmlPreferencesDao.isModified(data, key, value), msg)
+            Assertions.assertTrue(userXmlPreferencesCache.isModified(data, userPref, value), msg)
         } else {
-            Assertions.assertFalse(userXmlPreferencesDao.isModified(data, key, value), msg)
+            Assertions.assertFalse(userXmlPreferencesCache.isModified(data, userPref, value), msg)
         }
     }
 }

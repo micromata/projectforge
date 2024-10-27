@@ -58,7 +58,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class UserXmlPreferencesDao {
     private val xstream = createXStream(
-        UserXmlPreferencesMap::class.java,
+        UserPrefCacheData::class.java,
         TaskFilter::class.java,
         ScriptCallData::class.java,
         RecentScriptCalls::class.java
@@ -127,8 +127,9 @@ class UserXmlPreferencesDao {
 
     @Suppress("UNUSED_PARAMETER")
     fun <T> getDeserializedUserPreferencesByUserId(userId: Long, key: String?, returnClass: Class<T>): T? {
+        val userPref = getUserPreferencesByUserId(userId, key, true) ?: return null
         @Suppress("UNCHECKED_CAST")
-        return deserialize(userId, getUserPreferencesByUserId(userId, key, true)!!, false) as T?
+        return deserialize(userPref) as T?
     }
 
     /**
@@ -167,33 +168,17 @@ class UserXmlPreferencesDao {
      * @param userPrefs
      * @param logError
      */
-    fun deserialize(userId: Long, userPrefs: UserXmlPreferencesDO, logError: Boolean): Any? {
-        var xml: String? = null
-        try {
-            UserXmlPreferencesMigrationDao.migrate(userPrefs)
-            xml = userPrefs.serializedSettings
-            if (xml.isNullOrEmpty()) {
-                return null
-            }
-            xml = getUncompressed(xml)
-            log.debug { "UserId: $userId Object to deserialize: $xml" }
-            val value = fromXml(xstream, xml)
-            return value
-        } catch (ex: Throwable) {
-            if (logError) {
-                log.warn(
-                    ("Can't deserialize user preferences: "
-                            + ex.message
-                            + " for user: "
-                            + userPrefs.userId
-                            + ":"
-                            + userPrefs.key
-                            + " (may-be ok after a new ProjectForge release). xml="
-                            + xml)
-                )
-            }
+    fun deserialize(userPrefs: UserXmlPreferencesDO): Any? {
+        val userId = userPrefs.user?.id
+        UserXmlPreferencesMigrationDao.migrate(userPrefs)
+        var xml = userPrefs.serializedValue
+        if (xml.isNullOrEmpty()) {
             return null
         }
+        xml = getUncompressed(xml)
+        log.debug { "UserId: $userId Object to deserialize: $xml" }
+        val value = fromXml(xstream, xml)
+        return value
     }
 
     /*private fun getSourceClassName(xml: String): String? {
@@ -208,44 +193,20 @@ class UserXmlPreferencesDao {
     }*/
 
     fun serialize(userPrefs: UserXmlPreferencesDO, value: Any?): String {
-        val xml = toXml(xstream, value)
+        val xml = serialize(value)
 
         if (xml.length > 1000) {
             // Compress value:
             val compressed = GZIPHelper.compress(xml)
-            userPrefs.serializedSettings = "!$compressed"
+            userPrefs.serializedValue = "!$compressed"
         } else {
-            userPrefs.serializedSettings = xml
+            userPrefs.serializedValue = xml
         }
         return xml
     }
 
-    internal fun saveOrUpdateUserEntriesIfModified(userId: Long, data: UserXmlPreferencesMap, checkAccess: Boolean) {
-        var counter = 0
-        data.persistentDataForeach { key, value ->
-            if (isModified(data, key, value)) {
-                log.debug { "User preference modified: user=${data.userId}, key=$key" }
-                // Only save if changed to avoid unnecessary database updates.
-                ++counter
-                try {
-                    saveOrUpdate(userId, key, value, checkAccess)
-                } catch (ex: Throwable) {
-                    log.warn(ex.message, ex)
-                }
-            } else {
-                log.debug { "User preference not modified: user=${data.userId}, key=$key" }
-            }
-        }
-        if (counter > 0) {
-            log.info { "Saved $counter modified entries of user=${data.userId}" }
-        }
-    }
-
-    internal fun isModified(data: UserXmlPreferencesMap, key: String, value: Any?): Boolean {
-        val originalHashCode = data.getOriginalDataHashCode(key)
-        val currenHashCode = toXml(xstream, value).hashCode()
-        log.debug { "User preference modification status=${originalHashCode != currenHashCode}, key=$key, value=$value, originalHashCode=$originalHashCode, currenHashCode=$currenHashCode" }
-        return originalHashCode != currenHashCode
+    fun serialize(value: Any?): String {
+        return toXml(xstream, value)
     }
 
     /**
@@ -258,12 +219,14 @@ class UserXmlPreferencesDao {
         userPrefs.user = user
     }
 
-    fun saveOrUpdate(userId: Long, key: String?, entry: Any?, checkAccess: Boolean) {
+    fun saveOrUpdate(userPref: UserXmlPreferencesDO, value: Any?, checkAccess: Boolean) {
+        val userId = userPref.user?.id ?: return
         if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return
         }
         var isNew = false
+        val key = userPref.identifier
         var userPrefs = getUserPreferencesByUserId(userId, key, checkAccess)
         val date = Date()
         if (userPrefs == null) {
@@ -271,9 +234,9 @@ class UserXmlPreferencesDao {
             userPrefs = UserXmlPreferencesDO()
             userPrefs.created = date
             userPrefs.user = userDao.find(userId, checkAccess = false)
-            userPrefs.key = key
+            userPrefs.identifier = key
         }
-        val xml = serialize(userPrefs, entry)
+        val xml = serialize(userPrefs, value)
         log.debug { "UserXmlPrefs serialized for db: $xml" }
         userPrefs.lastUpdate = date
         userPrefs.setVersion()
@@ -283,13 +246,13 @@ class UserXmlPreferencesDao {
                 log.debug { "Storing new user preference for user '$userId': $xml" }
                 context.insert(userPrefsForDB)
             } else {
-                log.debug { "Updating user preference for user '" + userPrefs.userId + "': " + xml }
+                log.debug { "Updating user preference for user '$userId': $xml" }
                 context.find(
                     UserXmlPreferencesDO::class.java,
                     userPrefsForDB.id,
                     attached = true,
                 )?.let { attachedEntity ->
-                    attachedEntity.serializedSettings = userPrefsForDB.serializedSettings
+                    attachedEntity.serializedValue = userPrefsForDB.serializedValue
                     attachedEntity.lastUpdate = userPrefsForDB.lastUpdate
                     attachedEntity.setVersion()
                     context.flush()
