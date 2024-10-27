@@ -62,6 +62,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
         visitorbook.copyFrom(obj)
         obj.id?.let { id ->
             visitorbookCache.getVisitorbookInfo(id)?.let { info ->
+                visitorbook.lastDateOfVisit = info.lastDateOfVisit
                 visitorbook.latestArrived = info.latestArrived
                 visitorbook.latestDeparted = info.latestDeparted
                 visitorbook.numberOfVisits = info.numberOfVisits
@@ -112,7 +113,7 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             .add(
                 lc,
                 "lastname", "firstname", "company", "visitortype",
-                "latestArrived", "latestDeparted", "numberOfVisits", "contactPersons",
+                "lastDateOfVisit", "latestArrived", "latestDeparted", "numberOfVisits", "contactPersons",
                 "comment"
             )
     }
@@ -130,8 +131,18 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
             .add(company)
             .add(UISelect.createUserSelect(lc, "contactPersons", true, "orga.visitorbook.contactPerson"))
             .add(lc, "visitortype")
-            .add(
-                UIFieldset(title = "orga.visitorbook.visits").add(
+        layout.layoutBelowActions.add(
+            UIFieldset(title = "orga.visitorbook.visits")
+                .add(
+                    UIButton.createAddButton(
+                        responseAction = ResponseAction(
+                            createModalUrl(dto, true),
+                            targetType = TargetType.MODAL
+                        ),
+                        default = false,
+                    )
+                )
+                .add(
                     UIAgGrid("entries")
                         .add(UIAgGridColumnDef.createCol(lc, "dateOfVisit", headerName = "date"))
                         .add(UIAgGridColumnDef.createCol(lc, "arrived", headerName = "orga.visitorbook.arrive"))
@@ -141,16 +152,8 @@ class VisitorbookPagesRest : AbstractDTOPagesRest<VisitorbookDO, Visitorbook, Vi
                             createModalUrl(dto),
                             openModal = true,
                         )
-                ).add(
-                    UIButton.createAddButton(
-                        responseAction = ResponseAction(
-                            createModalUrl(dto, true),
-                            targetType = TargetType.MODAL
-                        ),
-                        default = false,
-                    )
                 )
-            )
+        )
         return LayoutUtils.processEditPage(layout, dto, this)
     }
 
