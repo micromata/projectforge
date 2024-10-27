@@ -25,7 +25,6 @@ package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
@@ -126,7 +125,9 @@ class UserXmlPreferencesDao {
         } else null
     }
 
-    fun <T> getDeserializedUserPreferencesByUserId(userId: Long, key: String?, returnClass: Class<T>?): T? {
+    @Suppress("UNUSED_PARAMETER")
+    fun <T> getDeserializedUserPreferencesByUserId(userId: Long, key: String?, returnClass: Class<T>): T? {
+        @Suppress("UNCHECKED_CAST")
         return deserialize(userId, getUserPreferencesByUserId(userId, key, true)!!, false) as T?
     }
 
@@ -174,15 +175,8 @@ class UserXmlPreferencesDao {
             if (xml.isNullOrEmpty()) {
                 return null
             }
-            if (xml.startsWith("!")) {
-                // Uncompress value:
-                val uncompressed = GZIPHelper.uncompress(xml.substring(1))!!
-                xml = uncompressed
-            }
-            val sourceClassName = getSourceClassName(xml)
-            if (log.isDebugEnabled) {
-                log.debug("UserId: $userId Object to deserialize: $xml")
-            }
+            xml = getUncompressed(xml)
+            log.debug { "UserId: $userId Object to deserialize: $xml" }
             val value = fromXml(xstream, xml)
             return value
         } catch (ex: Throwable) {
@@ -202,7 +196,7 @@ class UserXmlPreferencesDao {
         }
     }
 
-    private fun getSourceClassName(xml: String): String? {
+    /*private fun getSourceClassName(xml: String): String? {
         val elements = xml.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         if (elements.size > 0) {
             val result = elements[0].replace("<", "").replace(">", "")
@@ -211,7 +205,7 @@ class UserXmlPreferencesDao {
             }
         }
         return null
-    }
+    }*/
 
     fun serialize(userPrefs: UserXmlPreferencesDO, value: Any?): String {
         val xml = toXml(xstream, value)
@@ -226,18 +220,32 @@ class UserXmlPreferencesDao {
         return xml
     }
 
-    // REQUIRES_NEW needed for avoiding a lot of new data base connections from HibernateFilter.
-    fun saveOrUpdateUserEntries(userId: Long, data: UserXmlPreferencesMap, checkAccess: Boolean) {
-        for ((key, value) in data.persistentData) {
-            if (data.isModified(key)) {
+    internal fun saveOrUpdateUserEntriesIfModified(userId: Long, data: UserXmlPreferencesMap, checkAccess: Boolean) {
+        var counter = 0
+        data.persistentDataForeach { key, value ->
+            if (isModified(data, key, value)) {
+                log.debug { "User preference modified: user=${data.userId}, key=$key" }
+                // Only save if changed to avoid unnecessary database updates.
+                ++counter
                 try {
                     saveOrUpdate(userId, key, value, checkAccess)
                 } catch (ex: Throwable) {
                     log.warn(ex.message, ex)
                 }
-                data.setModified(key, false)
+            } else {
+                log.debug { "User preference not modified: user=${data.userId}, key=$key" }
             }
         }
+        if (counter > 0) {
+            log.info { "Saved $counter modified entries of user=${data.userId}" }
+        }
+    }
+
+    internal fun isModified(data: UserXmlPreferencesMap, key: String, value: Any?): Boolean {
+        val originalHashCode = data.getOriginalDataHashCode(key)
+        val currenHashCode = toXml(xstream, value).hashCode()
+        log.debug { "User preference modification status=${originalHashCode != currenHashCode}, key=$key, value=$value, originalHashCode=$originalHashCode, currenHashCode=$currenHashCode" }
+        return originalHashCode != currenHashCode
     }
 
     /**
@@ -266,22 +274,16 @@ class UserXmlPreferencesDao {
             userPrefs.key = key
         }
         val xml = serialize(userPrefs, entry)
-        if (log.isDebugEnabled) {
-            log.debug("UserXmlPrefs serialize to db: $xml")
-        }
+        log.debug { "UserXmlPrefs serialized for db: $xml" }
         userPrefs.lastUpdate = date
         userPrefs.setVersion()
         val userPrefsForDB: UserXmlPreferencesDO = userPrefs
         persistenceService.runInTransaction { context ->
             if (isNew) {
-                if (log.isDebugEnabled) {
-                    log.debug("Storing new user preference for user '$userId': $xml")
-                }
+                log.debug { "Storing new user preference for user '$userId': $xml" }
                 context.insert(userPrefsForDB)
             } else {
-                if (log.isDebugEnabled) {
-                    log.debug("Updating user preference for user '" + userPrefs.userId + "': " + xml)
-                }
+                log.debug { "Updating user preference for user '" + userPrefs.userId + "': " + xml }
                 context.find(
                     UserXmlPreferencesDO::class.java,
                     userPrefsForDB.id,
@@ -306,6 +308,18 @@ class UserXmlPreferencesDao {
         userPreferencesDO?.id?.let { id ->
             persistenceService.runInTransaction { context ->
                 context.delete(UserXmlPreferencesDO::class.java, id)
+            }
+        }
+    }
+
+    companion object {
+        internal fun getUncompressed(xml: String?): String {
+            xml ?: return ""
+            return if (xml.startsWith("!")) {
+                // Uncompress value:
+                GZIPHelper.uncompress(xml.substring(1))!!
+            } else {
+                xml
             }
         }
     }

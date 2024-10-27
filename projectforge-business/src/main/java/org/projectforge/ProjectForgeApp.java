@@ -216,6 +216,7 @@ public class ProjectForgeApp {
 
   private void internalShutdown() {
     log.info("Shutdown...");
+    userXmlPreferencesCache.flushAllToDB();
     upAndRunning = false;
     try {
       final UserContext internalSystemAdminUserContext = UserContext

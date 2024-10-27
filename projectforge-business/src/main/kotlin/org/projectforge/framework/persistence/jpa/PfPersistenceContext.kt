@@ -301,7 +301,7 @@ class PfPersistenceContext internal constructor(
             CallType.PERSIST,
             "${dbObj::class.simpleName}",
             PersistenceCallsStatsBuilder()
-                .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
+                .param("id", if (dbObj is IdObject<*>) dbObj.id else "???")
         )
     }
 
@@ -315,7 +315,7 @@ class PfPersistenceContext internal constructor(
             PersistenceCallsStats.CallType.MERGE,
             "${dbObj::class.simpleName}",
             PersistenceCallsStatsBuilder()
-                .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
+                .param("id", if (dbObj is IdObject<*>) dbObj.id else "???")
         )
         return em.merge(dbObj)
     }
@@ -331,7 +331,7 @@ class PfPersistenceContext internal constructor(
             CallType.REMOVE,
             "${dbObj::class.simpleName}",
             PersistenceCallsStatsBuilder()
-                .param("id", if (dbObj is IdObject<*>) "id=${dbObj.id}" else "???")
+                .param("id", if (dbObj is IdObject<*>) dbObj.id else "???")
         )
     }
 
