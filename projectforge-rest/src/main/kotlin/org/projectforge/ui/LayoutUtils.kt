@@ -118,7 +118,7 @@ object LayoutUtils {
   fun <O : ExtendedBaseDO<Long>> processEditPage(
     layout: UILayout,
     dto: Any,
-    pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>
+    pagesRest: AbstractPagesRest<O, *, out BaseDao<O>>,
   )
       : UILayout {
     val userAccess = layout.userAccess

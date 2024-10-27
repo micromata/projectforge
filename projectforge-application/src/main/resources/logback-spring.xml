@@ -58,22 +58,27 @@
         <appender-ref ref="MEMORY"/>
     </root>
 
-    <!-- Log Persistence calls -->
-    <!--logger name="org.projectforge.framework.persistence.jpa.PfPersistenceContext" level="debug"/-->
-    <!-- Log Hibernate SQL Statements -->
-    <!--logger name="org.hibernate.SQL" level="DEBUG" />
-    <logger name="org.hibernate.transaction" level="DEBUG" /-->
-    <!-- Log SQL Bind Parameters -->
-    <!--logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/-->
-    <!-- Optional: Log DDL operations -->
-    <!--logger name="org.hibernate.orm.tool.schema.internal" level="DEBUG"/-->
-
-    <!--logger name="org.apache.wicket.serialize and org.apache.wicket" level="DEBUG" /-->
-
-    <!-- custom logging levels -->
-    <!--logger name="org.projectforge.framework.persistence.jpa" level="DEBUG" /-->
+    <!-- custom logging levels: -->
     <logger name="org.apache.wicket.Localizer" level="ERROR" />
-    <!--logger name="org.projectforge.framework.persistence.api.impl" level="DEBUG" /-->
-    <!--logger name="org.hibernate.cache" level="DEBUG" /-->
-    <!--logger name="de.micromata.merlin.excel" level="DEBUG" /-->
+
+    <!-- For debugging Persistence calls, add to your projectforge.properties file: -->
+    <!--
+         # Logs all persistance calls (without lazy loadings by hibernate, but gives you a good overview):
+         logging.level.org.projectforge.framework.persistence.jpa.PfPersistenceContext=DEBUG
+
+          # Extensive logging of Hibernate SQL statements:
+          hibernate.show_sql=true
+          Format the shown execute sql in formatted form
+          hibernate.format_sql=true
+          hibernate.hibernateHighlightSql=false
+          hibernate.hibernateUseSqlComments=false
+          # Log all Hibernate's SQL statements:
+          logging.level.org.hibernate.SQL=DEBUG
+          # Log SQL Bind Parameters:
+          logging.level.org.hibernate.orm.jdbc.bind=TRACE
+          # Optional: Log DDL operations:
+          logging.level.org.hibernate.orm.tool.schema.internal=DEBUG
+          # Flyway logging
+          logging.level.org.flywaydb=DEBUG
+    -->
 </configuration>

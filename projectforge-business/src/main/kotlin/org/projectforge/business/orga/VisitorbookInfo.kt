@@ -29,7 +29,7 @@ import java.time.LocalDate
  * Used by [VisitorbookCache] for caching visitorbook info entries, containing last visit date and number of visits.
  */
 class VisitorbookInfo() {
-    var lastVisitDate: LocalDate? = null
+    var lastDateOfVisit: LocalDate? = null
     var latestArrived: String? = null
     var latestDeparted: String? = null
     var numberOfVisits: Int = 0

@@ -56,16 +56,16 @@ open class VisitorbookCache : AbstractCache() {
 
     fun setExpired(id: Long?) {
         id ?: return // Should not happen.
-        synchronized(visitorbookMap) {
-            visitorbookMap[id]?.let { visitorbookInfo ->
-                persistenceService.executeQuery(
-                    queryVisitEntries,
-                    VisitorbookEntryDO::class.java,
-                    Pair("visitorbookId", id)
-                ).let { entries ->
-                    fillVisitorbookInfo(visitorbookInfo, entries)
-                }
-                // visitorbookInfo.expired = true
+        val info = synchronized(visitorbookMap) {
+            visitorbookMap[id]
+        }
+        info?.let { visitorbookInfo ->
+            persistenceService.executeQuery(
+                queryVisitEntries,
+                VisitorbookEntryDO::class.java,
+                Pair("visitorbookId", id)
+            ).let { entries ->
+                fillVisitorbookInfo(visitorbookInfo, entries)
             }
         }
     }
@@ -108,7 +108,7 @@ open class VisitorbookCache : AbstractCache() {
 
     private fun fillVisitorbookInfo(visitorbookInfo: VisitorbookInfo, entries: List<VisitorbookEntryDO>) {
         val lastEntry = entries.first()
-        visitorbookInfo.lastVisitDate = lastEntry.dateOfVisit
+        visitorbookInfo.lastDateOfVisit = lastEntry.dateOfVisit
         visitorbookInfo.latestArrived = lastEntry.arrived
         visitorbookInfo.latestDeparted = lastEntry.departed
         visitorbookInfo.numberOfVisits = entries.size
