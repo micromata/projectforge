@@ -24,11 +24,8 @@
 package org.projectforge.business.user
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import java.io.Serializable
 import java.util.*
 import jakarta.persistence.*
-import org.projectforge.framework.persistence.api.BaseDO
-import org.projectforge.framework.persistence.api.IdObject
 
 /**
  * For persistency of UserPreferencesData (stores them serialized).
@@ -38,7 +35,7 @@ import org.projectforge.framework.persistence.api.IdObject
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])
-class UserXmlPreferencesDO : Serializable, IdObject<Long> {
+class UserXmlPreferencesDO : IUserPref {
 
     @get:Id
     @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
@@ -50,13 +47,25 @@ class UserXmlPreferencesDO : Serializable, IdObject<Long> {
      */
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "user_id", nullable = false)
-    var user: PFUserDO? = null
+    override var user: PFUserDO? = null
 
     /**
      * Contains the serialized settings, stored in the database.
      */
     @get:Column(length = MAX_SERIALIZED_LENGTH)
-    var serializedSettings: String? = null
+    override var serializedValue: String? = null
+
+    /**
+     * Not in use. area is global for entries per user.
+     */
+    @get:Transient
+    override var area: String? = null
+
+    override var identifier: String?
+        get() = key
+        set(value) {
+            key = value
+        }
 
     /**
      * Optional if the user preference should be stored in its own data base entry.
@@ -83,12 +92,6 @@ class UserXmlPreferencesDO : Serializable, IdObject<Long> {
     @get:Column
     var version: Int = 0
 
-    val userId: Long?
-        @Transient
-        get() = if (this.user == null) {
-            null
-        } else user!!.id
-
     fun setCreated() {
         this.created = Date()
     }
@@ -108,6 +111,14 @@ class UserXmlPreferencesDO : Serializable, IdObject<Long> {
     fun setVersion(): UserXmlPreferencesDO {
         this.version = CURRENT_VERSION
         return this
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return IUserPref.equals(this, other)
+    }
+
+    override fun hashCode(): Int {
+        return IUserPref.hashCode()
     }
 
     companion object {

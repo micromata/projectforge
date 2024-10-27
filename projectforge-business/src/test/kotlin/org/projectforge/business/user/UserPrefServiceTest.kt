@@ -78,14 +78,14 @@ class UserPrefServiceTest : AbstractTestBase() {
         logon(TEST_USER)
         var prefs = userPrefDao.getUserPrefs(getUserId(TEST_USER))
         //println(ToStringUtil.toJsonString(prefs))
-        assertEquals("^JSON:\"Hurzel\"", prefs.find { it.area == area && it.name == name }!!.valueString)
-        assertEquals("^JSON:42", prefs.find { it.area == area && it.name == name2 }!!.valueString)
+        assertEquals("^JSON:\"Hurzel\"", prefs.find { it.area == area && it.name == name }!!.serializedValue)
+        assertEquals("^JSON:42", prefs.find { it.area == area && it.name == name2 }!!.serializedValue)
 
         logon(TEST_USER2)
         userPrefCache.flushToDB(getUserId(TEST_USER2))
         prefs = userPrefDao.getUserPrefs(getUserId(TEST_USER2))
-        assertEquals("^JSON:\"Hurzel2\"", prefs.find { it.area == area && it.name == name }!!.valueString)
-        assertEquals("^JSON:88", prefs.find { it.area == area && it.name == name2 }!!.valueString)
+        assertEquals("^JSON:\"Hurzel2\"", prefs.find { it.area == area && it.name == name }!!.serializedValue)
+        assertEquals("^JSON:88", prefs.find { it.area == area && it.name == name2 }!!.serializedValue)
         //println(ToStringUtil.toJsonString(userPrefDao.getUserPrefs(getUserId(TEST_USER2))))
     }
 }

@@ -64,7 +64,7 @@ open class LogViewerPageRest : AbstractDynamicPageRest() {
    * @param id Number of a [LogSubscription] is used by id, for -1 all log entries of the queues are used (for admins only).
    */
   @GetMapping("dynamic")
-  fun getForm(request: HttpServletRequest, response: HttpServletResponse, @RequestParam("id") id: Int): FormLayoutData {
+  fun getForm(request: HttpServletRequest,  @RequestParam("id") id: Int): FormLayoutData {
     if (adminLogViewer) {
       accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
     } else {

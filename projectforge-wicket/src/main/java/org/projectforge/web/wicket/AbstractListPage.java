@@ -452,8 +452,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       putUserPrefEntry(userPrefKey, duration, true);
     } catch (Exception ex) {
       // Just for case any exception occurred, avoid to reload page on next page view.
-      // Otherwise an filter producing db errors can't be reset by user, if db query will be done instantly on page view.
-      removeUserPrefEntryIfNotExists(userPrefKey);
+      // Otherwise, a filter producing db errors can't be reset by user, if db query will be done instantly on page view.
+      removeUserPrefEntry(userPrefKey);
     }
     this.refreshResultList = false;
     return this.resultList;

@@ -28,6 +28,7 @@ import org.projectforge.business.user.UserXmlPreferencesDao
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.json.JsonUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.utils.GZIPHelper
 import org.projectforge.rest.config.Rest
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,14 +48,15 @@ class AdminRest() {
     private lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
 
     /**
-     * Helper for reading compressed serialized settings of user's in the data base.
+     * Helper for reading compressed serialized settings of user's in the database.
      */
     @PostMapping("extractSerializedSettings")
     fun extractSerializedSettings(@RequestBody serializedSettings: String): String {
         accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
         val userPref = UserXmlPreferencesDO()
-        userPref.serializedSettings = serializedSettings
-        val result = userXmlPreferencesDao.deserialize(ThreadLocalUserContext.requiredLoggedInUserId, userPref, true)
+        userPref.serializedValue = serializedSettings
+        userPref.user = PFUserDO().apply { id = ThreadLocalUserContext.requiredLoggedInUserId }
+        val result = userXmlPreferencesDao.deserialize(userPref)
         return JsonUtils.toJson(result)
     }
 }
