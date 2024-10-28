@@ -49,6 +49,9 @@ class CandHHandlerTest {
         assert(handler, TaskDO::class, "title", "title1", "")
         assert(handler, TaskDO::class, "title", "title1", "title2")
 
+        processAndCheckContext(handler, TaskDO::class, "title", TaskDO(), TaskDO(), null, "", false, false)
+        processAndCheckContext(handler, TaskDO::class, "title", TaskDO(), TaskDO(), "", null, false, false)
+
         // LocalDate tests:
         assert(
             handler,
@@ -105,14 +108,10 @@ class CandHHandlerTest {
         fieldValue1: Any, // first value for testing.
         fieldValue2: Any, // second value for testing (should be different to fieldValue1.‚
     ) {
-        @Suppress("UNCHECKED_CAST")
-        val src = kClass.createInstance() as BaseDO<Long>
+        @Suppress("UNCHECKED_CAST") val src = kClass.createInstance() as BaseDO<Long>
 
-        @Suppress("UNCHECKED_CAST")
-        val dest = kClass.createInstance() as BaseDO<Long>
+        @Suppress("UNCHECKED_CAST") val dest = kClass.createInstance() as BaseDO<Long>
         processAndCheckContext(handler, kClass, fieldName, src, dest, null, null, false)
-        processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, null, true)
-        processAndCheckContext(handler, kClass, fieldName, src, dest, null, fieldValue2, true)
         processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, fieldValue2, true)
         processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue1, fieldValue1, false)
         processAndCheckContext(handler, kClass, fieldName, src, dest, fieldValue2, fieldValue2, false)
@@ -127,11 +126,11 @@ class CandHHandlerTest {
         srcFieldValue: Any?,
         destFieldValue: Any?,
         modificationExpected: Boolean,
+        assertProperties: Boolean = true,
     ) {
         val context = CandHContext(src)
         val property = kClass.memberProperties.find { it.name == propertyName }!!
-        @Suppress("UNCHECKED_CAST")
-        property as KMutableProperty1<BaseDO<*>, Any?>
+        @Suppress("UNCHECKED_CAST") property as KMutableProperty1<BaseDO<*>, Any?>
         property.set(src, srcFieldValue)  // Setzt den neuen Wert
         property.set(dest, destFieldValue)
         val fieldContext = PropertyContext(
@@ -143,7 +142,7 @@ class CandHHandlerTest {
             destPropertyValue = destFieldValue,
         )
         handler.process(fieldContext, context = context)
-        Assertions.assertEquals(property.get(src), property.get(dest))
+        if (assertProperties) Assertions.assertEquals(property.get(src), property.get(dest))
         if (modificationExpected) {
             Assertions.assertTrue(context.currentCopyStatus != EntityCopyStatus.NONE)
         } else {

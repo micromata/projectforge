@@ -26,10 +26,10 @@ package org.projectforge.rest.core
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
-import org.apache.commons.beanutils.NestedNullException
-import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.Constants
 import org.projectforge.business.user.service.UserPrefService
+import org.projectforge.common.NestedNullException
+import org.projectforge.common.PropertyUtils
 import org.projectforge.favorites.Favorites
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.access.AccessChecker

@@ -23,11 +23,11 @@
 
 package org.projectforge.business.common
 
-import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import jakarta.persistence.Column
 import jakarta.persistence.MappedSuperclass
 import jakarta.persistence.Transient
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
  * Base class for objects supporting user and group specific rights. You may define single group and user ids for the
@@ -51,27 +51,34 @@ abstract class BaseUserGroupRightsDO : DefaultBaseDO() {
         get() = owner?.id
 
     /**
+     * Please note: Do not access these fields directly, use the methods of [BaseUserGroupRightService] instead.
      * Members of these groups have full read/write access to all entries of this object.
      */
     @get:Column(name = "full_access_group_ids", length = 4000, nullable = true)
     open var fullAccessGroupIds: String? = null
 
+    /**
+     * Please note: Do not access these fields directly, use the methods of [BaseUserGroupRightService] instead.
+     */
     @get:Column(name = "full_access_user_ids", length = 4000, nullable = true)
     open var fullAccessUserIds: String? = null
 
     /**
+     * Please note: Do not access these fields directly, use the methods of [BaseUserGroupRightService] instead.
      * Members of these groups have full read-only access to all entries of this object.
      */
     @get:Column(name = "readonly_access_group_ids", length = 4000, nullable = true)
     open var readonlyAccessGroupIds: String? = null
 
     /**
+     * Please note: Do not access these fields directly, use the methods of [BaseUserGroupRightService] instead.
      * These users have full read-only access to all entries of this object.
      */
     @get:Column(name = "readonly_access_user_ids", length = 4000, nullable = true)
     open var readonlyAccessUserIds: String? = null
 
     /**
+     * Please note: Do not access these fields directly, use the methods of [BaseUserGroupRightService] instead.
      * Members of these group have read-only access to all entries of this object, but they can only see a minimal
      * set of the data of this object. This is used e. g. for calendar entries, where the users may only see the
      * start and end time of an event, but no information of details such as location, notes etc.
@@ -80,6 +87,7 @@ abstract class BaseUserGroupRightsDO : DefaultBaseDO() {
     open var minimalAccessGroupIds: String? = null
 
     /**
+     * Please note: Do not access these fields directly, use the methods of [BaseUserGroupRightService] instead.
      * Members of this group have only access to the start and stop time, nothing else.
      */
     @get:Column(name = "minimal_access_user_ids", length = 4000, nullable = true)

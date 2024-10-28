@@ -144,62 +144,6 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     val globalAddressbookOrNull: AddressbookDO?
         get() = find(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
 
-    /**
-     * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
-     *
-     * @param ab
-     * @param fullAccessGroups
-     */
-    fun setFullAccessGroups(ab: AddressbookDO, fullAccessGroups: Collection<GroupDO?>?) {
-        ab.fullAccessGroupIds = groupService.getGroupIds(fullAccessGroups)
-    }
-
-    fun getSortedFullAccessGroups(ab: AddressbookDO): Collection<GroupDO> {
-        return groupService.getSortedGroups(ab.fullAccessGroupIds)
-    }
-
-    /**
-     * Please note: Only the string group.fullAccessGroupIds will be modified (but not be saved)!
-     *
-     * @param ab
-     * @param fullAccessUsers
-     */
-    fun setFullAccessUsers(ab: AddressbookDO, fullAccessUsers: Collection<PFUserDO?>) {
-        ab.fullAccessUserIds = userService.getUserIds(fullAccessUsers)
-    }
-
-    fun getSortedFullAccessUsers(ab: AddressbookDO): Collection<PFUserDO> {
-        return userService.getSortedUsers(ab.fullAccessUserIds)
-    }
-
-    /**
-     * Please note: Only the string group.readonlyAccessGroupIds will be modified (but not be saved)!
-     *
-     * @param ab
-     * @param readonlyAccessGroups
-     */
-    fun setReadonlyAccessGroups(ab: AddressbookDO, readonlyAccessGroups: Collection<GroupDO?>?) {
-        ab.readonlyAccessGroupIds = groupService.getGroupIds(readonlyAccessGroups)
-    }
-
-    fun getSortedReadonlyAccessGroups(ab: AddressbookDO): Collection<GroupDO> {
-        return groupService.getSortedGroups(ab.readonlyAccessGroupIds)
-    }
-
-    /**
-     * Please note: Only the string group.readonlyAccessGroupIds will be modified (but not be saved)!
-     *
-     * @param ab
-     * @param readonlyAccessUsers
-     */
-    fun setReadonlyAccessUsers(ab: AddressbookDO, readonlyAccessUsers: Collection<PFUserDO?>) {
-        ab.readonlyAccessUserIds = userService.getUserIds(readonlyAccessUsers)
-    }
-
-    fun getSortedReadonlyAccessUsers(ab: AddressbookDO): Collection<PFUserDO> {
-        return userService.getSortedUsers(ab.readonlyAccessUserIds)
-    }
-
     override fun customizeHistoryEntry(context: DisplayHistoryConvertContext<*>) {
         historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
     }

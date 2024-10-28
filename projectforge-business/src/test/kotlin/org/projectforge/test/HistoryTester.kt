@@ -24,7 +24,6 @@
 package org.projectforge.test
 
 import org.junit.jupiter.api.Assertions
-import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.history.*
@@ -67,7 +66,7 @@ class HistoryTester(
      * @param expectedNumberOfNewHistoryAttrEntries The expected number of new history attributes.
      * @param msg The message for the assertion error.
      */
-    fun <O: ExtendedBaseDO<Long>>loadHistory(
+    fun <O : ExtendedBaseDO<Long>> loadHistory(
         baseDO: O,
         expectedNumberOfNewHistoryEntries: Int? = null,
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
@@ -79,6 +78,26 @@ class HistoryTester(
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)
         }
         return recentEntries
+    }
+
+    fun selectHistory(entityId: Long): List<HistoryEntryDO> {
+        return persistenceService.runReadOnly { context ->
+            val entries = context.createQuery(
+                "from HistoryEntryDO where entityId=:entityId", HistoryEntryDO::class.java,
+                Pair("entityId", entityId),
+            ).resultList
+            entries.forEach { entry ->
+                context.createQuery(
+                    "from HistoryEntryAttrDO where parent.id=:parentId",
+                    HistoryEntryAttrDO::class.java,
+                    Pair("parentId", entry.id),
+                ).resultList.forEach { attr ->
+                    entry.attributes = entry.attributes ?: mutableSetOf()
+                    entry.attributes!!.add(attr)
+                }
+            }
+            entries
+        }
     }
 
     /**

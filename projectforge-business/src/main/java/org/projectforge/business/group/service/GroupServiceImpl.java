@@ -24,6 +24,7 @@
 package org.projectforge.business.group.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.projectforge.business.common.BaseUserGroupRightService;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserGroupCache;
@@ -133,19 +134,11 @@ public class GroupServiceImpl implements GroupService {
 
   @Override
   public String getGroupIds(final Collection<GroupDO> groups) {
-    final StringBuilder buf = new StringBuilder();
-    boolean first = true;
-    for (final GroupDO group : groups) {
-      if (group.getId() != null) {
-        first = StringHelper.append(buf, first, String.valueOf(group.getId()), ",");
-      }
-    }
-    return buf.toString();
+    return BaseUserGroupRightService.asSortedIdStrings(groups);
   }
 
   @Override
   public Collection<GroupDO> getSortedGroups() {
-
     final Collection<GroupDO> allGroups = userGroupCache.getAllGroups();
     TreeSet<GroupDO> sortedGroups = new TreeSet<>(groupsComparator);
     final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();

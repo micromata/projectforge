@@ -23,6 +23,7 @@
 
 package org.projectforge.rest.dto
 
+import org.projectforge.business.common.BaseUserGroupRightService
 import org.projectforge.business.teamcal.CalendarAccessStatus
 import org.projectforge.business.teamcal.admin.TeamCalDao
 import org.projectforge.business.teamcal.admin.model.TeamCalDO
@@ -33,28 +34,29 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
-class TeamCal(var title: String? = null,
-              var owner: PFUserDO? = null,
-              var description: String? = null,
-              var accessStatus: CalendarAccessStatus? = null,
-              var accessStatusString: String? = null,
-              var fullAccessGroups: List<Group>? = null,
-              var fullAccessUsers: List<User>? = null,
-              var readonlyAccessGroups: List<Group>? = null,
-              var readonlyAccessUsers: List<User>? = null,
-              var minimalAccessGroups: List<Group>? = null,
-              var minimalAccessUsers: List<User>? = null,
-              var includeLeaveDaysForUsers: List<User>? = null,
-              var includeLeaveDaysForGroups: List<Group>? = null,
-              var externalSubscription: Boolean = false,
-              var externalSubscriptionUrl: String? = null,
-              /**
-               * In seconds.
-               */
-              var externalSubscriptionUpdateInterval: Int? = null,
-              var externalSubscriptionUrlAnonymized: String? = null,
-              var vacation4Groups: List<Long>? = null,
-              var vacation4Users: List<Long>? = null
+class TeamCal(
+    var title: String? = null,
+    var owner: PFUserDO? = null,
+    var description: String? = null,
+    var accessStatus: CalendarAccessStatus? = null,
+    var accessStatusString: String? = null,
+    var fullAccessGroups: List<Group>? = null,
+    var fullAccessUsers: List<User>? = null,
+    var readonlyAccessGroups: List<Group>? = null,
+    var readonlyAccessUsers: List<User>? = null,
+    var minimalAccessGroups: List<Group>? = null,
+    var minimalAccessUsers: List<User>? = null,
+    var includeLeaveDaysForUsers: List<User>? = null,
+    var includeLeaveDaysForGroups: List<Group>? = null,
+    var externalSubscription: Boolean = false,
+    var externalSubscriptionUrl: String? = null,
+    /**
+     * In seconds.
+     */
+    var externalSubscriptionUpdateInterval: Int? = null,
+    var externalSubscriptionUrlAnonymized: String? = null,
+    var vacation4Groups: List<Long>? = null,
+    var vacation4Users: List<Long>? = null
 ) : BaseDTO<TeamCalDO>() {
     // The user and group ids are stored as csv list of longs in the database.
     override fun copyFrom(src: TeamCalDO) {
@@ -87,12 +89,13 @@ class TeamCal(var title: String? = null,
     // The user and group ids are stored as csv list of longs in the database.
     override fun copyTo(dest: TeamCalDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toLongList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toLongList(fullAccessUsers)
-        dest.readonlyAccessGroupIds = Group.toLongList(readonlyAccessGroups)
-        dest.readonlyAccessUserIds = User.toLongList(readonlyAccessUsers)
-        dest.minimalAccessGroupIds = Group.toLongList(minimalAccessGroups)
-        dest.minimalAccessUserIds = User.toLongList(minimalAccessUsers)
+        val svc = BaseUserGroupRightService.instance
+        svc.setFullAccessGroups(dest, fullAccessGroups)
+        svc.setFullAccessUsers(dest, fullAccessUsers)
+        svc.setReadonlyAccessGroups(dest, readonlyAccessGroups)
+        svc.setReadonlyAccessUsers(dest, readonlyAccessUsers)
+        svc.setMinimalAccessGroups(dest, minimalAccessGroups)
+        svc.setMinimalAccessUsers(dest, minimalAccessUsers)
 
         dest.includeLeaveDaysForGroups = Group.toLongList(includeLeaveDaysForGroups)
         dest.includeLeaveDaysForUsers = User.toLongList(includeLeaveDaysForUsers)
