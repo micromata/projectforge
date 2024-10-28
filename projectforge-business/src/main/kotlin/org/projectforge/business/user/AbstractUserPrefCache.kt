@@ -70,16 +70,16 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
 
     @JvmOverloads
     fun getEntry(
-        area: String?, identifier: String, userId: Long? = null
+        area: String?, identifier: String?, userId: Long? = null
     ): Any? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
         return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier)
     }
 
-    @Suppress("UNCHECKED_CAST")
+    @Suppress("UNCHECKED_CAST", "UNUSED_PARAMETER")
     @JvmOverloads
     fun <T> getEntry(
-        area: String?, identifier: String, _expectedType: Class<T>, userId: Long? = null
+        area: String?, identifier: String, expectedType: Class<T>, userId: Long? = null
     ): T? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
         return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier) as? T?

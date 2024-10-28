@@ -574,7 +574,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
         synchronized(this) {
             // Avoid parallel insert, update, delete operations.
-            val dbUserPref = internalQuery(userId, obj.area, obj.name) as UserPrefDO?
+            val dbUserPref = internalQuery(userId, obj.area, obj.name)
             if (dbUserPref == null) {
                 obj.id = null // Add new entry (ignore id of any previous existing entry).
                 return super.insertOrUpdate(obj, checkAccess = checkAccess)
