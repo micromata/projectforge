@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.projectforge.common.mgc.MGCClassUtils
+import org.projectforge.common.AnnotationsUtils
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
@@ -48,11 +48,7 @@ object HistoryBaseDaoAdapter {
         if (AbstractHistorizableBaseDO::class.java.isAssignableFrom(entityClass)) {
             return true
         }
-        val whl = MGCClassUtils.findClassAnnotations(
-            entityClass,
-            WithHistory::class.java
-        )
-        return whl.isNotEmpty()
+        return AnnotationsUtils.hasClassAnnotation(entityClass, WithHistory::class.java)
     }
 
     fun createHistoryEntry(entity: IdObject<Long>, opType: EntityOpType): HistoryEntryDO {

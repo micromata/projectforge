@@ -85,7 +85,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
    * Used by AddressCampaignValueListForm.
    */
   public static void addFilter(final AbstractListPage<?, ?, ?> parentPage, final AbstractListForm<?, ?> form,
-      final GridBuilder gridBuilder, final AddressFilter searchFilter, final AddressbookDao addressbookDao)
+      final GridBuilder gridBuilder, final AddressFilter searchFilter)
   {
     {
       gridBuilder.newSplitPanel(GridSize.COL50);
@@ -132,7 +132,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
       gridBuilder.newSplitPanel(GridSize.COL100);
       final FieldsetPanel fs = gridBuilder.newFieldset(parentPage.getString("address.addressbooks"));
       final Select2MultiChoice<AddressbookDO> addressbooks = new Select2MultiChoice<AddressbookDO>(fs.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<AddressbookDO>>(searchFilter, "addressbooks"), new AddressbookWicketProvider(getAddressbookDao()));
+          new PropertyModel<Collection<AddressbookDO>>(searchFilter, "addressbooks"), new AddressbookWicketProvider());
       fs.add(addressbooks);
     }
 
@@ -142,7 +142,7 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
   protected void init()
   {
     super.init();
-    addFilter(parentPage, this, gridBuilder, getSearchFilter(), WicketSupport.get(AddressbookDao.class));
+    addFilter(parentPage, this, gridBuilder, getSearchFilter());
   }
 
   /**
@@ -264,10 +264,5 @@ public class AddressListForm extends AbstractListForm<AddressFilter, AddressList
   public AddressFilter getFilter()
   {
     return getSearchFilter();
-  }
-
-  private static AddressbookDao getAddressbookDao()
-  {
-    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
   }
 }

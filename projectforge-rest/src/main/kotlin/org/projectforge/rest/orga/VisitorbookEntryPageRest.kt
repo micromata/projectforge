@@ -24,8 +24,14 @@
 package org.projectforge.rest.orga
 
 import jakarta.servlet.http.HttpServletRequest
+import org.bouncycastle.asn1.x500.style.RFC4519Style.c
+import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressStatus
+import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.orga.VisitorbookEntryDO
 import org.projectforge.business.orga.VisitorbookService
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDay.Companion.today
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.core.RestResolver
@@ -38,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * Dialog for registering a new token or modifying/deleting an existing one.
@@ -63,13 +71,14 @@ class VisitorbookEntryPageRest : AbstractDynamicPageRest() {
         val data = if (id!! > 0) {
             VisitorbookEntry(visitorbookService.findVisitorbookEntry(id))
         } else {
-            VisitorbookEntry(visitorbookId = visitorbookId)
+            VisitorbookEntry(visitorbookId = visitorbookId).also {
+                it.dateOfVisit = LocalDate.now()
+                it.arrived = PFDateTime.now().localTimeString
+            }
         }
         val lc = LayoutContext(VisitorbookEntryDO::class.java)
         val layout = UILayout("orga.visitorbook.timeofvisit")
-        layout.add(lc, "dateOfVisit")
-            .add(UIInput("dateOfVisit", lc, dataType = UIDataType.DATE, required = true))
-            .add(lc, "arrived", "departed", "comment")
+        layout.add(lc, "dateOfVisit", "arrived", "departed", "comment")
         if (id < 0) {
             // New entry
             layout.addAction(

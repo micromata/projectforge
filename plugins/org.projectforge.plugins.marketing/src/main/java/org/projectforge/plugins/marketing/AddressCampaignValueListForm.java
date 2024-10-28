@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressbookDao;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.address.AddressListForm;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -49,12 +50,6 @@ public class AddressCampaignValueListForm
       .getLogger(AddressCampaignValueListForm.class);
 
   static final String ADDRESS_CAMPAIGN_VALUE_UNDEFINED = "-(null)-";
-
-  @SpringBean
-  private AddressCampaignDao addressCampaignDao;
-
-  @SpringBean
-  private AddressbookDao addressbookDao;
 
   private Long addressCampaignId;
 
@@ -95,12 +90,12 @@ public class AddressCampaignValueListForm
       addressCampaignValueDropDownChoice.setNullValid(true);
       fs.add(addressCampaignValueDropDownChoice);
     }
-    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter(), addressbookDao);
+    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter());
   }
 
   @Override
   protected void onBeforeSearchFilter() {
-    final List<AddressCampaignDO> addressCampaignList = addressCampaignDao.select(new AddressCampaignValueFilter());
+    final List<AddressCampaignDO> addressCampaignList =  WicketSupport.get(AddressCampaignDao.class).select(new AddressCampaignValueFilter());
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.marketing.addressCampaign"));

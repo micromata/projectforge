@@ -39,6 +39,18 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object AnnotationsUtils {
+    fun getClassAnnotations(clazz: Class<*>): Array<Annotation> {
+        return clazz.annotations
+    }
+
+    fun getClassAnnotation(clazz: Class<*>, annotationClass: Class<out Annotation>): Annotation? {
+        return clazz.annotations.filterIsInstance(annotationClass).firstOrNull()
+    }
+
+    fun hasClassAnnotation(clazz: Class<*>, annotationClass: Class<out Annotation>): Boolean {
+        return getClassAnnotation(clazz, annotationClass) != null
+    }
+
     fun <Ann : Annotation> getAnnotation(property: KProperty1<*, *>, annotationClass: Class<Ann>): Ann? {
         property.annotations.filterIsInstance(annotationClass).firstOrNull()?.let { return it }
         property.javaField?.let { field ->

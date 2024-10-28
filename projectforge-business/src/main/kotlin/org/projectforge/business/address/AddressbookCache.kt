@@ -47,13 +47,16 @@ open class AddressbookCache : AbstractCache(), BaseDOModifiedListener<Addressboo
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    private lateinit var addressBookList: List<AddressbookDO>
+    private lateinit var addressBookList: List<AddressbookDO> // Mustn't be synchronized, it's only read.
+
+    fun getAll(): List<AddressbookDO> {
+        checkRefresh()
+        return addressBookList
+    }
 
     open fun getAddressbook(id: Long): AddressbookDO? {
         checkRefresh()
-        synchronized(addressBookList) {
-            return addressBookList.find { it.id == id }
-        }
+        return addressBookList.find { it.id == id }
     }
 
     /**
@@ -62,9 +65,7 @@ open class AddressbookCache : AbstractCache(), BaseDOModifiedListener<Addressboo
      */
     open fun getAddressbook(ab: AddressbookDO): AddressbookDO? {
         checkRefresh()
-        synchronized(addressBookList) {
-            return addressBookList.find { it.id == ab.id }
-        }
+        return addressBookList.find { it.id == ab.id }
     }
 
     /**
