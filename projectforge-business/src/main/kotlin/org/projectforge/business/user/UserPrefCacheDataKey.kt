@@ -26,7 +26,7 @@ package org.projectforge.business.user
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class UserPrefCacheDataKey(var area: String?, var identifier: String) {
+class UserPrefCacheDataKey(var area: String?, var identifier: String?) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
@@ -41,7 +41,7 @@ class UserPrefCacheDataKey(var area: String?, var identifier: String) {
 
     override fun hashCode(): Int {
         var result = area?.hashCode() ?: 0
-        result = 31 * result + identifier.hashCode()
+        result = 31 * result + (identifier?.hashCode() ?: 0)
         return result
     }
 }

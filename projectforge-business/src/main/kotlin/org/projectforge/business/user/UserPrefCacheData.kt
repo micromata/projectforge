@@ -121,7 +121,7 @@ class UserPrefCacheData {
         }
     }
 
-    fun getEntry(area: String?, identifier: String): Any? {
+    fun getEntry(area: String?, identifier: String?): Any? {
         return getEntry(UserPrefCacheDataKey(area, identifier))
     }
 

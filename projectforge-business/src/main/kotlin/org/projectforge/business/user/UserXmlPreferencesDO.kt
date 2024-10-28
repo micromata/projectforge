@@ -56,7 +56,7 @@ class UserXmlPreferencesDO : IUserPref {
     /**
      * Contains the serialized settings, stored in the database.
      */
-    @get:Column(length = MAX_SERIALIZED_LENGTH)
+    @get:Column(name = "serializedsettings", length = MAX_SERIALIZED_LENGTH)
     override var serializedValue: String? = null
 
     /**
@@ -65,6 +65,7 @@ class UserXmlPreferencesDO : IUserPref {
     @get:Transient
     override var area: String? = null
 
+    @get:Transient
     override var identifier: String?
         get() = key
         set(value) {

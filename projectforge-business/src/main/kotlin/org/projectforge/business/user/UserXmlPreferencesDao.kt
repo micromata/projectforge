@@ -215,7 +215,8 @@ class UserXmlPreferencesDao {
         userPrefs.user = user
     }
 
-    fun saveOrUpdate(userId: Long, key: String, value: Any?, checkAccess: Boolean) {
+    fun saveOrUpdate(userId: Long, key: String?, value: Any?, checkAccess: Boolean) {
+        key ?: return
         if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return
