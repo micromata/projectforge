@@ -42,7 +42,7 @@ class TaskFavoritesService {
 
     fun selectTaskId(id: Long): Long? {
         @Suppress("DEPRECATION")
-        val taskIdString = userPrefDao.getUserPref(AREA_ID, id)?.getUserPrefEntryAsString(PARAMETER)
+        val taskIdString = userPrefDao.selectUserPref(AREA_ID, id)?.getUserPrefEntryAsString(PARAMETER)
         try {
             return taskIdString?.toLong()
         } catch (ex: NumberFormatException) {

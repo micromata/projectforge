@@ -197,7 +197,7 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
       return null;
     }
     UserPrefDao userPrefDao = WicketSupport.get(UserPrefDao.class);
-    final UserPrefDO userPref = userPrefDao.getUserPref(userPrefArea, selected);
+    final UserPrefDO userPref = userPrefDao.selectUserPref(userPrefArea, selected);
     if (userPref != null) {
       final F favorite = newFavoriteInstance(null);
       userPrefDao.fillFromUserPrefParameters(userPref, favorite);

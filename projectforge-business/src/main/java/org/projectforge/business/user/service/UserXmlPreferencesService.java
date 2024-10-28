@@ -128,15 +128,15 @@ public class UserXmlPreferencesService {
      * @param key
      * @return The removed entry if found.
      */
-    public Object removeEntry(final String key) {
+    public void removeEntry(final String key) {
         final PFUserDO user = ThreadLocalUserContext.getLoggedInUser();
         if (user == null) {
             // Should only occur, if user is not logged in.
-            return null;
+            return;
         }
         if (AccessChecker.isDemoUser(user)) {
-            return key; // Dummy return
+            return;
         }
-        return userXmlPreferencesCache.removeEntry(null, key, user.getId());
+        userXmlPreferencesCache.removeEntry(null, key, user.getId());
     }
 }

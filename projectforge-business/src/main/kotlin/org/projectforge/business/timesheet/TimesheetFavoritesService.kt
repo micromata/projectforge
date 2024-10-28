@@ -130,7 +130,7 @@ class TimesheetFavoritesService {
    * Will not overwrite any existing new favorite (with name same).
    */
   fun migrateFromLegacyFavorites(currentFavorites: Favorites<TimesheetFavorite>): Favorites<TimesheetFavorite>? {
-    val list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE)
+    val list = userPrefDao.selectUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE)
     if (list.isNullOrEmpty())
       return null
     var modified = false
@@ -156,7 +156,7 @@ class TimesheetFavoritesService {
   }
 
   private fun hasLegacyFavoritesToMigrate(userId: Long): Boolean {
-    val list = userPrefDao.getUserPrefs(userId, UserPrefArea.TIMESHEET_TEMPLATE)
+    val list = userPrefDao.selectUserPrefs(userId, UserPrefArea.TIMESHEET_TEMPLATE)
     if (list.isNullOrEmpty())
       return false
     val favorites = getFavorites()

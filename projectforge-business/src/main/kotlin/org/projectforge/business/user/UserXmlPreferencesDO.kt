@@ -26,6 +26,7 @@ package org.projectforge.business.user
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 import jakarta.persistence.*
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 
 /**
  * For persistency of UserPreferencesData (stores them serialized).
@@ -35,6 +36,9 @@ import jakarta.persistence.*
  */
 @Entity
 @Table(name = "T_USER_XML_PREFS", uniqueConstraints = [UniqueConstraint(columnNames = ["user_id", "key"])], indexes = [Index(name = "idx_fk_t_user_xml_prefs_user_id", columnList = "user_id")])
+@NamedQueries(
+    NamedQuery(name = UserXmlPreferencesDO.FIND_BY_USER_ID_AND_KEY, query = "from UserXmlPreferencesDO where user.id=:userId and key=:key"),
+)
 class UserXmlPreferencesDO : IUserPref {
 
     @get:Id
@@ -123,6 +127,8 @@ class UserXmlPreferencesDO : IUserPref {
 
     companion object {
         const val MAX_SERIALIZED_LENGTH = 10000
+
+        internal const val FIND_BY_USER_ID_AND_KEY = "UserXmlPreferencesDO_FindByUserIdAndName"
 
         /**
          * Don't forget to increase, if any changes in the object stored in user data are made. If not, the user preferences

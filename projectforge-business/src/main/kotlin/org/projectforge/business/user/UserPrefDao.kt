@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import mu.KotlinLogging
+import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.Validate
 import org.projectforge.business.fibu.KundeDO
@@ -67,6 +68,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserPrefDO
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO
 import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.utils.GZIPHelper
 import org.projectforge.framework.utils.NumberHelper.parseLong
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -197,7 +199,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
 
 
     @Deprecated("Use getUserPref(String, Long) instead.")
-    fun getUserPref(area: UserPrefArea, name: String?): UserPrefDO? {
+    fun selectUserPref(area: UserPrefArea, name: String?): UserPrefDO? {
         return internalQuery(
             requiredLoggedInUserId,
             area.id,
@@ -210,11 +212,11 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
      * @param id     id of the user pref to search.
      * @return The user pref of the areaId with the given id of the logged in user (from ThreadLocal).
      */
-    fun getUserPref(areaId: String, id: Long): UserPrefDO? {
-        return getUserPref(requiredLoggedInUserId, areaId, id)
+    fun selectUserPref(areaId: String, id: Long): UserPrefDO? {
+        return selectUserPref(requiredLoggedInUserId, areaId, id)
     }
 
-    private fun getUserPref(userId: Long, areaId: String, id: Long): UserPrefDO? {
+    private fun selectUserPref(userId: Long, areaId: String, id: Long): UserPrefDO? {
         return persistenceService.selectNamedSingleResult(
             UserPrefDO.FIND_BY_USER_AND_AREA_AND_ID,
             UserPrefDO::class.java,
@@ -224,12 +226,12 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         )
     }
 
-    fun getUserPrefs(area: UserPrefArea): List<UserPrefDO> {
+    fun selectUserPrefs(area: UserPrefArea): List<UserPrefDO> {
         val userId = loggedInUserId
-        return getUserPrefs(userId, area)
+        return selectUserPrefs(userId, area)
     }
 
-    fun getUserPrefs(userId: Long?, area: UserPrefArea): List<UserPrefDO> {
+    fun selectUserPrefs(userId: Long?, area: UserPrefArea): List<UserPrefDO> {
         val list = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_BY_USER_ID_AND_AREA,
             UserPrefDO::class.java,
@@ -239,7 +241,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         return list.distinct()
     }
 
-    fun getUserPrefs(userId: Long): List<UserPrefDO> {
+    fun selectUserPrefs(userId: Long): List<UserPrefDO> {
         val list = persistenceService.executeNamedQuery(
             UserPrefDO.FIND_BY_USER_ID,
             UserPrefDO::class.java,
@@ -531,9 +533,10 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             obj.serializedValue = null
             obj.valueTypeString = null
         } else {
-            obj.serializedValue = toJson(valueObject)
+            obj.serializedValue = serialize(valueObject, compressBigContent = true)
             obj.valueTypeString = valueObject.javaClass.name
         }
+        log.debug { "UserPrefs serialized for db: ${obj.serializedValue}" }
     }
 
     /**
@@ -563,23 +566,89 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }
     }
 
+    override fun insertOrUpdate(obj: UserPrefDO, checkAccess: Boolean): Serializable? {
+        val userId = obj.user?.id
+        if (userId == null) {
+            log.warn("User of UserPrefDO is null (can't save it): $obj")
+            return null
+        }
+        synchronized(this) {
+            // Avoid parallel insert, update, delete operations.
+            val dbUserPref = internalQuery(userId, obj.area, obj.name) as UserPrefDO?
+            if (dbUserPref == null) {
+                obj.id = null // Add new entry (ignore id of any previous existing entry).
+                return super.insertOrUpdate(obj, checkAccess = checkAccess)
+            } else {
+                obj.id = dbUserPref.id
+                dbUserPref.valueObject = obj.valueObject
+                if (dbUserPref.userPrefEntries != null ||
+                    obj.userPrefEntries != null
+                ) {
+                    // Legacy entries:
+                    if (CollectionUtils.isEmpty(obj.userPrefEntries)) {
+                        // All existing entries are deleted, so clear db entries:
+                        dbUserPref.userPrefEntries!!.clear()
+                    } else {
+                        // New entries exists, so we've to add them:
+                        if (dbUserPref.userPrefEntries == null) {
+                            dbUserPref.userPrefEntries = HashSet()
+                        } else {
+                            // Remove entries in db not existing anymore in given obj:
+                            val it = dbUserPref.userPrefEntries!!.iterator()
+                            while (it.hasNext()) {
+                                val entry = it.next()
+                                if (obj.getUserPrefEntry(entry.parameter!!) == null) {
+                                    // This entry was removed (it's not present in the given object anymore:
+                                    it.remove()
+                                }
+                            }
+                        }
+                        // Now we've to add / update all entries in the db of given obj:
+                        for (newEntry in obj.userPrefEntries!!) {
+                            val dbEntry = dbUserPref.getUserPrefEntry(newEntry.parameter!!)
+                            if (dbEntry == null) {
+                                // New entry:
+                                dbUserPref.userPrefEntries!!.add(newEntry)
+                                newEntry.id = null
+                            } else {
+                                // Update current entry:
+                                dbEntry.copyValuesFrom(newEntry, "id")
+                            }
+                        }
+                    }
+                }
+                super.update(dbUserPref, checkAccess = checkAccess)
+                obj.id = dbUserPref.id
+                return obj.id
+            }
+        }
+    }
+
     /**
      * Checks if the user pref already exists in the database by querying the database with user id, area and name.
      * The id of the given obj is ignored.
      */
-    fun saveOrUpdate(userPref: UserPrefDO, checkAccess: Boolean): Serializable? {
-        val userId = userPref.user?.id ?: return null
+    fun insertOrUpdate(userId: Long, key: UserPrefCacheDataKey, value: Any?, checkAccess: Boolean): Serializable? {
+        if (accessChecker.isDemoUser(userId)) {
+            // Do nothing.
+            return null
+        }
+        if (checkAccess) {
+            if (userId != loggedInUserId) {
+                throw AccessException("User '$loggedInUserId' has no access to write user preferences of other user '$userId'.")
+            }
+        }
         synchronized(this) {
             // Avoid parallel insert, update, delete operations.
-            val dbUserPref = internalQuery(userId, userPref.area, userPref.name)
-            if (dbUserPref == null) {
-                userPref.id = null // Add new entry (ignore id of any previous existing entry).
-                return super.insertOrUpdate(userPref, checkAccess)
-            } else {
-                userPref.id = dbUserPref.id
-                super.update(userPref, checkAccess= false)
-                return userPref.id
-            }
+            val dbUserPrefs = internalQuery(userId, key.area, key.identifier)
+                ?: UserPrefDO().apply {
+                    user = PFUserDO().also { it.id = userId }
+                    area = key.area
+                    name = key.identifier
+                }
+            dbUserPrefs.valueObject = value
+            // Serialized value will be set in onInsertOrModify.
+            return super.insertOrUpdate(dbUserPrefs, checkAccess = checkAccess)
         }
     }
 
@@ -591,23 +660,28 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
 
         private const val MAGIC_JSON_START: String = "^JSON:"
 
-        internal fun toJson(obj: Any): String {
-            try {
-                return MAGIC_JSON_START + getObjectMapper().writeValueAsString(obj)
+        fun serialize(value: Any?, compressBigContent: Boolean = true): String {
+            val json = try {
+                MAGIC_JSON_START + getObjectMapper().writeValueAsString(value)
             } catch (ex: JsonProcessingException) {
-                log.error("Error while trying to serialze object as json: " + ex.message, ex)
-                return ""
+                log.error("Error while trying to serialize object as json: " + ex.message, ex)
+                ""
+            }
+            return if (compressBigContent) {
+                compressIfRequired(json)
+            } else {
+                json
             }
         }
 
+        /*
         private fun isJsonObject(value: String): Boolean {
             return StringUtils.startsWith(value, MAGIC_JSON_START)
-        }
+        }*/
 
         private fun <T> fromJson(json: String, classOfT: Class<T>): T? {
-            var useJson = json
-            if (!isJsonObject(useJson)) return null
-            useJson = useJson.substring(MAGIC_JSON_START.length)
+            val useJson = json.removePrefix(MAGIC_JSON_START)
+            // if (!isJsonObject(useJson)) return null
             try {
                 return getObjectMapper().readValue(useJson, classOfT)
             } catch (ex: IOException) {
@@ -654,5 +728,24 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
             return mapper
         }
 
+        internal fun getUncompressed(content: String?): String {
+            content ?: return ""
+            return if (content.startsWith("!")) {
+                // Uncompress value:
+                GZIPHelper.uncompress(content.substring(1))!!
+            } else {
+                content
+            }
+        }
+
+        internal fun compressIfRequired(content: String?): String {
+            content ?: return ""
+            return if (content.length > 1000) {
+                // Compress value:
+                "!" + GZIPHelper.compress(content)
+            } else {
+                content
+            }
+        }
     }
 }

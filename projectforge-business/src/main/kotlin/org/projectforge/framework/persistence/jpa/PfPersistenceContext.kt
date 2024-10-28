@@ -443,6 +443,20 @@ class PfPersistenceContext internal constructor(
         em.flush()
     }
 
+    /**
+     * Calls em.detach(obj).
+     */
+    fun detach(obj: Any) {
+        em.detach(obj)
+    }
+
+    /**
+     * Calls em.merge() for attaching a detached object.
+     */
+    fun merge(obj: Any): Any {
+        return em.merge(obj)
+    }
+
     override fun close() {
         if (em.isOpen) {
             em.close()

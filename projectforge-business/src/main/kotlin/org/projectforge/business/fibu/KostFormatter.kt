@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.common.abbreviate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.splitToInts
 import org.springframework.stereotype.Service
@@ -280,7 +281,7 @@ class KostFormatter(private val kostCache: KostCache) {
             return if (formatType == FormatType.LONG) {
                 text
             } else {
-                if (text.length > abbreviationLength) text.take(abbreviationLength - 3) + "..." else text
+                text.abbreviate(abbreviationLength)
             }
         }
     }

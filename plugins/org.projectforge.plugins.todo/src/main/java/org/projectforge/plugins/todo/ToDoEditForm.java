@@ -122,7 +122,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
             final String newSelection = (String) this.getFormComponent().getModelObject();
             if (StringUtils.isNotEmpty(newSelection)) {
               // Fill fields with selected template values:
-              final UserPrefDO userPref = userPrefDao.getUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
+              final UserPrefDO userPref = userPrefDao.selectUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
               if (userPref != null) {
                 userPrefDao.fillFromUserPrefParameters(userPref, data);
               }

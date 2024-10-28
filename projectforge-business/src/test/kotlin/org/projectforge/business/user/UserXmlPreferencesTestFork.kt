@@ -67,13 +67,11 @@ class UserXmlPreferencesTestFork : AbstractTestBase() {
     private fun assert(userId: Long?, key: String, expectedModified: Boolean, msg: String? = null) {
         val data = userXmlPreferencesCache.ensureAndGetUserPreferencesData(userId!!)
         val value = data.getEntry(null, key)
-        val userPref = UserXmlPreferencesDO()
-        userPref.user = PFUserDO().also { it.id = userId }
-        userPref.key = key
+        val dataKey = UserPrefCacheDataKey(null, key)
         if (expectedModified) {
-            Assertions.assertTrue(userXmlPreferencesCache.isModified(data, userPref, value), msg)
+            Assertions.assertTrue(userXmlPreferencesCache.isModified(data, dataKey, value), msg)
         } else {
-            Assertions.assertFalse(userXmlPreferencesCache.isModified(data, userPref, value), msg)
+            Assertions.assertFalse(userXmlPreferencesCache.isModified(data, dataKey, value), msg)
         }
     }
 }

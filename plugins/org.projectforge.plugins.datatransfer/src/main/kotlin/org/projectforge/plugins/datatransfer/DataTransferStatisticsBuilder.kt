@@ -28,6 +28,7 @@ import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
+import org.projectforge.common.abbreviate
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -72,7 +73,7 @@ open class DataTransferStatisticsBuilder(
       stats.add(
         "datatransfer:${dbo.id}",
         "data transfer (part of JCR)",
-        "'${dbo.areaName?.take(5)}...",
+        "'${dbo.areaName.abbreviate(8)}",
         "$size: admins=[$admins]$accessUserString$accessGroupString$externalAccess$expiryDays"
           )
         }

@@ -222,7 +222,7 @@ open class Favorites<T : AbstractFavorite>() {
     }
 
     fun deleteUserPref(userPrefDao: UserPrefDao, area: String, id: Long) {
-      val userPref = userPrefDao.getUserPref(area, id)
+      val userPref = userPrefDao.selectUserPref(area, id)
       if (userPref != null) {
         userPrefDao.delete(userPref)
       } else {
@@ -234,7 +234,7 @@ open class Favorites<T : AbstractFavorite>() {
      * Rename the user pref itself, not the name of the favorite. This is only used for backwardcompability (e. g. used by TaskFavorites).
      */
     fun renameUserPref(userPrefDao: UserPrefDao, area: String, id: Long, newName: String) {
-      val userPref = userPrefDao.getUserPref(area, id)
+      val userPref = userPrefDao.selectUserPref(area, id)
       if (userPref != null) {
         if (userPref.name == newName) {
           // Nothing to-do: name isn't really changed.
