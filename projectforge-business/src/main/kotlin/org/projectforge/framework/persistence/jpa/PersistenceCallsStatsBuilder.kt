@@ -49,7 +49,7 @@ class PersistenceCallsStatsBuilder {
         }
         appendComma()
         sb.append("keyValues={")
-            .append(keyValues.joinTo(buffer = sb, separator = ",") { keyValueAsString(it) })
+        keyValues.joinTo(buffer = sb, separator = ",") { keyValueAsString(it) }
         sb.append("}")
         return this
     }

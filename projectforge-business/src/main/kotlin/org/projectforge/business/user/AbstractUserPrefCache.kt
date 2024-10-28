@@ -57,11 +57,15 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
 
     private val allPreferences = mutableMapOf<Long, UserPrefCacheData>()
 
-    protected abstract fun getUserPreferencesByUserId(userId: Long): Collection<DBObj>?
-    protected abstract fun saveOrUpdate(userPref: DBObj, value: Any, checkAccess: Boolean)
+    protected abstract fun selectUserPreferencesByUserId(userId: Long): Collection<DBObj>?
+    protected abstract fun saveOrUpdate(userId: Long, key: UserPrefCacheDataKey, value: Any, checkAccess: Boolean)
     protected abstract fun deserialize(userPref: DBObj): Any?
+
+    /**
+     * Should be serialized and compressed, if required.
+     */
     protected abstract fun serialize(value: Any): String
-    protected abstract fun remove(userPref: DBObj)
+    protected abstract fun remove(userId: Long, key: UserPrefCacheDataKey)
     protected abstract fun newEntry(): DBObj
 
     @JvmOverloads
@@ -72,16 +76,13 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier)
     }
 
-    @Suppress("UNCHECKED_CAST", "UNUSED_PARAMETER")
+    @Suppress("UNCHECKED_CAST")
     @JvmOverloads
     fun <T> getEntry(
-        area: String?,
-        identifier: String,
-        expectedType: Class<T>,
-        userId: Long? = null
+        area: String?, identifier: String, _expectedType: Class<T>, userId: Long? = null
     ): T? {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier) as? T
+        return ensureAndGetUserPreferencesData(uid).getEntry(area, identifier) as? T?
     }
 
     @JvmOverloads
@@ -91,13 +92,9 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     ) {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
         val cacheData = ensureAndGetUserPreferencesData(uid)
+        val key = UserPrefCacheDataKey(area, identifier)
         synchronized(cacheData) {
-            val userPref = cacheData.getUserPref(area, identifier) ?: newEntry().also {
-                it.area = area
-                it.identifier = identifier
-                it.user = PFUserDO().also { it.id = uid }
-            }
-            cacheData.putEntry(userPref, value, persistent)
+            cacheData.putEntry(key, value, persistent)
         }
     }
 
@@ -105,7 +102,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      * Puts an entry into the user preferences cache. If the entry is persistent, it will be stored in the database.
      */
     fun putEntry(
-        userPref: DBObj,
+        key: UserPrefCacheDataKey,
         value: Any?,
         persistent: Boolean,
         userId: Long? = null
@@ -117,20 +114,19 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         }
         val data = ensureAndGetUserPreferencesData(uid)
         log.debug {
-            "$title: Put value for ${createLogMessagePart(userPref)} (persistent=$persistent): ${
+            "$title: Put value for ${createLogMessagePart(userId, key)} (persistent=$persistent): ${
                 ToStringUtil.toJsonString(value ?: "null")
             }"
         }
-        data.putEntry(userPref, value, persistent)
+        data.putEntry(key, value, persistent)
     }
 
     /**
      * Gets an entry from the user preferences cache.
      */
-    fun getEntry(userPref: IUserPref): Any? {
-        val userId = userPref.user?.id ?: return null
+    fun getEntry(userId: Long, key: UserPrefCacheDataKey): Any? {
         val data = ensureAndGetUserPreferencesData(userId)
-        return data.getEntry(userPref)
+        return data.getEntry(key)
     }
 
     @JvmOverloads
@@ -138,33 +134,28 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         area: String?,
         identifier: String,
         userId: Long? = null,
-    ): DBObj? {
+    ) {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        ensureAndGetUserPreferencesData(uid).getUserPref(area = area, identifier = identifier)?.let { userPref ->
-            @Suppress("UNCHECKED_CAST")
-            remove(userPref as DBObj)
-            return userPref
-        }
-        return null
+        ensureAndGetUserPreferencesData(uid)
+        val key = UserPrefCacheDataKey(area, identifier)
+        remove(uid, key)
     }
 
     internal fun insertOrUpdateUserEntriesIfModified(data: UserPrefCacheData, checkAccess: Boolean) {
-        data.userId ?: return
+        val userId = data.userId ?: return
         var counter = 0
-        data.persistentDataForeach { userPref, value ->
-            @Suppress("UNCHECKED_CAST")
-            userPref as DBObj
-            if (isModified(data, userPref, value)) {
-                log.debug { "${title}: User preference modified: ${createLogMessagePart(userPref)}" }
+        data.persistentDataForeach { key, value ->
+            if (isModified(data, key, value)) {
+                log.debug { "${title}: User preference modified: ${createLogMessagePart(userId, key)}" }
                 // Only save if changed to avoid unnecessary database updates.
                 ++counter
                 try {
-                    saveOrUpdate(userPref, value, checkAccess)
+                    saveOrUpdate(userId, key, value, checkAccess)
                 } catch (ex: Throwable) {
                     log.warn(ex.message, ex)
                 }
             } else {
-                log.debug { "User preference not modified: ${createLogMessagePart(userPref)}" }
+                log.debug { "User preference not modified: ${createLogMessagePart(userId, key)}" }
             }
         }
         if (counter > 0) {
@@ -172,14 +163,13 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         }
     }
 
-    internal fun isModified(data: UserPrefCacheData, userPref: IUserPref, value: Any?): Boolean {
-        val originalHashCode = data.getOriginalDataHashCode(userPref)
+    internal fun isModified(data: UserPrefCacheData, key: UserPrefCacheDataKey, value: Any?): Boolean {
+        val userId = data.userId
+        val originalHashCode = data.getOriginalDataHashCode(key)
         val currenHashCode = if (value != null) serialize(value).hashCode() else 0
         log.debug {
             "User preference modification status=${originalHashCode != currenHashCode}, ${
-                createLogMessagePart(
-                    userPref
-                )
+                createLogMessagePart(userId, key)
             }, value=$value, originalHashCode=$originalHashCode, currenHashCode=$currenHashCode"
         }
         return originalHashCode != currenHashCode
@@ -197,14 +187,14 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         if (data == null) {
             data = UserPrefCacheData()
             data.userId = userId
-            val userPrefs = getUserPreferencesByUserId(userId)
-            userPrefs?.forEach { userPref ->
+            val userPrefsCol = selectUserPreferencesByUserId(userId)
+            userPrefsCol?.forEach { userPref ->
+                val key = UserPrefCacheDataKey(userPref.area, userPref.identifier!!)
                 try {
+                    val originalSerializedHashCode = userPref.serializedValue.hashCode()
                     deserialize(userPref)?.let { value ->
-                        val originalSerializedHashCode =
-                            UserXmlPreferencesDao.getUncompressed(userPref.serializedValue).hashCode()
                         data.putEntry(
-                            userPref,
+                            key,
                             value,
                             persistent = true,
                             originalSerializedHashCode = originalSerializedHashCode,
@@ -212,7 +202,14 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
                     }
                 } catch (ex: Throwable) {
                     if (logError) {
-                        log.warn { "Can't deserialize user preferences: ${ex.message}, ${createLogMessagePart(userPref)} (may-be ok after a new ProjectForge release). string=${userPref.serializedValue}" }
+                        log.warn {
+                            "Can't deserialize user preferences: ${ex.message}, ${
+                                createLogMessagePart(
+                                    userId,
+                                    key
+                                )
+                            } (may-be ok after a new ProjectForge release). string=${userPref.serializedValue}"
+                        }
                     }
                 }
             }
@@ -230,7 +227,7 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     }
 
     /**
-     * Flushes the user settings to the database (independent from the expire mechanism). Should be used after the user's
+     * Flushes the user settings to the database (independent of the expired mechanism). Should be used after the user's
      * logout. If the user data isn't modified, then nothing will be done.
      */
     fun flushToDB(userId: Long) {
@@ -244,8 +241,8 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
     private fun flushAllToDB() {
         log.info("$title: Flushing all user preferences to database....")
         synchronized(allPreferences) {
-            allPreferences.keys.forEach { userId ->
-                flushToDB(userId, checkAccess = false)
+            allPreferences.forEach { (_, data) ->
+                insertOrUpdateUserEntriesIfModified(data, checkAccess = false)
             }
             allPreferences.clear()
         }
@@ -267,8 +264,8 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         synchronized(allPreferences) {
             allPreferences[userId]?.let { data ->
                 insertOrUpdateUserEntriesIfModified(data, checkAccess)
-                allPreferences.remove(userId)
             }
+            allPreferences.remove(userId)
         }
     }
 
@@ -295,8 +292,8 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         }
     }
 
-    private fun createLogMessagePart(userPref: IUserPref): String {
-        return "userId=${userPref.user?.id}, area=${userPref.area}, $identifierName='${userPref.identifier}'"
+    private fun createLogMessagePart(userId: Long?, key: UserPrefCacheDataKey): String {
+        return "userId=$userId, area=${key.area}, $identifierName='${key.identifier}'"
     }
 
     override fun setExpireTimeInMinutes(expireTime: Long) {

@@ -455,7 +455,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           String newSelection = (String) this.getFormComponent().getModelObject();
           if (StringUtils.isNotEmpty(newSelection)) {
             // Fill fields with selected template values:
-            final UserPrefDO userPref = WicketSupport.get(UserPrefDao.class).getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
+            final UserPrefDO userPref = WicketSupport.get(UserPrefDao.class).selectUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
             if (userPref != null) {
               data.setKost2(null);
               data.setTask(null);

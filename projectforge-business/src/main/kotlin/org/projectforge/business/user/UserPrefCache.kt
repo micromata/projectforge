@@ -47,15 +47,15 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
         return UserPrefDO()
     }
 
-    override fun getUserPreferencesByUserId(userId: Long): Collection<UserPrefDO>? {
-        return userPrefDao.getUserPrefs(userId)
+    override fun selectUserPreferencesByUserId(userId: Long): Collection<UserPrefDO> {
+        return userPrefDao.selectUserPrefs(userId)
     }
 
-    override fun saveOrUpdate(userPref: UserPrefDO, value: Any, checkAccess: Boolean) {
-        userPrefDao.saveOrUpdate(userPref, checkAccess)
+    override fun saveOrUpdate(userId: Long, key: UserPrefCacheDataKey, value: Any, checkAccess: Boolean) {
+        userPrefDao.insertOrUpdate(userId, key, value, checkAccess)
     }
 
-    override fun remove(userPref: UserPrefDO) {
+    override fun remove(userId: Long, key: UserPrefCacheDataKey) {
         throw UnsupportedOperationException("Not implemented yet.")
     }
 
@@ -64,7 +64,7 @@ class UserPrefCache : AbstractUserPrefCache<UserPrefDO>("UserPrefCache", "area")
     }
 
     override fun serialize(value: Any): String {
-        return UserPrefDao.toJson(value)
+        return UserPrefDao.serialize(value, compressBigContent = true)
     }
 
     override fun setExpireTimeInMinutes(expireTime: Long) {

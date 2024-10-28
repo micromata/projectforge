@@ -62,7 +62,7 @@ public class TimesheetTemplatesRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response getList()
   {
-    final List<UserPrefDO> list = userPrefDao.getUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE);
+    final List<UserPrefDO> list = userPrefDao.selectUserPrefs(UserPrefArea.TIMESHEET_TEMPLATE);
     final List<TimesheetTemplateObject> result = new ArrayList<>();
     if (list != null) {
       for (final UserPrefDO userPref : list) {

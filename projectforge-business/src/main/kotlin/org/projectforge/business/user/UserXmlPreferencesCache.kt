@@ -45,25 +45,23 @@ class UserXmlPreferencesCache
         return UserXmlPreferencesDO()
     }
 
-    override fun getUserPreferencesByUserId(userId: Long): Collection<UserXmlPreferencesDO>? {
+    override fun selectUserPreferencesByUserId(userId: Long): Collection<UserXmlPreferencesDO> {
         return userXmlPreferencesDao.getUserPreferencesByUserId(userId)
     }
 
-    override fun saveOrUpdate(userPref: UserXmlPreferencesDO, value: Any, checkAccess: Boolean) {
-        userXmlPreferencesDao.saveOrUpdate(userPref, value, checkAccess)
+    override fun saveOrUpdate(userId: Long, key: UserPrefCacheDataKey, value: Any, checkAccess: Boolean) {
+        userXmlPreferencesDao.saveOrUpdate(userId, key.identifier, value, checkAccess)
     }
 
-    override fun remove(userPref: UserXmlPreferencesDO) {
-        val userId = userPref.user?.id ?: return
-        val key = userPref.identifier ?: return
-        userXmlPreferencesDao.remove(userId, key)
+    override fun remove(userId: Long, key: UserPrefCacheDataKey) {
+        userXmlPreferencesDao.remove(userId, key.identifier)
     }
 
     /**
      * Please note: uncompressed value is needed for comparison.
      */
     override fun serialize(value: Any): String {
-        return userXmlPreferencesDao.serialize(value)
+        return userXmlPreferencesDao.serialize(value, compressBigContent = true)
     }
 
     override fun deserialize(userPref: UserXmlPreferencesDO): Any? {

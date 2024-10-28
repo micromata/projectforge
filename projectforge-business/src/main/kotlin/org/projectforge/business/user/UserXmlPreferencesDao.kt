@@ -25,20 +25,22 @@ package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
-import org.apache.commons.lang3.Validate
+import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 import org.projectforge.business.scripting.xstream.RecentScriptCalls
 import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
+import org.projectforge.common.abbreviate
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.requiredLoggedInUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.framework.utils.GZIPHelper
 import org.projectforge.framework.xmlstream.XStreamHelper.createXStream
 import org.projectforge.framework.xmlstream.XStreamHelper.fromXml
 import org.projectforge.framework.xmlstream.XStreamHelper.toXml
@@ -107,27 +109,26 @@ class UserXmlPreferencesDao {
      *
      * @param userId
      */
-    fun getUserPreferencesByUserId(
+    private fun selectUserPreferencesByUserId(
         userId: Long, key: String?,
-        checkAccess: Boolean
+        checkAccess: Boolean,
+        attached: Boolean = false,
     ): UserXmlPreferencesDO? {
         if (checkAccess) {
             checkAccess(userId)
         }
-        val list: List<UserXmlPreferencesDO> = persistenceService.executeQuery(
-            "from UserXmlPreferencesDO where user.id = :userid and key = :key",
+        return persistenceService.selectNamedSingleResult(
+            UserXmlPreferencesDO.FIND_BY_USER_ID_AND_KEY,
             UserXmlPreferencesDO::class.java,
-            Pair("userid", userId), Pair("key", key)
+            Pair("userId", userId),
+            Pair("key", key),
+            attached = attached,
         )
-        Validate.isTrue(list.size <= 1)
-        return if (list.size == 1) {
-            list[0]
-        } else null
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun <T> getDeserializedUserPreferencesByUserId(userId: Long, key: String?, returnClass: Class<T>): T? {
-        val userPref = getUserPreferencesByUserId(userId, key, true) ?: return null
+        val userPref = selectUserPreferencesByUserId(userId, key, true) ?: return null
         @Suppress("UNCHECKED_CAST")
         return deserialize(userPref) as T?
     }
@@ -164,9 +165,7 @@ class UserXmlPreferencesDao {
     /**
      * Here you can update user preferences formats by manipulation the stored xml string.
      *
-     * @param userId
      * @param userPrefs
-     * @param logError
      */
     fun deserialize(userPrefs: UserXmlPreferencesDO): Any? {
         val userId = userPrefs.user?.id
@@ -175,7 +174,7 @@ class UserXmlPreferencesDao {
         if (xml.isNullOrEmpty()) {
             return null
         }
-        xml = getUncompressed(xml)
+        xml = UserPrefDao.getUncompressed(xml)
         log.debug { "UserId: $userId Object to deserialize: $xml" }
         val value = fromXml(xstream, xml)
         return value
@@ -192,21 +191,18 @@ class UserXmlPreferencesDao {
         return null
     }*/
 
-    fun serialize(userPrefs: UserXmlPreferencesDO, value: Any?): String {
-        val xml = serialize(value)
-
-        if (xml.length > 1000) {
-            // Compress value:
-            val compressed = GZIPHelper.compress(xml)
-            userPrefs.serializedValue = "!$compressed"
+    /**
+     * Serializes the given object to xml.
+     * @param compressBigContent If true, the xml will be compressed if it is larger than 1000 characters.
+     * @return The xml string.
+     */
+    fun serialize(value: Any?, compressBigContent: Boolean): String {
+        val xml = toXml(xstream, value)
+        return if (compressBigContent) {
+            UserPrefDao.compressIfRequired(xml)
         } else {
-            userPrefs.serializedValue = xml
+            xml
         }
-        return xml
-    }
-
-    fun serialize(value: Any?): String {
-        return toXml(xstream, value)
     }
 
     /**
@@ -219,45 +215,40 @@ class UserXmlPreferencesDao {
         userPrefs.user = user
     }
 
-    fun saveOrUpdate(userPref: UserXmlPreferencesDO, value: Any?, checkAccess: Boolean) {
-        val userId = userPref.user?.id ?: return
+    fun saveOrUpdate(userId: Long, key: String, value: Any?, checkAccess: Boolean) {
         if (accessChecker.isDemoUser(userId)) {
             // Do nothing.
             return
         }
-        var isNew = false
-        val key = userPref.identifier
-        var userPrefs = getUserPreferencesByUserId(userId, key, checkAccess)
-        val date = Date()
-        if (userPrefs == null) {
-            isNew = true
-            userPrefs = UserXmlPreferencesDO()
-            userPrefs.created = date
-            userPrefs.user = userDao.find(userId, checkAccess = false)
-            userPrefs.identifier = key
+        if (checkAccess) {
+            if (userId != loggedInUserId) {
+                throw AccessException("$title: User '$loggedInUserId' has no access to write user preferences of other user '$userId'.")
+            }
         }
-        val xml = serialize(userPrefs, value)
-        log.debug { "UserXmlPrefs serialized for db: $xml" }
-        userPrefs.lastUpdate = date
-        userPrefs.setVersion()
-        val userPrefsForDB: UserXmlPreferencesDO = userPrefs
-        persistenceService.runInTransaction { context ->
-            if (isNew) {
-                log.debug { "Storing new user preference for user '$userId': $xml" }
-                context.insert(userPrefsForDB)
-            } else {
-                log.debug { "Updating user preference for user '$userId': $xml" }
-                context.find(
-                    UserXmlPreferencesDO::class.java,
-                    userPrefsForDB.id,
-                    attached = true,
-                )?.let { attachedEntity ->
-                    attachedEntity.serializedValue = userPrefsForDB.serializedValue
-                    attachedEntity.lastUpdate = userPrefsForDB.lastUpdate
-                    attachedEntity.setVersion()
+        synchronized(this) {
+            // Avoid parallel insert, update, delete operations.
+            val date = Date()
+            persistenceService.runInTransaction { context ->
+                context.flush()
+                val userPrefs = selectUserPreferencesByUserId(userId, key, checkAccess, attached = true)
+                    ?: UserXmlPreferencesDO().also {
+                        it.created = date
+                        it.user = PFUserDO().also { it.id = userId }
+                        it.key = key
+                    }
+                val serialized = serialize(value, compressBigContent = true)
+                log.debug { "UserXmlPrefs serialized for db: $serialized" }
+                userPrefs.lastUpdate = date
+                userPrefs.serializedValue = serialized
+                userPrefs.setVersion()
+                if (userPrefs.id == null) {
+                    log.debug { "Storing new user preference for user '$userId': ${serialized.abbreviate(40)}" }
+                    context.insert(userPrefs)
+                } else {
+                    log.debug { "Updating user preference for user '$userId': ${serialized.abbreviate(40)}" }
+                    userPrefs.setVersion()
                     context.flush()
                 }
-                null
             }
         }
     }
@@ -267,22 +258,10 @@ class UserXmlPreferencesDao {
             // Do nothing.
             return
         }
-        val userPreferencesDO = getUserPreferencesByUserId(userId, key, true)
+        val userPreferencesDO = selectUserPreferencesByUserId(userId, key, true)
         userPreferencesDO?.id?.let { id ->
             persistenceService.runInTransaction { context ->
                 context.delete(UserXmlPreferencesDO::class.java, id)
-            }
-        }
-    }
-
-    companion object {
-        internal fun getUncompressed(xml: String?): String {
-            xml ?: return ""
-            return if (xml.startsWith("!")) {
-                // Uncompress value:
-                GZIPHelper.uncompress(xml.substring(1))!!
-            } else {
-                xml
             }
         }
     }
