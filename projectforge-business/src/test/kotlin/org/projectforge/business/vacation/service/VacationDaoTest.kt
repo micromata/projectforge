@@ -36,6 +36,7 @@ import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
+import org.projectforge.test.HistoryTester
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
@@ -54,6 +55,61 @@ class VacationDaoTest : AbstractTestBase() {
 
     @Autowired
     private lateinit var vacationService: VacationService
+
+    @Test
+    fun `test vacation history entries`() {
+        logon(TEST_HR_USER)
+        val prefix = "${this.javaClass.simpleName}-test-history"
+        lateinit var employee: EmployeeDO
+        lateinit var manager: EmployeeDO
+        lateinit var replacement: EmployeeDO
+        lateinit var other1: EmployeeDO
+        lateinit var other2: EmployeeDO
+        lateinit var other3: EmployeeDO
+        lateinit var vacation: VacationDO
+        persistenceService.runInTransaction { _ ->
+            employee = createEmployee("$prefix normal")
+            manager = createEmployee("$prefix manager")
+            replacement = createEmployee("$prefix replacement")
+            other1 = createEmployee("$prefix other1")
+            other2 = createEmployee("$prefix other2")
+            other3 = createEmployee("$prefix other3")
+            vacation = createVacation(employee, manager, replacement, VacationStatus.IN_PROGRESS)
+            vacation.otherReplacements = mutableSetOf(other1, other2)
+            vacationDao.insert(vacation)
+        }
+        vacation = vacationDao.find(vacation.id)!!
+        vacation.otherReplacements = mutableSetOf(other1, other3)
+        val hist = createHistoryTester()
+        vacationDao.update(vacation)
+        hist.loadRecentHistoryEntries(1, 1)
+        hist.recentEntries.let { entries ->
+            Assertions.assertEquals(1, entries!!.size)
+            val entry = entries[0]
+            HistoryTester.assertHistoryAttr(
+                entry,
+                "otherReplacements",
+                value = other3.id.toString(),
+                oldValue = other2.id.toString(),
+                propertyTypeClass = EmployeeDO::class,
+            )
+        }
+        vacation.otherReplacements = mutableSetOf()
+        hist.reset()
+        vacationDao.update(vacation)
+        hist.loadRecentHistoryEntries(1, 1)
+        hist.recentEntries.let { entries ->
+            Assertions.assertEquals(1, entries!!.size)
+            val entry = entries[0]
+            HistoryTester.assertHistoryAttr(
+                entry,
+                "otherReplacements",
+                value = null,
+                oldValue = "${other1.id},${other3.id}",
+                propertyTypeClass = EmployeeDO::class,
+            )
+        }
+    }
 
     @Test
     fun availableStatusValuesTest() {
