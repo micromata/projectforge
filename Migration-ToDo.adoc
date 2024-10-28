@@ -33,6 +33,7 @@ Aktuell:
 
 Später
 - Hibernate-Search: K+S, Buchsignatur etc.
+- Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
 
 Ganz später
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.

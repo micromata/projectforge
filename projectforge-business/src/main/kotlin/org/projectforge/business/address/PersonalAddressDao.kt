@@ -53,13 +53,16 @@ class PersonalAddressDao {
     private lateinit var accessChecker: AccessChecker
 
     @Autowired
+    private lateinit var addressbookDao: AddressbookDao
+
+    @Autowired
+    private lateinit var addressbookCache: AddressbookCache
+
+    @Autowired
     private lateinit var userDao: UserDao
 
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
-
-    @Autowired
-    private lateinit var addressbookDao: AddressbookDao
 
     @Autowired
     private lateinit var userRights: UserRightService
@@ -133,12 +136,8 @@ class PersonalAddressDao {
             addressbookRight = userRights.getRight(UserRightId.MISC_ADDRESSBOOK) as AddressbookRight
         }
         abIdSet.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID)
-        for (ab in addressbookDao.selectAll(checkAccess = false)) {
-            if (!ab.deleted && addressbookRight!!.hasSelectAccess(user, ab)) {
-                abIdSet.add(ab.id)
-            }
-        }
-        return abIdSet
+        return addressbookCache.getAll().filter { !it.deleted && addressbookRight!!.hasSelectAccess(user, it) }
+            .map { it.id }.toSet()
     }
 
     private fun internalSave(obj: PersonalAddressDO, context: PfPersistenceContext): Serializable? {

@@ -28,6 +28,7 @@ import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
@@ -60,11 +61,9 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 
   private final AddressbookComparator abComparator = new AddressbookComparator();
 
-  private AddressbookDao addressbookDao;
-
-  public AddressbookWicketProvider(AddressbookDao addressbookDao)
+  public AddressbookWicketProvider()
   {
-    this.addressbookDao = addressbookDao;
+
   }
 
   /**
@@ -79,7 +78,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
     final int[] ids = StringHelper.splitToInts(abIds, ",", false);
     final List<String> list = new ArrayList<String>();
     for (final int id : ids) {
-      final AddressbookDO ab = addressbookDao.find(id, false);
+      final AddressbookDO ab = WicketSupport.get(AddressbookDao.class).find(id, false);
       if (ab != null) {
         list.add(ab.getTitle());
       } else {
@@ -101,7 +100,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
     Collection<AddressbookDO> sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
     final int[] ids = StringHelper.splitToInts(abIds, ",", false);
     for (final int id : ids) {
-      final AddressbookDO ab = addressbookDao.find(id, false);
+      final AddressbookDO ab =  WicketSupport.get(AddressbookDao.class).find(id, false);
       if (ab != null) {
         sortedAddressbooks.add(ab);
       } else {
@@ -137,7 +136,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 
   private Collection<AddressbookDO> getAddressbookList()
   {
-    return addressbookDao.getAllAddressbooksWithFullAccess();
+    return  WicketSupport.get(AddressbookDao.class).getAllAddressbooksWithFullAccess();
   }
 
   /**
@@ -214,7 +213,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
       if (abId == null) {
         continue;
       }
-      final AddressbookDO ab = addressbookDao.find(abId, false);
+      final AddressbookDO ab =  WicketSupport.get(AddressbookDao.class).find(abId, false);
       if (ab != null) {
         list.add(ab);
       }
