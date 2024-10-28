@@ -680,7 +680,8 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         }*/
 
         private fun <T> fromJson(json: String, classOfT: Class<T>): T? {
-            val useJson = json.removePrefix(MAGIC_JSON_START)
+            var useJson = getUncompressed(json)
+            useJson = useJson.removePrefix(MAGIC_JSON_START)
             // if (!isJsonObject(useJson)) return null
             try {
                 return getObjectMapper().readValue(useJson, classOfT)
