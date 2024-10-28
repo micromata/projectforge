@@ -1,12 +1,9 @@
 Aktuell:
-- Gruppensuche z. B. bei Zugriff in Adressbuch.
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
-- TeamCalDO: Beim Ändern (rest) werden auch die Felder minimalAccessUserIds, fullAccessGroupIds, fullAccessUserIds, readonlyAccessGroupIds, readonlyAccessUserIds als geändert angezeigt.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
-- customizeDisplayHistoryEntry: AddressBookDao, ... (check)
 - customizeHistoryEntries: AuftragsDao, ...  (check)
 - Besucherbuch
 - DisplayHistoryEntry: Todo in translatePropertyName
@@ -36,6 +33,9 @@ Aktuell:
 
 Später
 - Hibernate-Search: K+S, Buchsignatur etc.
+
+Ganz später
+- Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
 
 - pom.xml:
 Some problems were encountered while building the effective model for org.projectforge:projectforge-business:jar:7.5.1-SNAPSHOT

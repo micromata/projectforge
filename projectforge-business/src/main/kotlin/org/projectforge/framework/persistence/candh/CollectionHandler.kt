@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.candh
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
+import kotlinx.collections.immutable.toImmutableList
 import mu.KotlinLogging
 import org.hibernate.collection.spi.PersistentSet
 import org.projectforge.common.AnnotationsUtils
@@ -81,9 +82,9 @@ open class CollectionHandler : CandHIHandler {
                 propertyTypeClass = CollectionUtils.getTypeClassOfEntries(destCollection),
                 propertyName = propertyContext.propertyName,
                 value = null,
-                oldValue = destCollection
+                oldValue = destCollection?.toImmutableList() // Copy the collection, because it will be cleared.
             )
-            destCollection?.clear() // Clear the collection. Can't set it to null, because is should be a persisted collection.
+            destCollection?.clear() // Clear the collection. Can't set it to null, because it should be a persisted collection.
             log.debug { "process: property '${propertyContext.propertyName}' was modified." }
             propertyWasModified(context, propertyContext, null)
             return true

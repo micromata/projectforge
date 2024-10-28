@@ -111,17 +111,15 @@ class HistoryValueService private constructor() {
             }
         }
         if (propertyTypeClass == EmployeeDO::class.java || propertyTypeClass == AddressbookDO::class.java) {
-            val sb = StringBuilder()
-            getDBObjects(value, context).forEach { dbObject ->
+            return getDBObjects(value, context).joinToString { dbObject ->
                 if (dbObject is EmployeeDO) {
-                    sb.append("${dbObject.user?.getFullname() ?: "???"};")
-                }
-                if (dbObject is AddressbookDO) {
-                    sb.append("${dbObject.title};")
+                    dbObject.user?.getFullname() ?: "???"
+                } else if (dbObject is AddressbookDO) {
+                    dbObject.title ?: "???"
+                } else {
+                    dbObject.toString() // Shouldn't occur.
                 }
             }
-            sb.deleteCharAt(sb.length - 1)
-            return sb.toString()
         }
         if (propertyTypeClass == AccessEntryDO::class.java) {
             return value
