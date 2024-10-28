@@ -87,7 +87,7 @@ object AnnotationsUtils {
         if (property is KProperty1<*, *>) {
             return hasAnnotation(property, annotationClass)
         }
-        log.warn{ "hasAnnotation is called, but property is not of type KProperty1: $property" }
+        log.warn { "hasAnnotation is called, but property is not of type KProperty1: $property" }
         return false
     }
 
@@ -119,11 +119,11 @@ object AnnotationsUtils {
         clazz.declaredFields.find { it.name == propertyName }?.let { field ->
             annotations.addAll(field.annotations)
         }
-        clazz.declaredMethods.find { it.name == "get${propertyName.replaceFirstChar { it.uppercase() }}" }
+        clazz.declaredMethods.find { it.name == "get${propertyName.capitalize()}" }
             ?.let { method ->
                 annotations.addAll(method.annotations)
             }
-        clazz.declaredMethods.find { it.name == "set${propertyName.replaceFirstChar { it.uppercase() }}}" }
+        clazz.declaredMethods.find { it.name == "set${propertyName.capitalize()}" }
             ?.let { method ->
                 annotations.addAll(method.annotations)
             }

@@ -24,16 +24,18 @@
 package org.projectforge.rest.dto
 
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.common.BaseUserGroupRightService
 
-class Addressbook(id: Long? = null,
-                  displayName: String? = null,
-                  var title: String? = null,
-                  var owner: User? = null,
-                  var description: String? = null,
-                  var fullAccessGroups: List<Group>? = null,
-                  var fullAccessUsers: List<User>? = null,
-                  var readonlyAccessGroups: List<Group>? = null,
-                  var readonlyAccessUsers: List<User>? = null
+class Addressbook(
+    id: Long? = null,
+    displayName: String? = null,
+    var title: String? = null,
+    var owner: User? = null,
+    var description: String? = null,
+    var fullAccessGroups: List<Group>? = null,
+    var fullAccessUsers: List<User>? = null,
+    var readonlyAccessGroups: List<Group>? = null,
+    var readonlyAccessUsers: List<User>? = null
 ) : BaseDTODisplayObject<AddressbookDO>(id, displayName = displayName) {
 
     // The user and group ids are stored as csv list of integers in the data base.
@@ -48,9 +50,10 @@ class Addressbook(id: Long? = null,
     // The user and group ids are stored as csv list of integers in the data base.
     override fun copyTo(dest: AddressbookDO) {
         super.copyTo(dest)
-        dest.fullAccessGroupIds = Group.toLongList(fullAccessGroups)
-        dest.fullAccessUserIds = User.toLongList(fullAccessUsers)
-        dest.readonlyAccessGroupIds = Group.toLongList(readonlyAccessGroups)
-        dest.readonlyAccessUserIds = User.toLongList(readonlyAccessUsers)
+        val svc = BaseUserGroupRightService.instance
+        svc.setFullAccessGroups(dest, fullAccessGroups)
+        svc.setFullAccessUsers(dest, fullAccessUsers)
+        svc.setReadonlyAccessGroups(dest, readonlyAccessGroups)
+        svc.setReadonlyAccessUsers(dest, readonlyAccessUsers)
     }
 }

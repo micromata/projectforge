@@ -24,11 +24,11 @@
 package org.projectforge.framework.persistence.candh
 
 import mu.KotlinLogging
+import org.projectforge.common.isEqualsTo
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.PropertyOpType
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.jvm.jvmErasure
 
 private val log = KotlinLogging.logger {}
 
@@ -44,11 +44,7 @@ open class DefaultHandler : CandHIHandler {
         log.debug { "Processing property '${propertyContext.propertyName}' propertyContext=$propertyContext" }
         var modified = false
         propertyContext.apply {
-            if (destPropertyValue == null || srcPropertyValue == null) {
-                if (destPropertyValue != srcPropertyValue) {
-                    modified = true
-                }
-            } else if (!propertyValuesEqual(srcPropertyValue, destPropertyValue)) {
+            if (!propertyNullableValuesEqual(srcPropertyValue, destPropertyValue)) {
                 modified = true
             }
             if (modified) {
@@ -64,5 +60,19 @@ open class DefaultHandler : CandHIHandler {
 
     open fun propertyValuesEqual(srcValue: Any, destValue: Any): Boolean {
         return srcValue == destValue
+    }
+
+    private fun propertyNullableValuesEqual(srcValue: Any?, destValue: Any?): Boolean {
+        if (srcValue == null && destValue == null) {
+            return true
+        }
+        val value = srcValue ?: destValue
+        if (value is String) {
+            return (srcValue as? String).isEqualsTo(destValue as? String) // null and empty strings are equal.
+        }
+        if (srcValue == null || destValue == null) { // Only one of them is null.
+            return false
+        }
+        return propertyValuesEqual(srcValue, destValue)
     }
 }

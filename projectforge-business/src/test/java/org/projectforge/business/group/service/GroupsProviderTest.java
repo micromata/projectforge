@@ -38,6 +38,7 @@ import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class GroupsProviderTest
 {
@@ -53,7 +54,7 @@ public class GroupsProviderTest
     Mockito.when(groupService.getGroup(3L)).thenReturn(cg("3", 3));
     Mockito.when(groupService.getGroup(4L)).thenReturn(cg("4", 4));
 
-    assertEquals("", groupService.getGroupIds(createGroupsCol()));
+    assertNull(groupService.getGroupIds(createGroupsCol()));
     assertEquals("1", groupService.getGroupIds(createGroupsCol(1)));
     assertEquals("1,2", groupService.getGroupIds(createGroupsCol(1, 2)));
     assertEquals("1,2,3", groupService.getGroupIds(createGroupsCol(3, 1, 2)));

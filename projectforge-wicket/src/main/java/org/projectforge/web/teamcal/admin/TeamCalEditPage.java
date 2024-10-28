@@ -26,6 +26,7 @@ package org.projectforge.web.teamcal.admin;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.common.BaseUserGroupRightService;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
@@ -103,12 +104,13 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     var teamCalDao = WicketSupport.get(TeamCalDao.class);
-    teamCalDao.setFullAccessUsers(getData(), form.fullAccessUsersListHelper.getAssignedItems());
-    teamCalDao.setReadonlyAccessUsers(getData(), form.readonlyAccessUsersListHelper.getAssignedItems());
-    teamCalDao.setMinimalAccessUsers(getData(), form.minimalAccessUsersListHelper.getAssignedItems());
-    teamCalDao.setFullAccessGroups(getData(), form.fullAccessGroupsListHelper.getAssignedItems());
-    teamCalDao.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
-    teamCalDao.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
+    var svc = BaseUserGroupRightService.getInstance();
+    svc.setFullAccessUsers(getData(), form.fullAccessUsersListHelper.getAssignedItems());
+    svc.setReadonlyAccessUsers(getData(), form.readonlyAccessUsersListHelper.getAssignedItems());
+    svc.setMinimalAccessUsers(getData(), form.minimalAccessUsersListHelper.getAssignedItems());
+    svc.setFullAccessGroups(getData(), form.fullAccessGroupsListHelper.getAssignedItems());
+    svc.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
+    svc.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
     TeamCalDO data = form.getData();
     if (!data.getExternalSubscription()) {
       data.setExternalSubscriptionUrl("");

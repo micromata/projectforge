@@ -26,19 +26,59 @@ package org.projectforge.rest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.projectforge.business.address.AddressbookDO
+import org.projectforge.business.address.AddressbookDao
+import org.projectforge.business.common.BaseUserGroupRightService
+import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.rest.dto.Addressbook
 import org.projectforge.rest.dto.BaseDTO
 import org.projectforge.test.AbstractTestBase
+import org.springframework.beans.factory.annotation.Autowired
 
-class AddressbookTest: AbstractTestBase() {
+class AddressbookTest : AbstractTestBase() {
+    @Autowired
+    private lateinit var addressbookDao: AddressbookDao
+
+    @Test
+    fun testHistory() {
+        var book = AddressbookDO().apply { title = "AddressbookTest-history" }
+        book.owner = getUser(TEST_USER)
+        val oldValue = getUserList(TEST_USER, TEST_USER2, TEST_ADMIN_USER)
+        val svc = BaseUserGroupRightService.instance
+        svc.setFullAccessUsers(book, oldValue)
+        val hist = createHistoryTester()
+
+        val bookId = addressbookDao.insert(book, false)
+        hist.loadRecentHistoryEntries(1, 0)
+        book = addressbookDao.find(bookId, false)!!
+        val newValue = getUserList(TEST_USER, TEST_USER2, TEST_HR_USER)
+        svc.setFullAccessUsers(book,  newValue)
+        hist.reset()
+
+        addressbookDao.update(book, false)
+        hist.loadRecentHistoryEntries(1, 1)
+
+        val historyEntries = addressbookDao.selectHistoryEntries(book, false)
+        assertEquals(2, historyEntries.size)
+        val test = hist.selectHistory(bookId)
+        test.find { it.entityOpType == EntityOpType.Update }.also {
+            assertNotNull(it)
+            assertEquals(1, it!!.attributes!!.size)
+            it.attributes!!.first().also {
+                assertEquals(newValue, it.value, "fullAccessUserIds: new value")
+                assertEquals(oldValue, it.oldValue, "fullAccessUserIds: old value")
+            }
+        }
+        assertEquals(2, test.size)
+    }
 
     @Test
     fun listToStringTest() {
         var bookDO = AddressbookDO()
-        bookDO.fullAccessGroupIds = "1"
-        bookDO.fullAccessUserIds = "1, 2, 3"
-        bookDO.readonlyAccessGroupIds = ""
-        bookDO.readonlyAccessUserIds = "1, ,3"
+        val svc = BaseUserGroupRightService.instance
+        svc.setFullAccessGroups(bookDO, "1")
+        svc.setFullAccessUsers(bookDO, "2, 1, 3")
+        svc.setReadonlyAccessGroups(bookDO, "")
+        svc.setReadonlyAccessUsers(bookDO, "1, ,3")
 
         val book = Addressbook()
         book.copyFrom(bookDO)
@@ -51,9 +91,9 @@ class AddressbookTest: AbstractTestBase() {
         bookDO = AddressbookDO()
         book.copyTo(bookDO)
         assertEquals("1", bookDO.fullAccessGroupIds)
-        assertEquals("1, 2, 3", bookDO.fullAccessUserIds)
-        assertNull( bookDO.readonlyAccessGroupIds)
-        assertEquals("1, 3", bookDO.readonlyAccessUserIds)
+        assertEquals("1,2,3", bookDO.fullAccessUserIds)
+        assertNull(bookDO.readonlyAccessGroupIds)
+        assertEquals("1,3", bookDO.readonlyAccessUserIds)
     }
 
     private fun checkLongList(longList: List<BaseDTO<*>>?, vararg expected: Long) {
@@ -65,5 +105,9 @@ class AddressbookTest: AbstractTestBase() {
         longList.forEachIndexed { index, element ->
             assertEquals(expected[index], element.id)
         }
+    }
+
+    private fun getUserList(vararg users: String): String? {
+        return BaseUserGroupRightService.asSortedIdStrings(users.map { getUser(it) })
     }
 }

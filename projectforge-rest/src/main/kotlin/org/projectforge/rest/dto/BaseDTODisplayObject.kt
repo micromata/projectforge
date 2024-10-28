@@ -23,8 +23,10 @@
 
 package org.projectforge.rest.dto
 
+import org.apache.poi.ss.formula.functions.T
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import java.util.*
 
 /**

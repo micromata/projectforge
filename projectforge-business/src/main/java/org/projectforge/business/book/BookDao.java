@@ -40,7 +40,7 @@ import java.util.Objects;
 public class BookDao extends BaseDao<BookDO> {
 
     private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"lendOutBy.username", "lendOutBy.firstname",
-            "lendOutBy.lastname"};
+            "lendOutBy.lastname", "signature_exact"};
 
     @Autowired
     private UserDao userDao;

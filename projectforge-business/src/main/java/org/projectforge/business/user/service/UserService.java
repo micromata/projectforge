@@ -26,6 +26,7 @@ package org.projectforge.business.user.service;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.projectforge.business.common.BaseUserGroupRightService;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginHandler;
@@ -156,14 +157,7 @@ public class UserService {
     }
 
     public String getUserIds(final Collection<PFUserDO> users) {
-        final StringBuilder buf = new StringBuilder();
-        boolean first = true;
-        for (final PFUserDO user : users) {
-            if (user.getId() != null) {
-                first = StringHelper.append(buf, first, String.valueOf(user.getId()), ",");
-            }
-        }
-        return buf.toString();
+        return BaseUserGroupRightService.asSortedIdStrings(users);
     }
 
     public List<PFUserDO> getAllUsers() {

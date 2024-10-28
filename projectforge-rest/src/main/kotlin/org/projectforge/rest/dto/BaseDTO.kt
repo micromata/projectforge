@@ -27,6 +27,7 @@ import mu.KotlinLogging
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.entities.AbstractHistorizableBaseDO
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
@@ -39,7 +40,7 @@ private val log = KotlinLogging.logger {}
  * DTO to  AbstractHistorizableBaseDO<Long> and vice versa.
  */
 open class BaseDTO<T : ExtendedBaseDO<Long>>(
-  var id: Long? = null,
+  override var id: Long? = null,
   var deleted: Boolean = false,
   var created: Date? = null,
   var lastUpdate: Date? = null,
@@ -47,7 +48,7 @@ open class BaseDTO<T : ExtendedBaseDO<Long>>(
    * Needed for updating UILayout for watchfields (uid of "old" layout will be restored.
    */
   var layoutUid: String? = null,
-) {
+): IdObject<Long> {
 
   /**
    * Full and deep copy of the object. Should be extended by inherited classes.
