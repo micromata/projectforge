@@ -85,5 +85,13 @@ class UserPrefServiceTest : AbstractTestBase() {
         assertEquals("^JSON:\"Hurzel2\"", prefs.find { it.area == area && it.name == name }!!.serializedValue)
         assertEquals("^JSON:88", prefs.find { it.area == area && it.name == name2 }!!.serializedValue)
         //println(ToStringUtil.toJsonString(userPrefDao.getUserPrefs(getUserId(TEST_USER2))))
+        val longValue = "a".repeat(1500)
+        userPrefService.putEntry(area, name, longValue)
+        userPrefCache.flushToDB(getUserId(TEST_USER2))
+        userPrefService.putEntry(area, name, longValue)
+        userPrefCache.flushToDB(getUserId(TEST_USER2))
+        prefs = userPrefDao.selectUserPrefs(getUserId(TEST_USER2))
+        val serializedValue = prefs.find { it.area == area && it.name == name }!!.serializedValue!!
+        assertTrue(serializedValue.startsWith("!"), "Serialized value should start with '!': $serializedValue")
     }
 }
