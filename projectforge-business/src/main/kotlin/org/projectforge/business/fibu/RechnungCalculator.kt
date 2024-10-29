@@ -25,8 +25,10 @@ package org.projectforge.business.fibu
 
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
+import org.projectforge.framework.utils.NumberHelper.HUNDRED
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDate
 
 object RechnungCalculator {
     private val log = org.slf4j.LoggerFactory.getLogger(RechnungCalculator::class.java)
@@ -34,7 +36,7 @@ object RechnungCalculator {
     fun calculateNetSum(rechnung: IRechnung): BigDecimal {
         var netto = BigDecimal.ZERO
         rechnung.positionen?.forEach {
-            netto = netto.add(it.netSum)
+            netto = netto.add(it.netSum) // Das dauert
         }
         return netto
     }
@@ -93,13 +95,32 @@ object RechnungCalculator {
         return rechnung.netSum.plus(calculateVatAmountSum(rechnung))
     }
 
-    fun calculateGrossSum(position: AbstractRechnungsPositionDO): BigDecimal {
+    fun calculateGrossSum(position: IRechnungsPosition): BigDecimal {
         val netSum = position.netSum
         return if (position.vat != null) {
             netSum.add(CurrencyHelper.multiply(netSum, position.vat))
         } else {
             netSum
         }
+    }
+
+    /**
+     * @param grossSum As paramter to avoid recalculation (and lazy fetching of positions).
+     */
+    fun calculateGrossSumWithDiscount(rechnung: AbstractRechnungDO, grossSum: BigDecimal): BigDecimal {
+        rechnung.zahlBetrag?.let { return it }
+        rechnung.discountPercent?.let { percent ->
+            if (percent.compareTo(BigDecimal.ZERO) != 0) {
+                rechnung.discountMaturity?.let { expireDate ->
+                    if (expireDate >= LocalDate.now()) {
+                        return grossSum.multiply(
+                            (HUNDRED - percent).divide(HUNDRED, 2, RoundingMode.HALF_UP)
+                        ).setScale(2, RoundingMode.HALF_UP)
+                    }
+                }
+            }
+        }
+        return grossSum
     }
 
     fun kostZuweisungenNetSum(rechnung: AbstractRechnungDO): BigDecimal {
