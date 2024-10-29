@@ -1,17 +1,16 @@
 Aktuell:
+- Suche:
+  - Zeitberichte: z. B. nach Projektnamen suchen.
+  - Zeitraumfilter bei Kreditoren
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
-- customizeHistoryEntries: AuftragsDao, ...  (check)
-- Besucherbuch
-- DisplayHistoryEntry: Todo in translatePropertyName
 - BaseDOOnChangeListener: Check registration (e. g. UserGroupCache)
 - Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - ehcache prüfen, transaction logging checken
-- Zeitraumfilter bei Kreditoren
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
 - Ehcache konfigurieren
 - Test: SEPA
@@ -34,6 +33,7 @@ Aktuell:
 Später
 - Hibernate-Search: K+S, Buchsignatur etc.
 - Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
+- Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 
 Ganz später
 - Kalenderlist ruft x-fach DB: FIND GroupDO resultClass=GroupDO auf.
