@@ -157,32 +157,25 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         }
 
     /**
+     * Please note: Will fetch all positions!
      * Gibt den Bruttobetrag zurueck bzw. den Betrag abzueglich Skonto, wenn die Skontofrist noch nicht
      * abgelaufen ist. Ist die Rechnung bereits bezahlt, wird der tatsaechlich bezahlte Betrag zurueckgegeben.
      */
     val grossSumWithDiscount: BigDecimal
         @Transient
-        get() {
-            zahlBetrag?.let { return it }
-            discountPercent?.let { percent ->
-                if (percent.compareTo(BigDecimal.ZERO) != 0) {
-                    discountMaturity?.let { expireDate ->
-                        if (expireDate >= LocalDate.now()) {
-                            return grossSum.multiply(
-                                (HUNDRED - percent).divide(HUNDRED, 2, RoundingMode.HALF_UP)
-                            ).setScale(2, RoundingMode.HALF_UP)
-                        }
-                    }
-                }
-            }
-            return grossSum
-        }
+        get() = RechnungCalculator.calculateGrossSumWithDiscount(this, grossSum)
 
+    /**
+     * Attention: Will fetch all positions!
+     */
     @get:PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY)
     override val netSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateNetSum(this)
 
+    /**
+     * Attention: Will fetch all positions!
+     */
     override val vatAmountSum: BigDecimal
         @Transient
         get() = RechnungCalculator.calculateVatAmountSum(this)
@@ -208,17 +201,22 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         get() = konto?.id
 
     /**
+     * Attention: Will fetch all positions!
      * @return The total sum of all cost assignment net amounts of all positions.
      */
     val kostZuweisungenNetSum: BigDecimal
         @Transient
         get() = RechnungCalculator.kostZuweisungenNetSum(this)
 
+    /**
+     * Attention: Will fetch all positions!
+     */
     val kostZuweisungFehlbetrag: BigDecimal
         @Transient
         get() = kostZuweisungenNetSum.subtract(netSum)
 
     /**
+     * Attention: Will fetch all positions!
      * Gets sorted list of Kost1DO of all positions.
      */
     val sortedKost1: List<Kost1DO>
@@ -234,6 +232,7 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         }
 
     /**
+     * Attention: Will fetch all positions!
      * Gets sorted list of Kost2DO of all positions.
      */
     val sortedKost2: List<Kost2DO>

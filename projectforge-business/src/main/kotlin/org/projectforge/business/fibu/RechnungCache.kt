@@ -46,37 +46,65 @@ open class RechnungCache : AbstractCache() {
     /**
      * The key is the order id.
      */
-    private var invoicePositionMapByAuftragId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
+    private var invoicePositionMapByAuftragId = mapOf<Long, MutableSet<RechnungsPositionVO>>()
 
     /**
      * The key is the order position id.
      */
-    private var invoicePositionMapByAuftragsPositionId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
+    private var invoicePositionMapByAuftragsPositionId = mapOf<Long, MutableSet<RechnungsPositionVO>>()
 
-    private var invoicePositionMapByRechnungId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
+    private var invoicePositionMapByRechnungId = mapOf<Long, MutableSet<RechnungsPositionVO>>()
 
-    private var invoiceInfoMap: Map<Long, RechnungInfo>? = null
+    private var invoiceInfoMap = mapOf<Long, RechnungInfo>()
 
-    private var incomingInvoiceInfoMap: Map<Long, RechnungInfo>? = null
+    private var incomingInvoiceInfoMap = mapOf<Long, RechnungInfo>()
 
     @PostConstruct
     private fun postConstruct() {
         instance = this
+        AbstractRechnungsStatistik.rechnungCache = this
     }
 
     fun getRechnungsPositionVOSetByAuftragId(auftragId: Long?): Set<RechnungsPositionVO>? {
+        auftragId ?: return null
         checkRefresh()
-        return invoicePositionMapByAuftragId!![auftragId]
+        return invoicePositionMapByAuftragId[auftragId]
     }
 
     fun getRechnungsPositionVOSetByRechnungId(rechnungId: Long?): Set<RechnungsPositionVO>? {
+        rechnungId ?: return null
         checkRefresh()
-        return invoicePositionMapByRechnungId!![rechnungId]
+        return invoicePositionMapByRechnungId[rechnungId]
     }
 
     fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Long?): Set<RechnungsPositionVO>? {
+        auftragsPositionId ?: return null
         checkRefresh()
-        return invoicePositionMapByAuftragsPositionId!![auftragsPositionId]
+        return invoicePositionMapByAuftragsPositionId[auftragsPositionId]
+    }
+
+    fun getRechnungInfo(rechnungId: Long?): RechnungInfo? {
+        rechnungId ?: return null
+        checkRefresh()
+        return invoiceInfoMap[rechnungId]
+    }
+
+    fun getEingangsrechnungInfo(rechnungId: Long?): RechnungInfo? {
+        rechnungId ?: return null
+        checkRefresh()
+        return incomingInvoiceInfoMap[rechnungId]
+    }
+
+    /**
+     * Autodetect Rechnung/Eingangsrechnung.
+     */
+    fun getRechnungInfo(rechnung: AbstractRechnungDO?): RechnungInfo? {
+        val id = rechnung?.id ?: return null
+        return if (rechnung is RechnungDO) {
+            invoiceInfoMap[id]
+        } else {
+            incomingInvoiceInfoMap[id]
+        }
     }
 
     /**
@@ -88,9 +116,9 @@ open class RechnungCache : AbstractCache() {
         try {
             PfPersistenceService.startCallsStatsRecording()
             // This method must not be synchronized because it works with a new copy of maps.
-            val mapByAuftragId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
-            val mapByAuftragsPositionId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
-            val mapByRechnungsPositionMapByRechnungId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
+            val mapByAuftragId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
+            val mapByAuftragsPositionId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
+            val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
             log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
             val list: List<RechnungsPositionDO> = persistenceService.executeQuery(
                 "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
@@ -112,12 +140,12 @@ open class RechnungCache : AbstractCache() {
                 var setByAuftragId = mapByAuftragId[auftrag!!.id]
                 if (setByAuftragId == null) {
                     setByAuftragId = TreeSet()
-                    mapByAuftragId[auftrag.id] = setByAuftragId
+                    mapByAuftragId[auftrag.id ?: 0] = setByAuftragId
                 }
                 var setByAuftragsPositionId = mapByAuftragsPositionId[auftragsPosition.id]
                 if (setByAuftragsPositionId == null) {
                     setByAuftragsPositionId = TreeSet()
-                    mapByAuftragsPositionId[auftragsPosition.id] = setByAuftragsPositionId
+                    mapByAuftragsPositionId[auftragsPosition.id ?: 0] = setByAuftragsPositionId
                 }
                 val vo = RechnungsPositionVO(pos)
                 if (!setByAuftragId.contains(vo)) {
@@ -129,7 +157,7 @@ open class RechnungCache : AbstractCache() {
                 var positionen = mapByRechnungsPositionMapByRechnungId[rechnung.id]
                 if (positionen == null) {
                     positionen = TreeSet()
-                    mapByRechnungsPositionMapByRechnungId[rechnung.id] = positionen
+                    mapByRechnungsPositionMapByRechnungId[rechnung.id ?: 0] = positionen
                 }
                 positionen.add(vo)
             }

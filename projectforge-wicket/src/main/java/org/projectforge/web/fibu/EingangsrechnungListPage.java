@@ -135,7 +135,7 @@ public class EingangsrechnungListPage
         final EingangsrechnungDO eingangsrechnung = (EingangsrechnungDO) rowModel.getObject();
         String kreditor = StringEscapeUtils.escapeHtml4(eingangsrechnung.getKreditor());
         if (form.getSearchFilter().isShowKostZuweisungStatus() == true) {
-          final BigDecimal fehlBetrag = eingangsrechnung.getKostZuweisungFehlbetrag();
+          final BigDecimal fehlBetrag = eingangsrechnung.getKostZuweisungFehlbetrag(); // Teuer!!
           if (NumberHelper.isNotZero(fehlBetrag) == true) {
             kreditor += " *** " + CurrencyFormatter.format(fehlBetrag) + " ***";
           }
