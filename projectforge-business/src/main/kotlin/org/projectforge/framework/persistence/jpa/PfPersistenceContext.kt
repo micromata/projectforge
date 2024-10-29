@@ -101,6 +101,19 @@ class PfPersistenceContext internal constructor(
         return entity
     }
 
+    fun <T> selectAll(
+        entityClass: Class<T>,
+        attached: Boolean = false,
+        lockModeType: LockModeType? = null,
+    ): List<T> {
+        return executeQuery(
+            "FROM ${entityClass.simpleName} t",
+            entityClass,
+            attached = attached,
+            lockModeType = lockModeType,
+        )
+    }
+
     /**
      * @param nullAllowed If false, an exception is thrown if no result is found.
      * @param errorMessage If not null, this message is used in the exception.

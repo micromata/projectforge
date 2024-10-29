@@ -258,9 +258,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   @SuppressWarnings("serial")
   @Override
   protected void init() {
-    AddressDao addressDao = WicketSupport.get(AddressDao.class);
-    PersonalAddressDao personalAddressDao = WicketSupport.get(PersonalAddressDao.class);
-    personalAddressMap = personalAddressDao.getPersonalAddressByAddressId();
+    personalAddressMap = WicketSupport.get(PersonalAddressDao.class).getPersonalAddressByAddressId();
     final List<IColumn<AddressDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "name", SortOrder.ASCENDING);
     form.add(dataTable);
@@ -293,7 +291,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         @Override
         public void onSubmit() {
           log.info("Exporting personal address book.");
-          final List<PersonalAddressDO> list = addressDao.getFavoriteVCards();
+          final List<PersonalAddressDO> list = WicketSupport.get(AddressDao.class).getFavoriteVCards();
           if (CollectionUtils.isEmpty(list) == true) {
             form.addError("address.book.hasNoVCards");
             return;
@@ -301,7 +299,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
           final String filename = "ProjectForge-PersonalAddressBook_" + DateHelper.getDateAsFilenameSuffix(new Date())
               + ".vcf";
           final StringWriter writer = new StringWriter();
-          addressDao.exportFavoriteVCards(writer, list);
+          WicketSupport.get(AddressDao.class).exportFavoriteVCards(writer, list);
           DownloadUtils.setUTF8CharacterEncoding(getResponse());
           DownloadUtils.setDownloadTarget(writer.toString().getBytes(), filename);
         }

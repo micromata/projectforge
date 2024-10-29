@@ -193,6 +193,21 @@ open class PfPersistenceService {
 
     /**
      * Encapsulated in [runReadOnly].
+     * @see PfPersistenceContext.selectAll
+     */
+    @JvmOverloads
+    fun <T> selectAll(
+        entityClass: Class<T>,
+        attached: Boolean = false,
+        lockModeType: LockModeType? = null,
+    ): List<T> {
+        return runReadOnly { context ->
+            context.selectAll(entityClass, attached = attached, lockModeType = lockModeType)
+        }
+    }
+
+    /**
+     * Encapsulated in [runReadOnly].
      * @see PfPersistenceContext.selectSingleResult
      */
     @JvmOverloads

@@ -40,6 +40,10 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
     private var lastReportedProgress = 0
     private var step = 50 // 50% steps at default
 
+    init {
+        log.info { "${entityClass.simpleName}: Starting indexing..." }
+    }
+
     override fun documentsAdded(increment: Long) {
         synchronized(this) {
             indexedEntities += increment
@@ -58,8 +62,10 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
         if (totalEntities > 5_000_000) {
             step = 1 // 5% steps for more than 5,000,000 entities
         } else if (totalEntities > 2_000_000) {
-            step = 5 // 5%
+            step = 2 // 5% steps for more than 5,000,000 entities
         } else if (totalEntities > 1_000_000) {
+            step = 5 // 5%
+        } else if (totalEntities > 500_000) {
             step = 10 // 10%
         } else if (totalEntities > 100_000) {
             step = 20 // 20%

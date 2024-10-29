@@ -27,8 +27,6 @@ import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.*
@@ -56,6 +54,10 @@ open class RechnungCache : AbstractCache() {
     private var invoicePositionMapByAuftragsPositionId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
 
     private var invoicePositionMapByRechnungId: Map<Long?, MutableSet<RechnungsPositionVO>>? = null
+
+    private var invoiceInfoMap: Map<Long, RechnungInfo>? = null
+
+    private var incomingInvoiceInfoMap: Map<Long, RechnungInfo>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -89,6 +91,7 @@ open class RechnungCache : AbstractCache() {
             val mapByAuftragId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
             val mapByAuftragsPositionId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
             val mapByRechnungsPositionMapByRechnungId: MutableMap<Long?, MutableSet<RechnungsPositionVO>> = HashMap()
+            log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
             val list: List<RechnungsPositionDO> = persistenceService.executeQuery(
                 "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
                 RechnungsPositionDO::class.java,
@@ -130,12 +133,32 @@ open class RechnungCache : AbstractCache() {
                 }
                 positionen.add(vo)
             }
+            log.info("Getting all invoices (RechnungDO)...")
+            val nInvoiceInfoMap = HashMap<Long, RechnungInfo>()
+            persistenceService.executeQuery(
+                "FROM RechnungDO t left join fetch t.positionen",
+                RechnungDO::class.java,
+            ).forEach { rechnung ->
+                nInvoiceInfoMap[rechnung.id!!] = RechnungInfo(rechnung)
+            }
+            log.info("Getting all incoming invoices (EingangsRechnungDO)...")
+            val nIncomingInvoiceInfoMap = HashMap<Long, RechnungInfo>()
+            persistenceService.executeQuery(
+                "FROM EingangsrechnungDO t left join fetch t.positionen",
+                EingangsrechnungDO::class.java,
+            ).forEach { rechnung ->
+                nInvoiceInfoMap[rechnung.id!!] = RechnungInfo(rechnung)
+            }
             this.invoicePositionMapByAuftragId = mapByAuftragId
             this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
             this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
-            log.info("Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}, callsStats=${
-                PfPersistenceService.showCallsStatsRecording()
-            }")
+            this.invoiceInfoMap = nInvoiceInfoMap
+            this.incomingInvoiceInfoMap = nIncomingInvoiceInfoMap
+            log.info(
+                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}, callsStats=${
+                    PfPersistenceService.showCallsStatsRecording()
+                }"
+            )
         } finally {
             PfPersistenceService.stopCallsStatsRecording()
         }
