@@ -28,7 +28,6 @@ import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeService
-import org.projectforge.business.user.UserGroupCache
 import org.projectforge.business.vacation.model.VacationDO
 import org.projectforge.business.vacation.model.VacationStatus
 import org.projectforge.business.vacation.repository.LeaveAccountEntryDao
@@ -161,7 +160,7 @@ open class VacationService {
         vacationEntries: List<VacationDO>? = null
     ): VacationStats {
         // Transaction needed, because RemainingLeaveDao.internalSaveOrUpdate is called.
-        return persistenceService.runInTransaction { context ->
+        return persistenceService.runInTransaction {
             val stats = VacationStats(employee, year, baseDate)
             // Get employee from database if not initialized (user not given).
             val employeeDO =
@@ -204,7 +203,12 @@ open class VacationService {
                     stats.remainingLeaveFromPreviousYear = stats.lastYearStats!!.vacationDaysLeftInYear
                         ?: BigDecimal.ZERO
                     log.info("Calculation of carry for employee: $stats")
-                    remainingLeaveDao.saveOrUpdate(employeeDO, year, stats.remainingLeaveFromPreviousYear, checkAccess = false)
+                    remainingLeaveDao.saveOrUpdate(
+                        employeeDO,
+                        year,
+                        stats.remainingLeaveFromPreviousYear,
+                        checkAccess = false
+                    )
                 } else {
                     // Calculate last year
                     stats.remainingLeaveFromPreviousYear =

@@ -62,7 +62,7 @@ open class PfPersistenceService {
     ): T {
         val context = PfPersistenceContextThreadLocal.getTransactional() // Transactional context.
         if (context == null) {
-            return internalRunInNewTransaction(run)
+            return internalRunInNewTransaction(false, run)
         } else {
             return context.run(run)
         }
@@ -74,9 +74,10 @@ open class PfPersistenceService {
      * Any previous transactional context in ThreadLocal will be restored after finishing the block.
      */
     fun <T> runInNewTransaction(
+        recordCallStats: Boolean = false,
         run: (context: PfPersistenceContext) -> T
     ): T {
-        return internalRunInNewTransaction(run)
+        return internalRunInNewTransaction(recordCallStats, run)
     }
 
     /**
@@ -91,7 +92,7 @@ open class PfPersistenceService {
         if (context != null) {
             return context.run(block)
         }
-        return runInNewReadOnlyContext(block)
+        return runInNewReadOnlyContext(false, block)
     }
 
     /**
@@ -100,9 +101,10 @@ open class PfPersistenceService {
      * Any previous EntityManager in ThreadLocal will be restored after finishing the block.
      */
     fun <T> runIsolatedReadOnly(
+        recordCallStats: Boolean = false,
         block: (context: PfPersistenceContext) -> T
     ): T {
-        return runInNewReadOnlyContext(block)
+        return runInNewReadOnlyContext(recordCallStats, block)
     }
 
     /**
@@ -110,6 +112,7 @@ open class PfPersistenceService {
      * Any previous transactional context in ThreadLocal will be restored after finishing the block.
      */
     private fun <T> internalRunInNewTransaction(
+        recordCallStats: Boolean,
         run: (context: PfPersistenceContext) -> T
     ): T {
         val saved = PfPersistenceContextThreadLocal.getTransactional()
@@ -118,6 +121,9 @@ open class PfPersistenceService {
                 entityManagerFactory,
                 type = PfPersistenceContext.ContextType.TRANSACTION,
             ).use { context ->
+                if (recordCallStats) {
+                    PfPersistenceContextThreadLocal.createPersistenceCallsStats(false)
+                }
                 PfPersistenceContextThreadLocal.setTransactional(context)
                 PfPersistenceContextThreadLocal.getStatsState().transactionCreated()
                 log.debug { "Begin transactional context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
@@ -144,6 +150,9 @@ open class PfPersistenceService {
             log.debug { "Remove transactional context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setTransactional(it) } // Restore previous context, if any.
             PfPersistenceContextThreadLocal.getStatsState().transactionClosed()
+            if (recordCallStats) {
+                PfPersistenceContextThreadLocal.removePersistenceCallsStats()
+            }
         }
     }
 
@@ -152,6 +161,7 @@ open class PfPersistenceService {
      * Any previous readonly context in ThreadLocal will be restored after finishing the block.
      */
     private fun <T> runInNewReadOnlyContext(
+        recordCallStats: Boolean,
         block: (context: PfPersistenceContext) -> T
     ): T {
         val saved = PfPersistenceContextThreadLocal.getReadonly()
@@ -160,6 +170,9 @@ open class PfPersistenceService {
                 entityManagerFactory,
                 type = PfPersistenceContext.ContextType.READONLY
             ).use { context ->
+                if (recordCallStats) {
+                    PfPersistenceContextThreadLocal.createPersistenceCallsStats(false)
+                }
                 PfPersistenceContextThreadLocal.setReadonly(context)
                 PfPersistenceContextThreadLocal.getStatsState().readonlyCreated()
                 log.debug { "New readonly context=${context.contextId} in ThreadLocal... (saved context=${saved?.contextId})" }
@@ -174,6 +187,9 @@ open class PfPersistenceService {
             log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
             PfPersistenceContextThreadLocal.getStatsState().readonlyClosed()
+            if (recordCallStats) {
+                PfPersistenceContextThreadLocal.removePersistenceCallsStats()
+            }
         }
     }
 
@@ -362,14 +378,6 @@ open class PfPersistenceService {
         @JvmStatic
         lateinit var instance: PfPersistenceService
             private set
-
-        fun startCallsStatsRecording(extended: Boolean = false) {
-            PfPersistenceContextThreadLocal.createPersistenceCallsStats(extended)
-        }
-
-        fun stopCallsStatsRecording() {
-            PfPersistenceContextThreadLocal.removePersistenceCallsStats()
-        }
 
         fun showCallsStatsRecording(extended: Boolean = false): String? {
             return PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.toString(extended)

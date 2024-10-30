@@ -139,9 +139,7 @@ class RechnungCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing RechnungCache...")
-        val saved = persistenceService.saveStatsState()
-        try {
-            PfPersistenceService.startCallsStatsRecording()
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             // This method must not be synchronized because it works with new copies of maps.
             log.info("Getting all invoices (RechnungDO)...")
             val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
@@ -160,12 +158,10 @@ class RechnungCache : AbstractCache() {
             this.invoiceInfoMap = nInvoiceInfoMap
             this.invoicePosInfoMap = nInvoicePosInfoMap
             log.info(
-                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}, callsStats=${
+                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
                     PfPersistenceService.showCallsStatsRecording()
                 }"
             )
-        } finally {
-            PfPersistenceService.stopCallsStatsRecording()
         }
     }
 

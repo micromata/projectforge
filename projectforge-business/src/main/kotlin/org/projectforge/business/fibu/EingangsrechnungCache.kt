@@ -49,28 +49,22 @@ internal class EingangsrechnungCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing EingangrechnungCache...")
-        val saved = persistenceService.saveStatsState()
-        persistenceService.runIsolatedReadOnly {
-            try {
-                PfPersistenceService.startCallsStatsRecording()
-                // This method must not be synchronized because it works with new copies of maps.
-                log.info("Getting all incoming invoices (EingangsRechnungDO)...")
-                val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-                persistenceService.executeQuery(
-                    "FROM EingangsrechnungDO t left join fetch t.positionen left join fetch t.positionen.kostZuweisungen",
-                    EingangsrechnungDO::class.java,
-                ).forEach { rechnung ->
-                    nInvoiceInfoMap[rechnung.id!!] = RechnungCalculator.calculate(rechnung)
-                }
-                this.invoiceInfoMap = nInvoiceInfoMap
-                log.info(
-                    "Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}, callsStats=${
-                        PfPersistenceService.showCallsStatsRecording()
-                    }"
-                )
-            } finally {
-                PfPersistenceService.stopCallsStatsRecording()
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+            // This method must not be synchronized because it works with new copies of maps.
+            log.info("Getting all incoming invoices (EingangsRechnungDO)...")
+            val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
+            persistenceService.executeQuery(
+                "FROM EingangsrechnungDO t left join fetch t.positionen left join fetch t.positionen.kostZuweisungen",
+                EingangsrechnungDO::class.java,
+            ).forEach { rechnung ->
+                nInvoiceInfoMap[rechnung.id!!] = RechnungCalculator.calculate(rechnung)
             }
+            this.invoiceInfoMap = nInvoiceInfoMap
+            log.info(
+                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
+                    PfPersistenceService.showCallsStatsRecording()
+                }"
+            )
         }
     }
 }

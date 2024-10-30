@@ -97,10 +97,7 @@ open class EmployeeCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     public override fun refresh() {
-        try {
-            PfPersistenceService.startCallsStatsRecording()
-            log.info("Initializing EmployeeCache...")
-            val saved = persistenceService.saveStatsState()
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             // This method must not be synchronized because it works with a new copy of maps.
             val map = mutableMapOf<Long, EmployeeDO>()
             persistenceService.executeQuery(
@@ -131,12 +128,10 @@ open class EmployeeCache : AbstractCache() {
                 }
             this.employeeMap = map
             log.info(
-                "EmployeeCache.refresh done. stats=${persistenceService.formatStats(saved)}, callsStats=${
+                "EmployeeCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
                     PfPersistenceService.showCallsStatsRecording()
                 }"
             )
-        } finally {
-            PfPersistenceService.stopCallsStatsRecording()
         }
     }
 
@@ -156,7 +151,8 @@ open class EmployeeCache : AbstractCache() {
             private set
 
         // select * from t_fibu_employee_valid_since_attr t where type='STATUS' AND t.deleted=false order by t.employee_fk, t.valid_since desc;
-        const val queryAllValidSinceValues = "SELECT t FROM EmployeeValidSinceAttrDO t WHERE t.type=:type AND t.deleted=false ORDER BY t.employee.id, t.validSince DESC"
+        const val queryAllValidSinceValues =
+            "SELECT t FROM EmployeeValidSinceAttrDO t WHERE t.type=:type AND t.deleted=false ORDER BY t.employee.id, t.validSince DESC"
 
         // Following query didn't work properly with PostgreSQL (some entries were missing):
         // Gets the validSince attribute for all employees and takes the last (max) entry.

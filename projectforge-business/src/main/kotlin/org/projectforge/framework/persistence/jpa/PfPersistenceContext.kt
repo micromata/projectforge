@@ -50,6 +50,8 @@ class PfPersistenceContext internal constructor(
 ) : AutoCloseable {
     internal enum class ContextType { READONLY, TRANSACTION }
 
+    var savedStats: PersistenceStats = PfPersistenceContextThreadLocal.getStatsState().saveCurrentState()
+
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
     /**

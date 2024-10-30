@@ -244,24 +244,25 @@ class KostCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing KostCache ...")
-        val saved = persistenceService.saveStatsState()
-        // This method must not be synchronized because it works with a new copy of maps.
-        this.kost1Map = persistenceService
-            .executeQuery("from Kost1DO t", Kost1DO::class.java, lockModeType = LockModeType.NONE)
-            .filter { it.id != null }
-            .associateBy { it.id!! }
-            .toMutableMap()
-        this.kost2Map = persistenceService
-            .executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
-            .filter { it.id != null }
-            .associateBy { it.id!! }
-            .toMutableMap()
-        kost2EntriesExists = kost2Map.values.any { !it.deleted }
-        updateKost2Arts()
-        this.customerMap = persistenceService
-            .executeQuery("from KundeDO t", KundeDO::class.java, lockModeType = LockModeType.NONE)
-            .filter { it.id != null }
-            .associateBy { it.id!! }
-        log.info("Initializing of KostCache done. stats=${persistenceService.formatStats(saved)}")
+        persistenceService.runIsolatedReadOnly { context ->
+            // This method must not be synchronized because it works with a new copy of maps.
+            this.kost1Map = persistenceService
+                .executeQuery("from Kost1DO t", Kost1DO::class.java, lockModeType = LockModeType.NONE)
+                .filter { it.id != null }
+                .associateBy { it.id!! }
+                .toMutableMap()
+            this.kost2Map = persistenceService
+                .executeQuery("from Kost2DO t", Kost2DO::class.java, lockModeType = LockModeType.NONE)
+                .filter { it.id != null }
+                .associateBy { it.id!! }
+                .toMutableMap()
+            kost2EntriesExists = kost2Map.values.any { !it.deleted }
+            updateKost2Arts()
+            this.customerMap = persistenceService
+                .executeQuery("from KundeDO t", KundeDO::class.java, lockModeType = LockModeType.NONE)
+                .filter { it.id != null }
+                .associateBy { it.id!! }
+            log.info("Initializing of KostCache done. stats=${persistenceService.formatStats(context.savedStats)}")
+        }
     }
 }

@@ -58,68 +58,62 @@ class AuftragsRechnungCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing AuftragsRechnungCache...")
-        val saved = persistenceService.saveStatsState()
-        persistenceService.runIsolatedReadOnly {
-            try {
-                PfPersistenceService.startCallsStatsRecording()
-                // This method must not be synchronized because it works with new copies of maps.
-                val mapByAuftragId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
-                val mapByAuftragsPositionId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
-                val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
-                org.projectforge.business.fibu.log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
-                val list: List<RechnungsPositionDO> = persistenceService.executeQuery(
-                    "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
-                    RechnungsPositionDO::class.java,
-                )
-                for (pos in list) {
-                    val rechnung = pos.rechnung
-                    val auftragsPosition = pos.auftragsPosition
-                    if (auftragsPosition == null || auftragsPosition.auftrag == null) {
-                        org.projectforge.business.fibu.log.error("Assigned order position expected: $pos")
-                        continue
-                    } else if (pos.deleted || rechnung == null || rechnung.deleted
-                        || rechnung.nummer == null
-                    ) {
-                        // Invoice position or invoice is deleted.
-                        continue
-                    }
-                    val auftrag = auftragsPosition.auftrag
-                    var setByAuftragId = mapByAuftragId[auftrag!!.id]
-                    if (setByAuftragId == null) {
-                        setByAuftragId = TreeSet()
-                        mapByAuftragId[auftrag.id ?: 0] = setByAuftragId
-                    }
-                    var setByAuftragsPositionId = mapByAuftragsPositionId[auftragsPosition.id]
-                    if (setByAuftragsPositionId == null) {
-                        setByAuftragsPositionId = TreeSet()
-                        mapByAuftragsPositionId[auftragsPosition.id ?: 0] = setByAuftragsPositionId
-                    }
-                    pos.info = rechnungCache.getRechnungPosInfo(rechnung.id) ?: RechnungPosInfo(pos)
-                    val vo = RechnungsPositionVO(pos)
-                    if (!setByAuftragId.contains(vo)) {
-                        setByAuftragId.add(vo)
-                    }
-                    if (!setByAuftragsPositionId.contains(vo)) {
-                        setByAuftragsPositionId.add(vo)
-                    }
-                    var positionen = mapByRechnungsPositionMapByRechnungId[rechnung.id]
-                    if (positionen == null) {
-                        positionen = TreeSet()
-                        mapByRechnungsPositionMapByRechnungId[rechnung.id ?: 0] = positionen
-                    }
-                    positionen.add(vo)
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+            // This method must not be synchronized because it works with new copies of maps.
+            val mapByAuftragId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
+            val mapByAuftragsPositionId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
+            val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
+            log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
+            val list: List<RechnungsPositionDO> = persistenceService.executeQuery(
+                "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
+                RechnungsPositionDO::class.java,
+            )
+            for (pos in list) {
+                val rechnung = pos.rechnung
+                val auftragsPosition = pos.auftragsPosition
+                if (auftragsPosition == null || auftragsPosition.auftrag == null) {
+                    log.error("Assigned order position expected: $pos")
+                    continue
+                } else if (pos.deleted || rechnung == null || rechnung.deleted
+                    || rechnung.nummer == null
+                ) {
+                    // Invoice position or invoice is deleted.
+                    continue
                 }
-                this.invoicePositionMapByAuftragId = mapByAuftragId
-                this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
-                this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
-                log.info(
-                    "Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}, callsStats=${
-                        PfPersistenceService.showCallsStatsRecording()
-                    }"
-                )
-            } finally {
-                PfPersistenceService.stopCallsStatsRecording()
+                val auftrag = auftragsPosition.auftrag
+                var setByAuftragId = mapByAuftragId[auftrag!!.id]
+                if (setByAuftragId == null) {
+                    setByAuftragId = TreeSet()
+                    mapByAuftragId[auftrag.id ?: 0] = setByAuftragId
+                }
+                var setByAuftragsPositionId = mapByAuftragsPositionId[auftragsPosition.id]
+                if (setByAuftragsPositionId == null) {
+                    setByAuftragsPositionId = TreeSet()
+                    mapByAuftragsPositionId[auftragsPosition.id ?: 0] = setByAuftragsPositionId
+                }
+                pos.info = rechnungCache.getRechnungPosInfo(rechnung.id) ?: RechnungPosInfo(pos)
+                val vo = RechnungsPositionVO(pos)
+                if (!setByAuftragId.contains(vo)) {
+                    setByAuftragId.add(vo)
+                }
+                if (!setByAuftragsPositionId.contains(vo)) {
+                    setByAuftragsPositionId.add(vo)
+                }
+                var positionen = mapByRechnungsPositionMapByRechnungId[rechnung.id]
+                if (positionen == null) {
+                    positionen = TreeSet()
+                    mapByRechnungsPositionMapByRechnungId[rechnung.id ?: 0] = positionen
+                }
+                positionen.add(vo)
             }
+            this.invoicePositionMapByAuftragId = mapByAuftragId
+            this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
+            this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
+            log.info(
+                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
+                    PfPersistenceService.showCallsStatsRecording()
+                }"
+            )
         }
     }
 }

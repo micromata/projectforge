@@ -111,8 +111,8 @@ class PfPersistenceServiceTest : AbstractTestBase() {
         assertPersistenceStats(oldState, createdTransactions = 4, createdReadonlies = 6)
         suppressErrorLogs {
             try {
-                persistenceService.runInTransaction { outerContext -> // Transactional +1
-                    persistenceService.runInNewTransaction { innerContext -> // Transactional +1
+                persistenceService.runInTransaction {  // Transactional +1
+                    persistenceService.runInNewTransaction { // Transactional +1
                         throw IllegalArgumentException("Some exception for testing.")
                     }
                 }
@@ -121,8 +121,8 @@ class PfPersistenceServiceTest : AbstractTestBase() {
             }
             assertContextCounterAndReset(2, 0)
             try {
-                persistenceService.runReadOnly { outerContext -> // Readonly +1
-                    persistenceService.runIsolatedReadOnly { innerContext -> // Readonly +1
+                persistenceService.runReadOnly { // Readonly +1
+                    persistenceService.runIsolatedReadOnly {  // Readonly +1
                         throw IllegalArgumentException("Some exception for testing.")
                     }
                 }

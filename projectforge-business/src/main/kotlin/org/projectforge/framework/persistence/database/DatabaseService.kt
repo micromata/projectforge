@@ -157,7 +157,7 @@ class DatabaseService {
 
             setUser(adminUser) // Need to login the admin user for avoiding following access exceptions.
 
-            internalCreateProjectForgeGroups(adminUser, context)
+            internalCreateProjectForgeGroups(adminUser)
 
             taskTree.setExpired()
             userGroupCache.setExpired()
@@ -193,40 +193,36 @@ class DatabaseService {
         return addressbookDao.globalAddressbook
     }
 
-    private fun internalCreateProjectForgeGroups(adminUser: PFUserDO, context: PfPersistenceContext) {
+    private fun internalCreateProjectForgeGroups(adminUser: PFUserDO) {
         val adminUsers: MutableSet<PFUserDO> = HashSet()
         adminUsers.add(adminUser)
 
-        addGroup(ProjectForgeGroup.ADMIN_GROUP, "Administrators of ProjectForge", adminUsers, context)
+        addGroup(ProjectForgeGroup.ADMIN_GROUP, "Administrators of ProjectForge", adminUsers)
         addGroup(
             ProjectForgeGroup.CONTROLLING_GROUP,
             "Users for having read access to the company's finances.",
             adminUsers,
-            context,
         )
-        addGroup(ProjectForgeGroup.FINANCE_GROUP, "Finance and Accounting", adminUsers, context)
+        addGroup(ProjectForgeGroup.FINANCE_GROUP, "Finance and Accounting", adminUsers)
         addGroup(
             ProjectForgeGroup.MARKETING_GROUP,
             "Marketing users can download all addresses in excel format.",
             adminUsers,
-            context,
         )
         addGroup(
             ProjectForgeGroup.ORGA_TEAM,
             "The organization team has access to post in- and outbound, contracts etc..",
             adminUsers,
-            context,
         )
-        addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.", adminUsers, context)
+        addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.", adminUsers)
         addGroup(
             ProjectForgeGroup.PROJECT_MANAGER,
-            "Project managers have access to assigned orders and resource planning.", null, context
+            "Project managers have access to assigned orders and resource planning.", null
         )
         addGroup(
             ProjectForgeGroup.PROJECT_ASSISTANT,
             "Project assistants have access to assigned orders.",
             null,
-            context
         )
     }
 
@@ -234,7 +230,6 @@ class DatabaseService {
         projectForgeGroup: ProjectForgeGroup,
         description: String,
         users: MutableSet<PFUserDO>?,
-        context: PfPersistenceContext
     ) {
         val group = GroupDO()
         group.name = projectForgeGroup.toString()
@@ -316,7 +311,7 @@ class DatabaseService {
      *
      * @param writeaccess
      */
-    protected fun accessCheck(writeaccess: Boolean) {
+    protected fun accessCheck() {
         if (loggedInUser === SYSTEM_ADMIN_PSEUDO_USER) {
             // No access check for the system admin pseudo user.
             return
@@ -331,7 +326,7 @@ class DatabaseService {
     }
 
     fun doesTableExist(table: String): Boolean {
-        accessCheck(false)
+        accessCheck()
         return internalDoesTableExist(table)
     }
 
@@ -353,7 +348,7 @@ class DatabaseService {
     }
 
     fun isTableEmpty(table: String): Boolean {
-        accessCheck(false)
+        accessCheck()
         return internalIsTableEmpty(table)
     }
 
@@ -372,7 +367,7 @@ class DatabaseService {
      * @return Number of successful created database indices.
      */
     fun createMissingIndices(): Int {
-        accessCheck(true)
+        accessCheck()
         log.info("createMissingIndices called.")
         var counter = 0
         // For user / time period search:
@@ -405,7 +400,7 @@ class DatabaseService {
      * @return true, if the index was created, false if an error has occured or the index already exists.
      */
     fun createIndex(name: String, table: String, attributes: String): Boolean {
-        accessCheck(true)
+        accessCheck()
         try {
             val jdbcString = "CREATE INDEX $name ON $table($attributes);"
             execute(jdbcString, false)
@@ -430,21 +425,21 @@ class DatabaseService {
      */
     @JvmOverloads
     fun execute(jdbcString: String?, ignoreErrors: Boolean = true) {
-        accessCheck(true)
+        accessCheck()
         val jdbc = getDatabaseExecutor()
         jdbc.execute(jdbcString, ignoreErrors)
         log.info(jdbcString)
     }
 
     fun queryForInt(jdbcQuery: String?): Int {
-        accessCheck(false)
+        accessCheck()
         val jdbc = getDatabaseExecutor()
         log.info(jdbcQuery)
         return jdbc.queryForInt(jdbcQuery)
     }
 
     fun query(sql: String?, vararg args: Any?): List<DatabaseResultRow> {
-        accessCheck(false)
+        accessCheck()
         val jdbc = getDatabaseExecutor()
         log.info(sql)
         return jdbc.query(sql, *args)
