@@ -32,6 +32,7 @@ import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -48,6 +49,9 @@ private val log = KotlinLogging.logger {}
 open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
     @Autowired
     private lateinit var employeeCache: EmployeeCache
+
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -118,15 +122,17 @@ open class VacationCache : AbstractCache(), BaseDOModifiedListener<VacationDO> {
      */
     override fun refresh() {
         log.info("Refreshing VacationCache ...")
-        // This method must not be synchronized because it works with a new copy of maps.
-        val map = mutableMapOf<Long?, VacationDO>()
-        vacationDao.selectAll(checkAccess = false).forEach {
-            if (!it.deleted) {
-                map[it.id] = it
+        persistenceService.runIsolatedReadOnly {
+            // This method must not be synchronized because it works with a new copy of maps.
+            val map = mutableMapOf<Long?, VacationDO>()
+            vacationDao.selectAll(checkAccess = false).forEach {
+                if (!it.deleted) {
+                    map[it.id] = it
+                }
             }
+            vacationMap = map
+            vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
         }
-        vacationMap = map
-        vacations = vacationMap.values.toList() // Make a copy for avoiding ConcurrentModificationExceptions
         log.info("Refreshing of VacationCache done.")
     }
 }

@@ -26,13 +26,14 @@ package org.projectforge.business.address
 import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.QueryFilter
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.PFDateTime
 import java.util.*
 
 private val log = KotlinLogging.logger {}
 
-class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
+class BirthdayCache(private val addressDao: AddressDao, private val persistenceService: PfPersistenceService) : AbstractCache() {
 
   init {
     if (_instance != null) {
@@ -96,17 +97,20 @@ class BirthdayCache(private val addressDao: AddressDao) : AbstractCache() {
 
   override fun refresh() {
     log.info("Refreshing BirthdayCache...")
-    val filter = QueryFilter()
-    filter.add(QueryFilter.isNotNull("birthday"))
-    filter.deleted = false
-    val addressList = addressDao.select(filter, checkAccess = false)
-    val newList = mutableListOf<BirthdayAddress>()
-    addressList.forEach {
-      if (it.deleted != true) { // deleted shouldn't occur, already filtered above.
-        newList.add(BirthdayAddress(it))
+    persistenceService.runIsolatedReadOnly {
+      val filter = QueryFilter()
+      filter.add(QueryFilter.isNotNull("birthday"))
+      filter.deleted = false
+      val addressList = addressDao.select(filter, checkAccess = false)
+      val newList = mutableListOf<BirthdayAddress>()
+      addressList.forEach {
+        if (it.deleted != true) { // deleted shouldn't occur, already filtered above.
+          newList.add(BirthdayAddress(it))
+        }
       }
+      cacheList = newList
     }
-    cacheList = newList
+    log.info("Refreshing BirthdayCache done.")
   }
 
   companion object {

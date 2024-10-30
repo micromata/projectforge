@@ -28,6 +28,7 @@ import mu.KotlinLogging
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -42,6 +43,9 @@ private val log = KotlinLogging.logger {}
  */
 @Service
 open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillEntryDO> {
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
+
     @Autowired
     private lateinit var skillEntryDao: SkillEntryDao
 
@@ -123,22 +127,25 @@ open class SkillStatisticsCache : AbstractCache(), BaseDOModifiedListener<SkillE
 
     override fun refresh() {
         log.info("Refreshing SkillMatrixCache ...")
-        val skillStatisticsMap = mutableMapOf<String, Entry>()
-        skillEntryDao.selectAll(checkAccess = false)
-            .filter { !it.deleted } // Ignore deleted skill entries.
-            .sortedByDescending { it.lastUpdate } // Use skill syntax of last edited one (older ones will be normalized)
-            .forEach { skillEntry ->
-                val skillName = skillEntry.skill ?: ""
-                val normalizedSkillName = skillEntry.normalizedSkill
-                val entry = skillStatisticsMap[normalizedSkillName] ?: run {
-                    val newEntry = Entry(skillName)
-                    skillStatisticsMap[normalizedSkillName] = newEntry
-                    newEntry
+        persistenceService.runIsolatedReadOnly {
+            val skillStatisticsMap = mutableMapOf<String, Entry>()
+            skillEntryDao.selectAll(checkAccess = false)
+                .filter { !it.deleted } // Ignore deleted skill entries.
+                .sortedByDescending { it.lastUpdate } // Use skill syntax of last edited one (older ones will be normalized)
+                .forEach { skillEntry ->
+                    val skillName = skillEntry.skill ?: ""
+                    val normalizedSkillName = skillEntry.normalizedSkill
+                    val entry = skillStatisticsMap[normalizedSkillName] ?: run {
+                        val newEntry = Entry(skillName)
+                        skillStatisticsMap[normalizedSkillName] = newEntry
+                        newEntry
+                    }
+                    entry.add(skillEntry)
                 }
-                entry.add(skillEntry)
-            }
-        skillStatistics = skillStatisticsMap.values
-            .sortedBy { it.skill.lowercase() }
-            .map { SkillStatistic(it.skill, it.totalCounter, it.ratingMean, it.interestMean) }
+            skillStatistics = skillStatisticsMap.values
+                .sortedBy { it.skill.lowercase() }
+                .map { SkillStatistic(it.skill, it.totalCounter, it.ratingMean, it.interestMean) }
+        }
+        log.info("Refreshing SkillMatrixCache done.")
     }
 }

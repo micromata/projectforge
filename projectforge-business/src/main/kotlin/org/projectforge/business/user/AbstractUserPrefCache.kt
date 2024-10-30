@@ -240,11 +240,13 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
      */
     private fun flushAllToDB() {
         log.info("$title: Flushing all user preferences to database....")
-        synchronized(allPreferences) {
-            allPreferences.forEach { (_, data) ->
-                insertOrUpdateUserEntriesIfModified(data, checkAccess = false)
+        persistenceService.runInNewTransaction {
+            synchronized(allPreferences) {
+                allPreferences.forEach { (_, data) ->
+                    insertOrUpdateUserEntriesIfModified(data, checkAccess = false)
+                }
+                allPreferences.clear()
             }
-            allPreferences.clear()
         }
     }
 
@@ -261,11 +263,13 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
                 return
             }
         }
-        synchronized(allPreferences) {
-            allPreferences[userId]?.let { data ->
-                insertOrUpdateUserEntriesIfModified(data, checkAccess)
+        persistenceService.runInNewTransaction {
+            synchronized(allPreferences) {
+                allPreferences[userId]?.let { data ->
+                    insertOrUpdateUserEntriesIfModified(data, checkAccess)
+                }
+                allPreferences.remove(userId)
             }
-            allPreferences.remove(userId)
         }
     }
 

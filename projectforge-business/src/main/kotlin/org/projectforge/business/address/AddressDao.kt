@@ -97,7 +97,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
     @PostConstruct
     private fun postConstruct() {
         addressCache = AddressCache(this)
-        birthdayCache = BirthdayCache(this)
+        birthdayCache = BirthdayCache(this, persistenceService)
     }
 
     fun register(listener: AddressDeletionListener) {
