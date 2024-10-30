@@ -400,29 +400,10 @@ public class BeanHelper {
   }
 
   /**
-   * Invokes getter method of the given bean.
-   *
-   * @param bean
-   * @param property
-   * @return
-   * @throws InvocationTargetException
-   * @throws IllegalAccessException
-   * @throws IllegalArgumentException
+   * @see PropertyUtils#getProperty(Object, String)
    */
   public static Object getProperty(final Object bean, final String property) {
-    final Method getter = determineGetter(bean.getClass(), property);
-    if (getter == null) {
-      throw new RuntimeException("Getter for property '" + bean.getClass() + "." + property + "' not found.");
-    }
-    try {
-      return getter.invoke(bean);
-    } catch (final IllegalArgumentException ex) {
-      throw new RuntimeException("For property '" + property + "'.", ex);
-    } catch (final IllegalAccessException ex) {
-      throw new RuntimeException("For property '" + property + "'.", ex);
-    } catch (final InvocationTargetException ex) {
-      throw new RuntimeException("For property '" + property + "'.", ex);
-    }
+    return PropertyUtils.getProperty(bean, property);
   }
 
   /**
