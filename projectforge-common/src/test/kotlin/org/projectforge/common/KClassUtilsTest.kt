@@ -40,6 +40,17 @@ class KClassUtilsTest {
         }
     }
 
+    class InnerClass(val innerStatus: String, var innerValue: String?)
+
+    @Test
+    fun `test getProperty with nested properties`() {
+        KClassUtils.getProperty(TestClass::class, "status").let { property ->
+            Assertions.assertNotNull(property)
+            Assertions.assertEquals("status", property!!.name)
+            Assertions.assertEquals("kotlin.String?", property.returnType.toString())
+        }
+    }
+
     @Test
     fun testFilterPublicMutableProperties() {
         KClassUtils.filterPublicMutableProperties(TestClass::class).let { members ->

@@ -94,6 +94,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
   @Override
   protected void init() {
     super.init();
+    RechnungCalculator.INSTANCE.calculate(data);
 
     if (Configuration.getInstance().isCostConfigured() == true) {
       costConfigured = true;
@@ -342,6 +343,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     } else {
       ((EingangsrechnungDO) data).getPositionen().removeIf(AbstractBaseDO::getDeleted);
     }
+    RechnungCalculator.INSTANCE.calculate(data);
 
     for (final AbstractRechnungsPositionDO position : data.getAbstractPositionen()) {
       // Fetch all kostZuweisungen:
