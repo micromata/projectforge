@@ -249,6 +249,7 @@ public class SEPATransferGenerator {
                                    final String msgID, final PaymentInstructionInformationSCT pmtInf, int index) {
         // validate invoice, check field values
         List<SEPATransferError> errors = new ArrayList<>();
+        RechnungCalculator.INSTANCE.calculate(invoice);
         if (invoice.getInfo().getGrossSumWithDiscount() == null || invoice.getInfo().getGrossSumWithDiscount().compareTo(BigDecimal.ZERO) == 0) {
             errors.add(SEPATransferError.SUM);
         }

@@ -94,6 +94,9 @@ object RechnungCalculator {
     fun calculate(position: AbstractRechnungsPositionDO): RechnungPosInfo {
         val posInfo = RechnungPosInfo(position)
         position.info = posInfo
+        if (position is RechnungsPositionDO) {
+            posInfo.auftragsPositionId = position.auftragsPosition?.id
+        }
         posInfo.netSum = calculateNetSum(position)
         roundAmountIf(posInfo, RechnungPosInfo::netSum, roundPositionsBeforeSum)
         if (position.vat != null) {

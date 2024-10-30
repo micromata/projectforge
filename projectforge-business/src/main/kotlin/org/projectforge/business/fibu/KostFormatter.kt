@@ -189,6 +189,11 @@ class KostFormatter(private val kostCache: KostCache) {
         @JvmStatic
         lateinit var instance: KostFormatter
             private set
+
+        internal fun setForTestcases(kostCache: KostCache) {
+            instance = KostFormatter(kostCache)
+        }
+
         const val MAX_VALUE: Int = 99999999
         const val ABBREVIATION_LENGTH = 30
 

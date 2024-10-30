@@ -41,5 +41,6 @@ class RechnungPosInfo(position: AbstractRechnungsPositionDO) : Serializable {
     var kostZuweisungNetSum = BigDecimal.ZERO
     var kostZuweisungGrossSum = BigDecimal.ZERO
     var kostZuweisungNetFehlbetrag = BigDecimal.ZERO
+    var auftragsPositionId: Long? = null // Only used by RechnungDO.
     var kostZuweisungen: List<KostZuweisungInfo>? = null
 }

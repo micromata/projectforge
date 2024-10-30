@@ -111,9 +111,10 @@ class RechnungDaoTest : AbstractTestBase() {
 
             rechnung.addPosition(createPosition(2, "100.50", "0.19", "test"))
             rechnung.addPosition(createPosition(1, "50.00", "0", "test"))
-            Assertions.assertEquals("289.19", rechnung.info.grossSum.setScale(2).toString())
             id = rechnungDao.insert(rechnung)
             rechnung = rechnungDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
+            Assertions.assertEquals("289.19", rechnung.info.grossSum.setScale(2).toString(),
+                "info should be calculated correctly by RechnungDao.afterInsertOrModify.")
         }
         persistenceService.runInTransaction { _ ->
             logon(TEST_CONTROLLING_USER)
