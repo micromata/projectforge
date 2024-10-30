@@ -23,6 +23,9 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.Transient
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
@@ -30,9 +33,6 @@ import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
-import jakarta.persistence.Column
-import jakarta.persistence.MappedSuperclass
-import jakarta.persistence.Transient
 
 @MappedSuperclass
 abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable, IRechnungsPosition {
@@ -66,6 +66,17 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
 
     @get:Transient
     abstract val rechnungId: Long?
+
+    /**
+     * Must be set via [RechnungCalculator.calculate] before usage.
+     */
+    @get:Transient
+    lateinit var info: RechnungPosInfo
+
+    internal val isInfoInitialized: Boolean
+        @Transient
+        get() = this::info.isInitialized
+
 
     fun getKostZuweisung(idx: Int): KostZuweisungDO? {
         return kostZuweisungen?.getOrNull(idx)
@@ -106,31 +117,6 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
     }
 
     abstract protected fun checkKostZuweisungId(zuweisung: KostZuweisungDO): Boolean
-
-    @get:PropertyInfo(i18nKey = "fibu.common.netto")
-    override val netSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateNetSum(this)
-
-    val vatAmount: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateVatAmountSum(this)
-
-    val bruttoSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateGrossSum(this)
-
-    val kostZuweisungNetSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.kostZuweisungenNetSum(this)
-
-    val kostZuweisungNetFehlbetrag: BigDecimal
-        @Transient
-        get() = RechnungCalculator.kostZuweisungenNetFehlbetrag(this)
-
-    val kostZuweisungGrossSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.kostZuweisungenGrossSum(this)
 
     val isEmpty: Boolean
         @Transient

@@ -146,15 +146,6 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
         position.eingangsrechnung = this
     }
 
-    /**
-     * (this.status == EingangsrechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
-     */
-    override val isBezahlt: Boolean
-        @Transient
-        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-            true
-        } else this.bezahlDatum != null && this.zahlBetrag != null
-
     override fun compareTo(other: EingangsrechnungDO): Int {
         var cmp = compareValues(this.datum, other.datum)
         if (cmp != 0) return cmp

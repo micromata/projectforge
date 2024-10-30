@@ -135,6 +135,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         rechnung.projekt = projekt
     }
 
+    override fun afterLoad(obj: RechnungDO) {
+        obj.info = rechnungCache.getOrCalculateRechnungInfo(obj)
+    }
+
+    override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+        rechnungCache.update(obj)
+        auftragsCache.setExpired() // Expire the cache because assignments to order position may be changed.
+    }
+
     /**
      * Sets the scales of percentage and currency amounts. <br></br>
      * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
@@ -229,11 +238,6 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
     }
 
-    override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
-        rechnungCache.setExpired() // Expire the cache because assignments to order position may be changed.
-        auftragsCache.setExpired()
-    }
-
     override fun prepareHibernateSearch(obj: RechnungDO, operationType: OperationType) {
         projektDao.initializeProjektManagerGroup(obj.projekt)
     }
@@ -282,16 +286,17 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
         val result: MutableList<RechnungDO> = ArrayList()
         for (rechnung in list) {
+            val info = rechnungCache.getRechnungInfo(rechnung.id) ?: RechnungInfo(rechnung)
             if (myFilter.isShowUnbezahlt) {
-                if (!rechnung.isBezahlt) {
+                if (!info.isBezahlt) {
                     result.add(rechnung)
                 }
             } else if (myFilter.isShowBezahlt) {
-                if (rechnung.isBezahlt) {
+                if (info.isBezahlt) {
                     result.add(rechnung)
                 }
             } else if (myFilter.isShowUeberFaellig) {
-                if (rechnung.isUeberfaellig) {
+                if (info.isUeberfaellig) {
                     result.add(rechnung)
                 }
             } else {

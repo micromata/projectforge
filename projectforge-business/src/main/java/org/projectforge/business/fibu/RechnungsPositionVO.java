@@ -67,7 +67,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     this.rechnungNummer = rechnung.getNummer();
     this.rechnungBetreff = rechnung.getBetreff();
     this.text = rechnungsPosition.getText();
-    this.netSum = rechnungsPosition.getNetSum();
+    this.netSum = rechnungsPosition.getInfo().getNetSum();
     final AuftragsPositionDO auftragsPosition = rechnungsPosition.getAuftragsPosition();
     if (auftragsPosition != null) {
       final AuftragDO auftrag = auftragsPosition.getAuftrag();

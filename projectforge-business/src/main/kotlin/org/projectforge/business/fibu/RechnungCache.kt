@@ -29,7 +29,6 @@ import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -39,60 +38,81 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-open class RechnungCache : AbstractCache() {
+class RechnungCache : AbstractCache() {
     @Autowired
-    protected lateinit var persistenceService: PfPersistenceService
+    private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
-    /**
-     * The key is the order id.
-     */
-    private var invoicePositionMapByAuftragId = mapOf<Long, MutableSet<RechnungsPositionVO>>()
+    @Autowired
+    private lateinit var eingangsrechnungCache: EingangsrechnungCache
 
-    /**
-     * The key is the order position id.
-     */
-    private var invoicePositionMapByAuftragsPositionId = mapOf<Long, MutableSet<RechnungsPositionVO>>()
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-    private var invoicePositionMapByRechnungId = mapOf<Long, MutableSet<RechnungsPositionVO>>()
+    private var invoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
 
-    private var invoiceInfoMap = mapOf<Long, RechnungInfo>()
-
-    private var incomingInvoiceInfoMap = mapOf<Long, RechnungInfo>()
+    private var invoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
 
     @PostConstruct
     private fun postConstruct() {
         instance = this
         AbstractRechnungsStatistik.rechnungCache = this
+        RechnungCalculator.rechnungCache = this
     }
 
     fun getRechnungsPositionVOSetByAuftragId(auftragId: Long?): Set<RechnungsPositionVO>? {
-        auftragId ?: return null
-        checkRefresh()
-        return invoicePositionMapByAuftragId[auftragId]
+        return auftragsRechnungCache.getRechnungsPositionVOSetByAuftragId(auftragId)
     }
 
     fun getRechnungsPositionVOSetByRechnungId(rechnungId: Long?): Set<RechnungsPositionVO>? {
-        rechnungId ?: return null
-        checkRefresh()
-        return invoicePositionMapByRechnungId[rechnungId]
+        return auftragsRechnungCache.getRechnungsPositionVOSetByRechnungId(rechnungId)
     }
 
     fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Long?): Set<RechnungsPositionVO>? {
-        auftragsPositionId ?: return null
+        return auftragsRechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId)
+    }
+
+    fun update(invoice: RechnungDO) {
+        synchronized(invoiceInfoMap) {
+            invoiceInfoMap[invoice.id!!] = RechnungCalculator.calculate(invoice)
+        }
+        auftragsRechnungCache.setExpired() // Invalidate cache.
+    }
+
+    fun update(invoice: EingangsrechnungDO) {
+        eingangsrechnungCache.update(invoice)
+    }
+
+    fun getOrCalculateRechnungInfo(rechnung: RechnungDO): RechnungInfo {
         checkRefresh()
-        return invoicePositionMapByAuftragsPositionId[auftragsPositionId]
+        synchronized(invoiceInfoMap) {
+            return invoiceInfoMap[rechnung.id!!] ?: RechnungCalculator.calculate(rechnung).also {
+                invoiceInfoMap[rechnung.id!!] = it
+            }
+        }
     }
 
     fun getRechnungInfo(rechnungId: Long?): RechnungInfo? {
         rechnungId ?: return null
         checkRefresh()
-        return invoiceInfoMap[rechnungId]
+        synchronized(invoiceInfoMap) {
+            return invoiceInfoMap[rechnungId]
+        }
+    }
+
+    fun getRechnungPosInfo(rechnungPosId: Long?): RechnungPosInfo? {
+        rechnungPosId ?: return null
+        checkRefresh()
+        synchronized(invoicePosInfoMap) {
+            return invoicePosInfoMap[rechnungPosId]
+        }
+    }
+
+    fun getOrCalculateRechnungInfo(rechnung: EingangsrechnungDO): RechnungInfo {
+        return eingangsrechnungCache.getOrCalculateRechnungInfo(rechnung)
     }
 
     fun getEingangsrechnungInfo(rechnungId: Long?): RechnungInfo? {
-        rechnungId ?: return null
-        checkRefresh()
-        return incomingInvoiceInfoMap[rechnungId]
+        return eingangsrechnungCache.getRechnungInfo(rechnungId)
     }
 
     /**
@@ -101,10 +121,17 @@ open class RechnungCache : AbstractCache() {
     fun getRechnungInfo(rechnung: AbstractRechnungDO?): RechnungInfo? {
         val id = rechnung?.id ?: return null
         return if (rechnung is RechnungDO) {
-            invoiceInfoMap[id]
+            synchronized(invoiceInfoMap) {
+                invoiceInfoMap[id]
+            }
         } else {
-            incomingInvoiceInfoMap[id]
+            eingangsrechnungCache.getRechnungInfo(id)
         }
+    }
+
+    override fun setExpired() {
+        super.setExpired()
+        auftragsRechnungCache.setExpired()
     }
 
     /**
@@ -115,73 +142,23 @@ open class RechnungCache : AbstractCache() {
         val saved = persistenceService.saveStatsState()
         try {
             PfPersistenceService.startCallsStatsRecording()
-            // This method must not be synchronized because it works with a new copy of maps.
-            val mapByAuftragId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
-            val mapByAuftragsPositionId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
-            val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, MutableSet<RechnungsPositionVO>>()
-            log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
-            val list: List<RechnungsPositionDO> = persistenceService.executeQuery(
-                "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
-                RechnungsPositionDO::class.java,
-            )
-            for (pos in list) {
-                val rechnung = pos.rechnung
-                val auftragsPosition = pos.auftragsPosition
-                if (auftragsPosition == null || auftragsPosition.auftrag == null) {
-                    log.error("Assigned order position expected: $pos")
-                    continue
-                } else if (pos.deleted || rechnung == null || rechnung.deleted
-                    || rechnung.nummer == null
-                ) {
-                    // Invoice position or invoice is deleted.
-                    continue
-                }
-                val auftrag = auftragsPosition.auftrag
-                var setByAuftragId = mapByAuftragId[auftrag!!.id]
-                if (setByAuftragId == null) {
-                    setByAuftragId = TreeSet()
-                    mapByAuftragId[auftrag.id ?: 0] = setByAuftragId
-                }
-                var setByAuftragsPositionId = mapByAuftragsPositionId[auftragsPosition.id]
-                if (setByAuftragsPositionId == null) {
-                    setByAuftragsPositionId = TreeSet()
-                    mapByAuftragsPositionId[auftragsPosition.id ?: 0] = setByAuftragsPositionId
-                }
-                val vo = RechnungsPositionVO(pos)
-                if (!setByAuftragId.contains(vo)) {
-                    setByAuftragId.add(vo)
-                }
-                if (!setByAuftragsPositionId.contains(vo)) {
-                    setByAuftragsPositionId.add(vo)
-                }
-                var positionen = mapByRechnungsPositionMapByRechnungId[rechnung.id]
-                if (positionen == null) {
-                    positionen = TreeSet()
-                    mapByRechnungsPositionMapByRechnungId[rechnung.id ?: 0] = positionen
-                }
-                positionen.add(vo)
-            }
+            // This method must not be synchronized because it works with new copies of maps.
             log.info("Getting all invoices (RechnungDO)...")
-            val nInvoiceInfoMap = HashMap<Long, RechnungInfo>()
+            val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
+            val nInvoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
             persistenceService.executeQuery(
-                "FROM RechnungDO t left join fetch t.positionen",
+                "FROM RechnungDO t left join fetch t.positionen p left join fetch t.positionen.kostZuweisungen",
                 RechnungDO::class.java,
             ).forEach { rechnung ->
-                nInvoiceInfoMap[rechnung.id!!] = RechnungInfo(rechnung)
+                nInvoiceInfoMap[rechnung.id!!] = RechnungCalculator.calculate(rechnung).also { info ->
+                    info.positions?.forEach { pos ->
+                        nInvoicePosInfoMap[pos.id!!] = pos
+                    }
+
+                }
             }
-            log.info("Getting all incoming invoices (EingangsRechnungDO)...")
-            val nIncomingInvoiceInfoMap = HashMap<Long, RechnungInfo>()
-            persistenceService.executeQuery(
-                "FROM EingangsrechnungDO t left join fetch t.positionen",
-                EingangsrechnungDO::class.java,
-            ).forEach { rechnung ->
-                nInvoiceInfoMap[rechnung.id!!] = RechnungInfo(rechnung)
-            }
-            this.invoicePositionMapByAuftragId = mapByAuftragId
-            this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
-            this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
             this.invoiceInfoMap = nInvoiceInfoMap
-            this.incomingInvoiceInfoMap = nIncomingInvoiceInfoMap
+            this.invoicePosInfoMap = nInvoicePosInfoMap
             log.info(
                 "Initializing of RechnungCache done. stats=${persistenceService.formatStats(saved)}, callsStats=${
                     PfPersistenceService.showCallsStatsRecording()

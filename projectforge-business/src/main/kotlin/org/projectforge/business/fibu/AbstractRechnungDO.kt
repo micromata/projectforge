@@ -39,7 +39,6 @@ import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.xmlstream.XmlObjectReader
 import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDate
 
 @MappedSuperclass
@@ -139,81 +138,19 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
             return field
         }
 
-    @get:PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY)
-    val grossSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateGrossSum(this)
-
-    @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY)
-    val faelligkeitOrDiscountMaturity: LocalDate?
-        @Transient
-        get() {
-            discountMaturity?.let {
-                if (!isBezahlt && !it.isBefore(LocalDate.now())) {
-                    return discountMaturity
-                }
-            }
-            return faelligkeit
-        }
-
     /**
-     * Please note: Will fetch all positions!
-     * Gibt den Bruttobetrag zurueck bzw. den Betrag abzueglich Skonto, wenn die Skontofrist noch nicht
-     * abgelaufen ist. Ist die Rechnung bereits bezahlt, wird der tatsaechlich bezahlte Betrag zurueckgegeben.
-     */
-    val grossSumWithDiscount: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateGrossSumWithDiscount(this, grossSum)
-
-    /**
-     * Attention: Will fetch all positions!
-     */
-    @get:PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY)
-    override val netSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateNetSum(this)
-
-    /**
-     * Attention: Will fetch all positions!
-     */
-    override val vatAmountSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.calculateVatAmountSum(this)
-
-    /**
-     * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
+     * Must be set via [RechnungCalculator.calculate].
      */
     @get:Transient
-    abstract val isBezahlt: Boolean
+    lateinit var info: RechnungInfo
 
-    val isUeberfaellig: Boolean
+    internal val isInfoInitialized: Boolean
         @Transient
-        get() {
-            if (isBezahlt) {
-                return false
-            }
-            val today = PFDateTime.now()
-            return this.faelligkeit?.isBefore(today.localDate) ?: false
-        }
+        get() = this::info.isInitialized
 
     val kontoId: Long?
         @Transient
         get() = konto?.id
-
-    /**
-     * Attention: Will fetch all positions!
-     * @return The total sum of all cost assignment net amounts of all positions.
-     */
-    val kostZuweisungenNetSum: BigDecimal
-        @Transient
-        get() = RechnungCalculator.kostZuweisungenNetSum(this)
-
-    /**
-     * Attention: Will fetch all positions!
-     */
-    val kostZuweisungFehlbetrag: BigDecimal
-        @Transient
-        get() = kostZuweisungenNetSum.subtract(netSum)
 
     /**
      * Attention: Will fetch all positions!
@@ -291,9 +228,5 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         return abstractPositionen?.any {
             !it.kostZuweisungen.isNullOrEmpty()
         } ?: false
-    }
-
-    companion object {
-        private val HUNDRED = BigDecimal("100.00")
     }
 }

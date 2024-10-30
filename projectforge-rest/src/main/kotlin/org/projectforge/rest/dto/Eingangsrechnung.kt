@@ -54,9 +54,9 @@ class Eingangsrechnung(
 ) : BaseDTO<EingangsrechnungDO>(), IRechnung {
   override var positionen: MutableList<EingangsrechnungsPosition>? = null
 
-  override var netSum: BigDecimal = BigDecimal.ZERO
+   var netSum: BigDecimal = BigDecimal.ZERO
 
-  override var vatAmountSum: BigDecimal= BigDecimal.ZERO
+   var vatAmountSum: BigDecimal= BigDecimal.ZERO
 
   var grossSum: BigDecimal = BigDecimal.ZERO
 
@@ -82,13 +82,13 @@ class Eingangsrechnung(
     src.paymentType?.let {
       paymentTypeAsString = translate(it.i18nKey)
     }
-    ueberfaellig = src.isUeberfaellig
+    ueberfaellig = src.info.isUeberfaellig
     ibanFormatted = src.ibanFormatted
-    this.faelligkeitOrDiscountMaturity = src.faelligkeitOrDiscountMaturity
-    this.netSum = RechnungCalculator.calculateNetSum(src)
-    this.vatAmountSum = RechnungCalculator.calculateVatAmountSum(src)
-    this.grossSum = RechnungCalculator.calculateGrossSum(src)
-    this.grossSumWithDiscount = src.grossSumWithDiscount
+    this.faelligkeitOrDiscountMaturity = src.info.faelligkeitOrDiscountMaturity
+    this.netSum = src.info.netSum
+    this.vatAmountSum = src.info.vatAmount
+    this.grossSum = src.info.grossSum
+    this.grossSumWithDiscount = src.info.grossSumWithDiscount
   }
 
   fun copyPositionenFrom(src: EingangsrechnungDO) {

@@ -23,12 +23,19 @@
 
 package org.projectforge.business.fibu
 
+import java.io.Serializable
 import java.math.BigDecimal
 
-interface IRechnungsPosition {
-    val id: Long?
-    val deleted: Boolean
-    val menge: BigDecimal?
-    val einzelNetto: BigDecimal?
-    val vat: BigDecimal?
+class RechnungPosInfo(position: AbstractRechnungsPositionDO) : Serializable {
+    var id = position.id
+    var deleted = position.deleted
+    var menge = position.menge
+    var einzelNetto = position.einzelNetto
+    var vat = position.vat
+    var netSum = BigDecimal.ZERO
+    var grossSum = BigDecimal.ZERO
+    var vatAmount = BigDecimal.ZERO
+    var kostZuweisungNetSum = BigDecimal.ZERO
+    var kostZuweisungGrossSum = BigDecimal.ZERO
+    var kostZuweisungNetFehlbetrag = BigDecimal.ZERO
 }

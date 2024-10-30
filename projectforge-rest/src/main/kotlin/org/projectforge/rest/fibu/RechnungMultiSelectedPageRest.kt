@@ -115,7 +115,7 @@ class RechnungMultiSelectedPageRest : AbstractMultiSelectedPage<RechnungDO>() {
       params["bezahlDatum"]?.let { param ->
         param.localDateValue?.let { localDate ->
           invoice.bezahlDatum = localDate
-          invoice.zahlBetrag = invoice.grossSum
+          invoice.zahlBetrag = invoice.info.grossSum
           invoice.status = RechnungStatus.BEZAHLT
         }
         if (param.delete == true) {

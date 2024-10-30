@@ -140,7 +140,7 @@ public class RechnungCostEditTablePanel extends Panel
       @Override
       public String getObject()
       {
-        return CurrencyFormatter.format(position.getKostZuweisungNetFehlbetrag());
+        return CurrencyFormatter.format(position.getInfo().getKostZuweisungNetFehlbetrag());
       }
     });
     form.add(restLabel);
@@ -212,7 +212,7 @@ public class RechnungCostEditTablePanel extends Panel
       @Override
       public IConverter getConverter(final Class type)
       {
-        return new CurrencyConverter(position.getNetSum());
+        return new CurrencyConverter(position.getInfo().getNetSum());
       }
     };
     netto.setLabel(new Model<String>(getString("fibu.common.netto")));
@@ -228,10 +228,10 @@ public class RechnungCostEditTablePanel extends Panel
       public String getObject()
       {
         final BigDecimal percentage;
-        if (NumberHelper.isZeroOrNull(position.getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
+        if (NumberHelper.isZeroOrNull(position.getInfo().getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
           percentage = BigDecimal.ZERO;
         } else {
-          percentage = zuweisung.getNetto().divide(position.getNetSum(), RoundingMode.HALF_UP);
+          percentage = zuweisung.getNetto().divide(position.getInfo().getNetSum(), RoundingMode.HALF_UP);
         }
         final boolean percentageVisible = NumberHelper.isNotZero(percentage);
         if (percentageVisible == true) {
@@ -298,7 +298,7 @@ public class RechnungCostEditTablePanel extends Panel
         }
       }
     }
-    kostZuweisung.setNetto(position.getKostZuweisungNetFehlbetrag().negate());
+    kostZuweisung.setNetto(position.getInfo().getKostZuweisungNetFehlbetrag().negate());
     return kostZuweisung;
   }
 

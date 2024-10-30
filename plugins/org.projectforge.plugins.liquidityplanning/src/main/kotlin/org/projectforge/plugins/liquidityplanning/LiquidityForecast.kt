@@ -159,7 +159,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
                 continue
             }
             val timeForPayment = date.daysBetween(dateOfPayment).toInt()
-            val amount: Int = invoice.grossSum.toInt()
+            val amount: Int = invoice.info.grossSum.toInt()
             // Store values for different groups:
             val projectId = invoice.projektId
             if (projectId != null) {
@@ -270,7 +270,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
                 continue
             }
             val timeForPayment = date.daysBetween(dateOfPayment).toInt()
-            val amount: Int = invoice.grossSum.toInt()
+            val amount: Int = invoice.info.grossSum.toInt()
             val account = invoice.konto
             val accountId = account?.id
             if (accountId != null) {
@@ -370,11 +370,11 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             } else {
                 entry.dateOfPayment = invoice.faelligkeit
             }
-            entry.amount = invoice.grossSum
+            entry.amount = invoice.info.grossSum
             if (ignorePaidStatus) {
                 entry.isPaid = invoice.faelligkeit!!.isBefore(baseDate)
             } else {
-                entry.isPaid = invoice.isBezahlt
+                entry.isPaid = invoice.info.isBezahlt
             }
             entry.subject = "#" + invoice.nummer + ": " + invoice.kundeAsString + ": " + invoice.betreff
             entry.type = LiquidityEntryType.DEBITOR
@@ -398,11 +398,11 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             } else {
                 entry.dateOfPayment = invoice.faelligkeit
             }
-            entry.amount = invoice.grossSum.negate()
+            entry.amount = invoice.info.grossSum.negate()
             if (ignorePaidStatus) {
                 entry.isPaid = invoice.faelligkeit!!.isBefore(baseDate)
             } else {
-                entry.isPaid = invoice.isBezahlt
+                entry.isPaid = invoice.info.isBezahlt
             }
             entry.subject = invoice.kreditor + ": " + invoice.betreff
             entry.type = LiquidityEntryType.CREDITOR

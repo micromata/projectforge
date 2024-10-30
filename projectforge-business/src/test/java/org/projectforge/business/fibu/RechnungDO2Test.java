@@ -106,8 +106,8 @@ public class RechnungDO2Test
     pos.setVat(new BigDecimal("0.19").stripTrailingZeros());
     rechnung.addPosition(pos);
 
-    assertEquals(new BigDecimal("89426.25"), rechnung.getNetSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
-    assertEquals(new BigDecimal("106417.24"), rechnung.getGrossSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
-    assertEquals(new BigDecimal("16990.99"), rechnung.getVatAmountSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
+    assertEquals(new BigDecimal("89426.25"), rechnung.getInfo().getNetSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
+    assertEquals(new BigDecimal("106417.24"), rechnung.getInfo().getGrossSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
+    assertEquals(new BigDecimal("16990.99"), rechnung.getInfo().getVatAmount().setScale(2, BigDecimal.ROUND_HALF_DOWN));
   }
 }

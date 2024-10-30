@@ -152,7 +152,7 @@ open class AccountingRecord(
         customerGroup = customerGroup,
         project = invoice.projekt?.name ?: "???",
         projectId = invoice.projekt!!.id!!,
-        revenue = invoice.netSum,
+        revenue = invoice.info.netSum,
         projectManagerGroup = invoice.projekt?.projektManagerGroup?.name,
         text = "Invoice #${invoice.nummer}",
         type = TYPE.INVOICE,

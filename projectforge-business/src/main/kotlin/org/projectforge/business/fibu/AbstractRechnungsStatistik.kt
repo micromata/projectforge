@@ -92,7 +92,7 @@ abstract class AbstractRechnungsStatistik<T : AbstractRechnungDO?> : Serializabl
             }
         } else {
             offen = add(offen, brutto)
-            if (rechnung.isUeberfaellig) {
+            if (rechnungInfo.isUeberfaellig) {
                 ueberfaellig = add(ueberfaellig, brutto)
             }
         }

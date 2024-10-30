@@ -56,273 +56,281 @@ import java.util.List;
 
 @ListPage(editPage = EingangsrechnungEditPage.class)
 public class EingangsrechnungListPage
-    extends AbstractListPage<EingangsrechnungListForm, EingangsrechnungDao, EingangsrechnungDO> implements
-    IListPageColumnsCreator<EingangsrechnungDO>
-{
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungListPage.class);
+        extends AbstractListPage<EingangsrechnungListForm, EingangsrechnungDao, EingangsrechnungDO> implements
+        IListPageColumnsCreator<EingangsrechnungDO> {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungListPage.class);
 
-  private static final long serialVersionUID = 4417254962066648504L;
+    private static final long serialVersionUID = 4417254962066648504L;
 
-  private EingangsrechnungsStatistik eingangsrechnungsStatistik;
+    private EingangsrechnungsStatistik eingangsrechnungsStatistik;
 
-  private ContentMenuEntryPanel exportKostzuweisungButton;
+    private ContentMenuEntryPanel exportKostzuweisungButton;
 
-  EingangsrechnungsStatistik getEingangsrechnungsStatistik()
-  {
-    if (eingangsrechnungsStatistik == null) {
-      eingangsrechnungsStatistik = WicketSupport.get(EingangsrechnungDao.class).buildStatistik(getList());
+    EingangsrechnungsStatistik getEingangsrechnungsStatistik() {
+        if (eingangsrechnungsStatistik == null) {
+            eingangsrechnungsStatistik = WicketSupport.get(EingangsrechnungDao.class).buildStatistik(getList());
+        }
+        return eingangsrechnungsStatistik;
     }
-    return eingangsrechnungsStatistik;
-  }
 
-  public EingangsrechnungListPage(final PageParameters parameters)
-  {
-    super(parameters, "fibu.eingangsrechnung");
-  }
+    public EingangsrechnungListPage(final PageParameters parameters) {
+        super(parameters, "fibu.eingangsrechnung");
+    }
 
-  public EingangsrechnungListPage(final ISelectCallerPage caller, final String selectProperty)
-  {
-    super(caller, selectProperty, "fibu.eingangsrechnung");
-  }
+    public EingangsrechnungListPage(final ISelectCallerPage caller, final String selectProperty) {
+        super(caller, selectProperty, "fibu.eingangsrechnung");
+    }
 
-  /**
-   * Forces the statistics to be reloaded.
-   *
-   * @see org.projectforge.web.wicket.AbstractListPage#refresh()
-   */
-  @Override
-  public void refresh()
-  {
-    super.refresh();
-    this.eingangsrechnungsStatistik = null;
-  }
+    /**
+     * Forces the statistics to be reloaded.
+     *
+     * @see org.projectforge.web.wicket.AbstractListPage#refresh()
+     */
+    @Override
+    public void refresh() {
+        super.refresh();
+        this.eingangsrechnungsStatistik = null;
+    }
 
-  @Override
-  public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
-    return createColumns(returnToPage, sortable, false);
-  }
+    @Override
+    public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
+        return createColumns(returnToPage, sortable, false);
+    }
 
-  public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable, final boolean isMassUpdateMode)
-  {
-    final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<>();
-    final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>()
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId,
-          final IModel<EingangsrechnungDO> rowModel)
-      {
-        final EingangsrechnungDO eingangsrechnung = rowModel.getObject();
-        appendCssClasses(item, eingangsrechnung.getId(), eingangsrechnung.getDeleted());
-        if (eingangsrechnung.getDeleted() == true) {
-          // Do nothing further
-        } else if (eingangsrechnung.isUeberfaellig() == true) {
-          appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
-        } else if (eingangsrechnung.isBezahlt() == false) {
-          appendCssClasses(item, RowCssClass.BLUE);
-        }
-      }
-    };
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
-        new Model<String>(getString("fibu.common.creditor")), getSortable(
-        "kreditor", sortable),
-        "kreditor", cellItemListener)
-    {
-      @SuppressWarnings({ "unchecked", "rawtypes" })
-      @Override
-      public void populateItem(final Item item, final String componentId, final IModel rowModel)
-      {
-        final EingangsrechnungDO eingangsrechnung = (EingangsrechnungDO) rowModel.getObject();
-        String kreditor = StringEscapeUtils.escapeHtml4(eingangsrechnung.getKreditor());
-        if (form.getSearchFilter().isShowKostZuweisungStatus() == true) {
-          final BigDecimal fehlBetrag = eingangsrechnung.getKostZuweisungFehlbetrag(); // Teuer!!
-          if (NumberHelper.isNotZero(fehlBetrag) == true) {
-            kreditor += " *** " + CurrencyFormatter.format(fehlBetrag) + " ***";
-          }
-        }
-        final Label kreditorLabel = new Label(ListSelectActionPanel.LABEL_ID, kreditor);
-        kreditorLabel.setEscapeModelStrings(false);
-        item.add(new ListSelectActionPanel(componentId, rowModel, EingangsrechnungEditPage.class,
-            eingangsrechnung.getId(), returnToPage,
-            kreditorLabel));
-        cellItemListener.populateItem(item, componentId, rowModel);
-        addRowClick(item);
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto.nummer", sortable),
-        "konto",
-        cellItemListener)
-    {
-      @SuppressWarnings({ "unchecked", "rawtypes" })
-      @Override
-      public void populateItem(final Item item, final String componentId, final IModel rowModel)
-      {
-        final EingangsrechnungDO rechnung = (EingangsrechnungDO) rowModel.getObject();
-        final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(rechnung.getKontoId());
-        item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
-        cellItemListener.populateItem(item, componentId, rowModel);
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.common.reference"),
-        getSortable("referenz", sortable), "referenz", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.betreff"),
-        getSortable("betreff", sortable), "betreff", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.datum.short"),
-        getSortable("datum",
-            sortable),
-        "datum", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.faelligkeit.short"),
-        getSortable(
-            "faelligkeitOrDiscountMaturity", sortable),
-        "faelligkeitOrDiscountMaturity", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(getString("fibu.rechnung.bezahlDatum.short"),
-        getSortable(
-            "bezahlDatum", sortable),
-        "bezahlDatum", cellItemListener));
-    columns.add(new CurrencyPropertyColumn<EingangsrechnungDO>(getString("fibu.common.netto"),
-        getSortable("netSum", sortable), "netSum",
-        cellItemListener));
-    columns.add(new CurrencyPropertyColumn<EingangsrechnungDO>(getString("fibu.common.brutto"),
-        getSortable("grossSum", sortable),
-        "grossSum", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("comment")),
-        getSortable("bemerkung",
-            sortable),
-        "bemerkung", cellItemListener));
-    return columns;
-  }
-
-  @SuppressWarnings("serial")
-  @Override
-  protected void init()
-  {
-    dataTable = createDataTable(createColumns(this, true), "datum", SortOrder.DESCENDING);
-    form.add(dataTable);
-    addExcelExport(getString("fibu.common.creditor"), getString("fibu.eingangsrechnungen"));
-    if (Configuration.getInstance().isCostConfigured() == true) {
-      exportKostzuweisungButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-          new Link<Object>("link")
-          {
+    public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable, final boolean isMassUpdateMode) {
+        final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<>();
+        final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>() {
             @Override
-            public void onClick()
-            {
-              exportExcelWithCostAssignments();
+            public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId,
+                                     final IModel<EingangsrechnungDO> rowModel) {
+                final EingangsrechnungDO eingangsrechnung = rowModel.getObject();
+                appendCssClasses(item, eingangsrechnung.getId(), eingangsrechnung.getDeleted());
+                if (eingangsrechnung.getDeleted() == true) {
+                    // Do nothing further
+                } else {
+                    if (eingangsrechnung.getInfo().isUeberfaellig()) {
+                        appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
+                    } else if (!eingangsrechnung.getInfo().isBezahlt()) {
+                        appendCssClasses(item, RowCssClass.BLUE);
+                    }
+                }
+            }
+        };
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+                new Model<String>(
+
+                        getString("fibu.common.creditor")),
+
+                getSortable(
+                        "kreditor", sortable),
+                "kreditor", cellItemListener) {
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            @Override
+            public void populateItem(final Item item, final String componentId, final IModel rowModel) {
+                final EingangsrechnungDO eingangsrechnung = (EingangsrechnungDO) rowModel.getObject();
+                String kreditor = StringEscapeUtils.escapeHtml4(eingangsrechnung.getKreditor());
+                if (form.getSearchFilter().isShowKostZuweisungStatus() == true) {
+                    final BigDecimal fehlBetrag = eingangsrechnung.getInfo().getKostZuweisungenFehlbetrag();
+                    if (NumberHelper.isNotZero(fehlBetrag) == true) {
+                        kreditor += " *** " + CurrencyFormatter.format(fehlBetrag) + " ***";
+                    }
+                }
+                final Label kreditorLabel = new Label(ListSelectActionPanel.LABEL_ID, kreditor);
+                kreditorLabel.setEscapeModelStrings(false);
+                item.add(new ListSelectActionPanel(componentId, rowModel, EingangsrechnungEditPage.class,
+                        eingangsrechnung.getId(), returnToPage,
+                        kreditorLabel));
+                cellItemListener.populateItem(item, componentId, rowModel);
+                addRowClick(item);
+            }
+        });
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(
+
+                getString("fibu.konto")),
+
+                getSortable("konto.nummer", sortable),
+                "konto",
+                cellItemListener) {
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            @Override
+            public void populateItem(final Item item, final String componentId, final IModel rowModel) {
+                final EingangsrechnungDO rechnung = (EingangsrechnungDO) rowModel.getObject();
+                final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(rechnung.getKontoId());
+                item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
+                cellItemListener.populateItem(item, componentId, rowModel);
+            }
+        });
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+
+                getString("fibu.common.reference"),
+
+                getSortable("referenz", sortable), "referenz", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+
+                getString("fibu.rechnung.betreff"),
+
+                getSortable("betreff", sortable), "betreff", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+
+                getString("fibu.rechnung.datum.short"),
+
+                getSortable("datum",
+                        sortable),
+                "datum", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+
+                getString("fibu.rechnung.faelligkeit.short"),
+
+                getSortable(
+                        "info.faelligkeitOrDiscountMaturity", sortable),
+                "info.faelligkeitOrDiscountMaturity", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
+
+                getString("fibu.rechnung.bezahlDatum.short"),
+
+                getSortable(
+                        "bezahlDatum", sortable),
+                "bezahlDatum", cellItemListener));
+        columns.add(new CurrencyPropertyColumn<EingangsrechnungDO>(
+                getString("fibu.common.netto"),
+                getSortable("info.netSum", sortable), "info.netSum",
+                cellItemListener));
+        columns.add(new CurrencyPropertyColumn<EingangsrechnungDO>(
+
+                getString("fibu.common.brutto"),
+
+                getSortable("info.grossSum", sortable),
+                "info.grossSum", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(
+
+                getString("comment")),
+
+                getSortable("bemerkung",
+                        sortable),
+                "bemerkung", cellItemListener));
+        return columns;
+    }
+
+    @SuppressWarnings("serial")
+    @Override
+    protected void init() {
+        dataTable = createDataTable(createColumns(this, true), "datum", SortOrder.DESCENDING);
+        form.add(dataTable);
+        addExcelExport(getString("fibu.common.creditor"), getString("fibu.eingangsrechnungen"));
+        if (Configuration.getInstance().isCostConfigured() == true) {
+            exportKostzuweisungButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+                    new Link<Object>("link") {
+                        @Override
+                        public void onClick() {
+                            exportExcelWithCostAssignments();
+                        }
+
+                    }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
+            addContentMenuEntry(exportKostzuweisungButton);
+        }
+        addNewMassSelect(EingangsrechnungPagesRest.class);
+    }
+
+    /**
+     * @see org.projectforge.web.wicket.AbstractListPage#createExcelExporter(java.lang.String)
+     */
+    @Override
+    protected DOListExcelExporter createExcelExporter(final String filenameIdentifier) {
+        return new DOListExcelExporter(filenameIdentifier) {
+            @Override
+            protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
+                                                                final List<ExportColumn> columns) {
+                final List<ExportColumn> sortedColumns = reorderColumns(columns, "kreditor", "konto", "kontoBezeichnung",
+                        "betreff", "datum",
+                        "faelligkeitOrDiscountMaturity", "bezahlDatum", "zahlBetrag");
+                I18nExportColumn col = new I18nExportColumn("kontoBezeichnung", "fibu.konto.bezeichnung",
+                        MyXlsContentProvider.LENGTH_STD);
+                sortedColumns.add(2, col);
+                col = new I18nExportColumn("netSum", "fibu.common.netto");
+                putCurrencyFormat(sheetProvider, col);
+                sortedColumns.add(7, col);
+                col = new I18nExportColumn("grossSum", "fibu.common.brutto");
+                putCurrencyFormat(sheetProvider, col);
+                sortedColumns.add(8, col);
+                return sortedColumns;
             }
 
-          }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
-      addContentMenuEntry(exportKostzuweisungButton);
-    }
-    addNewMassSelect(EingangsrechnungPagesRest.class);
-  }
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractListPage#createExcelExporter(java.lang.String)
-   */
-  @Override
-  protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
-  {
-    return new DOListExcelExporter(filenameIdentifier)
-    {
-      @Override
-      protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
-          final List<ExportColumn> columns)
-      {
-        final List<ExportColumn> sortedColumns = reorderColumns(columns, "kreditor", "konto", "kontoBezeichnung",
-            "betreff", "datum",
-            "faelligkeitOrDiscountMaturity", "bezahlDatum", "zahlBetrag");
-        I18nExportColumn col = new I18nExportColumn("kontoBezeichnung", "fibu.konto.bezeichnung",
-            MyXlsContentProvider.LENGTH_STD);
-        sortedColumns.add(2, col);
-        col = new I18nExportColumn("netSum", "fibu.common.netto");
-        putCurrencyFormat(sheetProvider, col);
-        sortedColumns.add(7, col);
-        col = new I18nExportColumn("grossSum", "fibu.common.brutto");
-        putCurrencyFormat(sheetProvider, col);
-        sortedColumns.add(8, col);
-        return sortedColumns;
-      }
-
-      /**
-       * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
-       *      java.lang.reflect.Field)
-       */
-      @Override
-      public void addMapping(final PropertyMapping mapping, final Object entry, final Field field)
-      {
-        if ("konto".equals(field.getName()) == true) {
-          Integer kontoNummer = null;
-          final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
-          if (kontoId != null) {
-            final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
-            if (konto != null) {
-              kontoNummer = konto.getNummer();
+            /**
+             * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
+             *      java.lang.reflect.Field)
+             */
+            @Override
+            public void addMapping(final PropertyMapping mapping, final Object entry, final Field field) {
+                if ("konto".equals(field.getName()) == true) {
+                    Integer kontoNummer = null;
+                    final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
+                    if (kontoId != null) {
+                        final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
+                        if (konto != null) {
+                            kontoNummer = konto.getNummer();
+                        }
+                    }
+                    mapping.add(field.getName(), kontoNummer != null ? kontoNummer : "");
+                } else {
+                    super.addMapping(mapping, entry, field);
+                }
             }
-          }
-          mapping.add(field.getName(), kontoNummer != null ? kontoNummer : "");
-        } else {
-          super.addMapping(mapping, entry, field);
-        }
-      }
 
-      /**
-       * @see ExcelExporter#addMappings(PropertyMapping, java.lang.Object)
-       */
-      @Override
-      protected void addMappings(final PropertyMapping mapping, final Object entry)
-      {
-        final EingangsrechnungDO invoice = (EingangsrechnungDO) entry;
-        String kontoBezeichnung = null;
-        final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
-        if (kontoId != null) {
-          final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
-          if (konto != null) {
-            kontoBezeichnung = konto.getBezeichnung();
-          }
-        }
-        mapping.add("kontoBezeichnung", kontoBezeichnung != null ? kontoBezeichnung : "");
-        mapping.add("grossSum", invoice.getGrossSum());
-        mapping.add("netSum", invoice.getNetSum());
-      }
-    };
-  }
-
-  protected void exportExcelWithCostAssignments()
-  {
-    refresh();
-    final RechnungFilter filter = new RechnungFilter();
-    final RechnungFilter src = form.getSearchFilter();
-    filter.setFromDate(src.getFromDate());
-    filter.setToDate(src.getToDate());
-    final List<EingangsrechnungDO> rechnungen = WicketSupport.get(EingangsrechnungDao.class).select(filter);
-    if (rechnungen == null || rechnungen.size() == 0) {
-      // Nothing to export.
-      form.addError("validation.error.nothingToExport");
-      return;
+            /**
+             * @see ExcelExporter#addMappings(PropertyMapping, java.lang.Object)
+             */
+            @Override
+            protected void addMappings(final PropertyMapping mapping, final Object entry) {
+                final EingangsrechnungDO invoice = (EingangsrechnungDO) entry;
+                String kontoBezeichnung = null;
+                final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
+                if (kontoId != null) {
+                    final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
+                    if (konto != null) {
+                        kontoBezeichnung = konto.getBezeichnung();
+                    }
+                }
+                mapping.add("kontoBezeichnung", kontoBezeichnung != null ? kontoBezeichnung : "");
+                mapping.add("grossSum", invoice.getInfo().getGrossSum());
+                mapping.add("netSum", invoice.getInfo().getNetSum());
+            }
+        };
     }
-    final String filename = "ProjectForge-"
-        + getString("fibu.common.creditor")
-        + "-"
-        + getString("menu.fibu.kost")
-        + "_"
-        + DateHelper.getDateAsFilenameSuffix(new Date())
-        + ".xls";
-    final byte[] xls = WicketSupport.get(KostZuweisungExport.class).exportRechnungen(rechnungen, getString("fibu.common.creditor"));
-    if (xls == null || xls.length == 0) {
-      log.error("Oups, xls has zero size. Filename: " + filename);
-      return;
+
+    protected void exportExcelWithCostAssignments() {
+        refresh();
+        final RechnungFilter filter = new RechnungFilter();
+        final RechnungFilter src = form.getSearchFilter();
+        filter.setFromDate(src.getFromDate());
+        filter.setToDate(src.getToDate());
+        final List<EingangsrechnungDO> rechnungen = WicketSupport.get(EingangsrechnungDao.class).select(filter);
+        if (rechnungen == null || rechnungen.size() == 0) {
+            // Nothing to export.
+            form.addError("validation.error.nothingToExport");
+            return;
+        }
+        final String filename = "ProjectForge-"
+                + getString("fibu.common.creditor")
+                + "-"
+                + getString("menu.fibu.kost")
+                + "_"
+                + DateHelper.getDateAsFilenameSuffix(new Date())
+                + ".xls";
+        final byte[] xls = WicketSupport.get(KostZuweisungExport.class).exportRechnungen(rechnungen, getString("fibu.common.creditor"));
+        if (xls == null || xls.length == 0) {
+            log.error("Oups, xls has zero size. Filename: " + filename);
+            return;
+        }
+        DownloadUtils.setDownloadTarget(xls, filename);
     }
-    DownloadUtils.setDownloadTarget(xls, filename);
-  }
 
-  @Override
-  protected EingangsrechnungListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
-    return new EingangsrechnungListForm(this);
-  }
+    @Override
+    protected EingangsrechnungListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
+        return new EingangsrechnungListForm(this);
+    }
 
-  @Override
-  public EingangsrechnungDao getBaseDao()
-  {
-    return WicketSupport.get(EingangsrechnungDao.class);
-  }
+    @Override
+    public EingangsrechnungDao getBaseDao() {
+        return WicketSupport.get(EingangsrechnungDao.class);
+    }
 }
