@@ -94,11 +94,7 @@ open class VisitorbookCache : AbstractCache() {
                     }
                 }
             this.visitorbookMap = map
-            log.info(
-                "VisitorbookCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
+            log.info { "VisitorbookCache.refresh done. ${context.formatStats()}" }
         }
     }
 

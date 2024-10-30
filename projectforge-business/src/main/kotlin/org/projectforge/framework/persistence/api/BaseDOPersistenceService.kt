@@ -109,7 +109,7 @@ class BaseDOPersistenceService {
             context.update(obj) // Don't use em.merge directly, due to PersistenceCallsStats.
             HistoryBaseDaoAdapter.inserted(obj, context)
             if (logMessage) {
-                log.info { "${useClass.simpleName} updated: $obj" }
+                log.info { "${useClass.simpleName} inserted: $obj" }
             }
             try {
                 em.flush()

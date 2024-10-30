@@ -465,11 +465,7 @@ open class UserGroupCache : AbstractCache() {
             this.rightMap = rMap
             log.info("Initializing of UserGroupCache done. Found ${uMap.size} entries.")
             Login.getInstance().afterUserGroupCacheRefresh(users, groups)
-            log.info(
-                "UserGroupCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
+            log.info { "UserGroupCache.refresh done. ${context.formatStats()}" }
         }
         Thread {
             jobHandler.checkStatus()

@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.fibu
 
 import mu.KotlinLogging
@@ -14,57 +37,4 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-internal class EingangsrechnungCache : AbstractCache() {
-    @Autowired
-    protected lateinit var persistenceService: PfPersistenceService
-
-    private var invoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-
-
-    fun update(invoice: EingangsrechnungDO) {
-        synchronized(invoiceInfoMap) {
-            invoiceInfoMap[invoice.id!!] = RechnungCalculator.calculate(invoice)
-        }
-    }
-
-    fun getOrCalculateRechnungInfo(rechnung: EingangsrechnungDO): RechnungInfo {
-        checkRefresh()
-        synchronized(invoiceInfoMap) {
-            return invoiceInfoMap[rechnung.id!!] ?: RechnungCalculator.calculate(rechnung).also {
-                invoiceInfoMap[rechnung.id!!] = it
-            }
-        }
-    }
-
-    fun getRechnungInfo(rechnungId: Long?): RechnungInfo? {
-        rechnungId ?: return null
-        checkRefresh()
-        synchronized(invoiceInfoMap) {
-            return invoiceInfoMap[rechnungId]
-        }
-    }
-
-    /**
-     * This method will be called by CacheHelper and is synchronized via getData();
-     */
-    override fun refresh() {
-        log.info("Initializing EingangrechnungCache...")
-        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            // This method must not be synchronized because it works with new copies of maps.
-            log.info("Getting all incoming invoices (EingangsRechnungDO)...")
-            val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-            persistenceService.executeQuery(
-                "FROM EingangsrechnungDO t left join fetch t.positionen left join fetch t.positionen.kostZuweisungen",
-                EingangsrechnungDO::class.java,
-            ).forEach { rechnung ->
-                nInvoiceInfoMap[rechnung.id!!] = RechnungCalculator.calculate(rechnung)
-            }
-            this.invoiceInfoMap = nInvoiceInfoMap
-            log.info(
-                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
-        }
-    }
-}
+internal class EingangsrechnungCache : AbstractRechnungCache(EingangsrechnungDO::class.java)

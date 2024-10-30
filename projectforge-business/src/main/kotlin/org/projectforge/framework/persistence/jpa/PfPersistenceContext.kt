@@ -50,7 +50,9 @@ class PfPersistenceContext internal constructor(
 ) : AutoCloseable {
     internal enum class ContextType { READONLY, TRANSACTION }
 
-    var savedStats: PersistenceStats = PfPersistenceContextThreadLocal.getStatsState().saveCurrentState()
+    var savedStats: PersistenceStats = PfPersistenceContextThreadLocal.getStatsState().getCopyOfCurrentState()
+
+    var recordCallStats: Boolean = false
 
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
@@ -69,6 +71,20 @@ class PfPersistenceContext internal constructor(
         nextTransactionId
     }
 
+    internal fun createPersistenceCallsStats() {
+        PfPersistenceContextThreadLocal.createPersistenceCallsStats(false)
+        recordCallStats = true
+    }
+
+    fun formatStats(withDuration: Boolean = true): String {
+        val callsStats = PfPersistenceService.showCallsStatsRecording()
+        val stats = PfPersistenceContextThreadLocal.getStatsState().getActivities(savedStats).asString(withDuration)
+        return if (recordCallStats && callsStats != null) {
+            "stats=$stats, callStats==$callsStats"
+        } else {
+            "stats=$stats´"
+        }
+    }
 
     /* init {
         openEntityManagers.add(em)

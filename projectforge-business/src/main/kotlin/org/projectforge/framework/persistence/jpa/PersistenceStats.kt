@@ -89,7 +89,7 @@ class PersistenceStats {
         activeTransactions--
     }
 
-    fun saveCurrentState(): PersistenceStats {
+    fun getCopyOfCurrentState(): PersistenceStats {
         val copy = PersistenceStats()
         copy.createdTransactions = createdTransactions
         copy.createdReadonlies = createdReadonlies

@@ -143,11 +143,11 @@ class ConflictingVacationsCache() : AbstractCache() {
             }
             conflictingVacationsByEmployee = newConflictingVacations
             allConflictingVacations = newAllConflictingVacations
-            log.info(
-                "Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees.  stats=${
-                    persistenceService.formatStats(context.savedStats)
+            log.info {
+                "Refreshing cache of conflicting vacations done. Found ${allConflictingVacations.size} conflicts of ${conflictingVacationsByEmployee.size} employees. ${
+                    context.formatStats()
                 }"
-            )
+            }
         }
     }
 

@@ -30,7 +30,7 @@ import org.projectforge.test.AbstractTestBase
 class PfPersistenceServiceTest : AbstractTestBase() {
     @Test
     fun contextTest() {
-        val oldState = persistenceService.saveStatsState()
+        val oldState = persistenceService.getCopyOfCurrentStateForTesting()
         resetContextCounters()
         persistenceService.runReadOnly { outerContext -> // Readonly +1
             persistenceService.runReadOnly { innerContext -> // Readonly +0

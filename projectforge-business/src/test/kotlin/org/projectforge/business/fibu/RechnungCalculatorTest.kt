@@ -1,3 +1,26 @@
+/////////////////////////////////////////////////////////////////////////////
+//
+// Project ProjectForge Community Edition
+//         www.projectforge.org
+//
+// Copyright (C) 2001-2024 Micromata GmbH, Germany (www.micromata.com)
+//
+// ProjectForge is dual-licensed.
+//
+// This community edition is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as published
+// by the Free Software Foundation; version 3 of the License.
+//
+// This community edition is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+// Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, see http://www.gnu.org/licenses/.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
@@ -12,9 +35,9 @@ class RechnungCalculatorTest {
         RechnungDO().also { invoice ->
             invoice.addPosition(createPositionInfo("2", "10", null, "5", "10"))
             invoice.addPosition(createPositionInfo("1", "90", "0.19", "5", "10", "5"))
-            var info = calculateAndAssert(invoice, net = "110", gross = "127.10")
-            assertEquals(BigDecimal("35"), info.kostZuweisungenNetSum, "kostZuweisungenNetSum")
-            assertEquals(BigDecimal("75"), info.kostZuweisungenFehlbetrag, "kostZuweisungenFehlbetrag")
+            var info = calculateAndAssert(invoice, net = "110.00", gross = "127.10")
+            assertEquals(BigDecimal("35.00"), info.kostZuweisungenNetSum, "kostZuweisungenNetSum")
+            assertEquals(BigDecimal("75.00"), info.kostZuweisungenFehlbetrag, "kostZuweisungenFehlbetrag")
 
             val future5Days = LocalDate.now().plusDays(5)
             val yesterday = LocalDate.now().minusDays(1)
@@ -55,30 +78,44 @@ class RechnungCalculatorTest {
     }
 
     @Test
+    fun `test rounding`() {
+        RechnungDO().also { invoice ->
+            invoice.addPosition(createPositionInfo("0.75", "118.75", "0.19", "79.06")) // -10.00
+            invoice.addPosition(createPositionInfo("2.5", "118.75", "0.19", "296.88"))
+            invoice.addPosition(createPositionInfo("2.5", "118.75", "0.19", "296.88"))
+            invoice.addPosition(createPositionInfo("3.5", "118.75", "0.19", "415.62")) // -0.01
+            invoice.addPosition(createPositionInfo("1", "118.75", "0.19", "118.75"))
+            val info = calculateAndAssert(invoice, net = "1217.20", gross = "1448.47")
+            assertEquals(BigDecimal("1207.19"), info.kostZuweisungenNetSum, "kostZuweisungenNetSum")
+            assertEquals(BigDecimal("10.01"), info.kostZuweisungenFehlbetrag, "kostZuweisungenFehlbetrag")
+        }
+    }
+
+    @Test
     fun `test calculation of RechnungPositionDO`() {
         RechnungsPositionDO().also { position ->
-            calculateAndAssert(position, "0", gross = "0")
+            calculateAndAssert(position, "0.00", gross = "0.00")
             position.apply {
-                menge = BigDecimal.TEN
-                einzelNetto = BigDecimal("12")
+                menge = BigDecimal("0.75")
+                einzelNetto = BigDecimal("17.85")
                 vat = BigDecimal("0.19")
             }
-            calculateAndAssert(position, net = "120", gross = "142.80")
+            calculateAndAssert(position, net = "13.39", gross = "15.93")
         }
         createPositionInfo("2", "10", null).also {
-            calculateAndAssert(it, net = "20", gross = "20")
+            calculateAndAssert(it, net = "20.00", gross = "20.00")
         }
         createPositionInfo("2", "10", null, "5", "10").also {
-            val info = calculateAndAssert(it, net = "20", gross = "20")
-            assertEquals(BigDecimal("15"), info.kostZuweisungNetSum)
-            assertEquals(BigDecimal("15"), info.kostZuweisungGrossSum)
-            assertEquals(BigDecimal("5"), info.kostZuweisungNetFehlbetrag)
+            val info = calculateAndAssert(it, net = "20.00", gross = "20.00")
+            assertEquals(BigDecimal("15.00"), info.kostZuweisungNetSum)
+            assertEquals(BigDecimal("15.00"), info.kostZuweisungGrossSum)
+            assertEquals(BigDecimal("5.00"), info.kostZuweisungNetFehlbetrag)
         }
-        createPositionInfo("2", "10", "0.19", "5", "10").also {
-            val info = calculateAndAssert(it, net = "20", gross = "23.80")
-            assertEquals(BigDecimal("15"), info.kostZuweisungNetSum, "kostZuweisungNetSum")
+        createPositionInfo("2", "10.00", "0.19", "5", "10").also {
+            val info = calculateAndAssert(it, net = "20.00", gross = "23.80")
+            assertEquals(BigDecimal("15.00"), info.kostZuweisungNetSum, "kostZuweisungNetSum")
             assertEquals(BigDecimal("17.85"), info.kostZuweisungGrossSum, "kostZuweisungGrossSum")
-            assertEquals(BigDecimal("5"), info.kostZuweisungNetFehlbetrag, "kostZuweisungNetFehlbetrag")
+            assertEquals(BigDecimal("5.00"), info.kostZuweisungNetFehlbetrag, "kostZuweisungNetFehlbetrag")
         }
     }
 
@@ -88,8 +125,8 @@ class RechnungCalculatorTest {
         gross: String
     ): RechnungInfo {
         val info = RechnungCalculator.calculate(invoice)
-        assertEquals(BigDecimal(net), info.netSum)
-        assertEquals(BigDecimal(gross), info.grossSum)
+        assertEquals(BigDecimal(net), info.netSum, "netSum")
+        assertEquals(BigDecimal(gross), info.grossSum, "grossSum")
         return info
     }
 

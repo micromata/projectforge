@@ -136,7 +136,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     }
 
     override fun afterLoad(obj: RechnungDO) {
-        obj.info = rechnungCache.getOrCalculateRechnungInfo(obj)
+        obj.info = rechnungCache.ensureRechnungInfo(obj)
     }
 
     override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {

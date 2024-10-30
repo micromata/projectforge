@@ -97,7 +97,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
     }
 
     override fun afterLoad(obj: EingangsrechnungDO) {
-        obj.info = rechnungCache.getOrCalculateRechnungInfo(obj)
+        obj.info = rechnungCache.ensureRechnungInfo(obj)
     }
 
     /**

@@ -1,10 +1,12 @@
 Aktuell:
-- Alle caches müssen in isolated contexten laufen!
 - Suche:
   - Zeitberichte: z. B. nach Projektnamen suchen.
   - Zeitraumfilter bei Kreditoren
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
+- PersistenceContext-callstat: mehrere zulassen.
 
+- Suche in History
+- positionen-Fetch: RechnungDO:185 (TODO)
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.

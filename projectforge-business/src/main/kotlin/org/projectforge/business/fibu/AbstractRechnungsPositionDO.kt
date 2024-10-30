@@ -30,6 +30,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
+import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
@@ -71,6 +72,7 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
      * Must be set via [RechnungCalculator.calculate] before usage.
      */
     @get:Transient
+    @CandHIgnore // Do not handle it by canh (it might not be initialized).
     lateinit var info: RechnungPosInfo
 
     internal val isInfoInitialized: Boolean

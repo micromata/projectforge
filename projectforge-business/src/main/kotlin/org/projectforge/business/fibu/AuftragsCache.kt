@@ -158,11 +158,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
             }
             orderMap = map
             toBeInvoicedCounter = null
-            log.info(
-                "AuftragsCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
+            log.info { "AuftragsCache.refresh done. ${context.formatStats()}" }
         }
     }
 

@@ -127,11 +127,7 @@ open class EmployeeCache : AbstractCache() {
                     }
                 }
             this.employeeMap = map
-            log.info(
-                "EmployeeCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
+            log.info { "EmployeeCache.refresh done. ${context.formatStats()}" }
         }
     }
 

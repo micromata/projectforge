@@ -49,6 +49,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -544,6 +545,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
 
           posGridBuilder.newSubSplitPanel(GridSize.COL50);
           panel = posGridBuilder.getPanel();
+          WicketSupport.get(RechnungCache.class).ensureRechnungPosInfo(position);
           final BigDecimal fehlbetrag = position.getInfo().getKostZuweisungNetFehlbetrag();
           if (hasInsertAccess == true) {
             ButtonType buttonType;

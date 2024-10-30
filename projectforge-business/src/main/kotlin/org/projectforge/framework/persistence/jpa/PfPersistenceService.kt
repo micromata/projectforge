@@ -124,7 +124,7 @@ open class PfPersistenceService {
                 type = PfPersistenceContext.ContextType.TRANSACTION,
             ).use { context ->
                 if (recordCallStats) {
-                    PfPersistenceContextThreadLocal.createPersistenceCallsStats(false)
+                    context.createPersistenceCallsStats()
                 }
                 PfPersistenceContextThreadLocal.setTransactional(context)
                 PfPersistenceContextThreadLocal.getStatsState().transactionCreated()
@@ -173,7 +173,7 @@ open class PfPersistenceService {
                 type = PfPersistenceContext.ContextType.READONLY
             ).use { context ->
                 if (recordCallStats) {
-                    PfPersistenceContextThreadLocal.createPersistenceCallsStats(false)
+                    context.createPersistenceCallsStats()
                 }
                 PfPersistenceContextThreadLocal.setReadonly(context)
                 PfPersistenceContextThreadLocal.getStatsState().readonlyCreated()
@@ -356,24 +356,19 @@ open class PfPersistenceService {
     }
 
     /**
-     * Saves the current statistics state of the current thread.
-     * Usage:
-     * val saved = persistenceService.saveStatsState()
-     * // Do something...
-     * log.info("Processing done. stats=${persistenceService.formatStats(saved)}")
+     * For testing purposes only.
      * @return The statistics state (a copy for later comparison).
      * @see PersistenceStats
      */
-    fun saveStatsState(): PersistenceStats {
-        return PfPersistenceContextThreadLocal.getStatsState().saveCurrentState()
+    fun getCopyOfCurrentStateForTesting(): PersistenceStats {
+        return PfPersistenceContextThreadLocal.getStatsState().getCopyOfCurrentState()
     }
 
-    fun getStats(oldState: PersistenceStats): PersistenceStats {
+    /**
+     * For testing purposes only.
+     */
+    fun getActivitiesForTesting(oldState: PersistenceStats): PersistenceStats {
         return PfPersistenceContextThreadLocal.getStatsState().getActivities(oldState)
-    }
-
-    fun formatStats(oldState: PersistenceStats, withDuration: Boolean = true): String {
-        return getStats(oldState).asString(withDuration)
     }
 
     companion object {

@@ -24,13 +24,8 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import mu.KotlinLogging
-import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-private val log = KotlinLogging.logger {}
 
 /**
  * Caches the order positions assigned to invoice positions.
@@ -38,19 +33,12 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class RechnungCache : AbstractCache() {
+class RechnungCache : AbstractRechnungCache(RechnungDO::class.java) {
     @Autowired
     private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
     @Autowired
     private lateinit var eingangsrechnungCache: EingangsrechnungCache
-
-    @Autowired
-    private lateinit var persistenceService: PfPersistenceService
-
-    private var invoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-
-    private var invoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
 
     @PostConstruct
     private fun postConstruct() {
@@ -82,33 +70,8 @@ class RechnungCache : AbstractCache() {
         eingangsrechnungCache.update(invoice)
     }
 
-    fun getOrCalculateRechnungInfo(rechnung: RechnungDO): RechnungInfo {
-        checkRefresh()
-        synchronized(invoiceInfoMap) {
-            return invoiceInfoMap[rechnung.id!!] ?: RechnungCalculator.calculate(rechnung).also {
-                invoiceInfoMap[rechnung.id!!] = it
-            }
-        }
-    }
-
-    fun getRechnungInfo(rechnungId: Long?): RechnungInfo? {
-        rechnungId ?: return null
-        checkRefresh()
-        synchronized(invoiceInfoMap) {
-            return invoiceInfoMap[rechnungId]
-        }
-    }
-
-    fun getRechnungPosInfo(rechnungPosId: Long?): RechnungPosInfo? {
-        rechnungPosId ?: return null
-        checkRefresh()
-        synchronized(invoicePosInfoMap) {
-            return invoicePosInfoMap[rechnungPosId]
-        }
-    }
-
-    fun getOrCalculateRechnungInfo(rechnung: EingangsrechnungDO): RechnungInfo {
-        return eingangsrechnungCache.getOrCalculateRechnungInfo(rechnung)
+    fun ensureRechnungInfo(rechnung: EingangsrechnungDO): RechnungInfo {
+        return eingangsrechnungCache.ensureRechnungInfo(rechnung)
     }
 
     fun getEingangsrechnungInfo(rechnungId: Long?): RechnungInfo? {
@@ -118,12 +81,10 @@ class RechnungCache : AbstractCache() {
     /**
      * Autodetect Rechnung/Eingangsrechnung.
      */
-    fun getRechnungInfo(rechnung: AbstractRechnungDO?): RechnungInfo? {
+    override fun getRechnungInfo(rechnung: AbstractRechnungDO?): RechnungInfo? {
         val id = rechnung?.id ?: return null
         return if (rechnung is RechnungDO) {
-            synchronized(invoiceInfoMap) {
-                invoiceInfoMap[id]
-            }
+            super.getRechnungInfo(rechnung)
         } else {
             eingangsrechnungCache.getRechnungInfo(id)
         }
@@ -134,38 +95,8 @@ class RechnungCache : AbstractCache() {
         auftragsRechnungCache.setExpired()
     }
 
-    /**
-     * This method will be called by CacheHelper and is synchronized via getData();
-     */
-    override fun refresh() {
-        log.info("Initializing RechnungCache...")
-        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            // This method must not be synchronized because it works with new copies of maps.
-            log.info("Getting all invoices (RechnungDO)...")
-            val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-            val nInvoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
-            persistenceService.executeQuery(
-                "FROM RechnungDO t left join fetch t.positionen p left join fetch t.positionen.kostZuweisungen",
-                RechnungDO::class.java,
-            ).forEach { rechnung ->
-                nInvoiceInfoMap[rechnung.id!!] = RechnungCalculator.calculate(rechnung).also { info ->
-                    info.positions?.forEach { pos ->
-                        nInvoicePosInfoMap[pos.id!!] = pos
-                    }
-
-                }
-            }
-            this.invoiceInfoMap = nInvoiceInfoMap
-            this.invoicePosInfoMap = nInvoicePosInfoMap
-            log.info(
-                "Initializing of RechnungCache done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
-        }
-    }
-
     companion object {
+        @JvmStatic
         lateinit var instance: RechnungCache
             private set
     }
