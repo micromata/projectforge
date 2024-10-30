@@ -130,16 +130,6 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: LocalDate? = null
 
-    /**
-     * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
-     */
-    override val isBezahlt: Boolean
-        @Transient
-        get() = if (this.netSum.compareTo(BigDecimal.ZERO) == 0) {
-            true
-        } else this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null
-
-
     val kundeId: Long?
         @Transient
         get() = if (this.kunde == null) {

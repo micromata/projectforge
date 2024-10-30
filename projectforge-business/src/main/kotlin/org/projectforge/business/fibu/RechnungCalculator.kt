@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu
 
+import mu.KotlinLogging
+import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.HUNDRED
@@ -30,51 +32,102 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 
+private val log = KotlinLogging.logger {}
+
 object RechnungCalculator {
-    private val log = org.slf4j.LoggerFactory.getLogger(RechnungCalculator::class.java)
-
-    fun calculateNetSum(rechnung: IRechnung): BigDecimal {
-        var netto = BigDecimal.ZERO
-        rechnung.positionen?.forEach {
-            netto = netto.add(it.netSum) // Das dauert
-        }
-        return netto
-    }
-
-
-    fun calculateNetSum(position: IRechnungsPosition): BigDecimal {
-        return if (position.menge != null) {
-            if (position.einzelNetto != null) {
-                CurrencyHelper.multiply(position.menge, position.einzelNetto)
+    /**
+     * Calculates the net sum, vat amount sum and gross sum of the given invoice.
+     * @oaram rechnung The invoice to calculate the values for (positions and positions.kostZuweisungen will be fetched).
+     * @return The calculated values.
+     */
+    fun calculate(rechnung: AbstractRechnungDO): RechnungInfo {
+        val info = RechnungInfo(rechnung)
+        rechnung.info = info
+        info.faelligkeitOrDiscountMaturity = rechnung.discountMaturity.let {
+            if (it != null && !info.isBezahlt && !it.isBefore(LocalDate.now())) {
+                rechnung.discountMaturity
             } else {
-                BigDecimal.ZERO
+                rechnung.faelligkeit
+            }
+        }
+        info.positions = rechnung.positionen?.map { calculate(it as AbstractRechnungsPositionDO) }
+        info.positions?.forEach { posInfo ->
+            info.netSum += posInfo.netSum
+            info.kostZuweisungenNetSum += posInfo.kostZuweisungNetSum
+            info.grossSum += posInfo.grossSum
+        }
+        info.vatAmount = calculateVatAmountSum(rechnung)
+        info.kostZuweisungenFehlbetrag = info.netSum - info.kostZuweisungenNetSum
+        info.grossSumWithDiscount = calculateGrossSumWithDiscount(rechnung)
+
+        val zahlBetrag = rechnung.zahlBetrag
+        info.isBezahlt = if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
+            true
+        } else if (rechnung.bezahlDatum != null && zahlBetrag != null && zahlBetrag > BigDecimal.ZERO) {
+            if (rechnung is RechnungDO) {
+                rechnung.status == RechnungStatus.BEZAHLT
+            } else {
+                true
             }
         } else {
-            (if (position.einzelNetto != null) position.einzelNetto else BigDecimal.ZERO)!!
+            false
         }
+        info.isUeberfaellig = false
+        if (!info.isBezahlt && rechnung.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
+            info.isUeberfaellig = true
+        }
+        return info
     }
 
-    fun calculateVatAmountSum(position: IRechnungsPosition): BigDecimal {
-        val netSum = position.netSum
-        return if (position.vat != null) {
-            CurrencyHelper.multiply(netSum, position.vat)
-        } else {
-            BigDecimal.ZERO
+    /**
+     * Calculations for invoice positions.
+     */
+    fun calculate(position: AbstractRechnungsPositionDO): RechnungPosInfo {
+        val posInfo = RechnungPosInfo(position)
+        position.info = posInfo
+        posInfo.netSum = calculateNetSum(position)
+        if (position.vat != null) {
+            posInfo.vatAmount = CurrencyHelper.multiply(posInfo.netSum, position.vat)
         }
+        posInfo.grossSum = posInfo.netSum
+        if (position.vat != null) {
+            posInfo.grossSum += CurrencyHelper.multiply(posInfo.netSum, position.vat)
+        }
+        var kostZuweisungNetSum = BigDecimal.ZERO
+        position.kostZuweisungen?.forEach { zuweisung ->
+            zuweisung.netto?.let {
+                kostZuweisungNetSum += it
+            }
+        }
+        posInfo.kostZuweisungNetSum = kostZuweisungNetSum
+        val vat = position.vat
+        posInfo.kostZuweisungGrossSum = kostZuweisungNetSum
+        if (vat != null) {
+            posInfo.kostZuweisungGrossSum += CurrencyHelper.multiply(kostZuweisungNetSum, position.vat)
+        }
+        posInfo.kostZuweisungNetFehlbetrag = posInfo.netSum - kostZuweisungNetSum
+        return posInfo
+    }
+
+    private fun calculateNetSum(position: IRechnungsPosition): BigDecimal {
+        val einzelNetto = position.einzelNetto ?: return BigDecimal.ZERO
+        val menge = position.menge ?: return einzelNetto
+        return CurrencyHelper.multiply(menge, einzelNetto)
     }
 
     /**
      * First all amounts of same VAT will be summarized (for rounding after having the sums) and then each sum per VAT will be rounded and
      * then the total sum will be returned.
      */
-    fun calculateVatAmountSum(rechnung: IRechnung): BigDecimal {
+    private fun calculateVatAmountSum(rechnung: AbstractRechnungDO): BigDecimal {
         // Key is the vat percentage and value is the cumulative vat sum.
         val vatAmountSums = mutableMapOf<BigDecimal, BigDecimal>()
         rechnung.positionen?.forEach {
+            it as AbstractRechnungsPositionDO
             var vat = it.vat
             if (!NumberHelper.isZeroOrNull(vat)) {
                 vat = vat!!.stripTrailingZeros() // 19.0 -> 19 for having same vat percentage.
-                val vatAmount = CurrencyHelper.multiply(it.netSum, vat)
+                val vatAmount = CurrencyHelper.multiply(it.info.netSum, vat)
                 val vatAmountSum = vatAmountSums[vat] ?: BigDecimal.ZERO
                 vatAmountSums[vat] = vatAmountSum.plus(vatAmount)
             }
@@ -89,26 +142,11 @@ object RechnungCalculator {
     }
 
     /**
-     * Adds the caluclated vat amount to the net sum amount.
-     */
-    fun calculateGrossSum(rechnung: IRechnung): BigDecimal {
-        return rechnung.netSum.plus(calculateVatAmountSum(rechnung))
-    }
-
-    fun calculateGrossSum(position: IRechnungsPosition): BigDecimal {
-        val netSum = position.netSum
-        return if (position.vat != null) {
-            netSum.add(CurrencyHelper.multiply(netSum, position.vat))
-        } else {
-            netSum
-        }
-    }
-
-    /**
      * @param grossSum As paramter to avoid recalculation (and lazy fetching of positions).
      */
-    fun calculateGrossSumWithDiscount(rechnung: AbstractRechnungDO, grossSum: BigDecimal): BigDecimal {
+    private fun calculateGrossSumWithDiscount(rechnung: AbstractRechnungDO): BigDecimal {
         rechnung.zahlBetrag?.let { return it }
+        val grossSum = rechnung.info.grossSum
         rechnung.discountPercent?.let { percent ->
             if (percent.compareTo(BigDecimal.ZERO) != 0) {
                 rechnung.discountMaturity?.let { expireDate ->
@@ -123,46 +161,5 @@ object RechnungCalculator {
         return grossSum
     }
 
-    fun kostZuweisungenNetSum(rechnung: AbstractRechnungDO): BigDecimal {
-        var netSum = BigDecimal.ZERO
-        val positionen = rechnung.abstractPositionen
-        if (positionen.isNullOrEmpty())
-            return netSum
-        positionen.forEach {
-            netSum = netSum.add(kostZuweisungenNetSum(it))
-        }
-        return netSum
-    }
-
-    fun kostZuweisungenNetSum(position: AbstractRechnungsPositionDO): BigDecimal {
-        val zuweisungen = position.kostZuweisungen
-        if (zuweisungen == null) {
-            return BigDecimal.ZERO
-        }
-        var netSum = BigDecimal.ZERO
-        zuweisungen.forEach {
-            if (it.netto != null) {
-                netSum = netSum.add(it.netto)
-            }
-        }
-        return netSum
-    }
-
-    fun kostZuweisungenNetFehlbetrag(position: AbstractRechnungsPositionDO): BigDecimal {
-        return position.kostZuweisungNetSum.subtract(position.netSum)
-    }
-
-    fun kostZuweisungenGrossSum(position: AbstractRechnungsPositionDO): BigDecimal {
-        val zuweisungen = position.kostZuweisungen
-        if (zuweisungen == null) {
-            return BigDecimal.ZERO
-        }
-        var netSum = BigDecimal.ZERO
-        zuweisungen.forEach {
-            if (it.netto != null) {
-                netSum = netSum.add(it.netto)
-            }
-        }
-        return netSum
-    }
+    internal lateinit var rechnungCache: RechnungCache
 }

@@ -155,8 +155,8 @@ class EingangsrechnungMultiSelectedPageRest : AbstractMultiSelectedPage<Eingangs
             massUpdateData["zahlBetrag"] = massParam
           }
           invoice.bezahlDatum = param.localDateValue
-          invoice.zahlBetrag = invoice.grossSumWithDiscount
-          if (invoice.discountPercent != null && invoice.grossSumWithDiscount.compareTo(invoice.grossSum) != 0) {
+          invoice.zahlBetrag = invoice.info.grossSumWithDiscount
+          if (invoice.discountPercent != null && invoice.info.grossSumWithDiscount.compareTo(invoice.info.grossSum) != 0) {
             // Append hint about discount.
             val appendText =
               "${translate("fibu.eingangsrechnung.skonto")}: ${NumberFormatter.format(invoice.discountPercent)}%"

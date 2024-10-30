@@ -1,4 +1,5 @@
 Aktuell:
+- Alle caches müssen in isolated contexten laufen!
 - Suche:
   - Zeitberichte: z. B. nach Projektnamen suchen.
   - Zeitraumfilter bei Kreditoren

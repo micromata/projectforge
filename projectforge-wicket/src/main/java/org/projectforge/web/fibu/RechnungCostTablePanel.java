@@ -87,10 +87,10 @@ public class RechnungCostTablePanel extends Panel
         item.add(kost2);
         item.add(new Label("netto", CurrencyFormatter.format(zuweisung.getNetto())));
         final BigDecimal percentage;
-        if (NumberHelper.isZeroOrNull(position.getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
+        if (NumberHelper.isZeroOrNull(position.getInfo().getNetSum()) == true || NumberHelper.isZeroOrNull(zuweisung.getNetto()) == true) {
           percentage = BigDecimal.ZERO;
         } else {
-          percentage = zuweisung.getNetto().divide(position.getNetSum(), RoundingMode.HALF_UP);
+          percentage = zuweisung.getNetto().divide(position.getInfo().getNetSum(), RoundingMode.HALF_UP);
         }
         final boolean percentageVisible = NumberHelper.isNotZero(percentage);
         item.add(new Label("percentage", NumberFormatter.formatPercent(percentage)).setVisible(percentageVisible));

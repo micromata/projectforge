@@ -164,7 +164,7 @@ public class EingangsrechnungEditForm extends
       paymentTypeChoice.add((IValidator<PaymentType>) validatable -> {
         PaymentType pt = validatable.getValue();
         if (PaymentType.BANK_TRANSFER.equals(pt)) {
-          if (data.getGrossSum() != null && data.getGrossSum().compareTo(BigDecimal.ZERO) < 0) {
+          if (data.getInfo().getGrossSum() != null && data.getInfo().getGrossSum().compareTo(BigDecimal.ZERO) < 0) {
             error(I18nHelper.getLocalizedMessage("fibu.rechnung.error.negativAmount"));
           }
         }

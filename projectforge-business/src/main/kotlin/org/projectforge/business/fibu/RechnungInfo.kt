@@ -23,52 +23,44 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.common.props.PropertyType
 import java.io.Serializable
 import java.math.BigDecimal
+import java.time.LocalDate
 
-class RechnungInfo(val invoice: AbstractRechnungDO) : Serializable {
-    class PositionInfo(position: IRechnungsPosition) : IRechnungsPosition, Serializable {
-        override var id = position.id
-        override var deleted: Boolean = position.deleted
-        override var menge: BigDecimal? = position.menge
-        override var einzelNetto: BigDecimal? = position.einzelNetto
-        override var netSum: BigDecimal = position.netSum
-        override var vat: BigDecimal? = position.vat
-        val grossSumm = RechnungCalculator.calculateGrossSum(position)
-    }
+class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
+    var id = invoice.id
+    var positions: List<RechnungPosInfo>? = null
+        internal set
 
-    var positions: List<PositionInfo>? = null
-        private set
-
+    @get:PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY)
     var netSum = BigDecimal.ZERO
 
+    @get:PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY)
     var grossSum = BigDecimal.ZERO
 
+    var vatAmount: BigDecimal = BigDecimal.ZERO
+
+    /**
+     * Gibt den Bruttobetrag zurueck bzw. den Betrag abzueglich Skonto, wenn die Skontofrist noch nicht
+     * abgelaufen ist. Ist die Rechnung bereits bezahlt, wird der tatsaechlich bezahlte Betrag zurueckgegeben.
+     */
     var grossSumWithDiscount = BigDecimal.ZERO
 
     val zahlBetrag = invoice.zahlBetrag
 
-    fun getPosition(id: Long?): PositionInfo? {
-        id ?: return null
-        return positions?.find { it.id == id }
-    }
+    /**
+     * @return The total sum of all cost assignment net amounts of all positions.
+     */
+    var kostZuweisungenNetSum = BigDecimal.ZERO
 
-    init {
-        positions = invoice.positionen?.filter { !it.deleted }?.map { PositionInfo(it) }
-        val undeleted = positions?.filter { !it.deleted }
-        undeleted?.let {
-            netSum = it.sumOf { it.netSum }
-            netSum = it.sumOf { it.grossSumm }
-        }
-        grossSumWithDiscount = RechnungCalculator.calculateGrossSumWithDiscount(invoice, grossSum)
-    }
+    var kostZuweisungenFehlbetrag = BigDecimal.ZERO
 
-    private companion object {
-        fun calculateNetSum(positions: Collection<IRechnungsPosition>?): BigDecimal {
-            positions ?: return BigDecimal.ZERO
-            return positions
-                .filter { !it.deleted }
-                .sumOf { it.netSum }
-        }
-    }
+    var isBezahlt = false
+
+    var isUeberfaellig = false
+
+    @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY)
+    var faelligkeitOrDiscountMaturity: LocalDate? = null
 }

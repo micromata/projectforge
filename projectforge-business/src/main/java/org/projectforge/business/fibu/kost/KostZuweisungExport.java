@@ -169,11 +169,11 @@ public class KostZuweisungExport {
         referenz = r.getReferenz();
         text = r.getKreditor();
       }
-      final BigDecimal grossSum = position.getBruttoSum();
+      final BigDecimal grossSum = position.getInfo().getGrossSum();
 
       BigDecimal korrektur = null;
-      if (grossSum.compareTo(position.getKostZuweisungGrossSum()) != 0) {
-        korrektur = CurrencyHelper.getGrossAmount(position.getKostZuweisungNetFehlbetrag(), position.getVat());
+      if (grossSum.compareTo(position.getInfo().getKostZuweisungGrossSum()) != 0) {
+        korrektur = CurrencyHelper.getGrossAmount(position.getInfo().getKostZuweisungNetFehlbetrag(), position.getVat());
         if (NumberHelper.isZeroOrNull(korrektur)) {
           korrektur = null;
         }

@@ -48,6 +48,9 @@ private val log = KotlinLogging.logger {}
 @Service
 open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO::class.java) {
     @Autowired
+    private lateinit var rechnungCache: RechnungCache
+
+    @Autowired
     private val kontoDao: KontoDao? = null
 
     override val additionalSearchFields: Array<String>
@@ -93,6 +96,10 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         eingangsrechnung.konto = konto
     }
 
+    override fun afterLoad(obj: EingangsrechnungDO) {
+        obj.info = rechnungCache.getOrCalculateRechnungInfo(obj)
+    }
+
     /**
      * Sets the scales of percentage and currency amounts. <br></br>
      * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
@@ -122,6 +129,10 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         RechnungDao.writeUiStatusToXml(obj)
     }
 
+    override fun afterInsertOrModify(obj: EingangsrechnungDO, operationType: OperationType) {
+        rechnungCache.update(obj)
+    }
+
     override fun select(filter: BaseSearchFilter): List<EingangsrechnungDO> {
         val myFilter = if (filter is EingangsrechnungListFilter) {
             filter
@@ -145,16 +156,17 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
 
         val result: MutableList<EingangsrechnungDO> = ArrayList()
         for (rechnung in list) {
+            val info = rechnungCache.getEingangsrechnungInfo(rechnung.id) ?: RechnungInfo(rechnung)
             if (myFilter.isShowUnbezahlt) {
-                if (!rechnung.isBezahlt) {
+                if (!info.isBezahlt) {
                     result.add(rechnung)
                 }
             } else if (myFilter.isShowBezahlt) {
-                if (rechnung.isBezahlt) {
+                if (info.isBezahlt) {
                     result.add(rechnung)
                 }
             } else if (myFilter.isShowUeberFaellig) {
-                if (rechnung.isUeberfaellig) {
+                if (info.isUeberfaellig) {
                     result.add(rechnung)
                 }
             } else {

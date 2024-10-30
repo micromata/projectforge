@@ -119,7 +119,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       final DivTextPanel netPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return CurrencyFormatter.format(data.getNetSum());
+          return CurrencyFormatter.format(data.getInfo().getNetSum());
         }
       }, TextStyle.FORM_TEXT);
       fs.add(netPanel);
@@ -133,7 +133,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       final DivTextPanel vatPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return CurrencyFormatter.format(data.getVatAmountSum());
+          return CurrencyFormatter.format(data.getInfo().getVatAmount());
         }
       }, TextStyle.FORM_TEXT);
       fs.add(vatPanel);
@@ -147,7 +147,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
       final DivTextPanel grossPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
         @Override
         public String getObject() {
-          return CurrencyFormatter.format(data.getGrossSum());
+          return CurrencyFormatter.format(data.getInfo().getGrossSum());
         }
       }, TextStyle.FORM_TEXT);
       fs.add(grossPanel);
@@ -475,7 +475,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           final TextPanel netTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              return CurrencyFormatter.format(position.getNetSum());
+              return CurrencyFormatter.format(position.getInfo().getNetSum());
             }
           });
           ajaxUpdatePositionComponents.add(netTextPanel.getLabel4Ajax());
@@ -490,7 +490,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           final TextPanel vatTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              return CurrencyFormatter.format(position.getVatAmount());
+              return CurrencyFormatter.format(position.getInfo().getVatAmount());
             }
           });
           fieldset.add(vatTextPanel);
@@ -505,7 +505,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           final TextPanel grossTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              return CurrencyFormatter.format(position.getBruttoSum());
+              return CurrencyFormatter.format(position.getInfo().getGrossSum());
             }
           });
           fieldset.add(grossTextPanel);
@@ -544,7 +544,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
 
           posGridBuilder.newSubSplitPanel(GridSize.COL50);
           panel = posGridBuilder.getPanel();
-          final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
+          final BigDecimal fehlbetrag = position.getInfo().getKostZuweisungNetFehlbetrag();
           if (hasInsertAccess == true) {
             ButtonType buttonType;
             if (NumberHelper.isNotZero(fehlbetrag) == true) {
@@ -577,7 +577,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
           panel.add(new TextPanel(panel.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
+              final BigDecimal fehlbetrag = position.getInfo().getKostZuweisungNetFehlbetrag();
               if (NumberHelper.isNotZero(fehlbetrag) == true) {
                 return CurrencyFormatter.format(fehlbetrag);
               } else {
@@ -632,7 +632,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO, T e
     }
     final StringBuilder heading = new StringBuilder();
     heading.append(escapeHtml(getString("label.position.short"))).append(" #").append(position.getNumber());
-    heading.append(": ").append(CurrencyFormatter.format(position.getNetSum()));
+    heading.append(": ").append(CurrencyFormatter.format(position.getInfo().getNetSum()));
     if (StringHelper.isNotBlank(position.getText()) == true) {
       heading.append(" ").append(StringUtils.abbreviate(position.getText(), 80));
     }

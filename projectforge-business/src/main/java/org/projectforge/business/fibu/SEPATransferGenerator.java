@@ -210,7 +210,7 @@ public class SEPATransferGenerator {
         int index = 0;
         for (EingangsrechnungDO invoice : invoices) {
             this.createTransaction(result, factory, invoice, msgID, pmtInf, ++index);
-            amount = amount.add(invoice.getGrossSumWithDiscount());
+            amount = amount.add(invoice.getInfo().getGrossSumWithDiscount());
         }
         amount = amount.setScale(2, RoundingMode.HALF_UP);
 
@@ -249,7 +249,7 @@ public class SEPATransferGenerator {
                                    final String msgID, final PaymentInstructionInformationSCT pmtInf, int index) {
         // validate invoice, check field values
         List<SEPATransferError> errors = new ArrayList<>();
-        if (invoice.getGrossSumWithDiscount() == null || invoice.getGrossSumWithDiscount().compareTo(BigDecimal.ZERO) == 0) {
+        if (invoice.getInfo().getGrossSumWithDiscount() == null || invoice.getInfo().getGrossSumWithDiscount().compareTo(BigDecimal.ZERO) == 0) {
             errors.add(SEPATransferError.SUM);
         }
         if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
@@ -292,7 +292,7 @@ public class SEPATransferGenerator {
         ActiveOrHistoricCurrencyAndAmountSEPA instdAmt = factory.createActiveOrHistoricCurrencyAndAmountSEPA();
         amt.setInstdAmt(instdAmt);
         instdAmt.setCcy(ActiveOrHistoricCurrencyCodeEUR.EUR);
-        instdAmt.setValue(invoice.getGrossSumWithDiscount().setScale(2, RoundingMode.HALF_UP));
+        instdAmt.setValue(invoice.getInfo().getGrossSumWithDiscount().setScale(2, RoundingMode.HALF_UP));
         cdtTrfTxInf.setAmt(amt);
 
         // set creditor
