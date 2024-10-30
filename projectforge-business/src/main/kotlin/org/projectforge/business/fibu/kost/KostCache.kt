@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
+import org.projectforge.business.fibu.KostFormatter
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
 import org.projectforge.business.fibu.kost.KostHelper.parseKostString
@@ -270,5 +271,10 @@ class KostCache : AbstractCache() {
     companion object {
         lateinit var instance: KostCache
             private set
+
+        internal fun setForTestCases() {
+            instance = KostCache()
+            KostFormatter.setForTestcases(instance)
+        }
     }
 }

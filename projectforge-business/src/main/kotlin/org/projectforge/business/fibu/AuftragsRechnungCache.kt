@@ -114,7 +114,7 @@ class AuftragsRechnungCache : AbstractCache() {
                     setByAuftragsPositionId = TreeSet()
                     mapByAuftragsPositionId[auftragsPosition.id ?: 0] = setByAuftragsPositionId
                 }
-                pos.info = rechnungCache.getRechnungPosInfo(rechnung.id) ?: RechnungPosInfo(pos)
+                pos.info = rechnungCache.ensureRechnungPosInfo(pos)
                 val vo = RechnungsPositionVO(pos)
                 if (!setByAuftragId.contains(vo)) {
                     setByAuftragId.add(vo)

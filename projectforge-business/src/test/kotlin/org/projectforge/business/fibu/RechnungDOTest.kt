@@ -36,16 +36,20 @@ class RechnungDOTest {
     pos.vat = BigDecimal("0.19")
     pos.einzelNetto = BigDecimal("100")
     invoice.addPosition(pos)
+    RechnungCalculator.calculate(invoice);
     Assertions.assertEquals("119.00", invoice.info.grossSum.toString())
     Assertions.assertEquals("119.00", invoice.info.grossSumWithDiscount.toString())
     invoice.discountPercent = BigDecimal("2.00")
     invoice.discountMaturity = LocalDate.now()
+    RechnungCalculator.calculate(invoice);
     Assertions.assertEquals("116.62", invoice.info.grossSumWithDiscount.toString())
     invoice.discountMaturity = LocalDate.now().plusDays(1)
     Assertions.assertEquals("116.62", invoice.info.grossSumWithDiscount.toString(), "discount not expired.")
     invoice.discountMaturity = LocalDate.now().plusDays(-1)
+    RechnungCalculator.calculate(invoice);
     Assertions.assertEquals("119.00", invoice.info.grossSumWithDiscount.toString(), "discount expired.")
     invoice.zahlBetrag = BigDecimal("118.00") // Paid stupid amount (for test)
+    RechnungCalculator.calculate(invoice);
     Assertions.assertEquals("118.00", invoice.info.grossSumWithDiscount.toString(), "amount already paid")
   }
 }

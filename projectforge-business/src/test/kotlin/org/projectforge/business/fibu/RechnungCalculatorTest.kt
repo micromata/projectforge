@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -72,6 +73,7 @@ class RechnungCalculatorTest {
             invoice.discountPercent = BigDecimal("2")
             invoice.discountMaturity = future5Days
             info = RechnungCalculator.calculate(invoice)
+            assertEquals(BigDecimal("127.10"), info.grossSum, "grossSumWithDiscount")
             assertEquals(BigDecimal("124.56"), info.grossSumWithDiscount, "grossSumWithDiscount")
             assertEquals(future5Days, info.faelligkeitOrDiscountMaturity, "faelligkeitOrDiscountMaturity")
         }
@@ -93,6 +95,7 @@ class RechnungCalculatorTest {
 
     @Test
     fun `test calculation of RechnungPositionDO`() {
+        KostCache.setForTestCases()
         RechnungsPositionDO().also { position ->
             calculateAndAssert(position, "0.00", gross = "0.00")
             position.apply {
