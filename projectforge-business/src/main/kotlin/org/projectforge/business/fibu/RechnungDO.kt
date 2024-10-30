@@ -32,7 +32,6 @@ import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.history.PersistenceBehavior
-import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -182,9 +181,18 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         @Transient
         get() {
             val result = mutableSetOf<AuftragsPositionVO>()
+            /*RechnungCache.instance.ensureRechnungInfo(this).let { info ->
+                // TODO: Teuer: hier wird gefetcht.
+                info.positions?.forEach { pos ->
+                    val auftragsPositionId = pos.auftragsPositionId
+                    if (auftragsPositionId != null)
+                        AuftragsCache.instance.getOrderInfo()
+                    result.add(AuftragsPositionVO(auftragsPosition))
+                }
+            }*/
             // TODO: Teuer: hier wird gefetcht.
-            this.positionen?.forEach {
-                val auftragsPosition = it.auftragsPosition
+            this.positionen?.forEach { pos ->
+                val auftragsPosition = pos.auftragsPosition
                 if (auftragsPosition != null)
                     result.add(AuftragsPositionVO(auftragsPosition))
             }

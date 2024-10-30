@@ -84,8 +84,8 @@ object AnnotationsUtils {
         return annotations
     }
 
-    fun getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<out Annotation>): Annotation? {
-        return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass }
+    fun <T: Annotation>getAnnotation(clazz: Class<*>, propertyName: String, annotationClass: Class<T>): T? {
+        return getAnnotations(clazz, propertyName).find { it.annotationClass == annotationClass } as? T
     }
 
     fun hasAnnotation(property: KProperty1<*, *>, annotationClass: Class<out Annotation>): Boolean {
@@ -127,7 +127,7 @@ object AnnotationsUtils {
         return set
     }
 
-    private fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
+   /* private fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
         clazz.declaredFields.find { it.name == propertyName }?.let { field ->
             annotations.addAll(field.annotations)
         }
@@ -141,6 +141,56 @@ object AnnotationsUtils {
             }
         clazz.superclass?.let { superclass ->
             addAnnotations(superclass, propertyName, annotations)
+        }
+    }*/
+
+    fun addAnnotations(clazz: Class<*>, propertyName: String, annotations: MutableSet<Annotation>) {
+        // Teile den propertyName an jedem Punkt, um die verschachtelten Ebenen zu erkennen
+        val propertyParts = propertyName.split(".")
+
+        var currentClass: Class<*> = clazz
+
+        // Schleife über alle Teile des Property-Namens, außer dem letzten, da dies die tiefste Ebene ist
+        for (i in 0 until propertyParts.size - 1) {
+            val part = propertyParts[i]
+
+            // Suche nach dem Feld für die aktuelle Eigenschaftsebene
+            val field = currentClass.declaredFields.find { it.name == part }
+            if (field != null) {
+                currentClass = field.type
+            } else {
+                // Falls das Feld nicht gefunden wurde, versuchen wir die Getter-Methode zu finden
+                val getterMethod = currentClass.declaredMethods.find { it.name == "get${part.capitalize()}" }
+                if (getterMethod != null) {
+                    currentClass = getterMethod.returnType
+                } else {
+                    // Falls weder Feld noch Methode gefunden wurde, kann die Eigenschaft nicht weiterverfolgt werden
+                    return
+                }
+            }
+        }
+
+        // Verarbeite die finale Eigenschaftsebene
+        val finalProperty = propertyParts.last()
+
+        // Füge Annotationen des Feldes hinzu, falls es existiert
+        currentClass.declaredFields.find { it.name == finalProperty }?.let { field ->
+            annotations.addAll(field.annotations)
+        }
+
+        // Füge Annotationen der Getter-Methode hinzu, falls sie existiert
+        currentClass.declaredMethods.find { it.name == "get${finalProperty.capitalize()}" }?.let { method ->
+            annotations.addAll(method.annotations)
+        }
+
+        // Füge Annotationen der Setter-Methode hinzu, falls sie existiert
+        currentClass.declaredMethods.find { it.name == "set${finalProperty.capitalize()}" }?.let { method ->
+            annotations.addAll(method.annotations)
+        }
+
+        // Falls die Oberklasse existiert, rekursiv auf die Oberklasse anwenden
+        currentClass.superclass?.let { superclass ->
+            addAnnotations(superclass, finalProperty, annotations)
         }
     }
 

@@ -35,10 +35,8 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
     var positions: List<RechnungPosInfo>? = null
         internal set
 
-    @get:PropertyInfo(i18nKey = "fibu.common.netto", type = PropertyType.CURRENCY)
     var netSum = BigDecimal.ZERO
 
-    @get:PropertyInfo(i18nKey = "fibu.common.brutto", type = PropertyType.CURRENCY)
     var grossSum = BigDecimal.ZERO
 
     var vatAmount: BigDecimal = BigDecimal.ZERO

@@ -26,7 +26,9 @@ package org.projectforge.common
 import mu.KotlinLogging
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty1
 import kotlin.reflect.KVisibility
+import kotlin.reflect.full.memberProperties
 
 private val log = KotlinLogging.logger {}
 
@@ -34,6 +36,34 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 object KClassUtils {
+    /**
+     * Gets the property of a class by its name
+     * @param clazz The class to get the property from
+     * @param propertyName The name of the property (nested properties are separated by a dot).
+     * @return The property if it exists, otherwise null
+     */
+    fun getProperty(clazz: KClass<*>, propertyName: String): KProperty1<out Any, *>? {
+        // Separate propertyName:
+        val propertyParts = propertyName.split(".")
+
+        var currentClass: KClass<*> = clazz
+        var currentProperty: KProperty1<out Any, *>? = null
+
+        for (part in propertyParts) {
+            // Search for the property in the current class
+            currentProperty = currentClass.memberProperties.find { it.name == part } as? KProperty1<out Any, *>
+
+            if (currentProperty == null) {
+                return null // Property not found
+            }
+
+            // If the property is a nested property, the current class is the type of the property
+            currentClass = currentProperty.returnType.classifier as? KClass<*> ?: return null
+        }
+
+        return currentProperty
+    }
+
     /**
      * Filters all mutable properties of the given class.
      * Ignores all properties that do not have a public getter and setter.

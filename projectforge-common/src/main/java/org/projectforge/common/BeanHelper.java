@@ -403,7 +403,19 @@ public class BeanHelper {
    * @see PropertyUtils#getProperty(Object, String)
    */
   public static Object getProperty(final Object bean, final String property) {
-    return PropertyUtils.getProperty(bean, property);
+    final Method getter = determineGetter(bean.getClass(), property);
+    if (getter == null) {
+      throw new RuntimeException("Getter for property '" + bean.getClass() + "." + property + "' not found.");
+    }
+    try {
+      return getter.invoke(bean);
+    } catch (final IllegalArgumentException ex) {
+      throw new RuntimeException("For property '" + property + "'.", ex);
+    } catch (final IllegalAccessException ex) {
+      throw new RuntimeException("For property '" + property + "'.", ex);
+    } catch (final InvocationTargetException ex) {
+      throw new RuntimeException("For property '" + property + "'.", ex);
+    }
   }
 
   /**
