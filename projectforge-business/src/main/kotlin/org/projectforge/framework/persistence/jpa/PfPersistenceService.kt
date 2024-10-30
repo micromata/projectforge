@@ -73,6 +73,7 @@ open class PfPersistenceService {
      * After finishing the block, the transactional context will be closed as well as removed from ThreadLocal.
      * Any previous transactional context in ThreadLocal will be restored after finishing the block.
      */
+    @JvmOverloads
     fun <T> runInNewTransaction(
         recordCallStats: Boolean = false,
         run: (context: PfPersistenceContext) -> T
@@ -100,6 +101,7 @@ open class PfPersistenceService {
      * After finishing the block, the EntityManager will be closed as well as removed from ThreadLocal.
      * Any previous EntityManager in ThreadLocal will be restored after finishing the block.
      */
+    @JvmOverloads
     fun <T> runIsolatedReadOnly(
         recordCallStats: Boolean = false,
         block: (context: PfPersistenceContext) -> T

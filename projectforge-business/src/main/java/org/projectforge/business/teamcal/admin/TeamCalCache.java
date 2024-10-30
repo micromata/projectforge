@@ -29,6 +29,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.jpa.PfPersistenceService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.slf4j.Logger;
@@ -44,122 +45,121 @@ import java.util.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class TeamCalCache extends AbstractCache
-{
-  private static final long serialVersionUID = 1742102774636598280L;
+public class TeamCalCache extends AbstractCache {
+    private static final long serialVersionUID = 1742102774636598280L;
 
-  private static Logger log = LoggerFactory.getLogger(TeamCalCache.class);
+    private static Logger log = LoggerFactory.getLogger(TeamCalCache.class);
 
-  @Autowired
-  UserRightService userRights;
+    @Autowired
+    PfPersistenceService persistenceService;
 
-  private transient TeamCalRight teamCalRight;
+    @Autowired
+    UserRightService userRights;
 
-  private Map<Long, TeamCalDO> calendarMap;
+    private transient TeamCalRight teamCalRight;
 
-  public TeamCalRight getTeamCalRight() {
-    return teamCalRight;
-  }
+    private Map<Long, TeamCalDO> calendarMap;
 
-  public TeamCalDO getCalendar(final Long calendarId)
-  {
-    checkRefresh();
-    return calendarMap.get(calendarId);
-  }
-
-  /**
-   * Get ordered calendars (by title and id).
-   *
-   * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
-   */
-  public Collection<TeamCalDO> getAllAccessibleCalendars()
-  {
-    checkRefresh();
-    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
-    for (final TeamCalDO cal : calendarMap.values()) {
-      if (teamCalRight.hasSelectAccess(loggedInUser, cal) && !cal.getDeleted()) {
-        set.add(cal);
-      }
+    public TeamCalRight getTeamCalRight() {
+        return teamCalRight;
     }
-    return set;
-  }
 
-  /**
-   * Get ordered calendars (by title and id).
-   *
-   * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
-   */
-  public Collection<TeamCalDO> getAllFullAccessCalendars()
-  {
-    checkRefresh();
-    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
-    for (final TeamCalDO cal : calendarMap.values()) {
-      if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) && !cal.getDeleted()) {
-        set.add(cal);
-      }
+    public TeamCalDO getCalendar(final Long calendarId) {
+        checkRefresh();
+        return calendarMap.get(calendarId);
     }
-    return set;
-  }
 
-  /**
-   * Get ordered calendars (by title and id).
-   *
-   * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
-   */
-  public Collection<TeamCalDO> getAllOwnCalendars()
-  {
-    checkRefresh();
-    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    final Long loggedInUserId = ThreadLocalUserContext.getLoggedInUserId();
-    for (final TeamCalDO cal : calendarMap.values()) {
-      if (teamCalRight.isOwner(loggedInUserId, cal)) {
-        set.add(cal);
-      }
-    }
-    return set;
-  }
-
-  public Collection<TeamCalDO> getCalendars(final Collection<Long> calIds)
-  {
-    final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
-    if (calIds != null) {
-      for (final Long calId : calIds) {
-        final TeamCalDO cal = getCalendar(calId);
-        if (cal == null) {
-          log.warn("Calendar with id " + calId + " not found in cache.");
-          continue;
+    /**
+     * Get ordered calendars (by title and id).
+     *
+     * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
+     */
+    public Collection<TeamCalDO> getAllAccessibleCalendars() {
+        checkRefresh();
+        final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
+        for (final TeamCalDO cal : calendarMap.values()) {
+            if (teamCalRight.hasSelectAccess(loggedInUser, cal) && !cal.getDeleted()) {
+                set.add(cal);
+            }
         }
-        if (teamCalRight.hasSelectAccess(ThreadLocalUserContext.getLoggedInUser())) {
-          set.add(cal);
-        }
-      }
+        return set;
     }
-    return set;
-  }
 
-  /**
-   * This method will be called by CacheHelper and is synchronized via getData();
-   */
-  @Override
-  protected void refresh()
-  {
-    log.info("Initializing TeamCalCache ...");
-    TeamCalDao dao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao.class);
-    if (dao == null || teamCalRight == null) {
-      teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
+    /**
+     * Get ordered calendars (by title and id).
+     *
+     * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
+     */
+    public Collection<TeamCalDO> getAllFullAccessCalendars() {
+        checkRefresh();
+        final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
+        final PFUserDO loggedInUser = ThreadLocalUserContext.getLoggedInUser();
+        for (final TeamCalDO cal : calendarMap.values()) {
+            if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) && !cal.getDeleted()) {
+                set.add(cal);
+            }
+        }
+        return set;
     }
-    // This method must not be synchronized because it works with a new copy of maps.
-    final Map<Long, TeamCalDO> map = new HashMap<>();
-    final List<TeamCalDO> list = dao.selectAll(false);
-    for (final TeamCalDO cal : list) {
-      TeamCalDO put = map.put(cal.getId(), cal);
-      if (put != null) {
-        log.info("Adding team cal with id: " + cal.getId() + " to cache.");
-      }
+
+    /**
+     * Get ordered calendars (by title and id).
+     *
+     * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
+     */
+    public Collection<TeamCalDO> getAllOwnCalendars() {
+        checkRefresh();
+        final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
+        final Long loggedInUserId = ThreadLocalUserContext.getLoggedInUserId();
+        for (final TeamCalDO cal : calendarMap.values()) {
+            if (teamCalRight.isOwner(loggedInUserId, cal)) {
+                set.add(cal);
+            }
+        }
+        return set;
     }
-    this.calendarMap = map;
-    log.info("Initializing of TeamCalCache done.");
-  }
+
+    public Collection<TeamCalDO> getCalendars(final Collection<Long> calIds) {
+        final Set<TeamCalDO> set = new TreeSet<>(new TeamCalsComparator());
+        if (calIds != null) {
+            for (final Long calId : calIds) {
+                final TeamCalDO cal = getCalendar(calId);
+                if (cal == null) {
+                    log.warn("Calendar with id " + calId + " not found in cache.");
+                    continue;
+                }
+                if (teamCalRight.hasSelectAccess(ThreadLocalUserContext.getLoggedInUser())) {
+                    set.add(cal);
+                }
+            }
+        }
+        return set;
+    }
+
+    /**
+     * This method will be called by CacheHelper and is synchronized via getData();
+     */
+    @Override
+    protected void refresh() {
+        log.info("Initializing TeamCalCache ...");
+        persistenceService.runIsolatedReadOnly(context -> {
+            TeamCalDao dao = ApplicationContextProvider.getApplicationContext().getBean(TeamCalDao.class);
+            if (dao == null || teamCalRight == null) {
+                teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
+            }
+            // This method must not be synchronized because it works with a new copy of maps.
+            final Map<Long, TeamCalDO> map = new HashMap<>();
+            final List<TeamCalDO> list = dao.selectAll(false);
+            for (final TeamCalDO cal : list) {
+                TeamCalDO put = map.put(cal.getId(), cal);
+                if (put != null) {
+                    log.info("Adding team cal with id: " + cal.getId() + " to cache.");
+                }
+            }
+            this.calendarMap = map;
+            return null;
+        });
+        log.info("Initializing of TeamCalCache done.");
+    }
 }
