@@ -96,7 +96,7 @@ open class AddressbookCache : AbstractCache(), BaseDOModifiedListener<Addressboo
                 }
             }
             addressBookList = newList
-            log.info("Initializing of AddressbookCache done. stats=${persistenceService.formatStats(context.savedStats)}")
+            log.info { "Initializing of AddressbookCache done. ${context.formatStats()}" }
         }
     }
 }

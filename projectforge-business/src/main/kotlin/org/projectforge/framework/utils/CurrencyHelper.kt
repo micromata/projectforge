@@ -24,6 +24,7 @@
 package org.projectforge.framework.utils
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 object CurrencyHelper {
     /**
@@ -43,14 +44,20 @@ object CurrencyHelper {
         }
     }
 
+    @JvmOverloads
     @JvmStatic
-    fun multiply(val1: BigDecimal?, val2: BigDecimal?): BigDecimal {
-        return if (val1 == null) {
+    fun multiply(val1: BigDecimal?, val2: BigDecimal?, round: Boolean = false): BigDecimal {
+        val ret = if (val1 == null) {
             val2 ?: BigDecimal.ZERO
         } else if (val2 == null) {
             val1
         } else {
             val1.multiply(val2)
+        }
+        return if (round) {
+            ret.setScale(2, RoundingMode.HALF_UP)
+        } else {
+            ret
         }
     }
 }

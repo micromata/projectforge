@@ -212,6 +212,7 @@ public class RechnungCostEditTablePanel extends Panel
       @Override
       public IConverter getConverter(final Class type)
       {
+        RechnungCache.getInstance().ensureRechnungPosInfo(position);
         return new CurrencyConverter(position.getInfo().getNetSum());
       }
     };

@@ -23,23 +23,30 @@
 
 package org.projectforge.business.fibu
 
-import jakarta.persistence.Transient
 import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
+import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.common.abbreviate
 import java.io.Serializable
-import java.math.BigDecimal
 
-class RechnungPosInfo(position: AbstractRechnungsPositionDO) : Serializable {
-    var id = position.id
-    var deleted = position.deleted
-    var menge = position.menge
-    var einzelNetto = position.einzelNetto
-    var vat = position.vat
-    var netSum = BigDecimal.ZERO
-    var grossSum = BigDecimal.ZERO
-    var vatAmount = BigDecimal.ZERO
-    var kostZuweisungNetSum = BigDecimal.ZERO
-    var kostZuweisungGrossSum = BigDecimal.ZERO
-    var kostZuweisungNetFehlbetrag = BigDecimal.ZERO
-    var kostZuweisungen: List<KostZuweisungInfo>? = null
+/**
+ * Embedded by [RechnungPosInfo].
+ */
+class KostZuweisungInfo(kostZuweisung: KostZuweisungDO) : Serializable {
+    data class Kost(val formattedNumber: String, val displayName: String?): Serializable
+
+    val id = kostZuweisung.id
+    val netto = kostZuweisung.netto
+    val kost1: Kost
+    val kost2: Kost
+
+    init {
+        val kostCache = KostCache.instance
+        val kost1DO = kostCache.getKost1(kostZuweisung.kost1Id)
+        val kost2DO = kostCache.getKost2(kostZuweisung.kost2Id)
+        val kost1Text = KostFormatter.instance.formatKost1(kost1DO, KostFormatter.FormatType.TEXT)
+        val kost2Text = KostFormatter.instance.formatKost2(kost2DO, KostFormatter.FormatType.TEXT)
+        kost1 = Kost(kost1DO?.formattedNumber ?: "???", kost1Text)
+        kost2 = Kost(kost2DO?.formattedNumber ?: "???",kost2Text)
+    }
 }

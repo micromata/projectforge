@@ -182,6 +182,7 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         @Transient
         get() {
             val result = mutableSetOf<AuftragsPositionVO>()
+            // TODO: Teuer: hier wird gefetcht.
             this.positionen?.forEach {
                 val auftragsPosition = it.auftragsPosition
                 if (auftragsPosition != null)

@@ -43,7 +43,7 @@ class RechnungCacheTest : AbstractTestBase() {
     fun baseTest() {
         val today = now()
         lateinit var auftrag: AuftragDO
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction {
             logon(getUser(TEST_FINANCE_USER))
             auftrag = AuftragDO()
             var auftragsPosition = AuftragsPositionDO()
@@ -55,7 +55,7 @@ class RechnungCacheTest : AbstractTestBase() {
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
             auftragDao.insert(auftrag)
         }
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction {
             val rechnung1 = RechnungDO()
             var position = RechnungsPositionDO()
             position.auftragsPosition = auftrag.getPosition(1.toShort())
@@ -74,7 +74,7 @@ class RechnungCacheTest : AbstractTestBase() {
             rechnungDao.insert(rechnung1)
         }
         lateinit var rechnung2: RechnungDO
-        persistenceService.runInTransaction { context ->
+        persistenceService.runInTransaction {
             rechnung2 = RechnungDO()
             val position = RechnungsPositionDO()
             position.auftragsPosition = auftrag.getPosition(1.toShort())

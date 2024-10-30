@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.common.abbreviate
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import java.io.Serializable
@@ -63,4 +64,37 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
 
     @get:PropertyInfo(i18nKey = "fibu.rechnung.faelligkeit", type = PropertyType.CURRENCY)
     var faelligkeitOrDiscountMaturity: LocalDate? = null
+
+    /**
+     * Gets sorted list of Kost1DO of all positions.
+     */
+    val sortedKost1: List<KostZuweisungInfo.Kost>?
+        get() = positions
+            ?.flatMap { it.kostZuweisungen.orEmpty() }
+            ?.map { it.kost1 }
+            ?.toSet()
+            ?.sortedBy { it.formattedNumber }
+
+    /**
+     * Gets sorted list of Kost2DO of all positions.
+     */
+    val sortedKost2: List<KostZuweisungInfo.Kost>?
+        get() = positions
+            ?.flatMap { it.kostZuweisungen.orEmpty() }
+            ?.map { it.kost2 }
+            ?.distinct()
+            ?.sortedBy { it.formattedNumber }
+
+    val sortedKost2AsString: String
+        get() = sortedKost2?.joinToString(", ") { it.formattedNumber } ?: ""
+
+    companion object {
+        fun numbersAsString(sortedKost: List<KostZuweisungInfo.Kost>?): String {
+            return sortedKost?.joinToString(", ") { it.formattedNumber } ?: ""
+        }
+
+        fun detailsAsString(sortedKost: List<KostZuweisungInfo.Kost>?): String {
+            return sortedKost?.joinToString(separator = " | ") { it.displayName ?: "???" } ?: ""
+        }
+    }
 }

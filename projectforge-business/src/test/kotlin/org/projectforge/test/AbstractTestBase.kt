@@ -378,7 +378,7 @@ abstract class AbstractTestBase protected constructor() {
          */
         activeTransactions: Int = 0,
     ) {
-        val activities = persistenceService.getStats(oldState)
+        val activities = persistenceService.getActivitiesForTesting(oldState)
         Assertions.assertEquals(createdTransactions, activities.createdTransactions, "createdTransactions: $activities")
         Assertions.assertEquals(createdReadonlies, activities.createdReadonlies, "createdReadonlies: $activities")
         Assertions.assertEquals(activeReadonlies, activities.activeReadonlies, "activeTransactions: $activities")

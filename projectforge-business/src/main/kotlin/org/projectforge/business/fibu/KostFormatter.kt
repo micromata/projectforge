@@ -39,7 +39,7 @@ class KostFormatter(private val kostCache: KostCache) {
      * Format types for Kost2DO.
      * NUMBER - only the kost2 number (123456789),
      * FORMATTED_NUMBER (1.234.56.78)
-     * TEXT - kost2 number and abreviated text (1.234.56.78 This is the descrip...),
+     * TEXT - kost2 number and abbreviated text (1.234.56.78 This is the descrip...),
      * LONG - kost2 number and full text (1.234.56.78 This is the description as full version).
      */
     enum class FormatType { NUMBER, FORMATTED_NUMBER, TEXT, LONG }

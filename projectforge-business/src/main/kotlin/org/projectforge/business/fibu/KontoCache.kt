@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import mu.KotlinLogging
 import org.apache.commons.collections4.MapUtils
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -30,6 +31,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Caches the DATEV accounts.
@@ -146,11 +149,7 @@ open class KontoCache : AbstractCache() {
                 map[konto.id] = konto
             }
             this.accountMapById = map
-            log.info("Initializing of KontoCache done. stats=${persistenceService.formatStats(context.savedStats)}")
+            log.info { "Initializing of KontoCache done. ${context.formatStats()}" }
         }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(KontoCache::class.java)
     }
 }

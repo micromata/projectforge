@@ -83,6 +83,7 @@ class KostCache : AbstractCache() {
                 setExpired()
             }
         })
+        instance = this
     }
 
     fun getKost2(kost2Id: Long?): Kost2DO? {
@@ -262,7 +263,12 @@ class KostCache : AbstractCache() {
                 .executeQuery("from KundeDO t", KundeDO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }
                 .associateBy { it.id!! }
-            log.info("Initializing of KostCache done. stats=${persistenceService.formatStats(context.savedStats)}")
+            log.info { "Initializing of KostCache done. ${context.formatStats()}" }
         }
+    }
+
+    companion object {
+        lateinit var instance: KostCache
+            private set
     }
 }

@@ -862,11 +862,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                 )
                 node!!.bookableForTimesheets = bookable
             }
-            log.info(
-                "Initializing task tree done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
-                    PfPersistenceService.showCallsStatsRecording()
-                }"
-            )
+            log.info { "Initializing task tree done. ${context.formatStats()}" }
         }
     }
 
