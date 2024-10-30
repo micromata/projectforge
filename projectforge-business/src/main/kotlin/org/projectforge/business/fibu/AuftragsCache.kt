@@ -140,35 +140,29 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
     }
 
     override fun refresh() {
-        try {
-            PfPersistenceService.startCallsStatsRecording()
-            log.info("Refreshing AuftragsCache...")
-            val saved = persistenceService.saveStatsState()
-            val map = mutableMapOf<Long, OrderInfo>()
-            // Don't use fetch.
-            persistenceService.runIsolatedReadOnly {
-                val orderPositions = persistenceService.executeQuery(
-                    "SELECT pos FROM AuftragsPositionDO pos WHERE pos.deleted = false",
-                    AuftragsPositionDO::class.java
-                ).groupBy { it.auftragId }
-                val paymentSchedules = persistenceService.executeQuery(
-                    "SELECT pos FROM PaymentScheduleDO pos WHERE pos.deleted = false",
-                    PaymentScheduleDO::class.java
-                ).groupBy { it.auftragId }
-                val orders = auftragDao.selectAllNotDeleted(checkAccess = false)
-                orders.forEach { order ->
-                    map[order.id!!] = readOrderInfo(order, orderPositions[order.id], paymentSchedules[order.id])
-                }
+        log.info("Refreshing AuftragsCache...")
+        val map = mutableMapOf<Long, OrderInfo>()
+        // Don't use fetch.
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
+            val orderPositions = persistenceService.executeQuery(
+                "SELECT pos FROM AuftragsPositionDO pos WHERE pos.deleted = false",
+                AuftragsPositionDO::class.java
+            ).groupBy { it.auftragId }
+            val paymentSchedules = persistenceService.executeQuery(
+                "SELECT pos FROM PaymentScheduleDO pos WHERE pos.deleted = false",
+                PaymentScheduleDO::class.java
+            ).groupBy { it.auftragId }
+            val orders = auftragDao.selectAllNotDeleted(checkAccess = false)
+            orders.forEach { order ->
+                map[order.id!!] = readOrderInfo(order, orderPositions[order.id], paymentSchedules[order.id])
             }
             orderMap = map
             toBeInvoicedCounter = null
             log.info(
-                "AuftragsCache.refresh done. stats=${persistenceService.formatStats(saved)}, callsStats=${
+                "AuftragsCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
                     PfPersistenceService.showCallsStatsRecording()
                 }"
             )
-        } finally {
-            PfPersistenceService.stopCallsStatsRecording()
         }
     }
 

@@ -86,16 +86,17 @@ open class AddressbookCache : AbstractCache(), BaseDOModifiedListener<Addressboo
      */
     override fun refresh() {
         log.info("Initializing AddressbookCache ...")
-        val saved = persistenceService.saveStatsState()
-        // This method must not be synchronized because it works with a new copy of maps.
-        val newList = mutableListOf<AddressbookDO>()
-        val list = addressbookDao.selectAll(checkAccess = false)
-        list.forEach {
-            if (it.deleted != true) {
-                newList.add(it)
+        persistenceService.runIsolatedReadOnly { context ->
+            // This method must not be synchronized because it works with a new copy of maps.
+            val newList = mutableListOf<AddressbookDO>()
+            val list = addressbookDao.selectAll(checkAccess = false)
+            list.forEach {
+                if (it.deleted != true) {
+                    newList.add(it)
+                }
             }
+            addressBookList = newList
+            log.info("Initializing of AddressbookCache done. stats=${persistenceService.formatStats(context.savedStats)}")
         }
-        addressBookList = newList
-        log.info("Initializing of AddressbookCache done. stats=${persistenceService.formatStats(saved)}")
     }
 }

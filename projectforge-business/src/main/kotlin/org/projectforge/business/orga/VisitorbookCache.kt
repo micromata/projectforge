@@ -74,10 +74,8 @@ open class VisitorbookCache : AbstractCache() {
      * This method will be called by CacheHelper and is synchronized via getData();
      */
     public override fun refresh() {
-        try {
-            PfPersistenceService.startCallsStatsRecording()
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             log.info("Initializing VisitorbookCache...")
-            val saved = persistenceService.saveStatsState()
             // This method must not be synchronized because it works with a new copy of maps.
             val map = mutableMapOf<Long, VisitorbookInfo>()
             persistenceService.executeQuery(
@@ -97,12 +95,10 @@ open class VisitorbookCache : AbstractCache() {
                 }
             this.visitorbookMap = map
             log.info(
-                "VisitorbookCache.refresh done. stats=${persistenceService.formatStats(saved)}, callsStats=${
+                "VisitorbookCache.refresh done. stats=${persistenceService.formatStats(context.savedStats)}, callsStats=${
                     PfPersistenceService.showCallsStatsRecording()
                 }"
             )
-        } finally {
-            PfPersistenceService.stopCallsStatsRecording()
         }
     }
 
