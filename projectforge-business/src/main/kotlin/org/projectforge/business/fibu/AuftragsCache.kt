@@ -49,7 +49,9 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
-    private var orderMap = mutableMapOf<Long, OrderInfo>()
+    private var orderInfoMap = mutableMapOf<Long, OrderInfo>()
+
+    private var orderPositionMap = mutableMapOf<Long, AuftragsPositionDO>()
 
     private var toBeInvoicedCounter: Int? = null
 
@@ -57,6 +59,18 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
     private fun init() {
         instance = this
         rechnungDao.register(this)
+    }
+
+    fun getAuftragsPosition(auftragsPositionId: Long): AuftragsPositionDO? {
+        synchronized(orderPositionMap) {
+            var ret = orderPositionMap[auftragsPositionId]
+            if (ret == null) {
+                ret = persistenceService.find(AuftragsPositionDO::class.java, auftragsPositionId)?.also {
+                    orderPositionMap[auftragsPositionId] = it
+                }
+            }
+            return ret
+        }
     }
 
     open fun getFakturiertSum(order: AuftragDO?): BigDecimal {
@@ -89,9 +103,11 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
         if (toBeInvoicedCounter != null) {
             return toBeInvoicedCounter!!
         }
-        val counter = orderMap.values.count { it.toBeInvoiced }
-        toBeInvoicedCounter = counter
-        return counter
+        synchronized(orderInfoMap) {
+            val counter = orderInfoMap.values.count { it.toBeInvoiced }
+            toBeInvoicedCounter = counter
+            return counter
+        }
     }
 
     fun setOrderInfo(order: AuftragDO) {
@@ -101,15 +117,15 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
 
     open fun getOrderInfo(order: AuftragDO): OrderInfo {
         checkRefresh()
-        synchronized(orderMap) {
-            orderMap[order.id]?.let {
+        synchronized(orderInfoMap) {
+            orderInfoMap[order.id]?.let {
                 return it
             }
         }
         val info = readOrderInfo(order)
         order.id?.let { id -> // id might be null on test cases.
-            synchronized(orderMap) {
-                orderMap[id] = info
+            synchronized(orderInfoMap) {
+                orderInfoMap[id] = info
             }
         }
         return info
@@ -133,10 +149,16 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
 
     fun setExpired(order: AuftragDO) {
         val orderId = order.id ?: return
-        synchronized(orderMap) {
-            orderMap[orderId] = readOrderInfo(order)
+        synchronized(orderInfoMap) {
+            orderInfoMap[orderId] = readOrderInfo(order)
         }
         toBeInvoicedCounter = null
+    }
+
+    override fun setExpired() {
+        synchronized(orderPositionMap) {
+            orderPositionMap.clear()
+        }
     }
 
     override fun refresh() {
@@ -156,7 +178,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
             orders.forEach { order ->
                 map[order.id!!] = readOrderInfo(order, orderPositions[order.id], paymentSchedules[order.id])
             }
-            orderMap = map
+            orderInfoMap = map
             toBeInvoicedCounter = null
             log.info { "AuftragsCache.refresh done. ${context.formatStats()}" }
         }

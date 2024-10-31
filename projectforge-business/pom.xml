@@ -359,6 +359,12 @@
             <version>${jackson-core.version}</version>
         </dependency>
         <dependency>
+            <!-- Needed for serialization of java.time.ZonedDateTime (e. g. by PfDateTime). -->
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-core.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
             <version>${poi.version}</version>

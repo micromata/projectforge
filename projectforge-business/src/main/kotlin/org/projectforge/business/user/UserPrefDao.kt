@@ -191,7 +191,7 @@ class UserPrefDao : BaseDao<UserPrefDO>(UserPrefDO::class.java) {
         if (myFilter.area != null) {
             queryFilter.add(eq("area", myFilter.area.id))
         }
-        queryFilter.add(eq("user.id", requiredLoggedInUser))
+        queryFilter.add(eq("user.id", requiredLoggedInUserId))
         queryFilter.addOrder(asc("area"))
         queryFilter.addOrder(asc("name"))
         return select(queryFilter)
