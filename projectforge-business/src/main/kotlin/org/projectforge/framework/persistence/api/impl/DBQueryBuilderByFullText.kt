@@ -24,46 +24,57 @@
 package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.EntityManager
+import mu.KotlinLogging
 import org.apache.commons.lang3.math.NumberUtils
+import org.hibernate.search.engine.search.common.BooleanOperator
 import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
 import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
 import org.hibernate.search.engine.search.query.dsl.SearchQueryOptionsStep
 import org.hibernate.search.mapper.orm.Search
+import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Query builder for full text search.
  */
 internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
-    private val baseDao: BaseDao<O>, private val entityManager: EntityManager,
+    private val baseDao: BaseDao<O>,
+    private val entityManager: EntityManager,
     /**
      * Only for fall back to criteria search if no predicates found for full text search.
      */
-    private val queryFilter: QueryFilter, val useMultiFieldQueryParser: Boolean = false
+    private val queryFilter: QueryFilter,
+    val useMultiFieldQueryParser: Boolean = false
 ) {
-
-    private val log = LoggerFactory.getLogger(DBQueryBuilderByFullText::class.java)
 
     private var searchQueryOptionsStep: SearchQueryOptionsStep<*, *, *, *, *>
     private lateinit var searchPredicateFactory: SearchPredicateFactory
-    private lateinit var boolJunction: BooleanPredicateOptionsCollector<*>
+    private lateinit var boolCollector: BooleanPredicateOptionsCollector<*>
     private val searchSession = Search.session(entityManager)
     private val sortOrders = mutableListOf<SortProperty>()
     private val multiFieldQuery = mutableListOf<String>()
     private val searchClassInfo: HibernateSearchClassInfo
+    private var simpleSearchStringAvailable = false
+
 
     init {
+        if (useMultiFieldQueryParser) {
+            throw UnsupportedOperationException("MultiFieldQueryParser not yet implemented.")
+        }
+        logDebugFunCall(log) { it.mtd("init") }
         searchQueryOptionsStep = searchSession.search(baseDao.doClass).where { f ->
             searchPredicateFactory = f
-            f.bool().with { b ->
-                boolJunction = b
+            f.bool().with { bool ->
+                boolCollector = bool
                 //b.must(f.match().field("field1").matching("value1"))
+                //bool.must(f.range().field("age").atLeast(minAge))
                 //b.should(f.match().field("field2").matching("value2"))
                 //b.mustNot(f.match().field("field3").matching("value3"))
             }
@@ -71,28 +82,37 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
         searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
     }
 
-    fun fieldSupported(field: String): Boolean {
-        return searchClassInfo.containsField(field)
+    private fun fieldSupported(field: String?): Boolean {
+        field ?: return false
+        val luceneField = searchClassInfo.get(field)?.luceneField
+        if (luceneField == null) {
+            logDebugFunCall(log) {
+                it.mtd("fieldSupported(field)").msg("field not supported (no hibernate search field)")
+                    .params("field" to field)
+            }
+        } else {
+            logDebugFunCall(log) { it.mtd("fieldSupported(field)").msg("field supported").params("field" to field) }
+        }
+        return luceneField != null
     }
 
-    /*
-        val query = searchSession.search(TaskDO::class.java)
-            .where { f ->
-                f.bool().with { b ->
-                    b.must(f.match().field("field1").matching("value1"))
-                    b.should(f.match().field("field2").matching("value2"))
-                    b.mustNot(f.match().field("field3").matching("value3"))
-                }
-            }
-            */
+    private fun fieldSupported(predicate: DBPredicate): Boolean {
+        return fieldSupported(predicate.field)
+    }
 
     /**
      * @return true, if the predicate was added to query builder, otherwise false (must be handled as result predicate instead).
      */
     fun add(predicate: DBPredicate): Boolean {
-        if (!predicate.fullTextSupport) return false
-        val field = predicate.field
-        if (field != null && !searchClassInfo.containsField(field)) return false
+        logDebugFunCall(log) { it.mtd("add(predicate)").params("predicate" to predicate.javaClass.simpleName) }
+        if (!predicate.fullTextSupport) {
+            log.debug { "add(predicate): Ignoring predicate $predicate (no fullTextSupport)." }
+            return false
+        }
+        if (predicate !is DBPredicate.FullSearch && !fieldSupported(predicate)) {
+            return false
+        }
+        log.debug { "add(predicate): Adding full text predicate $predicate." }
         predicate.addTo(this)
         return true
     }
@@ -101,54 +121,62 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun equal(field: String, value: Any): Boolean {
+        logDebugFunCall(log) { it.mtd("equal(field, value)").params("field" to field, "value" to value) }
         val luceneField = searchClassInfo.get(field)?.luceneField
-        if (luceneField != null) {
-            if (useMultiFieldQueryParser) {
-                val valueString = formatMultiParserValue(field, value)
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [equal] +$luceneField:$valueString")
-                multiFieldQuery.add("+$luceneField:$valueString")
-            } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [equal] boolJunction.must(qb.keyword().onField('$luceneField').matching('$value')...)")
-                boolJunction.must(searchPredicateFactory.match().field(luceneField).matching(value))
-            }
-            return true
+        if (luceneField == null) {
+            logDebugNoHibernateSearchField("equal(field, value)", field, value)
+            return false
         }
-        return false
+        log.debug { "equal(field, value): Adding field '$field' (no HibernateSearch field)." }
+        /*if (useMultiFieldQueryParser) {
+            val valueString = formatMultiParserValue(field, value)
+            if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [equal] +$luceneField:$valueString")
+            multiFieldQuery.add("+$luceneField:$valueString")
+        } else {*/
+        log.debug { "Adding fulltext search (${baseDao.doClass.simpleName}): [equal] boolJunction.must(qb.keyword().onField('$field').matching('$value')...)" }
+        boolCollector.must(searchPredicateFactory.match().field(field).matching(value))
+        //}
+        return true
     }
 
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun notEqual(field: String, value: Any): Boolean {
+        logDebugFunCall(log) { it.mtd("notEqual(field, value)").params("field" to field, "value" to value) }
         val luceneField = searchClassInfo.get(field)?.luceneField
-        if (luceneField != null) {
-            if (useMultiFieldQueryParser) {
-                val valueString = formatMultiParserValue(field, value)
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [notEqual] -$luceneField:$valueString")
-                multiFieldQuery.add("-$luceneField:$valueString")
-            } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [notEqual] boolJunction.must(qb.keyword().onField('$luceneField').matching('$value')...).not()")
-                boolJunction.mustNot(searchPredicateFactory.match().field(luceneField).matching(value))
-            }
-            return true
+        if (luceneField == null) {
+            logDebugNoHibernateSearchField("notEqual(field, value)", field, value)
+            return false
         }
-        return false
+        if (useMultiFieldQueryParser) {
+            val valueString = formatMultiParserValue(field, value)
+            if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [notEqual] -$luceneField:$valueString")
+            multiFieldQuery.add("-$luceneField:$valueString")
+        } else {
+            if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [notEqual] boolJunction.must(qb.keyword().onField('$luceneField').matching('$value')...).not()")
+            boolCollector.mustNot(searchPredicateFactory.match().field(luceneField).matching(value))
+        }
+        return true
     }
 
     /**
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> between(field: String, from: O, to: O): Boolean {
+        logDebugFunCall(log) {
+            it.mtd("between(field, from, to)").params("field" to field, "from" to from, "to" to to)
+        }
         val luceneField = searchClassInfo.get(field)?.luceneField
         if (luceneField != null) {
             if (useMultiFieldQueryParser) {
                 val fromString = formatMultiParserValue(field, from)
                 val toString = formatMultiParserValue(field, to)
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [between] +$luceneField:[$fromString TO $toString]")
+                log.debug { "Adding multifieldQuery (${baseDao.doClass.simpleName}): [between] +$luceneField:[$fromString TO $toString]" }
                 multiFieldQuery.add("+$luceneField:[$fromString TO $toString]")
             } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [between] boolJunction.must(qb.range().onField('$luceneField').from('$from').to('$to')...)")
-                boolJunction.must(searchPredicateFactory.range().field(luceneField).between(from, to))
+                log.debug { "Adding fulltext search (${baseDao.doClass.simpleName}): [between] boolJunction.must(qb.range().onField('$luceneField').from('$from').to('$to')...)" }
+                boolCollector.must(searchPredicateFactory.range().field(luceneField).between(from, to))
             }
             return true
         }
@@ -159,15 +187,16 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> greater(field: String, from: O): Boolean {
+        logDebugFunCall(log) { it.mtd("greater(field, from)").params("field" to field, "from" to from) }
         val luceneField = searchClassInfo.get(field)?.luceneField
         if (luceneField != null) {
             if (useMultiFieldQueryParser) {
                 val fromString = formatMultiParserValue(field, from)
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greater] +$luceneField:{$fromString TO *}")
+                log.debug { "Adding multifieldQuery (${baseDao.doClass.simpleName}): [greater] +$luceneField:{$fromString TO *}" }
                 multiFieldQuery.add("+$luceneField:{$fromString TO *}")
             } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [greater] boolJunction.must(qb.range().onField('$luceneField').above('$from').excludeLimit()...)")
-                boolJunction.must(searchPredicateFactory.range().field(luceneField).greaterThan(from))
+                log.debug { "Adding fulltext search (${baseDao.doClass.simpleName}): [greater] boolJunction.must(qb.range().onField('$luceneField').above('$from').excludeLimit()...)" }
+                boolCollector.must(searchPredicateFactory.range().field(luceneField).greaterThan(from))
             }
             return true
         }
@@ -178,15 +207,16 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> greaterEqual(field: String, from: O): Boolean {
+        logDebugFunCall(log) { it.mtd("greaterEqual(field, from)").params("field" to field, "from" to from) }
         val luceneField = searchClassInfo.get(field)?.luceneField
         if (luceneField != null) {
             if (useMultiFieldQueryParser) {
                 val fromString = formatMultiParserValue(field, from)
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [greaterEqual] +$luceneField:[$fromString TO *]")
+                log.debug { "Adding multifieldQuery (${baseDao.doClass.simpleName}): [greaterEqual] +$luceneField:[$fromString TO *]" }
                 multiFieldQuery.add("+$luceneField:[$fromString TO *]")
             } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [greaterEqual] boolJunction.must(qb.range().onField('$luceneField').above('$from')...)")
-                boolJunction.must(searchPredicateFactory.range().field(luceneField).atLeast(from))
+                log.debug { "Adding fulltext search (${baseDao.doClass.simpleName}): [greaterEqual] boolJunction.must(qb.range().onField('$luceneField').above('$from')...)" }
+                boolCollector.must(searchPredicateFactory.range().field(luceneField).atLeast(from))
             }
             return true
         }
@@ -197,15 +227,16 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> less(field: String, to: O): Boolean {
+        logDebugFunCall(log) { it.mtd("less(field, to)").params("field" to field, "to" to to) }
         val luceneField = searchClassInfo.get(field)?.luceneField
         if (luceneField != null) {
             if (useMultiFieldQueryParser) {
                 val toString = formatMultiParserValue(field, to)
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [less] +$luceneField:{* TO $toString}")
+                log.debug { "Adding multifieldQuery (${baseDao.doClass.simpleName}): [less] +$luceneField:{* TO $toString}" }
                 multiFieldQuery.add("+$luceneField:{* TO $toString}")
             } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [less] boolJunction.must(qb.range().below('$luceneField').excludeLimit()...)")
-                boolJunction.must(searchPredicateFactory.range().field(luceneField).lessThan(to))
+                log.debug { "Adding fulltext search (${baseDao.doClass.simpleName}): [less] boolJunction.must(qb.range().below('$luceneField').excludeLimit()...)" }
+                boolCollector.must(searchPredicateFactory.range().field(luceneField).lessThan(to))
             }
             return true
         }
@@ -216,6 +247,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
      * @return true if the given field is indexed, otherwise false (dbMatcher should be used instead).
      */
     fun <O : Comparable<O>> lessEqual(field: String, to: O): Boolean {
+        logDebugFunCall(log) { it.mtd("lessEqual(field, to)").params("field" to field, "to" to to) }
         val luceneField = searchClassInfo.get(field)?.luceneField
         if (luceneField != null) {
             if (useMultiFieldQueryParser) {
@@ -224,7 +256,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
                 multiFieldQuery.add("+$luceneField:[* TO $toString]")
             } else {
                 if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [lessEqual] boolJunction.must(qb.range().below('$luceneField')...)")
-                boolJunction.must(searchPredicateFactory.range().field(luceneField).atMost(to))
+                boolCollector.must(searchPredicateFactory.range().field(luceneField).atMost(to))
             }
             return true
         }
@@ -232,6 +264,9 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
     }
 
     fun formatMultiParserValue(field: String, value: Any): String {
+        logDebugFunCall(log) {
+            it.mtd("formatMultiParserValue(field, value)").params("field" to field, "value" to value)
+        }
         return when (value) {
             is java.time.LocalDate -> {
                 localDateFormat.format(value)
@@ -266,11 +301,15 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
     }
 
     fun ilike(field: String, value: String) {
+        logDebugFunCall(log) { it.mtd("ilike(field, value)").params("field" to field, "value" to value) }
         search(value, field)
     }
 
     fun and(vararg predicates: DBPredicate) {
-        if (predicates.isNullOrEmpty()) return
+        logDebugFunCall(log) {
+            it.mtd("and(predicates)").params("predicates" to predicates.joinToString { it.javaClass.simpleName })
+        }
+        if (predicates.isEmpty()) return
         if (useMultiFieldQueryParser) {
             for (predicate in predicates) {
                 predicate.addTo(this)
@@ -283,6 +322,7 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
     }
 
     fun fulltextSearch(searchString: String) {
+        logDebugFunCall(log) { it.mtd("fulltextSearch(searchString)").params("searchString" to searchString) }
         if (searchClassInfo.numericFieldNames.isNotEmpty() && NumberUtils.isCreatable(searchString)) {
             val number = NumberUtils.createNumber(searchString)
             search(number, *searchClassInfo.numericFieldNames)
@@ -293,9 +333,12 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
         }
     }
 
+    /**
+     * @param resultPredicates List of predicates to be used for filtering the result list afterward (not handled by full text search).
+     */
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
         return when {
-            useMultiFieldQueryParser -> {
+            /*useMultiFieldQueryParser -> {
                 DBFullTextResultIterator(
                     baseDao,
                     searchSession,
@@ -304,10 +347,10 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
                     sortOrders.toTypedArray(),
                     multiFieldQuery = multiFieldQuery
                 )
-            }
+            }*/
 
-            !boolJunction.hasClause() -> { // Shouldn't occur:
-                // No restrictions found, so use normal criteria search without where clause.
+            !simpleSearchStringAvailable && !boolCollector.hasClause() -> { // Shouldn't occur:
+                // Neither simpleSearchString nor where claus available, so use normal criteria search without where clause.
                 DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter).createResultIterator(resultPredicates)
             }
 
@@ -328,91 +371,29 @@ internal class DBQueryBuilderByFullText<O : ExtendedBaseDO<Long>>(
         if (value.isBlank()) {
             return
         }
-        if (useMultiFieldQueryParser) {
-            if (fields.isNotEmpty() && fields.size == 1) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] ${fields[0]}:$value")
-                multiFieldQuery.add("${fields[0]}:$value")
-            } else {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] $value")
-                multiFieldQuery.add(value)
-            }
-        } else {
-            val context = if (value.indexOf('*') >= 0) {
-                if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug(
-                        "Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onFields(*).matching('$value')...): fields:${
-                            fields.joinToString(
-                                ", "
-                            )
-                        }"
-                    )
-                    searchPredicateFactory.wildcard().fields(*fields)
-                } else {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().wildcard().onField('${fields[0]}').matching('$value')...)")
-                    searchPredicateFactory.wildcard().field(fields[0])
-                }
-            } else {
-                if (fields.size > 1) {
-                    if (log.isDebugEnabled) log.debug(
-                        "Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onFields(*).matching('$value')...): fields:${
-                            fields.joinToString(
-                                ", "
-                            )
-                        }"
-                    )
-                    searchPredicateFactory.match().fields(*fields)
-                } else {
-                    if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching('$value')...)")
-                    searchPredicateFactory.match().field(fields[0])
-                }
-            }
-            // boolJunction = boolJunction.must(context.ignoreAnalyzer().matching(value.lowercase()).createQuery())
-            boolJunction.must { p ->
-                val step = if (fields.size > 1) {
-                    p.match().fields(*fields)
-                } else {
-                    p.match().field(fields[0])
-                }
-                step.matching(value.lowercase()).skipAnalysis()
-            }
+        logDebugFunCall(log) {
+            it.mtd("search(value, fields)").params("value" to value, "fields" to fields.joinToString())
         }
+        searchPredicateFactory.simpleQueryString()
+            .fields(*fields)
+            .matching(value) // search in Lucene format
+            .defaultOperator(BooleanOperator.AND) // Default is OR
+        simpleSearchStringAvailable = true
     }
 
     private fun search(value: Number, vararg fields: String) {
-        if (useMultiFieldQueryParser) {
-            if (fields.isNotEmpty() && fields.size == 1) {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] ${fields[0]}:$value")
-                multiFieldQuery.add("${fields[0]}:$value")
-            } else {
-                if (log.isDebugEnabled) log.debug("Adding multifieldQuery (${baseDao.doClass.simpleName}): [search] $value")
-                multiFieldQuery.add("$value")
-            }
-        } else {
-            val context = if (fields.size > 1) {
-                if (log.isDebugEnabled) log.debug(
-                    "Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.range().onFields(*).above/below($value)...): fields:${
-                        fields.joinToString(
-                            ", "
-                        )
-                    }"
-                )
-                searchPredicateFactory.range().fields(*fields)
-                /*for (idx in 1 until fields.size - 1) {
-                    ctx = ctx.andField(fields[idx])
-                }*/
-            } else {
-                if (log.isDebugEnabled) log.debug("Adding fulltext search (${baseDao.doClass.simpleName}): [search] boolJunction.must(qb.keyword().onField('${fields[0]}').matching($value)...)")
-                searchPredicateFactory.range().field(fields[0])
-            }
-            // TODO: This is not working:
-            log.warn("This function park is not working, and has never been? Called for fields ${fields.joinToString()} and $value")
-            boolJunction.must(context.lessThan(value))
-            boolJunction.must(context.greaterThan(value))
-        }
+        search(value.toString(), *fields)
     }
 
     fun addOrder(sortProperty: SortProperty) {
         sortOrders.add(sortProperty)
+    }
+
+    private fun logDebugNoHibernateSearchField(method: String, field: String, value: Any?) {
+        if (!log.isDebugEnabled) {
+            return
+        }
+        log.debug { "$method: Ignoring field '$field' (no HibernateSearch field), value=$value" }
     }
 
     companion object {
