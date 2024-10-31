@@ -43,10 +43,10 @@ class DBFilter(
          * nor result search is supported).
          */
         var fullTextRequired: Boolean = false
-        /**
+        /*
          * If full text search without field specification strings contains '<field>:'.
          */
-        var multiFieldFullTextQueryRequired: Boolean = false
+        //var multiFieldFullTextQueryRequired: Boolean = false
         var numberOfCriteriaPredicates = 0
         var numberOfFullTextQueries = 0
         var numberOfResultPredicates = 0
@@ -63,9 +63,9 @@ class DBFilter(
             if (!it.criteriaSupport && !it.resultSetSupport) {
                 fullTextRequired = true
             }
-            if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
+            /*if (it is DBPredicate.FullSearch && it.multiFieldFulltextQueryRequired()) {
                 stats.multiFieldFullTextQueryRequired = true
-            }
+            }*/
         }
         stats.fullTextRequired = fullTextRequired
         if (fullTextRequired) {

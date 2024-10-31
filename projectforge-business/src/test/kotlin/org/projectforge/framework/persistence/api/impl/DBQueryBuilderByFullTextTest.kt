@@ -36,6 +36,9 @@ import java.time.Month
 
 class DBQueryBuilderByFullTextTest : AbstractTestBase() {
     @Autowired
+    protected lateinit var dbQuery: DBQuery
+
+    @Autowired
     private lateinit var taskDao: TaskDao
 
     @Autowired
@@ -77,24 +80,18 @@ class DBQueryBuilderByFullTextTest : AbstractTestBase() {
             }
         }
         val queryFilter = QueryFilter().also {
-            it.add(QueryFilter.eq("deleted", false))
+            //it.add(QueryFilter.eq("deleted", false))
+            //it.add(QueryFilter.eq("title", "Task One"))
             it.addFullTextSearch("one")
             it.fullTextSearchFields =
-                arrayOf("title", "description", "shortDescription", "responsibleUser.userName")
-            it.add(QueryFilter.gt("maxHours", 100))
+                arrayOf("title", "description", "shortDescription", "responsibleUser.username")
+            //it.add(QueryFilter.gt("maxHours", 100))
         }
         // maxHours: Int, protectTimesheetsUntil: LocalDate, status: Status, responsibleUser: PFUserDO
         // fields: title, description, shortDescription,
-        persistenceService.runReadOnly { context ->
-            val em = context.em
-            val builder = DBQueryBuilderByFullText(taskDao, em, queryFilter)
-            val resultPredicates = mutableListOf<DBPredicate>()
-            val resultIterator = builder.createResultIterator(resultPredicates).apply {
-                var next = next()
-                while (next != null) {
-                    println(next)
-                    next = next()
-                }
+        persistenceService.runReadOnly {
+            dbQuery.select(taskDao, queryFilter, null, false).forEach {
+                println("Task: id=${it.id}, title=${it.title}, maxHours=${it.maxHours}, protectTimesheetsUntil=${it.protectTimesheetsUntil}, responsibleUser=${it.responsibleUser?.username}")
             }
         }
     }

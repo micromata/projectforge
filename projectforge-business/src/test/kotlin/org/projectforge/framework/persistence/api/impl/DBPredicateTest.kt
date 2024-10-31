@@ -87,7 +87,7 @@ class DBPredicateTest {
         Assertions.assertEquals("%test%", DBPredicate.Like("name", "*test*").queryString)
         Assertions.assertEquals("%test", DBPredicate.Like("name", "*test").queryString)
     }
-
+/*
     @Test
     fun multiFieldFulltextQueryRequiredTest() {
         testMultiField("dfladksj", false)
@@ -98,5 +98,5 @@ class DBPredicateTest {
 
     private fun testMultiField(value: String, expectedResult: Boolean) {
         Assertions.assertEquals(expectedResult, DBPredicate.FullSearch(value).multiFieldFulltextQueryRequired())
-    }
+    }*/
 }

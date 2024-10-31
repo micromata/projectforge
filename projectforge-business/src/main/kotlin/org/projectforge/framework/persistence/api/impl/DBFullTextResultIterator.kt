@@ -70,12 +70,12 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     init {
         if (log.isDebugEnabled && !multiFieldQuery.isNullOrEmpty()) {
             val queryString = multiFieldQuery.joinToString(" ")
-            log.debug("Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString")
+            log.debug { "Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString" }
         }
         val fullTextSearchFields = filter.fullTextSearchFields
         searchFields =
             if (fullTextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fullTextSearchFields
-        log.debug("Using search fields: ${searchFields.joinToString(", ")}")
+        log.debug { "Using search fields: ${searchFields.joinToString(", ")}" }
         result = nextResultBlock()
     }
 
@@ -195,53 +195,53 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
             return emptyList()
         }
     }
-/*
-    private fun nextResultBlockOld(): List<O> {
-        val optionsStep = if (searchQueryOptionsStep != null) {
-            searchQueryOptionsStep!!
-        } else {
-            val searchQuerySelectStep = searchSession.search(baseDao.doClass)
-            val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-            searchQuerySelectStep.where { f ->
-                f.simpleQueryString()
-                    .fields(*searchFields)
-                    .matching(queryString)
-                    .defaultOperator(BooleanOperator.AND)
+    /*
+        private fun nextResultBlockOld(): List<O> {
+            val optionsStep = if (searchQueryOptionsStep != null) {
+                searchQueryOptionsStep!!
+            } else {
+                val searchQuerySelectStep = searchSession.search(baseDao.doClass)
+                val queryString = multiFieldQuery?.joinToString(" ") ?: ""
+                searchQuerySelectStep.where { f ->
+                    f.simpleQueryString()
+                        .fields(*searchFields)
+                        .matching(queryString)
+                        .defaultOperator(BooleanOperator.AND)
+                }
             }
-        }
-*/
-        /*
-        Alt:
+    */
+    /*
+    Alt:
 
-        val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-        val parser = MultiFieldQueryParser(searchFields, ClassicAnalyzer())
-        parser.defaultOperator = QueryParser.Operator.AND
-        parser.allowLeadingWildcard = true
-        var query: org.apache.lucene.search.Query? = null
-        try {
-            query = parser.parse(queryString)
-        } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
-            val errorMsg = ("Lucene error message: '${ex.message}'  (for ${baseDao.doClass.getSimpleName()}: '$queryString').")
-            // TODO feedback
-            log.error(errorMsg)
-        }
-        fullTextEntityManager.createFullTextQuery(query, baseDao.doClass)*/
-/*        try {
-            val searchResult = optionsStep.toQuery().fetch(
-                firstIndex,
-                MAX_RESULTS
-            ) // fetch(offset, limit) Methode, um Abfrageoptionen wie Pagination zu setzen
-                .hits()
-            // Verarbeitung der Ergebnisse
-            firstIndex += MAX_RESULTS
-            @Suppress("UNCHECKED_CAST")
-            return searchResult as List<O>
-        } catch (ex: Exception) {
-            val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
-            log.error(errorMsg)
-            return emptyList()
-        }
-        // fullTextQuery.firstResult = firstIndex
-        // fullTextQuery.maxResults = MAX_RESULTS
-    }*/
+    val queryString = multiFieldQuery?.joinToString(" ") ?: ""
+    val parser = MultiFieldQueryParser(searchFields, ClassicAnalyzer())
+    parser.defaultOperator = QueryParser.Operator.AND
+    parser.allowLeadingWildcard = true
+    var query: org.apache.lucene.search.Query? = null
+    try {
+        query = parser.parse(queryString)
+    } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
+        val errorMsg = ("Lucene error message: '${ex.message}'  (for ${baseDao.doClass.getSimpleName()}: '$queryString').")
+        // TODO feedback
+        log.error(errorMsg)
+    }
+    fullTextEntityManager.createFullTextQuery(query, baseDao.doClass)*/
+    /*        try {
+                val searchResult = optionsStep.toQuery().fetch(
+                    firstIndex,
+                    MAX_RESULTS
+                ) // fetch(offset, limit) Methode, um Abfrageoptionen wie Pagination zu setzen
+                    .hits()
+                // Verarbeitung der Ergebnisse
+                firstIndex += MAX_RESULTS
+                @Suppress("UNCHECKED_CAST")
+                return searchResult as List<O>
+            } catch (ex: Exception) {
+                val errorMsg = "Error in query execution for ${baseDao.doClass.simpleName}: ${ex.message}"
+                log.error(errorMsg)
+                return emptyList()
+            }
+            // fullTextQuery.firstResult = firstIndex
+            // fullTextQuery.maxResults = MAX_RESULTS
+        }*/
 }
