@@ -181,20 +181,14 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         @Transient
         get() {
             val result = mutableSetOf<AuftragsPositionVO>()
-            /*RechnungCache.instance.ensureRechnungInfo(this).let { info ->
-                // TODO: Teuer: hier wird gefetcht.
+            RechnungCache.instance.ensureRechnungInfo(this).let { info ->
                 info.positions?.forEach { pos ->
                     val auftragsPositionId = pos.auftragsPositionId
                     if (auftragsPositionId != null)
-                        AuftragsCache.instance.getOrderInfo()
-                    result.add(AuftragsPositionVO(auftragsPosition))
+                        AuftragsCache.instance.getAuftragsPosition(auftragsPositionId)?.let { auftragsPosition ->
+                            result.add(AuftragsPositionVO(auftragsPosition))
+                        }
                 }
-            }*/
-            // TODO: Teuer: hier wird gefetcht.
-            this.positionen?.forEach { pos ->
-                val auftragsPosition = pos.auftragsPosition
-                if (auftragsPosition != null)
-                    result.add(AuftragsPositionVO(auftragsPosition))
             }
             return result
         }

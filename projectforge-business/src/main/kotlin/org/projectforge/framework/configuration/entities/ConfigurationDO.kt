@@ -32,6 +32,7 @@ import java.math.BigDecimal
 import java.util.*
 import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.projectforge.framework.persistence.candh.CandHIgnore
 
 /**
  * For configuration entries persisted in the data base. Please access the configuration parameters via
@@ -203,6 +204,7 @@ open class ConfigurationDO : DefaultBaseDO {
             this.stringValue = booleanValue?.toString() ?: java.lang.Boolean.FALSE.toString()
         }
 
+    @CandHIgnore
     open var value: Any?
         @Transient
         get() = if (this.configurationType!!.isIn(ConfigurationType.STRING, ConfigurationType.TEXT, ConfigurationType.TIME_ZONE)) {

@@ -5,18 +5,15 @@ Aktuell:
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 - PersistenceContext-callstat: mehrere zulassen.
 
+- Liquiditäsgrafik geht nicht.
 - Suche in History
-- positionen-Fetch: RechnungDO:185 (TODO)
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
 - Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
-- BaseDOOnChangeListener: Check registration (e. g. UserGroupCache)
 - Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - ehcache prüfen, transaction logging checken
 - PFHistoryMasterDO: Indexe setzen, wenn Einträge wieder gehen.
-- Ehcache konfigurieren
-- Test: SEPA
 - XML-Import für Testsystem
 - AddressDO: valueBridge for numbers
 - TypeBinding: ProjektDO, Kost1DO, Kost2DO, ...: Add path to list of searchable items
@@ -25,12 +22,9 @@ Aktuell:
 - ICalGeneratorParserTest
 - UserRightId: ClassBridge müsste eigentlich in die Felder der benutzenden DOs
 - Script-Parameter: intValue ist nun long!?
-- ConfigurationParam: Integer -> Long, OK?
 - StringHelper: splitToLongs/LongObjects OK?
-- HighlightedRow: Int or Long? (Wicket, Rest), see DefaultTreeTablePanel.java
 - SetupPage testen
 - reindexing settings implementieren. Aktuell wird nur komplett gemass-indexed.
-- Alte UserPrefDO im Frontend testen.
 - History of AddressCampaignValueDO's (AddressCampaignValueDao.convertToDisplayHistoryEntries removed)
 
 Später
