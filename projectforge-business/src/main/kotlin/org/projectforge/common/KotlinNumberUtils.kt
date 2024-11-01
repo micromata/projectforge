@@ -82,3 +82,20 @@ fun Number?.formatBytes(locale: Locale? = null): String {
     this ?: return "--"
     return FormatterUtils.formatBytes(this.toLong(), locale ?: Locale.getDefault())
 }
+
+fun Number?.formatMillis(): String {
+    this ?: return ""
+    val millis = this.toLong()
+    val hours = millis / (1000 * 60 * 60)
+    val minutes = (millis / (1000 * 60)) % 60
+    val seconds = (millis / 1000) % 60
+    val milliseconds = millis % 1000
+
+    return when {
+        hours > 0 -> String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+        // minutes > 0 -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+        // else -> String.format("%02d.%03d", seconds, milliseconds)
+        else -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
+    }
+
+}
