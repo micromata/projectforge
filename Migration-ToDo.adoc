@@ -2,9 +2,11 @@ Aktuell:
 - Suche:
   - Suche nach Kost2, z. B. in Zeitberichten etc.
   - Suche in History
+  - Monatsbericht -> Zeitberichte nach Kost2 geht nicht: kost2.nummer:... funzt nicht.
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 - PersistenceContext-callstat: mehrere zulassen.
 
+- Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
 - Liquiditäsgrafik geht nicht.
 - Suche in History
 - history-entries bei EmployeeValidityAttrDO nichtssagend.

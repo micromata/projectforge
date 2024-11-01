@@ -42,9 +42,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDateTime;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.WicketSupport;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 /**
@@ -187,16 +189,12 @@ public class MonthlyEmployeeReport implements Serializable {
    */
   private Map<String, TaskDO> taskEntries;
 
-  private VacationService vacationService;
-
-  private EmployeeService employeeService;
-
   public static String getFormattedDuration(final long duration) {
     if (duration == 0) {
       return "";
     }
     final BigDecimal hours = new BigDecimal(duration).divide(new BigDecimal(1000 * 60 * 60), 2,
-            BigDecimal.ROUND_HALF_UP);
+            RoundingMode.HALF_UP);
     return NumberHelper.formatFraction2(hours);
   }
 
@@ -206,13 +204,11 @@ public class MonthlyEmployeeReport implements Serializable {
    * @param year
    * @param month 1-based: 1 - January, ..., 12 - December
    */
-  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year, final Integer month) {
+  public MonthlyEmployeeReport(final PFUserDO user, final int year, final Integer month) {
     this.fromDate = PFDateTime.withDate(year, month, 1);
     this.toDate = this.fromDate.getEndOfMonth();
     this.user = user;
-    this.employeeService = employeeService;
-    this.vacationService = vacationService;
-    setEmployee(employeeService.findByUserId(user.getId()));
+    setEmployee(WicketSupport.get(EmployeeService.class).findByUserId(user.getId()));
   }
 
   /**
@@ -239,7 +235,7 @@ public class MonthlyEmployeeReport implements Serializable {
 
   public void init() {
     if (this.user != null) {
-      this.employee = employeeService.findByUserId(this.user.getId());
+      this.employee = WicketSupport.get(EmployeeService.class).findByUserId(this.user.getId());
     }
     // Create the weeks:
     this.weeks = new ArrayList<>();
@@ -283,7 +279,7 @@ public class MonthlyEmployeeReport implements Serializable {
     for (final MonthlyEmployeeReportWeek week : weeks) {
       if (MapUtils.isNotEmpty(week.getKost2Entries())) {
         for (final MonthlyEmployeeReportEntry entry : week.getKost2Entries().values()) {
-          Validate.notNull(entry.getKost2());
+          Objects.requireNonNull(entry.getKost2());
           kost2Rows.put(entry.getKost2().getDisplayName(), new Kost2Row(entry.getKost2()));
           MonthlyEmployeeReportEntry kost2Total = kost2Durations.get(entry.getKost2().getId());
           if (kost2Total == null) {
@@ -300,7 +296,7 @@ public class MonthlyEmployeeReport implements Serializable {
       }
       if (MapUtils.isNotEmpty(week.getTaskEntries())) {
         for (final MonthlyEmployeeReportEntry entry : week.getTaskEntries().values()) {
-          Validate.notNull(entry.getTask());
+          Objects.requireNonNull(entry.getTask());
           long taskId = entry.getTask().getId();
           if (isPseudoTask(taskId)) {
             // Pseudo task (see MonthlyEmployeeReportWeek for timesheet the current user has no select access.
@@ -336,6 +332,7 @@ public class MonthlyEmployeeReport implements Serializable {
         }
       }
     }
+    final VacationService vacationService = WicketSupport.get(VacationService.class);
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.hasAccessToVacationService(this.employee.getUser(), false)) {
         VacationStats stats = vacationService.getVacationStats(employee);

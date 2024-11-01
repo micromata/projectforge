@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.database
 
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
+import org.projectforge.common.format
 import org.projectforge.framework.persistence.jpa.PersistenceStats.Companion.formatMillis
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
@@ -67,13 +68,13 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
             step = 2 // 5% steps for more than 5,000,000 entities
         } else if (totalEntities > 500_000) {
             step = 5 // 5%
-        } else if (totalEntities > 100_000) {
+        } else if (totalEntities > 200_000) {
             step = 10 // 10%
-        } else if (totalEntities > 50_000) {
+        } else if (totalEntities > 100_000) {
             step = 20 // 20%
-        } else if (totalEntities > 10_000) {
+        } else if (totalEntities > 50_000) {
             step = 25 // 25%
-        } else if (totalEntities > 1_000) {
+        } else if (totalEntities > 10_000) {
             step = 50 // 50%
         } else {
             step = 100
@@ -81,7 +82,9 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
     }
 
     override fun indexingCompleted() {
-        log.info { "${entityClass.simpleName}: Indexing completed (${formatMillis(System.currentTimeMillis() - started)})." }
+        val duration = System.currentTimeMillis() - started
+        val speed = (totalEntities.toDouble() / duration).toInt()
+        log.info { "${entityClass.simpleName}: Indexing completed (${formatMillis(duration)}, ${speed.format()}/s)." }
     }
 
     override fun documentsBuilt(increment: Long) {

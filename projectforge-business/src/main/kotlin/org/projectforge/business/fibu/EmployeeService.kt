@@ -351,7 +351,7 @@ class EmployeeService {
     }
 
     fun getReportOfMonth(year: Int, month: Int?, user: PFUserDO): MonthlyEmployeeReport {
-        val monthlyEmployeeReport = MonthlyEmployeeReport(this, vacationService, user, year, month)
+        val monthlyEmployeeReport = MonthlyEmployeeReport(user, year, month)
         monthlyEmployeeReport.init()
         val filter = TimesheetFilter()
         filter.setDeleted(false)
