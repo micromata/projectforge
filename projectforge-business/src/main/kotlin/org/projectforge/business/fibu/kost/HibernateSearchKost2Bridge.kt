@@ -36,10 +36,6 @@ import org.projectforge.business.fibu.KostFormatter
 class HibernateSearchKost2Bridge : TypeBridge<Kost2DO> {
 
     override fun write(target: DocumentElement, bridgedElement: Kost2DO, context: TypeBridgeWriteContext) {
-        val sb = StringBuilder()
-        sb.append(KostFormatter.instance.formatKost2(bridgedElement, KostFormatter.FormatType.LONG))
-        sb.append(' ')
-        sb.append(KostFormatter.instance.formatKost2(bridgedElement, KostFormatter.FormatType.FORMATTED_NUMBER))
-        target.addValue("nummer", sb.toString())
+        target.addValue("nummer", KostFormatter.instance.formatKost2(bridgedElement, KostFormatter.FormatType.FORMATTED_NUMBER))
     }
 }

@@ -27,7 +27,6 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.kotlin.fir.resolve.transformers.Foo;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
@@ -151,9 +150,9 @@ public class TaskTreeProvider implements ITreeProvider<TaskNode>
   }
 
   /**
-   * A {@link Model} which uses an id to load its {@link Foo}.
+   * A {@link Model} which uses an id to load its.
    *
-   * If {@link Foo}s were {@link Serializable} you could just use a standard {@link Model}.
+   * If s were {@link Serializable} you could just use a standard {@link Model}.
    *
    * @see #equals(Object)
    * @see #hashCode()

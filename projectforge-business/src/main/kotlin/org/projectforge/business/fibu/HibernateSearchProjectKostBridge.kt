@@ -38,10 +38,9 @@ class HibernateSearchProjectKostBridge : TypeBridge<ProjektDO> {
         bridgedElement: ProjektDO,
         context: TypeBridgeWriteContext
     ) {
-        val sb = StringBuilder()
-        sb.append(KostFormatter.instance.formatProjekt(bridgedElement, KostFormatter.FormatType.LONG))
-        sb.append(' ')
-        sb.append(KostFormatter.instance.formatProjekt(bridgedElement, KostFormatter.FormatType.FORMATTED_NUMBER))
-        target.addValue("kost2", sb.toString())
+        target.addValue(
+            "kost2",
+            KostFormatter.instance.formatProjekt(bridgedElement, KostFormatter.FormatType.FORMATTED_NUMBER)
+        )
     }
 }

@@ -1,8 +1,7 @@
 Aktuell:
+- Kotlin-Script laufen nicht.
 - Suche:
-  - Suche nach Kost2, z. B. in Zeitberichten etc.
   - Suche in History
-  - Monatsbericht -> Zeitberichte nach Kost2 geht nicht: kost2.nummer:... funzt nicht.
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 - PersistenceContext-callstat: mehrere zulassen.
 

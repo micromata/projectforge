@@ -26,12 +26,12 @@ package org.projectforge.common
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
 import java.util.*
 
 class KotlinNumberUtilsTest {
     @Test
     fun `test formatting of numbers`() {
+        ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
         Locale.setDefault(Locale.ENGLISH)
         ThreadLocalUserContext.locale = Locale.GERMAN
         Assertions.assertEquals("", null.format())
@@ -45,19 +45,20 @@ class KotlinNumberUtilsTest {
 
     @Test
     fun `test formatting of numbers for users`() {
+        ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
         Locale.setDefault(Locale.ENGLISH)
-        locale = Locale.GERMAN
+        ThreadLocalUserContext.locale = Locale.GERMAN
         Assertions.assertEquals("", null.formatForUser())
         Assertions.assertEquals("1.234,57", 1234.5678.formatForUser(scale = 2))
         Assertions.assertEquals("1.234,00", 1234.formatForUser(scale = 2))
         Assertions.assertEquals("1.234", 1234.formatForUser())
 
         Locale.setDefault(Locale.GERMAN)
-        locale = null
+        ThreadLocalUserContext.locale = Locale.ENGLISH
         Assertions.assertEquals("", null.formatForUser())
-        Assertions.assertEquals("1.234,57", 1234.5678.formatForUser(scale = 2))
-        Assertions.assertEquals("1.234,00", 1234.formatForUser(scale = 2))
-        Assertions.assertEquals("1.234", 1234.formatForUser())
+        Assertions.assertEquals("1,234.57", 1234.5678.formatForUser(scale = 2))
+        Assertions.assertEquals("1,234.00", 1234.formatForUser(scale = 2))
+        Assertions.assertEquals("1,234", 1234.formatForUser())
     }
 
     @Test
@@ -71,6 +72,7 @@ class KotlinNumberUtilsTest {
 
     @Test
     fun `test formatting of number of bytes`() {
+        ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
         Assertions.assertEquals("--", null.formatBytes())
         Assertions.assertEquals("0", 0.formatBytes())
         var scale = 1L
@@ -88,11 +90,10 @@ class KotlinNumberUtilsTest {
 
     private fun formatBytesTest(scale: Long, unit: String) {
         Locale.setDefault(Locale.ENGLISH)
-        locale = Locale.GERMAN
+        ThreadLocalUserContext.locale = Locale.GERMAN
         Assertions.assertEquals("1$unit", scale.formatBytes())
         Assertions.assertEquals("1,023$unit", (scale * 1023).formatBytes())
         Assertions.assertEquals("1$unit", scale.formatBytesForUser())
         Assertions.assertEquals("1.023$unit", (scale * 1023).formatBytesForUser())
     }
-
 }

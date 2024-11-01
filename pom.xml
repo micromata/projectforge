@@ -254,7 +254,7 @@
         <joda-time.version>2.12.7</joda-time.version> <!-- Check: 09.08.2024-->
         <junit.jupiter.version>5.10.3</junit.jupiter.version> <!-- Check 11.08.2024 -->
         <junit-platform-launcher.version>1.10.3</junit-platform-launcher.version>
-        <kotlin.version>1.9.25</kotlin.version>
+        <kotlin.version>2.0.21</kotlin.version>
         <kotlin-script-util.version>1.8.22</kotlin-script-util.version> <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-script-util -->
         <kotlin-logging.version>3.0.5</kotlin-logging.version>
         <kotlinx-coroutines-slf4j.version>1.8.1</kotlinx-coroutines-slf4j.version> <!-- Check 11.08.2024 -->

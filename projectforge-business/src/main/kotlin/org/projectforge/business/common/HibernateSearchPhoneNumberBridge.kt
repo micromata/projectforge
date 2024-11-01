@@ -37,9 +37,10 @@ class HibernateSearchPhoneNumberBridge : ValueBridge<String?, String> {
         number: String?,
         valueBridgeToIndexedValueContext: ValueBridgeToIndexedValueContext
     ): String {
-        if (number == null) {
-            return ""
-        }
-        return number + '|' + StringHelper.removeNonDigits(number) + '|' + extractPhonenumber(number)
+        if (number == null) return ""
+
+        val normalizedNumber = StringHelper.removeNonDigits(number) // Remove all non-digits.
+        val formattedNumber = extractPhonenumber(number) // Extract phone number from string.
+        return "$number $normalizedNumber $formattedNumber" // Combine original, normalized and formatted number.
     }
 }
