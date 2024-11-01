@@ -57,22 +57,15 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
         synchronized(this) {
             totalEntities += count
         }
-        if (totalEntities > 2_000_000) {
-            step = 1 // 5% steps for more than 5,000,000 entities
-        } else if (totalEntities > 1_000_000) {
-            step = 2 // 5% steps for more than 5,000,000 entities
-        } else if (totalEntities > 500_000) {
-            step = 5 // 5%
-        } else if (totalEntities > 200_000) {
-            step = 10 // 10%
-        } else if (totalEntities > 100_000) {
-            step = 20 // 20%
-        } else if (totalEntities > 50_000) {
-            step = 25 // 25%
-        } else if (totalEntities > 10_000) {
-            step = 50 // 50%
-        } else {
-            step = 100
+        step = when { // 2.500 Entities per seconde:
+            totalEntities > 5_000_000 -> 1    // 1% steps
+            totalEntities > 2_000_000 -> 2    // 2% steps
+            totalEntities > 1_000_000 -> 5    // 5% steps
+            totalEntities > 500_000 -> 10     // 10% steps
+            totalEntities > 250_000 -> 20     // 20% steps
+            totalEntities > 200_000 -> 25     // 25% steps
+            totalEntities > 100_000 -> 50     // 50% steps
+            else -> 100                       // 100% steps
         }
     }
 
