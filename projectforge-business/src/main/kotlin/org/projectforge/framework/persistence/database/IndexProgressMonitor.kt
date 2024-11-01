@@ -28,11 +28,6 @@ import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.common.format
 import org.projectforge.framework.persistence.jpa.PersistenceStats.Companion.formatMillis
 import org.projectforge.framework.utils.NumberFormatter
-import org.projectforge.framework.utils.NumberHelper
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.text.NumberFormat
-import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -83,7 +78,7 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
 
     override fun indexingCompleted() {
         val duration = System.currentTimeMillis() - started
-        val speed = (totalEntities.toDouble() / duration).toInt()
+        val speed = totalEntities * 1000L / duration
         log.info { "${entityClass.simpleName}: Indexing completed (${formatMillis(duration)}, ${speed.format()}/s)." }
     }
 

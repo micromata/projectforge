@@ -27,8 +27,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.locale
-import org.projectforge.framework.utils.NumberHelper.extractPhonenumber
-import java.util.Locale
+import java.util.*
 
 class KotlinNumberUtilsTest {
     @Test
@@ -62,6 +61,15 @@ class KotlinNumberUtilsTest {
     }
 
     @Test
+    fun `test formatting of millis`() {
+        Assertions.assertEquals("", null.formatMillis())
+        Assertions.assertEquals("00:00.123", 123.formatMillis())
+        Assertions.assertEquals("00:01.123", (1123).formatMillis())
+        Assertions.assertEquals("01:01.123", (61123).formatMillis())
+        Assertions.assertEquals("12:21.123", (12 * 60000 + 21 * 1000 + 123).formatMillis())
+    }
+
+    @Test
     fun `test formatting of number of bytes`() {
         Assertions.assertEquals("--", null.formatBytes())
         Assertions.assertEquals("0", 0.formatBytes())
@@ -82,9 +90,9 @@ class KotlinNumberUtilsTest {
         Locale.setDefault(Locale.ENGLISH)
         locale = Locale.GERMAN
         Assertions.assertEquals("1$unit", scale.formatBytes())
-        Assertions.assertEquals("1,023$unit", (scale*1023).formatBytes())
+        Assertions.assertEquals("1,023$unit", (scale * 1023).formatBytes())
         Assertions.assertEquals("1$unit", scale.formatBytesForUser())
-        Assertions.assertEquals("1.023$unit", (scale*1023).formatBytesForUser())
+        Assertions.assertEquals("1.023$unit", (scale * 1023).formatBytesForUser())
     }
 
 }
