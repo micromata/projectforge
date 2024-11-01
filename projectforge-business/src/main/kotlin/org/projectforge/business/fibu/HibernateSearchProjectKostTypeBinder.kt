@@ -34,6 +34,10 @@ class HibernateSearchProjectKostTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {
         context.dependencies().useRootOnly()
 
+        context.indexSchemaElement()
+            .field("kost2") { f -> f.asString() }
+            .toReference()
+
         val bridge: TypeBridge<ProjektDO> = HibernateSearchProjectKostBridge()
         context.bridge(ProjektDO::class.java, bridge)
     }

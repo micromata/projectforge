@@ -38,6 +38,10 @@ class HibernateSearchAuftragsPositionTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {
         context.dependencies().useRootOnly()
 
+        context.indexSchemaElement()
+            .field("position") { f -> f.asString() }
+            .toReference()
+
         val bridge: TypeBridge<AuftragsPositionDO> = HibernateSearchAuftragsPositionBridge()
         context.bridge(AuftragsPositionDO::class.java, bridge)
     }

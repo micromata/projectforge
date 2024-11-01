@@ -37,10 +37,9 @@ class HibernateSearchTaskPathTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {
         context.dependencies().useRootOnly()
 
-        val fullNameField = context.indexSchemaElement()
-            .field("taskpath") { f -> f.asString() } //.analyzer("name") }
+        context.indexSchemaElement()
+            .field("taskpath") { f -> f.asString() }
             .toReference()
-
 
         val bridge: TypeBridge<TaskDO> = HibernateSearchTaskPathBridge()
         context.bridge(TaskDO::class.java, bridge)
