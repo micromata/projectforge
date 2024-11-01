@@ -457,12 +457,13 @@ abstract class DBPredicate(
             boolCollector: BooleanPredicateOptionsCollector<*>,
             searchClassInfo: HibernateSearchClassInfo
         ) {
+            val term = queryString.replace('%', '*')
             logDebugFunCall(log) {
-                it.mtd("Like.handle(...)").msg("bool.must(f.match().field(\"$field\").matching(\"$queryString\"))")
+                it.mtd("Like.handle(...)").msg("bool.must(f.match().field(\"$field\").matching(\"$term\"))")
             }
             boolCollector.must(
                 searchPredicateFactory.match().field(field)
-                    .matching(queryString)
+                    .matching(term)
             )
         }
     }
@@ -525,7 +526,7 @@ abstract class DBPredicate(
                     .msg("bool.must(f.simpleQueryString().fields(${fields.joinToString()}).matching(\"$value\").defaultOperator(BooleanOperator.AND))")
             }
             boolCollector.must(
-                searchPredicateFactory.simpleQueryString()
+                searchPredicateFactory.queryString()
                     .fields(*fields)
                     .matching(value)
                 //.defaultOperator(BooleanOperator.AND)
