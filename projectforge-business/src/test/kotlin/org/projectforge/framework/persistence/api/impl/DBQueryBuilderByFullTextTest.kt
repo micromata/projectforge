@@ -23,6 +23,8 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import org.hibernate.search.engine.search.common.BooleanOperator
+import org.hibernate.search.mapper.orm.Search
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
@@ -79,17 +81,39 @@ class DBQueryBuilderByFullTextTest : AbstractTestBase() {
                 taskDao.insert(it, false)
             }
         }
+
+        persistenceService.runReadOnly { context ->
+            Search.session(context.em).massIndexer().startAndWait()
+            Search.session(context.em).search(TaskDO::class.java).where { f ->
+                f.bool().with { bool ->
+                    bool.must(
+                        f.simpleQueryString()
+                            .fields("title", "description", "shortDescription", "responsibleUser.username")
+                            .matching("horst").defaultOperator(BooleanOperator.AND)
+                    )
+                    //bool.must(
+                    //    f.range().field("protectTimesheetsUntil").atLeast(LocalDate.of(2024, Month.OCTOBER, 1))
+                    //)
+                }
+            }.fetch(100).hits().distinct().forEachIndexed { index, it ->
+                it as TaskDO
+                println("$index: Task: id=${it.id}, title=${it.title}, maxHours=${it.maxHours}, protectTimesheetsUntil=${it.protectTimesheetsUntil}, responsibleUser=${it.responsibleUser?.username}")
+            }
+        }
+
         val queryFilter = QueryFilter().also {
             //it.add(QueryFilter.eq("deleted", false))
             //it.add(QueryFilter.eq("title", "Task One"))
-            it.addFullTextSearch("one")
+            it.add(QueryFilter.gt("protectTimesheetsUntil", LocalDate.of(2024, Month.OCTOBER, 1)))
+            it.addFullTextSearch("horst")
             it.fullTextSearchFields =
                 arrayOf("title", "description", "shortDescription", "responsibleUser.username")
             //it.add(QueryFilter.gt("maxHours", 100))
         }
         // maxHours: Int, protectTimesheetsUntil: LocalDate, status: Status, responsibleUser: PFUserDO
         // fields: title, description, shortDescription,
-        persistenceService.runReadOnly {
+        persistenceService.runReadOnly { context ->
+            Search.session(context.em).massIndexer().startAndWait()
             dbQuery.select(taskDao, queryFilter, null, false).forEach {
                 println("Task: id=${it.id}, title=${it.title}, maxHours=${it.maxHours}, protectTimesheetsUntil=${it.protectTimesheetsUntil}, responsibleUser=${it.responsibleUser?.username}")
             }
@@ -100,4 +124,38 @@ class DBQueryBuilderByFullTextTest : AbstractTestBase() {
     fun `test bridges`() {
         // AddressDO, PFUserDO.mobilePhone, ...
     }
+
+    /*
+    // 1. Hibernate Search-Abfrage, um IDs der Treffer zu sammeln
+val searchResult: SearchResult<Long> = Search.session(context.em).search(TaskDO::class.java)
+    .select(f -> f.id())  // Nur die IDs abrufen
+    .where { f ->
+        f.bool { bool ->
+            bool.must(
+                f.simpleQueryString()
+                    .fields("title", "description")
+                    .matching("suchbegriff")
+                    .defaultOperator(BooleanOperator.AND)
+            )
+        }
+    }
+    .fetchAll()  // Alle IDs abrufen
+
+val taskIds = searchResult.hits()
+
+// 2. Criteria-Abfrage für zusätzliche Filter auf nicht indizierte Felder
+val criteriaBuilder: CriteriaBuilder = context.em.criteriaBuilder
+val criteriaQuery: CriteriaQuery<TaskDO> = criteriaBuilder.createQuery(TaskDO::class.java)
+val root: Root<TaskDO> = criteriaQuery.from(TaskDO::class.java)
+
+criteriaQuery.select(root).where(
+    criteriaBuilder.and(
+        root.get<Long>("id").`in`(taskIds),  // IDs aus der Volltextsuche verwenden
+        criteriaBuilder.equal(root.get<String>("status"), "offen")  // Zusätzliches Kriterium auf nicht indiziertes Feld
+    )
+)
+
+// 3. Die kombinierten Ergebnisse abfragen
+val results = context.em.createQuery(criteriaQuery).resultList
+     */
 }

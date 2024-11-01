@@ -39,8 +39,8 @@ class MagicFilterProcessorTest {
         val queryFilter = MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter)
         val dbFilter = queryFilter.createDBFilter()
         // 0 - deleted, 1 - name, 2 - zipCode, 3 - fullTextSearch
-        Assertions.assertEquals(4, dbFilter.predicates.size)
-        Assertions.assertEquals(4, dbFilter.predicates.filter { it.fullTextSupport }.size)
+        Assertions.assertEquals(4, dbFilter.allPredicates.size)
+        Assertions.assertEquals(4, dbFilter.allPredicates.filter { it.fullTextSupport }.size)
     }
 
     @Test
@@ -60,7 +60,7 @@ class MagicFilterProcessorTest {
         magicFilter.entries.add(MagicFilterEntry("zipCode", value))
         val queryFilter = MagicFilterProcessor.doIt(AddressDO::class.java, magicFilter)
         // 0 - deleted, 1 - zipCode
-        val predicate = queryFilter.createDBFilter().predicates[1]
+        val predicate = queryFilter.createDBFilter().allPredicates[1]
         Assertions.assertTrue(predicate is DBPredicate.Like)
         val like = predicate as DBPredicate.Like
         Assertions.assertEquals(value, like.expectedValue)

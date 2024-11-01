@@ -94,15 +94,6 @@ open class DatabaseDao {
         reindexObjects(clazz, null)
     }
 
-    private fun isIn(clazz: Class<*>, vararg classes: Class<*>): Boolean {
-        for (cls in classes) {
-            if (clazz == cls) {
-                return true
-            }
-        }
-        return false
-    }
-
     private fun <T> reindexObjects(clazz: Class<T>, settings: ReindexSettings?) {
         entityManagerFactory.createEntityManager().use { em ->
             // totalEntries are given by Hibernate search to MassIndexingMonitor.
