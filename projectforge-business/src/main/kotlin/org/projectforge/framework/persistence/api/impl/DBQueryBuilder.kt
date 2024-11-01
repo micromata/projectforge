@@ -58,25 +58,19 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
         CRITERIA
     }
 
-    private var _dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>? = null
-    private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O>
-        get() {
-            if (_dbQueryBuilderByCriteria == null) _dbQueryBuilderByCriteria =
-                DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
-            return _dbQueryBuilderByCriteria!!
-        }
-    private var _dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>? = null
-    private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O>
-        get() {
-            if (_dbQueryBuilderByFullText == null) _dbQueryBuilderByFullText = DBQueryBuilderByFullText(
-                baseDao,
-                entityManager,
-                queryFilter,
-                useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
-            )
-            return _dbQueryBuilderByFullText!!
-        }
+    private val dbQueryBuilderByCriteria: DBQueryBuilderByCriteria<O> by lazy {
+        DBQueryBuilderByCriteria(baseDao, entityManager, queryFilter)
+    }
+    private val dbQueryBuilderByFullText: DBQueryBuilderByFullText<O> by lazy {
+        DBQueryBuilderByFullText(
+            baseDao,
+            entityManager,
+            useMultiFieldQueryParser = mode == Mode.MULTI_FIELD_FULLTEXT_QUERY
+        )
+    }
     private val mode: Mode
+    private val criteriaPredicates = mutableListOf<DBPredicate>()
+    private val fullTextPredicates = mutableListOf<DBPredicate>()
 
     /**
      * As an alternative to the query builder of the full text search, Hibernate search supports a simple query string,
@@ -97,17 +91,37 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
 
     init {
         logDebugFunCall(log) { it.mtd("init") }
-        val stats = dbFilter.createStatistics(baseDao)
-        mode = //if (stats.multiFieldFullTextQueryRequired)
-                //    Mode.MULTI_FIELD_FULLTEXT_QUERY
-                //else
-            if (stats.fullTextRequired)
-                Mode.FULLTEXT
-            else
-                Mode.CRITERIA // Criteria search (no full text search entries found).
-
-        dbFilter.predicates.forEach {
-            addMatcher(it)
+        mode = if (dbFilter.allPredicates.any { !it.criteriaSupport && !it.resultSetSupport }) {
+            logDebugFunCall(log) { it.mtd("init").msg("fullTextSearch required") }
+            Mode.FULLTEXT
+        } else {
+            logDebugFunCall(log) { it.mtd("init").msg("criteriaSearchAvailable") }
+            Mode.CRITERIA
+        }
+        if (mode == Mode.FULLTEXT) {
+            dbFilter.allPredicates.forEach { p ->
+                if (p.supportedByFullTextQuery(dbQueryBuilderByFullText.searchClassInfo)) {
+                    fullTextPredicates.add(p)
+                    //} else if (p.criteriaSupport) { // Later add criteria search with result id's of full text search.
+                    //    dbQueryBuilderByCriteria.add(p) // Not yet migrated to use criteriaPredicates.
+                    //    criteriaPredicates.add(p)
+                } else if (!p.resultSetSupport) {
+                    log.error { "*** FullTextSearch: Predicate ${p.javaClass.simpleName} for ${baseDao.doClass.simpleName}.${p.field} neither support fullText search nor resultSet. Ignoring." }
+                } else {
+                    resultPredicates.add(p)
+                }
+            }
+        } else {
+            dbFilter.allPredicates.forEach { p ->
+                if (p.criteriaSupport) {
+                    criteriaPredicates.add(p)
+                    dbQueryBuilderByCriteria.add(p) // Not yet migrated to use criteriaPredicates.
+                } else if (!p.resultSetSupport) {
+                    log.error { "*** CriteriaSearch: Predicate ${p.javaClass.simpleName} for ${baseDao.doClass.simpleName}.${p.field} neither support criteria search nor resultSet. Ignoring." }
+                } else {
+                    resultPredicates.add(p)
+                }
+            }
         }
 
         var maxOrder = 3
@@ -120,28 +134,10 @@ class DBQueryBuilder<O : ExtendedBaseDO<Long>>(
 
     }
 
-    /**
-     * Adds predicate to result matchers or, if criteria search is enabled, a new predicates for the criteria is appended.
-     */
-    private fun addMatcher(predicate: DBPredicate) {
-        logDebugFunCall(log) { it.mtd("addMatcher(predicate)").params("predicate" to predicate) }
-        if (criteriaSearchAvailable) {
-            dbQueryBuilderByCriteria.add(predicate)
-        } else if (predicate.fullTextSupport) {
-            if (!dbQueryBuilderByFullText.add(predicate)) {
-                log.debug { "Adding result predicate: $predicate" }
-                resultPredicates.add(predicate)
-            }
-        } else {
-            log.debug { "Adding result predicate: $predicate" }
-            resultPredicates.add(predicate)
-        }
-    }
-
     fun result(): DBResultIterator<O> {
-        if (fullTextSearch) {
+        if (fullTextSearch && fullTextPredicates.isNotEmpty()) {
             logDebugFunCall(log) { it.mtd("result()").msg("fullTextSearch") }
-            return dbQueryBuilderByFullText.createResultIterator(resultPredicates)
+            return dbQueryBuilderByFullText.createResultIterator(fullTextPredicates, resultPredicates)
         }
         logDebugFunCall(log) { it.mtd("result()").msg("criteriaSearch") }
         return dbQueryBuilderByCriteria.createResultIterator(resultPredicates)

@@ -144,7 +144,7 @@ class HibernateSearchReindexer {
             persistenceService.selectSingleResult(
                 "select t from " + clazz.name + " t where t.id = :id",
                 clazz,
-                Pair("id", -1),
+                "id" to -1,
                 nullAllowed = false,
             )
         } catch (ex: Exception) {

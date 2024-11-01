@@ -25,6 +25,9 @@ package org.projectforge.framework.persistence.api.impl
 
 import jakarta.persistence.criteria.Predicate
 import mu.KotlinLogging
+import org.apache.commons.lang3.math.NumberUtils
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateOptionsCollector
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.logging.LogUtils.logDebugFunCall
 import org.projectforge.framework.ToStringUtil
@@ -54,8 +57,30 @@ abstract class DBPredicate(
 
     abstract fun match(obj: Any): Boolean
     internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate
-    internal open fun addTo(qb: DBQueryBuilderByFullText<*>) {
+    internal open fun handle(
+        searchPredicateFactory: SearchPredicateFactory,
+        boolCollector: BooleanPredicateOptionsCollector<*>,
+        searchClassInfo: HibernateSearchClassInfo,
+    ) {
         throw UnsupportedOperationException("Operation '${this.javaClass}' not supported by full text query.")
+    }
+
+    internal open fun supportedByFullTextQuery(searchClassInfo: HibernateSearchClassInfo): Boolean {
+        if (!fullTextSupport || field == null) {
+            return false
+        }
+        val luceneField = searchClassInfo.get(field)?.luceneField
+        return if (luceneField == null) {
+            logDebugFunCall(log) {
+                it.mtd("${this.javaClass.simpleName}:handledByFullTextQuery").msg("Field '$field' not indexed.")
+            }
+            false
+        } else {
+            logDebugFunCall(log) {
+                it.mtd("${this.javaClass.simpleName}:handledByFullTextQuery").msg("Field '$field' indexed.")
+            }
+            true
+        }
     }
 
     /**
@@ -114,9 +139,15 @@ abstract class DBPredicate(
             return ctx.cb.equal(ctx.getField<Any>(field!!), value)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            logDebugFunCall(log) { it.mtd("Equal.addTo(cb)").msg("field=$field,value=$value") }
-            qb.equal(field!!, value)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Equal.handle(...)").msg("bool.must(f.match().field(\"$field\").matching($value))")
+            }
+            boolCollector.must(searchPredicateFactory.match().field(field).matching(value))
         }
     }
 
@@ -135,9 +166,15 @@ abstract class DBPredicate(
             return ctx.cb.notEqual(ctx.getField<Any>(field!!), value)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            logDebugFunCall(log) { it.mtd("NotEqual.addTo(qb)").msg("field=$field,value=$value") }
-            qb.notEqual(field!!, value)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("NotEqual.handle(...)").msg("bool.mustNot(f.match().field(\"$field\").matching($value))")
+            }
+            boolCollector.mustNot(searchPredicateFactory.match().field(field).matching(value))
         }
     }
 
@@ -211,8 +248,15 @@ abstract class DBPredicate(
             return ctx.cb.between(ctx.getField<T>(field!!), from, to)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.between(field!!, from, to)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Between.handle(...)").msg("bool.must(f.range().field(\"$field\").between($from, $to))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).between(from, to))
         }
     }
 
@@ -227,7 +271,7 @@ abstract class DBPredicate(
                 @Suppress("UNCHECKED_CAST")
                 return from < value as O
             }
-            log.warn("GreaterEqual operator fails, because value isn't of type ${from::class.java}: $value")
+            log.warn { "Greater operator fails, because value isn't of type ${from::class.java}: $value" }
             return false
         }
 
@@ -239,8 +283,15 @@ abstract class DBPredicate(
             return ctx.cb.greaterThan(ctx.getField<O>(field!!), from)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.greater(field!!, from)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Greater.handle(...)").msg("bool.must(f.range().field(\"$field\").greaterThan($from))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).greaterThan(from))
         }
     }
 
@@ -267,8 +318,15 @@ abstract class DBPredicate(
             return ctx.cb.greaterThanOrEqualTo(ctx.getField<O>(field!!), from)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.greaterEqual(field!!, from)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("GreaterEqual.handle(...)").msg("bool.must(f.range().field(\"$field\").atLeast($from))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).atLeast(from))
         }
     }
 
@@ -295,8 +353,15 @@ abstract class DBPredicate(
             return ctx.cb.lessThan(ctx.getField<O>(field!!), to)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.less(field!!, to)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Less.handle(...)").msg("bool.must(f.range().field(\"$field\").lessThan($to))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).lessThan(to))
         }
     }
 
@@ -323,8 +388,15 @@ abstract class DBPredicate(
             return ctx.cb.lessThanOrEqualTo(ctx.getField<O>(field!!), to)
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.lessEqual(field!!, to)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("LessEqual.handle(...)").msg("bool.must(f.range().field(\"$field\").atMost($to))")
+            }
+            boolCollector.must(searchPredicateFactory.range().field(field).atMost(to))
         }
     }
 
@@ -380,13 +452,26 @@ abstract class DBPredicate(
             return ctx.cb.like(ctx.cb.lower(ctx.getField<String>(field!!)), queryString.lowercase())
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            logDebugFunCall(log) { it.mtd("Like.addTo(qb)").msg("field=$field,expectedValue=$expectedValue") }
-            qb.ilike(field!!, expectedValue)
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo
+        ) {
+            logDebugFunCall(log) {
+                it.mtd("Like.handle(...)").msg("bool.must(f.match().field(\"$field\").matching(\"$queryString\"))")
+            }
+            boolCollector.must(
+                searchPredicateFactory.match().field(field)
+                    .matching(queryString)
+            )
         }
     }
 
-    class FullSearch(private val expectedValue: String, autoWildcardSearch: Boolean = false) :
+    class FullSearch(
+        expectedValue: String,
+        private val searchFields: Array<String>?,
+        autoWildcardSearch: Boolean = false
+    ) :
         DBPredicate(null, true, false, false) {
         private var queryString: String
 
@@ -406,10 +491,52 @@ abstract class DBPredicate(
             throw UnsupportedOperationException("Full text search without field not available as criteria predicate!")
         }
 
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
+        override fun supportedByFullTextQuery(searchClassInfo: HibernateSearchClassInfo): Boolean {
+            return true
+        }
+
+        override fun handle(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            searchClassInfo: HibernateSearchClassInfo,
+        ) {
+            logDebugFunCall(log) { it.mtd("FullSearch.handledByFullTextQuery(...)") }
+            if (searchClassInfo.numericFieldNames.isNotEmpty() && NumberUtils.isCreatable(queryString)) {
+                val number = NumberUtils.createNumber(queryString)
+                search(searchPredicateFactory, boolCollector, number.toString(), searchClassInfo.numericFieldNames)
+            } else if (searchFields.isNullOrEmpty()) {
+                search(searchPredicateFactory, boolCollector, queryString, searchClassInfo.stringFieldNames)
+            } else {
+                search(searchPredicateFactory, boolCollector, queryString, searchFields)
+            }
+        }
+
+        private fun search(
+            searchPredicateFactory: SearchPredicateFactory,
+            boolCollector: BooleanPredicateOptionsCollector<*>,
+            value: String,
+            fields: Array<String>,
+        ) {
+            if (value.isBlank()) {
+                return
+            }
+            logDebugFunCall(log) {
+                it.mtd("search(value, fields)")
+                    .msg("bool.must(f.simpleQueryString().fields(${fields.joinToString()}).matching(\"$value\").defaultOperator(BooleanOperator.AND))")
+            }
+            boolCollector.must(
+                searchPredicateFactory.simpleQueryString()
+                    .fields(*fields)
+                    .matching(value)
+                //.defaultOperator(BooleanOperator.AND)
+            )
+        }
+
+
+        /*override fun addTo(qb: DBQueryBuilderByFullText<*>) {
             logDebugFunCall(log) { it.mtd("FullSearch.addTo(qb)").msg("queryString=$queryString") }
             qb.fulltextSearch(queryString)
-        }
+        }*/
     }
 
     class IsNull(field: String) : DBPredicate(field, false) {
@@ -489,10 +616,6 @@ abstract class DBPredicate(
             val result = ctx.cb.and(*predicates.map { it.asPredicate(ctx) }.toTypedArray())
             log.debug { "Adding criteria search (${ctx.entityName}): [and] cb.and(...) ended." }
             return result
-        }
-
-        override fun addTo(qb: DBQueryBuilderByFullText<*>) {
-            qb.and(*predicates.toTypedArray())
         }
     }
 

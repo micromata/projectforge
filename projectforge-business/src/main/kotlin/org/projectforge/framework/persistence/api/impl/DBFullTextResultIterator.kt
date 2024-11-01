@@ -25,21 +25,13 @@
 
 package org.projectforge.framework.persistence.api.impl
 
+import jakarta.persistence.EntityManager
 import mu.KotlinLogging
 import org.apache.commons.lang3.builder.CompareToBuilder
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
-import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.Query
-import org.hibernate.search.backend.lucene.LuceneExtension
-import org.hibernate.search.engine.search.query.dsl.SearchQueryOptionsStep
-import org.hibernate.search.mapper.orm.common.EntityReference
-import org.hibernate.search.mapper.orm.search.loading.dsl.SearchLoadingOptionsStep
-import org.hibernate.search.mapper.orm.session.SearchSession
+import org.hibernate.search.mapper.orm.Search
 import org.projectforge.common.BeanHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.text.Collator
@@ -51,31 +43,17 @@ private const val MAX_RESULTS = 100
 
 internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     val baseDao: BaseDao<O>,
-    private val searchSession: SearchSession,
+    private val em: EntityManager,
+    private val fullTextPredicates: List<DBPredicate>,
     private val resultMatchers: List<DBPredicate>,
-    private val filter: QueryFilter,
     val sortProperties: Array<SortProperty>,
-    // MultiField query
-    val multiFieldQuery: List<String>? = null,
-    // Full text query
-    //val buildSearchQuery: ((searchQuerySelectStep: SearchQuerySelectStep<*, *, *, *, *, *>) -> SearchQuery<*>)? = null,
-    private var searchQueryOptionsStep: SearchQueryOptionsStep<*, *, *, *, *>? = null,
 ) : DBResultIterator<O> {
     private var result: List<O>
     private var resultIndex = -1
     private var firstIndex = 0
     private val searchClassInfo = HibernateSearchMeta.getClassInfo(baseDao)
-    private val searchFields: Array<String>
 
     init {
-        if (log.isDebugEnabled && !multiFieldQuery.isNullOrEmpty()) {
-            val queryString = multiFieldQuery.joinToString(" ")
-            log.debug { "Using multifieldQuery (${baseDao.doClass.simpleName}): $queryString" }
-        }
-        val fullTextSearchFields = filter.fullTextSearchFields
-        searchFields =
-            if (fullTextSearchFields.isNullOrEmpty()) searchClassInfo.stringFieldNames else fullTextSearchFields
-        log.debug { "Using search fields: ${searchFields.joinToString(", ")}" }
         result = nextResultBlock()
     }
 
@@ -160,33 +138,18 @@ internal class DBFullTextResultIterator<O : ExtendedBaseDO<Long>>(
     }
 
     private fun nextResultBlock(): List<O> {
-        val optionsStep: SearchQueryOptionsStep<*, *, *, *, *> = if (searchQueryOptionsStep != null) {
-            searchQueryOptionsStep!!
-        } else {
-            val parser = MultiFieldQueryParser(searchFields, StandardAnalyzer()) // Oder ClassicAnalyzer()
-            parser.defaultOperator = QueryParser.Operator.AND
-            parser.allowLeadingWildcard = true
-            val queryString = multiFieldQuery?.joinToString(" ") ?: ""
-            val luceneQuery: Query
-            try {
-                luceneQuery = parser.parse(queryString) // Test: .removeSuffix("*"))
-                log.debug { "Lucene Query: $luceneQuery" }
-            } catch (ex: org.apache.lucene.queryparser.classic.ParseException) {
-                log.error { "Lucene error message: '${ex.message}'  (for ${baseDao.doClass.simpleName}: '$queryString')." }
-                throw ex
-            }
-            searchSession.search(baseDao.doClass)
-                .extension(LuceneExtension.get<Any, EntityReference, O, SearchLoadingOptionsStep>())
-                .where { lucene -> lucene.fromLuceneQuery(luceneQuery) }
-        }
         try {
-            val searchResult = optionsStep.toQuery().fetch(
-                firstIndex,
-                MAX_RESULTS
-            ) // fetch(offset, limit) Methode, um Abfrageoptionen wie Pagination zu setzen
-                .hits()
-            // Verarbeitung der Ergebnisse
-            firstIndex += MAX_RESULTS
+            val searchResult = Search.session(em).search(baseDao.doClass).where { f ->
+                f.bool().with { bool ->
+                    fullTextPredicates.forEach { it.handle(f, bool, searchClassInfo) }
+                }
+            }.fetch(
+                 firstIndex,
+                 MAX_RESULTS
+             ) // fetch(offset, limit) Methode, um Abfrageoptionen wie Pagination zu setzen
+                 .hits()
+             // Verarbeitung der Ergebnisse
+             firstIndex += MAX_RESULTS
             @Suppress("UNCHECKED_CAST")
             return searchResult as List<O>
         } catch (ex: Exception) {

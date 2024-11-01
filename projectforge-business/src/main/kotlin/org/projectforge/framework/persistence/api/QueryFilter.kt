@@ -189,7 +189,7 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
         }
         if (str.isNullOrBlank()) return
         fulltextSearchString = str
-        predicates.add(DBPredicate.FullSearch(str, autoWildcardSearch))
+        predicates.add(DBPredicate.FullSearch(str, this.fullTextSearchFields, autoWildcardSearch))
     }
 
     /**
@@ -228,13 +228,13 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
         val dbFilter = DBFilter(sortAndLimitMaxRowsWhileSelect, maxRows, fullTextSearchFields)
         if (predicates.none { it.field == "deleted" } && deleted != null) {
             // Adds deleted flag, if not already exist in predicates:
-            dbFilter.predicates.add(DBPredicate.Equal("deleted", deleted == true))
+            dbFilter.allPredicates.add(DBPredicate.Equal("deleted", deleted == true))
         }
         predicates.forEach {
-            dbFilter.predicates.add(it)
+            dbFilter.add(it)
         }
         sortProperties.forEach {
-            dbFilter.sortProperties.add(it)
+            dbFilter.add(it)
         }
         return dbFilter
     }

@@ -31,7 +31,7 @@ import java.util.function.Consumer
 
 /**
  * TaskPathBridge for hibernate search to search in the parent task titles.
- *
+ * https://docs.jboss.org/hibernate/stable/search/reference/en-US/html_single/#_classbridge
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class HibernateSearchTaskPathBridge : TypeBridge<TaskDO> {
