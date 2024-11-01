@@ -1,7 +1,7 @@
 Aktuell:
 - Suche:
-  - Zeitberichte: z. B. nach Projektnamen suchen.
-  - Zeitraumfilter bei Kreditoren
+  - Suche nach Kost2, z. B. in Zeitberichten etc.
+  - Suche in History
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 - PersistenceContext-callstat: mehrere zulassen.
 

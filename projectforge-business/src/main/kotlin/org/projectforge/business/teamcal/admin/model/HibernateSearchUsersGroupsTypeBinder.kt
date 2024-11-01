@@ -33,6 +33,10 @@ class HibernateSearchUsersGroupsTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {
         context.dependencies().useRootOnly()
 
+        context.indexSchemaElement()
+            .field("usersgroups") { f -> f.asString() }
+            .toReference()
+
         val bridge: TypeBridge<BaseUserGroupRightsDO> = HibernateSearchUsersGroupsBridge()
         context.bridge(BaseUserGroupRightsDO::class.java, bridge)
     }

@@ -39,6 +39,10 @@ class HibernateSearchKost1TypeBinder : TypeBinder {
             .use("teilbereich")
             .use("endziffer")
 
+        context.indexSchemaElement()
+            .field("nummer") { f -> f.asString() }
+            .toReference()
+
         val bridge: TypeBridge<Kost1DO> = HibernateSearchKost1Bridge()
         context.bridge(Kost1DO::class.java, bridge)
     }

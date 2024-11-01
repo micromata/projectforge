@@ -32,12 +32,17 @@ import org.projectforge.business.teamcal.admin.model.HibernateSearchUsersGroupsB
 /**
  * UserRightId bridge for hibernate search uses the id string of UserRightId for search.
  *
+ * https://docs.jboss.org/hibernate/stable/search/reference/en-US/html_single/#_classbridge
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @see UserRightId.getId
  */
 class HibernateSearchUserRightIdTypeBinder : TypeBinder {
     override fun bind(context: TypeBindingContext) {
         context.dependencies().useRootOnly()
+
+        context.indexSchemaElement()
+            .field("nummer") { f -> f.asString() }
+            .toReference()
 
         val bridge: TypeBridge<UserRightId> = HibernateSearchUserRightIdBridge()
         context.bridge(UserRightId::class.java, bridge)

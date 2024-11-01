@@ -228,7 +228,8 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf(
             "user.firstname", "user.lastname", "user.username",
             "user.description",
-            "user.organization"
+            "user.organization",
+            "kost1.nummer", "kost1.name",
         )
         private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
         private const val META_SQL = " AND e.deleted = :deleted"

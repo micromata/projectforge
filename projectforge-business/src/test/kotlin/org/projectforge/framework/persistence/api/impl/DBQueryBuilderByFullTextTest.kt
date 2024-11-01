@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.api.impl
 
 import org.hibernate.search.engine.search.common.BooleanOperator
 import org.hibernate.search.mapper.orm.Search
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
@@ -82,25 +83,6 @@ class DBQueryBuilderByFullTextTest : AbstractTestBase() {
             }
         }
 
-        persistenceService.runReadOnly { context ->
-            Search.session(context.em).massIndexer().startAndWait()
-            Search.session(context.em).search(TaskDO::class.java).where { f ->
-                f.bool().with { bool ->
-                    bool.must(
-                        f.simpleQueryString()
-                            .fields("title", "description", "shortDescription", "responsibleUser.username")
-                            .matching("horst").defaultOperator(BooleanOperator.AND)
-                    )
-                    //bool.must(
-                    //    f.range().field("protectTimesheetsUntil").atLeast(LocalDate.of(2024, Month.OCTOBER, 1))
-                    //)
-                }
-            }.fetch(100).hits().distinct().forEachIndexed { index, it ->
-                it as TaskDO
-                println("$index: Task: id=${it.id}, title=${it.title}, maxHours=${it.maxHours}, protectTimesheetsUntil=${it.protectTimesheetsUntil}, responsibleUser=${it.responsibleUser?.username}")
-            }
-        }
-
         val queryFilter = QueryFilter().also {
             //it.add(QueryFilter.eq("deleted", false))
             //it.add(QueryFilter.eq("title", "Task One"))
@@ -114,9 +96,8 @@ class DBQueryBuilderByFullTextTest : AbstractTestBase() {
         // fields: title, description, shortDescription,
         persistenceService.runReadOnly { context ->
             Search.session(context.em).massIndexer().startAndWait()
-            dbQuery.select(taskDao, queryFilter, null, false).forEach {
-                println("Task: id=${it.id}, title=${it.title}, maxHours=${it.maxHours}, protectTimesheetsUntil=${it.protectTimesheetsUntil}, responsibleUser=${it.responsibleUser?.username}")
-            }
+            val result = dbQuery.select(taskDao, queryFilter, null, false)
+            Assertions.assertEquals(1, result.size)
         }
     }
 

@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.database
 
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
+import org.projectforge.framework.persistence.jpa.PersistenceStats.Companion.formatMillis
 import org.projectforge.framework.utils.NumberFormatter
 import org.projectforge.framework.utils.NumberHelper
 import java.math.BigDecimal
@@ -39,6 +40,7 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
     private var indexedEntities: Long = 0
     private var lastReportedProgress = 0
     private var step = 50 // 50% steps at default
+    private var started = System.currentTimeMillis()
 
     init {
         log.info { "${entityClass.simpleName}: Starting indexing..." }
@@ -59,15 +61,15 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
         synchronized(this) {
             totalEntities += count
         }
-        if (totalEntities > 5_000_000) {
+        if (totalEntities > 2_000_000) {
             step = 1 // 5% steps for more than 5,000,000 entities
-        } else if (totalEntities > 2_000_000) {
-            step = 2 // 5% steps for more than 5,000,000 entities
         } else if (totalEntities > 1_000_000) {
-            step = 5 // 5%
+            step = 2 // 5% steps for more than 5,000,000 entities
         } else if (totalEntities > 500_000) {
-            step = 10 // 10%
+            step = 5 // 5%
         } else if (totalEntities > 100_000) {
+            step = 10 // 10%
+        } else if (totalEntities > 50_000) {
             step = 20 // 20%
         } else if (totalEntities > 10_000) {
             step = 25 // 25%
@@ -76,23 +78,10 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
         } else {
             step = 100
         }
-
-        /*  progressSteps = if (totalNumber > 5000000) // 1.000.000
-              totalNumber / 100 // Log message every 1%
-          else if (totalNumber > 2000000) // 1.000.000
-              totalNumber / 20 // Log message every 5%
-          else if (totalNumber > 1000000) // 1.000.000
-              totalNumber / 10 // Log message every 10%
-          else if (totalNumber > 100000) // 100.000
-              totalNumber / 5 // Log message every 20%
-          else if (totalNumber > 10000) // 10.000
-              totalNumber / 2 // Log message every 50%
-          else 2 * totalNumber // Do not log.
-*/
     }
 
     override fun indexingCompleted() {
-        log.info { "${entityClass.simpleName}: Indexing completed." }
+        log.info { "${entityClass.simpleName}: Indexing completed (${formatMillis(System.currentTimeMillis() - started)})." }
     }
 
     override fun documentsBuilt(increment: Long) {

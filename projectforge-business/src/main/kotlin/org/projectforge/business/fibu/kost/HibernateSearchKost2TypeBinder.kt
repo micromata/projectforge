@@ -28,6 +28,7 @@ import org.hibernate.search.mapper.pojo.bridge.binding.TypeBindingContext
 import org.hibernate.search.mapper.pojo.bridge.mapping.programmatic.TypeBinder
 
 /**
+ * https://docs.jboss.org/hibernate/stable/search/reference/en-US/html_single/#_classbridge
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class HibernateSearchKost2TypeBinder : TypeBinder {
@@ -38,6 +39,10 @@ class HibernateSearchKost2TypeBinder : TypeBinder {
             .use("bereich")
             .use("teilbereich")
             .use("kost2Art")
+
+        context.indexSchemaElement()
+            .field("nummer") { f -> f.asString() }
+            .toReference()
 
         val bridge: TypeBridge<Kost2DO> = HibernateSearchKost2Bridge()
         context.bridge(Kost2DO::class.java, bridge)
