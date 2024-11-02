@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.database
 
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
-import org.projectforge.common.format
+import org.projectforge.common.extensions.format
 import org.projectforge.framework.persistence.jpa.PersistenceStats.Companion.formatMillis
 import org.projectforge.framework.utils.NumberFormatter
 

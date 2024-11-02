@@ -24,7 +24,7 @@
 package org.projectforge.framework.persistence.candh
 
 import mu.KotlinLogging
-import org.projectforge.common.isEqualsTo
+import org.projectforge.common.extensions.isEqualsTo
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.candh.CandHMaster.propertyWasModified
 import org.projectforge.framework.persistence.history.PropertyOpType

@@ -21,15 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common
+package org.projectforge.common.extensions
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
-class KotlinStringUtilsTest {
+class KotlinStringExtensionsTest {
     @Test
     fun `test abbreviate method`() {
         assertEquals("", null.abbreviate(10))

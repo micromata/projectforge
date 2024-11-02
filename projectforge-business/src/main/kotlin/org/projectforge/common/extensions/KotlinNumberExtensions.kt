@@ -21,8 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common
+package org.projectforge.common.extensions
 
+import org.projectforge.common.FormatterUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.math.BigInteger

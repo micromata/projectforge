@@ -25,7 +25,6 @@ package org.projectforge.business.fibu
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
-import kotlinx.collections.immutable.toImmutableList
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
@@ -341,7 +340,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     val positionenIncludingDeleted: List<AuftragsPositionDO>?
         @Transient
-        get() = this.positionen?.toImmutableList()
+        get() = this.positionen
 
     /**
      * Get list of AuftragsPosition excluding elements that are marked as deleted.
@@ -350,7 +349,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     val positionenExcludingDeleted: List<AuftragsPositionDO>
         @Transient
-        get() = positionen?.filter { !it.deleted }?.toImmutableList() ?: emptyList()
+        get() = positionen?.filter { !it.deleted } ?: emptyList()
 
     /**
      * Get list of PaymentScheduleDO excluding elements that are marked as deleted.
@@ -359,7 +358,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     val paymentSchedulesExcludingDeleted: List<PaymentScheduleDO>
         @Transient
-        get() = paymentSchedules?.filter { !it.deleted }?.toImmutableList() ?: emptyList()
+        get() = paymentSchedules?.filter { !it.deleted } ?: emptyList()
 
     val projectManagerId: Long?
         @Transient

@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.io.Serializable
 import jakarta.servlet.http.HttpServletRequest
-import org.projectforge.common.capitalize
+import org.projectforge.common.extensions.capitalize
 import kotlin.reflect.KMutableProperty
 
 private val log = KotlinLogging.logger {}

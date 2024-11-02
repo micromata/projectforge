@@ -29,7 +29,7 @@ import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Base64
 import org.projectforge.business.user.filter.CookieService
-import org.projectforge.common.capitalize
+import org.projectforge.common.extensions.capitalize
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext

@@ -31,7 +31,7 @@ import org.projectforge.business.scripting.xstream.ScriptCallData
 import org.projectforge.business.task.TaskDO
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
-import org.projectforge.common.abbreviate
+import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.persistence.api.BaseDO

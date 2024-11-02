@@ -26,7 +26,7 @@ package org.projectforge.rest
 import jakarta.servlet.http.HttpServletRequest
 import mu.KotlinLogging
 import org.projectforge.business.admin.SystemStatistics
-import org.projectforge.common.capitalize
+import org.projectforge.common.extensions.capitalize
 import org.projectforge.rest.config.Rest
 import org.projectforge.rest.core.AbstractDynamicPageRest
 import org.projectforge.rest.dto.FormLayoutData

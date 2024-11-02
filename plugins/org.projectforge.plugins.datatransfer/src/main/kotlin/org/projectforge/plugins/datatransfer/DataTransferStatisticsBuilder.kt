@@ -28,7 +28,7 @@ import org.projectforge.business.admin.SystemStatisticsData
 import org.projectforge.business.admin.SystemsStatisticsBuilderInterface
 import org.projectforge.business.group.service.GroupService
 import org.projectforge.business.user.service.UserService
-import org.projectforge.common.abbreviate
+import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.jcr.AttachmentsInfo
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
