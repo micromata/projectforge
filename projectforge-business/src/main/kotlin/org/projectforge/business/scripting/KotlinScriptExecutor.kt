@@ -28,7 +28,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
 import kotlin.script.experimental.api.*
-import kotlin.script.experimental.host.StringScriptSource
+import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
@@ -37,6 +37,13 @@ private val log = KotlinLogging.logger {}
 
 class KotlinScriptExecutor : ScriptExecutor() {
     companion object {
+        private val bindingsClassReplacements = mapOf(
+            "java.lang.String" to "String",
+            "java.lang.Integer" to "Int",
+            "java.lang.Boolean" to "Boolean",
+            "java.util.HashMap" to "MutableMap<*, *>",
+        )
+
         private val kotlinImports = listOf(
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
@@ -55,26 +62,23 @@ class KotlinScriptExecutor : ScriptExecutor() {
             jvm {
                 dependenciesFromCurrentContext(wholeClasspath = true)
             }
+            providedProperties("context" to KotlinScriptContext::class)
             compilerOptions.append("-nowarn")
         }
-        val bindings = mutableMapOf<String, Any?>()
+        val context = KotlinScriptContext()
         variables.forEach {
-            bindings[it.key] = it.value
+            context.setProperty(it.key, it.value)
         }
         scriptParameterList?.forEach {
-            bindings[createValidIdentifier(it.parameterName)] = it.value
+            context.setProperty(createValidIdentifier(it.parameterName), it.value)
         }
         val evaluationConfiguration = ScriptEvaluationConfiguration {
-            // Add all bindings
-            bindings.forEach { (key, value) ->
-                log.debug { "Binding: $key = $value" }
-                providedProperties(key to value)
-            }
+            providedProperties("context" to context)
         }
-        val scriptSource = StringScriptSource(effectiveScript)
+        val scriptSource = effectiveScript.trimIndent().toScriptSource()
         var result: ResultWithDiagnostics<EvaluationResult>? = null
         runBlocking {
-            result = withTimeoutOrNull(100) { // Timeout in milliseconds.
+            result = withTimeoutOrNull(30_000) { // Timeout in milliseconds.
                 try {
                     scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
                 } catch (ex: Exception) {
@@ -84,7 +88,16 @@ class KotlinScriptExecutor : ScriptExecutor() {
                 }
             }
         }
-        handleResult(scriptExecutionResult, result)
+        result?.let { useResult ->
+            handleResult(scriptExecutionResult, result)
+            if (useResult is ResultWithDiagnostics.Success) {
+                val returnValue = useResult.value.returnValue
+                if (returnValue is ResultValue.Value) {
+                    val output = returnValue.value as? String
+                    scriptExecutionResult.result = output
+                }
+            }
+        }
         return scriptExecutionResult
     }
 
@@ -93,9 +106,69 @@ class KotlinScriptExecutor : ScriptExecutor() {
         return kotlinImports.filter { !it.startsWith("import java.io") }
     }
 
+    override fun appendBlockAfterImports(sb: StringBuilder) {
+        addBindings(sb)
+    }
+
+    private fun addBindings(sb: StringBuilder) {
+        sb.appendLine("// Auto generated bindings:")
+        // Prepend bindings now before proceeding
+        val bindingsEntries = mutableListOf<String>()
+        val script = resolvedScript ?: source
+        variables.forEach { (name, value) ->
+            if (!(resolvedScript ?: source).contains(createContextGet(name))) { // Don't add binding twice
+                addBinding(bindingsEntries, name, value)
+            }
+        }
+        scriptParameterList?.forEach { param ->
+            if (!script.contains(createContextGet(param.parameterName))) { // Don't add binding twice
+                // OK, null value wasn't added to variables. So we had to add them here:
+                addBinding(bindingsEntries, param.parameterName, param)
+            }
+        }
+        bindingsEntries.sortedBy { it.lowercase() }.forEach {
+            sb.appendLine(it)
+        }
+        sb.appendLine()
+        sb.appendLine()
+    }
+
+    private fun createContextGet(name: String): String {
+        return "context.getProperty(\"$name\")"
+    }
+
+    private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
+        if (name.isBlank()) {
+            return // Don't add blank variables (shouldn't occur).
+        }
+        var nullable = ""
+        val clazz = if (value != null) {
+            if (value is ScriptParameter) {
+                if (value.type != ScriptParameterType.BOOLEAN) {
+                    nullable = "?" // Script parameter not found as variable -> is null!
+                }
+                value.valueClass
+            } else {
+                value::class.java
+            }
+        } else {
+            Any::class.java
+        }
+        val clsName = if (bindingsClassReplacements.containsKey(clazz.name)) {
+            bindingsClassReplacements[clazz.name]
+        } else if (value is ScriptingDao<*>) {
+            "ScriptingDao<${value.dOClass.name}>"
+        } else {
+            clazz.name
+        }
+        val identifier = createValidIdentifier(name)
+        bindingsEntries.add("val $identifier = ${createContextGet(identifier)} as $clsName$nullable")
+    }
+
     private fun handleResult(
         scriptExecutionResult: ScriptExecutionResult,
         result: ResultWithDiagnostics<EvaluationResult>?,
+        logSeverity: ScriptDiagnostic.Severity = ScriptDiagnostic.Severity.ERROR
     ) {
         if (result == null) {
             scriptExecutionResult.result = translate("scripting.error.timeout")
@@ -105,6 +178,9 @@ class KotlinScriptExecutor : ScriptExecutor() {
         val logger = scriptExecutionResult.scriptLogger
         result.reports.forEach { report ->
             val severity = report.severity
+            if (severity < logSeverity) {
+                return@forEach
+            }
             val message = report.message
             val location = report.location
             var line1 = "[$severity] $message"
