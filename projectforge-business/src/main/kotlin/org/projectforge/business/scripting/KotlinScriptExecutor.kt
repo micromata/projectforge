@@ -23,10 +23,13 @@
 
 package org.projectforge.business.scripting
 
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
 import mu.KotlinLogging
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
@@ -36,6 +39,18 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 private val log = KotlinLogging.logger {}
 
 class KotlinScriptExecutor : ScriptExecutor() {
+    class MyScriptingHost : BasicJvmScriptingHost() {
+        val loggedInUser = ThreadLocalUserContext.loggedInUser
+        override fun <T> runInCoroutineContext(block: suspend () -> T): T {
+            try {
+                ThreadLocalUserContext.setUser(loggedInUser)
+                return super.runInCoroutineContext(block)
+            } finally {
+                ThreadLocalUserContext.clear()
+            }
+        }
+    }
+
     companion object {
         private val bindingsClassReplacements = mapOf(
             "java.lang.String" to "String",
@@ -56,7 +71,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
      * @see GroovyExecutor.executeTemplate
      */
     override fun execute(): ScriptExecutionResult {
-        val scriptingHost = BasicJvmScriptingHost()
+        val scriptingHost = MyScriptingHost()
 
         val compilationConfiguration = ScriptCompilationConfiguration {
             jvm {
@@ -76,18 +91,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
             providedProperties("context" to context)
         }
         val scriptSource = effectiveScript.trimIndent().toScriptSource()
-        var result: ResultWithDiagnostics<EvaluationResult>? = null
-        runBlocking {
-            result = withTimeoutOrNull(30_000) { // Timeout in milliseconds.
-                try {
-                    scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
-                } catch (ex: Exception) {
-                    log.info("Exception on Kotlin script execution: ${ex.message}", ex)
-                    scriptExecutionResult.exception = ex
-                    null
-                }
-            }
-        }
+        val result = execute(scriptingHost, scriptSource, compilationConfiguration, evaluationConfiguration)
         result?.let { useResult ->
             handleResult(scriptExecutionResult, result)
             if (useResult is ResultWithDiagnostics.Success) {
@@ -101,16 +105,40 @@ class KotlinScriptExecutor : ScriptExecutor() {
         return scriptExecutionResult
     }
 
+    private fun execute(
+        scriptingHost: BasicJvmScriptingHost,
+        scriptSource: SourceCode,
+        compilationConfiguration: ScriptCompilationConfiguration,
+        evaluationConfiguration: ScriptEvaluationConfiguration,
+    ): ResultWithDiagnostics<EvaluationResult>? {
+        val executor = Executors.newSingleThreadExecutor()
+        var future: Future<ResultWithDiagnostics<EvaluationResult>>? = null
+        try {
+            future = executor.submit<ResultWithDiagnostics<EvaluationResult>> {
+                scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
+            }
+            return future.get(300, TimeUnit.SECONDS)  // Timeout
+        } catch (ex: TimeoutException) {
+            log.info("Script execution was cancelled due to timeout.")
+            future?.cancel(true)  // Attempt to cancel
+            scriptExecutionResult.exception = ex
+            scriptExecutionResult.scriptLogger.error(translate("scripting.error.timeout"))
+        } catch (ex: Exception) {
+            log.info("Exception on Kotlin script execution: ${ex.message}", ex)
+            scriptExecutionResult.exception = ex
+            scriptExecutionResult.scriptLogger.error("Exception on Kotlin script execution: ${ex.message}")
+        } finally {
+            executor.shutdownNow()
+        }
+        return null
+    }
+
     override fun standardImports(): List<String> {
         val kotlinImports = STANDARD_IMPORTS.map { it.replace("import static", "import") } + kotlinImports
         return kotlinImports.filter { !it.startsWith("import java.io") }
     }
 
     override fun appendBlockAfterImports(sb: StringBuilder) {
-        addBindings(sb)
-    }
-
-    private fun addBindings(sb: StringBuilder) {
         sb.appendLine("// Auto generated bindings:")
         // Prepend bindings now before proceeding
         val bindingsEntries = mutableListOf<String>()
