@@ -24,6 +24,7 @@
 package org.projectforge.common
 
 import mu.KotlinLogging
+import org.projectforge.common.extensions.capitalize
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1

@@ -24,15 +24,16 @@
 package org.projectforge.business.scripting
 
 import mu.KotlinLogging
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory
-import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
+import kotlin.script.experimental.api.*
+import kotlin.script.experimental.host.StringScriptSource
+import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
+import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 private val log = KotlinLogging.logger {}
 
 class KotlinScriptExecutor : ScriptExecutor() {
-    private val engine: ScriptEngine = KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine
-
     companion object {
         private val bindingsClassReplacements = mapOf(
             "java.lang.String" to "String",
@@ -45,8 +46,6 @@ class KotlinScriptExecutor : ScriptExecutor() {
         private val kotlinImports = listOf(
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
-            "import org.projectforge.framework.utils.NumberFormatter.format",  // ambiguous for Groovy!?
-            "import org.projectforge.framework.utils.NumberFormatter.formatCurrency",  // ambiguous for Groovy!?
         )
     }
 
@@ -56,25 +55,79 @@ class KotlinScriptExecutor : ScriptExecutor() {
      * @see GroovyExecutor.executeTemplate
      */
     override fun execute(): ScriptExecutionResult {
-        val bindings = engine.createBindings()
+        val scriptingHost = BasicJvmScriptingHost()
+
+        val compilationConfiguration = ScriptCompilationConfiguration {
+            jvm {
+                dependenciesFromCurrentContext(wholeClasspath = true)
+            }
+            compilerOptions.append("-nowarn")
+        }
+        val bindings = mutableMapOf<String, Any?>()
         variables.forEach {
             bindings[it.key] = it.value
         }
         scriptParameterList?.forEach {
             bindings[createValidIdentifier(it.parameterName)] = it.value
         }
+        val evaluationConfiguration = ScriptEvaluationConfiguration {
+            // Alle Bindings hinzufügen
+            bindings.forEach { (key, value) ->
+                providedProperties(key to value)
+            }
+        }
+        val scriptSource = StringScriptSource(effectiveScript)
+        var result: ResultWithDiagnostics<EvaluationResult>? = null
         try {
-            scriptExecutionResult.result = engine.eval(effectiveScript, bindings)
+            result = scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
         } catch (ex: Exception) {
             log.info("Exception on Kotlin script execution: ${ex.message}", ex)
             scriptExecutionResult.exception = ex
         }
+        val scriptLines = effectiveScript.lines()
+        val logger = scriptExecutionResult.scriptLogger
+        val messages = mutableListOf<String>()
+        result?.reports?.forEach { report ->
+            val severity = report.severity
+            val message = report.message
+            val location = report.location
+            var line1 = "[$severity] $message"
+            var line2: String? = null
+            location?.let {
+                line1 = "[$severity] $message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
+                val lineIndex = it.start.line - 1 // Zeilenindex anpassen
+                if (lineIndex in scriptLines.indices) {
+                    val line = scriptLines[lineIndex]
+                    val startCol = it.start.col - 1
+                    val endCol = (it.end?.col ?: line.length) - 1
+
+                    // Teile die Zeile auf und füge die Marker ein
+                    val markedLine = buildString {
+                        append(">")
+                        append(line.substring(0, startCol))
+                        append(">>>")  // Markierung für Startposition
+                        append(line.substring(startCol, endCol))
+                        append("<<<")  // Markierung für Endposition
+                        append(line.substring(endCol))
+                    }
+                    line2 = markedLine
+                }
+            }
+            if (severity == ScriptDiagnostic.Severity.ERROR) {
+                logger.error(line1)
+                line2?.let { logger.error(it) }
+            } else {
+                logger.info(line1)
+                line2?.let { logger.info(it) }
+            }
+        }
+        scriptExecutionResult.result = result?.valueOrNull()
         return scriptExecutionResult
     }
 
     override fun standardImports(): List<String> {
         val kotlinImports = STANDARD_IMPORTS.map { it.replace("import static", "import") } + kotlinImports
-        return kotlinImports.filter { !it.startsWith("import java.") }
+        return kotlinImports.filter { !it.startsWith("import java.io") }
     }
 
     override fun appendBlockAfterImports(sb: StringBuilder) {
@@ -82,7 +135,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
         // Prepend bindings now before proceeding
         val bindingsEntries = mutableListOf<String>()
         val script = resolvedScript ?: source
-        variables.forEach { (name, value) ->
+        /*variables.forEach { (name, value) ->
             if (!(resolvedScript ?: source).contains("bindings[\"$name\"]")) { // Don't add binding twice
                 addBinding(bindingsEntries, name, value)
             }
@@ -92,7 +145,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
                 // OK, null value wasn't added to variables. So we had to add them here:
                 addBinding(bindingsEntries, param.parameterName, param)
             }
-        }
+        }*/
         bindingsEntries.sortedBy { it.lowercase() }.forEach {
             sb.appendLine(it)
         }

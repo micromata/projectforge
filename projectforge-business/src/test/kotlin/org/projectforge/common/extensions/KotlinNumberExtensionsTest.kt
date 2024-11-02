@@ -21,14 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common
+package org.projectforge.common.extensions
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
 
-class KotlinNumberUtilsTest {
+class KotlinNumberExtensionsTest {
     @Test
     fun `test formatting of numbers`() {
         ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.

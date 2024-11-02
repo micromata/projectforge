@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.utils
 
-import kotlinx.collections.immutable.toImmutableList
 import org.projectforge.framework.persistence.api.IdObject
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.jvmErasure
@@ -92,10 +91,10 @@ object CollectionUtils {
             if (useDest.isNullOrEmpty()) {
                 return CompareCollectionsResult()
             }
-            return CompareCollectionsResult(removed = useDest.toImmutableList())
+            return CompareCollectionsResult(removed = useDest.toList())
         }
         if (useDest.isNullOrEmpty()) {
-            return CompareCollectionsResult(added = useSrc.toImmutableList())
+            return CompareCollectionsResult(added = useSrc.toList())
         }
         val added = getAddedEntries(src = useSrc, dest = useDest)
         val removed = getAddedEntries(src = useDest, dest = useSrc)

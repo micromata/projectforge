@@ -296,7 +296,7 @@ abstract class ScriptExecutor(
       "import de.micromata.merlin.excel.ExcelWorkbook",
       "import de.micromata.merlin.excel.ExcelWriterContext",
       "import de.micromata.merlin.I18n",
-      "import org.projectforge.business.fibu.*",
+      "import org.projectforge.business.fibu.KostFormatter",
       "import org.projectforge.business.fibu.kost.*",
       "import org.projectforge.business.scripting.ExportZipArchive",
       "import org.projectforge.business.scripting.ExportJson",
@@ -305,6 +305,7 @@ abstract class ScriptExecutor(
       "import org.projectforge.business.scripting.support.*",
       "import org.projectforge.business.task.*",
       "import org.projectforge.business.timesheet.*",
+      "import org.projectforge.business.user.UserGroupCache",
       "import org.projectforge.business.utils.CurrencyFormatter",
       "import org.projectforge.common.*",
       "import org.projectforge.excel.ExcelUtils",
@@ -313,8 +314,6 @@ abstract class ScriptExecutor(
       "import org.projectforge.framework.utils.NumberHelper",
       "import org.projectforge.framework.utils.RoundUtils",
       "import org.projectforge.framework.utils.RoundUnit",
-      // "import static org.projectforge.framework.utils.NumberFormatter.format", // ambigous for Groovy!?
-      // "import static org.projectforge.framework.utils.NumberFormatter.formatCurrency", // ambigous for Groovy!?
     )
 
     fun setIncludingScripts(script: ScriptDO, scriptDao: AbstractScriptDao) {

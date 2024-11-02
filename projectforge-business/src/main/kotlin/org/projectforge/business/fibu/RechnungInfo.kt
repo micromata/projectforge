@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.projectforge.common.abbreviate
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.props.PropertyType
 import java.io.Serializable

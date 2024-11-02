@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common
+package org.projectforge.common.extensions
 
 import java.util.*
 

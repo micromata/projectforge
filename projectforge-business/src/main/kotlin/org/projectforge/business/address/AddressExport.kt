@@ -29,7 +29,7 @@ import mu.KotlinLogging
 import org.apache.poi.ss.util.CellRangeAddress
 import org.projectforge.business.converter.LanguageConverter
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.common.capitalize
+import org.projectforge.common.extensions.capitalize
 import org.projectforge.excel.ExcelUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate

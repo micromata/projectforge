@@ -110,7 +110,7 @@ class AuftragRight() : UserRightAccessCheck<AuftragDO?>(
                         if (position.vollstaendigFakturiert == true) {
                             throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
                         }
-                    } else if (position.vollstaendigFakturiert !== dbPosition.vollstaendigFakturiert) {
+                    } else if (position.vollstaendigFakturiert != dbPosition.vollstaendigFakturiert) {
                         throw AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection")
                     }
                 }

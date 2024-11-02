@@ -51,7 +51,7 @@ object KClassUtils {
 
         for (part in propertyParts) {
             // Search for the property in the current class
-            currentProperty = currentClass.memberProperties.find { it.name == part } as? KProperty1<out Any, *>
+            currentProperty = currentClass.memberProperties.find { it.name == part }
 
             if (currentProperty == null) {
                 return null // Property not found

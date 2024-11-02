@@ -23,10 +23,8 @@
 
 package org.projectforge.business.fibu
 
-import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungDO
-import org.projectforge.common.abbreviate
 import java.io.Serializable
 
 /**

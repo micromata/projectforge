@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
-import org.projectforge.common.abbreviate
+import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.splitToInts
 import org.springframework.stereotype.Service
@@ -117,6 +117,13 @@ class KostFormatter(private val kostCache: KostCache) {
             sb.append(": ").append(projekt.name)
         }
         return abbreviateIfRequired(sb.toString(), formatType, abbreviationLength)
+    }
+
+    /**
+     * Usable by scripts.
+     */
+    fun format(kost2: Kost2DO?, abbreviationLength: Int): String {
+        return formatKost2(kost2, FormatType.LONG, abbreviationLength)
     }
 
     /**

@@ -12,12 +12,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.2</version><!-- Don't forget to modify also below in properties. -->
+        <version>3.3.5</version><!-- Don't forget to modify also below in properties. -->
     </parent>
 
     <name>ProjectForge</name>
     <description>
-        ProjectForge is a multi user web application for collaborative team work. Organize time sheets, tasks,
+        ProjectForge is a multi-user web application for collaborative team work. Organize time sheets, tasks,
         addresses, books etc. with project teams.
     </description>
     <url>http://www.projectforge.org</url>
@@ -216,9 +216,9 @@
 
         <!--kotlin.compiler.incremental>true</kotlin.compiler.incremental--> <!-- It's experimentell, so don't use it for now -->
 
-        <hibernate.version>6.6.0.Final</hibernate.version>
+        <hibernate.version>6.6.1.Final</hibernate.version>
         <hibernate-search.version>7.1.1.Final</hibernate-search.version> <!-- Check 11.08.2024 -->
-        <hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version> <!-- Check 11.08.2024 -->
+        <!--hibernate-entitymanager.version>5.6.15.Final</hibernate-entitymanager.version--> <!-- Check 11.08.2024 -->
 
 
         <apacheds.version>1.5.7</apacheds.version>
@@ -254,8 +254,7 @@
         <joda-time.version>2.12.7</joda-time.version> <!-- Check: 09.08.2024-->
         <junit.jupiter.version>5.10.3</junit.jupiter.version> <!-- Check 11.08.2024 -->
         <junit-platform-launcher.version>1.10.3</junit-platform-launcher.version>
-        <kotlin.version>2.0.21</kotlin.version>
-        <kotlin-script-util.version>1.8.22</kotlin-script-util.version> <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-script-util -->
+        <kotlin.version>1.9.25</kotlin.version>
         <kotlin-logging.version>3.0.5</kotlin-logging.version>
         <kotlinx-coroutines-slf4j.version>1.8.1</kotlinx-coroutines-slf4j.version> <!-- Check 11.08.2024 -->
         <micromata.merlin-core.version>1.1.16</micromata.merlin-core.version>
@@ -267,8 +266,8 @@
         <rhino.version>1.7.15</rhino.version> <!-- pf-wicket: https://mvnrepository.com/artifact/org.mozilla/rhino -->
         <springfox-swagger.version>3.0.0</springfox-swagger.version>
         <!-- Spring version 6 (boot 3) needs migration javax.servlet -> jakarta.servlet-->
-        <spring.version>6.1.11</spring.version> <!-- Should match spring boot's parent pom -->
-        <spring.boot.version>3.3.2</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
+        <spring.version>6.1.14</spring.version> <!-- Should match spring boot's parent pom -->
+        <spring.boot.version>3.3.5</spring.boot.version><!-- Don't forget to modify also at top in parent. -->
         <webauthn4j.version>0.25.0.RELEASE</webauthn4j.version> <!-- Check 11.08.2024 -->
         <webauthn4j-spring-security-core.version>0.10.0.RELEASE</webauthn4j-spring-security-core.version> <!-- Check 11.08.2024 -->
         <xmlgraphics-commons.version>2.9</xmlgraphics-commons.version> <!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/xmlgraphics-commons -->
@@ -566,7 +565,7 @@
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
-                <version>3.2.0</version>
+                <version>11.1.0</version>
                 <reportSets>
                     <reportSet>
                         <reports>

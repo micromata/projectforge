@@ -35,7 +35,7 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericFie
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField
 import org.projectforge.common.BeanHelper
 import org.projectforge.common.ClassUtils
-import org.projectforge.common.capitalize
+import org.projectforge.common.extensions.capitalize
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.persistence.api.BaseDao
