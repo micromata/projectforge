@@ -59,3 +59,9 @@ employeeannualleave
 Rollback:
 update t_configuration set configurationtype='INTEGER' where configurationtype='LONG';
 ALTER TABLE t_configuration ALTER COLUMN longvalue RENAME TO intvalue;
+
+
+Scripts:
+Faktura-Quote nach KJ/GJ
+ - import java.util.Objects
+ - 114: EmployeeCache.instance.getEmployeeByUserId

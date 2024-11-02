@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.util.*
 
-class KotlinNumberExtensionsTest {
+class KotlinNumberForUserExtensionsTest {
     @Test
     fun `test formatting of numbers`() {
         ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
@@ -38,9 +38,6 @@ class KotlinNumberExtensionsTest {
         Assertions.assertEquals("1,234.57", 1234.5678.format(scale = 2))
         Assertions.assertEquals("1,234.00", 1234.format(scale = 2))
         Assertions.assertEquals("1,234", 1234.format())
-
-
-        //Assertions.assertEquals("1.234,57", 1234.5678.format(type = NumberFormatType.CURRENCY))
     }
 
     @Test
@@ -62,15 +59,6 @@ class KotlinNumberExtensionsTest {
     }
 
     @Test
-    fun `test formatting of millis`() {
-        Assertions.assertEquals("", null.formatMillis())
-        Assertions.assertEquals("00:00.123", 123.formatMillis())
-        Assertions.assertEquals("00:01.123", (1123).formatMillis())
-        Assertions.assertEquals("01:01.123", (61123).formatMillis())
-        Assertions.assertEquals("12:21.123", (12 * 60000 + 21 * 1000 + 123).formatMillis())
-    }
-
-    @Test
     fun `test formatting of number of bytes`() {
         ThreadLocalUserContext.clear() // Must be cleared, otherwise, the locale can't be set.
         Assertions.assertEquals("--", null.formatBytes())
@@ -85,7 +73,6 @@ class KotlinNumberExtensionsTest {
         formatBytesTest(scale, "GB")
         scale *= 1024
         formatBytesTest(scale, "TB")
-
     }
 
     private fun formatBytesTest(scale: Long, unit: String) {

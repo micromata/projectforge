@@ -21,27 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common.logging
+package org.projectforge.common.extensions
 
-import mu.KLogger
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 
 /**
- * Utility class for logging.
+ * Formats a number for the user by using the locale of [ThreadLocalUserContext].
+ * @param scale The number of digits after the decimal point.
+ * @return The formatted number or an empty string if the number is null.
  */
-object LogUtils {
-    /**
-     * Logs a debug message with the given [message] if the logger is enabled for debug.
-     * Lazy build a log message if isDebugEnabled is true.
-     * @param log the logger to use
-     * @param lb the log builder
-     */
-    fun logDebugFunCall(log: KLogger, builder: (lb: LogBuilder) -> Unit) {
-        if (!log.isDebugEnabled) {
-            return
-        }
-        LogBuilder(log).also {
-            builder(it)
-            it.log()
-        }
-    }
+fun Number?.formatForUser(scale: Int? = null): String {
+    this ?: return ""
+    return this.format(ThreadLocalUserContext.locale, scale)
+}
+
+/**
+ * Formats a number of bytes for the user by using the locale of [ThreadLocalUserContext].
+ * @see formatBytes
+ */
+fun Number?.formatBytesForUser(): String {
+    this ?: return ""
+    return this.formatBytes(ThreadLocalUserContext.locale)
 }
