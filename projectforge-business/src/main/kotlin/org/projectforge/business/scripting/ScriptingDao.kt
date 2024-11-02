@@ -41,6 +41,10 @@ open class ScriptingDao<O : ExtendedBaseDO<Long>>
         return __baseDao.select(filter)
     }
 
+    fun select(filter: BaseSearchFilter): List<O> {
+        return __baseDao.select(filter)
+    }
+
     val list: List<O>
         /**
          * Show whole list of objects with select access (without deleted entries).

@@ -23,8 +23,10 @@
 
 package org.projectforge.business.scripting
 
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import mu.KotlinLogging
-import javax.script.ScriptEngineManager
+import org.projectforge.framework.i18n.translate
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.StringScriptSource
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
@@ -35,14 +37,6 @@ private val log = KotlinLogging.logger {}
 
 class KotlinScriptExecutor : ScriptExecutor() {
     companion object {
-        private val bindingsClassReplacements = mapOf(
-            "java.lang.String" to "String",
-            "java.lang.Integer" to "Int",
-            "java.lang.Long" to "Long",
-            "java.lang.Boolean" to "Boolean",
-            "java.util.HashMap" to "MutableMap<*, *>",
-        )
-
         private val kotlinImports = listOf(
             "import org.projectforge.framework.i18n.translate",
             "import org.projectforge.framework.i18n.translateMsg",
@@ -71,30 +65,53 @@ class KotlinScriptExecutor : ScriptExecutor() {
             bindings[createValidIdentifier(it.parameterName)] = it.value
         }
         val evaluationConfiguration = ScriptEvaluationConfiguration {
-            // Alle Bindings hinzufügen
+            // Add all bindings
             bindings.forEach { (key, value) ->
+                log.debug { "Binding: $key = $value" }
                 providedProperties(key to value)
             }
         }
         val scriptSource = StringScriptSource(effectiveScript)
         var result: ResultWithDiagnostics<EvaluationResult>? = null
-        try {
-            result = scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
-        } catch (ex: Exception) {
-            log.info("Exception on Kotlin script execution: ${ex.message}", ex)
-            scriptExecutionResult.exception = ex
+        runBlocking {
+            result = withTimeoutOrNull(100) { // Timeout in milliseconds.
+                try {
+                    scriptingHost.eval(scriptSource, compilationConfiguration, evaluationConfiguration)
+                } catch (ex: Exception) {
+                    log.info("Exception on Kotlin script execution: ${ex.message}", ex)
+                    scriptExecutionResult.exception = ex
+                    null
+                }
+            }
+        }
+        handleResult(scriptExecutionResult, result)
+        return scriptExecutionResult
+    }
+
+    override fun standardImports(): List<String> {
+        val kotlinImports = STANDARD_IMPORTS.map { it.replace("import static", "import") } + kotlinImports
+        return kotlinImports.filter { !it.startsWith("import java.io") }
+    }
+
+    private fun handleResult(
+        scriptExecutionResult: ScriptExecutionResult,
+        result: ResultWithDiagnostics<EvaluationResult>?,
+    ) {
+        if (result == null) {
+            scriptExecutionResult.result = translate("scripting.error.timeout")
+            return
         }
         val scriptLines = effectiveScript.lines()
         val logger = scriptExecutionResult.scriptLogger
-        val messages = mutableListOf<String>()
-        result?.reports?.forEach { report ->
+        result.reports.forEach { report ->
             val severity = report.severity
             val message = report.message
             val location = report.location
             var line1 = "[$severity] $message"
             var line2: String? = null
             location?.let {
-                line1 = "[$severity] $message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
+                // line1 = "[$severity] $message: ${it.start.line}:${it.start.col} to ${it.end?.line}:${it.end?.col}"
+                line1 = "[$severity] $message: line ${it.start.line} to ${it.end?.line}"
                 val lineIndex = it.start.line - 1 // Zeilenindex anpassen
                 if (lineIndex in scriptLines.indices) {
                     val line = scriptLines[lineIndex]
@@ -113,83 +130,9 @@ class KotlinScriptExecutor : ScriptExecutor() {
                     line2 = markedLine
                 }
             }
-            if (severity == ScriptDiagnostic.Severity.ERROR) {
-                logger.error(line1)
-                line2?.let { logger.error(it) }
-            } else {
-                logger.info(line1)
-                line2?.let { logger.info(it) }
-            }
+            logger.add(line1, severity)
+            line2?.let { logger.add(it, severity) }
         }
-        scriptExecutionResult.result = result?.valueOrNull()
-        return scriptExecutionResult
+        scriptExecutionResult.result = result.valueOrNull()
     }
-
-    override fun standardImports(): List<String> {
-        val kotlinImports = STANDARD_IMPORTS.map { it.replace("import static", "import") } + kotlinImports
-        return kotlinImports.filter { !it.startsWith("import java.io") }
-    }
-
-    override fun appendBlockAfterImports(sb: StringBuilder) {
-        sb.appendLine("// Auto generated bindings:")
-        // Prepend bindings now before proceeding
-        val bindingsEntries = mutableListOf<String>()
-        val script = resolvedScript ?: source
-        /*variables.forEach { (name, value) ->
-            if (!(resolvedScript ?: source).contains("bindings[\"$name\"]")) { // Don't add binding twice
-                addBinding(bindingsEntries, name, value)
-            }
-        }
-        scriptParameterList?.forEach { param ->
-            if (!script.contains("bindings[\"${param.parameterName}\"]")) { // Don't add binding twice
-                // OK, null value wasn't added to variables. So we had to add them here:
-                addBinding(bindingsEntries, param.parameterName, param)
-            }
-        }*/
-        bindingsEntries.sortedBy { it.lowercase() }.forEach {
-            sb.appendLine(it)
-        }
-        sb.appendLine()
-        sb.appendLine()
-    }
-
-    private fun addBinding(bindingsEntries: MutableList<String>, name: String, value: Any?) {
-        if (name.isBlank()) {
-            return // Don't add blank variables (shouldn't occur).
-        }
-        var nullable = ""
-        val clazz = if (value != null) {
-            if (value is ScriptParameter) {
-                if (value.type != ScriptParameterType.BOOLEAN) {
-                    nullable = "?" // Script parameter not found as variable -> is null!
-                }
-                value.valueClass
-            } else {
-                value::class.java
-            }
-        } else {
-            Any::class.java
-        }
-        val clsName = if (bindingsClassReplacements.containsKey(clazz.name)) {
-            bindingsClassReplacements[clazz.name]
-        } else if (value is ScriptingDao<*>) {
-            "ScriptingDao<${value.dOClass.name}>"
-        } else {
-            clazz.name
-        }
-        val identifier = createValidIdentifier(name)
-        bindingsEntries.add("val $identifier = bindings[\"$identifier\"] as $clsName$nullable")
-    }
-
-
-}
-
-fun main() {
-    val engineManager = ScriptEngineManager()
-    for (factory in engineManager.engineFactories) {
-        println(factory.engineName)
-        println("\t" + factory.languageName)
-    }
-    val engine = engineManager.getEngineByExtension("kts")
-    engine.eval("import org.projectforge.*\nprintln(\"\${ProjectForgeVersion.APP_ID} \${ProjectForgeVersion.VERSION_STRING}\")")
 }

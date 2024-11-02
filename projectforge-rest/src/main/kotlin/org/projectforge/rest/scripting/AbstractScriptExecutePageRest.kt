@@ -121,8 +121,8 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
       layout.add(UIAlert(executionResults, title = "scripting.script.result", markdown = true, color = UIColor.INFO))
     }
 
-    scriptExecution.getDownloadFile(request)?.let { download ->
-      val download = DownloadFileSupport.Download(download)
+    scriptExecution.getDownloadFile(request)?.let { downloadFile ->
+      val download = DownloadFileSupport.Download(downloadFile)
       script.download = download
       layout.add(
         UIRow().add(

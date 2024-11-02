@@ -24,21 +24,11 @@
 package org.projectforge.common.extensions
 
 import org.projectforge.common.FormatterUtils
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.text.NumberFormat
 import java.util.*
-
-/**
- * Formats a number for the user by using the locale of [ThreadLocalUserContext].
- * @param scale The number of digits after the decimal point.
- * @return The formatted number or an empty string if the number is null.
- */
-fun Number?.formatForUser(scale: Int? = null): String {
-    this ?: return ""
-    return this.format(ThreadLocalUserContext.locale, scale)
-}
+import kotlin.math.absoluteValue
 
 /**
  * Formats a number for the user by using the given locale.
@@ -65,12 +55,40 @@ fun Number?.format(locale: Locale? = null, scale: Int? = null): String {
 }
 
 /**
- * Formats a number of bytes for the user by using the locale of [ThreadLocalUserContext].
- * @see formatBytes
+ * If not given, then ?? will be returned. If given, then the number will be formatted with leading zeros.
+ * @param number If null, then "???" will be returned.
+ * @return 2 digits.
  */
-fun Number?.formatBytesForUser(): String {
-    this ?: return ""
-    return this.formatBytes(ThreadLocalUserContext.locale)
+fun Number?.format2Digits(): String {
+    return formatDigits(2)
+}
+
+/**
+ * If not given, then ??? will be returned. If given, then the number will be formatted with leading zeros.
+ * @param number If null, then "???" will be returned.
+ * @return 3 digits.
+ */
+fun Number?.format3Digits(): String {
+    return formatDigits(3)
+}
+
+fun Number?.formatDigits(digits: Int): String {
+    this ?: return "?".repeat(digits)
+    if (this.toDouble() < 0) {
+        val absolute = when (this) {
+            is Int -> this.absoluteValue
+            is Long -> this.absoluteValue
+            is Float -> this.absoluteValue
+            is Double -> this.absoluteValue
+            is BigDecimal -> this.abs()
+            is BigInteger -> this.abs()
+            is Byte -> this.toInt().absoluteValue
+            is Short -> this.toInt().absoluteValue
+            else -> throw IllegalArgumentException("Unsupported number type")
+        }
+        return "-${absolute.toString().padStart(digits - 1, '0')}"
+    }
+    return this.toString().padStart(digits, '0')
 }
 
 /**
@@ -98,5 +116,4 @@ fun Number?.formatMillis(): String {
         // else -> String.format("%02d.%03d", seconds, milliseconds)
         else -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
     }
-
 }

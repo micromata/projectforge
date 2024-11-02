@@ -25,6 +25,7 @@ package org.projectforge.business.scripting
 
 import mu.KotlinLogging
 import org.projectforge.common.logging.LogLevel
+import kotlin.script.experimental.api.ScriptDiagnostic
 
 private val log = KotlinLogging.logger {}
 
@@ -32,16 +33,71 @@ private val log = KotlinLogging.logger {}
  * You may use loging functionality inside your scripts by using log.info(String) and log.error(String).
  */
 class ScriptLogger {
-  class Message(val message: String?, val level: LogLevel)
-  val messages = mutableListOf<Message>()
+    class Message(val message: String?, val level: LogLevel)
 
-  fun info(msg: String?) {
-    log.info { msg }
-    messages.add(Message(msg, LogLevel.INFO))
-  }
+    val messages = mutableListOf<Message>()
 
-  fun error(msg: String?) {
-    log.error { msg }
-    messages.add(Message(msg, LogLevel.ERROR))
-  }
+    fun error(msg: Any?) {
+        error { msg }
+    }
+
+    fun error(msg: () -> Any?) {
+        val message = msg()?.toString()
+        log.error { message }
+        messages.add(Message(message, LogLevel.ERROR))
+    }
+
+    fun warn(msg: Any?) {
+        warn { msg }
+    }
+
+    fun warn(msg: () -> Any?) {
+        val message = msg()?.toString()
+        log.info { message }
+        messages.add(Message(message, LogLevel.WARN))
+    }
+
+    fun info(msg: Any?) {
+        info { msg }
+    }
+
+    fun info(msg: () -> Any?) {
+        val message = msg()?.toString()
+        log.info { message }
+        messages.add(Message(message, LogLevel.INFO))
+    }
+
+    fun debug(msg: Any?) {
+        debug { msg }
+    }
+
+    fun debug(msg: () -> Any?) {
+        val message = msg()?.toString()
+        log.debug { message }
+        messages.add(Message(message, LogLevel.DEBUG))
+    }
+
+    internal fun add(msg: String?, logLevel: ScriptDiagnostic.Severity) {
+        when (logLevel) {
+            ScriptDiagnostic.Severity.DEBUG -> {
+                debug { msg }
+                LogLevel.DEBUG
+            }
+
+            ScriptDiagnostic.Severity.INFO -> {
+                info { msg }
+                LogLevel.INFO
+            }
+
+            ScriptDiagnostic.Severity.WARNING -> {
+                warn { msg }
+                LogLevel.WARN
+            }
+
+            ScriptDiagnostic.Severity.ERROR, ScriptDiagnostic.Severity.FATAL -> {
+                error { msg }
+                LogLevel.ERROR
+            }
+        }
+    }
 }

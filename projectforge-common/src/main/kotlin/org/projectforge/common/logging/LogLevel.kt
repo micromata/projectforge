@@ -28,7 +28,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import org.projectforge.common.i18n.I18nEnum
 
 enum class LogLevel(val key: String) : I18nEnum {
-    ERROR("error"), WARN("warn"), INFO("info"), DEBUG("debug"), TRACE("trace");
+    FATAL("fatal"), ERROR("error"), WARN("warn"), INFO("info"), DEBUG("debug"), TRACE("trace");
 
     fun safeValueOf(name: String): LogLevel? {
         return LogLevel.entries.firstOrNull { it.name == name }

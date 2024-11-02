@@ -25,6 +25,7 @@ package org.projectforge.common;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.projectforge.common.extensions.KotlinNumberExtensionsKt;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -281,7 +282,7 @@ public class StringHelper {
      * @see StringUtils#leftPad(String, int, char)
      */
     public static String format2DigitNumber(final Number value) {
-        return StringUtils.leftPad(String.valueOf(value), 2, '0');
+        return KotlinNumberExtensionsKt.format2Digits(value);
     }
 
     /**
@@ -291,7 +292,7 @@ public class StringHelper {
      * @see StringUtils#leftPad(String, int, char)
      */
     public static String format3DigitNumber(final int value) {
-        return StringUtils.leftPad(String.valueOf(value), 3, '0');
+        return KotlinNumberExtensionsKt.format3Digits(value);
     }
 
     /**

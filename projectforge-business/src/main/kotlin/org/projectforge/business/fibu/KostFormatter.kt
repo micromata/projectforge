@@ -25,10 +25,14 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import org.apache.commons.lang3.StringUtils
+import org.projectforge.business.fibu.OldKostFormatter.format2Digits
+import org.projectforge.business.fibu.OldKostFormatter.format3Digits
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.common.extensions.abbreviate
+import org.projectforge.common.extensions.format2Digits
+import org.projectforge.common.extensions.format3Digits
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.splitToInts
 import org.springframework.stereotype.Service
@@ -82,7 +86,7 @@ class KostFormatter(private val kostCache: KostCache) {
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
         if (formatType == FormatType.FORMATTED_NUMBER || formatType == FormatType.NUMBER) {
-            return format3Digits(kundeId)
+            return kundeId.format3Digits()
         }
         val kunde = kostCache.getCustomer(kundeId) ?: return format3Digits(kundeId)
         return abbreviateIfRequired("${format3Digits(kundeId)}: ${kunde.name}", formatType, abbreviationLength)
@@ -117,13 +121,6 @@ class KostFormatter(private val kostCache: KostCache) {
             sb.append(": ").append(projekt.name)
         }
         return abbreviateIfRequired(sb.toString(), formatType, abbreviationLength)
-    }
-
-    /**
-     * Usable by scripts.
-     */
-    fun format(kost2: Kost2DO?, abbreviationLength: Int): String {
-        return formatKost2(kost2, FormatType.LONG, abbreviationLength)
     }
 
     /**
@@ -246,24 +243,12 @@ class KostFormatter(private val kostCache: KostCache) {
         }
 
         /**
-         * If not given, then ?? will be returned.
-         *
-         * @param number
-         * @return
-         * @see StringUtils.leftPad
+         * Usable by scripts.
          */
-        fun format2Digits(number: Number?): String {
-            return number?.toString()?.padStart(2, '0') ?: "??"
+        fun format(kost2: Kost2DO?, abbreviationLength: Int): String {
+            return instance.formatKost2(kost2, FormatType.LONG, abbreviationLength)
         }
 
-        /**
-         * If not given, then ??? will be returned. If given, then the number will be formatted with leading zeros.
-         * @param number If null, then "???" will be returned.
-         * @return 3 digits.
-         */
-        fun format3Digits(number: Number?): String {
-            return number?.toString()?.padStart(3, '0') ?: "???"
-        }
 
         /**
          * Uses NumberHelper.splitToInts(value, 1, 3, 2, 2)
