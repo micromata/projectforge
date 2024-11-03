@@ -1,5 +1,6 @@
 Aktuell:
-- ForecastScript läuft sehr lange: getKunde, getProjekt, getUsername etc.
+- Monatsbericht: Link auf Zeitberichte
+- Aufträge in Strukturbaum nicht da.
 - Suche:
   - Suche in History
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
@@ -31,7 +32,7 @@ Aktuell:
 - History of AddressCampaignValueDO's (AddressCampaignValueDao.convertToDisplayHistoryEntries removed)
 
 Später
-- Hibernate-Search: K+S, Buchsignatur etc.
+- Hibernate-Search: K+S etc.
 - Besuchsbuch und EmployeeValidSinceAttr: DisplayEntries von Besuchtagen mit Datum des Besuchs versehen.
 - Suche-Seite hat veraltete Bereiche, AddressListPage läuft auf Fehler.
 
