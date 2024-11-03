@@ -80,7 +80,7 @@ class KundeCache : AbstractCache() {
     override fun refresh() {
         log.info("Initializing KundeCache ...")
         persistenceService.runIsolatedReadOnly { context ->
-            this.kundeMap = persistenceService
+            this.kundeMap = context
                 .executeQuery("from KundeDO t", KundeDO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }
                 .associateBy { it.id!! }

@@ -23,13 +23,10 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
-import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 /**
  * Separate cache for incoming invoices due to performance reasons.
@@ -37,4 +34,5 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-internal class EingangsrechnungCache : AbstractRechnungCache(EingangsrechnungDO::class.java)
+internal class EingangsrechnungCache(persistenceService: PfPersistenceService) :
+    AbstractRechnungCache(EingangsrechnungDO::class.java, persistenceService)

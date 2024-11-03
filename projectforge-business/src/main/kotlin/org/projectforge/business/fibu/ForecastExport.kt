@@ -158,6 +158,7 @@ open class ForecastExport { // open needed by Wicket.
         filter.user = origFilter.user
         val orderList = orderDao.select(filter)
         if (orderList.isEmpty()) {
+            log.info { "No orders found for export." }
             // No orders found, so we don't need the forecast sheet.
             return null
         }
@@ -168,19 +169,22 @@ open class ForecastExport { // open needed by Wicket.
         queryFilter.addOrder(desc("datum"))
         queryFilter.addOrder(desc("nummer"))
         val invoices = rechnungDao.select(queryFilter, checkAccess = false)
-        log.info("Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}")
+        log.info { "Exporting forecast script for date ${baseDate.isoString} with filter: str='${filter.searchString ?: ""}', projects=${filter.projectList?.joinToString { it.name ?: "???" }}" }
         val forecastTemplate = applicationContext.getResource("classpath:officeTemplates/ForecastTemplate.xlsx")
 
         ExcelWorkbook(forecastTemplate.inputStream, "ForecastTemplate.xlsx").use { workbook ->
             val forecastSheet = workbook.getSheet(Sheet.FORECAST.title)!!
+            log.debug { "Forecast sheet: $forecastSheet" }
             ForecastCol.entries.forEach { forecastSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { forecastSheet.registerColumn(it.header) }
 
             val invoicesSheet = workbook.getSheet(Sheet.INVOICES.title)!!
+            log.debug { "Invoices sheet: $forecastSheet" }
             InvoicesCol.entries.forEach { invoicesSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesSheet.registerColumn(it.header) }
 
             val invoicesPriorYearSheet = workbook.getSheet(Sheet.INVOICES_PREV_YEAR.title)!!
+            log.debug { "InvoicesPriorYearSheet sheet: $forecastSheet" }
             InvoicesCol.entries.forEach { invoicesPriorYearSheet.registerColumn(it.header) }
             MonthCol.entries.forEach { invoicesPriorYearSheet.registerColumn(it.header) }
 
@@ -223,6 +227,7 @@ open class ForecastExport { // open needed by Wicket.
                 }
             }
             if (!orderPositionFound) {
+                log.info { "No orders positions found for export." }
                 // No order positions found, so we don't need the forecast sheet.
                 return null
             }
@@ -378,7 +383,7 @@ open class ForecastExport { // open needed by Wicket.
         sheet.setStringValue(
             row,
             ForecastCol.AUFTRAG_STATUS.header,
-            if (order.auftragsStatus != null) translate(order.auftragsStatus.i18nKey) else ""
+            if (order.auftragsStatus != null) translate(order.auftragsStatus!!.i18nKey) else ""
         )
         sheet.setStringValue(
             row,

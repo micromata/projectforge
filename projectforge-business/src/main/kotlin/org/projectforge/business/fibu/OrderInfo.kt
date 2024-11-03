@@ -28,8 +28,11 @@ import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.io.Serializable
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.util.Date
 
 private val log = KotlinLogging.logger {}
 
@@ -50,28 +53,51 @@ class OrderInfo(order: AuftragDO) : Serializable {
         val comment = schedule.comment.abbreviate(30)
     }
 
-    val id = order.id
-    val nummer = order.nummer
-    val titel = order.titel
-    val auftragsStatus = order.auftragsStatus
-    val angebotsDatum = order.angebotsDatum
-    val created = order.created
-    val erfassungsDatum = order.erfassungsDatum
-    val entscheidungsDatum = order.entscheidungsDatum
-    val kundeAsString = order.kundeAsString
-    val projektAsString = order.projektAsString
-    val probabilityOfOccurrence = order.probabilityOfOccurrence
-    val periodOfPerformanceBegin = order.periodOfPerformanceBegin
-    val periodOfPerformanceEnd = order.periodOfPerformanceEnd
-    val contactPerson = order.contactPerson
-    val bemerkung = order.bemerkung.abbreviate(30)
-    val paymentSchedules = order.paymentSchedules?.map { PaymentScheduleInfo(it) }
+    var id: Long? = null
+    var nummer: Int? = null
+    var titel: String? = null
+    var auftragsStatus: AuftragsStatus? = null
+    var angebotsDatum: LocalDate? = null
+    var created: Date? = null
+    var erfassungsDatum: LocalDate? = null
+    var entscheidungsDatum: LocalDate? = null
+    lateinit var kundeAsString: String
+    lateinit var projektAsString: String
+    var probabilityOfOccurrence: Int? = null
+    var periodOfPerformanceBegin: LocalDate? = null
+    var periodOfPerformanceEnd: LocalDate? = null
+    var contactPerson: PFUserDO? = null
+    var bemerkung: String? = null
+    var paymentSchedules: Collection<PaymentScheduleInfo>? = null
+
+    init {
+        updateFields(order)
+    }
 
     /**
      * The positions (not deleted) of the order with additional information.
      */
-    var infoPositions: List<OrderPositionInfo>? = null
-        private set
+    val infoPositions: Collection<OrderPositionInfo>?
+        get() = AuftragsCache.instance.getOrderPositionInfosByAuftragId(id)
+
+    fun updateFields(order: AuftragDO) {
+        id = order.id
+        nummer = order.nummer
+        titel = order.titel
+        auftragsStatus = order.auftragsStatus
+        angebotsDatum = order.angebotsDatum
+        created = order.created
+        erfassungsDatum = order.erfassungsDatum
+        entscheidungsDatum = order.entscheidungsDatum
+        kundeAsString = order.kundeAsString
+        projektAsString = order.projektAsString
+        probabilityOfOccurrence = order.probabilityOfOccurrence
+        periodOfPerformanceBegin = order.periodOfPerformanceBegin
+        periodOfPerformanceEnd = order.periodOfPerformanceEnd
+        contactPerson = order.contactPerson
+        bemerkung = order.bemerkung.abbreviate(30)
+        paymentSchedules = order.paymentSchedules?.map { PaymentScheduleInfo(it) }
+    }
 
     /**
      * isVollstaendigFakturiert must be calculated first.
@@ -83,7 +109,9 @@ class OrderInfo(order: AuftragDO) : Serializable {
             if (isVollstaendigFakturiert == true) {
                 return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
             }
-            return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus.i18nKey) else null
+            auftragsStatus.let {
+                return if (it != null) I18nHelper.getLocalizedMessage(it.i18nKey) else null
+            }
         }
 
     var netSum = BigDecimal.ZERO
@@ -134,9 +162,9 @@ class OrderInfo(order: AuftragDO) : Serializable {
         positions: Collection<AuftragsPositionDO>? = null,
         paymentSchedules: Collection<PaymentScheduleDO>? = null
     ) {
+        updateFields(order)
         val usePositions = positions ?: order.positionen
         val useSchedules = paymentSchedules ?: order.paymentSchedules
-        infoPositions = usePositions?.filter { !it.deleted }?.map { OrderPositionInfo(it, this) }
         netSum = calculateNetSum(usePositions)
         orderedNetSum = calculateOrderedNetSum(order, usePositions)
         analyzeInvoices(positions) // Calculates invoicedSum and positionAbgeschlossenUndNichtVollstaendigFakturiert.

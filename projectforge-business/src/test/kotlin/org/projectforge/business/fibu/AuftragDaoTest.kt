@@ -129,15 +129,17 @@ class AuftragDaoTest : AbstractTestBase() {
             } catch (ex: AccessException) {
                 // OK
             }
-            auftragDao.find(id2, attached = true) // Attached is important, otherwise deadlock.
-            try {
-                suppressErrorLogs {
-                    auftragDao.find(id3, attached = true) // Attached is important, otherwise deadlock.
-                }
-                Assertions.fail { "AccessException expected: Projectmanager should not have access to older orders than ${AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER} days." }
-            } catch (ex: AccessException) {
-                // OK
+        }
+        auftragDao.find(id2, attached = true) // Attached is important, otherwise deadlock.
+        try {
+            suppressErrorLogs {
+                auftragDao.find(id3, attached = true) // Attached is important, otherwise deadlock.
             }
+            Assertions.fail { "AccessException expected: Projectmanager should not have access to older orders than ${AuftragRight.MAX_DAYS_OF_VISIBILITY_4_PROJECT_MANGER} days." }
+        } catch (ex: AccessException) {
+            // OK
+        }
+        persistenceService.runInTransaction {
             val useId = id1
             logon(TEST_CONTROLLING_USER)
             val order = auftragDao.find(useId, attached = true)!! // Attached is important, otherwise deadlock.
@@ -215,9 +217,11 @@ class AuftragDaoTest : AbstractTestBase() {
         var logonUser: PFUserDO? = null
         var auftragId: Long? = null
         var group: GroupDO? = null
+        lateinit var id: Serializable
+        lateinit var user: PFUserDO
         persistenceService.runInTransaction { _ ->
             logon(TEST_ADMIN_USER)
-            var user = initTestDB.addUser("AuftragDaoCheckPartlyReadWriteAccess")
+            user = initTestDB.addUser("AuftragDaoCheckPartlyReadWriteAccess")
             val financeGroup = getGroup(FINANCE_GROUP)
             financeGroup.addUser(user)
             groupDao.update(financeGroup)
@@ -230,7 +234,7 @@ class AuftragDaoTest : AbstractTestBase() {
             var projekt = ProjektDO()
             projekt.name = "ACME - Webportal checkPartlyReadwriteAccess"
             projekt.projektManagerGroup = group
-            var id: Serializable? = projektDao.insert(projekt)
+            id = projektDao.insert(projekt)
             projekt = projektDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             var auftrag = AuftragDO()
@@ -240,7 +244,9 @@ class AuftragDaoTest : AbstractTestBase() {
             id = auftragDao.insert(auftrag)
             auftragId = id
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
+        }
+        persistenceService.runInTransaction {
+            var auftrag = auftragDao.find(id, attached = true)!! // Attached is important, otherwise deadlock.
 
             logon(user)
             try {
@@ -253,7 +259,7 @@ class AuftragDaoTest : AbstractTestBase() {
             }
             logon(TEST_ADMIN_USER)
             user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)) //
-            userRightDao.insert(ArrayList(user.rights))
+            userRightDao.insert(user.rights!!.toList())
             userService.update(user)
             user = userService.getById(user.id)
             logonUser = user
@@ -409,6 +415,7 @@ class AuftragDaoTest : AbstractTestBase() {
     @Test
     fun checkEmptyAuftragsPositionen() {
         logon(TEST_FINANCE_USER)
+        lateinit var id: Serializable
         persistenceService.runInTransaction { _ ->
             var auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
@@ -416,9 +423,11 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag.addPosition(AuftragsPositionDO())
             auftrag.addPosition(AuftragsPositionDO())
             auftrag.addPosition(AuftragsPositionDO())
-            var id: Serializable = auftragDao.insert(auftrag)
+            id = auftragDao.insert(auftrag)
+        }
+        persistenceService.runInTransaction { _ ->
             dbNumber++ // Needed for getNextNumber test;
-            auftrag = auftragDao.find(id, attached = true)!!
+            var auftrag = auftragDao.find(id, attached = true)!!
             Assertions.assertEquals(1, auftrag.positionenIncludingDeleted!!.size)
             auftrag = AuftragDO()
             auftrag.nummer = auftragDao.getNextNumber(auftrag)

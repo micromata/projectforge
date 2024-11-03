@@ -184,8 +184,10 @@ object ForecastUtils { // open needed by Wicket.
                 return getMonthCount(pos.periodOfPerformanceBegin, pos.periodOfPerformanceEnd)
             }
         } else {
-            if (order?.periodOfPerformanceEnd != null && order.periodOfPerformanceBegin != null) {
-                return getMonthCount(order.periodOfPerformanceBegin, order.periodOfPerformanceEnd)
+            val periodOfPerformanceBegin = order?.periodOfPerformanceBegin
+            val periodOfPerformanceEnd = order?.periodOfPerformanceEnd
+            if (periodOfPerformanceEnd != null && periodOfPerformanceBegin != null) {
+                return getMonthCount(periodOfPerformanceBegin, periodOfPerformanceEnd)
             }
         }
         return null
@@ -207,13 +209,15 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     fun ensureErfassungsDatum(order: OrderInfo): LocalDate {
-        if (order.erfassungsDatum != null)
-            return order.erfassungsDatum
+        order.erfassungsDatum?.let {
+            return it
+        }
         order.created?.let { created ->
             return PFDay.from(created).localDate
         }
-        if (order.angebotsDatum != null)
-            return order.angebotsDatum
+        order.angebotsDatum?.let {
+            return it
+        }
         return PFDay.now().localDate
     }
 

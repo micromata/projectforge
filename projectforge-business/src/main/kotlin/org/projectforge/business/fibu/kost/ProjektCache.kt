@@ -31,9 +31,6 @@ import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.projectforge.framework.utils.NumberHelper
-import org.projectforge.reporting.Kost2Art
-import org.projectforge.reporting.impl.Kost2ArtImpl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -81,7 +78,7 @@ class ProjektCache : AbstractCache() {
     override fun refresh() {
         log.info("Initializing ProjektCache ...")
         persistenceService.runIsolatedReadOnly { context ->
-            this.projektMap = persistenceService
+            this.projektMap = context
                 .executeQuery("from ProjektDO t", ProjektDO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }
                 .associateBy { it.id!! }

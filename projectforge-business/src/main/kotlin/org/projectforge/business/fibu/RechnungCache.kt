@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -33,7 +34,8 @@ import org.springframework.stereotype.Component
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class RechnungCache : AbstractRechnungCache(RechnungDO::class.java) {
+class RechnungCache(persistenceService: PfPersistenceService) :
+    AbstractRechnungCache(RechnungDO::class.java, persistenceService) {
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
 
