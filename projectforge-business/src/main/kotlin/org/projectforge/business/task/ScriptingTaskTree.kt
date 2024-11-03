@@ -23,7 +23,7 @@
 
 package org.projectforge.business.task
 
-import org.projectforge.business.fibu.AuftragsPositionVO
+import org.projectforge.business.fibu.OrderPositionInfo
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.timesheet.TimesheetDO
 import java.math.BigDecimal
@@ -144,7 +144,7 @@ class ScriptingTaskTree {
     return __baseDao.hasOrderPositionsUpwards(taskId)
   }
 
-  fun getOrderPositionsUpwards(taskId: Long?): Set<AuftragsPositionVO> {
+  fun getOrderPositionsUpwards(taskId: Long?): Set<OrderPositionInfo> {
     return __baseDao.getOrderPositionsUpwards(taskId)
   }
 

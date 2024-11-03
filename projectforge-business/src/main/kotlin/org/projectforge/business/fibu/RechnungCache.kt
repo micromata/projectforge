@@ -35,6 +35,9 @@ import org.springframework.stereotype.Component
 @Component
 class RechnungCache : AbstractRechnungCache(RechnungDO::class.java) {
     @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
     private lateinit var auftragsRechnungCache: AuftragsRechnungCache
 
     @Autowired
@@ -45,18 +48,35 @@ class RechnungCache : AbstractRechnungCache(RechnungDO::class.java) {
         instance = this
         AbstractRechnungsStatistik.rechnungCache = this
         RechnungCalculator.rechnungCache = this
+        RechnungCalculator.auftragsCache = auftragsCache
     }
 
-    fun getRechnungsPositionVOSetByAuftragId(auftragId: Long?): Set<RechnungsPositionVO>? {
-        return auftragsRechnungCache.getRechnungsPositionVOSetByAuftragId(auftragId)
+    fun getOrderPositionInfos(rechnungId: Long?): Set<OrderPositionInfo>? {
+        rechnungId ?: return null
+        val info = getRechnungInfo(rechnungId) ?: return null
+        val set = mutableSetOf<OrderPositionInfo>()
+        info.positions?.forEach { posInfo ->
+            posInfo.auftragsPositionId?.let { auftragsPosId ->
+                auftragsCache.getOrderPositionInfo(auftragsPosId)?.let {
+                    set.add(it)
+                }
+            }
+        }
+        return set
     }
 
-    fun getRechnungsPositionVOSetByRechnungId(rechnungId: Long?): Set<RechnungsPositionVO>? {
-        return auftragsRechnungCache.getRechnungsPositionVOSetByRechnungId(rechnungId)
+    fun getRechnungsPosInfosByAuftragId(auftragId: Long?): Set<RechnungPosInfo>? {
+        auftragId ?: return null
+        return auftragsRechnungCache.getRechnungsPosInfoByAuftragId(auftragId)
     }
 
-    fun getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId: Long?): Set<RechnungsPositionVO>? {
-        return auftragsRechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(auftragsPositionId)
+    @JvmOverloads
+    fun getRechnungsPosInfosByAuftragsPositionId(
+        auftragsPositionId: Long?,
+        checkRefresh: Boolean = true
+    ): Set<RechnungPosInfo>? {
+        auftragsPositionId ?: return null
+        return auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPositionId, checkRefresh)
     }
 
     fun update(invoice: RechnungDO) {

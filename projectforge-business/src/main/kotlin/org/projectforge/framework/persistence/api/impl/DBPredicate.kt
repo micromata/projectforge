@@ -199,7 +199,7 @@ abstract class DBPredicate(
          */
         override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
             logDebugFunCall(log) {
-                it.mtd("NotEqual.asPredicate(ctx)").msg(
+                it.mtd("IsIn.asPredicate(ctx)").msg(
                     "entity=${ctx.entityName},field=$field,value=${
                         values.joinToString(
                             ", ",

@@ -177,22 +177,6 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
         position.rechnung = this
     }
 
-    val auftragsPositionVOs: Set<AuftragsPositionVO>
-        @Transient
-        get() {
-            val result = mutableSetOf<AuftragsPositionVO>()
-            RechnungCache.instance.ensureRechnungInfo(this).let { info ->
-                info.positions?.forEach { pos ->
-                    val auftragsPositionId = pos.auftragsPositionId
-                    if (auftragsPositionId != null)
-                        AuftragsCache.instance.getAuftragsPosition(auftragsPositionId)?.let { auftragsPosition ->
-                            result.add(AuftragsPositionVO(auftragsPosition))
-                        }
-                }
-            }
-            return result
-        }
-
     /**
      * @see KundeFormatter.formatKundeAsString
      */

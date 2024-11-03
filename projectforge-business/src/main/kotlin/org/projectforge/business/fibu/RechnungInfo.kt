@@ -29,10 +29,13 @@ import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
-    var id = invoice.id
+class RechnungInfo(invoice: AbstractRechnungDO?) : Serializable {
+    val id = invoice?.id ?: -1
+    val nummer = if (invoice is RechnungDO) invoice.nummer else null
     var positions: List<RechnungPosInfo>? = null
         internal set
+
+    val date = invoice?.datum
 
     var netSum = BigDecimal.ZERO
 
@@ -46,7 +49,7 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
      */
     var grossSumWithDiscount = BigDecimal.ZERO
 
-    val zahlBetrag = invoice.zahlBetrag
+    val zahlBetrag = invoice?.zahlBetrag
 
     /**
      * @return The total sum of all cost assignment net amounts of all positions.

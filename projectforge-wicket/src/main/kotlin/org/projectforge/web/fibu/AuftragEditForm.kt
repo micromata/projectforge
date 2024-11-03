@@ -591,7 +591,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
       }
       posGridBuilder.newSplitPanel(GridSize.COL25)
       val invoicePositionsByOrderPositionId = WicketSupport.get(RechnungCache::class.java)
-        .getRechnungsPositionVOSetByAuftragsPositionId(position.id)
+        .getRechnungsPosInfosByAuftragsPositionId(position.id)
       val showInvoices = CollectionUtils.isNotEmpty(invoicePositionsByOrderPositionId)
       run {
 
@@ -755,7 +755,7 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
 
   private fun positionInInvoiceExists(position: AuftragsPositionDO): Boolean {
     if (position.id != null) {
-      val invoicePositionList = WicketSupport.get(RechnungCache::class.java).getRechnungsPositionVOSetByAuftragsPositionId(position.id)
+      val invoicePositionList = WicketSupport.get(RechnungCache::class.java).getRechnungsPosInfosByAuftragsPositionId(position.id)
       return invoicePositionList != null && invoicePositionList.isEmpty() == false
     }
     return false

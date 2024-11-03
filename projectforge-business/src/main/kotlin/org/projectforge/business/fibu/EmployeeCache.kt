@@ -81,6 +81,12 @@ open class EmployeeCache : AbstractCache() {
         return userGroupCache.getUser(user.id)
     }
 
+    fun getUserByEmployee(employeeId: Long?): PFUserDO? {
+        employeeId ?: return null
+        val employee = getEmployee(employeeId) ?: return null
+        return userGroupCache.getUser(employee.userId)
+    }
+
     fun setStatusAndAnnualLeave(employee: EmployeeDO?) {
         employee ?: return
         checkRefresh()

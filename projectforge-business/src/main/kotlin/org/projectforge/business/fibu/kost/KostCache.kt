@@ -55,6 +55,9 @@ class KostCache : AbstractCache() {
     @Autowired
     private lateinit var kundeDao: KundeDao
 
+    @Autowired
+    private lateinit var kundeCache: KundeCache
+
     /**
      * The key is the kost2-id. Must be synchronized because it isn't readonly (see updateKost2).
      */
@@ -64,11 +67,6 @@ class KostCache : AbstractCache() {
      * The key is the kost2-id. Must be synchronized because it isn't readonly (see updateKost1)
      */
     private lateinit var kost1Map: MutableMap<Long, Kost1DO>
-
-    /**
-     * The key is the kost2-id. Mustn't be synchronized because it is only read.
-     */
-    private lateinit var customerMap: Map<Long, KundeDO>
 
     /**
      * Mustn't be synchronized because it is only read.
@@ -127,9 +125,7 @@ class KostCache : AbstractCache() {
     }
 
     fun getCustomer(customerId: Long?): KundeDO? {
-        customerId ?: return null
-        checkRefresh()
-        return customerMap[customerId]
+        return kundeCache.getKunde(customerId)
     }
 
     fun getKost1(kost1Id: Long?): Kost1DO? {
@@ -260,10 +256,6 @@ class KostCache : AbstractCache() {
                 .toMutableMap()
             kost2EntriesExists = kost2Map.values.any { !it.deleted }
             updateKost2Arts()
-            this.customerMap = persistenceService
-                .executeQuery("from KundeDO t", KundeDO::class.java, lockModeType = LockModeType.NONE)
-                .filter { it.id != null }
-                .associateBy { it.id!! }
             log.info { "Initializing of KostCache done. ${context.formatStats()}" }
         }
     }

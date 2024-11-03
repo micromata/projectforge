@@ -92,12 +92,14 @@ abstract class AbstractRechnungCache(val entityClass: Class<out AbstractRechnung
      * @return The RechnungPosInfo (from cache or calculated).
      */
     fun ensureRechnungPosInfo(pos: AbstractRechnungsPositionDO): RechnungPosInfo {
-        val info = getRechnungPosInfo(pos.id)
-        if (info != null) {
-            pos.info = info
-            return info
+        var posInfo = getRechnungPosInfo(pos.id)
+        if (posInfo != null) {
+            pos.info = posInfo
+            return posInfo
         }
-        return RechnungCalculator.calculate(pos).also {
+        val info = getRechnungInfo(pos.rechnungId)
+        posInfo = RechnungPosInfo(info, pos)
+        return RechnungCalculator.calculate(posInfo, pos).also {
             synchronized(invoiceInfoMap) {
                 invoicePosInfoMap[pos.id!!] = it
             }

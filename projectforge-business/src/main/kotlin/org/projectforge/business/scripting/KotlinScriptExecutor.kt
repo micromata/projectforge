@@ -97,7 +97,7 @@ class KotlinScriptExecutor : ScriptExecutor() {
             if (useResult is ResultWithDiagnostics.Success) {
                 val returnValue = useResult.value.returnValue
                 if (returnValue is ResultValue.Value) {
-                    val output = returnValue.value as? String
+                    val output = returnValue.value
                     scriptExecutionResult.result = output
                 }
             }

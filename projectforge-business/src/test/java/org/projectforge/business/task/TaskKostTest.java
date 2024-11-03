@@ -56,9 +56,6 @@ public class TaskKostTest extends AbstractTestBase {
     @Autowired
     Kost2Dao kost2Dao;
 
-    @Autowired
-    Kost2ArtDao kost2ArtDao;
-
     @Test
     public void checkKost2() {
         persistenceService.runInTransaction(context ->

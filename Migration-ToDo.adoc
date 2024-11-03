@@ -1,10 +1,11 @@
 Aktuell:
-- Kotlin-Script laufen nicht.
+- ForecastScript läuft sehr lange: getKunde, getProjekt, getUsername etc.
 - Suche:
   - Suche in History
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 - PersistenceContext-callstat: mehrere zulassen.
 
+- CronReindexingHourlyJob ohne Effekt.
 - Protokoll einsehen: http://localhost:8080/react/logViewer/dynamic/1
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
 - Liquiditäsgrafik geht nicht.
@@ -68,4 +69,5 @@ Faktura-Quote nach KJ/GJ
  - 114: EmployeeCache.instance.getEmployeeByUserId
  - 37: data class User(val id: Long?, val username: String, val name: String, val firstName: String) : Comparable<User> {
  - 266: var useYear = jahr?.toInt() ?: LocalDate.now().year
+ -
 

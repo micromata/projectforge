@@ -49,8 +49,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.projectforge.business.fibu.AuftragsPositionVO;
-import org.projectforge.business.task.*;
+import org.projectforge.business.fibu.OrderPositionInfo;
+import org.projectforge.business.task.TaskFilter;
+import org.projectforge.business.task.TaskNode;
+import org.projectforge.business.task.TaskTree;
+import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
@@ -208,7 +211,7 @@ public class TaskTreeBuilder implements Serializable {
                 public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
                                          final IModel<TaskNode> rowModel) {
                     final TaskNode taskNode = rowModel.getObject();
-                    final Set<AuftragsPositionVO> orderPositions = getTaskTree().getOrderPositionEntries(taskNode.getId());
+                    final Set<OrderPositionInfo> orderPositions = getTaskTree().getOrderPositionEntries(taskNode.getId());
                     if (CollectionUtils.isEmpty(orderPositions) == true) {
                         final Label label = new Label(componentId, ""); // Empty label.
                         item.add(label);
