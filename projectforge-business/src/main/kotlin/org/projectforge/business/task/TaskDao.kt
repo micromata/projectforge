@@ -204,7 +204,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
             TaskFilter(filter)
         }
         val queryFilter = QueryFilter(myFilter)
-        val col: MutableCollection<TaskStatus?> = ArrayList(4)
+        val col = mutableListOf<TaskStatus>()
         if (myFilter.isNotOpened) {
             col.add(TaskStatus.N)
         }
@@ -219,7 +219,7 @@ open class TaskDao : BaseDao<TaskDO>(TaskDO::class.java), Serializable { // Seri
         } else {
             // Note: Result set should be empty, because every task should has one of the following status values.
             queryFilter.add(
-                not(isIn("status", TaskStatus.N, TaskStatus.O, TaskStatus.C))
+                not(isIn("status", listOf(TaskStatus.N, TaskStatus.O, TaskStatus.C)))
             )
         }
         queryFilter.addOrder(asc("title"))

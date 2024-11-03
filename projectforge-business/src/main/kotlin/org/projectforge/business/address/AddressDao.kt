@@ -181,7 +181,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
                 || myFilter.isDeparted
                 || myFilter.isPersonaIngrata
             ) {
-                val col: MutableCollection<ContactStatus?> = ArrayList()
+                val col: MutableCollection<ContactStatus> = ArrayList()
                 if (myFilter.isActive) {
                     col.add(ContactStatus.ACTIVE)
                 }
@@ -203,7 +203,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             // Proceed address status:
             // Use filter only for non deleted books:
             if (myFilter.isUptodate || myFilter.isOutdated || myFilter.isLeaved) {
-                val col: MutableCollection<AddressStatus?> = ArrayList()
+                val col = mutableListOf<AddressStatus>()
                 if (myFilter.isUptodate) {
                     col.add(AddressStatus.UPTODATE)
                 }

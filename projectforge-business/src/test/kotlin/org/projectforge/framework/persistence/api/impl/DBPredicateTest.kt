@@ -59,21 +59,27 @@ class DBPredicateTest {
         Assertions.assertTrue(DBPredicate.IsNotNull("admins.address.city").match(company))
         Assertions.assertFalse(DBPredicate.IsNotNull("developers.address.city").match(company))
 
-        Assertions.assertTrue(DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel").match(company))
-        Assertions.assertFalse(DBPredicate.IsIn("admins.address.city", "Hamburg", "Berlin").match(company))
+        Assertions.assertTrue(DBPredicate.IsIn("admins.address.city", listOf("Hamburg", "Kassel")).match(company))
+        Assertions.assertFalse(DBPredicate.IsIn("admins.address.city", listOf("Hamburg", "Berlin")).match(company))
 
         Assertions.assertTrue(DBPredicate.Like("admins.name", "*hei*").match(company))
         Assertions.assertTrue(DBPredicate.Like("admins.name", "shei*").match(company))
         Assertions.assertTrue(DBPredicate.Like("admins.name", "*eilA").match(company))
         Assertions.assertFalse(DBPredicate.Like("admins.name", "hei*").match(company))
 
-        Assertions.assertTrue(DBPredicate.And(
-                DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel"),
-                DBPredicate.Like("admins.name", "*hei*")).match(company))
+        Assertions.assertTrue(
+            DBPredicate.And(
+                DBPredicate.IsIn("admins.address.city", listOf("Hamburg", "Kassel")),
+                DBPredicate.Like("admins.name", "*hei*")
+            ).match(company)
+        )
 
-        Assertions.assertFalse(DBPredicate.And(
-                DBPredicate.IsIn("admins.address.city", "Hamburg", "Kassel"),
-                DBPredicate.Like("admins.name", "*unknown*")).match(company))
+        Assertions.assertFalse(
+            DBPredicate.And(
+                DBPredicate.IsIn("admins.address.city", listOf("Hamburg", "Kassel")),
+                DBPredicate.Like("admins.name", "*unknown*")
+            ).match(company)
+        )
     }
 
     @Test
@@ -87,16 +93,16 @@ class DBPredicateTest {
         Assertions.assertEquals("%test%", DBPredicate.Like("name", "*test*").queryString)
         Assertions.assertEquals("%test", DBPredicate.Like("name", "*test").queryString)
     }
-/*
-    @Test
-    fun multiFieldFulltextQueryRequiredTest() {
-        testMultiField("dfladksj", false)
-        testMultiField("dfladksj* dfakl+", true) // No wildcard search on fields...
-        testMultiField("name:rein*", true)
-        testMultiField("dfladksj name:rein*", true)
-    }
+    /*
+        @Test
+        fun multiFieldFulltextQueryRequiredTest() {
+            testMultiField("dfladksj", false)
+            testMultiField("dfladksj* dfakl+", true) // No wildcard search on fields...
+            testMultiField("name:rein*", true)
+            testMultiField("dfladksj name:rein*", true)
+        }
 
-    private fun testMultiField(value: String, expectedResult: Boolean) {
-        Assertions.assertEquals(expectedResult, DBPredicate.FullSearch(value).multiFieldFulltextQueryRequired())
-    }*/
+        private fun testMultiField(value: String, expectedResult: Boolean) {
+            Assertions.assertEquals(expectedResult, DBPredicate.FullSearch(value).multiFieldFulltextQueryRequired())
+        }*/
 }

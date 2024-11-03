@@ -56,7 +56,11 @@ abstract class DBPredicate(
 ) {
 
     abstract fun match(obj: Any): Boolean
-    internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate
+
+    /**
+     * @return created JPA criteria predicate for this predicate, or null, if no predicate is needed.
+     */
+    internal abstract fun asPredicate(ctx: DBCriteriaContext<*>): Predicate?
     internal open fun handle(
         searchPredicateFactory: SearchPredicateFactory,
         boolCollector: BooleanPredicateOptionsCollector<*>,
@@ -178,7 +182,7 @@ abstract class DBPredicate(
         }
     }
 
-    class IsIn<T>(field: String, vararg val values: T) : DBPredicate(field, false) {
+    class IsIn<T>(field: String, val values: Collection<T>) : DBPredicate(field, false) {
         override fun match(obj: Any): Boolean {
             return fieldValueMatch(obj, field!!) { innerMatch(it) }
         }
@@ -194,10 +198,10 @@ abstract class DBPredicate(
         }
 
         /**
-         * Convert this predicate to JPA criteria for where clause in select. If only value is given, an equal predicate will
+         * Convert this predicate to JPA criteria for where clause in select. If only one value is given, an equal predicate will
          * be returned.
          */
-        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate {
+        override fun asPredicate(ctx: DBCriteriaContext<*>): Predicate? {
             logDebugFunCall(log) {
                 it.mtd("IsIn.asPredicate(ctx)").msg(
                     "entity=${ctx.entityName},field=$field,value=${
@@ -210,12 +214,12 @@ abstract class DBPredicate(
                 )
             }
             if (values.isEmpty()) {
-                log.debug { "Adding criteria search (${ctx.entityName}): [in] cb.isNull('$field'), '${values[0]}') (uses equal, because no value is given)." }
-                return ctx.cb.isNull(ctx.getField<Any>(field!!))
+                log.debug { "Ignoring criteria search (${ctx.entityName}): [in] cb.in('$field'), because no value is given." }
+                return null
             }
             if (values.size == 1) {
-                log.debug { "Adding criteria search (${ctx.entityName}): [in] cb.equal('$field'), '${values[0]}') (uses equal, because only one value is given)." }
-                return ctx.cb.equal(ctx.getField<Any>(field!!), values[0])
+                log.debug { "Adding criteria search (${ctx.entityName}): [in] cb.equal('$field'), '${values.first()}') (uses equal, because only one value is given)." }
+                return ctx.cb.equal(ctx.getField<Any>(field!!), values.first())
             }
             val inClause = ctx.cb.`in`(ctx.getField<Any>(field!!))
             for (value in values) {
