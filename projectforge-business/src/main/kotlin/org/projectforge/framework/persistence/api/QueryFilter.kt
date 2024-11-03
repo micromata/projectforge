@@ -318,14 +318,8 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
         }
 
         @JvmStatic
-        fun <T> isIn(field: String, values: Collection<*>): DBPredicate.IsIn<T> {
-            @Suppress("UNCHECKED_CAST")
-            return DBPredicate.IsIn(field, *(values.toTypedArray() as Array<T>))
-        }
-
-        @JvmStatic
-        fun <T> isIn(field: String, vararg values: T): DBPredicate.IsIn<T> {
-            return DBPredicate.IsIn(field, *values)
+        fun <T> isIn(field: String, values: Collection<T>): DBPredicate.IsIn<T> {
+            return DBPredicate.IsIn<T>(field, values)
         }
 
         @JvmStatic

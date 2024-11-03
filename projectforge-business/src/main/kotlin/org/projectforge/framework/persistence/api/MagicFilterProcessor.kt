@@ -173,7 +173,7 @@ object MagicFilterProcessor {
         val list = values.map { value ->
           enumConstants.first { it.name == value }
         }
-        val predicate = DBPredicate.IsIn(field, *(list.toTypedArray() as Array<*>))
+        val predicate = DBPredicate.IsIn(field, list)
         queryFilter.add(predicate)
       }
     } else {

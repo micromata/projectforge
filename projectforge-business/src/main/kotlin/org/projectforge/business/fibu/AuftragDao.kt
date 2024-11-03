@@ -256,8 +256,10 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
                 )
             )
         }
-        if (CollectionUtils.isNotEmpty(myFilter.projectList)) {
-            queryFilter.add(isIn<Any?>("projekt", myFilter.projectList))
+        myFilter.projectList?.let { projectList ->
+            if (projectList.isNotEmpty()) {
+                queryFilter.add(isIn<ProjektDO>("projekt", projectList))
+            }
         }
 
         createCriterionForErfassungsDatum(myFilter).ifPresent { predicate: DBPredicate? ->
@@ -292,7 +294,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     private fun addCriterionForAuftragsStatuses(myFilter: AuftragFilter, queryFilter: QueryFilter) {
-        val auftragsStatuses: Collection<AuftragsStatus?> = myFilter.auftragsStatuses
+        val auftragsStatuses: Collection<AuftragsStatus> = myFilter.auftragsStatuses
         if (CollectionUtils.isEmpty(auftragsStatuses)) {
             // nothing to do
             return

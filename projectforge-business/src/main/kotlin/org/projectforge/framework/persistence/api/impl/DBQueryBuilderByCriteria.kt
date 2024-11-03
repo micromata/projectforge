@@ -56,7 +56,9 @@ internal class DBQueryBuilderByCriteria<O : ExtendedBaseDO<Long>>(
     private val order = mutableListOf<jakarta.persistence.criteria.Order>()
 
     fun add(matcher: DBPredicate) {
-        predicates.add(matcher.asPredicate(ctx))
+        matcher.asPredicate(ctx)?.let {
+            predicates.add(it)
+        }
     }
 
     fun createResultIterator(resultPredicates: List<DBPredicate>): DBResultIterator<O> {
