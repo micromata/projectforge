@@ -39,7 +39,7 @@ private val log = KotlinLogging.logger {}
  * Open needed by Wicket's SpringBean.
  */
 @Service
-open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
+class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
     @Autowired
     private lateinit var auftragDao: AuftragDao
 
@@ -51,7 +51,7 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
 
     private var orderInfoMap = mutableMapOf<Long, OrderInfo>()
 
-    private var orderPositionMap = mutableMapOf<Long, AuftragsPositionDO>()
+    private var orderPositionMap = mutableMapOf<Long, OrderPositionInfo>()
 
     private var toBeInvoicedCounter: Int? = null
 
@@ -61,19 +61,23 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
         rechnungDao.register(this)
     }
 
-    fun getAuftragsPosition(auftragsPositionId: Long): AuftragsPositionDO? {
+    fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
+        auftragsPositionId ?: return null
         synchronized(orderPositionMap) {
             var ret = orderPositionMap[auftragsPositionId]
             if (ret == null) {
-                ret = persistenceService.find(AuftragsPositionDO::class.java, auftragsPositionId)?.also {
-                    orderPositionMap[auftragsPositionId] = it
+                ret = persistenceService.find(AuftragsPositionDO::class.java, auftragsPositionId)?.let {
+                    val order = getOrderInfo(it.auftragId) ?: return null
+                    val posInfo = OrderPositionInfo(it, order)
+                    orderPositionMap[auftragsPositionId] = posInfo
+                    posInfo
                 }
             }
             return ret
         }
     }
 
-    open fun getFakturiertSum(order: AuftragDO?): BigDecimal {
+    fun getFakturiertSum(order: AuftragDO?): BigDecimal {
         if (order == null) {
             return BigDecimal.ZERO
         }
@@ -81,17 +85,17 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
         return getOrderInfo(order).invoicedSum
     }
 
-    open fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
+    fun isVollstaendigFakturiert(order: AuftragDO): Boolean {
         checkRefresh()
         return getOrderInfo(order).isVollstaendigFakturiert
     }
 
-    open fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
+    fun isPositionAbgeschlossenUndNichtVollstaendigFakturiert(order: AuftragDO): Boolean {
         checkRefresh()
         return getOrderInfo(order).positionAbgeschlossenUndNichtVollstaendigFakturiert
     }
 
-    open fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
+    fun isPaymentSchedulesReached(order: AuftragDO): Boolean {
         checkRefresh()
         return getOrderInfo(order).paymentSchedulesReached
     }
@@ -115,7 +119,15 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
         order.info = getOrderInfo(order)
     }
 
-    open fun getOrderInfo(order: AuftragDO): OrderInfo {
+    fun getOrderInfo(orderId: Long?): OrderInfo? {
+        orderId ?: return null
+        checkRefresh()
+        synchronized(orderInfoMap) {
+            return orderInfoMap[orderId]
+        }
+    }
+
+    fun getOrderInfo(order: AuftragDO): OrderInfo {
         checkRefresh()
         synchronized(orderInfoMap) {
             orderInfoMap[order.id]?.let {
@@ -143,7 +155,13 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
         positions: List<AuftragsPositionDO>?,
         paymentSchedules: List<PaymentScheduleDO>?
     ): OrderInfo {
-        order.info.calculateAll(positions, paymentSchedules)
+        order.info.calculateAll(order, positions, paymentSchedules)
+        synchronized(orderPositionMap) {
+            positions?.forEach { pos ->
+                val posInfo = OrderPositionInfo(pos, order.info)
+                orderPositionMap[pos.id!!] = posInfo
+            }
+        }
         return order.info
     }
 
@@ -174,11 +192,22 @@ open class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedList
                 "SELECT pos FROM PaymentScheduleDO pos WHERE pos.deleted = false",
                 PaymentScheduleDO::class.java
             ).groupBy { it.auftragId }
-            val orders = auftragDao.selectAllNotDeleted(checkAccess = false)
+            val orders = persistenceService.executeQuery(
+                "SELECT t FROM AuftragDO t WHERE t.deleted = false",
+                AuftragDO::class.java
+            )
             orders.forEach { order ->
                 map[order.id!!] = readOrderInfo(order, orderPositions[order.id], paymentSchedules[order.id])
             }
+            val posMap = mutableMapOf<Long, OrderPositionInfo>()
+            orderPositions.forEach { (_, positions) ->
+                positions.forEach { pos ->
+                    posMap[pos.id!!] = OrderPositionInfo(pos, map[pos.auftragId])
+                }
+            }
+
             orderInfoMap = map
+            orderPositionMap = posMap
             toBeInvoicedCounter = null
             log.info { "AuftragsCache.refresh done. ${context.formatStats()}" }
         }

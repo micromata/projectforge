@@ -126,8 +126,8 @@ public class OrderExport {
         addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
         addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
         mapping.add(OrderCol.COMPLETELY_INVOICED, orderInfo.isVollstaendigFakturiert() ? "x" : "");
-        final Set<RechnungsPositionVO> invoicePositions = rechnungCache
-                .getRechnungsPositionVOSetByAuftragId(order.getId());
+        final Set<RechnungPosInfo> invoicePositions = rechnungCache
+                .getRechnungsPosInfosByAuftragId(order.getId());
         mapping.add(OrderCol.INVOICES, getInvoices(invoicePositions));
         mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_BEGIN, order.getPeriodOfPerformanceBegin());
         mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
@@ -199,8 +199,8 @@ public class OrderExport {
         addCurrency(mapping, PosCol.INVOICED, invoicedSum);
         addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
         mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() ? "x" : "");
-        final Set<RechnungsPositionVO> invoicePositions = rechnungCache
-                .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
+        final Set<RechnungPosInfo> invoicePositions = rechnungCache
+                .getRechnungsPosInfosByAuftragsPositionId(pos.getId());
         mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));
         if (PeriodOfPerformanceType.OWN.equals(pos.getPeriodOfPerformanceType())) {
             // use "own" period -> from pos
@@ -246,12 +246,12 @@ public class OrderExport {
         mapping.add(PaymentsCol.SCHEDULE_DATE, scheduleDO.getScheduleDate());
     }
 
-    private String getInvoices(final Set<RechnungsPositionVO> invoicePositions) {
+    private String getInvoices(final Set<RechnungPosInfo> invoicePositions) {
         final StringBuilder sb = new StringBuilder();
         if (invoicePositions != null) {
             String delimiter = "";
-            for (final RechnungsPositionVO invoicePos : invoicePositions) {
-                sb.append(delimiter).append(invoicePos.getRechnungNummer());
+            for (final RechnungPosInfo invoicePos : invoicePositions) {
+                sb.append(delimiter).append(invoicePos.getRechnungInfo().getNummer());
                 delimiter = ", ";
             }
         }

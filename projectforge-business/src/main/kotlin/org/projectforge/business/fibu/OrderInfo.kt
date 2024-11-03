@@ -26,19 +26,51 @@ package org.projectforge.business.fibu
 import jakarta.persistence.Transient
 import mu.KotlinLogging
 import org.projectforge.common.anots.PropertyInfo
+import org.projectforge.common.extensions.abbreviate
 import org.projectforge.framework.i18n.I18nHelper
 import java.io.Serializable
 import java.math.BigDecimal
 
 private val log = KotlinLogging.logger {}
 
-class OrderInfo(val order: AuftragDO) : Serializable {
-    class PositionInfo(position: AuftragsPositionDO): Serializable {
-        val id = position.id
-        var invoicedSum = BigDecimal.ZERO
+/**
+ * Information about an order with additional calculated values.
+ * @param order The order to get the information from.
+ * @see OrderInfo.calculateAll
+ */
+class OrderInfo(order: AuftragDO) : Serializable {
+    class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
+        val id = schedule.id
+        val positionNumber = schedule.positionNumber
+        val amount = schedule.amount
+        val reached = schedule.reached
+        val scheduleDate = schedule.scheduleDate
+        val valid = schedule.valid
+        val vollstaendigFakturiert = schedule.vollstaendigFakturiert
+        val comment = schedule.comment.abbreviate(30)
     }
 
-    var infoPositions: List<PositionInfo>? = null
+    val id = order.id
+    val nummer = order.nummer
+    val titel = order.titel
+    val auftragsStatus = order.auftragsStatus
+    val angebotsDatum = order.angebotsDatum
+    val created = order.created
+    val erfassungsDatum = order.erfassungsDatum
+    val entscheidungsDatum = order.entscheidungsDatum
+    val kundeAsString = order.kundeAsString
+    val projektAsString = order.projektAsString
+    val probabilityOfOccurrence = order.probabilityOfOccurrence
+    val periodOfPerformanceBegin = order.periodOfPerformanceBegin
+    val periodOfPerformanceEnd = order.periodOfPerformanceEnd
+    val contactPerson = order.contactPerson
+    val bemerkung = order.bemerkung.abbreviate(30)
+    val paymentSchedules = order.paymentSchedules?.map { PaymentScheduleInfo(it) }
+
+    /**
+     * The positions (not deleted) of the order with additional information.
+     */
+    var infoPositions: List<OrderPositionInfo>? = null
         private set
 
     /**
@@ -51,7 +83,7 @@ class OrderInfo(val order: AuftragDO) : Serializable {
             if (isVollstaendigFakturiert == true) {
                 return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
             }
-            return if (order.auftragsStatus != null) I18nHelper.getLocalizedMessage(order.auftragsStatus!!.i18nKey) else null
+            return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus.i18nKey) else null
         }
 
     var netSum = BigDecimal.ZERO
@@ -87,7 +119,7 @@ class OrderInfo(val order: AuftragDO) : Serializable {
 
     var paymentSchedulesReached: Boolean = false
 
-    fun getInfoPosition(id: Long?): PositionInfo? {
+    fun getInfoPosition(id: Long?): OrderPositionInfo? {
         id ?: return null
         return infoPositions?.find { it.id == id }
     }
@@ -98,12 +130,13 @@ class OrderInfo(val order: AuftragDO) : Serializable {
      * @param paymentSchedules The payment schedules of the order. If not given, the schedules of the order will be lazy loaded (if order is attached).
      */
     fun calculateAll(
+        order: AuftragDO,
         positions: Collection<AuftragsPositionDO>? = null,
         paymentSchedules: Collection<PaymentScheduleDO>? = null
     ) {
         val usePositions = positions ?: order.positionen
         val useSchedules = paymentSchedules ?: order.paymentSchedules
-        infoPositions = usePositions?.filter { !it.deleted }?.map { PositionInfo(it) }
+        infoPositions = usePositions?.filter { !it.deleted }?.map { OrderPositionInfo(it, this) }
         netSum = calculateNetSum(usePositions)
         orderedNetSum = calculateOrderedNetSum(order, usePositions)
         analyzeInvoices(positions) // Calculates invoicedSum and positionAbgeschlossenUndNichtVollstaendigFakturiert.
@@ -139,7 +172,7 @@ class OrderInfo(val order: AuftragDO) : Serializable {
     private fun analyzeInvoices(positions: Collection<AuftragsPositionDO>?) {
         invoicedSum = BigDecimal.ZERO
         positions?.filter { !it.deleted }?.forEach { pos ->
-            RechnungCache.instance.getRechnungsPositionVOSetByAuftragsPositionId(pos.id)?.let { set ->
+            RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(pos.id, false)?.let { set ->
                 invoicedSum += RechnungDao.getNettoSumme(set)
                 infoPositions?.find { it.id == pos.id }?.invoicedSum = invoicedSum
             }

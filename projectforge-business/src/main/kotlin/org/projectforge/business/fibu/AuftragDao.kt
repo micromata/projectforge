@@ -133,34 +133,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             return getYearsByTupleOfLocalDate(minMaxDate)
         }
 
-    val taskReferences: Map<Long?, MutableSet<AuftragsPositionVO>>
-        /**
-         * @return Map with all order positions referencing a task. The key of the map is the task id.
-         */
-        get() {
-            val result: MutableMap<Long?, MutableSet<AuftragsPositionVO>> = HashMap()
-            val list = persistenceService.executeQuery(
-                "from AuftragsPositionDO a where a.task.id is not null and a.deleted = false",
-                AuftragsPositionDO::class.java,
-            )
-            for (pos in list) {
-                if (pos.taskId == null) {
-                    log.error(
-                        "Oups, should not occur, that in getTaskReference a order position without a task reference is found."
-                    )
-                    continue
-                }
-                val vo = AuftragsPositionVO(pos)
-                var set = result[pos.taskId]
-                if (set == null) {
-                    set = TreeSet()
-                    result[pos.taskId] = set
-                }
-                set.add(vo)
-            }
-            return result
-        }
-
     fun buildStatistik(list: List<AuftragDO>?): AuftragsStatistik {
         val stats = AuftragsStatistik()
         if (list == null) {

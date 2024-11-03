@@ -31,10 +31,7 @@ import org.dom4j.DocumentHelper
 import org.dom4j.io.OutputFormat
 import org.dom4j.io.XMLWriter
 import org.hibernate.Hibernate
-import org.projectforge.business.fibu.AuftragDao
-import org.projectforge.business.fibu.AuftragsPositionVO
-import org.projectforge.business.fibu.ProjektDO
-import org.projectforge.business.fibu.ProjektDao
+import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.timesheet.TimesheetDO
@@ -55,6 +52,7 @@ import java.io.StringWriter
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
+import kotlin.collections.set
 
 private val log = KotlinLogging.logger {}
 
@@ -113,7 +111,12 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      */
     private var root: TaskNode? = null
 
-    private var orderPositionReferences: Map<Long?, Set<AuftragsPositionVO>?>? = null
+    private var orderPositionReferences: Map<Long, Set<OrderPositionInfo>>? = null
+
+    /**
+     * The key of the map is the task id.
+     */
+    private var taskReferences: Map<Long, Set<OrderPositionInfo>>? = null
 
     private var orderPositionReferencesDirty = true
 
@@ -141,8 +144,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * Adds a new node with the given data. The given Task holds all data and the information (id) of the parent node of
      * the node to add. Will be called by TaskDAO after inserting a new task.
      */
-    fun addTaskNode(task: TaskDO): TaskNode {
-        checkRefresh()
+    private fun addTaskNode(task: TaskDO): TaskNode {
         val node = TaskNode()
         node.setTask(task)
         val parent = getTaskNodeById(task.parentTaskId)
@@ -546,29 +548,35 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         return (MapUtils.isNotEmpty(orderPositionEntries))
     }
 
-    private val orderPositionEntries: Map<Long?, Set<AuftragsPositionVO>?>?
+    private val orderPositionEntries: Map<Long, Set<OrderPositionInfo>>?
         get() {
             synchronized(this) {
                 if (this.orderPositionReferencesDirty) {
-                    this.orderPositionReferences = auftragDao.taskReferences
-                    this.orderPositionReferences?.let { orderPositionReferences ->
-                        resetOrderPersonDays(root!!)
-                        orderPositionReferences.forEach { (key, value) ->
-                            val node = getTaskNodeById(key)
-                            node!!.orderedPersonDays = null
-                            if (CollectionUtils.isNotEmpty(value)) {
-                                for (pos in value!!) {
-                                    if (pos.personDays == null) {
-                                        return@forEach
-                                    }
-                                    if (node.orderedPersonDays == null) {
-                                        node.orderedPersonDays = BigDecimal.ZERO
-                                    }
-                                    node.orderedPersonDays = node.orderedPersonDays.add(pos.personDays)
-                                }
-                            }
+                    val references = mutableMapOf<Long, MutableSet<OrderPositionInfo>>()
+                    persistenceService.runIsolatedReadOnly { context ->
+                        persistenceService.executeQuery(
+                            "SELECT pos FROM AuftragsPositionDO pos WHERE pos.deleted = false AND pos.task.id IS NOT NULL",
+                            AuftragsPositionDO::class.java
+                        )
+                    }.forEach { pos ->
+                        val taskId = pos.taskId
+                        if (taskId != null) {
+                            val set = references.getOrPut(taskId) { mutableSetOf() }
+                            set.add(OrderPositionInfo(pos))
                         }
                     }
+                    resetOrderPersonDays(root!!)
+                    references.forEach orderPositions@{ (key, value) ->
+                        val node = getTaskNodeById(key)
+                        node!!.orderedPersonDays = null
+                        value.forEach { pos ->
+                            if (pos.personDays == null) {
+                                return@orderPositions
+                            }
+                            node.orderedPersonDays = (node.orderedPersonDays ?: BigDecimal.ZERO).add(pos.personDays)
+                        }
+                    }
+                    this.orderPositionReferences = references
                     this.orderPositionReferencesDirty = false
                 }
                 return this.orderPositionReferences
@@ -588,7 +596,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @param taskId
      * @return Set of all order positions assigned to the given task.
      */
-    fun getOrderPositionEntries(taskId: Long?): Set<AuftragsPositionVO>? {
+    fun getOrderPositionEntries(taskId: Long?): Set<OrderPositionInfo>? {
         checkRefresh()
         return orderPositionEntries!![taskId]
     }
@@ -597,13 +605,13 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      * @param taskId
      * @return
      */
-    fun getOrderPositionsUpwards(taskId: Long?): Set<AuftragsPositionVO> {
-        val set: MutableSet<AuftragsPositionVO> = TreeSet()
+    fun getOrderPositionsUpwards(taskId: Long?): Set<OrderPositionInfo> {
+        val set = mutableSetOf<OrderPositionInfo>()
         addOrderPositionsUpwards(set, taskId)
         return set
     }
 
-    private fun addOrderPositionsUpwards(set: MutableSet<AuftragsPositionVO>, taskId: Long?) {
+    private fun addOrderPositionsUpwards(set: MutableSet<OrderPositionInfo>, taskId: Long?) {
         val set2 = getOrderPositionEntries(taskId)
         if (CollectionUtils.isNotEmpty(set2)) {
             set.addAll(set2!!)

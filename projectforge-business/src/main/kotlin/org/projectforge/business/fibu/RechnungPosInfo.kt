@@ -23,14 +23,16 @@
 
 package org.projectforge.business.fibu
 
-import jakarta.persistence.Transient
-import org.projectforge.business.fibu.kost.Kost1DO
-import org.projectforge.business.fibu.kost.Kost2DO
+import com.fasterxml.jackson.annotation.JsonIgnore
+import org.apache.commons.collections4.MapUtils.getNumber
+import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import java.io.Serializable
 import java.math.BigDecimal
 
-class RechnungPosInfo(position: AbstractRechnungsPositionDO) : Serializable {
+class RechnungPosInfo(@JsonIgnore val rechnungInfo: RechnungInfo?, position: AbstractRechnungsPositionDO) : Serializable, Comparable<RechnungPosInfo> {
     var id = position.id
+    var number = position.number
+    var text = position.text
     var deleted = position.deleted
     var menge = position.menge
     var einzelNetto = position.einzelNetto
@@ -41,6 +43,33 @@ class RechnungPosInfo(position: AbstractRechnungsPositionDO) : Serializable {
     var kostZuweisungNetSum = BigDecimal.ZERO
     var kostZuweisungGrossSum = BigDecimal.ZERO
     var kostZuweisungNetFehlbetrag = BigDecimal.ZERO
-    var auftragsPositionId: Long? = null // Only used by RechnungDO.
+    var auftragsPositionId: Long? = null // auftragsPosition.id
+    var auftragsId: Long? = null // auftrag.id
+    var auftragsPositionNummer: Short? = null // auftragsPosition.number
+
     var kostZuweisungen: List<KostZuweisungInfo>? = null
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is RechnungPosInfo) return false
+
+        if (number != other.number) return false
+        if (id != other.id) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = number.toInt()
+        result = 31 * result + (id?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun compareTo(other: RechnungPosInfo): Int {
+        val thisNummer = this.rechnungInfo?.nummer ?: -1
+        val otherNummer = other.rechnungInfo?.nummer ?: -1
+        if (thisNummer != otherNummer) {
+            return thisNummer.compareTo(otherNummer)
+        }
+        return number.compareTo(other.number)
+    }
 }

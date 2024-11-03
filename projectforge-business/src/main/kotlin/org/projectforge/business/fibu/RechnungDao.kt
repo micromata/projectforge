@@ -391,11 +391,11 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         )
 
         @JvmStatic
-        fun getNettoSumme(col: Collection<RechnungsPositionVO>?): BigDecimal {
+        fun getNettoSumme(col: Collection<RechnungPosInfo>?): BigDecimal {
             var nettoSumme = BigDecimal.ZERO
             if (col != null && col.size > 0) {
                 for (pos in col) {
-                    nettoSumme = nettoSumme.add(pos.nettoSumme)
+                    nettoSumme = nettoSumme.add(pos.netSum)
                 }
             }
             return nettoSumme

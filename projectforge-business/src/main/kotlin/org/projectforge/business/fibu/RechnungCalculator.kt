@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import mu.KotlinLogging
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
@@ -33,7 +32,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 import kotlin.reflect.KMutableProperty1
 
-private val log = KotlinLogging.logger {}
+// private val log = KotlinLogging.logger {}
 
 object RechnungCalculator {
     /**
@@ -56,7 +55,16 @@ object RechnungCalculator {
                 rechnung.faelligkeit
             }
         }
-        info.positions = rechnung.positionen?.map { calculate(it as AbstractRechnungsPositionDO) }
+        val posInfoList = mutableListOf<RechnungPosInfo>()
+        rechnung.positionen?.forEach { pos ->
+            var posInfo = rechnungCache.getRechnungPosInfo(pos.id)
+            if (posInfo == null) {
+                posInfo = RechnungPosInfo(info, pos as AbstractRechnungsPositionDO)
+            }
+            calculate(posInfo, pos as AbstractRechnungsPositionDO)
+            posInfoList.add(posInfo)
+        }
+        info.positions = posInfoList
         info.positions?.forEach { posInfo ->
             info.netSum += posInfo.netSum
             info.kostZuweisungenNetSum += posInfo.kostZuweisungNetSum
@@ -91,11 +99,15 @@ object RechnungCalculator {
     /**
      * Calculations for invoice positions.
      */
-    fun calculate(position: AbstractRechnungsPositionDO): RechnungPosInfo {
-        val posInfo = RechnungPosInfo(position)
+    internal fun calculate(posInfo: RechnungPosInfo, position: AbstractRechnungsPositionDO): RechnungPosInfo {
         position.info = posInfo
         if (position is RechnungsPositionDO) {
-            posInfo.auftragsPositionId = position.auftragsPosition?.id
+            position.auftragsPosition?.id.let { auftragsPositionId ->
+                posInfo.auftragsPositionId = auftragsPositionId
+                val orderPosInfo = auftragsCache.getOrderPositionInfo(auftragsPositionId)
+                posInfo.auftragsId = orderPosInfo?.auftragId
+                posInfo.auftragsPositionNummer = orderPosInfo?.number
+            }
         }
         posInfo.netSum = calculateNetSum(position)
         roundAmountIf(posInfo, RechnungPosInfo::netSum, roundPositionsBeforeSum)
@@ -118,7 +130,7 @@ object RechnungCalculator {
         val vat = position.vat
         posInfo.kostZuweisungGrossSum = posInfo.kostZuweisungNetSum
         if (vat != null) {
-            posInfo.kostZuweisungGrossSum += CurrencyHelper.multiply(posInfo.kostZuweisungNetSum , position.vat)
+            posInfo.kostZuweisungGrossSum += CurrencyHelper.multiply(posInfo.kostZuweisungNetSum, position.vat)
         }
         roundAmountIf(posInfo, RechnungPosInfo::kostZuweisungGrossSum, roundPositionsBeforeSum)
         val netSum = roundAmountIf(posInfo.netSum, roundPositionsBeforeSum)
@@ -139,15 +151,6 @@ object RechnungCalculator {
         return amount.setScale(2, RoundingMode.HALF_UP)
     }
 
-    private fun <T> roundNullableAmount(obj: T, property: KMutableProperty1<T, BigDecimal?>, round: Boolean = true) {
-        val value = property.get(obj)
-        if (value == null) {
-            property.set(obj, BigDecimal.ZERO)
-        } else {
-            property.set(obj, roundAmountIf(value, round))
-        }
-    }
-
     private fun <T> roundAmountIf(obj: T, property: KMutableProperty1<T, BigDecimal>, round: Boolean = true) {
         if (round == false) {
             return
@@ -165,12 +168,12 @@ object RechnungCalculator {
     private fun calculateVatAmountSum(rechnung: AbstractRechnungDO): BigDecimal {
         // Key is the vat percentage and value is the cumulative vat sum.
         val vatAmountSums = mutableMapOf<BigDecimal, BigDecimal>()
-        rechnung.positionen?.forEach {
-            it as AbstractRechnungsPositionDO
-            var vat = it.vat
+        rechnung.positionen?.forEach { pos ->
+            pos as AbstractRechnungsPositionDO
+            var vat = pos.vat
             if (!NumberHelper.isZeroOrNull(vat)) {
                 vat = vat!!.stripTrailingZeros() // 19.0 -> 19 for having same vat percentage.
-                val vatAmount = CurrencyHelper.multiply(it.info.netSum, vat)
+                val vatAmount = CurrencyHelper.multiply(pos.info.netSum, vat)
                 val vatAmountSum = vatAmountSums[vat] ?: BigDecimal.ZERO
                 vatAmountSums[vat] = vatAmountSum.plus(vatAmount)
             }
@@ -184,9 +187,6 @@ object RechnungCalculator {
         return roundAmountIf(vatAmountSum)
     }
 
-    /**
-     * @param grossSum As paramter to avoid recalculation (and lazy fetching of positions).
-     */
     private fun calculateGrossSumWithDiscount(rechnung: AbstractRechnungDO): BigDecimal {
         rechnung.zahlBetrag?.let { return it }
         val grossSum = rechnung.info.grossSum
@@ -205,4 +205,5 @@ object RechnungCalculator {
     }
 
     internal lateinit var rechnungCache: RechnungCache
+    internal lateinit var auftragsCache: AuftragsCache
 }

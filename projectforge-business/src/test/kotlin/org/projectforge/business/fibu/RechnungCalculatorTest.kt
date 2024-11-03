@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungDO
@@ -31,6 +32,12 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class RechnungCalculatorTest {
+    @BeforeEach
+    fun setUp() {
+        RechnungCalculator.auftragsCache = AuftragsCache()
+        RechnungCalculator.rechnungCache = RechnungCache()
+    }
+
     @Test
     fun `test calculation of RechnungDO`() {
         RechnungDO().also { invoice ->
@@ -138,7 +145,10 @@ class RechnungCalculatorTest {
         net: String,
         gross: String
     ): RechnungPosInfo {
-        val posInfo = RechnungCalculator.calculate(position)
+        val rechnung = RechnungDO()
+        val info = RechnungInfo(rechnung)
+        val posInfo = RechnungPosInfo(info, position)
+        RechnungCalculator.calculate(posInfo, position)
         assertEquals(BigDecimal(net), posInfo.netSum, "netSum")
         assertEquals(BigDecimal(gross), posInfo.grossSum, "grossSum")
         return posInfo

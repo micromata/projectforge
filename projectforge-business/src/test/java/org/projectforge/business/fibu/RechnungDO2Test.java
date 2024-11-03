@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -107,8 +108,8 @@ public class RechnungDO2Test
     rechnung.addPosition(pos);
 
     RechnungCalculator.INSTANCE.calculate(rechnung);
-    assertEquals(new BigDecimal("89426.25"), rechnung.getInfo().getNetSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
-    assertEquals(new BigDecimal("106417.27"), rechnung.getInfo().getGrossSum().setScale(2, BigDecimal.ROUND_HALF_DOWN));
-    assertEquals(new BigDecimal("16990.99"), rechnung.getInfo().getVatAmount().setScale(2, BigDecimal.ROUND_HALF_DOWN));
+    assertEquals(new BigDecimal("89426.25"), rechnung.getInfo().getNetSum().setScale(2, RoundingMode.HALF_DOWN));
+    assertEquals(new BigDecimal("106417.27"), rechnung.getInfo().getGrossSum().setScale(2, RoundingMode.HALF_DOWN));
+    assertEquals(new BigDecimal("16990.99"), rechnung.getInfo().getVatAmount().setScale(2, RoundingMode.HALF_DOWN));
   }
 }
