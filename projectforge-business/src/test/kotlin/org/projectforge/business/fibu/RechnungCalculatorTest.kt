@@ -24,19 +24,14 @@
 package org.projectforge.business.fibu
 
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.test.AbstractTestBase
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class RechnungCalculatorTest {
-    @BeforeEach
-    fun setUp() {
-        RechnungCalculator.auftragsCache = AuftragsCache()
-        RechnungCalculator.rechnungCache = RechnungCache()
-    }
+class RechnungCalculatorTest : AbstractTestBase() {
 
     @Test
     fun `test calculation of RechnungDO`() {

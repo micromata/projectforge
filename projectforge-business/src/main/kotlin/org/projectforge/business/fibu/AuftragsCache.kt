@@ -41,9 +41,6 @@ private val log = KotlinLogging.logger {}
 @Service
 class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
     @Autowired
-    private lateinit var auftragDao: AuftragDao
-
-    @Autowired
     private lateinit var rechnungDao: RechnungDao
 
     @Autowired
@@ -59,6 +56,14 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
     private fun init() {
         instance = this
         rechnungDao.register(this)
+    }
+
+    fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
+        auftragId ?: return null
+        checkRefresh()
+        synchronized(orderPositionMap) {
+            return orderPositionMap.values.filter { it.auftragId == auftragId }
+        }
     }
 
     fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
@@ -114,9 +119,8 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         }
     }
 
-    fun setOrderInfo(order: AuftragDO) {
-        checkRefresh()
-        order.info = getOrderInfo(order)
+    fun setOrderInfo(order: AuftragDO, checkRefresh: Boolean = false) {
+        order.info = getOrderInfo(order, checkRefresh = checkRefresh)
     }
 
     fun getOrderInfo(orderId: Long?): OrderInfo? {
@@ -127,8 +131,14 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         }
     }
 
-    fun getOrderInfo(order: AuftragDO): OrderInfo {
-        checkRefresh()
+    /**
+     * @param checkRefresh If true, the cache will be checked for refresh (needed for avoiding deadlocks).
+     */
+    @JvmOverloads
+    fun getOrderInfo(order: AuftragDO, checkRefresh: Boolean = true): OrderInfo {
+        if (checkRefresh) {
+            checkRefresh()
+        }
         synchronized(orderInfoMap) {
             orderInfoMap[order.id]?.let {
                 return it
@@ -184,15 +194,15 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         val map = mutableMapOf<Long, OrderInfo>()
         // Don't use fetch.
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            val orderPositions = persistenceService.executeQuery(
+            val orderPositions = context.executeQuery(
                 "SELECT pos FROM AuftragsPositionDO pos WHERE pos.deleted = false",
                 AuftragsPositionDO::class.java
             ).groupBy { it.auftragId }
-            val paymentSchedules = persistenceService.executeQuery(
+            val paymentSchedules = context.executeQuery(
                 "SELECT pos FROM PaymentScheduleDO pos WHERE pos.deleted = false",
                 PaymentScheduleDO::class.java
             ).groupBy { it.auftragId }
-            val orders = persistenceService.executeQuery(
+            val orders = context.executeQuery(
                 "SELECT t FROM AuftragDO t WHERE t.deleted = false",
                 AuftragDO::class.java
             )

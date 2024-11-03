@@ -26,7 +26,6 @@ package org.projectforge.business.fibu
 import mu.KotlinLogging
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.springframework.beans.factory.annotation.Autowired
 
 private val log = KotlinLogging.logger {}
 
@@ -35,10 +34,10 @@ private val log = KotlinLogging.logger {}
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractRechnungCache(val entityClass: Class<out AbstractRechnungDO>) : AbstractCache() {
-    @Autowired
-    protected lateinit var persistenceService: PfPersistenceService
-
+abstract class AbstractRechnungCache(
+    val entityClass: Class<out AbstractRechnungDO>,
+    protected val persistenceService: PfPersistenceService,
+) : AbstractCache() {
     private val entityName = entityClass.simpleName
 
     protected var invoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
