@@ -44,16 +44,20 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
 
     public final P editPage;
 
-    private final D baseDao;
-
     private boolean updateAndNext;
 
     private String entity;
 
+    private Class<D> baseDaoClass;
+
+    protected D getBaseDao() {
+        return WicketSupport.get(baseDaoClass);
+    }
+
     public EditPageSupport(final P editPage, final D baseDao) {
         this.editPage = editPage;
-        this.baseDao = baseDao;
         this.entity = "unknown";
+        this.baseDaoClass = (Class<D>)baseDao.getClass();
         if (baseDao instanceof BaseDao) {
             this.entity = ((BaseDao) baseDao).getIdentifier();
         } else {
@@ -84,7 +88,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     log.info("User has used the back button in "
                             + editPage.getClass()
                             + " after inserting a new object? Try to load the object from the data base and show edit page again.");
-                    final O dbObj = baseDao.find(editPage.getData().getId());
+                    final O dbObj = getBaseDao().find(editPage.getData().getId());
                     if (dbObj == null) {
                         // Error while trying to insert Object and user has used the back button?
                         log.info("User has used the back button "
@@ -102,7 +106,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     return;
                 }
                 try {
-                    baseDao.insert(editPage.getData());
+                    getBaseDao().insert(editPage.getData());
                 } catch (final DataIntegrityViolationException ex) {
                     log.error(ex.getMessage(), ex);
                     throw new UserException("exception.constraintViolation");
@@ -144,7 +148,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                 }
                 EntityCopyStatus modified = EntityCopyStatus.NONE;
                 try {
-                    modified = baseDao.update(editPage.getData());
+                    modified = getBaseDao().update(editPage.getData());
                 } catch (final DataIntegrityViolationException ex) {
                     log.error(ex.getMessage(), ex);
                     throw new UserException("exception.constraintViolation");
@@ -209,7 +213,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     editPage.setResponsePageAndHighlightedRow(page);
                     return;
                 }
-                baseDao.undelete(editPage.getData());
+                getBaseDao().undelete(editPage.getData());
             }
         }
         editPage.afterUndelete();
@@ -233,7 +237,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     editPage.setResponsePageAndHighlightedRow(page);
                     return;
                 }
-                baseDao.markAsDeleted(editPage.getData());
+                getBaseDao().markAsDeleted(editPage.getData());
                 editPage.afterDelete();
                 editPage.setResponsePage();
             }
@@ -257,7 +261,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Long>, D extends BaseDao<O
                     editPage.setResponsePageAndHighlightedRow(page);
                     return;
                 }
-                baseDao.delete(editPage.getData());
+                getBaseDao().delete(editPage.getData());
                 editPage.afterDelete();
                 editPage.setResponsePage();
             }

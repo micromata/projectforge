@@ -91,7 +91,7 @@ open class BookDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     open var isbn: String? = null
 
     @PropertyInfo(i18nKey = "book.signature")
-    @FullTextField() // Tokenisierte Version für Full-Text-Suche
+    @FullTextField // Tokenisierte Version für Full-Text-Suche
     @KeywordField(name = "signature_exact") // Unveränderte Version für exakte Suchen
     @get:Column(length = 255)
     open var signature: String? = null

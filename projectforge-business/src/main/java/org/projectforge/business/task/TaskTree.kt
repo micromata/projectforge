@@ -69,6 +69,9 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     private lateinit var accessDao: AccessDao
 
     @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
     private lateinit var auftragDao: AuftragDao
 
     @Autowired
@@ -111,12 +114,11 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
      */
     private var root: TaskNode? = null
 
-    private var orderPositionReferences: Map<Long, Set<OrderPositionInfo>>? = null
-
     /**
-     * The key of the map is the task id.
+     * The order position references are stored in a map. The key is the task id and the value is a set of order position
+     * entries.
      */
-    private var taskReferences: Map<Long, Set<OrderPositionInfo>>? = null
+    private var orderPositionReferences: Map<Long, Set<OrderPositionInfo>>? = null
 
     private var orderPositionReferencesDirty = true
 
@@ -562,7 +564,8 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                         val taskId = pos.taskId
                         if (taskId != null) {
                             val set = references.getOrPut(taskId) { mutableSetOf() }
-                            set.add(OrderPositionInfo(pos))
+                            val orderInfo = auftragsCache.getOrderInfo(pos.auftragId)
+                            set.add(OrderPositionInfo(pos, orderInfo))
                         }
                     }
                     resetOrderPersonDays(root!!)

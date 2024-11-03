@@ -26,7 +26,9 @@ package org.projectforge.framework.persistence.api.impl
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.hibernate.search.mapper.pojo.bridge.ValueBridge
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField
 import org.projectforge.framework.persistence.search.ClassBridge
+import sun.net.www.content.text.Generic
 
 class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
     @JsonIgnore
@@ -57,6 +59,9 @@ class HibernateSearchFieldInfo(val javaProp: String, val type: Class<*>) {
         }
         annotations!!.add(annotation)
         if (annotation is FullTextField && annotation.name.isNotBlank()) {
+            luceneField = annotation.name
+        }
+        if (annotation is GenericField && annotation.name.isNotBlank()) {
             luceneField = annotation.name
         }
     }

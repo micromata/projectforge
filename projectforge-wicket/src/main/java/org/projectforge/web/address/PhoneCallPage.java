@@ -178,9 +178,8 @@ public class PhoneCallPage extends AbstractStandardFormPage {
     form.setPhoneNumber(phoneNumber);
   }
 
-  ConfigurationService configurationService = WicketSupport.get(ConfigurationService.class);
-
   String extractPhonenumber(final String number) {
+    ConfigurationService configurationService = WicketSupport.get(ConfigurationService.class);
     final String result = NumberHelper.extractPhonenumber(number,
         Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
     if (StringUtils.isNotEmpty(result) == true

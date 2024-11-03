@@ -28,6 +28,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetRecentEntry;
 import org.projectforge.business.timesheet.TimesheetRecentService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.*;
@@ -37,96 +38,83 @@ import java.util.List;
 
 /**
  * For sharing functionality between mobile and normal edit pages.
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class TimesheetPageSupport implements Serializable
-{
-  private static final long serialVersionUID = 9008998607656697576L;
+class TimesheetPageSupport implements Serializable {
+    private static final long serialVersionUID = 9008998607656697576L;
 
-  final AbstractSecuredBasePage page;
+    final AbstractSecuredBasePage page;
 
-  private final AbstractGridBuilder< ? > gridBuilder;
+    private final AbstractGridBuilder<?> gridBuilder;
 
-  private final TimesheetDao timesheetDao;
+    private final TimesheetDO timesheet;
 
-  private final TimesheetDO timesheet;
-
-  /**
-   * Constructor for edit pages.
-   */
-  public TimesheetPageSupport(final AbstractSecuredBasePage page, final AbstractGridBuilder< ? > gridBuilder,
-      final TimesheetDao timesheetDao, final TimesheetDO timesheet)
-  {
-    this.page = page;
-    this.gridBuilder = gridBuilder;
-    this.timesheetDao = timesheetDao;
-    this.timesheet = timesheet;
-  }
-
-  public TimesheetRecentEntry getTimesheetRecentEntry()
-  {
-    TimesheetRecentEntry pref = (TimesheetRecentEntry) page.getUserPrefEntry(TimesheetEditPage.class.getName());
-    if (pref == null) {
-      pref = new TimesheetRecentEntry();
-      page.putUserPrefEntry(TimesheetEditPage.class.getName(), pref, true);
+    /**
+     * Constructor for edit pages.
+     */
+    public TimesheetPageSupport(final AbstractSecuredBasePage page, final AbstractGridBuilder<?> gridBuilder,
+                                final TimesheetDO timesheet) {
+        this.page = page;
+        this.gridBuilder = gridBuilder;
+        this.timesheet = timesheet;
     }
-    return pref;
-  }
 
-  public AbstractFieldsetPanel< ? > addLocation(final TimesheetRecentService timesheetRecentService) {
-    return addLocation(timesheetRecentService , null);
-  }
-
-  @SuppressWarnings("serial")
-  public AbstractFieldsetPanel< ? > addLocation(final TimesheetRecentService timesheetRecentService, final TimesheetEditFilter filter)
-  {
-    final FieldProperties<String> props = getLocationProperties();
-    final AbstractFieldsetPanel< ? > fs = gridBuilder.newFieldset(props);
-    final PFAutoCompleteMaxLengthTextField locationTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-        new PropertyModel<String>(timesheet, "location")) {
-      @Override
-      protected List<String> getChoices(final String input)
-      {
-        return trimResults(timesheetDao.getLocationAutocompletion(input));
-      }
-
-      private List<String> trimResults(final List<String> result)
-      {
-        if(result != null && result.size() > 0 && filter != null && filter.getIgnoredLocations() != null && filter.getIgnoredLocations().size() > 0) {
-          result.removeAll(filter.getIgnoredLocations());
+    public TimesheetRecentEntry getTimesheetRecentEntry() {
+        TimesheetRecentEntry pref = (TimesheetRecentEntry) page.getUserPrefEntry(TimesheetEditPage.class.getName());
+        if (pref == null) {
+            pref = new TimesheetRecentEntry();
+            page.putUserPrefEntry(TimesheetEditPage.class.getName(), pref, true);
         }
-        return result;
-      }
-
-      @Override
-      protected List<String> getFavorites()
-      {
-        return trimResults(timesheetRecentService.getRecentLocations());
-      }
-    };
-    locationTextField.withMatchContains(true).withMinChars(2).withFocus(true);
-    fs.setStoreObject(locationTextField);
-    fs.add(locationTextField);
-    if (fs instanceof FieldsetPanel) {
-      ((FieldsetPanel) fs).addKeyboardHelpIcon(getString("tooltip.autocomplete.withDblClickFunction"));
-      ((FieldsetPanel) fs).addHelpIcon(getString("timesheet.location.tooltip"));
+        return pref;
     }
-    return fs;
-  }
 
-  public FieldProperties<String> getLocationProperties()
-  {
-    return new FieldProperties<String>("timesheet.location", new PropertyModel<String>(timesheet, "location"));
-  }
+    public AbstractFieldsetPanel<?> addLocation() {
+        return addLocation(null);
+    }
 
-  public FieldProperties<String> getReferenceProperties()
-  {
-    return new FieldProperties<String>("timesheet.reference", new PropertyModel<String>(timesheet, "reference"));
-  }
+    @SuppressWarnings("serial")
+    public AbstractFieldsetPanel<?> addLocation(final TimesheetEditFilter filter) {
+        final FieldProperties<String> props = getLocationProperties();
+        final AbstractFieldsetPanel<?> fs = gridBuilder.newFieldset(props);
+        final PFAutoCompleteMaxLengthTextField locationTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
+                new PropertyModel<String>(timesheet, "location")) {
+            @Override
+            protected List<String> getChoices(final String input) {
+                return trimResults(WicketSupport.get(TimesheetDao.class).getLocationAutocompletion(input));
+            }
 
-  private String getString(final String i18nKey)
-  {
-    return gridBuilder.getString(i18nKey);
-  }
+            private List<String> trimResults(final List<String> result) {
+                if (result != null && result.size() > 0 && filter != null && filter.getIgnoredLocations() != null && filter.getIgnoredLocations().size() > 0) {
+                    result.removeAll(filter.getIgnoredLocations());
+                }
+                return result;
+            }
+
+            @Override
+            protected List<String> getFavorites() {
+                return trimResults(WicketSupport.get(TimesheetRecentService.class).getRecentLocations());
+            }
+        };
+        locationTextField.withMatchContains(true).withMinChars(2).withFocus(true);
+        fs.setStoreObject(locationTextField);
+        fs.add(locationTextField);
+        if (fs instanceof FieldsetPanel) {
+            ((FieldsetPanel) fs).addKeyboardHelpIcon(getString("tooltip.autocomplete.withDblClickFunction"));
+            ((FieldsetPanel) fs).addHelpIcon(getString("timesheet.location.tooltip"));
+        }
+        return fs;
+    }
+
+    public FieldProperties<String> getLocationProperties() {
+        return new FieldProperties<String>("timesheet.location", new PropertyModel<String>(timesheet, "location"));
+    }
+
+    public FieldProperties<String> getReferenceProperties() {
+        return new FieldProperties<String>("timesheet.reference", new PropertyModel<String>(timesheet, "reference"));
+    }
+
+    private String getString(final String i18nKey) {
+        return gridBuilder.getString(i18nKey);
+    }
 }
