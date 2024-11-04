@@ -266,7 +266,6 @@ class KostCache : AbstractCache() {
 
         internal fun setForTestCases() {
             instance = KostCache()
-            KostFormatter.setForTestcases(instance)
         }
     }
 }

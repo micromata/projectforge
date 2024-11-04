@@ -85,7 +85,6 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         addResourceBundle(RESOURCE_BUNDLE_NAME)
 
         WicketSupport.get(AddressDao::class.java).register(MarketingPluginAddressDeletionListener(addressCampaignDao))
-        WicketSupport.register(AddressCampaignValueDao::class.java, addressCampaignValueDao)
     }
 
     companion object {

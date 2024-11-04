@@ -97,7 +97,6 @@ class RechnungCalculatorTest : AbstractTestBase() {
 
     @Test
     fun `test calculation of RechnungPositionDO`() {
-        KostCache.setForTestCases()
         RechnungsPositionDO().also { position ->
             calculateAndAssert(position, "0.00", gross = "0.00")
             position.apply {

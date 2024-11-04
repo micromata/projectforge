@@ -64,6 +64,8 @@ import java.util.Map;
  */
 
 public class WicketSupport {
+    private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketSupport.class);
+
     private static WicketSupport instance = new WicketSupport();
 
     public static AccessChecker getAccessChecker() {
@@ -129,8 +131,6 @@ public class WicketSupport {
     public static void register(ApplicationContext applicationContext) {
         WicketSupport.getInstance().registerBeans(applicationContext);
     }
-
-    private final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketSupport.class);
 
     private Map<Class<?>, Object> componentsMap = new HashMap<>();
 

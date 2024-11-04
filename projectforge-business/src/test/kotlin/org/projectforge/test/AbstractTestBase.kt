@@ -177,13 +177,13 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     /**
-     * Override this as beforeAll, but non static.
+     * Override this as beforeAll, but non-static.
      */
     protected open fun beforeAll() {
     }
 
     /**
-     * Override this as afterAll, but non static.
+     * Override this as afterAll, but non-static.
      * Every test should finish with a valid database with test cases. If not, the test should call recreateDatabase() on afterAll!
      */
     protected open fun afterAll() {
