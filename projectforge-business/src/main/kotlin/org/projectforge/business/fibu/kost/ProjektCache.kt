@@ -26,6 +26,7 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
+import org.hibernate.Hibernate
 import org.projectforge.business.fibu.*
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
@@ -70,6 +71,18 @@ class ProjektCache : AbstractCache() {
         synchronized(projektMap) {
             return projektMap[projektId]
         }
+    }
+
+    /**
+     * Returns the ProjektDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getProjektIfNotInitialized(projekt: ProjektDO?): ProjektDO? {
+        val projektId = projekt?.id ?: return null
+        if (Hibernate.isInitialized(projekt)) {
+            return projekt
+        }
+        return getProjekt(projektId)
     }
 
     /**

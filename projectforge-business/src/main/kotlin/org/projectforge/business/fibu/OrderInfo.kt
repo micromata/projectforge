@@ -43,6 +43,7 @@ private val log = KotlinLogging.logger {}
  */
 class OrderInfo(order: AuftragDO) : Serializable {
     class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
+
         val id = schedule.id
         val positionNumber = schedule.positionNumber
         val amount = schedule.amount
@@ -70,17 +71,13 @@ class OrderInfo(order: AuftragDO) : Serializable {
     var bemerkung: String? = null
     var paymentSchedules: Collection<PaymentScheduleInfo>? = null
 
-    init {
-        updateFields(order)
-    }
-
     /**
      * The positions (not deleted) of the order with additional information.
      */
     val infoPositions: Collection<OrderPositionInfo>?
         get() = AuftragsCache.instance.getOrderPositionInfosByAuftragId(id)
 
-    fun updateFields(order: AuftragDO) {
+    fun updateFields(order: AuftragDO, paymentSchedules: Collection<PaymentScheduleDO>? = null) {
         id = order.id
         nummer = order.nummer
         titel = order.titel
@@ -96,7 +93,7 @@ class OrderInfo(order: AuftragDO) : Serializable {
         periodOfPerformanceEnd = order.periodOfPerformanceEnd
         contactPerson = order.contactPerson
         bemerkung = order.bemerkung.abbreviate(30)
-        paymentSchedules = order.paymentSchedules?.map { PaymentScheduleInfo(it) }
+        paymentSchedules?.let { this.paymentSchedules = it.map { PaymentScheduleInfo(it) } }
     }
 
     /**
@@ -159,26 +156,24 @@ class OrderInfo(order: AuftragDO) : Serializable {
      */
     fun calculateAll(
         order: AuftragDO,
-        positions: Collection<AuftragsPositionDO>? = null,
-        paymentSchedules: Collection<PaymentScheduleDO>? = null
+        positions: Collection<AuftragsPositionDO>?,
+        paymentSchedules: Collection<PaymentScheduleDO>?,
     ) {
-        updateFields(order)
-        val usePositions = positions ?: order.positionen
-        val useSchedules = paymentSchedules ?: order.paymentSchedules
-        netSum = calculateNetSum(usePositions)
-        orderedNetSum = calculateOrderedNetSum(order, usePositions)
+        updateFields(order, paymentSchedules)
+        netSum = calculateNetSum(positions)
+        orderedNetSum = calculateOrderedNetSum(order, positions)
         analyzeInvoices(positions) // Calculates invoicedSum and positionAbgeschlossenUndNichtVollstaendigFakturiert.
-        toBeInvoicedSum = calculateToBeInvoicedSum(usePositions, useSchedules)
+        toBeInvoicedSum = calculateToBeInvoicedSum(positions, paymentSchedules)
         notYetInvoicedSum = orderedNetSum - invoicedSum
-        isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(order, usePositions, useSchedules)
-        personDays = calculatePersonDays(usePositions)
+        isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(order, positions, paymentSchedules)
+        personDays = calculatePersonDays(positions)
         paymentSchedulesReached =
             paymentSchedules?.any { !it.deleted && it.reached && !it.vollstaendigFakturiert } ?: false
         if (paymentSchedulesReached) {
             log.debug("Payment schedules reached for order: ${order.id}")
             toBeInvoiced = true
         } else {
-            if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || usePositions?.any { it.status == AuftragsPositionsStatus.ABGESCHLOSSEN } == true) {
+            if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || positions?.any { it.status == AuftragsPositionsStatus.ABGESCHLOSSEN } == true) {
                 toBeInvoiced = (positions?.any { it.toBeInvoiced } == true)
                 if (toBeInvoiced) {
                     log.debug("Finished order and/or positions and to be invoiced: ${order.id}")

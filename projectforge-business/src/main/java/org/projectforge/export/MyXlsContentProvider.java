@@ -84,7 +84,7 @@ public class MyXlsContentProvider extends XlsContentProvider
     } else if (value instanceof KundeDO) {
       return KundeFormatter.formatKundeAsString((KundeDO) value, null);
     } else if (value instanceof ProjektDO) {
-      return ProjektFormatter.formatProjektKundeAsString((ProjektDO) value, null, null);
+      return ProjektFormatter.formatProjektKundeAsString((ProjektDO) value);
     } else if (value instanceof EmployeeDO) {
       final EmployeeDO employee = (EmployeeDO) value;
       return employee.getUser() != null ? employee.getUser().getFullname() : "???";

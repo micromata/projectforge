@@ -29,6 +29,9 @@ import org.apache.wicket.*;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.pageStore.IPageStore;
+import org.apache.wicket.pageStore.InMemoryPageStore;
+import org.apache.wicket.pageStore.RequestPageStore;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Request;
@@ -37,6 +40,7 @@ import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
+import org.apache.wicket.settings.RequestCycleSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.projectforge.Constants;
@@ -81,9 +85,6 @@ import java.util.Map;
 public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */ {
   public static final String RESOURCE_BUNDLE_NAME = Constants.RESOURCE_BUNDLE_NAME;
 
-  private static final long MAX_BYTES_DISK_STORAGE = 100 * NumberOfBytes.MEGA_BYTES; // 100 MB
-
-
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketApplication.class);
 
   private static final Map<Class<? extends Page>, String> mountedPages = new HashMap<>();
@@ -102,9 +103,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
   @Autowired
   private ApplicationContext applicationContext;
-
-  @Autowired
-  private DatabaseService databaseService;
 
   @Autowired
   private PluginAdminService pluginAdminService;
@@ -278,6 +276,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     getComponentInstantiationListeners().add(new SpringComponentInjector(this));
     getApplicationSettings().setInternalErrorPage(ErrorPage.class);
     getRequestCycleSettings().setTimeout(Duration.ofMinutes(Constants.WICKET_REQUEST_TIMEOUT_MINUTES));
+    // getRequestCycleSettings().setRenderStrategy(RequestCycleSettings.RenderStrategy.ONE_PASS_RENDER);
 
     // getRequestCycleSettings().setGatherExtendedBrowserInfo(true); // For getting browser width and height.
 
@@ -337,7 +336,16 @@ public class WicketApplication extends WebApplication implements WicketApplicati
       log.error("Unable to instantiate wicket less compiler: " + e.getMessage(), e);
     }
 
-    getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
+    getPageSettings().setRecreateBookmarkablePagesAfterExpiry(true);
+    getPageSettings().setVersionPagesByDefault(true);
+    /*setPageManagerProvider(() -> {
+      IPageStore pageStore = new InMemoryPageStore(getName(), 20); // max. 10 Seiten pro Session
+      return new PageStoreManager(this, new RequestPageStore(dataStore));
+      // Alternatively, for storing pages on disk with a limit:
+      // String storeFolder = getStoreFolder();
+      // IDataStore diskDataStore = new DiskPageStore(storeFolder, 20); // Limit pages on disk
+      // return new PageStoreManager(this, new RequestPageStore(diskDataStore));
+    });*/
     getStoreSettings().setMaxSizePerSession(Bytes.kilobytes(100));
     log.info("Using file storage directory for page store: " + WebApplication.get().getServletContext()
         .getAttribute("jakarta.servlet.context.tempdir"));

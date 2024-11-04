@@ -64,9 +64,6 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   @SuppressWarnings("unused")
   private boolean defaultFormProcessing = false;
 
-  @SpringBean
-  private ProjektFormatter projektFormatter;
-
   private RecentQueue<String> recentProjects;
 
   private final PFAutoCompleteTextField<ProjektDO> projectTextField;
@@ -120,7 +117,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         if (project == null) {
           return "";
         }
-        return projektFormatter.format(project, false);
+        return WicketSupport.get(ProjektFormatter.class).format(project, false);
       }
 
       @Override
@@ -129,7 +126,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         if (project == null) {
           return "";
         }
-        return projektFormatter.format(project, false);
+        return WicketSupport.get(ProjektFormatter.class).format(project, false);
       }
 
       @Override
@@ -138,7 +135,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         final ProjektDO project = getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(project);
         if (project != null && (currentProject == null || project.getId() != currentProject.getId())) {
-          getRecentProjects().append(projektFormatter.format(project, false));
+          getRecentProjects().append(WicketSupport.get(ProjektFormatter.class).format(project, false));
         }
         currentProject = project;
       }
@@ -321,7 +318,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
     if (customer == null) {
       return "";
     }
-    return projektFormatter.format(customer, false);
+    return WicketSupport.get(ProjektFormatter.class).format(customer, false);
   }
 
   /**
