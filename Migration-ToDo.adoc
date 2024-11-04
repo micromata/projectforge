@@ -1,6 +1,5 @@
 Aktuell:
 - User editieren: user rights können nicht geändert werden: duplicate key violation. Alle Rechte weg!!!
-- Zugriffsrechte: Änderung des Feldes rekursiv taucht nicht in der Historie auf!
 - Listenimport / Export
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)

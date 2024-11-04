@@ -175,7 +175,7 @@ open class AccessDao : BaseDao<GroupTaskAccessDO>(GroupTaskAccessDO::class.java)
                 list = qlist
             } else {
                 for (access in qlist) {
-                    if (!access.isRecursive) {
+                    if (!access.recursive) {
                         val accessNode = taskTree.getTaskNodeById(access.taskId)
                         // && myFilter.getTaskId().equals(access.getTaskId()) == false) {
                         if (accessNode?.isParentOf(taskNode) == true) {

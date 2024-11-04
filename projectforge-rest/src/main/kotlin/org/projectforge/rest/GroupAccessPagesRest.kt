@@ -49,7 +49,7 @@ class GroupAccessPagesRest : AbstractDOPagesRest<GroupTaskAccessDO, AccessDao>(A
      */
     override fun createListLayout(request: HttpServletRequest, layout: UILayout, magicFilter: MagicFilter, userAccess: UILayout.UserAccess) {
       layout.add(UITable.createUIResultSetTable()
-                        .add(lc, "task.title", "group.name", "isRecursive", "description"))
+                        .add(lc, "task.title", "group.name", "recursive", "description"))
     }
 
     /**
@@ -59,7 +59,7 @@ class GroupAccessPagesRest : AbstractDOPagesRest<GroupTaskAccessDO, AccessDao>(A
         val layout = super.createEditLayout(dto, userAccess)
                 .add(lc, "task")
                 .add(UISelect.createGroupSelect(lc, "readonlyAccessUsers", false, "user.assignedGroups"))
-                .add(lc, "isRecursive")
+                .add(lc, "recursive")
                 .add(UICustomized("access.table"))
                 .add(lc, "description")
         return LayoutUtils.processEditPage(layout, dto, this)
