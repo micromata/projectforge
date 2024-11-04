@@ -25,16 +25,18 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import org.apache.commons.lang3.StringUtils
+import org.hibernate.Hibernate
 import org.projectforge.business.fibu.OldKostFormatter.format2Digits
 import org.projectforge.business.fibu.OldKostFormatter.format3Digits
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
+import org.projectforge.business.fibu.kost.ProjektCache
 import org.projectforge.common.extensions.abbreviate
-import org.projectforge.common.extensions.format2Digits
 import org.projectforge.common.extensions.format3Digits
 import org.projectforge.framework.utils.NumberHelper
 import org.projectforge.framework.utils.NumberHelper.splitToInts
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
@@ -48,6 +50,8 @@ class KostFormatter(private val kostCache: KostCache) {
      */
     enum class FormatType { NUMBER, FORMATTED_NUMBER, TEXT, LONG }
 
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     @PostConstruct
     private fun postConstruct() {
@@ -107,18 +111,26 @@ class KostFormatter(private val kostCache: KostCache) {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        projekt ?: return if (formatType == FormatType.NUMBER) "??????" else "?.???.??"
+        var useProjekt = projekt
+        if (projekt?.id != null && !Hibernate.isInitialized(projekt)) {
+            useProjekt = projektCache.getProjekt(projekt.id)
+        }
+        useProjekt ?: return if (formatType == FormatType.NUMBER) "??????" else "?.???.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
-        sb.append(projekt.nummernkreis).append(delimiter)
-        if (projekt.kunde != null) {
-            sb.append(formatKunde(projekt.kunde))
-        } else {
-            sb.append(format3Digits(projekt.bereich))
+        sb.append(useProjekt.nummernkreis).append(delimiter)
+        var kunde = useProjekt.kunde
+        if (kunde?.id != null && !Hibernate.isInitialized(kunde)) {
+            kunde = kostCache.getCustomer(kunde.id)
         }
-        sb.append(delimiter).append(format2Digits(projekt.nummer))
+        if (kunde != null) {
+            sb.append(formatKunde(kunde))
+        } else {
+            sb.append(format3Digits(useProjekt.bereich))
+        }
+        sb.append(delimiter).append(format2Digits(useProjekt.nummer))
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
-            sb.append(": ").append(projekt.name)
+            sb.append(": ").append(useProjekt.name)
         }
         return abbreviateIfRequired(sb.toString(), formatType, abbreviationLength)
     }
@@ -135,29 +147,37 @@ class KostFormatter(private val kostCache: KostCache) {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        kost2 ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
+        var useKost2 = kost2
+        if (useKost2?.id != null && !Hibernate.isInitialized(useKost2)) {
+            useKost2 = kostCache.getKost2(useKost2.id)
+        }
+        useKost2 ?: return if (formatType == FormatType.NUMBER) "????????" else "?.???.??.??"
         val delimiter = if ((formatType == FormatType.NUMBER)) "" else "."
         val sb = StringBuilder()
-        sb.append(kost2.nummernkreis).append(delimiter)
-            .append(format3Digits(kost2.bereich)).append(delimiter)
-            .append(format2Digits(kost2.teilbereich)).append(delimiter)
-        if (kost2.kost2Art != null) {
-            sb.append(format2Digits(kost2.kost2Art!!.id))
+        sb.append(useKost2.nummernkreis).append(delimiter)
+            .append(format3Digits(useKost2.bereich)).append(delimiter)
+            .append(format2Digits(useKost2.teilbereich)).append(delimiter)
+        if (useKost2.kost2Art != null) {
+            sb.append(format2Digits(useKost2.kost2Art!!.id))
         } else {
             sb.append("--")
         }
+        var useProjekt = useKost2.projekt
+        if (useProjekt?.id != null && !Hibernate.isInitialized(useProjekt)) {
+            useProjekt = projektCache.getProjekt(useProjekt.id)
+        }
         if (formatType == FormatType.LONG || formatType == FormatType.TEXT) {
             sb.append(": ")
-            kost2.projekt.let { projekt ->
+            useProjekt.let { projekt ->
                 if (projekt != null) {
-                    kost2.kost2Art.let { kost2Art ->
+                    useKost2.kost2Art.let { kost2Art ->
                         kost2Art?.name?.let { name ->
                             sb.append(name).append(" - ")
                         }
                         sb.append(projekt.name)
                     }
                 } else {
-                    sb.append(kost2.description)
+                    sb.append(useKost2.description)
                 }
             }
         }

@@ -1,5 +1,5 @@
 Aktuell:
-- Monatsbericht: Link auf Zeitberichte
+- Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 - Aufträge in Strukturbaum nicht da.
 - Suche:
   - Suche in History

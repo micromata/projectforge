@@ -195,7 +195,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         val project = invoice.projekt
         if (project != null
                 && setExpectedDateOfPayment(entry, dateOfInvoice, "project#" + project.id,
-                        ProjektFormatter.formatProjektKundeAsString(project, null, null))) {
+                        ProjektFormatter.formatProjektKundeAsString(project))) {
             return
         }
         val customer = invoice.kunde

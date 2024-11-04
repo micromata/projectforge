@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils
 import org.hibernate.annotations.ListIndexBase
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
+import org.projectforge.business.user.UserGroupCache
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.i18n.I18nHelper
@@ -309,29 +310,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     val projektAsString: String
         @Transient
-        get() {
-            val buf = StringBuilder()
-            var first = true
-            val prj = this.projekt
-            val kunde = prj?.kunde
-            if (prj != null) {
-                if (kunde != null) {
-                    if (first) {
-                        first = false
-                    } else {
-                        buf.append("; ")
-                    }
-                    buf.append(kunde.name)
-                }
-                if (StringUtils.isNotBlank(prj.name)) {
-                    if (!first) {
-                        buf.append(" - ")
-                    }
-                    buf.append(prj.name)
-                }
-            }
-            return buf.toString()
-        }
+        get() = ProjektFormatter.formatProjektKundeAsString(this.projekt, this.kunde, this.kundeText)
 
     /**
      * Get list of AuftragsPosition including elements that are marked as deleted.
@@ -425,8 +404,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
         }
 
     private fun addUser(result: ArrayList<String>, user: PFUserDO?) {
-        if (user != null)
-            result.add(user.getFullname())
+        UserGroupCache.getInstance().getUser(user?.id)?.let { result.add(it.getFullname()) }
     }
 
     /**

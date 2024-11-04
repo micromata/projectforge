@@ -24,8 +24,10 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
+import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KostFormatter.Companion.ABBREVIATION_LENGTH
 import org.projectforge.business.fibu.KostFormatter.FormatType
+import org.projectforge.business.fibu.kost.KundeCache
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -33,6 +35,9 @@ import org.springframework.stereotype.Service
 class KundeFormatter {
     @Autowired
     private lateinit var kostFormatter: KostFormatter
+
+    @Autowired
+    private lateinit var kundeCache: KundeCache
 
     @PostConstruct
     private fun postConstruct() {
@@ -77,9 +82,13 @@ class KundeFormatter {
          */
         @JvmStatic
         fun formatKundeAsString(kunde: KundeDO?, kundeText: String?): String {
+            var useKunde: KundeDO? = kunde
+            if (!Hibernate.isInitialized(kunde)) {
+                useKunde = instance.kundeCache.getKunde(kunde?.nummer)
+            }
             return listOfNotNull(
                 kundeText.takeIf { !it.isNullOrBlank() },
-                kunde?.name.takeIf { !kunde?.name.isNullOrBlank() }
+                useKunde?.name.takeIf { !useKunde?.name.isNullOrBlank() }
             ).joinToString(separator = "; ")
         }
     }

@@ -163,7 +163,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
     private fun readOrderInfo(
         order: AuftragDO,
         positions: List<AuftragsPositionDO>?,
-        paymentSchedules: List<PaymentScheduleDO>?
+        paymentSchedules: List<PaymentScheduleDO>?,
     ): OrderInfo {
         order.info.calculateAll(order, positions, paymentSchedules)
         synchronized(orderPositionMap) {
@@ -207,6 +207,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
                 AuftragDO::class.java
             )
             orders.forEach { order ->
+                log.debug { "Cached payment schedules for order ${order.id}: ${paymentSchedules[order.id]?.size}" }
                 map[order.id!!] = readOrderInfo(order, orderPositions[order.id], paymentSchedules[order.id])
             }
             val posMap = mutableMapOf<Long, OrderPositionInfo>()

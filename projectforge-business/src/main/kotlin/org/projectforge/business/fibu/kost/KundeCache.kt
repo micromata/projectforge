@@ -26,9 +26,9 @@ package org.projectforge.business.fibu.kost
 import jakarta.annotation.PostConstruct
 import jakarta.persistence.LockModeType
 import mu.KotlinLogging
+import org.hibernate.Hibernate
 import org.projectforge.business.fibu.KundeDO
 import org.projectforge.business.fibu.KundeDao
-import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -66,12 +66,28 @@ class KundeCache : AbstractCache() {
         })
     }
 
-    fun getKunde(kundeId: Long?): KundeDO? {
-        kundeId ?: return null
+    /**
+     * @param nummer The pk (don't use the id).
+     * Returns the KundeDO by its id.
+     */
+    fun getKunde(kundeNummer: Long?): KundeDO? {
+        kundeNummer ?: return null
         checkRefresh()
         synchronized(kundeMap) {
-            return kundeMap[kundeId]
+            return kundeMap[kundeNummer]
         }
+    }
+
+    /**
+     * Returns the KundeDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
+        val kundeId = kunde?.id ?: return null
+        if (Hibernate.isInitialized(kunde)) {
+            return kunde
+        }
+        return getKunde(kundeId)
     }
 
     /**

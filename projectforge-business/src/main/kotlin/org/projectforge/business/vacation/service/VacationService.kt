@@ -420,7 +420,7 @@ open class VacationService {
      * an vacation list for selected employees or group of employees.
      */
     open fun getVacationOfEmployees(
-        employees: Set<EmployeeDO>,
+        employees: Collection<EmployeeDO>,
         periodBegin: LocalDate, periodEnd: LocalDate, withSpecial: Boolean = false,
         trimVacations: Boolean = false,
         vararg status: VacationStatus,

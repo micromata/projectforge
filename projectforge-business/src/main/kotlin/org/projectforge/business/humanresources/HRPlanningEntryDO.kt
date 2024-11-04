@@ -159,7 +159,7 @@ open class HRPlanningEntryDO : DefaultBaseDO(), DisplayNameCapable {
      */
     val projektKundeAsString: String
         @Transient
-        get() = ProjektFormatter.formatProjektKundeAsString(this.projekt, null, null)
+        get() = ProjektFormatter.formatProjektKundeAsString(this.projekt)
 
     /**
      * @return The total duration of all assigned hours (unassigned hours, monday, tuesday...)
