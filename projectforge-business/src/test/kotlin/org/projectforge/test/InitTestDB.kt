@@ -136,7 +136,7 @@ class InitTestDB {
             val savedSet = mutableSetOf<UserRightDO>()
             savedSet.addAll(userRights)
             userRights.clear()
-            userService.save(user) // Save user without rights
+            userService.insert(user, false) // Save user without rights
             savedSet.forEach { right ->
                 // Now, save the rights.
                 userRightDao.insert(right, checkAccess = false)

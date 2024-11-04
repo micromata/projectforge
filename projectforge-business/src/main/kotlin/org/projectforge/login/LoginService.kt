@@ -161,7 +161,7 @@ open class LoginService {
         }
         log.info("User successfully logged in: " + user.userDisplayName)
         if (loginData.stayLoggedIn == true) {
-            val loggedInUser = userService.internalGetById(user.id)
+            val loggedInUser = userService.find(user.id, false)
             val stayLoggedInKey = userAuthenticationsService.internalGetToken(userId, UserTokenType.STAY_LOGGED_IN_KEY)
             cookieService.addStayLoggedInCookie(request, response, loggedInUser, stayLoggedInKey)
         }

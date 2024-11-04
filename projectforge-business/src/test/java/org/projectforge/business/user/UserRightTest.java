@@ -67,9 +67,9 @@ public class UserRightTest extends AbstractTestBase {
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    Long userId = userService.save(user);
+    Long userId = userService.insert(user, false);
     userRightDao.insert(userRights);
-    user = userService.internalGetById(userId);
+    user = userService.find(userId, false);
 
     Set<UserRightDO> rights = user.getRights();
     assertEquals(3, rights.size(), "3 rights added to user");
@@ -93,7 +93,7 @@ public class UserRightTest extends AbstractTestBase {
     group.getAssignedUsers().add(user);
     groupDao.update(group);
     logon(user.getUsername());
-    user = userService.internalGetById(user.getId());
+    user = userService.find(user.getId(), false);
     rights = user.getRights();
     assertEquals(3, rights.size(),
         "3 rights added to user");
@@ -126,7 +126,7 @@ public class UserRightTest extends AbstractTestBase {
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    user = userService.internalGetById(userService.save(user));
+    user = userService.find(userService.insert(user, false), false);
     userRightDao.insert(userRights);
 
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
@@ -134,7 +134,7 @@ public class UserRightTest extends AbstractTestBase {
     groupDao.update(group);
 
     logon(user.getUsername());
-    user = userService.internalGetById(user.getId());
+    user = userService.find(user.getId(), false);
     final Set<UserRightDO> rights = user.getRights();
     assertEquals(4, rights.size(), "4 rights added to user");
     assertTrue(accessChecker.hasLoggedInUserRight(UserRightId.FIBU_AUSGANGSRECHNUNGEN, false, UserRightValue.READONLY), "Right matches.");
@@ -167,7 +167,7 @@ public class UserRightTest extends AbstractTestBase {
         "Right is not configurable, because no right values are available.");
     PFUserDO user = new PFUserDO();
     user.setUsername("testConfigurableRight");
-    user = userService.internalGetById(userService.save(user));
+    user = userService.find(userService.insert(user, false), false);
     GroupDO group = getGroup(ProjectForgeGroup.FINANCE_GROUP.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);
@@ -196,7 +196,7 @@ public class UserRightTest extends AbstractTestBase {
         "Right is not configurable, because no right values are available.");
     PFUserDO user = new PFUserDO();
     user.setUsername("testHRPlanningRight");
-    user = userService.internalGetById(userService.save(user));
+    user = userService.find(userService.insert(user, false), false);
     GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.getAssignedUsers().add(user);
     groupDao.update(group);

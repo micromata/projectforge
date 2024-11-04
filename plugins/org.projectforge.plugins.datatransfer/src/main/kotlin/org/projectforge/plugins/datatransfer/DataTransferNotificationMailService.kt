@@ -98,7 +98,7 @@ open class DataTransferNotificationMailService {
     )
     var counter = 0
     recipients.distinct().forEach { id ->
-      val recipient = userService.internalGetById(id)
+      val recipient = userService.find(id, false)
       val mail = prepareMail(recipient, area, link, auditEntries, downloadAuditEntries)
       mail?.let {
         try {
@@ -123,7 +123,7 @@ open class DataTransferNotificationMailService {
     if (notificationInfoList.isNullOrEmpty()) {
       return
     }
-    val recipient = userService.internalGetById(userId)
+    val recipient = userService.find(userId, false)
     if (recipient == null) {
       log.error { "Can't determine observer by id: $userId" }
       return
