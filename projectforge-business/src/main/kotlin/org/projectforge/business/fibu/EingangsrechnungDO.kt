@@ -36,7 +36,6 @@ import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.DisplayNameCapable
 import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.utils.StringComparator
-import java.math.BigDecimal
 
 /**
  * Eingehende Rechnungen.
@@ -114,10 +113,11 @@ open class EingangsrechnungDO : AbstractRechnungDO(), Comparable<Eingangsrechnun
     @JsonManagedReference
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @get:OneToMany(
-        cascade = [CascadeType.ALL],
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
         fetch = FetchType.LAZY,
         mappedBy = "eingangsrechnung",
-        targetEntity = EingangsrechnungsPositionDO::class
+        targetEntity = EingangsrechnungsPositionDO::class,
     )
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)

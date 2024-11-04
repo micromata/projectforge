@@ -23,24 +23,24 @@
 
 package org.projectforge.framework.access
 
+import jakarta.persistence.*
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import org.apache.commons.lang3.builder.ToStringBuilder
 import org.hibernate.Hibernate
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
 import org.projectforge.business.task.TaskDO
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.EntityCopyStatus
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import java.io.Serializable
 import java.util.*
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency
-import org.projectforge.framework.persistence.history.PersistenceBehavior
 
 /**
  * Represents an access entry with the permissions of one group to one task. The persistent data object of
@@ -50,10 +50,20 @@ import org.projectforge.framework.persistence.history.PersistenceBehavior
  */
 @Entity
 @Indexed
-@Table(name = "T_GROUP_TASK_ACCESS", uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_group_task_access_group_id", columnList = "group_id"), jakarta.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id")])
+@Table(
+    name = "T_GROUP_TASK_ACCESS",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "task_id"])],
+    indexes = [jakarta.persistence.Index(
+        name = "idx_fk_t_group_task_access_group_id",
+        columnList = "group_id"
+    ), jakarta.persistence.Index(name = "idx_fk_t_group_task_access_task_id", columnList = "task_id")]
+)
 @NamedQueries(
-        NamedQuery(name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
-                query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"))
+    NamedQuery(
+        name = GroupTaskAccessDO.FIND_BY_TASK_AND_GROUP,
+        query = "from GroupTaskAccessDO a where a.task.id=:taskId and a.group.id=:groupId"
+    )
+)
 open class GroupTaskAccessDO : DefaultBaseDO() {
 
     @IndexedEmbedded(includeDepth = 1)
@@ -84,7 +94,10 @@ open class GroupTaskAccessDO : DefaultBaseDO() {
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @PropertyInfo(i18nKey = "access.type")
-    @get:OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+    )
     @get:JoinColumn(name = "group_task_access_fk", insertable = true, updatable = true)
     open var accessEntries: MutableSet<AccessEntryDO>? = null
 

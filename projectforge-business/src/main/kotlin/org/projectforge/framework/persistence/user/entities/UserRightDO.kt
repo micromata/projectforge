@@ -46,7 +46,8 @@ import java.io.Serializable
     indexes = [Index(name = "idx_fk_t_user_right_user_fk", columnList = "user_fk")]
 )
 @NamedQueries(
-    NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString")
+    NamedQuery(name = UserRightDO.FIND_ALL_ORDERED, query = "from UserRightDO order by user.id, rightIdString"),
+    NamedQuery(name = UserRightDO.FIND_ALL_BY_USER_ID, query = "from UserRightDO where user.id=:userId"),
 )
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, DisplayNameCapable {
@@ -153,8 +154,8 @@ class UserRightDO : DefaultBaseDO, Comparable<UserRightDO>, Serializable, Displa
     }
 
     companion object {
-        private const val serialVersionUID = 6703048743393453733L
-
         const val FIND_ALL_ORDERED: String = "UserRightDO_FindAllOrdered"
+
+        const val FIND_ALL_BY_USER_ID: String = "UserRightDO_FindAllByUserId"
     }
 }

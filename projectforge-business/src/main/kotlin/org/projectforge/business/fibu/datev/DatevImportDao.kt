@@ -126,7 +126,7 @@ class DatevImportDao {
         requireNotNull(storage.getSheets())
         val sheet = storage.getNamedSheet(sheetName)
         requireNotNull(sheet)
-        if (storage.id === Type.KONTENPLAN) {
+        if (storage.id == Type.KONTENPLAN) {
             @Suppress("UNCHECKED_CAST")
             reconcileKontenplan(sheet as ImportedSheet<KontoDO>)
         } else {
@@ -144,7 +144,7 @@ class DatevImportDao {
         if (sheet.getStatus() != ImportStatus.RECONCILED) {
             throw UserException("common.import.action.commit.error.notReconciled")
         }
-        val no = if (storage.id === Type.KONTENPLAN) {
+        val no = if (storage.id == Type.KONTENPLAN) {
             @Suppress("UNCHECKED_CAST")
             commitKontenplan(sheet as ImportedSheet<KontoDO?>)
         } else {

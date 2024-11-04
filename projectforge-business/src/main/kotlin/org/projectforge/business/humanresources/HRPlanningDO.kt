@@ -25,10 +25,14 @@ package org.projectforge.business.humanresources
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import jakarta.persistence.*
+import mu.KotlinLogging
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.common.anots.PropertyInfo
-import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
+import org.projectforge.framework.persistence.history.PersistenceBehavior
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.framework.time.DateTimeFormatter
@@ -37,10 +41,6 @@ import org.projectforge.framework.time.PFDay
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
-import jakarta.persistence.*
-import mu.KotlinLogging
-import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 private val log = KotlinLogging.logger {}
 
@@ -50,11 +50,22 @@ private val log = KotlinLogging.logger {}
  */
 @Entity
 @Indexed
-@Table(name = "T_HR_PLANNING", uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])], indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")])
+@Table(
+    name = "T_HR_PLANNING",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["user_fk", "week"])],
+    indexes = [jakarta.persistence.Index(name = "idx_fk_t_hr_planning_user_fk", columnList = "user_fk")]
+)
 //@WithHistory(noHistoryProperties = ["lastUpdate", "created"], nestedEntities = [HRPlanningEntryDO::class])
 @NamedQueries(
-        NamedQuery(name = HRPlanningDO.FIND_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week"),
-        NamedQuery(name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK, query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"))
+    NamedQuery(
+        name = HRPlanningDO.FIND_BY_USER_AND_WEEK,
+        query = "from HRPlanningDO where user.id=:userId and week=:week"
+    ),
+    NamedQuery(
+        name = HRPlanningDO.FIND_OTHER_BY_USER_AND_WEEK,
+        query = "from HRPlanningDO where user.id=:userId and week=:week and id!=:id"
+    )
+)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class HRPlanningDO : DefaultBaseDO() {
 
@@ -81,7 +92,11 @@ open class HRPlanningDO : DefaultBaseDO() {
      */
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     // @get:ContainedIn
-    @get:OneToMany(cascade = [CascadeType.ALL], mappedBy = "planning", fetch = FetchType.LAZY, orphanRemoval = true, targetEntity = HRPlanningEntryDO::class)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        mappedBy = "planning", fetch = FetchType.LAZY, targetEntity = HRPlanningEntryDO::class,
+    )
     open var entries: MutableList<HRPlanningEntryDO>? = null
 
     val formattedWeekOfYear: String

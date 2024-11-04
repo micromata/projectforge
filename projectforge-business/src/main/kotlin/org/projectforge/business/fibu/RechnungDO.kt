@@ -145,8 +145,8 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @JsonManagedReference
     @IndexedEmbedded(includeDepth = 3)
     @get:OneToMany(
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true,
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
         fetch = FetchType.LAZY,
         mappedBy = "rechnung",
         targetEntity = RechnungsPositionDO::class,

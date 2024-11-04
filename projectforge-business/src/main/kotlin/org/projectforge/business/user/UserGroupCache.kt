@@ -433,7 +433,7 @@ open class UserGroupCache : AbstractCache() {
             this.userGroupIdMap = ugIdMap
             val rMap = mutableMapOf<Long, List<UserRightDO>>()
             val rights = try {
-                userRightDao.internalGetAllOrdered()
+                userRightDao.selectAllOrdered()
             } catch (ex: Exception) {
                 log.error(
                     "******* Exception while getting user rights from data-base (only OK for migration from older versions): "

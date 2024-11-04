@@ -154,7 +154,7 @@ abstract class AbstractScriptExecutePageRest : AbstractDynamicPageRest() {
 
     val parameters = script.parameters
     parameters.forEach { scriptParameter ->
-      if (scriptParameter.type === ScriptParameterType.TASK) {
+      if (scriptParameter.type == ScriptParameterType.TASK) {
         scriptParameter.intValue?.let { taskId ->
           TaskServicesRest.createTask(taskId)?.let { task ->
             // Task must be added to variables for displaying it:

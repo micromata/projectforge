@@ -27,10 +27,10 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIdentityInfo
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import jakarta.persistence.*
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
 import org.projectforge.business.fibu.kost.KostZuweisungDO
 import org.projectforge.framework.persistence.history.PersistenceBehavior
-import jakarta.persistence.*
 
 /**
  * Repräsentiert eine Position innerhalb einer Eingangsrechnung.
@@ -38,9 +38,14 @@ import jakarta.persistence.*
  */
 @Entity
 @Indexed
-@Table(name = "t_fibu_eingangsrechnung_position",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["eingangsrechnung_fk", "number"])],
-        indexes = [Index(name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk", columnList = "eingangsrechnung_fk")])
+@Table(
+    name = "t_fibu_eingangsrechnung_position",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["eingangsrechnung_fk", "number"])],
+    indexes = [Index(
+        name = "idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk",
+        columnList = "eingangsrechnung_fk"
+    )]
+)
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "id")
 open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
 
@@ -54,7 +59,11 @@ open class EingangsrechnungsPositionDO : AbstractRechnungsPositionDO() {
         get() = eingangsrechnung?.id
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        fetch = FetchType.LAZY,
+    )
     @get:JoinColumn(name = "eingangsrechnungs_pos_fk")
     @get:OrderColumn(name = "index")
     @JsonManagedReference
