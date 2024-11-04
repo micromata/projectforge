@@ -56,6 +56,9 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     @Autowired
     private lateinit var applicationContext: ApplicationContext
 
+    @Autowired
+    private lateinit var userRightDao: UserRightDao
+
     private var userPasswordDao: UserPasswordDao? = null
 
     override val defaultSortProperties: Array<SortProperty>
@@ -264,6 +267,9 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
     override fun mergeHistoryEntries(
         obj: PFUserDO, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>,
     ) {
+        val userId = obj.id!!
+        val rights = userRightDao.queryAll(userId)
+        historyService.
         obj.rights?.forEach { right ->
             val entries = historyService.loadHistory(right)
             HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())

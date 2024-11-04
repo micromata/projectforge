@@ -84,7 +84,11 @@ open class RechnungsPositionDO : AbstractRechnungsPositionDO() {
     open var periodOfPerformanceEnd: LocalDate? = null
 
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        fetch = FetchType.LAZY,
+    )
     @get:JoinColumn(name = "rechnungs_pos_fk")
     @get:OrderColumn(name = "index")
     @JsonManagedReference

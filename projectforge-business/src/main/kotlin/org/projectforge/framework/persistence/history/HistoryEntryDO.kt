@@ -55,6 +55,11 @@ import java.util.*
         name = HistoryEntryDO.SELECT_HISTORY_FOR_BASEDO,
         query = "from HistoryEntryDO as m left join fetch m.attributes where m.entityId=:entityId and m.entityName=:entityName order by m.id desc"
     ),
+    NamedQuery(
+        name = HistoryEntryDO.SELECT_HISTORY_BY_ENTITY_IDS,
+        query = "from HistoryEntryDO as m left join fetch m.attributes where m.entityId in :entityId and m.entityName=:entityName order by m.id desc"
+    ),
+
 )
 @Entity
 @Table(
@@ -106,11 +111,11 @@ class HistoryEntryDO : HistoryEntry {
 
     @JsonManagedReference
     @get:OneToMany(
-        cascade = [CascadeType.ALL],
+        cascade = [CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.DETACH], // Write-only
         mappedBy = "parent",
         targetEntity = HistoryEntryAttrDO::class,
         fetch = FetchType.LAZY,
-        orphanRemoval = true
+        orphanRemoval = false,
     )
     override var attributes: MutableSet<HistoryEntryAttrDO>? = null
 
@@ -126,6 +131,7 @@ class HistoryEntryDO : HistoryEntry {
 
     companion object {
         internal const val SELECT_HISTORY_FOR_BASEDO = "HistoryEntryDO_SelectForBaseDO"
+        internal const val SELECT_HISTORY_BY_ENTITY_IDS = "HistoryEntryDO_SelectByEntityIds"
 
         @JvmOverloads
         fun <T: IdObject<Long>>create(

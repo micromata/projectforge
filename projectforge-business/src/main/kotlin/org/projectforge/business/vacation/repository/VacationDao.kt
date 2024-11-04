@@ -181,10 +181,10 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
     private fun isTimePeriodAndEmployeeUnchanged(obj: VacationDO, dbObj: VacationDO): Boolean {
         return obj.startDate == dbObj.startDate &&
                 obj.endDate == dbObj.endDate &&
-                obj.special === dbObj.special &&
+                obj.special == dbObj.special &&
                 obj.employeeId == dbObj.employeeId &&
-                obj.halfDayBegin === dbObj.halfDayBegin &&
-                obj.halfDayEnd === dbObj.halfDayEnd
+                obj.halfDayBegin == dbObj.halfDayBegin &&
+                obj.halfDayEnd == dbObj.halfDayEnd
     }
 
     /**
@@ -192,7 +192,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
      */
     open fun getAllowedStatus(user: PFUserDO, vacation: VacationDO): List<VacationStatus> {
         if (hasHrRights(user)) {
-            return VacationStatus.values().toList() // All status values for HR staff.
+            return VacationStatus.entries.toList() // All status values for HR staff.
         }
         val status = vacation.status
         vacation.startDate?.let {
@@ -215,7 +215,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
                     createDistinctList(status, VacationStatus.IN_PROGRESS, VacationStatus.REJECTED)
                 }
             }
-            return VacationStatus.values().toList() // All status values for manager.
+            return VacationStatus.entries.toList() // All status values for manager.
         }
         if (status == VacationStatus.APPROVED) {
             return listOf(VacationStatus.APPROVED) // Approved entries are only allowed to delete.
@@ -378,15 +378,6 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
             Pair("endDate", endVacationDate),
             Pair("deleted", false),
         )
-    }
-
-    open fun getVacationForPeriod(
-        employee: EmployeeDO,
-        startVacationDate: LocalDate?,
-        endVacationDate: LocalDate?,
-        withSpecial: Boolean
-    ): List<VacationDO> {
-        return getVacationForPeriod(employee.id, startVacationDate, endVacationDate, withSpecial)
     }
 
     override fun select(filter: BaseSearchFilter): List<VacationDO> {

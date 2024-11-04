@@ -128,7 +128,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
             .add(UIReadOnlyField(value = pollDto.deadline.toString(), label = translateMsg("poll.deadline")))
 
       /*  Aktuell nicht benutzbar auskommentiert bis es behoben wird
-        if (pollDto.isFinished() && ThreadLocalUserContext.userId === questionOwnerId && pollDao.hasFullAccess(pollData)) {
+        if (pollDto.isFinished() && ThreadLocalUserContext.userId == questionOwnerId && pollDao.hasFullAccess(pollData)) {
             val fieldSetDelegationUser = UIFieldset(title = "poll.userDelegation")
             fieldSetDelegationUser.add(
                 UIInput(
@@ -190,7 +190,7 @@ class PollResponsePageRest : AbstractDynamicPageRest() {
                 )
             }
 
-            if (field.type == BaseType.PollMultiResponseQuestion || field.type === BaseType.PollSingleResponseQuestion) {
+            if (field.type == BaseType.PollMultiResponseQuestion || field.type == BaseType.PollSingleResponseQuestion) {
                 field.answers?.forEachIndexed { index2, _ ->
                     if (pollResponse.responses?.get(index)?.answers?.getOrNull(index2) == null) {
                         pollResponse.responses?.get(index)?.answers?.add(index2, false)

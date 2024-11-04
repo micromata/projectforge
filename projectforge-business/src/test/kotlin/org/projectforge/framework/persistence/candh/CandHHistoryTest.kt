@@ -236,7 +236,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.addRight(UserRightDO(UserRightId.ORGA_OUTGOING_MAIL, UserRightValue.READWRITE))
         user.addRight(UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE))
         userRightDao.insertOrUpdate(user.rights!!, checkAccess = false)
-        var rights = userRightDao.getList(user)
+        var rights = userRightDao.select(user)
         Assertions.assertEquals(2, rights.size)
         hist.loadRecentHistoryEntries(3, 0)
         userDao.selectHistoryEntries(user).let { entries ->
@@ -254,7 +254,7 @@ class CandHHistoryTest : AbstractTestBase() {
             right!!.value = UserRightValue.READONLY
         }
         userRightDao.insertOrUpdate(user.rights!!, checkAccess = false)
-        rights = userRightDao.getList(user)
+        rights = userRightDao.select(user)
         // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)
         hist.loadRecentHistoryEntries(2, 1)

@@ -25,8 +25,6 @@ package org.projectforge.business.orga
 
 import jakarta.persistence.*
 import mu.KotlinLogging
-import org.hibernate.annotations.Fetch
-import org.hibernate.annotations.FetchMode
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -96,7 +94,11 @@ class VisitorbookDO : DefaultBaseDO() {
     @IndexedEmbedded(depth = 2)
     private var timeableAttributes: MutableList<VisitorbookTimedDO> = ArrayList()
 */
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "visitorbook", targetEntity = VisitorbookEntryDO::class)
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        fetch = FetchType.LAZY, orphanRemoval = false,
+        mappedBy = "visitorbook", targetEntity = VisitorbookEntryDO::class
+    )
     // @HistoryProperty(converter = TimependingHistoryPropertyConverter::class)
     var entries: MutableList<VisitorbookEntryDO>? = null
 

@@ -107,7 +107,11 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @PropertyInfo(i18nKey = "label.position.short")
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @IndexedEmbedded(includeDepth = 1)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        fetch = FetchType.LAZY, mappedBy = "auftrag",
+    )
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     open var positionen: MutableList<AuftragsPositionDO>? = null
@@ -226,7 +230,11 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      */
     @PropertyInfo(i18nKey = "fibu.auftrag.paymentschedule")
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
-    @get:OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true, mappedBy = "auftrag")
+    @get:OneToMany(
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH],
+        orphanRemoval = false,
+        fetch = FetchType.LAZY, mappedBy = "auftrag",
+    )
     @get:OrderColumn(name = "number") // was IndexColumn(name = "number", base = 1)
     @get:ListIndexBase(1)
     open var paymentSchedules: MutableList<PaymentScheduleDO>? = null
