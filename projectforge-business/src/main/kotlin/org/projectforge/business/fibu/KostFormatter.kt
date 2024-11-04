@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class KostFormatter(private val kostCache: KostCache) {
+class KostFormatter {
     /**
      * Format types for Kost2DO.
      * NUMBER - only the kost2 number (123456789),
@@ -49,6 +49,9 @@ class KostFormatter(private val kostCache: KostCache) {
      * LONG - kost2 number and full text (1.234.56.78 This is the description as full version).
      */
     enum class FormatType { NUMBER, FORMATTED_NUMBER, TEXT, LONG }
+
+    @Autowired
+    private lateinit var kostCache: KostCache
 
     @Autowired
     private lateinit var projektCache: ProjektCache
@@ -213,10 +216,6 @@ class KostFormatter(private val kostCache: KostCache) {
         @JvmStatic
         lateinit var instance: KostFormatter
             private set
-
-        internal fun setForTestcases(kostCache: KostCache) {
-            instance = KostFormatter(kostCache)
-        }
 
         const val MAX_VALUE: Int = 99999999
         const val ABBREVIATION_LENGTH = 30
