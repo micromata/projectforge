@@ -38,6 +38,7 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.IntegerConverter;
+import org.projectforge.web.wicket.converter.LongConverter;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
@@ -58,7 +59,7 @@ public class Kost2EditForm extends AbstractEditForm<Kost2DO, Kost2EditPage>
 
   protected TextField<Integer> teilbereichField;
 
-  protected TextField<Integer> kost2ArtField;
+  protected TextField<Long> kost2ArtField;
 
   protected NewProjektSelectPanel projektSelectPanel;
 
@@ -117,18 +118,18 @@ public class Kost2EditForm extends AbstractEditForm<Kost2DO, Kost2EditPage>
       WicketUtils.setSize(teilbereichField, 2);
       fs.add(teilbereichField);
       fs.add(new DivTextPanel(fs.newChildId(), "."));
-      kost2ArtField = new RequiredMinMaxNumberField<Integer>(InputPanel.WICKET_ID, new PropertyModel<Integer>(data, "kost2Art.id"), 0, 99)
+      kost2ArtField = new RequiredMinMaxNumberField<Long>(InputPanel.WICKET_ID, new PropertyModel<Long>(data, "kost2Art.id"), 0L, 99L)
       {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         @Override
         public IConverter getConverter(final Class type)
         {
-          return new IntegerConverter(2);
+          return new LongConverter(2);
         }
       };
       kost2ArtField.setRequired(true);
-      kost2ArtField.add((IValidator<Integer>) validatable -> {
-        final Integer value = validatable.getValue();
+      kost2ArtField.add((IValidator<Long>) validatable -> {
+        final Long value = validatable.getValue();
         if (WicketSupport.get(Kost2ArtDao.class).find(value) == null) { // Kost2 available but not selected.
           error(new ValidationError().addKey("fibu.kost2art.error.notFound"));
         }

@@ -24,13 +24,11 @@
 package org.projectforge.plugins.marketing
 
 import org.projectforge.business.address.AddressDao
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.menu.builder.MenuItemDef.Companion.create
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.web.WicketSupport
 import org.projectforge.web.plugin.PluginWicketRegistrationService
-import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -38,22 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plugin for address campaigns.") {
-    @Autowired
-    lateinit var addressDao: AddressDao
-
-    @Autowired
-    private lateinit var addressCampaignDao: AddressCampaignDao
-
-    @Autowired
-    private lateinit var addressCampaignValueDao: AddressCampaignValueDao
-
-    @Autowired
-    private lateinit var pluginWicketRegistrationService: PluginWicketRegistrationService
-
-    @Autowired
-    private lateinit var persistenceService: PfPersistenceService
-
     override fun initialize() {
+        val addressCampaignDao = WicketSupport.get(AddressCampaignDao::class.java)
+        val addressCampaignValueDao = WicketSupport.get(AddressCampaignValueDao::class.java)
         // Register it:
         register(
             ADDRESS_CAMPAIGN_ID,
@@ -63,11 +48,13 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         )
         register(
             ADDRESS_CAMPAIGN_VALUE_ID,
-            AddressCampaignValueDao::class.java, addressCampaignValueDao,
+            AddressCampaignValueDao::class.java,
+            addressCampaignValueDao,
             "plugins.marketing.addressCampaignValue"
         )
             .setSearchable(false)
 
+        val pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService::class.java)
         // Register the web part:
         pluginWicketRegistrationService!!.registerWeb(
             ADDRESS_CAMPAIGN_ID,
@@ -97,7 +84,7 @@ class MarketingPlugin : AbstractPlugin("marketing", "Marketing", "Marketing plug
         // All the i18n stuff:
         addResourceBundle(RESOURCE_BUNDLE_NAME)
 
-        addressDao.register(MarketingPluginAddressDeletionListener(addressCampaignDao))
+        WicketSupport.get(AddressDao::class.java).register(MarketingPluginAddressDeletionListener(addressCampaignDao))
         WicketSupport.register(AddressCampaignValueDao::class.java, addressCampaignValueDao)
     }
 

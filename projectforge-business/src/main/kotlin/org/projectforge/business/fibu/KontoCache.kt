@@ -25,10 +25,12 @@ package org.projectforge.business.fibu
 
 import mu.KotlinLogging
 import org.apache.commons.collections4.MapUtils
+import org.hibernate.Hibernate
+import org.projectforge.business.fibu.kost.KundeCache
+import org.projectforge.business.fibu.kost.ProjektCache
+import org.projectforge.business.scripting.Cache.getKunde
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -42,7 +44,13 @@ private val log = KotlinLogging.logger {}
 @Component
 open class KontoCache : AbstractCache() {
     @Autowired
+    private lateinit var kundeCache: KundeCache
+
+    @Autowired
     private lateinit var persistenceService: PfPersistenceService
+
+    @Autowired
+    private lateinit var projektCache: ProjektCache
 
     /**
      * The key is the database id.
@@ -89,6 +97,18 @@ open class KontoCache : AbstractCache() {
     }
 
     /**
+     * Returns the KontoDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getKontoIfNotInitialized(konto: KontoDO?): KontoDO? {
+        val id = konto?.id ?: return null
+        if (Hibernate.isInitialized(konto)) {
+            return konto
+        }
+        return getKonto(id)
+    }
+
+    /**
      * Gets account:
      *
      *  1. Returns the account of given invoice if given.
@@ -110,22 +130,22 @@ open class KontoCache : AbstractCache() {
         if (konto != null) {
             return konto
         }
-        val project = invoice.projekt
+        val project = projektCache.getProjektIfNotInitialized(invoice.projekt)
         if (project != null) {
             konto = getKonto(project.kontoId)
             if (konto != null) {
                 return konto
             }
         }
-        var kunde = invoice.kunde
+        var kunde = kundeCache.getKundeIfNotInitialized(invoice.kunde)
         if (kunde != null) {
-            konto = getKonto(kunde.kontoId)
+            konto = getKonto(kunde.konto?.id)
         }
         if (konto != null) {
             return konto
         }
         if (project != null) {
-            kunde = project.kunde
+            kunde = kundeCache.getKundeIfNotInitialized(project.kunde)
             if (kunde != null) {
                 konto = getKonto(kunde.kontoId)
             }

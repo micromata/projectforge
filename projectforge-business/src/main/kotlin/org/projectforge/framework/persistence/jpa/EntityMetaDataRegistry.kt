@@ -23,15 +23,19 @@
 
 package org.projectforge.framework.persistence.jpa
 
+import mu.KotlinLogging
+
+private val log = KotlinLogging.logger {}
+
 object EntityMetaDataRegistry {
     private val columnMetaDataMap = mutableMapOf<Class<*>, EntityMetaData>()
 
     private val notFoundEntities = mutableSetOf<Class<*>>()
 
-    fun getEntityMetaData(entityClass: Class<*>): EntityMetaData {
+    fun getEntityMetaData(entityClass: Class<*>): EntityMetaData? {
         synchronized(notFoundEntities) {
             if (notFoundEntities.contains(entityClass)) {
-                throw IllegalArgumentException(notFoundExceptionMessage(entityClass))
+                return null
             }
         }
         try {
@@ -41,17 +45,14 @@ object EntityMetaDataRegistry {
             }
         } catch (e: Exception) {
             synchronized(notFoundEntities) {
+                log.info{ "EntityMetaData for class $entityClass not found. OK, if no Hibernate entity." }
                 notFoundEntities.add(entityClass)
             }
-            throw IllegalArgumentException(notFoundExceptionMessage(entityClass))
+            return null
         }
     }
 
     fun getColumnMetaData(entityClass: Class<*>, columnName: String): ColumnMetaData? {
-        return getEntityMetaData(entityClass).getColumnMetaData(columnName)
-    }
-
-    private fun notFoundExceptionMessage(entityClass: Class<*>): String {
-        return "EntityMetaData for class $entityClass not found."
+        return getEntityMetaData(entityClass)?.getColumnMetaData(columnName)
     }
 }

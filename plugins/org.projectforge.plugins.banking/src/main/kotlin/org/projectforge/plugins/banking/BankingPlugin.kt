@@ -30,7 +30,7 @@ import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.web.WicketSupport
 
 private val log = KotlinLogging.logger {}
 
@@ -39,34 +39,31 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class BankingPlugin : AbstractPlugin(
-  PluginAdminService.PLUGIN_BANKING_ID,
-  "Banking",
-  "You may import and browse your bank accounts here."
+    PluginAdminService.PLUGIN_BANKING_ID,
+    "Banking",
+    "You may import and browse your bank accounts here."
 ) {
-  @Autowired
-  private lateinit var bankAccountDao: BankAccountDao
 
-  @Autowired
-  private lateinit var menuCreator: MenuCreator
+    override fun initialize() {
+        val bankAccountDao = WicketSupport.get(BankAccountDao::class.java)
+        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        // Register it:
+        register(id, BankAccountDao::class.java, bankAccountDao, "plugins.banking")
 
-  override fun initialize() {
-    // Register it:
-    register(id, BankAccountDao::class.java, bankAccountDao, "plugins.banking")
+        menuCreator.register(
+            MenuItemDefId.FIBU,
+            MenuItemDef(info.id,
+                "plugins.banking.menu",
+                "${Constants.REACT_APP_PATH}bankAccount",
+                checkAccess =
+                { bankAccountDao.hasLoggedInUserSelectAccess(false) }),
+        );
 
-    menuCreator.register(
-      MenuItemDefId.FIBU,
-      MenuItemDef(info.id,
-        "plugins.banking.menu",
-        "${Constants.REACT_APP_PATH}bankAccount",
-        checkAccess =
-        { bankAccountDao.hasLoggedInUserSelectAccess(false) }),
-    );
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME)
+    }
 
-    // All the i18n stuff:
-    addResourceBundle(RESOURCE_BUNDLE_NAME)
-  }
-
-  companion object {
-    const val RESOURCE_BUNDLE_NAME = "BankingI18nResources"
-  }
+    companion object {
+        const val RESOURCE_BUNDLE_NAME = "BankingI18nResources"
+    }
 }

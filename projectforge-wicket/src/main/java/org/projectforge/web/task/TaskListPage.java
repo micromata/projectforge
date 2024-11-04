@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.OrderPositionInfo;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
@@ -48,7 +47,6 @@ import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.core.PriorityFormatter;
@@ -75,15 +73,6 @@ import java.util.Set;
 public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO>
         implements IListPageColumnsCreator<TaskDO> {
     private static final long serialVersionUID = -337660148607303435L;
-
-    @SpringBean
-    private UserFormatter userFormatter;
-
-    @SpringBean
-    private DateTimeFormatter dateTimeFormatter;
-
-    @SpringBean
-    private PriorityFormatter priorityFormatter;
 
     /**
      * Sibling page (if the user switches between tree and list view.
@@ -163,8 +152,8 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
         return label;
     }
 
-    static Label getPriorityLabel(final String componentId, final PriorityFormatter priorityFormatter, final TaskDO task) {
-        final String formattedPriority = priorityFormatter.getFormattedPriority(task.getPriority());
+    static Label getPriorityLabel(final String componentId, final TaskDO task) {
+        final String formattedPriority = WicketSupport.get(PriorityFormatter.class).getFormattedPriority(task.getPriority());
         final Label label = new Label(componentId, formattedPriority);
         label.setEscapeModelStrings(false);
         return label;
@@ -294,7 +283,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
                     @Override
                     public void populateItem(final Item<ICellPopulator<TaskDO>> item, final String componentId,
                                              final IModel<TaskDO> rowModel) {
-                        final Label label = getPriorityLabel(componentId, priorityFormatter, rowModel.getObject());
+                        final Label label = getPriorityLabel(componentId, rowModel.getObject());
                         item.add(label);
                         cellItemListener.populateItem(item, componentId, rowModel);
                     }
@@ -314,7 +303,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
                 getString("task.assignedUser"),
                 getSortable(
                         "responsibleUserId", sortable),
-                "responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
+                "responsibleUserId", cellItemListener);
         columns.add(userPropertyColumn);
         return columns;
     }

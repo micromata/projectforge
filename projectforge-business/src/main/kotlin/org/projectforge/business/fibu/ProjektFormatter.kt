@@ -93,22 +93,22 @@ class ProjektFormatter : BaseFormatter() {
         @JvmStatic
         @JvmOverloads
         fun formatProjektKundeAsString(projekt: ProjektDO?, kunde: KundeDO? = null, kundeText: String? = null): String {
-            var useProjekt = instance.projektCache.getProjektIfNotInitialized(projekt)
-            val projektKunde = instance.kundeCache.getKunde(useProjekt?.kunde?.nummer)
-            var useKunde = instance.kundeCache.getKundeIfNotInitialized(kunde)
-            return formatProjektKundeAsStringWithoutCache(useProjekt, useKunde, kundeText)
+            val useProjekt = instance.projektCache.getProjektIfNotInitialized(projekt)
+            val projektKunde  = instance.kundeCache.getKundeIfNotInitialized(useProjekt?.kunde)
+            val useKunde = instance.kundeCache.getKundeIfNotInitialized(kunde)
+            return formatProjektKundeAsStringWithoutCache(useProjekt, projektKunde, useKunde, kundeText)
         }
 
         @JvmOverloads
         @JvmStatic
         fun formatProjektKundeAsStringWithoutCache(
             projekt: ProjektDO?,
+            projektKunde: KundeDO?,
             kunde: KundeDO? = null,
             kundeText: String? = null
         ): String {
             val parts = mutableListOf<String>()
             kundeText?.takeIf { it.isNotBlank() }?.let { parts.add(it) }
-            val projektKunde = projekt?.kunde
             kunde?.name?.takeIf { it.isNotBlank() && !parts.contains(it) }?.let { parts.add(it) }
             projektKunde?.name?.takeIf { it.isNotBlank() && !parts.contains(it) }?.let { parts.add(it) }
             val sb = StringBuilder()

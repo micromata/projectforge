@@ -38,8 +38,6 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.user.UserFormatter;
 import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
@@ -86,12 +84,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
     protected WebMarkupContainer topMenuPanel;
 
     protected WebMarkupContainer bottomPanel;
-
-    @SpringBean
-    protected transient UserFormatter userFormatter;
-
-    @SpringBean
-    protected transient DateTimeFormatter dateTimeFormatter;
 
     private transient EditPageSupport<O, D, AbstractEditPage<O, F, D>> editPageSupport;
 
@@ -157,14 +149,12 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
             }
         };
         final DatePropertyColumn<FlatDisplayHistoryEntry> timestampColumn = new DatePropertyColumn<FlatDisplayHistoryEntry>(
-                dateTimeFormatter,
                 getString("timestamp"), null, "timestamp", cellItemListener);
         timestampColumn.setDatePattern(DateFormats.getFormatString(DateFormatType.DATE_TIME_SHORT_MINUTES));
         columns.add(timestampColumn);
         columns
                 .add(new UserPropertyColumn<>(getUserGroupCache(), getString("user"), null, "user",
-                        cellItemListener)
-                        .withUserFormatter(userFormatter));
+                        cellItemListener));
         columns
                 .add(new CellItemListenerPropertyColumn<>(getString("history.opType"), null, "opType",
                         cellItemListener));
@@ -201,11 +191,11 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Long>, F extends
         dataTable.addTopToolbar(headersToolbar);
         body.add(dataTable);
         final Label timeOfCreationLabel = new Label("timeOfCreation",
-                dateTimeFormatter.getFormattedDateTime(data.getCreated()));
+                WicketSupport.get(DateTimeFormatter.class).getFormattedDateTime(data.getCreated()));
         timeOfCreationLabel.setRenderBodyOnly(true);
         body.add(timeOfCreationLabel);
         final Label timeOfLastUpdateLabel = new Label("timeOfLastUpdate",
-                dateTimeFormatter.getFormattedDateTime(data.getLastUpdate()));
+                WicketSupport.get(DateTimeFormatter.class).getFormattedDateTime(data.getLastUpdate()));
         timeOfLastUpdateLabel.setRenderBodyOnly(true);
         body.add(timeOfLastUpdateLabel);
         onPreEdit();

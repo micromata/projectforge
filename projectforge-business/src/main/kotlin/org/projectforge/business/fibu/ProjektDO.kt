@@ -169,6 +169,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      * KundeDO is used instead (default).
      */
     @PropertyInfo(i18nKey = "fibu.konto")
+    @IndexedEmbedded(includeDepth = 1)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "konto_id")
@@ -190,7 +191,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
      */
     val bereich: Int?
         @Transient
-        get() = if (kunde != null) kunde!!.id!!.toInt() else internKost2_4
+        get() = if (kunde != null) kunde!!.nummer!!.toInt() else internKost2_4
 
     val projektManagerGroupId: Long?
         @Transient
@@ -221,7 +222,7 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
         @Transient
         get() = if (this.kunde == null) {
             null
-        } else kunde!!.id
+        } else kunde!!.nummer
 
     val taskId: Long?
         @Transient

@@ -72,7 +72,7 @@ class KostFormatter(private val kostCache: KostCache) {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        return formatKunde(kunde?.id, formatType = formatType, abbreviationLength = abbreviationLength)
+        return formatKunde(kunde?.nummer, formatType = formatType, abbreviationLength = abbreviationLength)
     }
 
     /**
@@ -120,8 +120,8 @@ class KostFormatter(private val kostCache: KostCache) {
         val sb = StringBuilder()
         sb.append(useProjekt.nummernkreis).append(delimiter)
         var kunde = useProjekt.kunde
-        if (kunde?.id != null && !Hibernate.isInitialized(kunde)) {
-            kunde = kostCache.getCustomer(kunde.id)
+        if (kunde?.nummer != null && !Hibernate.isInitialized(kunde)) {
+            kunde = kostCache.getCustomer(kunde.nummer)
         }
         if (kunde != null) {
             sb.append(formatKunde(kunde))

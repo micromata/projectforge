@@ -196,7 +196,7 @@ object HibernateUtils {
         } else if (obj is Kost2ArtDO) {
             (obj as Kost2ArtDO).id = value as Long
         } else if (obj is KundeDO) {
-            (obj as KundeDO).id = value as Long
+            (obj as KundeDO).nummer = value as Long
         } else if (obj is UserPrefEntryDO) {
             (obj as UserPrefEntryDO).id = value as Long
         } else {

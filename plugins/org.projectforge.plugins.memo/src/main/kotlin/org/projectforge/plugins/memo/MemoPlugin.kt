@@ -24,12 +24,12 @@
 package org.projectforge.plugins.memo
 
 import org.projectforge.Constants
+import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuItemDef
 import org.projectforge.menu.builder.MenuItemDefId
 import org.projectforge.plugins.core.AbstractPlugin
 import org.projectforge.plugins.core.PluginAdminService
-import org.projectforge.web.plugin.PluginWicketRegistrationService
-import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.web.WicketSupport
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -38,45 +38,38 @@ import org.springframework.beans.factory.annotation.Autowired
  */
 class MemoPlugin : AbstractPlugin(ID, "Memo", "Personal text memos of users.") {
 
-  @Autowired
-  private lateinit var memoDao: MemoDao
 
-  @Autowired
-  private lateinit var pluginWicketRegistrationService: PluginWicketRegistrationService
+    override fun initialize() {
+        val memoDao = WicketSupport.get(MemoDao::class.java)
+        val menuCreator = WicketSupport.get(MenuCreator::class.java)
 
-  override fun initialize() {
-    // DatabaseUpdateDao is needed by the updater:
-    // Register it:
-    register(MemoDao::class.java, memoDao, "plugins.memo")
+        // DatabaseUpdateDao is needed by the updater:
+        // Register it:
+        register(MemoDao::class.java, memoDao, "plugins.memo")
 
-    // Register the web part:
-    pluginWicketRegistrationService.registerWeb(info.id, MemoListPage::class.java, MemoEditPage::class.java)
-
-    // Register the menu entry as sub menu entry of the misc menu:
-    // Both: Wicket and React
-    pluginWicketRegistrationService.registerMenuItem(
-      MenuItemDefId.MISC,
-      MenuItemDef(info.id, "plugins.memo.menu", "${Constants.REACT_APP_PATH}memo"),
-      MemoListPage::class.java
-    )
-    // Later: React only:
-    // menuCreator.add(parentId, menuItemDef);
+        // Register the menu entry as sub menu entry of the misc menu:
+        menuCreator.register(
+            MenuItemDefId.MISC,
+            MenuItemDef(info.id, "plugins.memo.menu", "${Constants.REACT_APP_PATH}memo")
+        )
+        // Later: React only:
+        // menuCreator.add(parentId, menuItemDef);
 
 
-    // Define the access management:
-    registerRight(MemoRight())
+        // Define the access management:
+        registerRight(MemoRight())
 
-    // All the i18n stuff:
-    addResourceBundle(RESOURCE_BUNDLE_NAME)
-  }
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME)
+    }
 
-  companion object {
-    const val ID = PluginAdminService.PLUGIN_MEMO_ID
-    const val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
+    companion object {
+        const val ID = PluginAdminService.PLUGIN_MEMO_ID
+        const val RESOURCE_BUNDLE_NAME = "MemoI18nResources"
 
-    // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
-    // each test).
-    // The entities are inserted in ascending order and deleted in descending order.
-    private val PERSISTENT_ENTITIES = arrayOf<Class<*>>(MemoDO::class.java)
-  }
+        // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
+        // each test).
+        // The entities are inserted in ascending order and deleted in descending order.
+        private val PERSISTENT_ENTITIES = arrayOf<Class<*>>(MemoDO::class.java)
+    }
 }

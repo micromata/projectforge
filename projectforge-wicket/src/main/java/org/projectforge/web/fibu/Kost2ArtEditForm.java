@@ -32,7 +32,7 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.RequiredMinMaxNumberField;
-import org.projectforge.web.wicket.converter.IntegerConverter;
+import org.projectforge.web.wicket.converter.LongConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
@@ -40,70 +40,65 @@ import org.slf4j.Logger;
 
 import java.math.BigDecimal;
 
-public class Kost2ArtEditForm extends AbstractEditForm<Kost2ArtDO, Kost2ArtEditPage>
-{
-  private static final long serialVersionUID = 1207258100682337083L;
+public class Kost2ArtEditForm extends AbstractEditForm<Kost2ArtDO, Kost2ArtEditPage> {
+    private static final long serialVersionUID = 1207258100682337083L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ArtEditForm.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ArtEditForm.class);
 
-  public Kost2ArtEditForm(final Kost2ArtEditPage parentPage, final Kost2ArtDO data)
-  {
-    super(parentPage, data);
-  }
+    public Kost2ArtEditForm(final Kost2ArtEditPage parentPage, final Kost2ArtDO data) {
+        super(parentPage, data);
+    }
 
-  @Override
-  @SuppressWarnings("serial")
-  protected void init()
-  {
-    super.init();
-    gridBuilder.newGridPanel();
-    {
-      // Number
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost2art.nummer"));
-      final TextField<Integer> nummerField = new RequiredMinMaxNumberField<Integer>(InputPanel.WICKET_ID, new PropertyModel<Integer>(data,
-          "id"), 0, 99) {
-        @SuppressWarnings({ "rawtypes", "unchecked"})
-        @Override
-        public IConverter getConverter(final Class type)
+    @Override
+    @SuppressWarnings("serial")
+    protected void init() {
+        super.init();
+        gridBuilder.newGridPanel();
         {
-          return new IntegerConverter(2);
+            // Number
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost2art.nummer"));
+            final TextField<Long> nummerField = new RequiredMinMaxNumberField<Long>(InputPanel.WICKET_ID, new PropertyModel<Long>(data,
+                    "id"), 0L, 99L) {
+                @SuppressWarnings({"rawtypes", "unchecked"})
+                @Override
+                public IConverter getConverter(final Class type) {
+                    return new LongConverter(2);
+                }
+            };
+            if (isNew() == false) {
+                nummerField.setEnabled(false);
+            }
+            fs.add(nummerField);
         }
-      };
-      if (isNew() == false) {
-        nummerField.setEnabled(false);
-      }
-      fs.add(nummerField);
+        {
+            // Invoiced
+            gridBuilder.newFieldset(getString("fibu.fakturiert")).addCheckBox(new PropertyModel<Boolean>(data, "fakturiert"), null);
+        }
+        {
+            // Invoiced
+            gridBuilder.newFieldset(getString("fibu.kost2art.projektStandard")).addCheckBox(new PropertyModel<Boolean>(data, "projektStandard"),
+                    null);
+        }
+        {
+            // Name
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost2art.name"));
+            fs.add(new RequiredMaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "name")));
+        }
+        {
+            // Work frqction
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost2art.workFraction"));
+            fs.add(new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(data, "workFraction"), BigDecimal.ZERO,
+                    BigDecimal.ONE));
+        }
+        {
+            // Description
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
+            fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")), true);
+        }
     }
-    {
-      // Invoiced
-      gridBuilder.newFieldset(getString("fibu.fakturiert")).addCheckBox(new PropertyModel<Boolean>(data, "fakturiert"), null);
-    }
-    {
-      // Invoiced
-      gridBuilder.newFieldset(getString("fibu.kost2art.projektStandard")).addCheckBox(new PropertyModel<Boolean>(data, "projektStandard"),
-          null);
-    }
-    {
-      // Name
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost2art.name"));
-      fs.add(new RequiredMaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "name")));
-    }
-    {
-      // Work frqction
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kost2art.workFraction"));
-      fs.add(new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(data, "workFraction"), BigDecimal.ZERO,
-          BigDecimal.ONE));
-    }
-    {
-      // Description
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
-      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")), true);
-    }
-  }
 
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 }

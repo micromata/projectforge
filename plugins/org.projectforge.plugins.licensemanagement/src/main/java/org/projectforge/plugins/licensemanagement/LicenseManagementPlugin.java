@@ -31,58 +31,54 @@ import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.plugins.licensemanagement.rest.LicensePagesRest;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.security.My2FAShortCut;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class LicenseManagementPlugin extends AbstractPlugin {
-  public static final String ID = "licenseManagement";
+    public static final String ID = "licenseManagement";
 
-  public static final String RESOURCE_BUNDLE_NAME = "LicenseManagementI18nResources";
+    public static final String RESOURCE_BUNDLE_NAME = "LicenseManagementI18nResources";
 
-  static UserPrefArea USER_PREF_AREA;
+    static UserPrefArea USER_PREF_AREA;
 
-  // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
-  // each test).
-  // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LicenseDO.class};
+    // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
+    // each test).
+    // The entities are inserted in ascending order and deleted in descending order.
+    private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LicenseDO.class};
 
-  @Autowired
-  private LicenseDao licenseDao;
+    public LicenseManagementPlugin() {
+        super(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
+    }
 
-  @Autowired
-  private PluginWicketRegistrationService pluginWicketRegistrationService;
+    /**
+     * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
+     */
+    @Override
+    protected void initialize() {
+        LicenseDao licenseDao = WicketSupport.get(LicenseDao.class);
+        PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/wa/licenseManagementEdit");
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/wa/licenseManagement");
+        registerShortCutClasses(My2FAShortCut.FINANCE, LicensePagesRest.class);
+        final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
+                "plugins.licensemanagement");
+        // The LicenseDao is automatically available by the scripting engine!
+        register(entry);
 
-  public LicenseManagementPlugin() {
-    super(PluginAdminService.PLUGIN_LICENSE_MANAGEMENT_ID, "LicenseManagementPlugin", "For managing software licenses, keys and usage.");
-  }
+        // Register the web part:
+        pluginWicketRegistrationService.registerWeb(ID, LicenseListPage.class, LicenseEditPage.class);
 
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
-   */
-  @Override
-  protected void initialize() {
-    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:license;/wa/licenseManagementEdit");
-    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "/wa/licenseManagement");
-    registerShortCutClasses(My2FAShortCut.FINANCE, LicensePagesRest.class);
-    final RegistryEntry entry = new RegistryEntry(ID, LicenseDao.class, licenseDao,
-            "plugins.licensemanagement");
-    // The LicenseDao is automatically available by the scripting engine!
-    register(entry);
+        // Register the menu entry as sub menu entry of the misc menu:
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.licensemanagement.menu"),
+                LicenseListPage.class);
 
-    // Register the web part:
-    pluginWicketRegistrationService.registerWeb(ID, LicenseListPage.class, LicenseEditPage.class);
+        // Define the access management:
+        registerRight(new LicenseManagementRight());
 
-    // Register the menu entry as sub menu entry of the misc menu:
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, MenuItemDef.create(ID, "plugins.licensemanagement.menu"),
-            LicenseListPage.class);
-
-    // Define the access management:
-    registerRight(new LicenseManagementRight());
-
-    // All the i18n stuff:
-    addResourceBundle(RESOURCE_BUNDLE_NAME);
-  }
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME);
+    }
 }

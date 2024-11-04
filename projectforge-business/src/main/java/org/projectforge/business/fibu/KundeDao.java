@@ -114,10 +114,10 @@ public class KundeDao extends BaseDao<KundeDO> {
     }
 
     public boolean doesNumberAlreadyExist(final KundeDO customer) {
-        if (customer == null || customer.getId() == null) {
+        if (customer == null || customer.getNummer() == null) {
             return false;
         }
-        KundeDO existingCustomer = find(customer.getId(), false);
+        KundeDO existingCustomer = find(customer.getNummer(), false);
         return existingCustomer != null;
     }
 }

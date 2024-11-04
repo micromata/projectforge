@@ -31,6 +31,7 @@ import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.ihk.service.IHKService;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,15 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class IHKPlugin extends AbstractPlugin {
 
   public static final String RESOURCE_BUNDLE_NAME = "IHKI18nResources";
-
-  @Autowired
-  private PluginWicketRegistrationService pluginWicketRegistrationService;
-
-  @Autowired
-  private IHKService ihkService;
-
-  @Autowired
-  private TimesheetDao ihkDao;
 
   public IHKPlugin() {
     super("ihk", "IHK", "Plugin zur Generierung von Ausbildungsnachweise für Ausbildungsberufe der IHK.");
@@ -61,8 +53,9 @@ public class IHKPlugin extends AbstractPlugin {
   protected void initialize() {
 
     // Register it:
-    register(getId(), TimesheetDao.class, ihkDao, "plugins.ihk");
+    register(getId(), TimesheetDao.class, WicketSupport.get(TimesheetDao.class), "plugins.ihk");
 
+    PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(getId());
 

@@ -173,7 +173,7 @@ public class HRViewUserData implements Comparable<HRViewUserData>, Serializable,
                 if (entry.kunde == null) {
                     return entry;
                 }
-            } else if (entry.kunde != null && entry.kunde.getId().equals(kunde.getId())) {
+            } else if (entry.kunde != null && entry.kunde.getNummer().equals(kunde.getNummer())) {
                 return entry;
             }
         }

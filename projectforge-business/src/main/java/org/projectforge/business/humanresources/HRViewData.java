@@ -120,8 +120,8 @@ public class HRViewData implements Serializable
   {
     if (kunde != null) {
       Hibernate.initialize(kunde);
-      if (!customers.containsKey(kunde.getId())) {
-        customers.put(kunde.getId(), kunde);
+      if (!customers.containsKey(kunde.getNummer())) {
+        customers.put(kunde.getNummer(), kunde);
         sortedCustomers = null;
       }
     }

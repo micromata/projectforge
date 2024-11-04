@@ -41,7 +41,7 @@ public class OldKostFormatter {
     if (kunde == null) {
       return "???";
     }
-    return formatKunde(kunde.getId());
+    return formatKunde(kunde.getNummer());
   }
 
   public static String formatKunde(final Number kundeId) {

@@ -32,6 +32,7 @@ import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeStatus;
 import org.projectforge.business.fibu.kost.AccountingConfig;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.*;
@@ -45,9 +46,6 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
     private static final long serialVersionUID = -6018131069720611834L;
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerEditForm.class);
-
-    @SpringBean
-    KontoCache kontoCache;
 
     public CustomerEditForm(final CustomerEditPage parentPage, final KundeDO data) {
         super(parentPage, data);
@@ -87,7 +85,7 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
                 WicketUtils.setFocus(name);
             }
         }
-        if (kontoCache.isEmpty() == false) {
+        if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
             // Show this field only if DATEV accounts does exist.
             final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.konto"));
             final KontoSelectPanel kontoSelectPanel = new KontoSelectPanel(fs.newChildId(),

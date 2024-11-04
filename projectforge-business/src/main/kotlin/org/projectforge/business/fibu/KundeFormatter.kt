@@ -65,7 +65,7 @@ class KundeFormatter {
         formatType: FormatType = FormatType.FORMATTED_NUMBER,
         abbreviationLength: Int = ABBREVIATION_LENGTH,
     ): String {
-        return format(kunde?.id, formatType, abbreviationLength)
+        return format(kunde?.nummer, formatType, abbreviationLength)
     }
 
     companion object {

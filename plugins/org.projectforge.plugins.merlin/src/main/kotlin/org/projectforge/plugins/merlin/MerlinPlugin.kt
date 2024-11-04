@@ -40,7 +40,7 @@ import org.projectforge.rest.AttachmentsServicesRest
 import org.projectforge.rest.admin.LogViewerPageRest
 import org.projectforge.rest.config.JacksonConfiguration
 import org.projectforge.rest.core.PagesResolver
-import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.web.WicketSupport
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
@@ -48,77 +48,73 @@ import org.springframework.beans.factory.annotation.Autowired
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 class MerlinPlugin :
-  AbstractPlugin(
-    ID,
-    "Merlin-Word®-Templates",
-    "Plugin for Microsoft Word® templating (with variables, dependant variables as well as serial execution). Useful for contracts, serial documents etc."
-  ) {
-  @Autowired
-  private lateinit var merlinTemplateDao: MerlinTemplateDao
+    AbstractPlugin(
+        ID,
+        "Merlin-Word®-Templates",
+        "Plugin for Microsoft Word® templating (with variables, dependant variables as well as serial execution). Useful for contracts, serial documents etc."
+    ) {
 
-  @Autowired
-  private lateinit var attachmentsServicesRest: AttachmentsServicesRest
+    override fun initialize() {
+        val merlinTemplateDao = WicketSupport.get(MerlinTemplateDao::class.java)
+        val menuCreator = WicketSupport.get(MenuCreator::class.java)
+        val attachmentsService = WicketSupport.get(AttachmentsService::class.java)
+        val attachmentsServicesRest = WicketSupport.get(AttachmentsServicesRest::class.java)
+        // Register it:
+        register(MerlinTemplateDao::class.java, merlinTemplateDao, "plugins.merlin")
 
-  @Autowired
-  private lateinit var attachmentsService: AttachmentsService
-
-  @Autowired
-  private lateinit var menuCreator: MenuCreator
-
-  override fun initialize() {
-    // Register it:
-    register(MerlinTemplateDao::class.java, merlinTemplateDao, "plugins.merlin")
-
-    // Will only delivered to client but has to be ignored on sending back from client:
-    JacksonConfiguration.registerAllowedUnknownProperties(
-      MerlinVariable::class.java,
-      "allowedValuesFormatted",
-      "mappingMasterValues",
-    )
-
-    menuCreator.register(
-      MenuItemDefId.MISC,
-      MenuItemDef(info.id, "plugins.merlin.menu", "${Constants.REACT_APP_PATH}merlin")
-    )
-
-    // All the i18n stuff:
-    addResourceBundle(RESOURCE_BUNDLE_NAME)
-
-    attachmentsServicesRest.register(
-      ID,
-      MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao)
-    )
-  }
-
-  companion object {
-    const val ID = PluginAdminService.PLUGIN_MERLIN_ID
-    const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
-
-    fun ensureUserLogSubscription(): LogSubscription {
-      val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
-      return LogSubscription.ensureSubscription(
-        title = "Merlin",
-        user = username,
-        create = { title, user ->
-        LogSubscription(
-          title,
-          user,
-          LogEventLoggerNameMatcher("de.micromata.merlin", "org.projectforge.plugins.merlin"),
-          maxSize = 10000,
+        // Will only delivered to client but has to be ignored on sending back from client:
+        JacksonConfiguration.registerAllowedUnknownProperties(
+            MerlinVariable::class.java,
+            "allowedValuesFormatted",
+            "mappingMasterValues",
         )
-      })
+
+        menuCreator.register(
+            MenuItemDefId.MISC,
+            MenuItemDef(info.id, "plugins.merlin.menu", "${Constants.REACT_APP_PATH}merlin")
+        )
+
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME)
+
+        attachmentsServicesRest.register(
+            ID,
+            MerlinAttachmentsActionListener(attachmentsService, merlinTemplateDao)
+        )
     }
 
-    /**
-     * Calls also [ensureUserLogSubscription].
-     */
-    fun createUserLogSubscriptionMenuItem(): MenuItem {
-      return MenuItem(
-        "logViewer",
-        i18nKey = "plugins.merlin.viewLogs",
-        url = PagesResolver.getDynamicPageUrl(LogViewerPageRest::class.java, id = ensureUserLogSubscription().id),
-        type = MenuItemTargetType.REDIRECT,
-      )
+    companion object {
+        const val ID = PluginAdminService.PLUGIN_MERLIN_ID
+        const val RESOURCE_BUNDLE_NAME = "MerlinI18nResources"
+
+        fun ensureUserLogSubscription(): LogSubscription {
+            val username = ThreadLocalUserContext.loggedInUser!!.username ?: throw InternalError("User not given")
+            return LogSubscription.ensureSubscription(
+                title = "Merlin",
+                user = username,
+                create = { title, user ->
+                    LogSubscription(
+                        title,
+                        user,
+                        LogEventLoggerNameMatcher("de.micromata.merlin", "org.projectforge.plugins.merlin"),
+                        maxSize = 10000,
+                    )
+                })
+        }
+
+        /**
+         * Calls also [ensureUserLogSubscription].
+         */
+        fun createUserLogSubscriptionMenuItem(): MenuItem {
+            return MenuItem(
+                "logViewer",
+                i18nKey = "plugins.merlin.viewLogs",
+                url = PagesResolver.getDynamicPageUrl(
+                    LogViewerPageRest::class.java,
+                    id = ensureUserLogSubscription().id
+                ),
+                type = MenuItemTargetType.REDIRECT,
+            )
+        }
     }
-  }
 }

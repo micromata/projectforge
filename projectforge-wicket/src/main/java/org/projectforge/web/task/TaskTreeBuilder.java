@@ -245,8 +245,7 @@ public class TaskTreeBuilder implements Serializable {
                     @Override
                     public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
                                              final IModel<TaskNode> rowModel) {
-                        final Label label = TaskListPage.getPriorityLabel(componentId, priorityFormatter,
-                                rowModel.getObject().getTask());
+                        final Label label = TaskListPage.getPriorityLabel(componentId, rowModel.getObject().getTask());
                         item.add(label);
                         cellItemListener.populateItem(item, componentId, rowModel);
                     }
@@ -263,7 +262,7 @@ public class TaskTreeBuilder implements Serializable {
                 });
         final UserPropertyColumn<TaskNode> userPropertyColumn = new UserPropertyColumn<TaskNode>(UserGroupCache.getInstance(),
                 parentPage.getString("task.assignedUser"),
-                null, "task.responsibleUserId", cellItemListener).withUserFormatter(userFormatter);
+                null, "task.responsibleUserId", cellItemListener);
         columns.add(userPropertyColumn);
         return columns;
     }

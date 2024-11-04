@@ -55,7 +55,7 @@ open class MyScriptDao : AbstractScriptDao() {
       return true
     }
     if (!obj.deleted) {
-      val userId = ThreadLocalUserContext.requiredLoggedInUser
+      val userId = ThreadLocalUserContext.requiredLoggedInUserId
       val userIdString = "$userId"
       obj.executableByUserIds?.split(",")?.forEach { executableByUserId ->
         if (executableByUserId.trim() == userIdString) {

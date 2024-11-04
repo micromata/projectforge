@@ -62,12 +62,6 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
 
   private static final long serialVersionUID = 8582874051700734977L;
 
-  @SpringBean
-  private PriorityFormatter priorityFormatter;
-
-  @SpringBean
-  private UserFormatter userFormatter;
-
   private Boolean fullAccess;
 
   public HRPlanningListPage(final PageParameters parameters) {
@@ -104,7 +98,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
                 }
                 cellItemListener.populateItem(item, componentId, rowModel);
               }
-            }.withUserFormatter(userFormatter));
+            });
     columns.add(new CellItemListenerPropertyColumn<HRPlanningEntryDO>(getString("calendar.year"), "planning.week",
             "planning.week",
             cellItemListener) {
@@ -132,7 +126,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
               @Override
               public void populateItem(final Item<ICellPopulator<HRPlanningEntryDO>> item, final String componentId,
                                        final IModel<HRPlanningEntryDO> rowModel) {
-                final String formattedPriority = priorityFormatter.getFormattedPriority(rowModel.getObject().getPriority());
+                final String formattedPriority = WicketSupport.get(PriorityFormatter.class).getFormattedPriority(rowModel.getObject().getPriority());
                 final Label label = new Label(componentId, new Model<String>(formattedPriority));
                 label.setEscapeModelStrings(false);
                 item.add(label);

@@ -25,6 +25,7 @@ package org.projectforge.plugins.marketing;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ import org.slf4j.Logger;
 /**
  * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @EditPage(defaultReturnPage = AddressCampaignListPage.class)
@@ -43,9 +44,6 @@ public class AddressCampaignEditPage
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignEditPage.class);
 
-  @SpringBean
-  private AddressCampaignDao addressCampaignDao;
-
   public AddressCampaignEditPage(final PageParameters parameters)
   {
     super(parameters, "plugins.marketing.addressCampaign");
@@ -55,7 +53,7 @@ public class AddressCampaignEditPage
   @Override
   protected AddressCampaignDao getBaseDao()
   {
-    return addressCampaignDao;
+    return WicketSupport.get(AddressCampaignDao.class);
   }
 
   @Override

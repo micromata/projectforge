@@ -42,11 +42,11 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
  */
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_MEMO", indexes = [jakarta.persistence.Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
+@Table(name = "T_PLUGIN_MEMO", indexes = [Index(name = "idx_fk_t_plugin_memo_owner_fk", columnList = "owner_fk")])
 open class MemoDO : AbstractBaseDO<Long>() {
 
     @get:Column(name = "pk")
-    @get:GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @get:GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @get:Id
     @PropertyInfo(i18nKey = "id")
     override var id: Long? = null

@@ -63,26 +63,18 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
 
   private final boolean showCost2Column;
 
-  private final UserFormatter userFormatter;
-
   private final TimesheetEditPage parentPage;
 
   private final TimesheetEditForm form;
 
-  /**
-   * @param modalWindow
-   * @param title
-   */
   public TimesheetEditSelectRecentDialogPanel(final String id, final String title, final TimesheetEditPage parentPage,
-      final TimesheetEditForm form, final boolean showCost2Column,
-      final UserFormatter userFormatter)
+      final TimesheetEditForm form, final boolean showCost2Column)
   {
     super(id);
     setTitle(title);
     this.parentPage = parentPage;
     this.form = form;
     this.showCost2Column = showCost2Column;
-    this.userFormatter = userFormatter;
     setBigWindow();
   }
 
@@ -144,7 +136,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
                     if (timesheet.getKost2() != null) {
                       buf.append(", ");
                     }
-                    buf.append(userFormatter.getFormattedUser(timesheet.getUserId()));
+                    buf.append(WicketSupport.get(UserFormatter.class).getFormattedUser(timesheet.getUserId()));
                   }
                   return buf.toString();
                 }

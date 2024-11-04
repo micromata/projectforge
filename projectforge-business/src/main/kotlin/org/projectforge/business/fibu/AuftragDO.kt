@@ -139,7 +139,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
 
     val kundeId: Long?
         @Transient
-        get() = kunde?.id
+        get() = kunde?.nummer
 
     /**
      * Freitextfeld, falls Kunde nicht aus Liste gewählt werden kann bzw. für Rückwärtskompatibilität mit alten Kunden.

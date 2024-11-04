@@ -38,7 +38,7 @@ class EntityMetaDataTest {
             Assertions.assertFalse(columnMetaData.nullable)
         }
         EntityMetaDataRegistry.getEntityMetaData(BookDO::class.java).let { entityMetaData ->
-            entityMetaData.getColumnMetaData("attachmentsNames").let { columnMetaData ->
+            entityMetaData!!.getColumnMetaData("attachmentsNames").let { columnMetaData ->
                 Assertions.assertEquals("attachments_names", columnMetaData!!.name)
                 Assertions.assertEquals(10000, columnMetaData.length)
                 Assertions.assertTrue(columnMetaData.nullable)

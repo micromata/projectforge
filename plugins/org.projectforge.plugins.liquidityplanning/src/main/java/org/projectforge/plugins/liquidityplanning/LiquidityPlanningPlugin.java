@@ -32,72 +32,61 @@ import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.plugins.liquidityplanning.rest.LiquidityEntryPagesRest;
 import org.projectforge.registry.RegistryEntry;
 import org.projectforge.security.My2FAShortCut;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class LiquidityPlanningPlugin extends AbstractPlugin {
-  public static final String ACCOUNTING_RECORD = "accountingRecord";
+    public static final String ACCOUNTING_RECORD = "accountingRecord";
 
-  public static final String ID = PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID;
+    public static final String ID = PluginAdminService.PLUGIN_LIQUIDITY_PLANNING_ID;
 
-  public static final String RESOURCE_BUNDLE_NAME = "LiquidityPlanningI18nResources";
+    public static final String RESOURCE_BUNDLE_NAME = "LiquidityPlanningI18nResources";
 
-  static UserPrefArea USER_PREF_AREA;
+    static UserPrefArea USER_PREF_AREA;
 
-  // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
-  // each test).
-  // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LiquidityEntryDO.class};
+    // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
+    // each test).
+    // The entities are inserted in ascending order and deleted in descending order.
+    private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{LiquidityEntryDO.class};
 
-  /**
-   * This dao should be defined in pluginContext.xml (as resources) for proper initialization.
-   */
-  @Autowired
-  private LiquidityEntryDao liquidityEntryDao;
+    public LiquidityPlanningPlugin() {
+        super("liquidplanning", "Liquidity planning", "Liquidity planning based on expected payments and invoices with probabilities.");
+    }
 
-  @Autowired
-  private PluginWicketRegistrationService pluginWicketRegistrationService;
+    /**
+     * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
+     */
+    @Override
+    protected void initialize() {
+        LiquidityEntryDao liquidityEntryDao = WicketSupport.get(LiquidityEntryDao.class);
+        PluginWicketRegistrationService pluginWicketRegistrationService = WicketSupport.get(PluginWicketRegistrationService.class);
+        registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidityEntry;/wa/liquidityplanningEdit");
+        registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
+        registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntryPagesRest.class);
+        final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
+                "plugins.liquidityplanning");
+        register(entry);
 
-  public LiquidityPlanningPlugin() {
-    super("liquidplanning", "Liquidity planning", "Liquidity planning based on expected payments and invoices with probabilities.");
-  }
+        // Register the web part:
+        // Insert at first position before accounting-record entry (for SearchPage).
+        pluginWicketRegistrationService.registerWeb(ID, LiquidityEntryListPage.class, LiquidityEntryEditPage.class,
+                ACCOUNTING_RECORD, true);
 
-  /**
-   * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
-   */
-  @Override
-  protected void initialize() {
-    registerShortCutValues(My2FAShortCut.FINANCE_WRITE, "WRITE:liquidityEntry;/wa/liquidityplanningEdit");
-    registerShortCutValues(My2FAShortCut.FINANCE, "/wa/liquidityplanning;/wa/liquidityForecast");
-    registerShortCutClasses(My2FAShortCut.FINANCE, LiquidityEntryPagesRest.class);
-    final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
-            "plugins.liquidityplanning");
-    register(entry);
+        pluginWicketRegistrationService.addMountPage("liquidityForecast", LiquidityForecastPage.class);
 
-    // Register the web part:
-    // Insert at first position before accounting-record entry (for SearchPage).
-    pluginWicketRegistrationService.registerWeb(ID, LiquidityEntryListPage.class, LiquidityEntryEditPage.class,
-            ACCOUNTING_RECORD, true);
+        // Register the menu entry as sub menu entry of the reporting menu:
+        MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
+        menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
+        menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
+        pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);
 
-    pluginWicketRegistrationService.addMountPage("liquidityForecast", LiquidityForecastPage.class);
+        // Define the access management:
+        registerRight(new LiquidityPlanningRight());
 
-    // Register the menu entry as sub menu entry of the reporting menu:
-    MenuItemDef menuEntry = MenuItemDef.create(ID, "plugins.liquidityplanning.menu");
-    menuEntry.setRequiredUserRightId(LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING);
-    menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.REPORTING, menuEntry, LiquidityEntryListPage.class);
-
-    // Define the access management:
-    registerRight(new LiquidityPlanningRight());
-
-    // All the i18n stuff:
-    addResourceBundle(RESOURCE_BUNDLE_NAME);
-  }
-
-  public void setLiquidityEntryDao(final LiquidityEntryDao liquidityEntryDao) {
-    this.liquidityEntryDao = liquidityEntryDao;
-  }
+        // All the i18n stuff:
+        addResourceBundle(RESOURCE_BUNDLE_NAME);
+    }
 }

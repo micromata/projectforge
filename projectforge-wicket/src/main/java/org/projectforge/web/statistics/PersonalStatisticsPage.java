@@ -25,6 +25,8 @@ package org.projectforge.web.statistics;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jfree.chart.JFreeChart;
 import org.projectforge.business.fibu.EmployeeCache;
@@ -37,6 +39,7 @@ import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.JFreeChartImage;
 
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 
 public class PersonalStatisticsPage extends AbstractSecuredPage {
@@ -60,7 +63,13 @@ public class PersonalStatisticsPage extends AbstractSecuredPage {
             workingHoursPerDay = employee.getWeeklyWorkingHours().doubleValue() / 5;
         }
         final TimesheetDisciplineChartBuilder chartBuilder = new TimesheetDisciplineChartBuilder();
-        final JFreeChart chart1 = chartBuilder.create(timesheetDao, getUser().getId(), workingHoursPerDay, LAST_N_DAYS, true);
+        final double innerWorkingDaysPerDay = workingHoursPerDay;
+        IModel<JFreeChart> chart1 = new LoadableDetachableModel<>() {
+            @Override
+            protected JFreeChart load() {
+                return chartBuilder.create(timesheetDao, getUser().getId(), innerWorkingDaysPerDay, LAST_N_DAYS, true);
+            }
+        };
         JFreeChartImage image = new JFreeChartImage("timesheetStatisticsImage1", chart1, IMAGE_WIDTH, IMAGE_HEIGHT);
         image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
         image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
@@ -78,13 +87,22 @@ public class PersonalStatisticsPage extends AbstractSecuredPage {
         timesheetDisciplineChart1Legend.setEscapeModelStrings(false);
         body.add(timesheetDisciplineChart1Legend);
 
-        final JFreeChart chart2 = chartBuilder.create(timesheetDao, getUser().getId(), 0, LAST_N_DAYS, false);
+        IModel<JFreeChart> chart2 = new LoadableDetachableModel<>() {
+            @Override
+            protected JFreeChart load() {
+                return chartBuilder.create(timesheetDao, getUser().getId(), 0, LAST_N_DAYS, false);
+            }
+        };
         image = new JFreeChartImage("timesheetStatisticsImage2", chart2, IMAGE_WIDTH, IMAGE_HEIGHT);
         image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
         image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
         body.add(image);
+        BigDecimal averageBetweenBookings = chartBuilder.getAverageDifferenceBetweenTimesheetAndBooking();
+        if (averageBetweenBookings == null) {
+            averageBetweenBookings = BigDecimal.ZERO;
+        }
         final String averageDifference = "<span style=\"color: #DE1821; font-weight: bold;\">"
-                + format.format(chartBuilder.getAverageDifferenceBetweenTimesheetAndBooking())
+                + format.format(averageBetweenBookings)
                 + "</span>";
         final String plannedDifference = "<span style=\"color: #40A93B; font-weight: bold;\">"
                 + format.format(chartBuilder.getPlannedAverageDifferenceBetweenTimesheetAndBooking())

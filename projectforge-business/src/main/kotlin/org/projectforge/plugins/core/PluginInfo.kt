@@ -23,6 +23,8 @@
 
 package org.projectforge.plugins.core
 
+import java.io.Serializable
+
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  * @author Kai Reinhard
@@ -38,4 +40,4 @@ class PluginInfo(
         /**
          * A short description of the plugin.
          */
-        val description: String)
+        val description: String): Serializable

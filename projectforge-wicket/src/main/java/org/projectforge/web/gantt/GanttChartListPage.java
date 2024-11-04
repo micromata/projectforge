@@ -35,6 +35,7 @@ import org.projectforge.business.gantt.GanttChartDO;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -47,9 +48,6 @@ import java.util.List;
 public class GanttChartListPage extends AbstractListPage<GanttChartListForm, GanttChartDao, GanttChartDO>
 {
   private static final long serialVersionUID = 671935723386728113L;
-
-  @SpringBean
-  private UserFormatter userFormatter;
 
   public GanttChartListPage(final PageParameters parameters)
   {
@@ -97,8 +95,7 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
     columns
         .add(new UserPropertyColumn<GanttChartDO>(getUserGroupCache(), getString("gantt.owner"), "user.fullname",
             "owner",
-            cellItemListener)
-                .withUserFormatter(userFormatter));
+            cellItemListener));
     columns.add(
         new TaskPropertyColumn<GanttChartDO>(getString("task"), "task.title", "task", cellItemListener));
     dataTable = createDataTable(columns, "name", SortOrder.DESCENDING);

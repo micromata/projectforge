@@ -44,7 +44,6 @@ object SortAndCheckI18nPropertiesMain {
   val FILES = listOf(
     "projectforge-business/src/main/resources/I18nResources",
     "plugins/org.projectforge.plugins.banking/src/main/resources/BankingI18nResources",
-    "plugins/org.projectforge.plugins.extendemployeedata/src/main/resources/ExtendEmployeeDataI18nResources",
     "plugins/org.projectforge.plugins.datatransfer/src/main/resources/DataTransferI18nResources",
     "plugins/org.projectforge.plugins.ihk/src/main/resources/IHKI18nResources",
     "plugins/org.projectforge.plugins.todo/src/main/resources/ToDoI18nResources",
@@ -90,7 +89,7 @@ object SortAndCheckI18nPropertiesMain {
       var currentMultilineEntry: Entry? = null
       File("$basename$lang.properties").forEachLine() { line ->
         if (currentMultilineEntry != null) {
-          currentMultilineEntry!!.addMultiline(line)
+          currentMultilineEntry.addMultiline(line)
           if (!line.trim().endsWith('\\')) {
             currentMultilineEntry = null
           }
