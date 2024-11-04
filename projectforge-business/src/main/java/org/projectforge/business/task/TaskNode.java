@@ -400,7 +400,7 @@ public class TaskNode implements IdObject<Long>, Serializable {
 
   public boolean isPermissionRecursive(final Long groupId) {
     final GroupTaskAccessDO groupAccess = getGroupTaskAccess(groupId);
-    return groupAccess == null || groupAccess.isRecursive();
+    return groupAccess == null || groupAccess.getRecursive();
   }
 
   /**

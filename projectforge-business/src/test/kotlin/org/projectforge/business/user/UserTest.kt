@@ -210,19 +210,7 @@ class UserTest : AbstractTestBase() {
     }
 
     @Test
-    fun testHistory() {
-        var id: Long = 0
-        persistenceService.runInTransaction {
-            val user = createTestUser("UserTest-History")
-            id = userService.insert(user, false)
-        }
-        val user = userService.find(id, false)
-
-    }
-
-    @Test
     fun testUniqueUsernameDO() {
-
         var user = createTestUser("42")
         val userId1 = userService.insert(user, false)
         user = createTestUser("100")

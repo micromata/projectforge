@@ -111,7 +111,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
             public void populateItem(final Item<ICellPopulator<GroupTaskAccessDO>> item, final String componentId,
                                      final IModel<GroupTaskAccessDO> rowModel) {
                 final GroupTaskAccessDO access = rowModel.getObject();
-                if (access.isRecursive() == true) {
+                if (access.getRecursive() == true) {
                     item.add(new IconPanel(componentId, IconType.ACCEPT));
                 } else {
                     item.add(createInvisibleDummyComponent(componentId));

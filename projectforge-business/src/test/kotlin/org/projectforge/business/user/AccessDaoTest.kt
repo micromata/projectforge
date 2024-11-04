@@ -78,12 +78,18 @@ class AccessDaoTest : AbstractTestBase() {
             it.accessSelect = false
             it.accessInsert = true
         }
-        accessDao.insertOrUpdate(access)
-        hist.loadRecentHistoryEntries(2, 1)
+        access.recursive = false
+        accessDao.update(access)
+        hist.loadRecentHistoryEntries(3, 2)
         val value = "TIMESHEETS={false,true,false,false}"
         val oldValue = "TIMESHEETS={true,false,false,false}"
-        hist.recentEntries!!.find { it.entry.entityOpType == EntityOpType.Update }!!
-            .assertAttr("accessEntries", value = value, oldValue = oldValue, propertyTypeClass = AccessEntryDO::class)
+        hist.recentEntries!!.find {
+            it.entry.entityOpType == EntityOpType.Update && it.attributes?.any { it.propertyName == "accessEntries" } == true
+        }!!.assertAttr("accessEntries", value = value, oldValue = oldValue, propertyTypeClass = AccessEntryDO::class)
+        hist.recentEntries!!.find {
+            it.entry.entityOpType == EntityOpType.Update && it.attributes?.any { it.propertyName == "recursive" } == true
+        }!!.assertAttr("recursive", value = "false", oldValue = "true", propertyTypeClass = Boolean::class)
+
         hist.recentEntries!!.find { it.entry.entityOpType == EntityOpType.Insert }!!.let { holder ->
             Assertions.assertEquals(AccessEntryDO::class.qualifiedName, holder.entry.entityName)
         }
