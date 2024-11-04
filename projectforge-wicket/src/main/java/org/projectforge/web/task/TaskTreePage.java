@@ -29,17 +29,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.kost.KostCache;
-import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserFormatter;
-import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.admin.TaskWizardPage;
-import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.wicket.*;
@@ -50,224 +44,197 @@ import org.projectforge.web.wicket.flowlayout.IconType;
  * Shows the task tree for selection.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class TaskTreePage extends AbstractSecuredPage
-{
-  private static final long serialVersionUID = -8406452960003792763L;
+public class TaskTreePage extends AbstractSecuredPage {
+    private static final long serialVersionUID = -8406452960003792763L;
 
-  @SpringBean
-  private UserFormatter userFormatter;
+    protected ISelectCallerPage caller;
 
-  @SpringBean
-  private PriorityFormatter priorityFormatter;
+    protected String selectProperty;
 
-  protected ISelectCallerPage caller;
+    TaskTreeForm form;
 
-  protected String selectProperty;
+    /**
+     * Sibling page (if the user switches between tree and list view.
+     */
+    private TaskListPage taskListPage;
 
-  TaskTreeForm form;
-
-  /**
-   * Sibling page (if the user switches between tree and list view.
-   */
-  private TaskListPage taskListPage;
-
-  public TaskTreePage(final PageParameters parameters)
-  {
-    super(parameters);
-    init();
-    if (WicketUtils.contains(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW) == true) {
-      WicketSupport.get(TaskTreeBuilder.class)
-          .setHighlightedTaskNodeId(WicketUtils.getAsLong(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW));
-    }
-  }
-
-  /**
-   * Called if the user clicks on button "tree view".
-   *
-   * @param parameters
-   */
-  TaskTreePage(final TaskListPage taskListPage, final PageParameters parameters)
-  {
-    this(taskListPage.getCaller(), taskListPage.getSelectProperty());
-    this.taskListPage = taskListPage;
-  }
-
-  public TaskTreePage(final ISelectCallerPage caller, final String selectProperty)
-  {
-    super(new PageParameters());
-    this.caller = caller;
-    this.selectProperty = selectProperty;
-    init();
-  }
-
-  public void setHighlightedRowId(final Long highlightedRowId)
-  {
-    WicketSupport.get(TaskTreeBuilder.class).setHighlightedTaskNodeId(highlightedRowId);
-  }
-
-  @SuppressWarnings("serial")
-  private void init()
-  {
-    TaskTreeBuilder taskTreeBuilder = WicketSupport.get(TaskTreeBuilder.class);
-    if (isSelectMode() == false) {
-      ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link")
-      {
-        @Override
-        public void onClick()
-        {
-          final PageParameters params = new PageParameters();
-          final AbstractEditPage<?, ?, ?> editPage = new TaskEditPage(params);
-          editPage.setReturnToPage(TaskTreePage.this);
-          setResponsePage(editPage);
-        };
-      }, IconType.PLUS);
-      menuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
-          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
-          getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
-      addContentMenuEntry(menuEntry);
-
-      final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
-          UserPrefArea.TASK_FAVORITE);
-      menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink, getString("favorites"));
-      addContentMenuEntry(menuEntry);
-      if (getAccessChecker().isLoggedInUserMemberOfAdminGroup() == true) {
-        menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link")
-        {
-          @Override
-          public void onClick()
-          {
-            final PageParameters params = new PageParameters();
-            final TaskWizardPage wizardPage = new TaskWizardPage(params);
-            wizardPage.setReturnToPage(TaskTreePage.this);
-            setResponsePage(wizardPage);
-          };
-        }, getString("wizard"));
-        addContentMenuEntry(menuEntry);
-      }
-      new AbstractReindexTopRightMenu(contentMenuBarPanel, getAccessChecker().isLoggedInUserMemberOfAdminGroup())
-      {
-        @Override
-        protected void rebuildDatabaseIndex(final boolean onlyNewest)
-        {
-          if (onlyNewest == true) {
-            WicketSupport.getTaskDao().rebuildDatabaseIndex4NewestEntries();
-          } else {
-            WicketSupport.getTaskDao().rebuildDatabaseIndex();
-          }
+    public TaskTreePage(final PageParameters parameters) {
+        super(parameters);
+        init();
+        if (WicketUtils.contains(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW) == true) {
+            WicketSupport.get(TaskTreeBuilder.class)
+                    .setHighlightedTaskNodeId(WicketUtils.getAsLong(parameters, AbstractListPage.PARAMETER_HIGHLIGHTED_ROW));
         }
+    }
 
-        @Override
-        protected String getString(final String i18nKey)
-        {
-          return TaskTreePage.this.getString(i18nKey);
+    /**
+     * Called if the user clicks on button "tree view".
+     *
+     * @param parameters
+     */
+    TaskTreePage(final TaskListPage taskListPage, final PageParameters parameters) {
+        this(taskListPage.getCaller(), taskListPage.getSelectProperty());
+        this.taskListPage = taskListPage;
+    }
+
+    public TaskTreePage(final ISelectCallerPage caller, final String selectProperty) {
+        super(new PageParameters());
+        this.caller = caller;
+        this.selectProperty = selectProperty;
+        init();
+    }
+
+    public void setHighlightedRowId(final Long highlightedRowId) {
+        WicketSupport.get(TaskTreeBuilder.class).setHighlightedTaskNodeId(highlightedRowId);
+    }
+
+    @SuppressWarnings("serial")
+    private void init() {
+        TaskTreeBuilder taskTreeBuilder = WicketSupport.get(TaskTreeBuilder.class);
+        if (isSelectMode() == false) {
+            ContentMenuEntryPanel menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link") {
+                @Override
+                public void onClick() {
+                    final PageParameters params = new PageParameters();
+                    final AbstractEditPage<?, ?, ?> editPage = new TaskEditPage(params);
+                    editPage.setReturnToPage(TaskTreePage.this);
+                    setResponsePage(editPage);
+                }
+
+                ;
+            }, IconType.PLUS);
+            menuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
+                    getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
+                    getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP));
+            addContentMenuEntry(menuEntry);
+
+            final BookmarkablePageLink<Void> addTemplatesLink = UserPrefListPage.createLink("link",
+                    UserPrefArea.TASK_FAVORITE);
+            menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), addTemplatesLink, getString("favorites"));
+            addContentMenuEntry(menuEntry);
+            if (getAccessChecker().isLoggedInUserMemberOfAdminGroup() == true) {
+                menuEntry = new ContentMenuEntryPanel(getNewContentMenuChildId(), new Link<Object>("link") {
+                    @Override
+                    public void onClick() {
+                        final PageParameters params = new PageParameters();
+                        final TaskWizardPage wizardPage = new TaskWizardPage(params);
+                        wizardPage.setReturnToPage(TaskTreePage.this);
+                        setResponsePage(wizardPage);
+                    }
+
+                    ;
+                }, getString("wizard"));
+                addContentMenuEntry(menuEntry);
+            }
+            new AbstractReindexTopRightMenu(contentMenuBarPanel, getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
+                @Override
+                protected void rebuildDatabaseIndex(final boolean onlyNewest) {
+                    if (onlyNewest == true) {
+                        WicketSupport.getTaskDao().rebuildDatabaseIndex4NewestEntries();
+                    } else {
+                        WicketSupport.getTaskDao().rebuildDatabaseIndex();
+                    }
+                }
+
+                @Override
+                protected String getString(final String i18nKey) {
+                    return TaskTreePage.this.getString(i18nKey);
+                }
+            };
         }
-      };
+        form = new TaskTreeForm(this);
+        body.add(form);
+        form.init();
+        taskTreeBuilder.setSelectMode(isSelectMode())
+                .setShowRootNode(isShowRootNode())
+                .setShowCost(WicketSupport.getKostCache().isKost2EntriesExists());
+        if (getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
+                ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
+            taskTreeBuilder.setShowOrders(true);
+        }
+        taskTreeBuilder.setCaller(caller).setSelectProperty(selectProperty);
+        form.add(taskTreeBuilder.createTree("tree", this, form.getSearchFilter()));
+
+        body.add(new Label("info", getString("task.tree.info")));
+
     }
-    form = new TaskTreeForm(this);
-    body.add(form);
-    form.init();
-    taskTreeBuilder.setSelectMode(isSelectMode())
-        .setShowRootNode(isShowRootNode())
-        .setShowCost(WicketSupport.getKostCache().isKost2EntriesExists());
-    if (getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP,
-        ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
-      taskTreeBuilder.setShowOrders(true);
+
+    public void refresh() {
+        form.getSearchFilter().resetMatch();
     }
-    taskTreeBuilder.setCaller(caller).setSelectProperty(selectProperty);
-    form.add(taskTreeBuilder.createTree("tree", this, form.getSearchFilter()));
 
-    body.add(new Label("info", getString("task.tree.info")));
-
-  }
-
-  public void refresh()
-  {
-    form.getSearchFilter().resetMatch();
-  }
-
-  @Override
-  protected void onBodyTag(final ComponentTag bodyTag)
-  {
-    // if (taskTreeTablePanel.getEventNode() != null) {
-    // // Show the selected task entry on top:
-    // bodyTag.put("onload", "javascript:self.location.href='#clickedEntry'");
-    // }
-  }
-
-  /**
-   * The root node will only be shown for admin users and financial staff.
-   */
-  boolean isShowRootNode()
-  {
-    return (getAccessChecker().isLoggedInUserMemberOfAdminGroup())
-        || getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP);
-  }
-
-  /**
-   * @return true, if this page is called for selection by a caller otherwise false.
-   */
-  public boolean isSelectMode()
-  {
-    return this.caller != null;
-  }
-
-  @Override
-  protected String getTitle()
-  {
-    if (isSelectMode() == true) {
-      return getString("task.tree.title.select");
-    } else {
-      return getString("task.tree.title");
+    @Override
+    protected void onBodyTag(final ComponentTag bodyTag) {
+        // if (taskTreeTablePanel.getEventNode() != null) {
+        // // Show the selected task entry on top:
+        // bodyTag.put("onload", "javascript:self.location.href='#clickedEntry'");
+        // }
     }
-  }
 
-  protected void onSearchSubmit()
-  {
-    refresh();
-  }
-
-  void onListViewSubmit()
-  {
-    if (taskListPage != null) {
-      setResponsePage(taskListPage);
-    } else {
-      setResponsePage(new TaskListPage(this, getPageParameters()));
+    /**
+     * The root node will only be shown for admin users and financial staff.
+     */
+    boolean isShowRootNode() {
+        return (getAccessChecker().isLoggedInUserMemberOfAdminGroup())
+                || getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP);
     }
-  }
 
-  protected void onResetSubmit()
-  {
-    form.getSearchFilter().reset();
-    refresh();
-    form.clearInput();
-  }
-
-  protected void onCancelSubmit()
-  {
-    if (isSelectMode() == true) {
-      WicketUtils.setResponsePage(this, caller);
-      caller.cancelSelection(selectProperty);
+    /**
+     * @return true, if this page is called for selection by a caller otherwise false.
+     */
+    public boolean isSelectMode() {
+        return this.caller != null;
     }
-  }
 
-  TaskFilter getTaskFilter()
-  {
-    return form.getSearchFilter();
-  }
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractSecuredPage#getReturnToPage()
-   */
-  @Override
-  public WebPage getReturnToPage()
-  {
-    if (this.returnToPage != null) {
-      return this.returnToPage;
-    } else if (caller != null && caller instanceof WebPage) {
-      return (WebPage) caller;
+    @Override
+    protected String getTitle() {
+        if (isSelectMode() == true) {
+            return getString("task.tree.title.select");
+        } else {
+            return getString("task.tree.title");
+        }
     }
-    return null;
-  }
+
+    protected void onSearchSubmit() {
+        refresh();
+    }
+
+    void onListViewSubmit() {
+        if (taskListPage != null) {
+            setResponsePage(taskListPage);
+        } else {
+            setResponsePage(new TaskListPage(this, getPageParameters()));
+        }
+    }
+
+    protected void onResetSubmit() {
+        form.getSearchFilter().reset();
+        refresh();
+        form.clearInput();
+    }
+
+    protected void onCancelSubmit() {
+        if (isSelectMode() == true) {
+            WicketUtils.setResponsePage(this, caller);
+            caller.cancelSelection(selectProperty);
+        }
+    }
+
+    TaskFilter getTaskFilter() {
+        return form.getSearchFilter();
+    }
+
+    /**
+     * @see org.projectforge.web.wicket.AbstractSecuredPage#getReturnToPage()
+     */
+    @Override
+    public WebPage getReturnToPage() {
+        if (this.returnToPage != null) {
+            return this.returnToPage;
+        } else if (caller != null && caller instanceof WebPage) {
+            return (WebPage) caller;
+        }
+        return null;
+    }
 }

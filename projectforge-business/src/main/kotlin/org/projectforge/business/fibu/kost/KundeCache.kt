@@ -83,7 +83,7 @@ class KundeCache : AbstractCache() {
      * Prevents lazy loadings.
      */
     fun getKundeIfNotInitialized(kunde: KundeDO?): KundeDO? {
-        val kundeId = kunde?.id ?: return null
+        val kundeId = kunde?.nummer ?: return null
         if (Hibernate.isInitialized(kunde)) {
             return kunde
         }
@@ -98,8 +98,8 @@ class KundeCache : AbstractCache() {
         persistenceService.runIsolatedReadOnly { context ->
             this.kundeMap = context
                 .executeQuery("from KundeDO t", KundeDO::class.java, lockModeType = LockModeType.NONE)
-                .filter { it.id != null }
-                .associateBy { it.id!! }
+                .filter { it.nummer != null }
+                .associateBy { it.nummer!! }
             log.info { "Initializing of KundeCache done. ${context.formatStats()}" }
         }
     }

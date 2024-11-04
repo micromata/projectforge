@@ -24,6 +24,7 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebResponse.CacheScope;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -48,14 +49,14 @@ public class JFreeChartImage extends Image
 
   private final JFreeChartImageType imageType;
 
-  public JFreeChartImage(final String id, final JFreeChart chart, final int width, final int height)
+  public JFreeChartImage(final String id, final IModel<JFreeChart> chart, final int width, final int height)
   {
     this(id, chart, null, width, height);
   }
 
-  public JFreeChartImage(final String id, final JFreeChart chart, final JFreeChartImageType imageType, final int width, final int height)
+  public JFreeChartImage(final String id, final IModel<JFreeChart> chart, final JFreeChartImageType imageType, final int width, final int height)
   {
-    super(id, new Model<JFreeChart>(chart));
+    super(id, chart);
     this.width = width;
     this.height = height;
     this.imageType = imageType;

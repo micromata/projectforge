@@ -131,7 +131,7 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
 
     val kontoId: Long?
         @Transient
-        get() = if (konto != null) konto!!.id else null
+        get() = konto?.id
 
     companion object {
         const val MAX_ID = 999L

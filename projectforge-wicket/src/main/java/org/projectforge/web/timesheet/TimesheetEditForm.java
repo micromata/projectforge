@@ -33,7 +33,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
@@ -46,7 +45,6 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.timesheet.TimesheetRecentService;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserPrefDao;
@@ -98,8 +96,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
     DropDownChoicePanel<Long> cost2ChoicePanel;
 
-    @SpringBean
-    private UserFormatter userFormatter;
     private UserPrefDO recentUserPref;
     private DropDownChoice<Long> cost2Choice;
     private FieldsetPanel cost2ChoiceFieldset;
@@ -501,7 +497,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
                         new ResourceModel("timesheet.recent.select"), link));
         recentSheetsModalDialog = new TimesheetEditSelectRecentDialogPanel(parentPage.newModalDialogId(),
                 getString("timesheet.recent.select"),
-                parentPage, TimesheetEditForm.this, cost2Exists, userFormatter);
+                parentPage, TimesheetEditForm.this, cost2Exists);
         parentPage.add(recentSheetsModalDialog);
         recentSheetsModalDialog.init();
     }

@@ -70,7 +70,7 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           // Should not occur:
           return;
         }
-        appendCssClasses(item, kunde.getId(),
+        appendCssClasses(item, kunde.getNummer(),
             kunde.getDeleted() == true || kunde.getStatus().isIn(KundeStatus.ENDED) == true);
       }
     };
@@ -88,11 +88,11 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
           {
             final KundeDO kunde = rowModel.getObject();
             if (isSelectMode() == false) {
-              item.add(new ListSelectActionPanel(componentId, rowModel, CustomerEditPage.class, kunde.getId(),
+              item.add(new ListSelectActionPanel(componentId, rowModel, CustomerEditPage.class, kunde.getNummer(),
                   returnToPage, String
                       .valueOf(kunde.getKost())));
             } else {
-              item.add(new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, kunde.getId(),
+              item.add(new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, kunde.getNummer(),
                   String.valueOf(kunde.getKost())));
             }
             cellItemListener.populateItem(item, componentId, rowModel);

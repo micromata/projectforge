@@ -34,9 +34,6 @@ import java.time.LocalDate
 @Service
 open class LiquidityForecastBuilder {
     @Autowired
-    private lateinit var accountCache: KontoCache
-
-    @Autowired
     private lateinit var eingangsrechnungDao: EingangsrechnungDao
 
     @Autowired
@@ -50,7 +47,7 @@ open class LiquidityForecastBuilder {
      */
     open fun build(baseDate: LocalDate?): LiquidityForecast {
         val useBaseDate = baseDate ?: LocalDate.now()
-        val forecast = LiquidityForecast(accountCache)
+        val forecast = LiquidityForecast()
         // Consider only invoices of the last year:
         val historicalForecast = useBaseDate.isBefore(LocalDate.now())
         val fromDate = useBaseDate.minusMonths(12)

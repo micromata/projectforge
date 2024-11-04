@@ -34,7 +34,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.*;
 
 import java.util.ArrayList;
@@ -44,147 +44,122 @@ import java.util.List;
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @ListPage(editPage = LicenseEditPage.class)
 public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDao, LicenseDO>
-    implements IListPageColumnsCreator<LicenseDO>
-{
-  private static final long serialVersionUID = -1802352700020870211L;
+        implements IListPageColumnsCreator<LicenseDO> {
+    private static final long serialVersionUID = -1802352700020870211L;
 
-  @SpringBean
-  private LicenseDao licenseDao;
-
-  public LicenseListPage(final PageParameters parameters)
-  {
-    super(parameters, "plugins.licensemanagement");
-  }
-
-  @Override
-  @SuppressWarnings("serial")
-  public List<IColumn<LicenseDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
-  {
-    final List<IColumn<LicenseDO, String>> columns = new ArrayList<>();
-    final CellItemListener<LicenseDO> cellItemListener = new CellItemListener<LicenseDO>()
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
-          final IModel<LicenseDO> rowModel)
-      {
-        final LicenseDO license = rowModel.getObject();
-        appendCssClasses(item, license.getId(), license.getDeleted());
-      }
-    };
-
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<>(getString("organization")),
-        getSortable("organization", sortable),
-        "organization", cellItemListener)
-    {
-      /**
-       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-       *      java.lang.String, org.apache.wicket.model.IModel)
-       */
-      @Override
-      public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
-          final IModel<LicenseDO> rowModel)
-      {
-        final LicenseDO license = rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, LicenseEditPage.class, license.getId(), returnToPage,
-            rowModel.getObject().getOrganization()));
-        addRowClick(item);
-        cellItemListener.populateItem(item, componentId, rowModel);
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<>(
-        new Model<>(getString("plugins.licensemanagement.product")), getSortable(
-        "product", sortable),
-        "product", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<>(
-        new Model<>(getString("plugins.licensemanagement.version")), getSortable(
-        "version", sortable),
-        "version", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<>(
-        new Model<>(getString("plugins.licensemanagement.numberOfLicenses")), getSortable(
-        "numberOfLicenses", sortable),
-        "numberOfLicenses", cellItemListener));
-    columns.add(new AbstractColumn<LicenseDO, String>(new Model<>(getString("plugins.licensemanagement.owner")))
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<LicenseDO>> cellItem, final String componentId,
-          final IModel<LicenseDO> rowModel)
-      {
-        final LicenseDO license = rowModel.getObject();
-        final String owners = licenseDao.getSortedOwnernames(license);
-        final Label label = new Label(componentId, new Model<>(owners));
-        cellItem.add(label);
-        cellItemListener.populateItem(cellItem, componentId, rowModel);
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<>(
-        new Model<>(getString("plugins.licensemanagement.device")), getSortable(
-        "device", sortable),
-        "device", cellItemListener));
-    if (getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
-      columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
-          new Model<>(getString("plugins.licensemanagement.key")), getSortable(
-          "key", sortable),
-          "key", cellItemListener)
-      {
-        @Override
-        public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
-            final IModel<LicenseDO> rowModel)
-        {
-          final LicenseDO license = rowModel.getObject();
-          final Label label = new Label(componentId, new Model<>(StringUtils.abbreviate(license.getKey(), 40)));
-          cellItemListener.populateItem(item, componentId, rowModel);
-          item.add(label);
-        }
-      });
+    public LicenseListPage(final PageParameters parameters) {
+        super(parameters, "plugins.licensemanagement");
     }
-    columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<>(getString("comment")),
-        getSortable("comment", sortable), "comment", cellItemListener)
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
-          final IModel<LicenseDO> rowModel)
-      {
-        final LicenseDO license = rowModel.getObject();
-        final Label label = new Label(componentId,
-            new Model<>(StringUtils.abbreviate(license.getComment(), 100)));
-        cellItemListener.populateItem(item, componentId, rowModel);
-        item.add(label);
-      }
-    });
-    columns.add(
-        new CellItemListenerPropertyColumn<>(getString("created"), getSortable("created", sortable), "created",
-            cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<>(getString("modified"),
-        getSortable("lastUpdate", sortable), "lastUpdate",
-        cellItemListener));
-    return columns;
-  }
 
-  @Override
-  protected void init()
-  {
-    dataTable = createDataTable(createColumns(this, true), "orderString", SortOrder.ASCENDING);
-    form.add(dataTable);
-  }
+    @Override
+    @SuppressWarnings("serial")
+    public List<IColumn<LicenseDO, String>> createColumns(final WebPage returnToPage, final boolean sortable) {
+        final List<IColumn<LicenseDO, String>> columns = new ArrayList<>();
+        final CellItemListener<LicenseDO> cellItemListener = new CellItemListener<LicenseDO>() {
+            @Override
+            public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
+                                     final IModel<LicenseDO> rowModel) {
+                final LicenseDO license = rowModel.getObject();
+                appendCssClasses(item, license.getId(), license.getDeleted());
+            }
+        };
 
-  @Override
-  protected LicenseListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
-  {
-    return new LicenseListForm(this);
-  }
+        columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<>(getString("organization")),
+                getSortable("organization", sortable),
+                "organization", cellItemListener) {
+            /**
+             * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+             *      java.lang.String, org.apache.wicket.model.IModel)
+             */
+            @Override
+            public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
+                                     final IModel<LicenseDO> rowModel) {
+                final LicenseDO license = rowModel.getObject();
+                item.add(new ListSelectActionPanel(componentId, rowModel, LicenseEditPage.class, license.getId(), returnToPage,
+                        rowModel.getObject().getOrganization()));
+                addRowClick(item);
+                cellItemListener.populateItem(item, componentId, rowModel);
+            }
+        });
+        columns.add(new CellItemListenerPropertyColumn<>(
+                new Model<>(getString("plugins.licensemanagement.product")), getSortable(
+                "product", sortable),
+                "product", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<>(
+                new Model<>(getString("plugins.licensemanagement.version")), getSortable(
+                "version", sortable),
+                "version", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<>(
+                new Model<>(getString("plugins.licensemanagement.numberOfLicenses")), getSortable(
+                "numberOfLicenses", sortable),
+                "numberOfLicenses", cellItemListener));
+        columns.add(new AbstractColumn<LicenseDO, String>(new Model<>(getString("plugins.licensemanagement.owner"))) {
+            @Override
+            public void populateItem(final Item<ICellPopulator<LicenseDO>> cellItem, final String componentId,
+                                     final IModel<LicenseDO> rowModel) {
+                final LicenseDO license = rowModel.getObject();
+                final String owners = getBaseDao().getSortedOwnernames(license);
+                final Label label = new Label(componentId, new Model<>(owners));
+                cellItem.add(label);
+                cellItemListener.populateItem(cellItem, componentId, rowModel);
+            }
+        });
+        columns.add(new CellItemListenerPropertyColumn<>(
+                new Model<>(getString("plugins.licensemanagement.device")), getSortable(
+                "device", sortable),
+                "device", cellItemListener));
+        if (getAccessChecker().isLoggedInUserMemberOfAdminGroup()) {
+            columns.add(new CellItemListenerPropertyColumn<LicenseDO>(
+                    new Model<>(getString("plugins.licensemanagement.key")), getSortable(
+                    "key", sortable),
+                    "key", cellItemListener) {
+                @Override
+                public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
+                                         final IModel<LicenseDO> rowModel) {
+                    final LicenseDO license = rowModel.getObject();
+                    final Label label = new Label(componentId, new Model<>(StringUtils.abbreviate(license.getKey(), 40)));
+                    cellItemListener.populateItem(item, componentId, rowModel);
+                    item.add(label);
+                }
+            });
+        }
+        columns.add(new CellItemListenerPropertyColumn<LicenseDO>(new Model<>(getString("comment")),
+                getSortable("comment", sortable), "comment", cellItemListener) {
+            @Override
+            public void populateItem(final Item<ICellPopulator<LicenseDO>> item, final String componentId,
+                                     final IModel<LicenseDO> rowModel) {
+                final LicenseDO license = rowModel.getObject();
+                final Label label = new Label(componentId,
+                        new Model<>(StringUtils.abbreviate(license.getComment(), 100)));
+                cellItemListener.populateItem(item, componentId, rowModel);
+                item.add(label);
+            }
+        });
+        columns.add(
+                new CellItemListenerPropertyColumn<>(getString("created"), getSortable("created", sortable), "created",
+                        cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<>(getString("modified"),
+                getSortable("lastUpdate", sortable), "lastUpdate",
+                cellItemListener));
+        return columns;
+    }
 
-  @Override
-  public LicenseDao getBaseDao()
-  {
-    return licenseDao;
-  }
+    @Override
+    protected void init() {
+        dataTable = createDataTable(createColumns(this, true), "orderString", SortOrder.ASCENDING);
+        form.add(dataTable);
+    }
 
-  protected LicenseDao getLicenseDao()
-  {
-    return licenseDao;
-  }
+    @Override
+    protected LicenseListForm newListForm(final AbstractListPage<?, ?, ?> parentPage) {
+        return new LicenseListForm(this);
+    }
+
+    @Override
+    public LicenseDao getBaseDao() {
+        return WicketSupport.get(LicenseDao.class);
+    }
 }

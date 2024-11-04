@@ -30,14 +30,15 @@ class ProjektFormatterTest {
     @Test
     fun getProjektKundeAsString() {
         val projekt = ProjektDO().also {
-            it.kunde = KundeDO().also { it.name = "ACME" }
             it.name = "ProjectForge"
         }
+        val projektKunde = KundeDO().also { it.name = "ACME" }
         val kunde = KundeDO().also { it.name = "Micromata" }
         Assertions.assertEquals(
             "KundeText; Micromata; ACME - ProjectForge",
             ProjektFormatter.formatProjektKundeAsStringWithoutCache(
                 projekt,
+                projektKunde,
                 kunde,
                 "KundeText"
             )
@@ -46,15 +47,17 @@ class ProjektFormatterTest {
             "KundeText; Micromata",
             ProjektFormatter.formatProjektKundeAsStringWithoutCache(
                 null,
+                null,
                 kunde,
                 "KundeText"
             )
         )
-        projekt.kunde?.name = "Micromata"
+        projektKunde.name = "Micromata"
         Assertions.assertEquals(
             "KundeText; Micromata - ProjectForge",
             ProjektFormatter.formatProjektKundeAsStringWithoutCache(
                 projekt,
+                projektKunde,
                 kunde,
                 "KundeText"
             )
@@ -63,13 +66,18 @@ class ProjektFormatterTest {
             "Micromata - ProjectForge",
             ProjektFormatter.formatProjektKundeAsStringWithoutCache(
                 projekt,
+                projektKunde,
                 kunde,
                 "Micromata"
             )
         )
         Assertions.assertEquals(
             "Micromata - ProjectForge",
-            ProjektFormatter.formatProjektKundeAsStringWithoutCache(projekt)
+            ProjektFormatter.formatProjektKundeAsStringWithoutCache(projekt, projektKunde)
+        )
+        Assertions.assertEquals(
+            " - ProjectForge",
+            ProjektFormatter.formatProjektKundeAsStringWithoutCache(projekt, null)
         )
     }
 }

@@ -41,7 +41,7 @@ class KostFormatterTest : AbstractTestBase() {
     @Test
     fun testFormatting() {
         val kunde = KundeDO()
-        kunde.id = 204
+        kunde.nummer = 204
         kunde.name = "ACME very long name of the company with a lot of text to test the formatter"
         kundeDao.insert(kunde, checkAccess = false)
         Assertions.assertEquals("204", kostFormatter.formatKunde(kunde))

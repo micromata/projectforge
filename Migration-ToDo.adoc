@@ -1,19 +1,27 @@
 Aktuell:
+- User editieren: user rights können nicht geändert werden: duplicate key violation. Alle Rechte weg!!!
+- Zugriffsrechte: Änderung des Feldes rekursiv taucht nicht in der Historie auf!
+- Listenimport / Export
+
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
-- Aufträge in Strukturbaum nicht da.
+org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
+- Auftrag editieren: massenhaft SQLs
+- employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)
+- AddressKampagnen: ebd. (massenhaft SQLs)
+
 - Suche:
+  - Suche in Urlaubskorrekturen
   - Suche in History
 - HistoryConvertContext: Am Ende alle displayProperties übernehmen.
 - PersistenceContext-callstat: mehrere zulassen.
 
+- ProjektEdit: History enthält keine neuen Kost2DOs/Arten (Einträge sind aber da).
 - CronReindexingHourlyJob ohne Effekt.
 - Protokoll einsehen: http://localhost:8080/react/logViewer/dynamic/1
 - Reindizierung der letzten n einträge nicht migriert (sinnvoll?).
-- Liquiditäsgrafik geht nicht.
 - Suche in History
 - history-entries bei EmployeeValidityAttrDO nichtssagend.
 - HistoryEntry: EmployeeValidityAttrDO.insert muss sinnvoll für Anzeige formatiert werden.
-- Fehler: Merlin-Variablen-editieren: EntityMetaData for class class org.projectforge.plugins.merlin.MerlinVariable not found.
 - Scripte nach Renamings testen
 - Cascade aller Entitäten prüfen (z. B. war GroupTaskAccessDO.task auf Merged!!!!) Abgleich mit autoUpdateCollectionEntries (evtl. kann auf autoUpdateCollectionEntries verzichtet werden, zumindest aber Sanity-Check in CandH.)
 - ehcache prüfen, transaction logging checken

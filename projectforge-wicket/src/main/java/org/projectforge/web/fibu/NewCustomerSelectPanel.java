@@ -51,6 +51,7 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * This panel shows the actual customer.
@@ -124,7 +125,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
             public void convertInput() {
                 final KundeDO customer = getConverter(getType()).convertToObject(getInput(), getLocale());
                 setConvertedInput(customer);
-                if (customer != null && (currentCustomer == null || customer.getId() != currentCustomer.getId())) {
+                if (customer != null && (currentCustomer == null || !Objects.equals(customer.getNummer(), currentCustomer.getNummer()))) {
                     getRecentCustomers().append(KundeFormatter.getInstance().format(customer, KostFormatter.FormatType.TEXT));
                 }
                 currentCustomer = customer;
@@ -146,7 +147,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
                         }
                         final int ind = value.indexOf(" - ");
                         final String idString = ind >= 0 ? value.substring(0, ind) : value;
-                        final Integer id = NumberHelper.parseInteger(idString);
+                        final Long id = NumberHelper.parseLong(idString);
                         final KundeDO kunde = id != null ? WicketSupport.get(KundeDao.class).find(id) : null;
                         if (kunde == null) {
                             error(getString("panel.error.customernameNotFound"));
@@ -191,7 +192,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
                 public boolean isVisible() {
                     return (NewCustomerSelectPanel.this.getModelObject() == null
                             || NumberHelper.greaterZero(NewCustomerSelectPanel.this
-                            .getModelObject().getId()) == false);
+                            .getModelObject().getNummer()) == false);
                 }
             };
             kundeTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.text")));
@@ -325,7 +326,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
      */
     protected void selectKunde(final KundeDO kunde) {
         setModelObject(kunde);
-        caller.select(selectProperty, kunde.getId());
+        caller.select(selectProperty, kunde.getNummer());
     }
 
     /**

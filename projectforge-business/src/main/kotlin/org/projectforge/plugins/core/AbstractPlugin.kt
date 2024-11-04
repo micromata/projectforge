@@ -24,22 +24,18 @@
 package org.projectforge.plugins.core
 
 import mu.KotlinLogging
-import org.apache.commons.lang3.Validate
 import org.flywaydb.core.Flyway
 import org.projectforge.business.user.UserRight
-import org.projectforge.business.user.UserXmlPreferencesDao
 import org.projectforge.common.DatabaseDialect
-import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.UserRightService
-import org.projectforge.framework.persistence.database.DatabaseService
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import org.projectforge.registry.Registry
 import org.projectforge.registry.RegistryEntry
 import org.projectforge.security.My2FAShortCut
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
+import org.projectforge.web.WicketSupport
+import java.io.Serializable
 import java.util.Objects
 import javax.sql.DataSource
 import kotlin.reflect.KFunction
@@ -52,28 +48,7 @@ private val log = KotlinLogging.logger {}
  * @param pluginDescription See. [PluginInfo]
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescription: String) {
-    @Autowired
-    protected lateinit var applicationContext: ApplicationContext
-
-    @Autowired
-    protected lateinit var databaseService: DatabaseService
-
-    protected lateinit var userXmlPreferencesDao: UserXmlPreferencesDao
-
-    @Autowired
-    protected lateinit var accessChecker: AccessChecker
-
-    @Autowired
-    protected lateinit var dataSource: DataSource
-
-    @Autowired
-    protected lateinit var userRights: UserRightService
-
-    @Autowired
-    internal lateinit var projectForge2FAInitialization: IProjectForge2FAInitialization
-        private set
-
+abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescription: String): Serializable {
     val id: String
         get() = info.id
 
@@ -171,33 +146,34 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * @return this for chaining.
      */
     protected fun registerRight(right: UserRight?): AbstractPlugin {
-        userRights.addRight(right)
+        WicketSupport.get(UserRightService::class.java).addRight(right)
         return this
     }
 
     fun registerShortCutValues(shortCut: My2FAShortCut, vararg values: String) {
-        projectForge2FAInitialization.registerShortCutValues(shortCut, *values)
+        WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutValues(shortCut, *values)
     }
 
     /**
      * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
      */
     fun registerShortCutClasses(shortCut: My2FAShortCut, vararg restClasses: Class<*>) {
-        projectForge2FAInitialization.registerShortCutClasses(shortCut, *restClasses)
+        WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutClasses(shortCut, *restClasses)
     }
 
     /**
      * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, restClass: Class<*>, vararg methods: KFunction<*>) {
-        projectForge2FAInitialization.registerShortCutMethods(shortCut, restClass, *methods)
+        WicketSupport.get(IProjectForge2FAInitialization::class.java)
+            .registerShortCutMethods(shortCut, restClass, *methods)
     }
 
     /**
      * @param restClass needed, otherwise for derived classes such as AdminLogViewerPagesRest the declaring class is LogViewerPagesRest.
      */
     fun registerShortCutMethods(shortCut: My2FAShortCut, vararg methods: KFunction<*>) {
-        projectForge2FAInitialization.registerShortCutMethods(shortCut, *methods)
+        WicketSupport.get(IProjectForge2FAInitialization::class.java).registerShortCutMethods(shortCut, *methods)
     }
 
     /**
@@ -213,7 +189,7 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
         }
         log.info("Initializing flyway with locations for plugin '$id': ${flywayClasspath.joinToString(",") { it }}")
         val flyway = Flyway.configure()
-            .dataSource(dataSource)
+            .dataSource(WicketSupport.get(DataSource::class.java))
             .table("t_flyway_${id.lowercase()}_schema_version")
             .locations(*flywayClasspath)
             .baselineVersion(flywayBaselineVersion)
@@ -233,7 +209,8 @@ abstract class AbstractPlugin(pluginId: String, pluginName: String, pluginDescri
      * '/${plugin.package}/flyway/dbmigration'
      */
     protected open fun buildFlywayClasspath(): Array<String> {
-        val vendor = DatabaseDialect.getFlywayVendorName(dataSource.connection.metaData.databaseProductName)
+        val vendor =
+            DatabaseDialect.getFlywayVendorName(WicketSupport.get(DataSource::class.java).connection.metaData.databaseProductName)
         // Class.packageName since java 9, but want to be compatible with Java 8:
         val packageLocation = this::class.java.`package`.name.replace('.', '/')
         return arrayOf(

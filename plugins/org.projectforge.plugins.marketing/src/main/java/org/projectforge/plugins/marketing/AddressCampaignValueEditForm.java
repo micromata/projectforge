@@ -24,7 +24,7 @@
 package org.projectforge.plugins.marketing;
 
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -35,72 +35,63 @@ import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class AddressCampaignValueEditForm extends AbstractEditForm<AddressCampaignValueDO, AddressCampaignValueEditPage>
-{
-  private static final long serialVersionUID = -6208809585214296635L;
+public class AddressCampaignValueEditForm extends AbstractEditForm<AddressCampaignValueDO, AddressCampaignValueEditPage> {
+    private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(AddressCampaignValueEditForm.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
+            .getLogger(AddressCampaignValueEditForm.class);
 
-  @SpringBean
-  private AddressCampaignValueDao addressCampaignValueDao;
-
-  public AddressCampaignValueEditForm(final AddressCampaignValueEditPage parentPage, final AddressCampaignValueDO data)
-  {
-    super(parentPage, data);
-  }
-
-  @Override
-  protected void updateButtonVisibility()
-  {
-    super.updateButtonVisibility();
-    updateAndNextButtonPanel
-        .setVisible(addressCampaignValueDao.hasLoggedInUserUpdateAccess(getData(), getData(), false));
-  }
-
-  @Override
-  protected void init()
-  {
-    super.init();
-    {
-      // Heading
-      gridBuilder.newFormHeading(
-          getString("plugins.marketing.addressCampaignValue") + ": " + data.getAddressCampaign().getTitle());
+    public AddressCampaignValueEditForm(final AddressCampaignValueEditPage parentPage, final AddressCampaignValueDO data) {
+        super(parentPage, data);
     }
-    {
-      // Name
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("name")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), data.getAddress().getFullName()));
-    }
-    {
-      // Organization
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("organization")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), data.getAddress().getOrganization()));
-    }
-    {
-      // Value
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
-      final AddressCampaignDO addressCampaign = data.getAddressCampaign();
-      final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<>(
-          addressCampaign.getValuesArray());
-      fs.addDropDownChoice(new PropertyModel<>(data, "value"), valueChoiceRenderer.getValues(),
-          valueChoiceRenderer).setNullValid(
-              true);
-    }
-    {
-      // Comment
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
-      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment"))).setAutogrow();
-    }
-  }
 
-  @Override
-  protected Logger getLogger()
-  {
-    return log;
-  }
+    @Override
+    protected void updateButtonVisibility() {
+        super.updateButtonVisibility();
+        updateAndNextButtonPanel
+                .setVisible(WicketSupport.get(AddressCampaignValueDao.class).hasLoggedInUserUpdateAccess(getData(), getData(), false));
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        {
+            // Heading
+            gridBuilder.newFormHeading(
+                    getString("plugins.marketing.addressCampaignValue") + ": " + data.getAddressCampaign().getTitle());
+        }
+        {
+            // Name
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("name")).suppressLabelForWarning();
+            fs.add(new DivTextPanel(fs.newChildId(), data.getAddress().getFullName()));
+        }
+        {
+            // Organization
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("organization")).suppressLabelForWarning();
+            fs.add(new DivTextPanel(fs.newChildId(), data.getAddress().getOrganization()));
+        }
+        {
+            // Value
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
+            final AddressCampaignDO addressCampaign = data.getAddressCampaign();
+            final LabelValueChoiceRenderer<String> valueChoiceRenderer = new LabelValueChoiceRenderer<>(
+                    addressCampaign.getValuesArray());
+            fs.addDropDownChoice(new PropertyModel<>(data, "value"), valueChoiceRenderer.getValues(),
+                    valueChoiceRenderer).setNullValid(
+                    true);
+        }
+        {
+            // Comment
+            final FieldsetPanel fs = gridBuilder.newFieldset(getString("comment"));
+            fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment"))).setAutogrow();
+        }
+    }
+
+    @Override
+    protected Logger getLogger() {
+        return log;
+    }
 }

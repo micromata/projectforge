@@ -54,7 +54,7 @@ public class KundeImpl implements Kunde
 
   public Long getId()
   {
-    return kunde != null ? kunde.getId() : null;
+    return kunde != null ? kunde.getNummer() : null;
   }
 
   public String getName()

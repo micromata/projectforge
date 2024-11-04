@@ -28,6 +28,7 @@ import org.projectforge.framework.time.DayHolder
 import org.projectforge.framework.time.PFDay.Companion.from
 import org.projectforge.framework.time.PFDay.Companion.fromOrNull
 import org.projectforge.statistics.IntAggregatedValues
+import org.projectforge.web.WicketSupport
 import java.io.Serializable
 import java.time.LocalDate
 import java.util.*
@@ -35,7 +36,7 @@ import java.util.*
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-class LiquidityForecast(val accountCache: KontoCache) : Serializable {
+class LiquidityForecast() : Serializable {
     private val entries = mutableListOf<LiquidityEntry>()
     private var liquiEntries = mutableListOf<LiquidityEntry>()
 
@@ -169,7 +170,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
             if (customerId != null) {
                 ensureAndAddDebitorPaymentValue("customer#$customerId", timeForPayment, amount)
             }
-            val account = accountCache.getKonto(invoice)
+            val account = WicketSupport.get(KontoCache::class.java).getKonto(invoice)
             val accountId = account?.id
             if (accountId != null) {
                 ensureAndAddDebitorPaymentValue("account#$accountId", timeForPayment, amount)
@@ -200,11 +201,11 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         }
         val customer = invoice.kunde
         if (customer != null
-                && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.id,
+                && setExpectedDateOfPayment(entry, dateOfInvoice, "customer#" + customer.nummer,
                         KundeFormatter.formatKundeAsString(customer, null))) {
             return
         }
-        val account = accountCache.getKonto(invoice)
+        val account = WicketSupport.get(KontoCache::class.java).getKonto(invoice)
         if (account != null
                 && setExpectedDateOfPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {
@@ -294,7 +295,7 @@ class LiquidityForecast(val accountCache: KontoCache) : Serializable {
         if (dateOfInvoice == null) {
             dateOfInvoice = DayHolder().localDate
         }
-        val account = invoice.konto
+        val account = WicketSupport.get(KontoCache::class.java).getKontoIfNotInitialized(invoice.konto)
         if (account != null
                 && setExpectedDateOfCreditorPayment(entry, dateOfInvoice, "account#" + account.id,
                         "" + account.nummer + " - " + account.bezeichnung)) {

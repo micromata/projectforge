@@ -42,56 +42,46 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
-public class HRListResourceLinkPanel extends Panel
-{
+public class HRListResourceLinkPanel extends Panel {
 
-  private static final long serialVersionUID = -718881597957595460L;
+    private static final long serialVersionUID = -718881597957595460L;
 
-  private final RepeatingView userRepeater;
+    private final RepeatingView userRepeater;
 
-  private final HRListPage hrListPage;
+    private final HRListPage hrListPage;
 
-  private final UserFormatter userFormatter;
-
-  public HRListResourceLinkPanel(final String id, final HRListPage hrListPage, final UserFormatter userFormatter)
-  {
-    super(id);
-    this.hrListPage = hrListPage;
-    this.userFormatter = userFormatter;
-    userRepeater = new RepeatingView("userRepeater");
-    add(userRepeater);
-  }
-
-  public void refresh(final HRViewData hrViewData, final LocalDate startDay)
-  {
-    userRepeater.removeAll();
-    final List<PFUserDO> unplannedUsers = WicketSupport.get(HRViewDao.class).getUnplannedResources(hrViewData);
-    for (final PFUserDO user : unplannedUsers) {
-      if (!user.getHrPlanning() || !user.hasSystemAccess()) {
-        continue;
-      }
-      final WebMarkupContainer container = new WebMarkupContainer(userRepeater.newChildId());
-      userRepeater.add(container);
-      @SuppressWarnings("serial")
-      final Link<Object> link = new Link<Object>("resourceLink") {
-        @Override
-        public void onClick()
-        {
-          final long millis = PFDateTime.from(startDay).getBeginOfDay().getEpochMilli();
-          final PageParameters pageParams = new PageParameters();
-          pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
-          pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));
-          final HRPlanningEditPage page = new HRPlanningEditPage(pageParams);
-          page.setReturnToPage(hrListPage);
-          setResponsePage(page);
-        }
-      };
-      container.add(link);
-      link.add(new Label("user", HtmlHelper.escapeXml(userFormatter.formatUser(user)) + "<br/>").setEscapeModelStrings(false));
+    public HRListResourceLinkPanel(final String id, final HRListPage hrListPage) {
+        super(id);
+        this.hrListPage = hrListPage;
+        userRepeater = new RepeatingView("userRepeater");
+        add(userRepeater);
     }
-  }
+
+    public void refresh(final HRViewData hrViewData, final LocalDate startDay) {
+        userRepeater.removeAll();
+        final List<PFUserDO> unplannedUsers = WicketSupport.get(HRViewDao.class).getUnplannedResources(hrViewData);
+        for (final PFUserDO user : unplannedUsers) {
+            if (!user.getHrPlanning() || !user.hasSystemAccess()) {
+                continue;
+            }
+            final WebMarkupContainer container = new WebMarkupContainer(userRepeater.newChildId());
+            userRepeater.add(container);
+            @SuppressWarnings("serial") final Link<Object> link = new Link<Object>("resourceLink") {
+                @Override
+                public void onClick() {
+                    final long millis = PFDateTime.from(startDay).getBeginOfDay().getEpochMilli();
+                    final PageParameters pageParams = new PageParameters();
+                    pageParams.add(WebConstants.PARAMETER_USER_ID, String.valueOf(user.getId()));
+                    pageParams.add(WebConstants.PARAMETER_DATE, Long.toString(millis));
+                    final HRPlanningEditPage page = new HRPlanningEditPage(pageParams);
+                    page.setReturnToPage(hrListPage);
+                    setResponsePage(page);
+                }
+            };
+            container.add(link);
+            link.add(new Label("user", HtmlHelper.escapeXml(WicketSupport.get(UserFormatter.class).formatUser(user)) + "<br/>").setEscapeModelStrings(false));
+        }
+    }
 }

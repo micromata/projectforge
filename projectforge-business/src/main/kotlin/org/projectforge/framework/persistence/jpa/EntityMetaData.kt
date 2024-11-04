@@ -64,4 +64,14 @@ class EntityMetaData(val entityClass: Class<*>) {
     }
 
     private enum class AnnoType { FIELD, METHOD }
+
+    companion object {
+        fun getEntityMetaData(entityClass: Class<*>): EntityMetaData? {
+            if (entityClass.isAnnotationPresent(jakarta.persistence.Entity::class.java)) {
+                return EntityMetaData(entityClass)
+            }
+            log.info { "EntityMetaData for class $entityClass not found. OK, if no Hibernate entity." }
+            return null
+        }
+    }
 }

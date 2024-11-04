@@ -51,9 +51,8 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
   @Override
   protected void init() {
     super.init();
-    var pluginAdminService = WicketSupport.get(PluginAdminService.class);
-    List<AbstractPlugin> availables = pluginAdminService.getAvailablePlugins();
-    List<String> activatedPlugins = pluginAdminService.getActivatedPluginsFromConfiguration();
+    List<AbstractPlugin> availables = WicketSupport.get(PluginAdminService.class).getAvailablePlugins();
+    List<String> activatedPlugins = WicketSupport.get(PluginAdminService.class).getActivatedPluginsFromConfiguration();
 
     gridBuilder.newFormHeading("Please note: (de)activation of plugins will take effect only after restart!");
 
@@ -82,7 +81,7 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
       final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>()) {
         @Override
         public final void onSubmit() {
-          pluginAdminService.storePluginToBeActivated(plugin.getInfo().getId(), !isActivated(activatedPlugins, plugin));
+          WicketSupport.get(PluginAdminService.class).storePluginToBeActivated(plugin.getInfo().getId(), !isActivated(activatedPlugins, plugin));
           setResponsePage(new PluginListPage(getPage().getPageParameters()));
         }
       };

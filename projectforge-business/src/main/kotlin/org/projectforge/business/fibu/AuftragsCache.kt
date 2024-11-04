@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.hibernate.Hibernate
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -165,6 +166,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         positions: List<AuftragsPositionDO>?,
         paymentSchedules: List<PaymentScheduleDO>?,
     ): OrderInfo {
+        log.debug{ "positions: ${positions?.size}, initialized=${Hibernate.isInitialized(positions)}, paymentSchedules: ${paymentSchedules?.size}, initialized=${Hibernate.isInitialized(positions)}" }
         order.info.calculateAll(order, positions, paymentSchedules)
         synchronized(orderPositionMap) {
             positions?.forEach { pos ->

@@ -74,6 +74,10 @@ public class WicketSupport {
         return get(UserDao.class);
     }
 
+    public static UserGroupCache getUserGroupCache() {
+        return get(UserGroupCache.class);
+    }
+
     /**
      * Workaround for SpringBean and Kotlin Spring components issues.
      *
