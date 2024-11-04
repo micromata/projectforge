@@ -248,7 +248,7 @@ class GroupPagesRest : AbstractDTOPagesRest<GroupDO, Group, GroupDao>(
     }
     val mails = mutableSetOf<String>()
     dto.assignedUsers?.forEach { user ->
-      userService.getById(user.id)?.email?.let { email ->
+      userService.find(user.id, false)?.email?.let { email ->
         mails.add(email)
       }
     }

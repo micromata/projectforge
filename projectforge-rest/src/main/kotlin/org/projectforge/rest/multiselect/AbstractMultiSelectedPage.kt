@@ -305,7 +305,7 @@ abstract class AbstractMultiSelectedPage<T> : AbstractDynamicPageRest() {
             }
         } else {
             param.id?.let { userId ->
-                property.setter.call(obj, userService.internalGetById(userId))
+                property.setter.call(obj, userService.find(userId, false))
             }
         }
     }

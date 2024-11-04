@@ -113,7 +113,7 @@ public class LoginDefaultHandler implements LoginHandler {
    */
   @Override
   public boolean checkStayLoggedIn(final PFUserDO user) {
-    final PFUserDO dbUser = userService.internalGetById(user.getId());
+    final PFUserDO dbUser = userService.find(user.getId(), false);
     if (dbUser != null && dbUser.hasSystemAccess()) {
       return true;
     }
@@ -150,7 +150,7 @@ public class LoginDefaultHandler implements LoginHandler {
   @Override
   public List<PFUserDO> getAllUsers() {
     try {
-      return userService.loadAll(false);
+      return userService.selectAll(false);
     } catch (final Exception ex) {
       log.error(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "

@@ -261,7 +261,7 @@ class AuftragDaoTest : AbstractTestBase() {
             user.addRight(UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)) //
             userRightDao.insert(user.rights!!.toList())
             userService.update(user)
-            user = userService.getById(user.id)
+            user = userService.find(user.id, false)
             logonUser = user
             logon(user)
             try {

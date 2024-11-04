@@ -430,16 +430,20 @@ public class UserService {
      * @param id
      * @return the user from db (UserDao).
      */
-    public PFUserDO getById(Serializable id) {
-        return userDao.find(id);
+    public PFUserDO find(Serializable id) {
+        return find(id, true);
     }
 
-    public PFUserDO internalGetById(Serializable id) {
-        return userDao.find(id, false);
+    public PFUserDO find(Serializable id, boolean checkAccess) {
+        return userDao.find(id, checkAccess);
     }
 
-    public Long save(PFUserDO user) {
-        return userDao.insert(user, false);
+    public Long insert(PFUserDO user) {
+        return userDao.insert(user, true);
+    }
+
+    public Long insert(PFUserDO user, boolean checkAccess) {
+        return userDao.insert(user, checkAccess);
     }
 
     public void markAsDeleted(PFUserDO user, boolean checkAccess) {
@@ -459,7 +463,7 @@ public class UserService {
      *
      * @see UserDao#selectAll()
      */
-    public List<PFUserDO> loadAll(boolean checkAccess) {
+    public List<PFUserDO> selectAll(boolean checkAccess) {
         return userDao.selectAll(checkAccess);
     }
 

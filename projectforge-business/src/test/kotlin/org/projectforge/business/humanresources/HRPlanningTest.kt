@@ -155,7 +155,7 @@ class HRPlanningTest : AbstractTestBase() {
         persistenceService.runInTransaction { _ ->
             logon(TEST_ADMIN_USER)
             // split
-            user1 = userService.getById(user1.id)
+            user1 = userService.find(user1.id, false)
             val userRight = user1.getRight(UserRightId.PM_HR_PLANNING)
             userRight!!.value = UserRightValue.READWRITE
             userRightDao.update(userRight)
