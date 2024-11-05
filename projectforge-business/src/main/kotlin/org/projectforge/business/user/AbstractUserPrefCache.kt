@@ -136,8 +136,9 @@ abstract class AbstractUserPrefCache<DBObj : IUserPref>(
         userId: Long? = null,
     ) {
         val uid = userId ?: ThreadLocalUserContext.requiredLoggedInUserId
-        ensureAndGetUserPreferencesData(uid)
         val key = UserPrefCacheDataKey(area, identifier)
+        val data = ensureAndGetUserPreferencesData(uid)
+        data.removeEntry(key)
         remove(uid, key)
     }
 

@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.candh
 
-import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.history.EntityOpType
 import org.projectforge.framework.persistence.history.HistoryEntryDO
@@ -76,7 +75,7 @@ internal class CandHHistoryEntryWrapper(private val historyEntry: HistoryEntryDO
         fun create(
             entity: IdObject<Long>,
             entityOpType: EntityOpType,
-            entityName: String? = HibernateUtils.getRealClass(entity).name,
+            entityName: String? = HistoryEntryDO.asEntityName(entity),
             modifiedBy: String? = ThreadLocalUserContext.loggedInUserId?.toString(),
         ): CandHHistoryEntryWrapper {
             HistoryEntryDO.create(entity, entityOpType, entityName = entityName, modifiedBy = modifiedBy)

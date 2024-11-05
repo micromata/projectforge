@@ -38,9 +38,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
-import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.time.PFDateTime.Companion.from
 import org.projectforge.framework.time.PFDateTime.Companion.now
@@ -334,23 +333,19 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun mergeHistoryEntries(
-        obj: RechnungDO,
-        list: MutableList<HistoryEntryDO>,
-        context: DisplayHistoryConvertContext<*>,
-    ) {
+    override fun addOwnHistoryEntries(obj: RechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
-            val entries = historyService.loadHistory(position)
-            HistoryFormatUtils.setPropertyNameForListEntries(entries, "pos", position.number)
-            mergeHistoryEntries(list, entries)
+            historyService.loadAndMergeHistory(position, context) { entry ->
+                HistoryFormatUtils.setPropertyNameForListEntries(entry, "pos", position.number)
+            }
             position.kostZuweisungen?.forEach { zuweisung ->
-                val kostEntries = historyService.loadHistory(zuweisung)
-                HistoryFormatUtils.setPropertyNameForListEntries(
-                    entries,
-                    Pair("pos", position.number),
-                    Pair("kost", zuweisung.index),
-                )
-                mergeHistoryEntries(list, kostEntries)
+                historyService.loadAndMergeHistory(zuweisung, context) { entry ->
+                    HistoryFormatUtils.setPropertyNameForListEntries(
+                        entry,
+                        Pair("pos", position.number),
+                        Pair("kost", zuweisung.index),
+                    )
+                }
             }
         }
     }

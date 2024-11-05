@@ -25,15 +25,18 @@ package org.projectforge.framework.persistence.history
 
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.persistence.api.BaseDao
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.api.IdObject
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 
 /**
- * Context for converting history entries into human-readable formats.
+ * Context used while loading history entries.
+ * Also for converting history entries into human-readable formats.
  */
-class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(
-    val baseDao: BaseDao<O>,
-    val item: O,
+class HistoryLoadContext(
+    /**
+     * For customizing history entries.
+     */
+    val baseDao: BaseDao<*>? = null,
 ) {
 
     class HistoryEntryMap {
@@ -48,6 +51,23 @@ class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(
         var map = mutableMapOf<String, Any?>()
     }
 
+    private val historyEntries = mutableListOf<HistoryEntryDO>()
+    val loadedEntities = mutableListOf<IdObject<Long>>()
+
+    fun merge(entries: List<HistoryEntryDO>) {
+        for (entry in entries) {
+            if (historyEntries.none { it.id == entry.id }) {
+                historyEntries.add(entry)
+            }
+        }
+    }
+
+    val originUnsortedEntries: List<HistoryEntryDO>
+        get() = historyEntries
+
+    val sortedEntries: List<HistoryEntryDO>
+        get() = historyEntries.sortedByDescending { it.id }
+
     var historyEntryMap = mutableMapOf<Long, HistoryEntryMap>()
     var historyEntryAttrMap = mutableMapOf<Long, HistoryEntryAttrMap>()
 
@@ -56,30 +76,79 @@ class DisplayHistoryConvertContext<O : ExtendedBaseDO<Long>>(
     val historyValueService = HistoryValueService.instance
 
     var currentHistoryEntry: HistoryEntryDO? = null
+        private set
 
     val requiredHistoryEntry: HistoryEntryDO
         get() = currentHistoryEntry
             ?: throw IllegalStateException("No current history entry set in DisplayHistoryConvertContext.")
 
     var currentHistoryEntryAttr: HistoryEntryAttrDO? = null
+        private set
 
     val requiredHistoryEntryAttr: HistoryEntryAttrDO
         get() = currentHistoryEntryAttr
             ?: throw IllegalStateException("No current history entry attr set in DisplayHistoryConvertContext.")
 
     var currentDisplayHistoryEntry: DisplayHistoryEntry? = null
+        private set
 
     val requiredDisplayHistoryEntry: DisplayHistoryEntry
         get() = currentDisplayHistoryEntry
             ?: throw IllegalStateException("No current display history entry set in DisplayHistoryConvertContext.")
 
     var currentDisplayHistoryEntryAttr: DisplayHistoryEntryAttr? = null
+        private set
 
     val requiredDisplayHistoryEntryAttr: DisplayHistoryEntryAttr
         get() = currentDisplayHistoryEntryAttr
             ?: throw IllegalStateException("No current display history entry attr set in DisplayHistoryConvertContext.")
 
-    fun getObjectValue(value: String?, context: DisplayHistoryConvertContext<*>): Any? {
+    fun findLoadedEntity(historyEntry: HistoryEntryDO): Any? {
+        val entityName = historyEntry.entityName
+        val entityId = historyEntry.entityId
+        return loadedEntities.find { HistoryEntryDO.asEntityName(it) == entityName && it.id == entityId }
+    }
+
+    fun addLoadedEntity(entity: IdObject<Long>) {
+        loadedEntities.add(entity)
+    }
+
+    fun setCurrent(entry: HistoryEntryDO, attr: HistoryEntryAttrDO? = null) {
+        currentHistoryEntry = entry
+        currentHistoryEntryAttr = attr
+    }
+
+    fun setCurrent(attr: HistoryEntryAttrDO? = null) {
+        requireNotNull(currentHistoryEntry)
+        currentHistoryEntryAttr = attr
+    }
+
+    fun setCurrent(entry: DisplayHistoryEntry, attr: DisplayHistoryEntryAttr? = null) {
+        currentDisplayHistoryEntry = entry
+        currentDisplayHistoryEntryAttr = attr
+    }
+
+    fun setCurrent(attr: DisplayHistoryEntryAttr? = null) {
+        requireNotNull(currentDisplayHistoryEntry)
+        currentDisplayHistoryEntryAttr = attr
+    }
+
+    fun clearCurrentDisplayHistoryEntry() {
+        currentDisplayHistoryEntry = null
+        currentDisplayHistoryEntryAttr = null
+    }
+
+    fun clearCurrentDisplayHistoryEntryAttr() {
+        currentDisplayHistoryEntryAttr = null
+    }
+
+    fun clearCurrents() {
+        currentHistoryEntry = null
+        currentHistoryEntryAttr = null
+        clearCurrentDisplayHistoryEntry()
+    }
+
+    fun getObjectValue(value: String?, context: HistoryLoadContext): Any? {
         return context.historyValueService.getObjectValue(value, context)
     }
 

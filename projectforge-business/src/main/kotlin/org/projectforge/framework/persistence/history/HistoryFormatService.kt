@@ -29,7 +29,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.BaseDO
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
@@ -48,64 +48,69 @@ class HistoryFormatService {
     @Autowired
     private lateinit var historyValueService: HistoryValueService
 
+    /**
+     * Adapter for specific entities. Key is the entityName of HistoryEntryDO built via [HistoryEntryDO.asEntityName] or,
+     * the full qualified class name.
+     */
     private val historyServiceAdapters =
-        mutableMapOf<Class<out BaseDO<*>>, HistoryFormatAdapter>()
+        mutableMapOf<String, HistoryFormatAdapter>()
 
     private lateinit var stdHistoryFormatAdapter: HistoryFormatAdapter
 
     @PostConstruct
     private fun postConstruct() {
         stdHistoryFormatAdapter = HistoryFormatAdapter()
-        register(PFUserDO::class.java, HistoryFormatUserAdapter(applicationContext))
+        register(UserRightDO::class.java, HistoryFormatUserRightAdapter(applicationContext))
     }
 
     fun <O : ExtendedBaseDO<Long>> register(clazz: Class<out O>, historyServiceAdapter: HistoryFormatAdapter) {
-        if (historyServiceAdapters[clazz] != null) {
+        if (historyServiceAdapters[clazz.name] != null) {
             log.warn { "Can't register HistoryServiceAdapter ${historyServiceAdapter::class.java.name} twice. Ignoring." }
             return
         }
-        this.historyServiceAdapters[clazz] = historyServiceAdapter
+        this.historyServiceAdapters[clazz.name] = historyServiceAdapter
     }
 
     fun <O : ExtendedBaseDO<Long>> selectAsDisplayEntries(
         baseDao: BaseDao<O>,
         item: O,
-        context: DisplayHistoryConvertContext<*> = DisplayHistoryConvertContext(baseDao, item),
+        loadContext: HistoryLoadContext = HistoryLoadContext(baseDao),
         checkAccess: Boolean = true,
     ): List<DisplayHistoryEntry> {
-        val historyEntries = baseDao.selectHistoryEntries(item, checkAccess = checkAccess)
+        val loadContext = baseDao.loadHistory(item, checkAccess = checkAccess, loadContext = loadContext)
         val entries = mutableListOf<DisplayHistoryEntry>()
-        historyEntries.forEach { historyEntry ->
-            entries.add(convert(item, historyEntry, context))
+        loadContext.originUnsortedEntries.forEach { historyEntry ->
+            entries.add(convert(item, historyEntry, loadContext))
         }
-        val adapter = historyServiceAdapters[item::class.java]
-        adapter?.convertEntries(item, entries, context)
+        val adapter = historyServiceAdapters[item::class.java.name]
+        adapter?.convertEntries(item, entries, loadContext)
         return entries.sortedByDescending { it.modifiedAt }
     }
 
     fun <O : BaseDO<*>> convert(
         item: O,
         historyEntry: HistoryEntryDO,
-        context: DisplayHistoryConvertContext<*>,
+        context: HistoryLoadContext,
     ): DisplayHistoryEntry {
-        context.currentHistoryEntry = historyEntry
-        val adapter = historyServiceAdapters[item::class.java]
+        context.setCurrent(historyEntry)
+        val adapter = historyServiceAdapters[historyEntry.entityName]
+        context.setCurrent(historyEntry)
         val displayHistoryEntry = adapter?.convertHistoryEntry(item, context)
             ?: stdHistoryFormatAdapter.convertHistoryEntry(item, context)
-        context.currentDisplayHistoryEntry = displayHistoryEntry
+        context.setCurrent(displayHistoryEntry)
         historyEntry.attributes?.forEach { attr ->
-            context.currentHistoryEntryAttr = attr
+            context.setCurrent(attr)
             val displayAttr = adapter?.convertHistoryEntryAttr(item, context)
                 ?: stdHistoryFormatAdapter.convertHistoryEntryAttr(item, context)
             displayHistoryEntry.attributes.add(displayAttr)
-            context.currentDisplayHistoryEntryAttr = displayAttr
-            context.baseDao.customizeHistoryEntryAttr(context)
-            context.currentDisplayHistoryEntryAttr = null
-            context.currentHistoryEntryAttr = null
+            context.setCurrent(displayAttr)
+            context.baseDao?.customizeHistoryEntryAttr(context)
+            context.clearCurrentDisplayHistoryEntryAttr()
         }
-        context.baseDao.customizeHistoryEntry(context)
-        context.currentDisplayHistoryEntry = null
-        context.currentHistoryEntry = null
+        adapter?.customizeDisplayHistoryEntry(item, context)
+            ?: stdHistoryFormatAdapter.customizeDisplayHistoryEntry(item, context)
+        context.baseDao?.customizeDisplayHistoryEntry(context)
+        context.clearCurrents()
         return displayHistoryEntry
     }
 

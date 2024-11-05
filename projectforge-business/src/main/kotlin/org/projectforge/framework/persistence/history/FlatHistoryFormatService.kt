@@ -45,7 +45,7 @@ class FlatHistoryFormatService {
      * @return The history entries in flat format.
      * @param O The type of the item.
      * @param Long The type of the primary key.
-     * @see BaseDao.selectHistoryEntries
+     * @see BaseDao.loadHistory
      * @see convertToFlatDisplayHistoryEntries
      */
     @JvmOverloads

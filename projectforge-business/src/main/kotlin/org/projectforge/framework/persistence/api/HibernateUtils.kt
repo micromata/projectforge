@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.api
 
 import jakarta.persistence.*
 import mu.KotlinLogging
-import org.apache.poi.ss.formula.functions.T
 import org.hibernate.Hibernate
 import org.hibernate.dialect.HSQLDialect
 import org.hibernate.engine.spi.SessionFactoryImplementor
@@ -63,6 +62,9 @@ object HibernateUtils {
         private set
 
     fun getRealClass(obj: Any): Class<*> {
+        if (obj is Class<*>) {
+            throw UnsupportedOperationException("Shouldn't be used for classes.")
+        }
         return if (obj is HibernateProxy) {
             // Proxy auflösen und die eigentliche Klasse bekommen
             obj.hibernateLazyInitializer.persistentClass
@@ -161,25 +163,25 @@ object HibernateUtils {
     @JvmStatic
     fun getIdentifier(obj: BaseDO<*>): Serializable? {
         return obj.id
-/*        if (Hibernate.isInitialized(obj)) {
-            return obj.id
-        } else if (obj is DefaultBaseDO) {
-            return obj.id
-        } else if (obj is AccessEntryDO) {
-            return obj.id
-        } else if (obj is Kost2ArtDO) {
-            return obj.id
-        } else if (obj is KundeDO) {
-            return obj.id
-        } else if (obj is UserPrefEntryDO) {
-            return obj.id
-        }
+        /*        if (Hibernate.isInitialized(obj)) {
+                    return obj.id
+                } else if (obj is DefaultBaseDO) {
+                    return obj.id
+                } else if (obj is AccessEntryDO) {
+                    return obj.id
+                } else if (obj is Kost2ArtDO) {
+                    return obj.id
+                } else if (obj is KundeDO) {
+                    return obj.id
+                } else if (obj is UserPrefEntryDO) {
+                    return obj.id
+                }
 
-        log.error(
-            "Couldn't get the identifier of the given object (Jassist/Hibernate-Bug: HHH-3502) for class: "
-                    + obj.javaClass.name
-        )
-        return null*/
+                log.error(
+                    "Couldn't get the identifier of the given object (Jassist/Hibernate-Bug: HHH-3502) for class: "
+                            + obj.javaClass.name
+                )
+                return null*/
     }
 
     /**
@@ -210,7 +212,7 @@ object HibernateUtils {
         }
         for (field in obj.javaClass.declaredFields) {
             if (field.isAnnotationPresent(Id::class.java) && field.isAnnotationPresent(GeneratedValue::class.java)) {
-                val isAccessible = field.isAccessible
+                val isAccessible = field.canAccess(obj)
                 try {
                     field.isAccessible = true
                     val idObject = field[obj]
@@ -230,11 +232,12 @@ object HibernateUtils {
 
     fun <T : Serializable> setIdentifier(obj: Any, value: T) {
         if (obj is BaseDO<*>) {
+            @Suppress("UNCHECKED_CAST")
             setIdentifier(obj as BaseDO<T>, value)
         }
         for (field in obj.javaClass.declaredFields) {
             if (field.isAnnotationPresent(Id::class.java) && field.isAnnotationPresent(GeneratedValue::class.java)) {
-                val isAccessible = field.isAccessible
+                val isAccessible = field.canAccess(obj)
                 try {
                     field.isAccessible = true
                     field[obj] = value
@@ -327,7 +330,7 @@ object HibernateUtils {
             propertyName
         )
             ?: return false
-        val value = BeanHelper.getProperty(`object`, propertyName) as String
+        val value = BeanHelper.getProperty(`object`, propertyName) as? String
         if (value != null && value.length > length) {
             BeanHelper.setProperty(`object`, propertyName, value.substring(0, length - 1))
             return true

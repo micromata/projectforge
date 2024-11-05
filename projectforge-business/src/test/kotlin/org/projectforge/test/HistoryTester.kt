@@ -60,7 +60,7 @@ class HistoryTester(
     /**
      * Loads the history entries for the given id.
      * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
-     * Please use [BaseDao.selectHistoryEntries] for getting all embedded history entries.
+     * Please use [BaseDao.loadHistory] for getting all embedded history entries.
      * @param baseDO The baseDO to load the history entries for.
      * @param expectedNumberOfNewHistoryEntries The expected number of new history entries.
      * @param expectedNumberOfNewHistoryAttrEntries The expected number of new history attributes.
@@ -72,8 +72,8 @@ class HistoryTester(
         expectedNumberOfNewHistoryAttrEntries: Int = 0,
         msg: String = "",
     ): List<HistoryEntryHolder>? {
-        val entries = historyService.loadHistory(baseDO)
-        wrapHistoryEntries(entries)
+        val loadContext = historyService.loadHistory(baseDO)
+        wrapHistoryEntries(loadContext.sortedEntries)
         if (expectedNumberOfNewHistoryEntries != null) {
             assertSizes(expectedNumberOfNewHistoryEntries, expectedNumberOfNewHistoryAttrEntries, msg)
         }
@@ -174,7 +174,7 @@ class HistoryTester(
                     try {
                         val entityClass = Class.forName(entry.entityName)
                         context.find(entityClass, it)
-                    } catch (ex: Exception) {
+                    } catch (_: Exception) {
                         // Not found, OK.
                         null
                     }

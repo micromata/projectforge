@@ -57,6 +57,10 @@ class EntityInfo(
         }
     }
 
+    fun getIdProperty(): String? {
+        return propertyInfos.firstOrNull { it.isIdProperty }?.propertyName
+    }
+
     fun isPersistedProperty(property: KCallable<*>): Boolean {
         return if (property is KMutableProperty1<*, *>) {
             isPersistedProperty(property)

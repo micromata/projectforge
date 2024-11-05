@@ -36,6 +36,7 @@ import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.business.common.HibernateSearchPhoneNumberBridge
+import org.projectforge.framework.persistence.candh.CandHIgnore
 import org.projectforge.framework.persistence.history.NoHistory
 import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.PFDayUtils
@@ -281,6 +282,7 @@ open class PFUserDO : DefaultBaseDO(), DisplayNameCapable {
     @get:Column(name = "personal_phone_identifiers", length = 255)
     open var personalPhoneIdentifiers: String? = null
 
+    @NoHistory // History for this field is handled by [UserRightDao].
     @PropertyInfo(i18nKey = "access.rights")
     @get:OneToMany(fetch = FetchType.LAZY, orphanRemoval = false, mappedBy = "user") // No cascade, because the rights are managed by the UserRightDao.
     open var rights: MutableSet<UserRightDO>? = mutableSetOf()

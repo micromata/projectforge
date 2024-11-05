@@ -23,8 +23,6 @@
 
 package org.projectforge.framework.persistence.history
 
-import org.apache.fop.util.text.AdvancedMessageFormat.formatObject
-
 /**
  * You may register history adapters for customizing conversion of history entries.
  */
@@ -38,22 +36,44 @@ open class HistoryFormatAdapter {
     open fun convertEntries(
         item: Any,
         entries: MutableList<DisplayHistoryEntry>,
-        context: DisplayHistoryConvertContext<*>
+        context: HistoryLoadContext
     ) {
     }
 
     /**
      * A customized adapter may manipulate a single history entry.
      * This method gets the modifiedBy-user and creates a DisplayHistoryEntry including any attributes.
+     * Attributes are not yet available.
      * @param item Item the history entry is related to.
-     * @param historyEntry The history entry for customization.
+     * @param context The load context, containing current history entry ([HistoryLoadContext.requiredHistoryEntry]).
      * @return The customized history entry.
      */
-    open fun convertHistoryEntry(item: Any, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntry {
+    open fun convertHistoryEntry(item: Any, context: HistoryLoadContext): DisplayHistoryEntry {
         return DisplayHistoryEntry.create(context.requiredHistoryEntry, context)
     }
 
-    open fun convertHistoryEntryAttr(item: Any, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntryAttr {
+    /**
+     * A customized adapter may manipulate a single history entry after it has been converted.
+     * Does nothing at default.
+     * All attributes are available, if any.
+     * @param item Item the history entry is related to.
+     * @param context The load context, containing current history entry ([HistoryLoadContext.requiredDisplayHistoryEntry]).
+     * @param displayHistoryEntry The converted history entry.
+     */
+    open fun customizeDisplayHistoryEntry(
+        item: Any,
+        context: HistoryLoadContext,
+    ) {
+    }
+
+    /**
+     * A customized adapter may manipulate a single history entry attribute.
+     * This method gets the modifiedBy-user and creates a DisplayHistoryEntryAttr.
+     * @param item Item the history entry attribute is related to.
+     * @param context The load context, containing current history entry attribute ([HistoryLoadContext.currentHistoryEntryAttr]).
+     * @return The customized history entry attribute.
+     */
+    open fun convertHistoryEntryAttr(item: Any, context: HistoryLoadContext): DisplayHistoryEntryAttr {
         val historyAttr = context.requiredHistoryEntryAttr
         val displayAttr = DisplayHistoryEntryAttr.create(historyAttr, context)
         val oldObjectValue = context.getObjectValue(displayAttr.oldValue, context)
@@ -62,17 +82,19 @@ open class HistoryFormatAdapter {
         if (oldObjectValue != null) {
             displayAttr.oldValue =
                 formatObject(
-                valueObject = oldObjectValue,
-                typeClass = propertyClass,
-                propertyName = historyAttr.propertyName,
-            )
+                    valueObject = oldObjectValue,
+                    typeClass = propertyClass,
+                    propertyName = historyAttr.propertyName,
+                )
         } else {
-            displayAttr.oldValue = context.historyValueService.format(historyAttr.oldValue, propertyType = historyAttr.propertyTypeClass)
+            displayAttr.oldValue =
+                context.historyValueService.format(historyAttr.oldValue, propertyType = historyAttr.propertyTypeClass)
         }
         if (newObjectValue != null) {
             displayAttr.newValue = formatObject(newObjectValue, propertyClass, propertyName = historyAttr.propertyName)
         } else {
-            displayAttr.newValue = context.historyValueService.format(historyAttr.value, propertyType = historyAttr.propertyTypeClass)
+            displayAttr.newValue =
+                context.historyValueService.format(historyAttr.value, propertyType = historyAttr.propertyTypeClass)
         }
 
         return displayAttr

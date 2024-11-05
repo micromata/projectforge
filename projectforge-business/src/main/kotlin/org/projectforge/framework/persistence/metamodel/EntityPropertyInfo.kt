@@ -40,6 +40,7 @@ class EntityPropertyInfo(
     val propertyName: String,
 ) {
     private val annotations = mutableSetOf<Annotation>()
+    var isIdProperty: Boolean = false
 
     init {
         AnnotationsUtils.getAnnotations(entityClass, propertyName).forEach { ann ->
@@ -47,6 +48,9 @@ class EntityPropertyInfo(
                 ann.annotationClass.qualifiedName?.startsWith("org.projectforge.framework.persistence") == true
             ) {
                 annotations.add(ann)
+                if (ann is jakarta.persistence.Id) {
+                    isIdProperty = true
+                }
             }
         }
     }

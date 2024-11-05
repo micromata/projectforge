@@ -79,7 +79,7 @@ class CandHHistoryTest : AbstractTestBase() {
         val hist = createHistoryTester()
         userDao.insert(user)
         hist.loadRecentHistoryEntries(1, 0)
-        userDao.selectHistoryEntries(user).let { entries ->
+        userDao.loadHistory(user).sortedEntries.let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
         }
@@ -98,7 +98,7 @@ class CandHHistoryTest : AbstractTestBase() {
         hist.loadRecentHistoryEntries(1, 8)
         hist.loadHistory(user, 2, 8)
 
-        userDao.selectHistoryEntries(user).let { entries ->
+        userDao.loadHistory(user).sortedEntries.let { entries ->
             Assertions.assertEquals(2, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Update, ADMIN_USER, 8)
             entries[0].let { entry ->
@@ -168,7 +168,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.description = "This is a deleted test user."
         userDao.markAsDeleted(user)
         hist.loadRecentHistoryEntries(1, 2)
-        userDao.selectHistoryEntries(user).let { entries ->
+        userDao.loadHistory(user).sortedEntries.let { entries ->
             Assertions.assertEquals(3, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.MarkAsDeleted, ADMIN_USER, 2)
             entries[0].let { entry ->
@@ -192,7 +192,7 @@ class CandHHistoryTest : AbstractTestBase() {
         user.description = "This is a undeleted test user."
         userDao.undelete(user)
         hist.loadRecentHistoryEntries(1, 2)
-        userDao.selectHistoryEntries(user).let { entries ->
+        userDao.loadHistory(user).sortedEntries.let { entries ->
             Assertions.assertEquals(4, entries.size)
             assertHistoryEntry(entries[0], PFUserDO::class, user.id, EntityOpType.Undelete, ADMIN_USER, 2)
             entries[0].let { entry ->
@@ -239,7 +239,7 @@ class CandHHistoryTest : AbstractTestBase() {
         var rights = userRightDao.select(user)
         Assertions.assertEquals(2, rights.size)
         hist.loadRecentHistoryEntries(3, 0)
-        userDao.selectHistoryEntries(user).let { entries ->
+        userDao.loadHistory(user).sortedEntries.let { entries ->
             Assertions.assertEquals(3, entries.size)
             filterHistoryEntries(entries, 1, PFUserDO::class).first().let { entry ->
                 assertHistoryEntry(entry, PFUserDO::class, user.id, EntityOpType.Insert, ADMIN_USER)
@@ -258,7 +258,7 @@ class CandHHistoryTest : AbstractTestBase() {
         // val recent = getRecentHistoryEntries(5)
         Assertions.assertEquals(3, rights.size)
         hist.loadRecentHistoryEntries(2, 1)
-        userDao.selectHistoryEntries(user).let { entries ->
+        userDao.loadHistory(user).sortedEntries.let { entries ->
             Assertions.assertEquals(5, entries.size)
             entries.filter { it.entityName == UserRightDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
                 .let { inserts ->
@@ -338,7 +338,7 @@ class CandHHistoryTest : AbstractTestBase() {
         )
         Assertions.assertEquals(3, count)
         hist.loadRecentHistoryEntries(3, 4)
-        rechnungDao.selectHistoryEntries(invoice).let { entries ->
+        rechnungDao.loadHistory(invoice).sortedEntries.let { entries ->
             Assertions.assertEquals(4, entries.size)
             entries.single { it.entityName == RechnungsPositionDO::class.qualifiedName && it.entityOpType == EntityOpType.Insert }
                 .let { entry ->

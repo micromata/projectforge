@@ -24,7 +24,6 @@
 package org.projectforge.framework.persistence.history
 
 import org.projectforge.framework.i18n.TimeAgo
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import java.util.*
 
 class DisplayHistoryEntry {
@@ -45,7 +44,7 @@ class DisplayHistoryEntry {
     var attributes = mutableListOf<DisplayHistoryEntryAttr>()
 
     companion object {
-        internal fun create(historyEntry: HistoryEntry, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntry {
+        internal fun create(historyEntry: HistoryEntry, context: HistoryLoadContext): DisplayHistoryEntry {
             val modifiedByUser = context.getUser(historyEntry.modifiedBy)
             return DisplayHistoryEntry().also { entry ->
                 entry.id = historyEntry.id

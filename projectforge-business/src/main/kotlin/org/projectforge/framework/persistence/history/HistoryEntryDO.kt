@@ -57,9 +57,8 @@ import java.util.*
     ),
     NamedQuery(
         name = HistoryEntryDO.SELECT_HISTORY_BY_ENTITY_IDS,
-        query = "from HistoryEntryDO as m left join fetch m.attributes where m.entityId in :entityId and m.entityName=:entityName order by m.id desc"
+        query = "from HistoryEntryDO as m left join fetch m.attributes where m.entityId in :entityIds and m.entityName=:entityName order by m.id desc"
     ),
-
 )
 @Entity
 @Table(
@@ -90,6 +89,7 @@ class HistoryEntryDO : HistoryEntry {
 
     /**
      * Insert or Update. EntityOpType, was: de.micromata.genome.db.jpa.history.entities.PropertyOpType
+     * Name should be generated via [asEntityName].
      */
     @get:Column(name = "entity_optype", length = 32)
     @get:Enumerated(EnumType.STRING)
@@ -133,11 +133,15 @@ class HistoryEntryDO : HistoryEntry {
         internal const val SELECT_HISTORY_FOR_BASEDO = "HistoryEntryDO_SelectForBaseDO"
         internal const val SELECT_HISTORY_BY_ENTITY_IDS = "HistoryEntryDO_SelectByEntityIds"
 
+        fun asEntityName(obj: Any): String {
+            return HibernateUtils.getRealClass(obj).name
+        }
+
         @JvmOverloads
-        fun <T: IdObject<Long>>create(
+        fun <T : IdObject<Long>> create(
             entity: T,
             entityOpType: EntityOpType,
-            entityName: String? = HibernateUtils.getRealClass(entity).name,
+            entityName: String? = asEntityName(entity),
             modifiedBy: String? = ThreadLocalUserContext.loggedInUserId?.toString(),
         ): HistoryEntryDO {
             val entry = HistoryEntryDO()

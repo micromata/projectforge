@@ -46,17 +46,32 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     /**
      * Returns the list of user rights for the given user. The rights will not be evaluated if they are available for the user.
      */
-    fun getList(user: PFUserDO?): List<UserRightDO> {
-        val filter = UserRightFilter()
-        filter.user = user
-        return select(filter)
+    fun select(user: PFUserDO?, checkAccess: Boolean = true): List<UserRightDO> {
+        if (checkAccess) {
+            accessChecker.checkIsLoggedInUserMemberOfAdminGroup()
+        }
+        return persistenceService.executeNamedQuery(
+            UserRightDO.FIND_ALL_BY_USER_ID,
+            UserRightDO::class.java,
+            "userId" to user?.id,
+        )
+    }
+
+    fun queryAll(userId: Long): List<UserRightDO> {
+        return persistenceService.runReadOnly {
+            persistenceService.executeNamedQuery(
+                UserRightDO.FIND_ALL_BY_USER_ID,
+                UserRightDO::class.java,
+                "userId" to userId,
+            )
+        }
     }
 
     /**
      * Returns all rights of the database: select from UserRightDO order by user.id, rightIdString
      *
      */
-    fun internalGetAllOrdered(): List<UserRightDO> {
+    fun selectAllOrdered(): List<UserRightDO> {
         return persistenceService.executeNamedQuery(
             UserRightDO.FIND_ALL_ORDERED,
             UserRightDO::class.java
@@ -70,7 +85,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     @JvmOverloads
     fun updateUserRights(user: PFUserDO, list: List<UserRightVO>, updateUserGroupCache: Boolean = true) {
         persistenceService.runInTransaction { _ ->
-            val dbList = getList(user)
+            val dbList = select(user)
             // evict all entities from the session cache to avoid that the update is already done in the copy method
             val userGroupCache = userGroupCache
             val userGroups = userGroupCache.getUserGroupDOs(user)
@@ -78,7 +93,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                 var rightDO: UserRightDO? = null
                 dbList.forEach { dbItem ->
                     val rightid = userRightService.getRightId(dbItem.rightIdString)
-                    if (rightid === rightVO.right.id) {
+                    if (rightid == rightVO.right.id) {
                         rightDO = dbItem
                     }
                 }
@@ -91,13 +106,13 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
                     } else {
                         // Create new right instead of updating an existing one.
                         rightDO = UserRightDO(user, rightVO.right.id).withUser(user)
-                        rightDO?.let {
+                        rightDO.let {
                             copy(it, rightVO)
                             insert(it)
                         }
                     }
                 } else {
-                    rightDO?.let {
+                    rightDO.let {
                         copy(it, rightVO)
                         val rightId = userRightService.getRightId(it.rightIdString)
                         val right = userRightService.getRight(rightId)
@@ -156,7 +171,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         if (user?.id == null) {
             return list
         }
-        val dbList = getList(user)
+        val dbList = select(user)
         val userGroupCache = userGroupCache
         val userGroups = userGroupCache.getUserGroupDOs(user)
         for (right in userRightService.orderedRights) {
@@ -177,7 +192,8 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     }
 
     override fun select(filter: BaseSearchFilter): List<UserRightDO> {
-        val queryFilter = QueryFilter(filter)
+        throw UnsupportedOperationException("Not implemented.")
+       /* val queryFilter = QueryFilter(filter)
         val myFilter = filter as UserRightFilter
         if (myFilter.user != null) {
             queryFilter.add(eq("user", myFilter.user))
@@ -185,11 +201,11 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
         queryFilter.createJoin("user")
         queryFilter.addOrder(asc("user.username")).addOrder(asc("rightIdString"))
         val list = select(queryFilter)
-        return list
+        return list*/
     }
 
     /**
-     * User must member of group finance or controlling.
+     * User must be member of group finance or controlling.
      */
     override fun hasUserSelectAccess(user: PFUserDO, throwException: Boolean): Boolean {
         return accessChecker.isUserMemberOfGroup(user, throwException, ProjectForgeGroup.ADMIN_GROUP)
@@ -203,7 +219,7 @@ class UserRightDao protected constructor() : BaseDao<UserRightDO>(UserRightDO::c
     }
 
     /**
-     * User must member of group admin.
+     * User must be member of group admin.
      */
     override fun hasAccess(
         user: PFUserDO, obj: UserRightDO?, oldObj: UserRightDO?,

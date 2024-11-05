@@ -162,6 +162,7 @@ class DatevImportDao {
             val dbKonto = kontoDao.getKonto(konto!!.nummer)
             if (dbKonto != null) {
                 el.oldValue = dbKonto
+                konto.created = dbKonto.created // Needed by baseDao to decide if the object is new or not.
             }
         }
         sheet.setStatus(ImportStatus.RECONCILED)

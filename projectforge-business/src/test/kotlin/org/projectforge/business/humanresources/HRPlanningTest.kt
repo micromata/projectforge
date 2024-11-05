@@ -38,6 +38,10 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.projectforge.framework.time.PFDateTime.Companion.withDate
 import org.projectforge.framework.time.PFDay
 import org.projectforge.test.AbstractTestBase
+import org.projectforge.test.AbstractTestBase.Companion.TEST_FINANCE_USER
+import org.projectforge.test.AbstractTestBase.Companion.TEST_USER
+import org.projectforge.test.AbstractTestBase.Companion.assertBigDecimal
+import org.projectforge.test.TestUtils.Companion.suppressErrorLogs
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.Serializable
 import java.math.BigDecimal
@@ -128,6 +132,8 @@ class HRPlanningTest : AbstractTestBase() {
             user1.addRight(UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY))
             userRightDao.insert(ArrayList(user1.rights))
             userService.update(user1)
+        }
+        persistenceService.runInTransaction {
             logon(user1)
             Assertions.assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false))
             Assertions.assertTrue(

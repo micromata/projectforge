@@ -25,7 +25,6 @@ package org.projectforge.framework.persistence.metamodel
 
 import jakarta.persistence.Column
 import mu.KotlinLogging
-import org.apache.poi.ss.formula.functions.T
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.metamodel.spi.MetamodelImplementor
 import org.hibernate.persister.entity.SingleTableEntityPersister
@@ -68,11 +67,15 @@ object HibernateMetaModel {
         return entityInfoByName.values.toList()
     }
 
-    fun isPersistedProperty(entityClass: Class<T>, property: KCallable<*>): Boolean {
+    fun getIdProperty(entityClass: Class<*>): String? {
+        return getEntityInfo(entityClass)?.getIdProperty()
+    }
+
+    fun isPersistedProperty(entityClass: Class<*>, property: KCallable<*>): Boolean {
         return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
     }
 
-    fun isPersistedProperty(entityClass: Class<T>, property: KMutableProperty1<*, *>): Boolean {
+    fun isPersistedProperty(entityClass: Class<*>, property: KMutableProperty1<*, *>): Boolean {
         return getEntityInfo(entityClass)?.isPersistedProperty(property) == true
     }
 

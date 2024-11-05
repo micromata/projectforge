@@ -47,7 +47,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
         val hist = createHistoryTester()
         employeeService.insertStatus(employee, LocalDate.of(2024, 1, 1), EmployeeStatus.FEST_ANGESTELLTER)
         hist.loadRecentHistoryEntries(1)
-        var historyEntries = employeeDao.selectHistoryEntries(employee, false)
+        var historyEntries = employeeDao.loadHistory(employee, false).sortedEntries
         Assertions.assertEquals(
             4,
             historyEntries.size
@@ -61,7 +61,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
         validAttr.status = EmployeeStatus.FREELANCER
         validAttr.validSince = LocalDate.of(2024, 5, 1)
         employeeService.updateValidSinceAttr(employee, validAttr)
-        historyEntries = employeeDao.selectHistoryEntries(employee, false)
+        historyEntries = employeeDao.loadHistory(employee, false).sortedEntries
         Assertions.assertEquals(5, historyEntries.size)
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryAttr(
@@ -88,7 +88,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
             Assertions.assertEquals(1, list.size)
             employeeService.markValidSinceAttrAsDeleted(employee, attr, false)
         }
-        historyEntries = employeeDao.selectHistoryEntries(employee, false)
+        historyEntries = employeeDao.loadHistory(employee, false).sortedEntries
         Assertions.assertEquals(6, historyEntries.size)
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryEntry(
@@ -109,14 +109,14 @@ class EmployeeHistoryTest : AbstractTestBase() {
         }
         attr.deleted = false
         employeeService.markValidSinceAttrAsDeleted(employee, attr, false)
-        historyEntries = employeeDao.selectHistoryEntries(employee, false)
+        historyEntries = employeeDao.loadHistory(employee, false).sortedEntries
         Assertions.assertEquals(
             6,
             historyEntries.size
         ) // No more history entries, object was already marked as deleted.
         attr.status = EmployeeStatus.AZUBI
         employeeService.markValidSinceAttrAsDeleted(employee, attr, false)
-        historyEntries = employeeDao.selectHistoryEntries(employee, false)
+        historyEntries = employeeDao.loadHistory(employee, false).sortedEntries
         Assertions.assertEquals(7, historyEntries.size) // attr.status changed.
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryEntry(
@@ -137,7 +137,7 @@ class EmployeeHistoryTest : AbstractTestBase() {
             Assertions.assertEquals(1, list.size)
             employeeService.undeleteValidSinceAttr(employee, attr, false)
         }
-        historyEntries = employeeDao.selectHistoryEntries(employee, false)
+        historyEntries = employeeDao.loadHistory(employee, false).sortedEntries
         Assertions.assertEquals(8, historyEntries.size)
         historyEntries[0].let { entry ->
             HistoryTester.assertHistoryEntry(

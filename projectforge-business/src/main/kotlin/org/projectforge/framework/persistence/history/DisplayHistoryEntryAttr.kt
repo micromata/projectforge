@@ -33,7 +33,7 @@ class DisplayHistoryEntryAttr {
     var newValue: String? = null
 
     companion object {
-        fun create(attr: HistoryEntryAttrDO, context: DisplayHistoryConvertContext<*>): DisplayHistoryEntryAttr {
+        fun create(attr: HistoryEntryAttrDO, context: HistoryLoadContext): DisplayHistoryEntryAttr {
             val entry = context.requiredHistoryEntry
             val entityClass = HistoryValueService.instance.getClass(entry.entityName)
             return DisplayHistoryEntryAttr().also {

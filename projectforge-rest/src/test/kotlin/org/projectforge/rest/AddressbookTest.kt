@@ -57,7 +57,7 @@ class AddressbookTest : AbstractTestBase() {
         addressbookDao.update(book, false)
         hist.loadRecentHistoryEntries(1, 1)
 
-        val historyEntries = addressbookDao.selectHistoryEntries(book, false)
+        val historyEntries = addressbookDao.loadHistory(book, false).sortedEntries
         assertEquals(2, historyEntries.size)
         val test = hist.selectHistory(bookId)
         test.find { it.entityOpType == EntityOpType.Update }.also {

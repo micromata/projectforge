@@ -25,19 +25,22 @@ package org.projectforge.framework.persistence.history
 
 import org.junit.jupiter.api.Test
 import org.projectforge.business.fibu.RechnungDO
+import org.projectforge.business.fibu.RechnungDao
 import org.projectforge.test.AbstractTestBase
 import org.springframework.beans.factory.annotation.Autowired
 
 class HistoryFormatServiceTest : AbstractTestBase() {
+    //@Autowired
+    //private lateinit var historyFormatService: HistoryFormatService
     @Autowired
-    private lateinit var historyFormatService: HistoryFormatService
+    private lateinit var rechnungDao: RechnungDao
 
     @Test
     fun testOldInvoiceHistory() {
         HistoryServiceOldFormatTest.ensureSetup(persistenceService, historyService)
         val invoice = RechnungDO()
         invoice.id = 351958
-        historyService.loadHistory(invoice)
+        historyService.loadHistory(invoice, rechnungDao)
         // historyFormatService.loadHistory(invoice)
     }
 }

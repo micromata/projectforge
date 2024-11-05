@@ -37,13 +37,9 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
-import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
-import org.projectforge.framework.persistence.history.FlatDisplayHistoryEntry
-import org.projectforge.framework.persistence.history.HistoryEntry
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
-import org.projectforge.framework.persistence.user.entities.GroupDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Service
@@ -159,7 +155,7 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
             return select(filter)
         }
 
-    override fun customizeHistoryEntry(context: DisplayHistoryConvertContext<*>) {
+    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
         historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
     }
 
