@@ -69,12 +69,12 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
 
   @SuppressWarnings("serial")
   @Override
-  protected void appendSheetActionLinks(final ImportedSheet<?> sheet, final RepeatingView actionLinkRepeater) {
+  protected void appendSheetActionLinks(final String sheetName, final RepeatingView actionLinkRepeater) {
     if (getStorageType() == DatevImportDao.Type.BUCHUNGSSAETZE) {
       addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
         @Override
         public void onSubmit() {
-          parentPage.showBusinessAssessment(sheet.getName());
+          parentPage.showBusinessAssessment(sheetName);
         }
       }, "show business assessment");
     }
@@ -100,10 +100,6 @@ public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImp
     }
   }
 
-  /**
-   * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addColumns(org.apache.wicket.markup.repeater.RepeatingView,
-   * org.projectforge.framework.persistence.utils.ImportedElement)
-   */
   @Override
   protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style) {
     if (getStorageType() == DatevImportDao.Type.KONTENPLAN) {

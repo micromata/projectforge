@@ -48,4 +48,17 @@ enum class PropertyOpType {
      * The Delete.
      */
     Delete;
+
+    companion object {
+        fun convert(entityOpType: EntityOpType?): PropertyOpType {
+            return when (entityOpType) {
+                EntityOpType.Insert -> Insert
+                EntityOpType.Update -> Update
+                EntityOpType.Delete -> Delete
+                EntityOpType.MarkAsDeleted -> Delete
+                EntityOpType.Undelete -> Update
+                else -> Undefined
+            }
+        }
+    }
 }

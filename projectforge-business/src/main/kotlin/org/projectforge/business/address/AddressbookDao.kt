@@ -33,8 +33,6 @@ import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty.Companion.asc
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
-import org.projectforge.framework.persistence.user.entities.GroupDO
-import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -144,7 +142,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     val globalAddressbookOrNull: AddressbookDO?
         get() = find(GLOBAL_ADDRESSBOOK_ID, checkAccess = false)
 
-    override fun customizeHistoryEntry(context: DisplayHistoryConvertContext<*>) {
+    override fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
         historyFormatUtils.replaceGroupAndUserIdsValues(context.requiredDisplayHistoryEntry)
     }
 

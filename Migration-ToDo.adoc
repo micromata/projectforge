@@ -1,6 +1,6 @@
 Aktuell:
-- User editieren: user rights können nicht geändert werden: duplicate key violation. Alle Rechte weg!!!
 - Listenimport / Export
+- Suche nach Kontonummer in KontoDO
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:

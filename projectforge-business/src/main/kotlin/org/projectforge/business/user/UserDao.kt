@@ -32,9 +32,8 @@ import org.projectforge.framework.access.AccessType
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.persistence.api.*
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.eq
-import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.history.HistoryEntryDO
-import org.projectforge.framework.persistence.history.HistoryFormatUtils
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUserId
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -264,17 +263,10 @@ open class UserDao : BaseDao<PFUserDO>(PFUserDO::class.java) {
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun mergeHistoryEntries(
-        obj: PFUserDO, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>,
-    ) {
+    override fun addOwnHistoryEntries(obj: PFUserDO, context: HistoryLoadContext) {
         val userId = obj.id!!
-        val rights = userRightDao.queryAll(userId)
-        historyService.
-        obj.rights?.forEach { right ->
-            val entries = historyService.loadHistory(right)
-            HistoryFormatUtils.setPropertyNameForListEntries(entries, prefix = right.rightIdString.toString())
-            mergeHistoryEntries(list, entries)
-        }
+        val rightIds = userRightDao.queryAll(userId).map { it.id!! }
+        historyService.loadAndMergeHistory(UserRightDO::class.java, rightIds, context)
     }
 
     override fun hasHistoryAccess(user: PFUserDO, throwException: Boolean): Boolean {

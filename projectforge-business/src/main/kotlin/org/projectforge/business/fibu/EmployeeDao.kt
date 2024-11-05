@@ -35,8 +35,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter
 import org.projectforge.framework.persistence.api.SortProperty
-import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
-import org.projectforge.framework.persistence.history.HistoryEntryDO
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.*
@@ -208,14 +207,9 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
     /**
      * Gets history entries of super and adds all history entries of the RechnungsPositionDO children.
      */
-    override fun mergeHistoryEntries(
-        obj: EmployeeDO,
-        list: MutableList<HistoryEntryDO>,
-        context: DisplayHistoryConvertContext<*>,
-    ) {
+    override fun addOwnHistoryEntries(obj: EmployeeDO, context: HistoryLoadContext) {
         employeeService.selectAllValidSinceAttrs(obj, deleted = null).forEach { validityAttr ->
-            val entries = historyService.loadHistory(validityAttr)
-            mergeHistoryEntries(list, entries)
+            historyService.loadAndMergeHistory(validityAttr, context)
         }
     }
 

@@ -270,7 +270,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
           }
         }, getString("common.import.action.downloadValidatedExcel"));
       }
-      appendSheetActionLinks(sheet, actionLinkRepeater);
+      appendSheetActionLinks(sheet.getName(), actionLinkRepeater);
       addSheetTable(sheet, cont);
     }
   }
@@ -280,7 +280,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
    *
    * @param actionLinkRepeater
    */
-  protected void appendSheetActionLinks(final ImportedSheet<?> sheet, final RepeatingView actionLinkRepeater) {
+  protected void appendSheetActionLinks(final String sheetName, final RepeatingView actionLinkRepeater) {
   }
 
   protected void addActionLink(final RepeatingView actionLinkRepeater, final AbstractLink link, final String label) {

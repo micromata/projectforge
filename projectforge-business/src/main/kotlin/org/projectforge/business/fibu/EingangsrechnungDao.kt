@@ -35,9 +35,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.isIn
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
-import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
-import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -181,19 +180,19 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
      *
      * @see org.projectforge.framework.persistence.api.BaseDao.selectFlatDisplayHistoryEntries
      */
-    override fun mergeHistoryEntries(obj: EingangsrechnungDO, list: MutableList<HistoryEntryDO>, context: DisplayHistoryConvertContext<*>) {
+    override fun addOwnHistoryEntries(obj: EingangsrechnungDO, context: HistoryLoadContext) {
         obj.positionen?.forEach { position ->
-            val positionEntries = historyService.loadHistory(position)
-            HistoryFormatUtils.setPropertyNameForListEntries(positionEntries, prefix = "pos", number = position.number)
-            mergeHistoryEntries(list, positionEntries)
+            historyService.loadAndMergeHistory(position, context) { entry ->
+                HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
+            }
             position.kostZuweisungen?.forEach { zuweisung ->
-                val kostEntries = historyService.loadHistory(zuweisung)
-                HistoryFormatUtils.setPropertyNameForListEntries(
-                    kostEntries,
-                    Pair("pos", position.number),
-                    Pair("kost", zuweisung.index),
-                )
-                mergeHistoryEntries(list, kostEntries)
+                historyService.loadAndMergeHistory(zuweisung, context) { entry ->
+                    HistoryFormatUtils.setPropertyNameForListEntries(
+                        entry,
+                        Pair("pos", position.number),
+                        Pair("kost", zuweisung.index),
+                    )
+                }
             }
         }
     }
@@ -235,7 +234,8 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
 
     companion object {
         val USER_RIGHT_ID: UserRightId = UserRightId.FIBU_EINGANGSRECHNUNGEN
-        private val ADDITIONAL_HISTORY_SEARCH_DOS: Array<Class<*>> = arrayOf(EingangsrechnungsPositionDO::class.java)
+        private val ADDITIONAL_HISTORY_SEARCH_DOS: Array<Class<*>> =
+            arrayOf(EingangsrechnungsPositionDO::class.java)
 
         private val ADDITIONAL_SEARCH_FIELDS = arrayOf("positionen.text")
 

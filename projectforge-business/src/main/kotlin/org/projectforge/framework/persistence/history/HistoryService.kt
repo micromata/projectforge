@@ -60,25 +60,55 @@ class HistoryService {
     /**
      * Merges the given entries into the list. Already existing entries with same id are not added twice.
      */
-    fun mergeHistoryEntries(list: MutableList<HistoryEntryDO>, entries: List<HistoryEntryDO>) {
-        for (entry in entries) {
-            if (list.none { it.id == entry.id }) {
-                list.add(entry)
-            }
-        }
+    fun mergeHistoryEntries(loadContext: HistoryLoadContext, entries: List<HistoryEntryDO>) {
+        loadContext.merge(entries)
     }
 
     /**
      * Loads all history entries for the given baseDO by class and id.
      * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
-     * Please use [BaseDao.selectHistoryEntries] for getting all embedded history entries.
+     * Please use [BaseDao.loadHistory] for getting all embedded history entries.
      */
-    fun loadHistory(baseDO: BaseDO<Long>): List<HistoryEntryDO> {
-        val allHistoryEntries = mutableListOf<HistoryEntryDO>()
+    fun loadHistory(baseDO: BaseDO<Long>, baseDao: BaseDao<*>? = null): HistoryLoadContext {
+        val loadContext = HistoryLoadContext(baseDao)
         persistenceService.runReadOnly { context ->
-            loadAndAddHistory(allHistoryEntries, baseDO::class.java, baseDO.id, context)
+            loadAndMergeHistory(baseDO::class.java, baseDO.id, loadContext, context)
         }
-        return allHistoryEntries.sortedByDescending { it.id }
+        return loadContext
+    }
+
+    /**
+     * Loads all history entries for the given baseDO by class and id.
+     * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
+     * Please use [BaseDao.loadHistory] for getting all embedded history entries.
+     */
+    fun loadAndMergeHistory(
+        baseDO: BaseDO<Long>, loadContext: HistoryLoadContext,
+        customize: ((entry: HistoryEntryDO) -> Unit)? = null,
+    ): HistoryLoadContext {
+        persistenceService.runReadOnly { context ->
+            loadAndMergeHistory(baseDO::class.java, baseDO.id, loadContext, context, customize)
+        }
+        return loadContext
+    }
+
+
+    /**
+     * Loads all history entries for the given entity by class and id's.
+     * Please note: Embedded objects are only loaded, if they're part of any history entry attribute of the given object.
+     * Please use [BaseDao.loadHistory] for getting all embedded history entries.
+     * @param loadContext contains already loaded history entries. The new one will be merged into this list.
+     * @param entityClass The class of the entity.
+     * @param entityIds The id's of the entities.
+     */
+    fun loadAndMergeHistory(
+        entityClass: Class<out IdObject<Long>>,
+        entityIds: Collection<Long>,
+        loadContext: HistoryLoadContext,
+    ) {
+        persistenceService.runReadOnly { context ->
+            loadAndMergeHistory(entityClass, entityIds, context, loadContext)
+        }
     }
 
     /**
@@ -112,24 +142,57 @@ class HistoryService {
         }
     }
 
-    private fun loadAndAddHistory(
-        allHistoryEntries: MutableList<HistoryEntryDO>,
-        entityClass: Class<out BaseDO<*>>,
-        entityId: Long?,
+    private fun loadAndMergeHistory(
+        entityClass: Class<out IdObject<Long>>,
+        entityIds: Collection<Long>,
         context: PfPersistenceContext,
+        loadContext: HistoryLoadContext,
+        customize: ((entry: HistoryEntryDO) -> Unit)? = null,
+    ) {
+        val newHistoryEntries = context.executeNamedQuery(
+            sql = HistoryEntryDO.SELECT_HISTORY_BY_ENTITY_IDS,
+            resultClass = HistoryEntryDO::class.java,
+            keyValues = arrayOf(
+                Pair("entityIds", entityIds),
+                Pair("entityName", entityClass.name),
+            ),
+        )
+        processAndMergeHistory(entityClass, entityIds, newHistoryEntries, loadContext, context, customize)
+    }
+
+    private fun loadAndMergeHistory(
+        entityClass: Class<out BaseDO<Long>>,
+        entityId: Long?,
+        loadContext: HistoryLoadContext,
+        context: PfPersistenceContext,
+        customize: ((entry: HistoryEntryDO) -> Unit)? = null,
     ) {
         entityId ?: return
-        val result = context.executeQuery(
+        val newHistoryEntries = context.executeNamedQuery(
             sql = HistoryEntryDO.SELECT_HISTORY_FOR_BASEDO,
             resultClass = HistoryEntryDO::class.java,
-            namedQuery = true,
             keyValues = arrayOf(
                 Pair("entityId", entityId),
                 Pair("entityName", entityClass.name),
             ),
         )
-        result.forEach { entry -> HistoryOldFormatConverter.transformOldAttributes(entry) }
-        allHistoryEntries.addAll(result)
+        processAndMergeHistory(entityClass, listOf(entityId), newHistoryEntries, loadContext, context, customize)
+    }
+
+    private fun processAndMergeHistory(
+        entityClass: Class<out IdObject<Long>>,
+        entityIds: Collection<Long>,
+        newHistoryEntries: List<HistoryEntryDO>,
+        loadContext: HistoryLoadContext,
+        context: PfPersistenceContext,
+        customize: ((entry: HistoryEntryDO) -> Unit)? = null,
+    ) {
+        newHistoryEntries.forEach { entry ->
+            customize?.invoke(entry)
+            HistoryOldFormatConverter.transformOldAttributes(entry)
+            loadContext.setCurrent(entry)
+        }
+        mergeHistoryEntries(loadContext, newHistoryEntries)
         // Check all history entries for embedded objects:
         HibernateMetaModel.getEntityInfo(entityClass)?.getPropertiesWithAnnotation(OneToMany::class)
             ?.let { oneToManyProps ->
@@ -139,7 +202,7 @@ class HistoryService {
                 // entities.
                 val embeddedObjectsMap = mutableMapOf<String, MutableSet<Long>>()
                 // Check all result history entries for embedded objects:
-                result.forEach { entry ->
+                newHistoryEntries.forEach { entry ->
                     entry.attributes?.forEach attributes@{ attr ->
                         attr.propertyName?.let { propertyName ->
                             oneToManyProps.find { it.propertyName == propertyName } ?: return@attributes
@@ -156,12 +219,17 @@ class HistoryService {
                                     embeddedObjectsMap.computeIfAbsent(propertyTypeClass) { mutableSetOf() }
                                         .add(entityId)
                                 }
-                                log.debug { "${entityClass}.${entityId}: entity ids added: '$propertyTypeClass': ${entityIds.joinToString()}" }
+                                log.debug { "${entityClass}: entity ids added: '$propertyTypeClass': ${entityIds.joinToString()}" }
                             }
                         }
                     }
                 }
-                context.em.find(entityClass, entityId)?.let { baseDO ->
+                context.executeQuery(
+                    "from ${entityClass.simpleName} where ${HibernateMetaModel.getIdProperty(entityClass)} in :entityIds",
+                    entityClass,
+                    "entityIds" to entityIds
+                ).forEach { baseDO ->
+                    loadContext.addLoadedEntity(baseDO)
                     // Check now all actually embedded objects of the baseDO, load from the database:
                     oneToManyProps.forEach { propInfo ->
                         val propertyName = propInfo.propertyName
@@ -194,14 +262,12 @@ class HistoryService {
                     }
                 }
                 embeddedObjectsMap.forEach { (propertyTypeClass, entityIds) ->
-                    entityIds.forEach { entityId ->
-                        try {
-                            @Suppress("UNCHECKED_CAST")
-                            val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<*>>
-                            loadAndAddHistory(allHistoryEntries, clazz, entityId, context)
-                        } catch (ex: Exception) {
-                            log.error(ex) { "Can't get class of name '$propertyTypeClass' (skipping): ${ex.message}" }
-                        }
+                    @Suppress("UNCHECKED_CAST")
+                    val clazz = Class.forName(propertyTypeClass) as Class<out BaseDO<Long>>
+                    try {
+                        loadAndMergeHistory(clazz, entityIds, context, loadContext)
+                    } catch (ex: Exception) {
+                        log.error(ex) { "Can't get class of name '$propertyTypeClass' (skipping): ${ex.message}" }
                     }
                 }
             }

@@ -59,11 +59,11 @@ class GroupDaoTest : AbstractTestBase() {
         group.addUser(users[1])
         group.addUser(users[2])
         groupDao.insert(group)
-        groupDao.selectHistoryEntries(group).let { entries ->
+        groupDao.loadHistory(group).sortedEntries.let { entries ->
             Assertions.assertEquals(1, entries.size)
             assertHistoryEntry(entries[0], GroupDO::class, group.id, EntityOpType.Insert, loggedInUser)
         }
-        userDao.selectHistoryEntries(users[0]).let { entries ->
+        userDao.loadHistory(users[0]).sortedEntries.let { entries ->
             Assertions.assertEquals(2, entries.size)
             entries[0].let { entry ->
                 HistoryTester.assertHistoryAttr(
@@ -84,7 +84,7 @@ class GroupDaoTest : AbstractTestBase() {
         group.assignedUsers!!.remove(users[1]) // Unassign users[1] from group 1.
         group.addUser(users[3]) // Assign users[3] to group 1.
         groupDao.update(group)
-        userDao.selectHistoryEntries(users[0]).let { entries ->
+        userDao.loadHistory(users[0]).sortedEntries.let { entries ->
             Assertions.assertEquals(
                 3,
                 entries.size
@@ -117,7 +117,7 @@ class GroupDaoTest : AbstractTestBase() {
                 loggedInUser,
             ) // user inserted
         }
-        groupDao.selectHistoryEntries(group).let { entries ->
+        groupDao.loadHistory(group).sortedEntries.let { entries ->
             Assertions.assertEquals(
                 2,
                 entries.size

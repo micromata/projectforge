@@ -392,7 +392,7 @@ class BaseDOPersistenceService {
             em.flush()
             if (HistoryBaseDaoAdapter.isHistorizable(obj)) {
                 // Remove all history entries (including all attributes) from the database:
-                historyService.loadHistory(obj).forEach { historyEntry ->
+                historyService.loadHistory(obj, baseDao).originUnsortedEntries.forEach { historyEntry ->
                     context.delete(historyEntry) // Don't use em.remove directly, due to PersistenceCallsStats.
                     val displayHistoryEntry = ToStringUtil.toJsonString(historyEntry)
                     if (logMessage) {

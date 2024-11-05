@@ -180,7 +180,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                         assignedUsers.add(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                         dbGroup.setLastUpdate()   // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
                         assignedGroups = assignedGroups ?: mutableListOf()
-                        assignedGroups!!.add(dbGroup)
+                        assignedGroups.add(dbGroup)
                     } else {
                         log.info("User '" + dbUser.username + "' already assigned to group '" + dbGroup.name + "'.")
                     }
@@ -195,7 +195,7 @@ open class GroupDao : BaseDao<GroupDO>(GroupDO::class.java) {
                         assignedUsers.remove(dbUser) // dbGroup is attached! Change is saved automatically by Hibernate on transaction commit.
                         dbGroup.setLastUpdate()      // Last update of group isn't set automatically without calling groupDao.saveOrUpdate.
                         unassignedGroups = unassignedGroups ?: mutableListOf()
-                        unassignedGroups!!.add(dbGroup)
+                        unassignedGroups.add(dbGroup)
                     } else {
                         log.info("User '" + dbUser.username + "' is not assigned to group '" + dbGroup.name + "' (can't unassign).")
                     }

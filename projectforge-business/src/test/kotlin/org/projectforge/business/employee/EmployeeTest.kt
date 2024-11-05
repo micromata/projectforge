@@ -97,14 +97,14 @@ class EmployeeTest : AbstractTestBase() {
     fun testStaffNumber() {
         Assertions.assertTrue(employeeList.isNotEmpty())
         val e = employeeList[0]
-        val historyEntriesBefore = employeeDao.selectHistoryEntries(e)
+        val historyEntriesBefore = employeeDao.loadHistory(e).sortedEntries
         val staffNumber = "123abc456def"
         e.staffNumber = staffNumber
         Assertions.assertEquals(e.staffNumber, staffNumber)
         employeeDao.update(e)
 
         // test history
-        val historyEntriesAfter = employeeDao.selectHistoryEntries(e)
+        val historyEntriesAfter = employeeDao.loadHistory(e).sortedEntries
         Assertions.assertEquals(historyEntriesBefore.size + 1, historyEntriesAfter.size)
         HistoryTester.assertHistoryAttr(historyEntriesAfter[0], "staffNumber", value = staffNumber, oldValue = null)
 

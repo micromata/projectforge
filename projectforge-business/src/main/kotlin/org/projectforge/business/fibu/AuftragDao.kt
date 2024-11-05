@@ -50,10 +50,9 @@ import org.projectforge.framework.persistence.api.QueryFilter.Companion.le
 import org.projectforge.framework.persistence.api.QueryFilter.Companion.or
 import org.projectforge.framework.persistence.api.SortProperty.Companion.desc
 import org.projectforge.framework.persistence.api.impl.DBPredicate
-import org.projectforge.framework.persistence.history.DisplayHistoryConvertContext
 import org.projectforge.framework.persistence.history.FlatHistoryFormatService
-import org.projectforge.framework.persistence.history.HistoryEntryDO
 import org.projectforge.framework.persistence.history.HistoryFormatUtils
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.utils.SQLHelper.getYearsByTupleOfLocalDate
 import org.projectforge.framework.utils.NumberHelper.parseInteger
 import org.projectforge.framework.utils.NumberHelper.parseShort
@@ -615,28 +614,23 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         return persistenceService.getNextNumber("AuftragDO", "nummer", START_NUMBER)
     }
 
-    override fun mergeHistoryEntries(
+    override fun addOwnHistoryEntries(
         obj: AuftragDO,
-        list: MutableList<HistoryEntryDO>,
-        context: DisplayHistoryConvertContext<*>
+        context: HistoryLoadContext
     ) {
         obj.positionenIncludingDeleted?.forEach { position ->
-            val entries = historyService.loadHistory(position)
-            entries.forEach { entry ->
+            historyService.loadAndMergeHistory(position, context) { entry ->
                 HistoryFormatUtils.setPropertyNameForListEntries(entry, prefix = "pos", number = position.number)
             }
-            mergeHistoryEntries(list, entries)
         }
         obj.paymentSchedules?.forEach { schedule ->
-            val entries = historyService.loadHistory(schedule)
-            entries.forEach { entry ->
+            historyService.loadAndMergeHistory(schedule, context) { entry ->
                 HistoryFormatUtils.setPropertyNameForListEntries(
                     entry,
                     prefix = "paymentSchedule",
                     number = schedule.number
                 )
             }
-            mergeHistoryEntries(list, entries)
         }
     }
 

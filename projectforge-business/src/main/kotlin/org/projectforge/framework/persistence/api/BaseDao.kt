@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.impl.HibernateSearchMeta.getCl
 import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.history.*
+import org.projectforge.framework.persistence.history.HistoryLoadContext
 import org.projectforge.framework.persistence.jpa.PersistenceCallsStats
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
@@ -272,7 +273,11 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             val cr = em.criteriaBuilder.createQuery(doClass)
             val root = cr.from(doClass)
             cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
-            context.logAndAdd(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "select by ids=${idList.joinToString()}")
+            context.logAndAdd(
+                PersistenceCallsStats.CallType.QUERY,
+                doClass.simpleName,
+                "select by ids=${idList.joinToString()}"
+            )
             em.createQuery(cr).resultList
         }
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
@@ -374,31 +379,33 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * If the user has no access an empty list will be returned.
      */
     @JvmOverloads
-    fun selectHistoryEntries(obj: O, checkAccess: Boolean = true): List<HistoryEntryDO> {
+    fun loadHistory(
+        obj: O,
+        checkAccess: Boolean = true,
+        loadContext: HistoryLoadContext = HistoryLoadContext(this),
+    ): HistoryLoadContext {
         if (obj.id == null || (checkAccess && !hasLoggedInUserHistoryAccess(obj, false))) {
-            return mutableListOf()
+            return loadContext
         }
-        val list = historyService.loadHistory(baseDO = obj).toMutableList()
-        mergeHistoryEntries(obj, list, DisplayHistoryConvertContext(this, obj))
+        historyService.loadAndMergeHistory(obj, loadContext)
+        addOwnHistoryEntries(obj, loadContext)
         // Sorts the list by the 'modifiedAt' field, placing entries with null values at the beginning.
         // The first part of the comparator checks if 'modifiedAt' is null and gives it higher priority
         // (placing null entries first). The second part sorts the remaining entries based on the
         // non-null 'modifiedAt' values.
-        list.sortByDescending { it.id }
-        return list
+        return loadContext
     }
 
     /**
      * Override this method if you want to add your own history entries to the list or modify the existing ones.
-     * Called by [selectHistoryEntries].
+     * Called by [loadHistory].
      * Does nothing at default.
      * @param obj The object for which the history entries are loaded.
      * @param list The list with entries loaded for given obj. Add here your own entries.
      */
-    protected open fun mergeHistoryEntries(
+    protected open fun addOwnHistoryEntries(
         obj: O,
-        list: MutableList<HistoryEntryDO>,
-        context: DisplayHistoryConvertContext<*>
+        context: HistoryLoadContext
     ) {
     }
 
@@ -406,26 +413,19 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
      * For customizing [DisplayHistoryEntry]'s. The context holds the current processed [HistoryEntry] as well as the current
      * created [DisplayHistoryEntry]. Called after converting to display history entries.
      * The [DisplayHistoryEntryAttr] attributes are already set in the [DisplayHistoryEntry].
-     * Get the current [DisplayHistoryEntry] by calling [DisplayHistoryConvertContext.requiredDisplayHistoryEntry].
+     * Get the current [DisplayHistoryEntry] by calling [HistoryLoadContext.requiredDisplayHistoryEntry].
      * Does nothing at default.
      */
-    open fun customizeHistoryEntry(context: DisplayHistoryConvertContext<*>) {
+    open fun customizeDisplayHistoryEntry(context: HistoryLoadContext) {
     }
 
     /**
      * For customizing [DisplayHistoryEntryAttr]'s. The context holds the current processed [HistoryEntryAttr] as well as the current
      * created [DisplayHistoryEntryAttr]. Called after converting to display history entries.
-     * Get the current [DisplayHistoryEntryAttr] by calling [DisplayHistoryConvertContext.requiredDisplayHistoryEntryAttr].
+     * Get the current [DisplayHistoryEntryAttr] by calling [HistoryLoadContext.requiredDisplayHistoryEntryAttr].
      * Does nothing at default.
      */
-    open fun customizeHistoryEntryAttr(context: DisplayHistoryConvertContext<*>) {
-    }
-
-    /**
-     * Merges the given entries into the list. Already existing entries with same masterId and attributeId are not added twice.
-     */
-    protected fun mergeHistoryEntries(list: MutableList<HistoryEntryDO>, entries: List<HistoryEntryDO>) {
-        historyService.mergeHistoryEntries(list, entries)
+    open fun customizeHistoryEntryAttr(context: HistoryLoadContext) {
     }
 
     /**

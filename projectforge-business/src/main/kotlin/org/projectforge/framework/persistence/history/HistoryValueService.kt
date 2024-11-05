@@ -96,7 +96,7 @@ class HistoryValueService private constructor() {
         }
     }
 
-    fun getObjectValue(value: String?, context: DisplayHistoryConvertContext<*>): Any? {
+    fun getObjectValue(value: String?, context: HistoryLoadContext): Any? {
         value ?: return null
         val attr = context.currentHistoryEntryAttr ?: return null
         val valueType = getValueType(attr.propertyTypeClass)
@@ -164,7 +164,7 @@ class HistoryValueService private constructor() {
         var clazz: Class<*>? = null
         try {
             clazz = Class.forName(typeString)
-        } catch (ex: ClassNotFoundException) {
+        } catch (_: ClassNotFoundException) {
             log.warn("Class '$typeString' not found.")
         }
         if (clazz == null) {
@@ -211,7 +211,7 @@ class HistoryValueService private constructor() {
         try {
             val value = defaultHandler.deserialize(valueString) ?: return ""
             return defaultHandler.format(value)
-        } catch (ex: Exception) {
+        } catch (_: Exception) {
             return valueString
         }
     }
@@ -240,7 +240,7 @@ class HistoryValueService private constructor() {
      * Loads the objects from the database, references as id's in the given value.
      * @param value The old or new value from the history entry attr.
      */
-    private fun getDBObjects(value: String?, context: DisplayHistoryConvertContext<*>): List<Any> {
+    private fun getDBObjects(value: String?, context: HistoryLoadContext): List<Any> {
         val currentAttr = context.currentHistoryEntryAttr ?: return emptyList()
         val propertyClass = getClass(currentAttr.propertyTypeClass) ?: return emptyList()
         val propertyName = currentAttr.propertyName
@@ -261,7 +261,7 @@ class HistoryValueService private constructor() {
                         log.warn("Cannot find object of entity $propertyClass with id for property $propertyName (should only occur in test cases): $idString")
                         ret.add("${propertyClass.simpleName}#$id")
                     }
-                } catch (ex: NumberFormatException) {
+                } catch (_: NumberFormatException) {
                     log.warn("Cannot parse id for property $propertyName: $idString")
                 }
             }
