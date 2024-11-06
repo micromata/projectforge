@@ -184,7 +184,7 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return EmployeeDO()
     }
 
-    open fun findEmployeeByStaffnumber(staffnumber: String?): EmployeeDO? {
+    open fun findByStaffnumber(staffnumber: String?): EmployeeDO? {
         staffnumber ?: return null
         var result: EmployeeDO? = null
         try {

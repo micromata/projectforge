@@ -95,6 +95,10 @@ open class EmployeeCache : AbstractCache() {
         employee.annualLeave = cached.annualLeave
     }
 
+    fun findByStaffNumber(staffNumber: Int?): EmployeeDO? {
+        return findByStaffNumber(staffNumber?.toString())
+    }
+
     fun findByStaffNumber(staffNumber: String?): EmployeeDO? {
         staffNumber ?: return null
         checkRefresh()

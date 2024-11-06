@@ -104,8 +104,13 @@ class EmployeeService {
         return employeeList.filter { employee -> isEmployeeActive(employee, showRecentLeft) }
     }
 
-    fun findByStaffnumber(staffnumber: String): EmployeeDO? {
-        return employeeDao.findEmployeeByStaffnumber(staffnumber)
+    fun findByStaffnumber(staffnumber: Int?): EmployeeDO? {
+        return findByStaffnumber(staffnumber?.toString())
+    }
+
+    fun findByStaffnumber(staffnumber: String?): EmployeeDO? {
+        staffnumber ?: return null
+        return employeeDao.findByStaffnumber(staffnumber)
     }
 
     fun findValidSinceAttr(

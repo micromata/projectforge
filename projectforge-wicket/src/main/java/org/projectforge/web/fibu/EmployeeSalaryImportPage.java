@@ -49,7 +49,7 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
         form.init();
         clear(); // reset state of the page, clear the import storage
         if (parameters != null && parameters.get(0) != null && parameters.get(0).toString() != null && parameters.get(0).toString().equals("success")) {
-            error(I18nHelper.getLocalizedMessage("plugins.eed.salaryimport.success"));
+            error(I18nHelper.getLocalizedMessage("fibu.employee.salaries.import.success"));
         }
     }
 
@@ -120,7 +120,7 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
 
     @Override
     protected String getTitle() {
-        return getString("plugins.eed.salaryimport.title");
+        return getString("fibu.employee.salaries.import");
     }
 
 }
