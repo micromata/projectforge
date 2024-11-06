@@ -23,10 +23,6 @@
 
 package org.projectforge.business.vacation.service
 
-import org.hibernate.Hibernate
-import org.hibernate.ScrollMode
-import org.hibernate.ScrollableResults
-import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
@@ -39,7 +35,6 @@ import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.LocalDatePeriod
@@ -291,45 +286,11 @@ open class VacationService {
     }
 
     fun selectVacations(): List<VacationDO> {
-        return persistenceService.runInTransaction { context ->
-            val em = context.em
-            val entityGraph = em.getEntityGraph("Vacation.withOtherReplacementIds")
-            val result = em.createQuery("SELECT v FROM VacationDO v", VacationDO::class.java)
-                .setHint("jakarta.persistence.fetchgraph", entityGraph)
-                .resultList
-            /*
-                        val cb = em.criteriaBuilder
-                        val cr = cb.createQuery(VacationDO::class.java)
-                        val root = cr.from(VacationDO::class.java)
-                        cr.select(root)
-                        val query = em.createQuery(cr)
-                        query.setHint("jakarta.persistence.fetchgraph", entityGraph)
-                        //val result = query.resultList
-                        val hquery = query.unwrap(org.hibernate.query.Query::class.java)
-                        hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<VacationDO>
-                        val scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<VacationDO>
-                        var result = mutableListOf<VacationDO>()
-                        while (scrollableResults.next()) {
-                            result.add(scrollableResults.get())
-                        }
-            */
-            result.forEach {
-                if (!it.otherReplacements.isNullOrEmpty()) {
-                    println(
-                        "vacationService.selectVacations() = ${
-                            it.otherReplacements?.joinToString {
-                                "initialized=${
-                                    Hibernate.isInitialized(
-                                        it
-                                    )
-                                }, id=${it.id}"
-                            }
-                        }"
-                    )
-                }
-            }
-            result
-        }
+        return persistenceService.executeQuery(
+            "SELECT v FROM VacationDO v",
+            VacationDO::class.java,
+            entityGraphName = "Vacation.withOtherReplacementIds",
+        )
     }
 
     /**
@@ -340,7 +301,6 @@ open class VacationService {
      * @param withSpecial
      * @return List of vacations
      */
-    // Must be open for mocking.
     open fun getActiveVacationForYear(employee: EmployeeDO?, year: Int, withSpecial: Boolean): List<VacationDO> {
         return vacationDao.getActiveVacationForYear(employee, year, withSpecial)
     }

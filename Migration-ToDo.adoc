@@ -1,12 +1,13 @@
 Aktuell:
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
+- Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
+  - Auftrag editieren: massenhaft SQLs
+  - employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)
+  - AddressKampagnen: ebd. (massenhaft SQLs)
 - Suche nach Kontonummer in KontoDO
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
-- Auftrag editieren: massenhaft SQLs
-- employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)
-- AddressKampagnen: ebd. (massenhaft SQLs)
 
 - Suche:
   - Suche in Urlaubskorrekturen

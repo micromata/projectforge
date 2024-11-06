@@ -23,11 +23,9 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import jakarta.persistence.EntityManagerFactory
 import jakarta.persistence.TypedQuery
 import mu.KotlinLogging
 import org.apache.commons.lang3.StringUtils
-import org.hibernate.Session
 
 private val log = KotlinLogging.logger {}
 
@@ -35,7 +33,6 @@ private val log = KotlinLogging.logger {}
  * Only for internal usage. Please use [PfPersistenceService] and [PfPersistenceContext] instead.
  */
 internal object EntityManagerUtil {
-
     fun queryToString(query: TypedQuery<*>, errorMessage: String?): String {
         val queryString = query.unwrap(org.hibernate.query.Query::class.java)?.getQueryString()
         val sb = StringBuilder()
