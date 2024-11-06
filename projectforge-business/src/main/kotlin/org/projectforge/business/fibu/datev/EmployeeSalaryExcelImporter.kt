@@ -32,6 +32,7 @@ import mu.KotlinLogging
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDao
 import org.projectforge.business.fibu.EmployeeSalaryDO
+import org.projectforge.business.fibu.EmployeeService
 import org.projectforge.common.i18n.UserException
 import org.projectforge.framework.persistence.utils.MyImportedElement
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,7 +54,7 @@ class EmployeeSalaryExcelImporter {
     private lateinit var employeeCache: EmployeeCache
 
     @Autowired
-    private lateinit var employeeDao: EmployeeDao
+    private lateinit var employeeService: EmployeeService
 
     /**
      * Imports the employee salaries from the given Excel workbook.
@@ -94,9 +95,12 @@ class EmployeeSalaryExcelImporter {
             val salary = EmployeeSalaryDO()
             element.value = salary
             ImportHelper.fillBean(salary, sheet, row.rowNum)
-            val staffNumber = sheet.getCellString(row, "Personalnummer")
+            val staffNumber = sheet.getCellInt(row, "Personalnummer")
             val employee = employeeCache.findByStaffNumber(staffNumber)
-                ?: employeeDao.findEmployeeByStaffnumber(staffNumber)
+                ?: employeeService.findByStaffnumber(staffNumber)
+            if (employee == null) {
+                element.putErrorProperty("Personalnummer", "Mitarbeiter:in mit Personalnummer '$staffNumber' nicht gefunden.")
+            }
             salary.employee = employee
             salary.year = year
             salary.month = month.value
@@ -108,7 +112,7 @@ class EmployeeSalaryExcelImporter {
     companion object {
         const val NAME_OF_EXCEL_SHEET = "employeeSalaries"
 
-        val SALARY_DIFF_PROPERTIES: Array<String> = arrayOf("Personalnummer", "bruttoMitAgAnteil")
+        val SALARY_DIFF_PROPERTIES: Array<String> = arrayOf("bruttoMitAgAnteil")
 
     }
 }
