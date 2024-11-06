@@ -74,6 +74,8 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
 
   private boolean showSelectMeButton = true;
 
+  private static final String[] SEARCH_FIELDS = {"username", "firstname", "lastname", "email"};
+
   /**
    * @param id
    * @param model
@@ -91,7 +93,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       protected List<PFUserDO> getChoices(final String input)
       {
         final BaseSearchFilter filter = new BaseSearchFilter();
-        filter.setSearchFields("username", "firstname", "lastname", "email");
+        filter.setSearchFields(SEARCH_FIELDS);
         filter.setSearchString(input);
         final List<PFUserDO> list = WicketSupport.getUserDao().select(filter);
         return list;

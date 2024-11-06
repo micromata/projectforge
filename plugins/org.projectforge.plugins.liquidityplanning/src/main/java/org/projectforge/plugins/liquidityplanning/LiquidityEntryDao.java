@@ -69,7 +69,7 @@ public class LiquidityEntryDao extends BaseDao<LiquidityEntryDO> {
     if (myFilter.getPaymentStatus() == PaymentStatus.ALL
             && myFilter.getAmountType() == AmountType.ALL
             && myFilter.getNextDays() <= 0
-            || myFilter.isDeleted()) {
+            || myFilter.getDeleted()) {
       return list;
     }
     final List<LiquidityEntryDO> result = new ArrayList<>();

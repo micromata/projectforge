@@ -181,7 +181,7 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
     fromDate = null;
     toDate = null;
     setShowAll();
-    searchString = "";
+    setSearchString("");
     showKostZuweisungStatus = false;
     return this;
   }

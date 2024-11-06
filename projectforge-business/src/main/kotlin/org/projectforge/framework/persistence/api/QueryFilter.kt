@@ -115,26 +115,26 @@ class QueryFilter @JvmOverloads constructor(filter: BaseSearchFilter? = null) {
 
     init {
         if (filter != null) {
-            this.fullTextSearchFields = filter.fullTextSearchFields
+            this.fullTextSearchFields = filter.getFullTextSearchFields()
             this.autoWildcardSearch = true
             // Legacy for old implementation:
             if (!filter.ignoreDeleted) {
                 deleted = filter.deleted
             }
-            if (filter.isSearchHistory && !filter.searchString.isNullOrBlank()) {
+            if (filter.searchHistory && !filter.searchString.isNullOrBlank()) {
                 searchHistory = filter.searchString
             }
-            if (filter.isSearchNotEmpty) {
+            if (filter.isSearchNotEmpty()) {
                 addFullTextSearch(filter.searchString, autoWildcardSearch)
             }
             if (filter.useModificationFilter) {
                 if (filter.modifiedSince != null) {
-                    modifiedFrom = PFDateTime.from(filter.modifiedSince) // not null
+                    modifiedFrom = PFDateTime.from(filter.modifiedSince!!) // not null
                 } else if (filter.startTimeOfModification != null) { // not null
-                    modifiedFrom = PFDateTime.from(filter.startTimeOfModification)
+                    modifiedFrom = PFDateTime.from(filter.startTimeOfModification!!)
                 }
                 if (filter.stopTimeOfModification != null) {
-                    modifiedTo = PFDateTime.from(filter.stopTimeOfModification) // not null
+                    modifiedTo = PFDateTime.from(filter.stopTimeOfModification!!) // not null
                 }
             }
             if (filter.modifiedByUserId != null) {

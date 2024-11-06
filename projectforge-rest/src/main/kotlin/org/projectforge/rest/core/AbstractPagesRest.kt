@@ -881,8 +881,8 @@ constructor(
             ?.split(' ', '\t', '\n')
             ?.joinToString(" ") { if (it.startsWith("+")) it else "+$it*" }
         filter.searchString = modifiedSearchString
-        filter.setSearchFields(*autoCompleteSearchFields!!)
-        maxResults?.let { filter.setMaxRows(it) }
+        filter.searchFields = autoCompleteSearchFields!!
+        maxResults?.let { filter.maxRows = it }
         val list = queryAutocompleteObjects(request, filter)
         return list.map { DisplayObject(it.id, if (it is DisplayNameCapable) it.displayName else it.toString()) }
     }

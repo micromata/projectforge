@@ -48,8 +48,16 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
         body.add(form);
         form.init();
         clear(); // reset state of the page, clear the import storage
-        if (parameters != null && parameters.get(0) != null && parameters.get(0).toString() != null && parameters.get(0).toString().equals("success")) {
-            error(I18nHelper.getLocalizedMessage("fibu.employee.salaries.import.success"));
+        if (parameters != null) {
+            if (parameters.get(0) != null && parameters.get(0).toString() != null && parameters.get(0).toString().equals("success")) {
+                error(I18nHelper.getLocalizedMessage("fibu.employee.salaries.import.success"));
+            }
+            if (parameters.contains("year")) {
+                form.setSelectedYear(parameters.get("year").toInt(form.getDefaultYear()));
+            }
+            if (parameters.contains("month")) {
+                form.setSelectedMonth(parameters.get("month").toInt(form.getDefaultMonth()));
+            }
         }
     }
 
@@ -116,6 +124,12 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
         AccessChecker accessChecker = WicketSupport.getAccessChecker();
         accessChecker.checkLoggedInUserRight(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE);
         accessChecker.checkRestrictedOrDemoUser();
+    }
+
+    @Override
+    protected void setPageParametersOnSuccess(PageParameters params) {
+        params.add("year", form.getSelectedYear());
+        params.add("month", form.getSelectedMonth());
     }
 
     @Override

@@ -25,6 +25,8 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.hibernate.Hibernate
+import org.projectforge.business.scripting.Cache.getProjekt
 import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -62,6 +64,19 @@ open class EmployeeCache : AbstractCache() {
         checkRefresh()
         return employeeMap[id]
     }
+
+    /**
+     * Returns the EmployeeDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getEmployeeIfNotInitialized(employee: EmployeeDO?): EmployeeDO? {
+        val id = employee?.id ?: return null
+        if (Hibernate.isInitialized(employee)) {
+            return employee
+        }
+        return getEmployee(id)
+    }
+
 
     fun getEmployeeByUserId(userId: Long?): EmployeeDO? {
         userId ?: return null

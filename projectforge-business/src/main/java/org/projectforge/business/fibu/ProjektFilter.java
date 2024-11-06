@@ -29,9 +29,9 @@ import java.io.Serializable;
 
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class ProjektFilter extends BaseSearchFilter implements Serializable
 {
@@ -79,9 +79,9 @@ public class ProjektFilter extends BaseSearchFilter implements Serializable
   public void setListType(String listType)
   {
     if (listType.equals("deleted")) {
-      deleted = true;
+      setDeleted(true);
     } else {
-      deleted = false;
+      setDeleted(false);
     }
     this.listType = listType;
   }

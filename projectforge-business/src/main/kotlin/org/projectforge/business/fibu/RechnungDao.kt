@@ -279,7 +279,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
         }
 
         val list = select(queryFilter)
-        if (myFilter.isShowAll || myFilter.isDeleted) {
+        if (myFilter.isShowAll || myFilter.deleted) {
             return list
         }
 

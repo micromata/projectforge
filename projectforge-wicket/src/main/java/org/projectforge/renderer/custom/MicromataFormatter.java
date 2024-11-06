@@ -148,7 +148,7 @@ public class MicromataFormatter extends Formatter
     data.put("optionsLabel", getLocalizedString("label.options"));
     data.put("deletedLabel", getLocalizedString("deleted"));
 
-    data.put("deleted", actionFilter.isDeleted());
+    data.put("deleted", actionFilter.getDeleted());
 
     data.put("durationLabel", getLocalizedString("timesheet.duration"));
     data.put("descriptionLabel", getLocalizedString("description"));

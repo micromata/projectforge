@@ -27,31 +27,28 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 @XStreamAlias("ContractFilter")
-public class GanttChartListFilter extends BaseSearchFilter
-{
-  private static final long serialVersionUID = -7381514878697257874L;
+public class GanttChartListFilter extends BaseSearchFilter {
+    private static final long serialVersionUID = -7381514878697257874L;
 
-  protected int year;
+    protected int year;
 
-  @Override
-  public GanttChartListFilter reset()
-  {
-    super.reset();
-    this.searchString = "";
-    return this;
-  }
+    @Override
+    public GanttChartListFilter reset() {
+        super.reset();
+        this.setSearchString("");
+        return this;
+    }
 
-  /**
-   * Year of contracts to filter. "<= 0" means showing all years.
-   * @return
-   */
-  public int getYear()
-  {
-    return year;
-  }
+    /**
+     * Year of contracts to filter. "<= 0" means showing all years.
+     *
+     * @return
+     */
+    public int getYear() {
+        return year;
+    }
 
-  public void setYear(final int year)
-  {
-    this.year = year;
-  }
+    public void setYear(final int year) {
+        this.year = year;
+    }
 }

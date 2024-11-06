@@ -65,8 +65,7 @@ public class VacationMenuCounterCache extends AbstractCache {
    */
   @Override
   protected void refresh() {
-    log.info("Initializing VacationMenuCounterCache ...");
+    log.info("VacationMenuCounterCache set as expired.");
     openMenuCounter.clear();
-    log.info("Initializing of VacationMenuCounterCache done.");
   }
 }

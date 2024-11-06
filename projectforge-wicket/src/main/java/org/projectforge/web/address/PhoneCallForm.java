@@ -61,379 +61,381 @@ import java.util.List;
 import java.util.Locale;
 
 public class PhoneCallForm extends AbstractStandardForm<Object, PhoneCallPage> {
-  private static final long serialVersionUID = -2138017238114715368L;
+    private static final long serialVersionUID = -2138017238114715368L;
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallForm.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallForm.class);
 
-  private static final String USER_PREF_KEY_RECENTS = "phoneCalls";
+    private static final String USER_PREF_KEY_RECENTS = "phoneCalls";
 
-  protected AddressDO address;
+    private static final String[] SEARCH_FIELDS = {"name", "firstName", "organization"};
 
-  protected PFAutoCompleteTextField<AddressDO> numberTextField;
+    protected AddressDO address;
 
-  private DivPanel addressPanel;
+    protected PFAutoCompleteTextField<AddressDO> numberTextField;
 
-  protected String phoneNumber;
+    private DivPanel addressPanel;
 
-  protected String callerPage;
+    protected String phoneNumber;
 
-  private String myCurrentPhoneId;
+    protected String callerPage;
 
-  private String myCurrentCallerId;
+    private String myCurrentPhoneId;
 
-  Date lastSuccessfulPhoneCall;
+    private String myCurrentCallerId;
 
-  private RecentQueue<String> recentSearchTermsQueue;
+    Date lastSuccessfulPhoneCall;
 
-  public PhoneCallForm(final PhoneCallPage parentPage) {
-    super(parentPage);
-  }
+    private RecentQueue<String> recentSearchTermsQueue;
 
-  public String getPhoneNumber() {
-    return phoneNumber;
-  }
-
-  public void setPhoneNumber(final String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-  }
-
-  public String getCallerPage() {
-    return callerPage;
-  }
-
-  public void setCallerPage(String callerPage) {
-    this.callerPage = callerPage;
-  }
-
-  public String getMyCurrentPhoneId() {
-    if (myCurrentPhoneId == null) {
-      myCurrentPhoneId = parentPage.getRecentMyPhoneId();
+    public PhoneCallForm(final PhoneCallPage parentPage) {
+        super(parentPage);
     }
-    return myCurrentPhoneId;
-  }
 
-  public void setMyCurrentPhoneId(final String myCurrentPhoneId) {
-    this.myCurrentPhoneId = myCurrentPhoneId;
-    if (this.myCurrentPhoneId != null) {
-      parentPage.setRecentMyPhoneId(this.myCurrentPhoneId);
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
-  }
 
-  public String getMyCurrentCallerId() {
-    if (myCurrentCallerId == null) {
-      myCurrentCallerId = parentPage.getRecentMyCallerId();
+    public void setPhoneNumber(final String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
-    return myCurrentCallerId;
-  }
 
-  public void setMyCurrentCallerId(final String myCurrentCallerId) {
-    this.myCurrentCallerId = myCurrentCallerId;
-    if (this.myCurrentCallerId != null) {
-      parentPage.setRecentMyCallerId(this.myCurrentCallerId);
+    public String getCallerPage() {
+        return callerPage;
     }
-  }
 
+    public void setCallerPage(String callerPage) {
+        this.callerPage = callerPage;
+    }
 
-  public AddressDO getAddress() {
-    return address;
-  }
-
-  public void setAddress(final AddressDO address) {
-    this.address = address;
-  }
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractStandardForm#createMessageComponent()
-   */
-  @SuppressWarnings("serial")
-  @Override
-  protected Component createMessageComponent() {
-    final DivPanel messagePanel = new DivPanel("message") {
-      /**
-       * @see org.apache.wicket.Component#isVisible()
-       */
-      @Override
-      public boolean isVisible() {
-        return StringUtils.isNotBlank(parentPage.result);
-      }
-
-      @Override
-      public void onAfterRender() {
-        super.onAfterRender();
-        parentPage.result = null;
-      }
-    };
-    messagePanel.add(new TextPanel(messagePanel.newChildId(), new Model<String>() {
-      @Override
-      public String getObject() {
-        return parentPage.result;
-      }
-    }));
-    return messagePanel;
-  }
-
-  @Override
-  @SuppressWarnings({"serial", "unchecked", "rawtypes"})
-  protected void init() {
-    super.init();
-    gridBuilder.newSplitPanel(GridSize.COL50);
-    FieldsetPanel fs = gridBuilder.newFieldset(getString("address.phoneCall.number.label"),
-        getString("address.phoneCall.number.labeldescription"));
-    numberTextField = new PFAutoCompleteTextField<AddressDO>(InputPanel.WICKET_ID, new Model() {
-      @Override
-      public Serializable getObject() {
-        // Pseudo object for storing search string (title field is used for this foreign purpose).
-        AddressDO addr = new AddressDO();
-        addr.setName(phoneNumber);
-        return addr;
-      }
-
-      @Override
-      public void setObject(final Serializable object) {
-        if (object != null) {
-          if (object instanceof String) {
-            phoneNumber = (String) object;
-          }
-        } else {
-          phoneNumber = "";
+    public String getMyCurrentPhoneId() {
+        if (myCurrentPhoneId == null) {
+            myCurrentPhoneId = parentPage.getRecentMyPhoneId();
         }
-      }
-    }) {
-      @Override
-      protected List<AddressDO> getChoices(final String input) {
-        final AddressFilter addressFilter = new AddressFilter();
-        addressFilter.setSearchString(input);
-        addressFilter.setSearchFields("name", "firstName", "organization");
-        return WicketSupport.get(AddressDao.class).select(addressFilter);
-      }
+        return myCurrentPhoneId;
+    }
 
-      @Override
-      protected List<String> getRecentUserInputs() {
-        return getRecentSearchTermsQueue().getRecentList();
-      }
+    public void setMyCurrentPhoneId(final String myCurrentPhoneId) {
+        this.myCurrentPhoneId = myCurrentPhoneId;
+        if (this.myCurrentPhoneId != null) {
+            parentPage.setRecentMyPhoneId(this.myCurrentPhoneId);
+        }
+    }
 
-      @Override
-      protected String formatLabel(final AddressDO address) {
-        return StringHelper.listToString(", ", address.getName(), address.getFirstName(), address.getOrganization());
-      }
+    public String getMyCurrentCallerId() {
+        if (myCurrentCallerId == null) {
+            myCurrentCallerId = parentPage.getRecentMyCallerId();
+        }
+        return myCurrentCallerId;
+    }
 
-      @Override
-      protected String formatValue(final AddressDO address) {
-        return "id:" + address.getId();
-      }
+    public void setMyCurrentCallerId(final String myCurrentCallerId) {
+        this.myCurrentCallerId = myCurrentCallerId;
+        if (this.myCurrentCallerId != null) {
+            parentPage.setRecentMyCallerId(this.myCurrentCallerId);
+        }
+    }
 
-      /**
-       * @see org.apache.wicket.Component#getConverter(java.lang.Class)
-       */
-      @Override
-      public <C> IConverter<C> getConverter(final Class<C> type) {
-        return new IConverter() {
-          @Override
-          public Object convertToObject(final String value, final Locale locale) {
-            phoneNumber = value;
-            AddressDO addr = new AddressDO();
-            addr.setName(phoneNumber);
-            return addr;
-          }
 
-          @Override
-          public String convertToString(final Object value, final Locale locale) {
-            return phoneNumber;
-          }
+    public AddressDO getAddress() {
+        return address;
+    }
+
+    public void setAddress(final AddressDO address) {
+        this.address = address;
+    }
+
+    /**
+     * @see org.projectforge.web.wicket.AbstractStandardForm#createMessageComponent()
+     */
+    @SuppressWarnings("serial")
+    @Override
+    protected Component createMessageComponent() {
+        final DivPanel messagePanel = new DivPanel("message") {
+            /**
+             * @see org.apache.wicket.Component#isVisible()
+             */
+            @Override
+            public boolean isVisible() {
+                return StringUtils.isNotBlank(parentPage.result);
+            }
+
+            @Override
+            public void onAfterRender() {
+                super.onAfterRender();
+                parentPage.result = null;
+            }
         };
-      }
-    };
-    numberTextField.withLabelValue(true).withMatchContains(true).withMinChars(2).withFocus(true).withAutoSubmit(true);
-    if (StringUtils.isBlank(phoneNumber)) {
-      if (address != null) {
-        final String no = parentPage.getFirstPhoneNumber();
-        if (StringUtils.isNotBlank(no)) {
-          phoneNumber = parentPage.extractPhonenumber(no);
-        }
-      } else {
-        final String recentNumber = getRecentSearchTermsQueue().get(0);
-        if (StringUtils.isNotBlank(recentNumber)) {
-          phoneNumber = recentNumber;
-        }
-      }
-    }
-    fs.add(numberTextField);
-    fs.addKeyboardHelpIcon(new ResourceModel("tooltip.autocompletion.title"),
-        new ResourceModel("address.directCall.number.tooltip"));
-
-    var sipgateDirectCallService = WicketSupport.get(SipgateDirectCallService.class);
-    if (sipgateDirectCallService.isAvailable()) {
-      // DropDownChoice myCurrentPhoneId
-      fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));
-      final LabelValueChoiceRenderer<String> myCurrentPhoneIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getLoggedInUser());
-      if (CollectionUtils.isEmpty(ids)) {
-        myCurrentPhoneIdChoiceRenderer.addValue("--", getString("user.personalPhoneIdentifiers.pleaseDefine"));
-      } else {
-        for (final String id : ids) {
-          myCurrentPhoneIdChoiceRenderer.addValue(id, id);
-        }
-      }
-      final DropDownChoice myCurrentPhoneIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
-          new PropertyModel(this, "myCurrentPhoneId"), myCurrentPhoneIdChoiceRenderer.getValues(),
-          myCurrentPhoneIdChoiceRenderer);
-      myCurrentPhoneIdChoice.setNullValid(false).setRequired(true);
-      fs.add(myCurrentPhoneIdChoice);
-      fs.addHelpIcon(new ResourceModel("address.myCurrentPhoneId.tooltip.title"),
-          new ResourceModel("address.myCurrentPhoneId.tooltip.content"));
-
-      // DropDownChoice myCurrentCallerId
-      fs = gridBuilder.newFieldset(getString("address.myCurrentCallerId"));
-      final LabelValueChoiceRenderer<String> myCurrentCalerIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
-      ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getLoggedInUser());
-      for (final String id : ids) {
-        myCurrentCalerIdChoiceRenderer.addValue(id, id);
-      }
-      final DropDownChoice myCurrentCallerIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
-          new PropertyModel(this, "myCurrentCallerId"), myCurrentCalerIdChoiceRenderer.getValues(),
-          myCurrentCalerIdChoiceRenderer);
-      myCurrentCallerIdChoice.setNullValid(false).setRequired(true);
-      fs.add(myCurrentCallerIdChoice);
-      fs.addHelpIcon(new ResourceModel("address.myCurrentCallerId.tooltip.title"),
-          new ResourceModel("address.myCurrentCallerId.tooltip.content"));
-    }
-    addressPanel = gridBuilder.newSplitPanel(GridSize.COL50).getPanel();
-    {
-      final Link<String> addressViewLink = new Link<String>(TextLinkPanel.LINK_ID) {
-        @Override
-        public void onClick() {
-          if (address == null) {
-            log.error("Oups should not occur: AddressViewLink is shown without a given address. Ignoring link.");
-            return;
-          }
-          throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(address.getId(), "/wa/phoneCall"));
-        }
-      };
-      final TextLinkPanel addressLinkPanel = new TextLinkPanel(addressPanel.newChildId(), addressViewLink,
-          new Model<String>() {
+        messagePanel.add(new TextPanel(messagePanel.newChildId(), new Model<String>() {
             @Override
             public String getObject() {
-              if (address == null) {
-                return "";
-              }
-              final StringBuilder buf = new StringBuilder();
-              if (address.getForm() != null) {
-                buf.append(getString(address.getForm().getI18nKey())).append(" ");
-              }
-              if (StringUtils.isNotBlank(address.getTitle())) {
-                buf.append(address.getTitle()).append(" ");
-              }
-              if (StringUtils.isNotBlank(address.getFirstName())) {
-                buf.append(address.getFirstName()).append(" ");
-              }
-              if (StringUtils.isNotBlank(address.getName())) {
-                buf.append(address.getName());
-              }
-              return buf.toString();
+                return parentPage.result;
             }
-          });
-      addressPanel.add(addressLinkPanel);
-      addLineBreak();
+        }));
+        return messagePanel;
     }
-    {
-      addPhoneNumber("businessPhone", getString(PhoneType.BUSINESS.getI18nKey()));
-      addPhoneNumber("mobilePhone", getString(PhoneType.MOBILE.getI18nKey()));
-      addPhoneNumber("privatePhone", getString(PhoneType.PRIVATE.getI18nKey()));
-      addPhoneNumber("privateMobilePhone", getString(PhoneType.PRIVATE_MOBILE.getI18nKey()));
-    }
-    {
-      final Button backButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("back")) {
-        @Override
-        public void onSubmit() {
-          parentPage.backToCaller();
+
+    @Override
+    @SuppressWarnings({"serial", "unchecked", "rawtypes"})
+    protected void init() {
+        super.init();
+        gridBuilder.newSplitPanel(GridSize.COL50);
+        FieldsetPanel fs = gridBuilder.newFieldset(getString("address.phoneCall.number.label"),
+                getString("address.phoneCall.number.labeldescription"));
+        numberTextField = new PFAutoCompleteTextField<AddressDO>(InputPanel.WICKET_ID, new Model() {
+            @Override
+            public Serializable getObject() {
+                // Pseudo object for storing search string (title field is used for this foreign purpose).
+                AddressDO addr = new AddressDO();
+                addr.setName(phoneNumber);
+                return addr;
+            }
+
+            @Override
+            public void setObject(final Serializable object) {
+                if (object != null) {
+                    if (object instanceof String) {
+                        phoneNumber = (String) object;
+                    }
+                } else {
+                    phoneNumber = "";
+                }
+            }
+        }) {
+            @Override
+            protected List<AddressDO> getChoices(final String input) {
+                final AddressFilter addressFilter = new AddressFilter();
+                addressFilter.setSearchString(input);
+                addressFilter.setSearchFields(SEARCH_FIELDS);
+                return WicketSupport.get(AddressDao.class).select(addressFilter);
+            }
+
+            @Override
+            protected List<String> getRecentUserInputs() {
+                return getRecentSearchTermsQueue().getRecentList();
+            }
+
+            @Override
+            protected String formatLabel(final AddressDO address) {
+                return StringHelper.listToString(", ", address.getName(), address.getFirstName(), address.getOrganization());
+            }
+
+            @Override
+            protected String formatValue(final AddressDO address) {
+                return "id:" + address.getId();
+            }
+
+            /**
+             * @see org.apache.wicket.Component#getConverter(java.lang.Class)
+             */
+            @Override
+            public <C> IConverter<C> getConverter(final Class<C> type) {
+                return new IConverter() {
+                    @Override
+                    public Object convertToObject(final String value, final Locale locale) {
+                        phoneNumber = value;
+                        AddressDO addr = new AddressDO();
+                        addr.setName(phoneNumber);
+                        return addr;
+                    }
+
+                    @Override
+                    public String convertToString(final Object value, final Locale locale) {
+                        return phoneNumber;
+                    }
+                };
+            }
+        };
+        numberTextField.withLabelValue(true).withMatchContains(true).withMinChars(2).withFocus(true).withAutoSubmit(true);
+        if (StringUtils.isBlank(phoneNumber)) {
+            if (address != null) {
+                final String no = parentPage.getFirstPhoneNumber();
+                if (StringUtils.isNotBlank(no)) {
+                    phoneNumber = parentPage.extractPhonenumber(no);
+                }
+            } else {
+                final String recentNumber = getRecentSearchTermsQueue().get(0);
+                if (StringUtils.isNotBlank(recentNumber)) {
+                    phoneNumber = recentNumber;
+                }
+            }
         }
-      };
-      final SingleButtonPanel backButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), backButton,
-          getString("back"), SingleButtonPanel.INFO);
-      actionButtons.add(backButtonPanel);
-    }
-    {
-      final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("call")) {
-        @Override
-        public void onSubmit() {
-          parentPage.call();
+        fs.add(numberTextField);
+        fs.addKeyboardHelpIcon(new ResourceModel("tooltip.autocompletion.title"),
+                new ResourceModel("address.directCall.number.tooltip"));
+
+        var sipgateDirectCallService = WicketSupport.get(SipgateDirectCallService.class);
+        if (sipgateDirectCallService.isAvailable()) {
+            // DropDownChoice myCurrentPhoneId
+            fs = gridBuilder.newFieldset(getString("address.myCurrentPhoneId"));
+            final LabelValueChoiceRenderer<String> myCurrentPhoneIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
+            List<String> ids = sipgateDirectCallService.getCallerNumbers(ThreadLocalUserContext.getLoggedInUser());
+            if (CollectionUtils.isEmpty(ids)) {
+                myCurrentPhoneIdChoiceRenderer.addValue("--", getString("user.personalPhoneIdentifiers.pleaseDefine"));
+            } else {
+                for (final String id : ids) {
+                    myCurrentPhoneIdChoiceRenderer.addValue(id, id);
+                }
+            }
+            final DropDownChoice myCurrentPhoneIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
+                    new PropertyModel(this, "myCurrentPhoneId"), myCurrentPhoneIdChoiceRenderer.getValues(),
+                    myCurrentPhoneIdChoiceRenderer);
+            myCurrentPhoneIdChoice.setNullValid(false).setRequired(true);
+            fs.add(myCurrentPhoneIdChoice);
+            fs.addHelpIcon(new ResourceModel("address.myCurrentPhoneId.tooltip.title"),
+                    new ResourceModel("address.myCurrentPhoneId.tooltip.content"));
+
+            // DropDownChoice myCurrentCallerId
+            fs = gridBuilder.newFieldset(getString("address.myCurrentCallerId"));
+            final LabelValueChoiceRenderer<String> myCurrentCalerIdChoiceRenderer = new LabelValueChoiceRenderer<String>();
+            ids = sipgateDirectCallService.getCallerIds(ThreadLocalUserContext.getLoggedInUser());
+            for (final String id : ids) {
+                myCurrentCalerIdChoiceRenderer.addValue(id, id);
+            }
+            final DropDownChoice myCurrentCallerIdChoice = new DropDownChoice(fs.getDropDownChoiceId(),
+                    new PropertyModel(this, "myCurrentCallerId"), myCurrentCalerIdChoiceRenderer.getValues(),
+                    myCurrentCalerIdChoiceRenderer);
+            myCurrentCallerIdChoice.setNullValid(false).setRequired(true);
+            fs.add(myCurrentCallerIdChoice);
+            fs.addHelpIcon(new ResourceModel("address.myCurrentCallerId.tooltip.title"),
+                    new ResourceModel("address.myCurrentCallerId.tooltip.content"));
         }
-      };
-      final SingleButtonPanel callButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), callButton,
-          getString("address.directCall.call"), SingleButtonPanel.DEFAULT_SUBMIT);
-      actionButtons.add(callButtonPanel);
-      setDefaultButton(callButton);
-    }
-  }
-
-  private void addLineBreak() {
-    final TextPanel lineBreak = new TextPanel(addressPanel.newChildId(), "<br/>");
-    lineBreak.getLabel().setEscapeModelStrings(false);
-    addressPanel.add(lineBreak);
-  }
-
-  @SuppressWarnings("serial")
-  private void addPhoneNumber(final String property, final String label) {
-    final SubmitLink numberLink = new SubmitLink(TextLinkPanel.LINK_ID) {
-      @Override
-      public void onSubmit() {
-        final String number = (String) BeanHelper.getProperty(address, property);
-        setPhoneNumber(parentPage.extractPhonenumber(number));
-        AddressDO addr = new AddressDO();
-        addr.setName(getPhoneNumber());
-        numberTextField.setModelObject(addr);
-        numberTextField.modelChanged();
-        parentPage.call();
-      }
-    };
-    final TextLinkPanel numberLinkPanel = new TextLinkPanel(addressPanel.newChildId(), numberLink, new Model<String>() {
-      @Override
-      public String getObject() {
-        final String number = (String) BeanHelper.getProperty(address, property);
-        return HtmlHelper.escapeHtml(number + " (" + label + ")\n", true);
-      }
-    }) {
-      /**
-       * @see org.apache.wicket.Component#isVisible()
-       */
-      @Override
-      public boolean isVisible() {
-        if (address == null) {
-          return false;
+        addressPanel = gridBuilder.newSplitPanel(GridSize.COL50).getPanel();
+        {
+            final Link<String> addressViewLink = new Link<String>(TextLinkPanel.LINK_ID) {
+                @Override
+                public void onClick() {
+                    if (address == null) {
+                        log.error("Oups should not occur: AddressViewLink is shown without a given address. Ignoring link.");
+                        return;
+                    }
+                    throw new RedirectToUrlException(AddressViewPageRest.getPageUrl(address.getId(), "/wa/phoneCall"));
+                }
+            };
+            final TextLinkPanel addressLinkPanel = new TextLinkPanel(addressPanel.newChildId(), addressViewLink,
+                    new Model<String>() {
+                        @Override
+                        public String getObject() {
+                            if (address == null) {
+                                return "";
+                            }
+                            final StringBuilder buf = new StringBuilder();
+                            if (address.getForm() != null) {
+                                buf.append(getString(address.getForm().getI18nKey())).append(" ");
+                            }
+                            if (StringUtils.isNotBlank(address.getTitle())) {
+                                buf.append(address.getTitle()).append(" ");
+                            }
+                            if (StringUtils.isNotBlank(address.getFirstName())) {
+                                buf.append(address.getFirstName()).append(" ");
+                            }
+                            if (StringUtils.isNotBlank(address.getName())) {
+                                buf.append(address.getName());
+                            }
+                            return buf.toString();
+                        }
+                    });
+            addressPanel.add(addressLinkPanel);
+            addLineBreak();
         }
-        final String number = (String) BeanHelper.getProperty(address, property);
-        return (StringUtils.isNotBlank(number));
-      }
-    };
-    numberLinkPanel.getLabel().setEscapeModelStrings(false);
-    addressPanel.add(numberLinkPanel);
-  }
+        {
+            addPhoneNumber("businessPhone", getString(PhoneType.BUSINESS.getI18nKey()));
+            addPhoneNumber("mobilePhone", getString(PhoneType.MOBILE.getI18nKey()));
+            addPhoneNumber("privatePhone", getString(PhoneType.PRIVATE.getI18nKey()));
+            addPhoneNumber("privateMobilePhone", getString(PhoneType.PRIVATE_MOBILE.getI18nKey()));
+        }
+        {
+            final Button backButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("back")) {
+                @Override
+                public void onSubmit() {
+                    parentPage.backToCaller();
+                }
+            };
+            final SingleButtonPanel backButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), backButton,
+                    getString("back"), SingleButtonPanel.INFO);
+            actionButtons.add(backButtonPanel);
+        }
+        {
+            final Button callButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("call")) {
+                @Override
+                public void onSubmit() {
+                    parentPage.call();
+                }
+            };
+            final SingleButtonPanel callButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), callButton,
+                    getString("address.directCall.call"), SingleButtonPanel.DEFAULT_SUBMIT);
+            actionButtons.add(callButtonPanel);
+            setDefaultButton(callButton);
+        }
+    }
 
-  protected String getPhoneNumberAndPerson(final AddressDO address, final PhoneType phoneType, final String number,
-                                           final String countryPrefix) {
-    return StringHelper.listToString(", ",
-        NumberHelper.extractPhonenumber(number, countryPrefix) + ": " + address.getName(),
-        address.getFirstName(), getString(phoneType.getI18nKey()), address.getOrganization());
-  }
+    private void addLineBreak() {
+        final TextPanel lineBreak = new TextPanel(addressPanel.newChildId(), "<br/>");
+        lineBreak.getLabel().setEscapeModelStrings(false);
+        addressPanel.add(lineBreak);
+    }
 
-  @SuppressWarnings("unchecked")
-  protected RecentQueue<String> getRecentSearchTermsQueue() {
-    if (recentSearchTermsQueue == null) {
-      recentSearchTermsQueue = (RecentQueue<String>) parentPage.getUserPrefEntry(USER_PREF_KEY_RECENTS);
+    @SuppressWarnings("serial")
+    private void addPhoneNumber(final String property, final String label) {
+        final SubmitLink numberLink = new SubmitLink(TextLinkPanel.LINK_ID) {
+            @Override
+            public void onSubmit() {
+                final String number = (String) BeanHelper.getProperty(address, property);
+                setPhoneNumber(parentPage.extractPhonenumber(number));
+                AddressDO addr = new AddressDO();
+                addr.setName(getPhoneNumber());
+                numberTextField.setModelObject(addr);
+                numberTextField.modelChanged();
+                parentPage.call();
+            }
+        };
+        final TextLinkPanel numberLinkPanel = new TextLinkPanel(addressPanel.newChildId(), numberLink, new Model<String>() {
+            @Override
+            public String getObject() {
+                final String number = (String) BeanHelper.getProperty(address, property);
+                return HtmlHelper.escapeHtml(number + " (" + label + ")\n", true);
+            }
+        }) {
+            /**
+             * @see org.apache.wicket.Component#isVisible()
+             */
+            @Override
+            public boolean isVisible() {
+                if (address == null) {
+                    return false;
+                }
+                final String number = (String) BeanHelper.getProperty(address, property);
+                return (StringUtils.isNotBlank(number));
+            }
+        };
+        numberLinkPanel.getLabel().setEscapeModelStrings(false);
+        addressPanel.add(numberLinkPanel);
     }
-    if (recentSearchTermsQueue == null) {
-      recentSearchTermsQueue = (RecentQueue<String>) parentPage
-          .getUserPrefEntry("org.projectforge.web.address.PhoneCallAction:recentSearchTerms");
-      if (recentSearchTermsQueue != null) {
-        // Old entries:
-        parentPage.putUserPrefEntry(USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true);
-        parentPage.removeUserPrefEntry("org.projectforge.web.address.PhoneCallAction:recentSearchTerms");
-      }
+
+    protected String getPhoneNumberAndPerson(final AddressDO address, final PhoneType phoneType, final String number,
+                                             final String countryPrefix) {
+        return StringHelper.listToString(", ",
+                NumberHelper.extractPhonenumber(number, countryPrefix) + ": " + address.getName(),
+                address.getFirstName(), getString(phoneType.getI18nKey()), address.getOrganization());
     }
-    if (recentSearchTermsQueue == null) {
-      recentSearchTermsQueue = new RecentQueue<String>();
-      parentPage.putUserPrefEntry(USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true);
+
+    @SuppressWarnings("unchecked")
+    protected RecentQueue<String> getRecentSearchTermsQueue() {
+        if (recentSearchTermsQueue == null) {
+            recentSearchTermsQueue = (RecentQueue<String>) parentPage.getUserPrefEntry(USER_PREF_KEY_RECENTS);
+        }
+        if (recentSearchTermsQueue == null) {
+            recentSearchTermsQueue = (RecentQueue<String>) parentPage
+                    .getUserPrefEntry("org.projectforge.web.address.PhoneCallAction:recentSearchTerms");
+            if (recentSearchTermsQueue != null) {
+                // Old entries:
+                parentPage.putUserPrefEntry(USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true);
+                parentPage.removeUserPrefEntry("org.projectforge.web.address.PhoneCallAction:recentSearchTerms");
+            }
+        }
+        if (recentSearchTermsQueue == null) {
+            recentSearchTermsQueue = new RecentQueue<String>();
+            parentPage.putUserPrefEntry(USER_PREF_KEY_RECENTS, recentSearchTermsQueue, true);
+        }
+        return recentSearchTermsQueue;
     }
-    return recentSearchTermsQueue;
-  }
 }

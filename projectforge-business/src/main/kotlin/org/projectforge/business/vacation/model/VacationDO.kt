@@ -57,6 +57,14 @@ import java.time.LocalDate
         query = "from VacationDO where endDate>=:endDate and status in :statusList and deleted=false",
     ),
 )
+@NamedEntityGraph(
+    name = "Vacation.withOtherReplacementIds",
+    attributeNodes = [NamedAttributeNode(value = "otherReplacements", subgraph = "otherReplacementIds")],
+    subgraphs = [NamedSubgraph(
+        name = "otherReplacementIds",
+        attributeNodes = [NamedAttributeNode(value = "id")]
+    )]
+)
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 open class VacationDO : DefaultBaseDO() {
 
@@ -69,9 +77,6 @@ open class VacationDO : DefaultBaseDO() {
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "employee_id", nullable = false)
     open var employee: EmployeeDO? = null
-
-    val employeeId: Long?
-        @Transient get() = employee?.id
 
     @PropertyInfo(i18nKey = "vacation.startdate")
     @get:Column(name = "start_date", nullable = false)
@@ -97,7 +102,6 @@ open class VacationDO : DefaultBaseDO() {
     @PropertyInfo(i18nKey = "vacation.replacement.others")
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-    @get:Column(nullable = true) // Needed for telling MGC that this field is nullable.
     @get:ManyToMany(fetch = FetchType.LAZY)
     @get:JoinTable(
         name = "t_employee_vacation_other_replacements",
@@ -112,6 +116,9 @@ open class VacationDO : DefaultBaseDO() {
     )
     open var otherReplacements: MutableSet<EmployeeDO>? = null
 
+    /**
+     * Will fetch all other replacements (lazy loading)!!!
+     */
     open val allReplacements: Collection<EmployeeDO>
         @Transient
         get() {

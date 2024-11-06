@@ -23,6 +23,10 @@
 
 package org.projectforge.business.vacation.service
 
+import org.hibernate.Hibernate
+import org.hibernate.ScrollMode
+import org.hibernate.ScrollableResults
+import org.jetbrains.kotlin.ir.types.IdSignatureValues.result
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.EmployeeCache
 import org.projectforge.business.fibu.EmployeeDO
@@ -35,6 +39,7 @@ import org.projectforge.business.vacation.repository.RemainingLeaveDao
 import org.projectforge.business.vacation.repository.VacationDao
 import org.projectforge.framework.access.AccessException
 import org.projectforge.framework.i18n.translateMsg
+import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.LocalDatePeriod
@@ -258,7 +263,7 @@ open class VacationService {
             : List<VacationDO> {
         var result = vacationDao.getVacationForPeriod(employeeId, periodBegin, periodEnd, withSpecial)
         result = if (status.isNotEmpty()) {
-            result.filter { VacationStatus.values().contains(it.status) }
+            result.filter { VacationStatus.entries.contains(it.status) }
         } else {
             result.filter { DEFAULT_VACATION_STATUS_LIST.contains(it.status) }
         }
@@ -283,6 +288,48 @@ open class VacationService {
      */
     open fun getVacation(idList: List<Serializable>?): List<VacationDO?>? {
         return vacationDao.select(idList, checkAccess = false)
+    }
+
+    fun selectVacations(): List<VacationDO> {
+        return persistenceService.runInTransaction { context ->
+            val em = context.em
+            val entityGraph = em.getEntityGraph("Vacation.withOtherReplacementIds")
+            val result = em.createQuery("SELECT v FROM VacationDO v", VacationDO::class.java)
+                .setHint("jakarta.persistence.fetchgraph", entityGraph)
+                .resultList
+            /*
+                        val cb = em.criteriaBuilder
+                        val cr = cb.createQuery(VacationDO::class.java)
+                        val root = cr.from(VacationDO::class.java)
+                        cr.select(root)
+                        val query = em.createQuery(cr)
+                        query.setHint("jakarta.persistence.fetchgraph", entityGraph)
+                        //val result = query.resultList
+                        val hquery = query.unwrap(org.hibernate.query.Query::class.java)
+                        hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<VacationDO>
+                        val scrollableResults = hquery.scroll(ScrollMode.FORWARD_ONLY) as ScrollableResults<VacationDO>
+                        var result = mutableListOf<VacationDO>()
+                        while (scrollableResults.next()) {
+                            result.add(scrollableResults.get())
+                        }
+            */
+            result.forEach {
+                if (!it.otherReplacements.isNullOrEmpty()) {
+                    println(
+                        "vacationService.selectVacations() = ${
+                            it.otherReplacements?.joinToString {
+                                "initialized=${
+                                    Hibernate.isInitialized(
+                                        it
+                                    )
+                                }, id=${it.id}"
+                            }
+                        }"
+                    )
+                }
+            }
+            result
+        }
     }
 
     /**
@@ -445,7 +492,7 @@ open class VacationService {
     open fun getVacationOverlaps(vacation: VacationDO): VacationOverlaps {
         val periodBegin = vacation.startDate ?: return VacationOverlaps() // Should not occur on db entries.
         val periodEnd = vacation.endDate ?: return VacationOverlaps() // Should not occur on db entries.
-        val employees = vacation.allReplacements
+        val employees = collectAllReplacements(vacation)
         if (employees.isEmpty()) {
             return VacationOverlaps()
         }
@@ -468,16 +515,26 @@ open class VacationService {
         return VacationOverlaps(vacationOverlaps.sortedBy { it.startDate }, conflict)
     }
 
+    /**
+     * Will fetch employees. (Employees will ge get by [EmployeeCache.getEmployeeIfNotInitialized].)
+     * Later, caching of otherReplacements should be done.
+     * Simply calls [VacationDO.allReplacements] for now.
+     */
+    fun collectAllReplacements(vacation: VacationDO): Collection<EmployeeDO> {
+        return vacation.allReplacements
+    }
+
+
     internal fun checkConflict(vacation: VacationDO, vacationsOfReplacements: List<VacationDO>): Boolean {
         if (vacationsOfReplacements.isEmpty()) {
             return false
         }
-        val allReplacements = vacation.allReplacements
+        val allReplacements = collectAllReplacements(vacation)
         if (allReplacements.isEmpty()) {
             return false // return should not occur
         }
         allReplacements.forEach { employeeDO ->
-            if (vacationsOfReplacements.none { it.employeeId == employeeDO.id }) {
+            if (vacationsOfReplacements.none { it.employee?.id == employeeDO.id }) {
                 return false // one replacement employee found without any vacation in the vacation period -> no conflict.
             }
         }
@@ -497,7 +554,7 @@ open class VacationService {
             var substituteAvailable = false
             // No check either at least one substitute is on duty or not:
             allReplacements.forEach replacements@{ replacement ->
-                vacationsOfReplacements.filter { it.employeeId == replacement.id }.forEach { other ->
+                vacationsOfReplacements.filter { it.employee?.id == replacement.id }.forEach { other ->
                     if (!other.isInBetween(date)) {
                         substituteAvailable = true
                         return@replacements
@@ -564,7 +621,7 @@ open class VacationService {
         vararg status: VacationStatus
     ): BigDecimal {
         var sum = BigDecimal.ZERO
-        val statusValues = if (status.isNullOrEmpty()) {
+        val statusValues = if (status.isEmpty()) {
             DEFAULT_VACATION_STATUS_LIST
         } else {
             status
@@ -631,8 +688,8 @@ open class VacationService {
         }
 
         /**
-         * @param vacationStart
-         * @param vacationEnd
+         * @param startDate
+         * @param endDate
          * @param halfDayBegin Should the first day (if working day) counted as half day?
          * @param halfDayEnd Should the last day (if working day) counted as half day?
          * @param periodBegin Optional value to detect number of vacation days inside a specified period (e. g. vacation days in overlap period).

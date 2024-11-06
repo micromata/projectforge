@@ -141,7 +141,7 @@ class AddressTest : AbstractTestBase() {
 
         // Select filter
         val searchFilter = BaseSearchFilter()
-        searchFilter.setSearchString("testa*")
+        searchFilter.searchString = "testa*"
         val filter = QueryFilter(searchFilter)
         filter.addOrder(asc("name"))
         val result = addressDao.select(filter)

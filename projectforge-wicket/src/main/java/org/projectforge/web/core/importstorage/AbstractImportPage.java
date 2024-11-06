@@ -220,4 +220,12 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
         }
         return null;
     }
+
+
+    /**
+     * Override this method for custom initialization.
+     */
+    protected void setPageParametersOnSuccess(PageParameters params) {
+
+    }
 }

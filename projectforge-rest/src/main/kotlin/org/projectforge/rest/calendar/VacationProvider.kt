@@ -48,6 +48,9 @@ open class VacationProvider {
     @Autowired
     private lateinit var vacationCache: VacationCache
 
+    @Autowired
+    private lateinit var vacationService: VacationService
+
     /**
      * @param groupIds Null items should only occur on (de)serialization issues.
      * @param userIds Null items should only occur on (de)serialization issues.
@@ -98,7 +101,7 @@ open class VacationProvider {
                     .addPropRow(translate("timePeriod"), "$startDate - $endDate")
                     .addPropRow(
                         translate("vacation.replacement"),
-                        vacation.allReplacements.joinToString { employeeCache.getUser(it)?.displayName ?: "???" })
+                        vacationService.collectAllReplacements(vacation).joinToString { employeeCache.getUser(it)?.displayName ?: "???" })
                 if (!vacation.comment.isNullOrBlank()) {
                     tb.addPropRow(translate("comment"), vacation.comment, abbreviate = true)
                 }

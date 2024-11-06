@@ -236,8 +236,8 @@ class TaskServicesRest {
             if (opened != null) filter.isOpened = opened
             if (notOpened != null) filter.isNotOpened = notOpened
             if (closed != null) filter.isClosed = closed
-            if (deleted != null) filter.isDeleted = deleted
-            filter.setSearchString(searchString)
+            if (deleted != null) filter.deleted = deleted
+            filter.searchString = searchString
         }
         if (!filter.isStatusSet) {
             // Nothing will be found, so avoid no result by user's mistake:

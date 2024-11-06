@@ -63,6 +63,8 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
     private static final String USER_PREF_KEY_RECENT_CUSTOMERS = "CustomerSelectPanel:recentCustomers";
 
+    private static final String[] SEARCH_FIELDS = {"id", "name", "identifier", "division"};
+
     @SuppressWarnings("unused")
     private boolean defaultFormProcessing = false;
 
@@ -94,7 +96,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
             @Override
             protected List<KundeDO> getChoices(final String input) {
                 final BaseSearchFilter filter = new BaseSearchFilter();
-                filter.setSearchFields("id", "name", "identifier", "division");
+                filter.setSearchFields(SEARCH_FIELDS);
                 filter.setSearchString(input);
                 final List<KundeDO> list = WicketSupport.get(KundeDao.class).select(filter);
                 return list;

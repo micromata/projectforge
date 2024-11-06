@@ -189,7 +189,7 @@ class CalendarSubscriptionServiceRest {
     val eventFilter = TeamEventFilter()
     val eventDateFromLimit = now().minusYears(1)
     val eventDateUntilLimit = now().plusYears(2)
-    eventFilter.isDeleted = false
+    eventFilter.deleted = false
     eventFilter.startDate = eventDateFromLimit.utilDate
     val vacationEvents = mutableSetOf<Long>() // For avoiding multiple entries of vacation days. Ids of vacation event.
     val processedTeamCals = mutableListOf<TeamCalDO>()
@@ -248,7 +248,7 @@ class CalendarSubscriptionServiceRest {
     // initializes timesheet filter
     val filter = TimesheetFilter()
     filter.userId = timesheetUser.id
-    filter.isDeleted = false
+    filter.deleted = false
     val stopTime = dt.plusMonths(CalendarFeedConst.PERIOD_IN_MONTHS.toLong())
     filter.stopTime = stopTime.utilDate
     val startTime = dt.minusMonths(2 * CalendarFeedConst.PERIOD_IN_MONTHS.toLong())

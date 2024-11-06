@@ -105,12 +105,12 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     }
 
     public void clearStorage() {
+        storageModel.setObject(null);
         parentPage.removeUserPrefEntry(parentPage.getStorageKey());
     }
 
 
-    protected void setStorage(ImportStorage<?> storage)
-    {
+    protected void setStorage(ImportStorage<?> storage) {
         parentPage.putUserPrefEntry(parentPage.getStorageKey(), storage, false);
         storageModel.setObject(storage);
     }
@@ -154,21 +154,30 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         sheetRepeatingView.removeAll();
         if (storage.getSheets() != null) {
             for (final ImportedSheet<?> sheet : storage.getSheets()) {
-                addSheet(sheet);
+                final String sheetName = sheet.getName();
+                IModel<ImportedSheet<?>> sheetModel = new LoadableDetachableModel<>() {
+                    @Override
+                    protected ImportedSheet load() {
+                        return getStorage().getNamedSheet(sheetName);
+                    }
+                };
+                addSheet(sheetModel);
             }
         }
     }
 
     @SuppressWarnings("serial")
-    protected void addSheet(final ImportedSheet<?> sheet) {
+    protected void addSheet(final IModel<ImportedSheet<?>> sheetModel) {
         final WebMarkupContainer cont = new WebMarkupContainer(sheetRepeatingView.newChildId());
         sheetRepeatingView.add(cont);
         StringBuilder buf = new StringBuilder();
-        buf.append("Sheet: ").append(sheet.getName()).append(" ");
-        if (sheet.isReconciled() == true) {
-            buf.append(getString(sheet.getStatus().getI18nKey())).append(" ");
-            if (sheet.getNumberOfCommittedElements() >= 0) {
-                buf.append(": #").append(sheet.getNumberOfCommittedElements());
+        ImportedSheet<?> outerSheet = sheetModel.getObject(); // Don't use outerSheet in inner classes due to Wicket serialization issues!
+        final String sheetName = outerSheet.getName();
+        buf.append("Sheet: ").append(outerSheet.getName()).append(" ");
+        if (outerSheet.isReconciled() == true) {
+            buf.append(getString(outerSheet.getStatus().getI18nKey())).append(" ");
+            if (outerSheet.getNumberOfCommittedElements() >= 0) {
+                buf.append(": #").append(outerSheet.getNumberOfCommittedElements());
             }
         } else {
             buf.append(getString(ImportStatus.NOT_RECONCILED.getI18nKey()));
@@ -177,6 +186,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         final SubmitLink toggleLink = new SubmitLink("toggle") {
             @Override
             public void onSubmit() {
+                ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                 sheet.setOpen(!sheet.isOpen()); // Toggle open status.
             }
         };
@@ -184,113 +194,118 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         toggleLink.add(new IconPanel("zoomInImage", IconType.ZOOM_IN) {
             @Override
             public boolean isVisible() {
+                ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                 return !sheet.isOpen();
             }
         });
         toggleLink.add(new IconPanel("zoomOutImage", IconType.ZOOM_OUT) {
             @Override
             public boolean isVisible() {
+                ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                 return sheet.isOpen();
             }
         });
         buf = new StringBuilder();
-        buf.append("Total=").append(sheet.getTotalNumberOfElements()).append(" ");
-        if (sheet.getNumberOfNewElements() > 0) {
-            buf.append(" | New=<span style=\"color: red;\">").append(sheet.getNumberOfNewElements()).append("</span>");
+        buf.append("Total=").append(outerSheet.getTotalNumberOfElements()).append(" ");
+        if (outerSheet.getNumberOfNewElements() > 0) {
+            buf.append(" | New=<span style=\"color: red;\">").append(outerSheet.getNumberOfNewElements()).append("</span>");
         }
-        if (sheet.getNumberOfModifiedElements() > 0) {
-            buf.append(" | Modified=<span style=\"color: red;\">").append(sheet.getNumberOfModifiedElements())
+        if (outerSheet.getNumberOfModifiedElements() > 0) {
+            buf.append(" | Modified=<span style=\"color: red;\">").append(outerSheet.getNumberOfModifiedElements())
                     .append("</span>");
         }
-        if (sheet.getNumberOfUnmodifiedElements() > 0) {
-            buf.append(" | Unmodified=").append(sheet.getNumberOfUnmodifiedElements());
+        if (outerSheet.getNumberOfUnmodifiedElements() > 0) {
+            buf.append(" | Unmodified=").append(outerSheet.getNumberOfUnmodifiedElements());
         }
-        if (sheet.getNumberOfFaultyElements() > 0) {
-            buf.append(" | Errors=<span style=\"color: red; font-weight: bold;\">").append(sheet.getNumberOfFaultyElements())
+        if (outerSheet.getNumberOfFaultyElements() > 0) {
+            buf.append(" | Errors=<span style=\"color: red; font-weight: bold;\">").append(outerSheet.getNumberOfFaultyElements())
                     .append("</span>");
         }
         cont.add(new PlainLabel("statistics", buf.toString()).setEscapeModelStrings(false));
         final RepeatingView actionLinkRepeater = new RepeatingView("actionLinkRepeater");
         cont.add(actionLinkRepeater);
-        if (sheet.isReconciled() == false
-                || sheet.getStatus().isIn(ImportStatus.IMPORTED, ImportStatus.NOTHING_TODO, ImportStatus.HAS_ERRORS) == true) {
+        if (outerSheet.isReconciled() == false
+                || outerSheet.getStatus().isIn(ImportStatus.IMPORTED, ImportStatus.NOTHING_TODO, ImportStatus.HAS_ERRORS) == true) {
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
+                    ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                     parentPage.reconcile(sheet.getName());
                 }
             }, getString("common.import.action.reconcile"), getString("common.import.action.reconcile.tooltip"));
-        } else if (sheet.isReconciled() == true) {
+        } else if (outerSheet.isReconciled() == true) {
             addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form) {
                 @Override
                 protected void onSubmit(final AjaxRequestTarget target) {
-                    commitDialog.sheetName = sheet.getName();
+                    commitDialog.sheetName = sheetName;
                     commitDialog.open(target);
                 }
             }, getString("common.import.action.commit"), getString("common.import.action.commit.tooltip"));
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
-                    parentPage.selectAll(sheet.getName());
+                    parentPage.selectAll(sheetName);
                 }
             }, getString("common.import.action.selectAll"));
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
-                    parentPage.select(sheet.getName(), 100);
+                    parentPage.select(sheetName, 100);
                 }
             }, getString("common.import.action.select100"));
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
-                    parentPage.select(sheet.getName(), 500);
+                    parentPage.select(sheetName, 500);
                 }
             }, getString("common.import.action.select500"));
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
-                    parentPage.deselectAll(sheet.getName());
+                    parentPage.deselectAll(sheetName);
                 }
             }, getString("common.import.action.deselectAll"));
         }
-        if (sheet.isFaulty() == true) {
+        if (outerSheet.isFaulty() == true) {
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
-                    parentPage.showErrorSummary(sheet.getName());
+                    parentPage.showErrorSummary(sheetName);
                 }
             }, getString("common.import.action.showErrorSummary"));
         }
         ImportStorage<?> storage = getStorage();
-        if (sheet.getLogger().getHasErrorEvents() || storage.getLogger().getHasErrorEvents()) {
+        if (outerSheet.getLogger().getHasErrorEvents() || storage.getLogger().getHasErrorEvents()) {
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
+                    ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                     parentPage.downloadErrorLog(sheet);
                 }
             }, getString("common.import.action.showErrorLog"));
         }
-        if (sheet.getLogger().getHasEvents() || storage.getLogger().getHasEvents() || sheet.getLogger().getExcelSheet() != null) {
+        if (outerSheet.getLogger().getHasEvents() || storage.getLogger().getHasEvents() || outerSheet.getLogger().getExcelSheet() != null) {
             addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                 @Override
                 public void onSubmit() {
+                    ImportedSheet<?> sheet = sheetModel.getObject(); // Don't use sheet in inner classes due to Wicket serialization issues!
                     parentPage.downloadInfoLog(sheet);
                 }
             }, getString("common.import.action.showInfoLog"));
         }
         try (final ExcelWorkbook excelWorkbook = parentPage.getStorage().getWorkbook()) {
-            final ExcelSheet excelSheet = excelWorkbook != null ? excelWorkbook.getSheet(sheet.getOrigName()) : null;
+            final ExcelSheet excelSheet = excelWorkbook != null ? excelWorkbook.getSheet(outerSheet.getOrigName()) : null;
             if (excelSheet != null && excelSheet.hasValidationErrors()) {
                 addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
                     @Override
                     public void onSubmit() {
                         excelWorkbook.setActiveSheet(excelSheet.getSheetIndex());
-                        parentPage.downloadValidatedExcel(sheet.getName());
+                        parentPage.downloadValidatedExcel(sheetName);
                     }
                 }, getString("common.import.action.downloadValidatedExcel"));
             }
-            appendSheetActionLinks(sheet.getName(), actionLinkRepeater);
-            addSheetTable(sheet, cont);
+            appendSheetActionLinks(outerSheet.getName(), actionLinkRepeater);
+            addSheetTable(outerSheet, cont);
         }
     }
 
@@ -367,7 +382,34 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
                 firstCell.add(AttributeModifier.replace("style", style));
             }
             rowContainer.add(firstCell);
-            final CheckBox checkBox = new CheckBox("selectItem", new PropertyModel<Boolean>(element, "selected"));
+            final String sheetName = sheet.getName();
+            final Integer elementRow = element.getRow();
+            IModel<ImportedElement<?>> elementModel = new LoadableDetachableModel<>() {
+                @Override
+                protected ImportedElement<?> load() {
+                    List<ImportedElement<?>> elements = storageModel.getObject().getNamedSheet(sheetName).getElements();
+                    // Java version of elements.find {it.row == elementRow}:
+                    return elements.stream()
+                            .filter(it -> it.getRow() == elementRow)
+                            .findFirst()
+                            .orElse(null);
+                }
+            };
+            IModel<Boolean> selectedModel = new LoadableDetachableModel<>() {
+                @Override
+                protected Boolean load() {
+                    ImportedElement<?> element = elementModel.getObject();
+                    return element != null && element.getSelected();
+                }
+                @Override
+                public void setObject(Boolean selected) {
+                    ImportedElement<?> element = elementModel.getObject();
+                    if (element != null) {
+                        element.setSelected(selected);
+                    }
+                }
+            };
+            final CheckBox checkBox = new CheckBox("selectItem", selectedModel);
             if (sheet.getStatus() != ImportStatus.RECONCILED) {
                 checkBox.setVisible(false);
             }
@@ -461,7 +503,10 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
             super.onCloseButtonSubmit(target);
             if (isConfirmed() == true) {
                 parentPage.commit(sheetName);
-                setResponsePage(parentPage.getClass(), new PageParameters().set(0, "success"));
+                PageParameters params = new PageParameters();
+                params.set(0, "success");
+                parentPage.setPageParametersOnSuccess(params);
+                setResponsePage(parentPage.getClass(), params);
             }
             return true;
         }

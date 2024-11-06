@@ -133,7 +133,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         queryFilter.addOrder(desc("created"))
         addAddressbookRestriction(queryFilter, null)
         if (filter.maxRows > 0) {
-            filter.isSortAndLimitMaxRowsWhileSelect = true
+            filter.sortAndLimitMaxRowsWhileSelect = true
         }
         return select(queryFilter)
     }
@@ -158,7 +158,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         }
         val queryFilter = QueryFilter(myFilter)
         if (StringUtils.isBlank(myFilter.searchString)) {
-            if (!myFilter.isDeleted) {
+            if (!myFilter.deleted) {
                 if (myFilter.isNewest) {
                     return getNewest(myFilter)
                 }
@@ -169,7 +169,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
             }
         } else {
             if (StringUtils.isNumeric(filter.searchString)) {
-                myFilter.setSearchString("*" + myFilter.searchString + "*")
+                myFilter.searchString = "*${myFilter.searchString}*"
             }
         }
         if (myFilter.isFilter) {
@@ -666,7 +666,7 @@ open class AddressDao : BaseDao<AddressDO>(AddressDO::class.java) {
         val searchNumber = extractPhonenumber(phoneNumber)
         log.info("number=$phoneNumber, searchNumber=$searchNumber")
         val filter = BaseSearchFilter()
-        filter.setSearchString("*$searchNumber*")
+        filter.searchString = "*$searchNumber*"
         val queryFilter = QueryFilter(filter)
         // Use internal get list method for avoiding access checking (no user is logged-in):
         val resultList = select(queryFilter, checkAccess = false)

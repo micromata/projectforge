@@ -93,7 +93,7 @@ class TeamCalDao : BaseDao<TeamCalDO>(TeamCalDO::class.java) {
         val queryFilter = QueryFilter(myFilter)
         queryFilter.addOrder(asc("title"))
         val list = select(queryFilter)
-        if (myFilter.isDeleted) {
+        if (myFilter.deleted) {
             // No further filtering, show all deleted calendars.
             return list
         }
