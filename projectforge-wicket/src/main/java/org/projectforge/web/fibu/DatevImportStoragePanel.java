@@ -23,6 +23,7 @@
 
 package org.projectforge.web.fibu;
 
+import de.micromata.merlin.excel.importer.ImportStorage;
 import de.micromata.merlin.excel.importer.ImportedElement;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
@@ -45,92 +46,93 @@ import org.projectforge.web.wicket.WicketUtils;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class DatevImportStoragePanel extends AbstractImportStoragePanel<DatevImportPage> {
-  private static final long serialVersionUID = -5732520730823126042L;
+    private static final long serialVersionUID = -5732520730823126042L;
 
-  private Label businessAssessmentLabel;
+    private Label businessAssessmentLabel;
 
-  protected BusinessAssessment businessAssessment;
+    protected BusinessAssessment businessAssessment;
 
-  /**
-   * @param id
-   */
-  public DatevImportStoragePanel(final String id, final DatevImportPage parentPage, final ImportFilter filter) {
-    super(id, parentPage, filter);
-  }
-
-  @Override
-  public void refresh() {
-    super.refresh();
-    if (businessAssessmentLabel != null) {
-      remove(businessAssessmentLabel);
+    /**
+     * @param id
+     */
+    public DatevImportStoragePanel(final String id, final DatevImportPage parentPage, final ImportFilter filter) {
+        super(id, parentPage, filter);
     }
-  }
 
-  @SuppressWarnings("serial")
-  @Override
-  protected void appendSheetActionLinks(final String sheetName, final RepeatingView actionLinkRepeater) {
-    if (getStorageType() == DatevImportService.Type.BUCHUNGSSAETZE) {
-      addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
-        @Override
-        public void onSubmit() {
-          parentPage.showBusinessAssessment(sheetName);
+    @Override
+    public void refresh() {
+        super.refresh();
+        if (businessAssessmentLabel != null) {
+            remove(businessAssessmentLabel);
         }
-      }, "show business assessment");
     }
-  }
 
-  /**
-   * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addHeadColumns(org.apache.wicket.markup.repeater.RepeatingView)
-   */
-  @Override
-  protected void addHeadColumns(final RepeatingView headColRepeater) {
-    if (getStorageType() == DatevImportService.Type.KONTENPLAN) {
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.konto.nummer")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.konto.bezeichnung")));
-    } else {
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.satznr")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("date")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.common.betrag")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.text")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.konto")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.gegenKonto")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.kost1")));
-      headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.kost2")));
+    @SuppressWarnings("serial")
+    @Override
+    protected void appendSheetActionLinks(final String sheetName, final RepeatingView actionLinkRepeater) {
+        if (getStorageType() == DatevImportService.Type.BUCHUNGSSAETZE) {
+            addActionLink(actionLinkRepeater, new SubmitLink("actionLink") {
+                @Override
+                public void onSubmit() {
+                    parentPage.showBusinessAssessment(sheetName);
+                }
+            }, "show business assessment");
+        }
     }
-  }
 
-  @Override
-  protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style) {
-    if (getStorageType() == DatevImportService.Type.KONTENPLAN) {
-      final KontoDO konto = (KontoDO) element.getValue();
-      addCell(cellRepeater, konto.getNummer(), style + " white-space: nowrap; text-align: right;");
-      addCell(cellRepeater, konto.getBezeichnung(), style);
-    } else {
-      final BuchungssatzDO satz = (BuchungssatzDO) element.getValue();
-      addCell(cellRepeater, satz.getSatznr(), style + " white-space: nowrap; text-align: right;");
-      addCell(cellRepeater, DateTimeFormatter.instance().getFormattedDate(satz.getDatum()), style + " white-space: nowrap;");
-      addCell(cellRepeater, CurrencyFormatter.format(satz.getBetrag()), style + " white-space: nowrap; text-align: right;");
-      addCell(cellRepeater, satz.getText(), style);
-      addCell(cellRepeater, satz.getKonto() != null ? satz.getKonto().getNummer() : null, style);
-      addCell(cellRepeater, satz.getGegenKonto() != null ? satz.getGegenKonto().getNummer() : null, style);
-      final Kost1DO kost1 = satz.getKost1();
-      Component comp = addCell(cellRepeater, kost1 != null ? kost1.getDisplayName() : null, style);
-      if (kost1 != null) {
-        WicketUtils.addTooltip(comp, OldKostFormatter.formatToolTip(kost1));
-      }
-      final Kost2DO kost2 = satz.getKost2();
-      comp = addCell(cellRepeater, kost2 != null ? kost2.getDisplayName() : null, style);
-      if (kost2 != null) {
-        WicketUtils.addTooltip(comp, OldKostFormatter.formatToolTip(kost2));
-      }
+    /**
+     * @see org.projectforge.web.core.importstorage.AbstractImportStoragePanel#addHeadColumns(org.apache.wicket.markup.repeater.RepeatingView)
+     */
+    @Override
+    protected void addHeadColumns(final RepeatingView headColRepeater) {
+        if (getStorageType() == DatevImportService.Type.KONTENPLAN) {
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.konto.nummer")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.konto.bezeichnung")));
+        } else {
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.satznr")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("date")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.common.betrag")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.text")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.konto")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.buchungssatz.gegenKonto")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.kost1")));
+            headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.kost2")));
+        }
     }
-  }
 
-  private DatevImportService.Type getStorageType() {
-    if (storage == null) {
-      return null;
-    } else {
-      return (DatevImportService.Type) storage.getId();
+    @Override
+    protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style) {
+        if (getStorageType() == DatevImportService.Type.KONTENPLAN) {
+            final KontoDO konto = (KontoDO) element.getValue();
+            addCell(cellRepeater, konto.getNummer(), style + " white-space: nowrap; text-align: right;");
+            addCell(cellRepeater, konto.getBezeichnung(), style);
+        } else {
+            final BuchungssatzDO satz = (BuchungssatzDO) element.getValue();
+            addCell(cellRepeater, satz.getSatznr(), style + " white-space: nowrap; text-align: right;");
+            addCell(cellRepeater, DateTimeFormatter.instance().getFormattedDate(satz.getDatum()), style + " white-space: nowrap;");
+            addCell(cellRepeater, CurrencyFormatter.format(satz.getBetrag()), style + " white-space: nowrap; text-align: right;");
+            addCell(cellRepeater, satz.getText(), style);
+            addCell(cellRepeater, satz.getKonto() != null ? satz.getKonto().getNummer() : null, style);
+            addCell(cellRepeater, satz.getGegenKonto() != null ? satz.getGegenKonto().getNummer() : null, style);
+            final Kost1DO kost1 = satz.getKost1();
+            Component comp = addCell(cellRepeater, kost1 != null ? kost1.getDisplayName() : null, style);
+            if (kost1 != null) {
+                WicketUtils.addTooltip(comp, OldKostFormatter.formatToolTip(kost1));
+            }
+            final Kost2DO kost2 = satz.getKost2();
+            comp = addCell(cellRepeater, kost2 != null ? kost2.getDisplayName() : null, style);
+            if (kost2 != null) {
+                WicketUtils.addTooltip(comp, OldKostFormatter.formatToolTip(kost2));
+            }
+        }
     }
-  }
+
+    private DatevImportService.Type getStorageType() {
+        ImportStorage<?> storage = getStorage();
+        if (storage == null) {
+            return null;
+        } else {
+            return (DatevImportService.Type) storage.getId();
+        }
+    }
 }
