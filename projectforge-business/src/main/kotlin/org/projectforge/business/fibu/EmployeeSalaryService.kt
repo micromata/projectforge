@@ -21,21 +21,25 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu.api;
+package org.projectforge.business.fibu
 
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeSalaryDO;
-import org.projectforge.framework.time.PFDateTime;
+import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
+import java.time.Month
 
-public interface EmployeeSalaryService
-{
+@Service
+class EmployeeSalaryService {
+    @Autowired
+    private lateinit var persistenceService: PfPersistenceService
 
-  EmployeeSalaryDO getLatestSalaryForEmployee(EmployeeDO employee);
-
-  EmployeeSalaryDO getEmployeeSalaryByDate(EmployeeDO employee, PFDateTime selectedDate);
-
-  void saveOrUpdate(EmployeeSalaryDO employeeSalaryDO);
-
-  EmployeeSalaryDO selectByPk(Long id);
-
+    fun selectByMonth(year: Int, month: Month): List<EmployeeSalaryDO> {
+        return persistenceService.runReadOnly { context ->
+            context.executeNamedQuery(
+                EmployeeSalaryDO.SELECT_SALARIES_BY_MONTH,
+                EmployeeSalaryDO::class.java,
+                "year" to year, "month" to month.value,
+            )
+        }
+    }
 }

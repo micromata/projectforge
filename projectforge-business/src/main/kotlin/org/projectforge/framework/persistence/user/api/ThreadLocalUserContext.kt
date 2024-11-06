@@ -150,7 +150,7 @@ object ThreadLocalUserContext {
    * @param locale
    */
   @JvmStatic
-  var locale: Locale?
+  var locale: Locale
     get() = getLocale(null)
     set(locale) {
       check(loggedInUser == null) { "Can't register locale if an user is already registered. setLocale(Locale) should only used for public/anonymous services." }

@@ -25,6 +25,7 @@ package org.projectforge.web;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.Page;
+import org.projectforge.business.user.UserRightId;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.PhoneCallPage;
@@ -46,6 +47,8 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
 
 /**
  * The menu is build from the menu items which are registered in this registry. The order of the menu entries is defined
@@ -105,6 +108,8 @@ public class MenuItemRegistry implements Serializable {
         register(MenuItemDefId.REPORT_OBJECTIVES, ReportObjectivesPage.class);
         register(MenuItemDefId.ACCOUNTING_RECORD_LIST, AccountingRecordListPage.class);
         register(MenuItemDefId.DATEV_IMPORT, DatevImportPage.class);
+        register(MenuItemDefId.EMPLOYEE_SALARY_IMPORT, EmployeeSalaryImportPage.class);
+
         register(MenuItemDefId.MY_PREFERENCES, UserPrefListPage.class);
         //register(MenuItemDefId.USER_LIST, UserListPage.class);
         //register(MenuItemDefId.GROUP_LIST, GroupListPage.class);

@@ -140,7 +140,7 @@ class BuchungssatzExcelImporter(
             val row = it.next()
             val element = MyImportedElement(
                 importedSheet, row.rowNum, BuchungssatzDO::class.java,
-                *DatevImportDao.BUCHUNGSSATZ_DIFF_PROPERTIES
+                *DatevImportService.BUCHUNGSSATZ_DIFF_PROPERTIES
             )
             val satz = BuchungssatzDO()
             element.value = satz

@@ -184,17 +184,17 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
         return EmployeeDO()
     }
 
-    open fun getEmployeeByStaffnumber(staffnumber: String): EmployeeDO? {
+    open fun findEmployeeByStaffnumber(staffnumber: String?): EmployeeDO? {
+        staffnumber ?: return null
         var result: EmployeeDO? = null
         try {
-            val baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber"
             result = persistenceService.selectSingleResult(
-                "$baseSQL$META_SQL",
+                "FROM EmployeeDO e WHERE e.staffNumber = :staffNumber",
                 EmployeeDO::class.java,
-                Pair("staffNumber", staffnumber),
+                "staffNumber" to staffnumber,
             )
         } catch (ex: NoResultException) {
-            log.warn("No employee found for staffnumber: $staffnumber")
+            log.warn("No employee found for staffnumber: $staffnumber: ${ex.message}", ex)
         }
         employeeCache.setStatusAndAnnualLeave(result)
         return result
@@ -226,7 +226,6 @@ open class EmployeeDao : BaseDao<EmployeeDO>(EmployeeDO::class.java) {
             "kost1.nummer", "kost1.name",
         )
         private val DEFAULT_SORT_PROPERTIES = arrayOf(SortProperty("user.firstname"), SortProperty("user.lastname"))
-        private const val META_SQL = " AND e.deleted = :deleted"
         private val ENABLED_AUTOCOMPLETION_PROPERTIES = arrayOf("abteilung", "position")
     }
 }
