@@ -47,7 +47,7 @@ class VacationServicesRest {
         val autoCompleteSearchFields = arrayOf("user.username", "user.firstname", "user.lastname", "user.email")
         val filter = BaseSearchFilter()
         filter.searchString = searchString
-        filter.setSearchFields(*autoCompleteSearchFields)
+        filter.searchFields = autoCompleteSearchFields
         val employees = employeeDao.selectWithActiveStatus(filter, checkAccess = false, showOnlyActiveEntries = true, showRecentlyLeavers = true)
         return employees.map {
             val user = User()

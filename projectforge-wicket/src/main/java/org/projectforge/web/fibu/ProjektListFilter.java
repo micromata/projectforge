@@ -39,7 +39,7 @@ public class ProjektListFilter extends ProjektFilter
   {
     super.reset();
     setListType(ProjektFilter.FILTER_NOT_ENDED);
-    this.searchString = "";
+    this.setSearchString("");
     return this;
   }
 }

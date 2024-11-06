@@ -149,7 +149,7 @@ open class EingangsrechnungDao : BaseDao<EingangsrechnungDO>(EingangsrechnungDO:
         queryFilter.addOrder(desc("kreditor"))
 
         val list = select(queryFilter)
-        if (myFilter.isShowAll || myFilter.isDeleted) {
+        if (myFilter.isShowAll || myFilter.deleted) {
             return list
         }
 

@@ -347,7 +347,7 @@ class EmployeeService {
         val monthlyEmployeeReport = MonthlyEmployeeReport(user, year, month)
         monthlyEmployeeReport.init()
         val filter = TimesheetFilter()
-        filter.setDeleted(false)
+        filter.deleted = false
         filter.startTime = monthlyEmployeeReport.fromDate
         filter.stopTime = monthlyEmployeeReport.toDate
         filter.userId = user.id

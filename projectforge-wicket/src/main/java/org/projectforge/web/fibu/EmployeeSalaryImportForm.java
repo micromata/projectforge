@@ -49,16 +49,16 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
     private static final List<Integer> years = new LinkedList<>();
 
     static {
-        for (int i = 2001; i <= Year.now().getValue() + 1; i++) {
+        for (int i = 2001; i <= Year.now().getValue(); i++) {
             years.add(i);
         }
     }
 
     FileUploadField fileUploadField;
 
-    private Integer selectedMonth = LocalDate.now().getMonth().getValue();
+    private Integer selectedYear = getDefaultYear();
 
-    private Integer selectedYear = Year.now().getValue();
+    private Integer selectedMonth = getDefaultMonth();
 
     private DropDownChoicePanel<Integer> dropDownMonth;
 
@@ -134,5 +134,13 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
 
     public void setSelectedMonth(Integer selectedMonth) {
         this.selectedMonth = selectedMonth;
+    }
+
+    protected Integer getDefaultYear() {
+        return LocalDate.now().minusMonths(1).getYear();
+    }
+
+    protected Integer getDefaultMonth() {
+        return LocalDate.now().minusMonths(1).getMonth().getValue();
     }
 }

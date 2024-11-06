@@ -39,7 +39,7 @@ public class Kost1ListFilter extends KostFilter
   {
     super.reset();
     setListType(KostFilter.FILTER_NOT_ENDED);
-    this.searchString = "";
+    this.setSearchString("");
     return this;
   }
 }

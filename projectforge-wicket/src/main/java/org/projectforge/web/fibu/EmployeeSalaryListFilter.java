@@ -38,7 +38,7 @@ public class EmployeeSalaryListFilter extends EmployeeSalaryFilter
     super.reset();
     setYear(null);
     setMonth(null);
-    searchString = "";
+    setSearchString("");
     return this;
   }
 }

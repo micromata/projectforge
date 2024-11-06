@@ -182,7 +182,7 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return obj.startDate == dbObj.startDate &&
                 obj.endDate == dbObj.endDate &&
                 obj.special == dbObj.special &&
-                obj.employeeId == dbObj.employeeId &&
+                obj.employee?.id == dbObj.employee?.id &&
                 obj.halfDayBegin == dbObj.halfDayBegin &&
                 obj.halfDayEnd == dbObj.halfDayEnd
     }

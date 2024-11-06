@@ -31,96 +31,83 @@ import org.projectforge.framework.time.PFDateTime;
 
 import java.util.Date;
 
-public class SearchFilter extends BaseSearchFilter
-{
-  private static final long serialVersionUID = 5850672386075331163L;
+public class SearchFilter extends BaseSearchFilter {
+    private static final long serialVersionUID = 5850672386075331163L;
 
-  private TaskDO task;
+    private TaskDO task;
 
-  private PFUserDO modifiedByUser;
+    private PFUserDO modifiedByUser;
 
-  public SearchFilter()
-  {
-    this.maxRows = 3;
-  }
-
-  public void updateUseModificationFilterFlag() {
-    this.useModificationFilter = this.modifiedByUserId != null || this.startTimeOfModification != null || this.stopTimeOfModification != null;
-  }
-
-
-  @Override
-  public SearchFilter setStartTimeOfModification(final Date startTimeOfLastModification)
-  {
-    if (startTimeOfLastModification == null) {
-      super.setStartTimeOfModification(null);
-      return this;
+    public SearchFilter() {
+        this.setMaxRows(3);
     }
-    final PFDateTime dateTime = PFDateTime.from(startTimeOfLastModification).withPrecision(DatePrecision.MILLISECOND).getBeginOfDay();
-    super.setStartTimeOfModification(dateTime.getUtilDate());
-    return this;
-  }
 
-  @Override
-  public SearchFilter setStopTimeOfModification(final Date stopTimeOfLastModification)
-  {
-    if (stopTimeOfLastModification == null) {
-      super.setStopTimeOfModification(null);
-      return this;
+    public void updateUseModificationFilterFlag() {
+        this.setUseModificationFilter(this.getModifiedByUserId() != null || this.getStartTimeOfModification() != null || this.getStopTimeOfModification() != null);
     }
-    final PFDateTime dateTime = PFDateTime.from(stopTimeOfLastModification).withPrecision(DatePrecision.MILLISECOND)
-        .getEndOfDay();
-    super.setStopTimeOfModification(dateTime.getUtilDate());
-    return this;
-  }
 
-  public PFUserDO getModifiedByUser()
-  {
-    return modifiedByUser;
-  }
 
-  public void setModifiedByUser(final PFUserDO modifiedByUser)
-  {
-    this.modifiedByUser = modifiedByUser;
-    this.modifiedByUserId = modifiedByUser != null ? modifiedByUser.getId() : null;
-  }
+    @Override
+    public void setStartTimeOfModification(final Date startTimeOfLastModification) {
+        if (startTimeOfLastModification == null) {
+            super.setStartTimeOfModification(null);
+            return;
+        }
+        final PFDateTime dateTime = PFDateTime.from(startTimeOfLastModification).withPrecision(DatePrecision.MILLISECOND).getBeginOfDay();
+        super.setStartTimeOfModification(dateTime.getUtilDate());
+    }
 
-  public TaskDO getTask()
-  {
-    return task;
-  }
+    @Override
+    public void setStopTimeOfModification(final Date stopTimeOfLastModification) {
+        if (stopTimeOfLastModification == null) {
+            super.setStopTimeOfModification(null);
+            return;
+        }
+        final PFDateTime dateTime = PFDateTime.from(stopTimeOfLastModification).withPrecision(DatePrecision.MILLISECOND)
+                .getEndOfDay();
+        super.setStopTimeOfModification(dateTime.getUtilDate());
+    }
 
-  public Long getTaskId()
-  {
-    return task != null ? task.getId() : null;
-  }
+    public PFUserDO getModifiedByUser() {
+        return modifiedByUser;
+    }
 
-  public void setTask(final TaskDO task)
-  {
-    this.task = task;
-  }
+    public void setModifiedByUser(final PFUserDO modifiedByUser) {
+        this.modifiedByUser = modifiedByUser;
+        this.setModifiedByUserId(modifiedByUser != null ? modifiedByUser.getId() : null);
+    }
 
-  /**
-   * @return true, if no field for search is set (ignores task and searchHistory).
-   */
-  public boolean isEmpty()
-  {
-    return StringUtils.isEmpty(searchString)
-        && modifiedByUserId == null
-        && startTimeOfModification == null
-        && stopTimeOfModification == null;
-  }
+    public TaskDO getTask() {
+        return task;
+    }
 
-  @Override
-  public SearchFilter reset()
-  {
-    super.reset();
-    this.searchString = "";
-    this.useModificationFilter = false;
-    this.modifiedByUserId = null;
-    this.startTimeOfModification = null;
-    this.stopTimeOfModification = null;
-    this.task = null;
-    return this;
-  }
+    public Long getTaskId() {
+        return task != null ? task.getId() : null;
+    }
+
+    public void setTask(final TaskDO task) {
+        this.task = task;
+    }
+
+    /**
+     * @return true, if no field for search is set (ignores task and searchHistory).
+     */
+    public boolean isEmpty() {
+        return StringUtils.isEmpty(getSearchString())
+                && getModifiedByUserId() == null
+                && getStartTimeOfModification() == null
+                && getStopTimeOfModification() == null;
+    }
+
+    @Override
+    public SearchFilter reset() {
+        super.reset();
+        this.setSearchString("");
+        this.setUseModificationFilter(false);
+        this.setModifiedByUserId(null);
+        this.setStartTimeOfModification(null);
+        this.setStopTimeOfModification(null);
+        this.task = null;
+        return this;
+    }
 }

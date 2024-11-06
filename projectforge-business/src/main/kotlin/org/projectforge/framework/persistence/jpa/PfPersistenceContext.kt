@@ -300,6 +300,7 @@ class PfPersistenceContext internal constructor(
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
         debugLog: Boolean = true,
+        hints: Collection<Pair<String, Any>>? = null,
     ): TypedQuery<T> {
         val query: TypedQuery<T> = if (namedQuery) {
             em.createNamedQuery(sql, resultClass)
@@ -308,6 +309,9 @@ class PfPersistenceContext internal constructor(
         }
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
+        }
+        hints?.forEach { (key, value) ->
+            query.setHint(key, value)
         }
         if (debugLog) {
             logAndAdd(

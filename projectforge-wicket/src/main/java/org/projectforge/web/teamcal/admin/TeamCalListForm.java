@@ -88,7 +88,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
         @Override
         public boolean isVisible()
         {
-          return getSearchFilter().isDeleted() == false;
+          return getSearchFilter().getDeleted() == false;
         }
       };
       radioGroupPanel.add(radioGroup);
@@ -106,7 +106,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
       {
 
         // Show check box panel only if user selects others calendar.
-        return getSearchFilter().isDeleted() == false && (getSearchFilter().isAll() == true || getSearchFilter().isOthers() == true);
+        return getSearchFilter().getDeleted() == false && (getSearchFilter().isAll() == true || getSearchFilter().isOthers() == true);
       }
     };
     optionsFieldsetPanel.add(checkBoxesPanel);

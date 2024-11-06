@@ -57,6 +57,8 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO> {
 
     private static final String USER_PREF_KEY_RECENT_EMPLOYEES = "EmployeeSelectPanel:recentEmployees";
 
+    private static final String[] SEARCH_FIELDS = {"user.username", "user.firstname", "user.lastname"};
+
     private RecentQueue<String> recentEmployees;
 
     private PFAutoCompleteTextField<EmployeeDO> employeeTextField;
@@ -190,7 +192,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO> {
 
     private List<EmployeeDO> getFilteredEmployeeDOs(String input) {
         final BaseSearchFilter filter = new BaseSearchFilter();
-        filter.setSearchFields("user.username", "user.firstname", "user.lastname");
+        filter.setSearchFields(SEARCH_FIELDS);
         filter.setSearchString(input);
         final List<EmployeeDO> list = WicketSupport.get(EmployeeDao.class).select(filter);
         List<EmployeeDO> resultList = new ArrayList<>(list);

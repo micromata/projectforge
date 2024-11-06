@@ -85,7 +85,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.employee.user")
     @IndexedEmbedded(includeDepth = 1, includePaths = ["username", "firstname", "lastname", "description", "organization"])
-    @get:ManyToOne
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "user_id", nullable = false)
     open var user: PFUserDO? = null
@@ -95,7 +95,7 @@ open class EmployeeDO : DefaultBaseDO(), Comparable<Any>, DisplayNameCapable {
      */
     @PropertyInfo(i18nKey = "fibu.kost1")
     @IndexedEmbedded(includeDepth = 1)
-    @get:ManyToOne
+    @get:ManyToOne(fetch = FetchType.LAZY)
     @get:IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:JoinColumn(name = "kost1_id", nullable = true)
     open var kost1: Kost1DO? = null

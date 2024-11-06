@@ -23,13 +23,12 @@
 
 package org.projectforge.framework.persistence.api.impl
 
-import org.hibernate.ScrollMode
-import org.hibernate.ScrollableResults
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaQuery
 import mu.KotlinLogging
-import org.hibernate.Hibernate
+import org.hibernate.ScrollMode
+import org.hibernate.ScrollableResults
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 
 private val log = KotlinLogging.logger {}
 
@@ -59,10 +58,10 @@ internal class DBEmptyResultIterator<O : ExtendedBaseDO<Long>>
 }
 
 internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
-        val entityManager: EntityManager,
-        criteria: CriteriaQuery<O>,
-        val resultPredicates: List<DBPredicate>)
-    : DBResultIterator<O> {
+    val entityManager: EntityManager,
+    criteria: CriteriaQuery<O>,
+    val resultPredicates: List<DBPredicate>,
+) : DBResultIterator<O> {
     private val scrollableResults: ScrollableResults<O>
     private var counter = 0
 
@@ -83,7 +82,7 @@ internal class DBCriteriaResultIterator<O : ExtendedBaseDO<Long>>(
             }
             return scrollableResults.get()
         } catch (ex: Exception) {
-            log.error(ex) {"Error in DBCriteriaResultIterator.next(): "}
+            log.error(ex) { "Error in DBCriteriaResultIterator.next(): " }
             return null
         }
     }

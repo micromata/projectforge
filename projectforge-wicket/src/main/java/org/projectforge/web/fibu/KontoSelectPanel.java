@@ -49,170 +49,154 @@ import java.util.Locale;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements ComponentWrapperPanel
-{
-  private static final long serialVersionUID = 5452693296383142460L;
+public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements ComponentWrapperPanel {
+    private static final long serialVersionUID = 5452693296383142460L;
 
-  private PFAutoCompleteTextField<KontoDO> kontoTextField;
+    private static final String[] SEARCH_FIELDS = {"nummer", "bezeichnung", "description"};
 
-  private IntRanges kontoNumberRanges;
+    private PFAutoCompleteTextField<KontoDO> kontoTextField;
 
-  /**
-   * @param id
-   * @param model
-   * @param caller
-   * @param selectProperty
-   */
-  public KontoSelectPanel(final String id, final IModel<KontoDO> model, final ISelectCallerPage caller, final String selectProperty)
-  {
-    super(id, model, caller, selectProperty);
-    kontoTextField = new PFAutoCompleteTextField<KontoDO>("kontoField", getModel())
-    {
-      @Override
-      protected List<KontoDO> getChoices(final String input)
-      {
-        final BaseSearchFilter filter = new BaseSearchFilter();
-        filter.setSearchFields("nummer", "bezeichnung", "description");
-        filter.setSearchString(input);
-        final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
-        if (kontoNumberRanges != null && list != null) {
-          final List<KontoDO> result = new ArrayList<KontoDO>();
-          for (final KontoDO konto : list) {
-            if (konto.getStatus() == KontoStatus.NONACTIVE) {
-              continue;
+    private IntRanges kontoNumberRanges;
+
+    /**
+     * @param id
+     * @param model
+     * @param caller
+     * @param selectProperty
+     */
+    public KontoSelectPanel(final String id, final IModel<KontoDO> model, final ISelectCallerPage caller, final String selectProperty) {
+        super(id, model, caller, selectProperty);
+        kontoTextField = new PFAutoCompleteTextField<KontoDO>("kontoField", getModel()) {
+            @Override
+            protected List<KontoDO> getChoices(final String input) {
+                final BaseSearchFilter filter = new BaseSearchFilter();
+                filter.setSearchFields(SEARCH_FIELDS);
+                filter.setSearchString(input);
+                final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
+                if (kontoNumberRanges != null && list != null) {
+                    final List<KontoDO> result = new ArrayList<KontoDO>();
+                    for (final KontoDO konto : list) {
+                        if (konto.getStatus() == KontoStatus.NONACTIVE) {
+                            continue;
+                        }
+                        if (kontoNumberRanges.doesMatch(konto.getNummer()) == true) {
+                            result.add(konto);
+                        }
+                    }
+                    return result;
+                }
+                return list;
             }
-            if (kontoNumberRanges.doesMatch(konto.getNummer()) == true) {
-              result.add(konto);
-            }
-          }
-          return result;
-        }
-        return list;
-      }
 
-      @Override
-      protected String formatLabel(final KontoDO konto)
-      {
-        if (konto == null) {
-          return "";
-        }
-        return konto.formatKonto();
-      }
-
-      @Override
-      protected String formatValue(final KontoDO konto)
-      {
-        if (konto == null) {
-          return "";
-        }
-        return konto.formatKonto();
-      }
-
-      @Override
-      public void convertInput()
-      {
-        final KontoDO konto = (KontoDO) getConverter(getType()).convertToObject(getInput(), getLocale());
-        setConvertedInput(konto);
-      }
-
-      @Override
-      public IConverter getConverter(final Class type)
-      {
-        return new IConverter()
-        {
-          @Override
-          public Object convertToObject(final String value, final Locale locale)
-          {
-            if (StringUtils.isEmpty(value) == true) {
-              getModel().setObject(null);
-              return null;
+            @Override
+            protected String formatLabel(final KontoDO konto) {
+                if (konto == null) {
+                    return "";
+                }
+                return konto.formatKonto();
             }
-            final int ind = value.indexOf(" ");
-            final String kontonummerString = ind >= 0 ? value.substring(0, ind) : value;
-            final Integer kontonummer = NumberHelper.parseInteger(kontonummerString);
-            final KontoDO konto;
-            if (kontonummer != null) {
-              konto = WicketSupport.get(KontoDao.class).getKonto(kontonummer);
-            } else {
-              konto = null;
-            }
-            if (konto == null) {
-              error(getString("fibu.konto.error.invalidKonto"));
-            }
-            getModel().setObject(konto);
-            return konto;
-          }
 
-          @Override
-          public String convertToString(final Object value, final Locale locale)
-          {
-            if (value == null) {
-              return "";
+            @Override
+            protected String formatValue(final KontoDO konto) {
+                if (konto == null) {
+                    return "";
+                }
+                return konto.formatKonto();
             }
-            final KontoDO konto = (KontoDO) value;
-            return konto.formatKonto();
-          }
+
+            @Override
+            public void convertInput() {
+                final KontoDO konto = (KontoDO) getConverter(getType()).convertToObject(getInput(), getLocale());
+                setConvertedInput(konto);
+            }
+
+            @Override
+            public IConverter getConverter(final Class type) {
+                return new IConverter() {
+                    @Override
+                    public Object convertToObject(final String value, final Locale locale) {
+                        if (StringUtils.isEmpty(value) == true) {
+                            getModel().setObject(null);
+                            return null;
+                        }
+                        final int ind = value.indexOf(" ");
+                        final String kontonummerString = ind >= 0 ? value.substring(0, ind) : value;
+                        final Integer kontonummer = NumberHelper.parseInteger(kontonummerString);
+                        final KontoDO konto;
+                        if (kontonummer != null) {
+                            konto = WicketSupport.get(KontoDao.class).getKonto(kontonummer);
+                        } else {
+                            konto = null;
+                        }
+                        if (konto == null) {
+                            error(getString("fibu.konto.error.invalidKonto"));
+                        }
+                        getModel().setObject(konto);
+                        return konto;
+                    }
+
+                    @Override
+                    public String convertToString(final Object value, final Locale locale) {
+                        if (value == null) {
+                            return "";
+                        }
+                        final KontoDO konto = (KontoDO) value;
+                        return konto.formatKonto();
+                    }
+                };
+            }
         };
-      }
-    };
-    kontoTextField.enableTooltips().withLabelValue(true).withMatchContains(true).withMinChars(2).withAutoSubmit(false).withWidth(400);
-    kontoTextField.setLabel(new Model<String>()
-    {
-      @Override
-      public String getObject()
-      {
-        return getString("fibu.konto");
-      }
-    });
-  }
+        kontoTextField.enableTooltips().withLabelValue(true).withMatchContains(true).withMinChars(2).withAutoSubmit(false).withWidth(400);
+        kontoTextField.setLabel(new Model<String>() {
+            @Override
+            public String getObject() {
+                return getString("fibu.konto");
+            }
+        });
+    }
 
-  /**
-   * If set then only accounting numbers are given in auto-completion list, whose number matches the given range(s).
-   *
-   * @param kontoNumberRanges the kontoNumberRanges to set
-   * @return this for chaining.
-   * @see Ranges#setRanges(String)
-   */
-  public KontoSelectPanel setKontoNumberRanges(final IntRanges kontoNumberRanges)
-  {
-    this.kontoNumberRanges = kontoNumberRanges;
-    return this;
-  }
+    /**
+     * If set then only accounting numbers are given in auto-completion list, whose number matches the given range(s).
+     *
+     * @param kontoNumberRanges the kontoNumberRanges to set
+     * @return this for chaining.
+     * @see Ranges#setRanges(String)
+     */
+    public KontoSelectPanel setKontoNumberRanges(final IntRanges kontoNumberRanges) {
+        this.kontoNumberRanges = kontoNumberRanges;
+        return this;
+    }
 
-  /**
-   * Must be called before component is added to a field set. This is different to most other Panels in ProjectForge.
-   */
-  @Override
-  @SuppressWarnings("serial")
-  public KontoSelectPanel init()
-  {
-    super.init();
-    add(kontoTextField);
-    return this;
-  }
+    /**
+     * Must be called before component is added to a field set. This is different to most other Panels in ProjectForge.
+     */
+    @Override
+    @SuppressWarnings("serial")
+    public KontoSelectPanel init() {
+        super.init();
+        add(kontoTextField);
+        return this;
+    }
 
-  @Override
-  public void convertInput()
-  {
-    setConvertedInput(getModelObject());
-  }
+    @Override
+    public void convertInput() {
+        setConvertedInput(getModelObject());
+    }
 
-  /**
-   * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getComponentOutputId()
-   */
-  @Override
-  public String getComponentOutputId()
-  {
-    kontoTextField.setOutputMarkupId(true);
-    return kontoTextField.getMarkupId();
-  }
+    /**
+     * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getComponentOutputId()
+     */
+    @Override
+    public String getComponentOutputId() {
+        kontoTextField.setOutputMarkupId(true);
+        return kontoTextField.getMarkupId();
+    }
 
-  /**
-   * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
-   */
-  @Override
-  public FormComponent<?> getFormComponent()
-  {
-    return null;
-  }
+    /**
+     * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
+     */
+    @Override
+    public FormComponent<?> getFormComponent() {
+        return null;
+    }
 }

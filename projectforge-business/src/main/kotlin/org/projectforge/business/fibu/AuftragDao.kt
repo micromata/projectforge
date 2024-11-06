@@ -307,8 +307,8 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
         queryFilter.add(or(*orCriterions.toTypedArray<DBPredicate>()))
 
         // check deleted
-        if (!myFilter.isIgnoreDeleted) {
-            queryFilter.add(eq("positionen.deleted", myFilter.isDeleted))
+        if (!myFilter.ignoreDeleted) {
+            queryFilter.add(eq("positionen.deleted", myFilter.deleted))
         }
     }
 

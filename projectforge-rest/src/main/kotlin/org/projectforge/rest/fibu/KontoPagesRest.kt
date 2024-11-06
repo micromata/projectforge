@@ -79,7 +79,7 @@ class KontoPagesRest
 
     private fun getAccounts(search: String?, accountRanges: IntRanges? = null): List<Konto> {
         val filter = BaseSearchFilter()
-        filter.setSearchFields("nummer", "bezeichnung", "description")
+        filter.searchFields = arrayOf("nummer", "bezeichnung", "description")
         filter.searchString = search
         val list: List<KontoDO> = baseDao.select(filter)
         if (accountRanges == null) {

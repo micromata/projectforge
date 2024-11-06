@@ -1,5 +1,5 @@
 Aktuell:
-- Listenimport / Export
+- remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Suche nach Kontonummer in KontoDO
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)

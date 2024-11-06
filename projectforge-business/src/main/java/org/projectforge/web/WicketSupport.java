@@ -60,6 +60,8 @@ import java.util.Map;
  * Need by Wicket during the migration phase to Kotlin/Rest, because Wicket/CG-LIB doesn't work properly with
  * SpringBean and Kotlin based Spring components.
  *
+ * I didn't want to declare all Kotlin components as open, so I use this workaround. Wicket will be removed in the future.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 

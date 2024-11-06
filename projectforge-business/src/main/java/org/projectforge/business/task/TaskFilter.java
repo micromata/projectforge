@@ -63,7 +63,7 @@ public class TaskFilter extends BaseSearchFilter {
   private transient HashSet<Long> tasksMatched;
 
   public TaskFilter() {
-    searchString = "";
+    setSearchString("");
   }
 
   public TaskFilter(final BaseSearchFilter filter) {
@@ -95,15 +95,16 @@ public class TaskFilter extends BaseSearchFilter {
   }
 
   public boolean isStatusSet() {
-    return opened || notOpened || closed || deleted;
+    return opened || notOpened || closed || getDeleted();
   }
 
   @Override
   public TaskFilter reset() {
     super.reset();
     notOpened = opened = true;
-    closed = deleted = false;
-    searchString = "";
+    closed = false;
+    setDeleted(false);
+    setSearchString("");
     return this;
   }
 
@@ -127,7 +128,7 @@ public class TaskFilter extends BaseSearchFilter {
       resetMatch();
     }
     final TaskDO task = node.getTask();
-    if (StringUtils.isBlank(this.searchString)) {
+    if (StringUtils.isBlank(this.getSearchString())) {
       return isVisibleByStatus(node, task) || node.isRootNode();
     } else {
       if (isVisibleBySearchString(node, task, taskDao, user)) {
@@ -175,13 +176,13 @@ public class TaskFilter extends BaseSearchFilter {
     final PFUserDO responsibleUser = UserGroupCache.getInstance().getUser(task.getResponsibleUserId());
     final String username = responsibleUser != null
         ? responsibleUser.getFullname() + " " + responsibleUser.getUsername() : null;
-    if (StringUtils.containsIgnoreCase(task.getTitle(), this.searchString)
-        || StringUtils.containsIgnoreCase(task.getReference(), this.searchString)
-        || StringUtils.containsIgnoreCase(task.getShortDescription(), this.searchString)
-        || StringUtils.containsIgnoreCase(task.getDescription(), this.searchString)
-        || StringUtils.containsIgnoreCase(task.getDisplayName(), this.searchString)
-        || StringUtils.containsIgnoreCase(username, this.searchString)
-        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.searchString)) {
+    if (StringUtils.containsIgnoreCase(task.getTitle(), this.getSearchString())
+        || StringUtils.containsIgnoreCase(task.getReference(), this.getSearchString())
+        || StringUtils.containsIgnoreCase(task.getShortDescription(), this.getSearchString())
+        || StringUtils.containsIgnoreCase(task.getDescription(), this.getSearchString())
+        || StringUtils.containsIgnoreCase(task.getDisplayName(), this.getSearchString())
+        || StringUtils.containsIgnoreCase(username, this.getSearchString())
+        || StringUtils.containsIgnoreCase(task.getWorkpackageCode(), this.getSearchString())) {
       taskVisibility.put(task.getId(), true);
       tasksMatched.add(task.getId());
       return true;
@@ -199,7 +200,7 @@ public class TaskFilter extends BaseSearchFilter {
   }
 
   private boolean isVisibleByStatus(final TaskNode node, final TaskDO task) {
-    if (!isDeleted() && task.getDeleted()) {
+    if (!getDeleted() && task.getDeleted()) {
       return false;
     }
     if (task.getStatus() == TaskStatus.N) {
@@ -209,6 +210,6 @@ public class TaskFilter extends BaseSearchFilter {
     } else if (task.getStatus() == TaskStatus.C) {
       return isClosed();
     }
-    return node.isDeleted() == isDeleted();
+    return node.isDeleted() == getDeleted();
   }
 }
