@@ -61,10 +61,10 @@ open class PfPersistenceService {
         run: (context: PfPersistenceContext) -> T
     ): T {
         val context = PfPersistenceContextThreadLocal.getTransactional() // Transactional context.
-        if (context == null) {
-            return internalRunInNewTransaction(false, run)
+        return if (context == null) {
+            internalRunInNewTransaction(false, run)
         } else {
-            return context.run(run)
+            context.run(run)
         }
     }
 
@@ -202,10 +202,10 @@ open class PfPersistenceService {
      */
     @JvmOverloads
     fun <T> find(
-        entityClass: Class<T>, id: Any?, attached: Boolean = false
+        entityClass: Class<T>, id: Any?, attached: Boolean = false, entityGraphName: String? = null
     ): T? {
         return runReadOnly { context ->
-            context.find(entityClass, id, attached)
+            context.find(entityClass, id, attached, entityGraphName = entityGraphName)
         }
     }
 
@@ -218,9 +218,15 @@ open class PfPersistenceService {
         entityClass: Class<T>,
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): List<T> {
         return runReadOnly { context ->
-            context.selectAll(entityClass, attached = attached, lockModeType = lockModeType)
+            context.selectAll(
+                entityClass,
+                attached = attached,
+                lockModeType = lockModeType,
+                entityGraphName = entityGraphName,
+            )
         }
     }
 
@@ -237,6 +243,7 @@ open class PfPersistenceService {
         errorMessage: String? = null,
         attached: Boolean = false,
         namedQuery: Boolean = false,
+        entityGraphName: String? = null,
     ): T? {
         return runReadOnly { context ->
             context.selectSingleResult(
@@ -247,6 +254,7 @@ open class PfPersistenceService {
                 errorMessage = errorMessage,
                 attached = attached,
                 namedQuery = namedQuery,
+                entityGraphName = entityGraphName,
             )
         }
     }
@@ -262,6 +270,7 @@ open class PfPersistenceService {
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         attached: Boolean = false,
+        entityGraphName: String? = null,
     ): T? {
         return selectSingleResult(
             sql = sql,
@@ -271,6 +280,7 @@ open class PfPersistenceService {
             errorMessage = errorMessage,
             attached = attached,
             namedQuery = true,
+            entityGraphName = entityGraphName,
         )
     }
 
@@ -288,6 +298,7 @@ open class PfPersistenceService {
         namedQuery: Boolean = false,
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): List<T> {
         return runReadOnly { context ->
             context.executeQuery(
@@ -298,6 +309,7 @@ open class PfPersistenceService {
                 namedQuery = namedQuery,
                 maxResults = maxResults,
                 lockModeType = lockModeType,
+                entityGraphName = entityGraphName,
             )
         }
     }
@@ -314,6 +326,7 @@ open class PfPersistenceService {
         attached: Boolean = false,
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): List<T> {
         return executeQuery(
             sql = sql,
@@ -323,6 +336,7 @@ open class PfPersistenceService {
             namedQuery = true,
             maxResults = maxResults,
             lockModeType = lockModeType,
+            entityGraphName = entityGraphName,
         )
     }
 

@@ -96,6 +96,7 @@ class PfPersistenceContext internal constructor(
         id: Any?,
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): T? {
         id ?: return null
         logAndAdd(
@@ -107,10 +108,21 @@ class PfPersistenceContext internal constructor(
                 .param("attached", attached)
                 .param("lockModeType", lockModeType)
         )
-        val entity = if (lockModeType != null) {
-            em.find(entityClass, id, lockModeType)
+        val entity = if (entityGraphName != null) {
+            val entityGraph = em.getEntityGraph(entityGraphName)
+            val properties = mutableMapOf<String, Any>()
+            properties.put(ENTITY_GRAPH_HINT_KEY, entityGraph)
+            if (lockModeType != null) {
+                em.find(entityClass, id, lockModeType, properties)
+            } else {
+                em.find(entityClass, id, properties)
+            }
         } else {
-            em.find(entityClass, id)
+            if (lockModeType != null) {
+                em.find(entityClass, id, lockModeType)
+            } else {
+                em.find(entityClass, id)
+            }
         }
         entity ?: return null
         if (!attached && em.contains(entity)) {
@@ -123,12 +135,14 @@ class PfPersistenceContext internal constructor(
         entityClass: Class<T>,
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): List<T> {
         return executeQuery(
             "FROM ${entityClass.simpleName} t",
             entityClass,
             attached = attached,
             lockModeType = lockModeType,
+            entityGraphName = entityGraphName,
         )
     }
 
@@ -145,6 +159,7 @@ class PfPersistenceContext internal constructor(
         nullAllowed: Boolean = true,
         errorMessage: String? = null,
         attached: Boolean = false,
+        entityGraphName: String? = null,
     ): T? {
         return selectSingleResult(
             sql = sql,
@@ -154,6 +169,7 @@ class PfPersistenceContext internal constructor(
             errorMessage = errorMessage,
             attached = attached,
             namedQuery = true,
+            entityGraphName = entityGraphName,
         )
     }
 
@@ -171,6 +187,7 @@ class PfPersistenceContext internal constructor(
         errorMessage: String? = null,
         attached: Boolean = false,
         namedQuery: Boolean = false,
+        entityGraphName: String? = null,
     ): T? {
         val result = try {
             logAndAdd(
@@ -188,6 +205,7 @@ class PfPersistenceContext internal constructor(
                 keyValues = keyValues,
                 namedQuery = namedQuery,
                 debugLog = false, // Log already done, see above.
+                entityGraphName = entityGraphName,
             ).singleResult
         } catch (ex: NoResultException) {
             if (!nullAllowed) {
@@ -212,8 +230,10 @@ class PfPersistenceContext internal constructor(
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): List<T?> {
-        val q = createQuery(sql = sql, resultClass = resultClass, keyValues = keyValues)
+        val q =
+            createQuery(sql = sql, resultClass = resultClass, keyValues = keyValues, entityGraphName = entityGraphName)
         if (lockModeType != null) {
             q.lockMode = lockModeType
         }
@@ -240,10 +260,12 @@ class PfPersistenceContext internal constructor(
         namedQuery: Boolean = false,
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
+        entityGraphName: String? = null,
     ): List<T> {
         val q = createQuery(
             sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery,
             debugLog = false, // Log already done, see below.
+            entityGraphName = entityGraphName,
         )
         if (lockModeType != null) {
             q.lockMode = lockModeType
@@ -282,6 +304,7 @@ class PfPersistenceContext internal constructor(
         vararg keyValues: Pair<String, Any?>,
         attached: Boolean = false,
         maxResults: Int? = null,
+        entityGraphName: String? = null,
     ): List<T> {
         return executeQuery(
             sql = sql,
@@ -290,6 +313,7 @@ class PfPersistenceContext internal constructor(
             attached = attached,
             namedQuery = true,
             maxResults = maxResults,
+            entityGraphName = entityGraphName,
         )
     }
 
@@ -300,7 +324,7 @@ class PfPersistenceContext internal constructor(
         vararg keyValues: Pair<String, Any?>,
         namedQuery: Boolean = false,
         debugLog: Boolean = true,
-        hints: Collection<Pair<String, Any>>? = null,
+        entityGraphName: String? = null,
     ): TypedQuery<T> {
         val query: TypedQuery<T> = if (namedQuery) {
             em.createNamedQuery(sql, resultClass)
@@ -310,8 +334,9 @@ class PfPersistenceContext internal constructor(
         for ((key, value) in keyValues) {
             query.setParameter(key, value)
         }
-        hints?.forEach { (key, value) ->
-            query.setHint(key, value)
+        if (entityGraphName != null) {
+            val entityGraph = em.getEntityGraph(entityGraphName)
+            query.setHint(ENTITY_GRAPH_HINT_KEY, entityGraph)
         }
         if (debugLog) {
             logAndAdd(
@@ -518,6 +543,8 @@ class PfPersistenceContext internal constructor(
     }
 
     companion object {
+        private const val ENTITY_GRAPH_HINT_KEY = "jakarta.persistence.fetchgraph"
+
         private val nextTransactionId: Long
             get() {
                 synchronized(this) {
