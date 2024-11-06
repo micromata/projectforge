@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service
 import java.io.InputStream
 
 @Service
-class DatevImportDao {
+class DatevImportService {
     @Autowired
     private lateinit var persistenceService: PfPersistenceService
 
@@ -76,9 +76,9 @@ class DatevImportDao {
      */
     @Throws(Exception::class)
     fun importKontenplan(inputStream: InputStream, filename: String): ImportStorage<KontoDO> {
-        checkLoggeinUserRight(accessChecker)
+        checkLoggedinUserRight(accessChecker)
         log.info("importKontenplan called")
-        ExcelWorkbook(inputStream, filename, locale!!).use { workbook ->
+        ExcelWorkbook(inputStream, filename, locale).use { workbook ->
             val storage = ImportStorage<KontoDO>(
                 Type.KONTENPLAN, workbook, ImportLogger.Level.INFO,
                 "'$filename':", log
@@ -100,9 +100,9 @@ class DatevImportDao {
      */
     @Throws(Exception::class)
     fun importBuchungsdaten(`is`: InputStream, filename: String): ImportStorage<BuchungssatzDO> {
-        checkLoggeinUserRight(accessChecker)
+        checkLoggedinUserRight(accessChecker)
         log.info("importBuchungsdaten called.")
-        ExcelWorkbook(`is`, filename, locale!!).use { workbook ->
+        ExcelWorkbook(`is`, filename, locale).use { workbook ->
             val storage = ImportStorage<BuchungssatzDO>(
                 Type.BUCHUNGSSAETZE, workbook, ImportLogger.Level.INFO,
                 "'$filename':", log
@@ -114,7 +114,7 @@ class DatevImportDao {
     }
 
     /**
-     * Der ImportStorage wird verprobt, dass heißt ein Schreiben der importierten Werte in die Datenbank wird getestet.
+     * Der ImportStorage wird verprobt, das heißt ein Schreiben der importierten Werte in die Datenbank wird getestet.
      * Ergebnis sind mögliche Fehler und Statistiken, welche Werte neu geschrieben und welche geändert werden. Der User
      * muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
      *
@@ -122,7 +122,7 @@ class DatevImportDao {
      * @param sheetName of sheet to reconcile.
      */
     fun reconcile(storage: ImportStorage<*>, sheetName: String) {
-        checkLoggeinUserRight(accessChecker)
+        checkLoggedinUserRight(accessChecker)
         requireNotNull(storage.getSheets())
         val sheet = storage.getNamedSheet(sheetName)
         requireNotNull(sheet)
@@ -137,7 +137,7 @@ class DatevImportDao {
     }
 
     fun commit(storage: ImportStorage<*>, sheetName: String) {
-        checkLoggeinUserRight(accessChecker)
+        checkLoggedinUserRight(accessChecker)
         requireNotNull(storage.getSheets())
         val sheet = storage.getNamedSheet(sheetName)
         requireNotNull(sheet)
@@ -180,6 +180,7 @@ class DatevImportDao {
                 )
                 if (dbSatz != null) {
                     el.oldValue = dbSatz
+                    satz.created = dbSatz.created // Needed by baseDao to decide if the object is new or not.
                 }
             }
         }
@@ -242,7 +243,7 @@ class DatevImportDao {
          */
         private const val KONTO_INSERT_BLOCK_SIZE = 50
 
-        private val log = LoggerFactory.getLogger(DatevImportDao::class.java)
+        private val log = LoggerFactory.getLogger(DatevImportService::class.java)
 
         /**
          * Has the user the right FIBU_DATEV_IMPORT (value true)?
@@ -261,7 +262,7 @@ class DatevImportDao {
          * @throws AccessException
          * @see UserRightId.FIBU_DATEV_IMPORT
          */
-        fun checkLoggeinUserRight(accessChecker: AccessChecker): Boolean {
+        fun checkLoggedinUserRight(accessChecker: AccessChecker): Boolean {
             return hasRight(accessChecker, true)
         }
 

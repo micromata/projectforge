@@ -28,11 +28,8 @@ import mu.KotlinLogging
 import org.apache.commons.collections4.CollectionUtils
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
-import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.i18n.translateMsg
-import org.projectforge.framework.persistence.api.BaseDOPersistenceService
 import org.projectforge.framework.persistence.api.EntityCopyStatus
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.beans.factory.annotation.Autowired
@@ -56,16 +53,7 @@ class EmployeeService {
     private lateinit var employeeServiceSupport: EmployeeServiceSupport
 
     @Autowired
-    private lateinit var vacationService: VacationService
-
-    @Autowired
     private lateinit var timesheetDao: TimesheetDao
-
-    @Autowired
-    private lateinit var persistenceService: PfPersistenceService
-
-    @Autowired
-    private lateinit var baseDOPersistenceService: BaseDOPersistenceService
 
     @PostConstruct
     private fun postConstruct() {
@@ -117,7 +105,7 @@ class EmployeeService {
     }
 
     fun findByStaffnumber(staffnumber: String): EmployeeDO? {
-        return employeeDao.getEmployeeByStaffnumber(staffnumber)
+        return employeeDao.findEmployeeByStaffnumber(staffnumber)
     }
 
     fun findValidSinceAttr(

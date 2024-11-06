@@ -95,6 +95,12 @@ open class EmployeeCache : AbstractCache() {
         employee.annualLeave = cached.annualLeave
     }
 
+    fun findByStaffNumber(staffNumber: String?): EmployeeDO? {
+        staffNumber ?: return null
+        checkRefresh()
+        return employeeMap.values.firstOrNull { it.staffNumber == staffNumber }
+    }
+
     fun setStatusAndAnnualLeave(employees: Collection<EmployeeDO>) {
         employees.forEach { setStatusAndAnnualLeave(it) }
     }

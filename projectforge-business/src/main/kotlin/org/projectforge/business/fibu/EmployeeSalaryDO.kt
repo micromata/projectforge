@@ -23,15 +23,15 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.persistence.*
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 import org.projectforge.Constants
 import org.projectforge.common.StringHelper
 import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.time.PFDayUtils
 import java.math.BigDecimal
-import jakarta.persistence.*
-import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
 
 /**
  * Das monatliche Gehalt eines festangestellten Mitarbeiters.
@@ -40,11 +40,21 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*
  */
 @Entity
 @Indexed
-@Table(name = "T_FIBU_EMPLOYEE_SALARY",
-        uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])],
-        indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id")])
+@Table(
+    name = "T_FIBU_EMPLOYEE_SALARY",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["employee_id", "year", "month"])],
+    indexes = [Index(name = "idx_fk_t_fibu_employee_salary_employee_id", columnList = "employee_id")]
+)
 @NamedQueries(
-        NamedQuery(name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR, query = "select min(year), max(year) from EmployeeSalaryDO"))
+    NamedQuery(
+        name = EmployeeSalaryDO.SELECT_MIN_MAX_YEAR,
+        query = "select min(year), max(year) from EmployeeSalaryDO",
+    ),
+    NamedQuery(
+        name = EmployeeSalaryDO.SELECT_SALARIES_BY_MONTH,
+        query = "from EmployeeSalaryDO where year = :year and month = :month",
+    )
+)
 open class EmployeeSalaryDO : DefaultBaseDO() {
 
     /**
@@ -109,5 +119,6 @@ open class EmployeeSalaryDO : DefaultBaseDO() {
 
     companion object {
         internal const val SELECT_MIN_MAX_YEAR = "EmployeeSalaryDO_SelectMinMaxYear"
+        internal const val SELECT_SALARIES_BY_MONTH = "EmployeeSalaryDO_SelectByMonth"
     }
 }

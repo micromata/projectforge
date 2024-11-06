@@ -28,7 +28,7 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.*;
-import org.projectforge.business.fibu.datev.DatevImportDao;
+import org.projectforge.business.fibu.datev.DatevImportService;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2Dao;
@@ -180,7 +180,7 @@ public class WicketSupport {
         registerBean(applicationContext.getBean(ConfigurationService.class));
         registerBean(applicationContext.getBean(DatabaseDao.class));
         registerBean(applicationContext.getBean(DatabaseInitTestDataService.class));
-        registerBean(applicationContext.getBean(DatevImportDao.class));
+        registerBean(applicationContext.getBean(DatevImportService.class));
         registerBean(applicationContext.getBean(EingangsrechnungDao.class));
         registerBean(applicationContext.getBean(EmployeeDao.class));
         registerBean(applicationContext.getBean(EmployeeSalaryDao.class));

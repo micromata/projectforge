@@ -29,7 +29,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.business.fibu.datev.DatevImportDao;
+import org.projectforge.business.fibu.datev.DatevImportService;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
@@ -73,7 +73,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(WicketSupport.get(DatevImportDao.class).importKontenplan(is, clientFileName));
+        setStorage(WicketSupport.get(DatevImportService.class).importKontenplan(is, clientFileName));
         return null;
       });
     }
@@ -86,7 +86,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
       doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(WicketSupport.get(DatevImportDao.class).importBuchungsdaten(is, clientFileName));
+        setStorage(WicketSupport.get(DatevImportService.class).importBuchungsdaten(is, clientFileName));
         return null;
       });
     }
@@ -96,7 +96,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   protected ImportedSheet<?> reconcile(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.reconcile(sheetName);
-    WicketSupport.get(DatevImportDao.class).reconcile(getStorage(), sheetName);
+    WicketSupport.get(DatevImportService.class).reconcile(getStorage(), sheetName);
     return sheet;
   }
 
@@ -104,7 +104,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm> {
   protected ImportedSheet<?> commit(final String sheetName) {
     checkAccess();
     final ImportedSheet<?> sheet = super.commit(sheetName);
-    WicketSupport.get(DatevImportDao.class).commit(getStorage(), sheetName);
+    WicketSupport.get(DatevImportService.class).commit(getStorage(), sheetName);
     return sheet;
   }
 
