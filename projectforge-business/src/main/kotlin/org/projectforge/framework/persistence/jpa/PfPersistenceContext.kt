@@ -50,9 +50,10 @@ class PfPersistenceContext internal constructor(
 ) : AutoCloseable {
     internal enum class ContextType { READONLY, TRANSACTION }
 
-    var savedStats: PersistenceStats = PfPersistenceContextThreadLocal.getStatsState().getCopyOfCurrentState()
+    var savedStats: PersistenceConnectionStats = PfPersistenceContextThreadLocal.getStatsState().getCopyOfCurrentState()
 
-    var recordCallStats: Boolean = false
+    // Stack for the record call stats:
+    private var callStats: PersistenceCallsStats? = null
 
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
@@ -71,16 +72,15 @@ class PfPersistenceContext internal constructor(
         nextTransactionId
     }
 
-    internal fun createPersistenceCallsStats() {
-        PfPersistenceContextThreadLocal.createPersistenceCallsStats(false)
-        recordCallStats = true
+    internal fun recordCallsStats(extended: Boolean) {
+        callStats = PersistenceCallsStats(em, extended)
     }
 
-    fun formatStats(withDuration: Boolean = true): String {
-        val callsStats = PfPersistenceService.showCallsStatsRecording()
+    fun formatStats(withDuration: Boolean = true, extended: Boolean = false): String {
+        val callsStatsString = callStats?.toString(extended)
         val stats = PfPersistenceContextThreadLocal.getStatsState().getActivities(savedStats).asString(withDuration)
-        return if (recordCallStats && callsStats != null) {
-            "stats=$stats, callStats==$callsStats"
+        return if (callsStatsString != null) {
+            "stats=$stats, callStats==$callsStatsString"
         } else {
             "stats=$stats´"
         }
@@ -578,6 +578,6 @@ class PfPersistenceContext internal constructor(
 
     internal fun logAndAdd(method: CallType, entity: String, detail: String? = null) {
         log.debug { "DB: $method $entity $detail" }
-        PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.add(method, entity, detail)
+        callStats?.add(method, entity, detail)
     }
 }

@@ -62,7 +62,7 @@ open class PfPersistenceService {
     ): T {
         val context = PfPersistenceContextThreadLocal.getTransactional() // Transactional context.
         return if (context == null) {
-            internalRunInNewTransaction(false, run)
+            internalRunInNewTransaction(false, run = run)
         } else {
             context.run(run)
         }
@@ -76,9 +76,14 @@ open class PfPersistenceService {
     @JvmOverloads
     fun <T> runInNewTransaction(
         recordCallStats: Boolean = false,
+        recorcCallStatsExtended: Boolean = false,
         run: (context: PfPersistenceContext) -> T
     ): T {
-        return internalRunInNewTransaction(recordCallStats, run)
+        return internalRunInNewTransaction(
+            recordCallStats = recordCallStats,
+            recordCallStatsExtended = recorcCallStatsExtended,
+            run = run,
+        )
     }
 
     /**
@@ -93,7 +98,7 @@ open class PfPersistenceService {
         if (context != null) {
             return context.run(block)
         }
-        return runInNewReadOnlyContext(false, block)
+        return runInNewReadOnlyContext(recordCallStats = false, recordCallStatsExtended = false, block)
     }
 
     /**
@@ -104,9 +109,13 @@ open class PfPersistenceService {
     @JvmOverloads
     fun <T> runIsolatedReadOnly(
         recordCallStats: Boolean = false,
+        recordCallStatsExtended: Boolean = false,
         block: (context: PfPersistenceContext) -> T
     ): T {
-        return runInNewReadOnlyContext(recordCallStats, block)
+        return runInNewReadOnlyContext(
+            recordCallStats = recordCallStats,
+            recordCallStatsExtended = recordCallStatsExtended, block
+        )
     }
 
     /**
@@ -115,6 +124,7 @@ open class PfPersistenceService {
      */
     private fun <T> internalRunInNewTransaction(
         recordCallStats: Boolean,
+        recordCallStatsExtended: Boolean = false,
         run: (context: PfPersistenceContext) -> T
     ): T {
         val saved = PfPersistenceContextThreadLocal.getTransactional()
@@ -123,8 +133,8 @@ open class PfPersistenceService {
                 entityManagerFactory,
                 type = PfPersistenceContext.ContextType.TRANSACTION,
             ).use { context ->
-                if (recordCallStats) {
-                    context.createPersistenceCallsStats()
+                if (recordCallStats || recordCallStatsExtended) {
+                    context.recordCallsStats(recordCallStatsExtended)
                 }
                 PfPersistenceContextThreadLocal.setTransactional(context)
                 PfPersistenceContextThreadLocal.getStatsState().transactionCreated()
@@ -152,9 +162,6 @@ open class PfPersistenceService {
             log.debug { "Remove transactional context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setTransactional(it) } // Restore previous context, if any.
             PfPersistenceContextThreadLocal.getStatsState().transactionClosed()
-            if (recordCallStats) {
-                PfPersistenceContextThreadLocal.removePersistenceCallsStats()
-            }
         }
     }
 
@@ -164,6 +171,7 @@ open class PfPersistenceService {
      */
     private fun <T> runInNewReadOnlyContext(
         recordCallStats: Boolean,
+        recordCallStatsExtended: Boolean = false,
         block: (context: PfPersistenceContext) -> T
     ): T {
         val saved = PfPersistenceContextThreadLocal.getReadonly()
@@ -172,8 +180,8 @@ open class PfPersistenceService {
                 entityManagerFactory,
                 type = PfPersistenceContext.ContextType.READONLY
             ).use { context ->
-                if (recordCallStats) {
-                    context.createPersistenceCallsStats()
+                if (recordCallStats || recordCallStatsExtended) {
+                    context.recordCallsStats(recordCallStatsExtended)
                 }
                 PfPersistenceContextThreadLocal.setReadonly(context)
                 PfPersistenceContextThreadLocal.getStatsState().readonlyCreated()
@@ -189,9 +197,6 @@ open class PfPersistenceService {
             log.debug { "Remove readonly context=${removed?.contextId} from ThreadLocal... (restored context=${saved?.contextId})" }
             saved?.let { PfPersistenceContextThreadLocal.setReadonly(it) } // Restore previous context, if any.
             PfPersistenceContextThreadLocal.getStatsState().readonlyClosed()
-            if (recordCallStats) {
-                PfPersistenceContextThreadLocal.removePersistenceCallsStats()
-            }
         }
     }
 
@@ -372,16 +377,16 @@ open class PfPersistenceService {
     /**
      * For testing purposes only.
      * @return The statistics state (a copy for later comparison).
-     * @see PersistenceStats
+     * @see PersistenceConnectionStats
      */
-    fun getCopyOfCurrentStateForTesting(): PersistenceStats {
+    fun getCopyOfCurrentStateForTesting(): PersistenceConnectionStats {
         return PfPersistenceContextThreadLocal.getStatsState().getCopyOfCurrentState()
     }
 
     /**
      * For testing purposes only.
      */
-    fun getActivitiesForTesting(oldState: PersistenceStats): PersistenceStats {
+    fun getActivitiesForTesting(oldState: PersistenceConnectionStats): PersistenceConnectionStats {
         return PfPersistenceContextThreadLocal.getStatsState().getActivities(oldState)
     }
 
@@ -389,9 +394,5 @@ open class PfPersistenceService {
         @JvmStatic
         lateinit var instance: PfPersistenceService
             private set
-
-        fun showCallsStatsRecording(extended: Boolean = false): String? {
-            return PfPersistenceContextThreadLocal.getPersistenceCallsStats()?.toString(extended)
-        }
     }
 }

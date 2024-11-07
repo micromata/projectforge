@@ -46,6 +46,9 @@ open class JpaConfig {
     @Value("\${hibernate.hibernateUseSqlComments}")
     private val hibernateUseSqlComments = false
 
+    @Value("\${hibernate.generate_statistics}")
+    private val hibernateGenerateStatistics = false
+
     @Value("\${hibernate.hbm2ddl.auto}")
     private val hibernateHbm2ddlAuto: String? = null
 
@@ -68,6 +71,7 @@ open class JpaConfig {
         properties[AvailableSettings.FORMAT_SQL] = hibernateFormatSql
         properties[AvailableSettings.HIGHLIGHT_SQL] = hibernateHighlightSql
         properties[AvailableSettings.USE_SQL_COMMENTS] = hibernateUseSqlComments
+        properties[AvailableSettings.GENERATE_STATISTICS] = hibernateGenerateStatistics
         properties[AvailableSettings.HBM2DDL_AUTO] = hibernateHbm2ddlAuto
         properties[AvailableSettings.ENABLE_LAZY_LOAD_NO_TRANS] = true
         properties[AvailableSettings.AUTOCOMMIT] = false

@@ -26,6 +26,7 @@ package org.projectforge.framework.persistence.jpa
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.projectforge.Constants
+import org.projectforge.common.extensions.formatMillis
 
 class PersistenceStatsTest {
     @Test
@@ -55,27 +56,27 @@ class PersistenceStatsTest {
     fun testFormatMillis() {
         Assertions.assertEquals(
             "1:07:08.123",
-            PersistenceStats.formatMillis(Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123)
+            (Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
         )
         Assertions.assertEquals(
             "5:07:08.023",
-            PersistenceStats.formatMillis(5 * Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 23)
+            (5 * Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 23).formatMillis()
         )
         Assertions.assertEquals(
             "128:07:08.123",
-            PersistenceStats.formatMillis(128 * Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123)
+            (128 * Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
         )
         Assertions.assertEquals(
             "07:08.123",
-            PersistenceStats.formatMillis(7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123)
+            (7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
         )
         Assertions.assertEquals(
             "00:08.123",
-            PersistenceStats.formatMillis(8 * Constants.MILLIS_PER_SECOND + 123)
+            (8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
         )
         Assertions.assertEquals(
             "00:00.023",
-            PersistenceStats.formatMillis( 23)
+            23.formatMillis()
         )
     }
 
@@ -88,7 +89,7 @@ class PersistenceStatsTest {
         activeReadonliesSinceLastSave: Int = 0,
         activeTransactionsSinceLastSave: Int = 0,
     ) {
-        val stats = PersistenceStats.create(
+        val stats = PersistenceConnectionStats.create(
             createdReadonlies = createdReadonlies,
             createdTransactions = createdTransactions,
             activeReadonlies = activeReadonlies,
@@ -96,6 +97,9 @@ class PersistenceStatsTest {
             activeReadonliesSinceLastSave = activeReadonliesSinceLastSave,
             activeTransactionsSinceLastSave = activeTransactionsSinceLastSave,
         )
-        Assertions.assertEquals(expected.dropLast(4), stats.toString().dropLast(4)) // remove the last 4 characters (xxx])
+        Assertions.assertEquals(
+            expected.dropLast(4),
+            stats.toString().dropLast(4)
+        ) // remove the last 4 characters (xxx])
     }
 }

@@ -23,16 +23,18 @@
 
 package org.projectforge.framework.persistence.jpa
 
+import org.projectforge.common.extensions.formatMillis
+
 /**
  * Mustn't be thread-safe, because it is used in a thread-local context.
- * If you want to use it in a multi-threaded context, you have to synchronize it.
+ * If you want to use it in a multithreaded context, you have to synchronize it.
  * Usage:
  *   val saved = persistenceService.saveStatsState()
  *   // Do something...
  *   log.info("Processing done. stats=${persistenceService.formatStats(saved)}")
  *
  */
-class PersistenceStats {
+class PersistenceConnectionStats {
     var createdTransactions = 0
         private set
     var createdReadonlies = 0
@@ -89,8 +91,8 @@ class PersistenceStats {
         activeTransactions--
     }
 
-    fun getCopyOfCurrentState(): PersistenceStats {
-        val copy = PersistenceStats()
+    fun getCopyOfCurrentState(): PersistenceConnectionStats {
+        val copy = PersistenceConnectionStats()
         copy.createdTransactions = createdTransactions
         copy.createdReadonlies = createdReadonlies
         copy.activeReadonlies = activeReadonlies
@@ -99,8 +101,8 @@ class PersistenceStats {
         return copy
     }
 
-    internal fun getActivities(oldState: PersistenceStats): PersistenceStats {
-        val copy = PersistenceStats()
+    internal fun getActivities(oldState: PersistenceConnectionStats): PersistenceConnectionStats {
+        val copy = PersistenceConnectionStats()
         copy.createdTransactions = createdTransactions - oldState.createdTransactions
         copy.createdReadonlies = createdReadonlies - oldState.createdReadonlies
         copy.activeReadonliesSinceLastSave = activeReadonlies - oldState.activeReadonlies
@@ -143,7 +145,7 @@ class PersistenceStats {
         sb.append("]")
         if (withDuration) {
             timeInMillis?.let { millis ->
-                sb.append(",duration=").append(formatMillis(System.currentTimeMillis() - millis))
+                sb.append(",duration=").append((System.currentTimeMillis() - millis).formatMillis())
             }
         }
         sb.append("]")
@@ -164,8 +166,8 @@ class PersistenceStats {
             activeTransactions: Int = 0,
             activeReadonliesSinceLastSave: Int = 0,
             activeTransactionsSinceLastSave: Int = 0,
-        ): PersistenceStats {
-            return PersistenceStats().also {
+        ): PersistenceConnectionStats {
+            return PersistenceConnectionStats().also {
                 it.timeInMillis = timeInMillis
                 it.createdReadonlies = createdReadonlies
                 it.createdTransactions = createdTransactions
@@ -173,23 +175,6 @@ class PersistenceStats {
                 it.activeTransactions = activeTransactions
                 it.activeReadonliesSinceLastSave = activeReadonliesSinceLastSave
                 it.activeTransactionsSinceLastSave = activeTransactionsSinceLastSave
-            }
-        }
-
-        /**
-         * Formats the given milliseconds to a string in the format "HH:mm:ss.SSS".
-         */
-        internal fun formatMillis(millis: Long): String {
-            val hours = millis / (1000 * 60 * 60)
-            val minutes = (millis / (1000 * 60)) % 60
-            val seconds = (millis / 1000) % 60
-            val milliseconds = millis % 1000
-
-            return when {
-                hours > 0 -> String.format("%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
-                // minutes > 0 -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
-                // else -> String.format("%02d.%03d", seconds, milliseconds)
-                else -> String.format("%02d:%02d.%03d", minutes, seconds, milliseconds)
             }
         }
     }
