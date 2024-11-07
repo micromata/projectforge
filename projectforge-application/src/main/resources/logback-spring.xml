@@ -40,7 +40,7 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender" />
+    <appender name="MEMORY" class="org.projectforge.common.logging.LoggerMemoryAppender"/>
 
     <logger name="de.micromata.projectforge.accessLog" level="INFO" additivity="false">
         <!-- additivity="false": do the access log only here, not in the root logger. -->
@@ -59,8 +59,9 @@
     </root>
 
     <!-- custom logging levels: -->
-    <logger name="org.apache.wicket.Localizer" level="ERROR" />
+    <logger name="org.apache.wicket.Localizer" level="ERROR"/>
 
+    <logger name="org.hibernate.engine.internal.StatisticalLoggingSessionEventListener" level="ERROR"/>
     <!-- For debugging Persistence calls, add to your projectforge.properties file: -->
     <!--
          # Logs all persistance calls (without lazy loadings by hibernate, but gives you a good overview):

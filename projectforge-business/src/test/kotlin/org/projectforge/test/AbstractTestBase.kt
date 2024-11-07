@@ -52,7 +52,7 @@ import org.projectforge.framework.i18n.I18nHelper.addBundleName
 import org.projectforge.framework.persistence.api.HibernateUtils.databaseDialect
 import org.projectforge.framework.persistence.history.HistoryService
 import org.projectforge.framework.persistence.jpa.MyJpaWithExtLibrariesScanner.Companion.setInternalSetUnitTestMode
-import org.projectforge.framework.persistence.jpa.PersistenceStats
+import org.projectforge.framework.persistence.jpa.PersistenceConnectionStats
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.setUser
 import org.projectforge.framework.persistence.user.entities.GroupDO
@@ -364,7 +364,7 @@ abstract class AbstractTestBase protected constructor() {
     }
 
     protected fun assertPersistenceStats(
-        oldState: PersistenceStats,
+        oldState: PersistenceConnectionStats,
         createdTransactions: Int,
         createdReadonlies: Int,
         activeTransactionsSinceLastSave: Int = 0,

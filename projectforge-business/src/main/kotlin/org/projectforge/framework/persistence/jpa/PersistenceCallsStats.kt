@@ -23,6 +23,12 @@
 
 package org.projectforge.framework.persistence.jpa
 
+import jakarta.persistence.EntityManager
+import org.hibernate.Session
+import org.hibernate.engine.spi.SessionFactoryImplementor
+import org.hibernate.stat.spi.StatisticsImplementor
+import org.projectforge.common.extensions.format
+
 /**
  * For performance measurement of persistence calls. Each call of persistenceService (CRUD) is counted.
  * Mustn't be thread-safe, because it is used in a thread-local context.
@@ -30,7 +36,7 @@ package org.projectforge.framework.persistence.jpa
  * If you want to use it in a multithreaded context, you have to synchronize it.
  * Please note, that the indirect database calls e.g. on lazy loading aren't counted.
  */
-class PersistenceCallsStats(val extended: Boolean) {
+class PersistenceCallsStats(val entityManager: EntityManager, val extended: Boolean) {
     enum class CallType { CRITERIA_UPDATE, FIND, GET_REFERENCE, MERGE, PERSIST, REMOVE, UPDATE, QUERY, SELECT }
     data class Call(val method: CallType, val sql: String, val detail: String? = null) : Comparable<Call> {
         override fun equals(other: Any?): Boolean {
@@ -57,6 +63,25 @@ class PersistenceCallsStats(val extended: Boolean) {
 
     val usage = mutableListOf<Call>()
     val countMap = mutableMapOf<Call, Int>()
+    val queryCount: Long
+    val updateCount: Long
+    val insertCount: Long
+    val deleteCount: Long
+    val loadCount: Long
+    val fetchCount: Long
+    val statistics: StatisticsImplementor
+
+    init {
+        val session = entityManager.unwrap(Session::class.java)
+        statistics = (session.factory as SessionFactoryImplementor).statistics
+        // Now, let's get the statistics:
+        queryCount = statistics.queryExecutionCount
+        updateCount = statistics.entityUpdateCount
+        insertCount = statistics.entityInsertCount
+        deleteCount = statistics.entityDeleteCount
+        loadCount = statistics.entityLoadCount
+        fetchCount = statistics.entityFetchCount
+    }
 
     internal fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
         add(method, entity, detail.toString())
@@ -76,6 +101,18 @@ class PersistenceCallsStats(val extended: Boolean) {
         sb.append("total=").append(countMap.values.sum()).append(",")
         sb.append("read=").append(countMap.filter { readOperations.contains(it.key.method) }.values.sum()).append(",")
         sb.append("write=").append(countMap.filter { writeOperations.contains(it.key.method) }.values.sum()).append("}")
+        sb.append(", SessionStats(global)={")
+        val total = statistics.queryExecutionCount - queryCount + statistics.entityUpdateCount - updateCount +
+                statistics.entityInsertCount - insertCount + statistics.entityDeleteCount - deleteCount +
+                statistics.entityLoadCount - loadCount + statistics.entityFetchCount - fetchCount
+        sb.append("total=").append(total)
+        append(sb, "query", statistics.queryExecutionCount, queryCount)
+        append(sb, "update", statistics.entityUpdateCount, updateCount)
+        append(sb, "insert", statistics.entityInsertCount, insertCount)
+        append(sb, "delete", statistics.entityDeleteCount, deleteCount)
+        append(sb, "load", statistics.entityLoadCount, loadCount)
+        append(sb, "fetch", statistics.entityFetchCount, fetchCount)
+        sb.append("}")
         if (extended) {
             sb.appendLine()
             countMap.toSortedMap().forEach { (call, count) ->
@@ -87,6 +124,11 @@ class PersistenceCallsStats(val extended: Boolean) {
             }
         }
         return sb.toString()
+    }
+
+    private fun append(sb: StringBuilder, key: String, newValue: Long, savedValue: Long) {
+        if (savedValue == newValue) return
+        sb.append(",").append(key).append("=").append((newValue - savedValue).format())
     }
 
     companion object {

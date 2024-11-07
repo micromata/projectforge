@@ -34,7 +34,7 @@ internal object PfPersistenceContextThreadLocal {
 
     private val threadLocalReadonly = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalTransactional = ThreadLocal<PfPersistenceContext?>()
-    private val threadLocalPersistenceStats = ThreadLocal<PersistenceStats?>()
+    private val threadLocalPersistenceConnectionStats = ThreadLocal<PersistenceConnectionStats?>()
     private val threadLocalPersistenceCallsStats = ThreadLocal<PersistenceCallsStats?>()
 
     /**
@@ -103,31 +103,8 @@ internal object PfPersistenceContextThreadLocal {
      * The statistics are not thread-safe, because they are used in a thread-local context.
      * @return The statistics.
      */
-    fun getStatsState(): PersistenceStats {
-        return threadLocalPersistenceStats.get()
-            ?: PersistenceStats().also { threadLocalPersistenceStats.set(it) }
-    }
-
-    /**
-     * Gets [PersistenceCallsStats] of ThreadLocal, if exists. Null, if no context exist.
-     */
-    fun getPersistenceCallsStats(): PersistenceCallsStats? {
-        return threadLocalPersistenceCallsStats.get()
-    }
-
-    /**
-     * Creates [PersistenceCallsStats] int ThreadLocal.
-     */
-    fun createPersistenceCallsStats(extended: Boolean = false) {
-        threadLocalPersistenceCallsStats.set(PersistenceCallsStats(extended))
-    }
-
-    /**
-     * Removes [PersistenceCallsStats] of ThreadLocal, if exists.
-     */
-    fun removePersistenceCallsStats(): PersistenceCallsStats? {
-        val ret = threadLocalPersistenceCallsStats.get()
-        threadLocalPersistenceCallsStats.remove()
-        return ret
+    fun getStatsState(): PersistenceConnectionStats {
+        return threadLocalPersistenceConnectionStats.get()
+            ?: PersistenceConnectionStats().also { threadLocalPersistenceConnectionStats.set(it) }
     }
 }

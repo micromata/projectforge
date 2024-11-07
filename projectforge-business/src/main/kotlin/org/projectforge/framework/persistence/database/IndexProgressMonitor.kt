@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.database
 import mu.KotlinLogging
 import org.hibernate.search.mapper.pojo.massindexing.MassIndexingMonitor
 import org.projectforge.common.extensions.format
-import org.projectforge.framework.persistence.jpa.PersistenceStats.Companion.formatMillis
+import org.projectforge.common.extensions.formatMillis
 import org.projectforge.framework.utils.NumberFormatter
 
 private val log = KotlinLogging.logger {}
@@ -72,7 +72,7 @@ class IndexProgressMonitor(val entityClass: Class<*>) : MassIndexingMonitor {
     override fun indexingCompleted() {
         val duration = System.currentTimeMillis() - started
         val speed = totalEntities * 1000L / duration
-        log.info { "${entityClass.simpleName}: Indexing completed (${formatMillis(duration)}, ${speed.format()}/s)." }
+        log.info { "${entityClass.simpleName}: Indexing completed (${duration.formatMillis()}, ${speed.format()}/s)." }
     }
 
     override fun documentsBuilt(increment: Long) {
