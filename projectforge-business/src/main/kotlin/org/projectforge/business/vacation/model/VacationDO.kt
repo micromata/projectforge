@@ -58,7 +58,7 @@ import java.time.LocalDate
     ),
 )
 @NamedEntityGraph(
-    name = "Vacation.withOtherReplacementIds",
+    name = VacationDO.ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS,
     attributeNodes = [NamedAttributeNode(value = "otherReplacements", subgraph = "otherReplacementIds")],
     subgraphs = [NamedSubgraph(
         name = "otherReplacementIds",
@@ -205,6 +205,8 @@ open class VacationDO : DefaultBaseDO() {
 
     companion object {
         internal const val FIND_CURRENT_AND_FUTURE = "VacationDO_FindCurrentAndFuture"
+
+        const val ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS = "VacationDO.withOtherReplacementIds"
 
         private fun hasOverlap(begin1: LocalDate?, end1: LocalDate?, begin2: LocalDate?, end2: LocalDate?): Boolean {
             if (begin1 == null || end1 == null || begin2 == null || end2 == null) {

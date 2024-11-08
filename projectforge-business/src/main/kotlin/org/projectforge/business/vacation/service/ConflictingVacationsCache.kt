@@ -49,8 +49,6 @@ class ConflictingVacationsCache() : AbstractCache() {
     private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
-    private lateinit var vacationDao: VacationDao
-
     private lateinit var vacationService: VacationService
 
     /**
@@ -118,7 +116,7 @@ class ConflictingVacationsCache() : AbstractCache() {
         persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             val vacationByEmployee = mutableMapOf<Long, MutableList<VacationDO>>()
             // First, order all vacations by employee:
-            val all = vacationDao.getCurrentAndFutureVacations()
+            val all = vacationService.getCurrentAndFutureVacations()
             all.forEach { vacation ->
                 vacation.employee?.id?.let { employeeId ->
                     ensureEmployeeList(vacationByEmployee, employeeId).add(vacation)
