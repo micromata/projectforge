@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory
 import org.hibernate.cfg.AvailableSettings
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -77,11 +76,13 @@ open class JpaConfig {
         properties[AvailableSettings.AUTOCOMMIT] = false
         properties[AvailableSettings.DEFAULT_BATCH_FETCH_SIZE] = 100
 
+        /*
         properties["hibernate.javax.cache.uri"] = "classpath://ehcache.xml" // Works.
         properties["hibernate.cache.use_second_level_cache"] = true
         properties["hibernate.cache.use_query_cache"] = true
         properties["hibernate.cache.region.factory_class"] = JCacheRegionFactory::class.qualifiedName
         properties["hibernate.javax.cache.provider"] = org.ehcache.jsr107.EhcacheCachingProvider::class.qualifiedName
+        */
 
         properties["hibernate.search.backend.directory.root"] = hibernateSearchDirectoryRoot
         factoryBean.setJpaProperties(properties)
