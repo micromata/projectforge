@@ -25,10 +25,8 @@ package org.projectforge.framework.persistence.jpa
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.projectforge.Constants
-import org.projectforge.common.extensions.formatMillis
 
-class PersistenceStatsTest {
+class PersistenceConnectionStatsTest {
     @Test
     fun tetsStatsToString() {
         assertStats("[transactions=[created=0,active=0],readonlies=[created=0,active=0],duration=00:00.xxx]")
@@ -52,33 +50,6 @@ class PersistenceStatsTest {
         )
     }
 
-    @Test
-    fun testFormatMillis() {
-        Assertions.assertEquals(
-            "1:07:08.123",
-            (Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
-        )
-        Assertions.assertEquals(
-            "5:07:08.023",
-            (5 * Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 23).formatMillis()
-        )
-        Assertions.assertEquals(
-            "128:07:08.123",
-            (128 * Constants.MILLIS_PER_HOUR + 7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
-        )
-        Assertions.assertEquals(
-            "07:08.123",
-            (7 * Constants.MILLIS_PER_MINUTE + 8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
-        )
-        Assertions.assertEquals(
-            "00:08.123",
-            (8 * Constants.MILLIS_PER_SECOND + 123).formatMillis()
-        )
-        Assertions.assertEquals(
-            "00:00.023",
-            23.formatMillis()
-        )
-    }
 
     private fun assertStats(
         expected: String,
