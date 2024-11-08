@@ -108,7 +108,6 @@ object HibernateUtils {
             databaseDialect = DatabaseDialect.PostgreSQL;
         }
         HibernateMetaModel.internalInit(sessionFactoryImplementor)
-        return
     }
 
 

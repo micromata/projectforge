@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ehcache:config
         xmlns:ehcache="http://www.ehcache.org/v3">
-
     <ehcache:cache-template name="myDefaultTemplate">
         <ehcache:expiry>
             <ehcache:ttl unit="minutes">10</ehcache:ttl>
@@ -13,15 +12,25 @@
 
     <!-- Explicit configuration to differentiate Entity Cache and Query Cache at the ehcache.xml level is less common in modern configurations,
          as Hibernate often manages these details itself. -->
-    <!--ehcache:cache alias="queryCache">
+    <ehcache:cache alias="queryCache">
         <ehcache:expiry>
-            <ehcache:ttl unit="minutes">10</ehcache:ttl>
+            <ehcache:none/>
         </ehcache:expiry>
         <ehcache:resources>
-            <ehcache:heap unit="entries">500</ehcache:heap>
+            <ehcache:heap unit="entries">1000</ehcache:heap>
         </ehcache:resources>
-    </ehcache:cache-->
+    </ehcache:cache>
 
-    <ehcache:cache alias="org.projectforge.framework.persistence.user.entities.UserPrefDO"
+    <ehcache:cache alias="org.projectforge.framework.persistence.user.entities.UserPrefDO">
+        <!--ehcache:key-type>java.lang.Long</ehcache:key-type>
+        <ehcache:value-type>org.projectforge.framework.persistence.user.entities.UserPrefDO</ehcache:value-type-->
+        <ehcache:expiry>
+            <ehcache:ttl unit="minutes">60</ehcache:ttl>
+        </ehcache:expiry>
+        <ehcache:resources>
+            <ehcache:heap unit="entries">1000</ehcache:heap>
+        </ehcache:resources>
+    </ehcache:cache>
+    <ehcache:cache alias="org.projectforge.business.fibu.AuftragsPositionDO"
                    uses-template="myDefaultTemplate"/>
 </ehcache:config>

@@ -28,7 +28,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.api.QueryFilter
-import org.projectforge.framework.persistence.jpa.PersistenceCallsStats
+import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
 import org.projectforge.framework.persistence.jpa.PersistenceCallsStatsBuilder
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
@@ -80,7 +80,7 @@ open class DBQuery {
                 val queryBuilder = DBQueryBuilder(baseDao, context.em, filter, dbFilter)
                 // Check here mixing fulltext and criteria searches in comparison to full text searches and DBResultMatchers.
                 context.logAndAdd(
-                    PersistenceCallsStats.CallType.QUERY,
+                    PersistenceCallsRecorder.CallType.QUERY,
                     baseDao.doClass.simpleName,
                     PersistenceCallsStatsBuilder()
                         .param("filter", filter)
