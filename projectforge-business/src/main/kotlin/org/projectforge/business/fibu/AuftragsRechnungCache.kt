@@ -44,6 +44,9 @@ class AuftragsRechnungCache : AbstractCache() {
     private lateinit var persistenceService: PfPersistenceService
 
     @Autowired
+    private lateinit var auftragsCache: AuftragsCache
+
+    @Autowired
     private lateinit var rechnungCache: RechnungCache
 
     /**
@@ -87,28 +90,32 @@ class AuftragsRechnungCache : AbstractCache() {
             val mapByRechnungsPositionMapByRechnungId = mutableMapOf<Long, TreeSet<RechnungPosInfo>>()
             log.info("Analyzing orders in invoices (RechnungsPositionDO.AuftragsPosition)...")
             val list: List<RechnungsPositionDO> = context.executeQuery(
-                "from RechnungsPositionDO t left join fetch t.auftragsPosition left join fetch t.auftragsPosition.auftrag where t.auftragsPosition is not null",
+                "from RechnungsPositionDO t left join fetch t.auftragsPosition where t.auftragsPosition is not null",
                 RechnungsPositionDO::class.java,
             )
             for (pos in list) {
-                val rechnung = pos.rechnung
-                val auftragsPosition = pos.auftragsPosition
-                if (auftragsPosition?.auftrag == null) {
+                val rechnung = rechnungCache.getRechnungInfo(pos.rechnung?.id)
+                val auftragsPositionId = pos.auftragsPosition?.id
+                if (auftragsPositionId == null) {
                     log.error("Assigned order position expected: $pos")
                     continue
-                } else if (pos.deleted || rechnung == null || rechnung.deleted || rechnung.nummer == null) {
+                }
+                if (pos.deleted || rechnung == null || rechnung.deleted || rechnung.nummer == null ) {
                     // Invoice position or invoice is deleted.
                     continue
                 }
-                val auftrag = auftragsPosition.auftrag
+                val auftrag = auftragsCache.getOrderInfoByPositionId(auftragsPositionId)
+                //val auftrag = auftragsPosition.auftrag
                 val rechnungPosInfo = rechnungCache.ensureRechnungPosInfo(pos)
                 pos.info = rechnungPosInfo
-                mapByAuftragId.getOrPut(auftrag!!.id ?: 0) { TreeSet() }
-                    .add(rechnungPosInfo)
+                auftrag?.id?.let { auftragId ->
+                    mapByAuftragId.getOrPut(auftragId) { TreeSet() }
+                        .add(rechnungPosInfo)
+                }
                 mapByAuftragsPositionId
-                    .getOrPut(auftragsPosition.id ?: 0) { TreeSet() }
+                    .getOrPut(auftragsPositionId) { TreeSet() }
                     .add(rechnungPosInfo)
-                mapByRechnungsPositionMapByRechnungId.getOrPut(rechnung.id ?: 0) { TreeSet() }
+                mapByRechnungsPositionMapByRechnungId.getOrPut(rechnung.id) { TreeSet() }
                     .add(rechnungPosInfo)
             }
             this.invoicePositionMapByAuftragId = mapByAuftragId

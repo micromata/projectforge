@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import org.projectforge.business.fibu.AbstractRechnungsStatistik.Companion.rechnungCache
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
@@ -47,6 +48,9 @@ object RechnungCalculator {
      */
     fun calculate(rechnung: AbstractRechnungDO): RechnungInfo {
         val info = RechnungInfo(rechnung)
+        if (rechnung.deleted) {
+            return info
+        }
         rechnung.info = info
         info.faelligkeitOrDiscountMaturity = rechnung.discountMaturity.let {
             if (it != null && !info.isBezahlt && !it.isBefore(LocalDate.now())) {
@@ -57,6 +61,9 @@ object RechnungCalculator {
         }
         val posInfoList = mutableListOf<RechnungPosInfo>()
         rechnung.positionen?.forEach { pos ->
+            if (pos.deleted) {
+                return@forEach
+            }
             var posInfo = rechnungCache.getRechnungPosInfo(pos.id)
             if (posInfo == null) {
                 posInfo = RechnungPosInfo(info, pos as AbstractRechnungsPositionDO)
@@ -102,11 +109,13 @@ object RechnungCalculator {
     internal fun calculate(posInfo: RechnungPosInfo, position: AbstractRechnungsPositionDO): RechnungPosInfo {
         position.info = posInfo
         if (position is RechnungsPositionDO) {
-            position.auftragsPosition?.id.let { auftragsPositionId ->
-                posInfo.auftragsPositionId = auftragsPositionId
-                val orderPosInfo = auftragsCache.getOrderPositionInfo(auftragsPositionId)
-                posInfo.auftragsId = orderPosInfo?.auftragId
-                posInfo.auftragsPositionNummer = orderPosInfo?.number
+            val orderPosInfo = auftragsCache.getOrderPositionInfo(position.auftragsPosition?.id)
+            if (orderPosInfo != null) { // auftragsPosition is null, if auftragsPosition is deleted.
+                position.auftragsPosition?.id.let { auftragsPositionId ->
+                    posInfo.auftragsPositionId = auftragsPositionId
+                    posInfo.auftragsId = orderPosInfo.auftragId
+                    posInfo.auftragsPositionNummer = orderPosInfo.number
+                }
             }
         }
         posInfo.netSum = calculateNetSum(position)

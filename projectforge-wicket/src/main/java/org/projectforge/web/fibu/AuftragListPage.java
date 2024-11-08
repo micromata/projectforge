@@ -39,6 +39,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.KundeCache;
+import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.UserException;
@@ -50,6 +52,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -78,6 +81,12 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                                      final IModel<AuftragDO> rowModel) {
                 final AuftragDO auftrag = rowModel.getObject();
                 final OrderInfo orderInfo = WicketSupport.get(AuftragsCache.class).getOrderInfo(auftrag);
+                // Avoid lazy loading:
+                final ProjektDO projekt = WicketSupport.get(ProjektCache.class).getProjektIfNotInitialized(auftrag.getProjekt());
+                auftrag.setProjekt(projekt);
+                // Avoid lazy loading:
+                final KundeDO kunde = WicketSupport.get(KundeCache.class).getKundeIfNotInitialized(auftrag.getKunde());
+                auftrag.setKunde(kunde);
                 if (auftrag.getAuftragsStatus() == null) {
                     // Should not occur:
                     return;
@@ -121,7 +130,10 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
             public void populateItem(final Item<ICellPopulator<AuftragDO>> cellItem, final String componentId,
                                      final IModel<AuftragDO> rowModel) {
                 final AuftragDO auftrag = rowModel.getObject();
-                final List<AuftragsPositionDO> list = auftrag.getPositionenExcludingDeleted();
+                Collection<OrderPositionInfo> list = auftrag.getInfo().getInfoPositions();
+                if (list == null) {
+                    list = new ArrayList<>();
+                }
                 final Label label = new Label(componentId, new Model<String>("#" + list.size()));
 
                 final StringBuilder sb = new StringBuilder();

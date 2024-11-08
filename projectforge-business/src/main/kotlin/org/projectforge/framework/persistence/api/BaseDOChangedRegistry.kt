@@ -50,6 +50,14 @@ class BaseDOChangedRegistry<O : ExtendedBaseDO<Long>>(val baseDao: BaseDao<O>) :
     }
 
     /**
+     * Calls [BaseDaoPersistenceListener.afterLoad] for baseDao.
+     * @see BaseDaoPersistenceListener.afterLoad
+     */
+    override fun afterLoad(list: List<O>): List<O> {
+        return baseDao.afterLoad(list)
+    }
+
+    /**
      * Calls [BaseDaoPersistenceListener.beforeInsertOrModify] for baseDao.
      * Calls for all registered [BaseDOModifiedListener.beforeInsertOrModify].
      * @see BaseDOModifiedListener.beforeInsertOrModify

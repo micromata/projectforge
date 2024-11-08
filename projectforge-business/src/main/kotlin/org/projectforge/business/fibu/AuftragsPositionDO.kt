@@ -147,20 +147,6 @@ open class AuftragsPositionDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "mode_of_payment_type", length = 13)
   open var modeOfPaymentType: ModeOfPaymentType? = null
 
-  val toBeInvoiced: Boolean
-    @Transient
-    get() {
-      if (deleted) {
-        return false
-      }
-      if (status != null && status!!.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
-        return false
-      }
-      return if (auftrag!!.auftragsStatus != AuftragsStatus.ABGESCHLOSSEN && status != AuftragsPositionsStatus.ABGESCHLOSSEN) {
-        false
-      } else vollstaendigFakturiert != true
-    }
-
   val auftragId: Long?
     @Transient
     get() = auftrag?.id

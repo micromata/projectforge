@@ -304,6 +304,7 @@ open class PfPersistenceService {
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
         entityGraphName: String? = null,
+        cacheable: Boolean = false,
     ): List<T> {
         return runReadOnly { context ->
             context.executeQuery(
@@ -315,6 +316,7 @@ open class PfPersistenceService {
                 maxResults = maxResults,
                 lockModeType = lockModeType,
                 entityGraphName = entityGraphName,
+                cacheable = cacheable,
             )
         }
     }
@@ -332,6 +334,7 @@ open class PfPersistenceService {
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
         entityGraphName: String? = null,
+        cacheable: Boolean = false,
     ): List<T> {
         return executeQuery(
             sql = sql,
@@ -342,6 +345,7 @@ open class PfPersistenceService {
             maxResults = maxResults,
             lockModeType = lockModeType,
             entityGraphName = entityGraphName,
+            cacheable = cacheable,
         )
     }
 

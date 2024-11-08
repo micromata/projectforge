@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.apache.fop.complexscripts.fonts.GlyphPositioningSubtable.position
 import org.projectforge.common.extensions.abbreviate
 import java.io.Serializable
 import java.math.BigDecimal
@@ -31,12 +30,12 @@ import java.math.BigDecimal
 /**
  * Cached information about an order position.
  */
-class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo? = null) : Serializable {
+class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serializable {
     val id = position.id
     val number = position.number
     val auftrag = order
-    val auftragId = order?.id
-    val auftragNummer = order?.nummer
+    val auftragId = order.id
+    val auftragNummer = order.nummer
     val titel = position.titel
     var invoicedSum = BigDecimal.ZERO
     val status = position.status
@@ -50,4 +49,16 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo? = null) 
     val periodOfPerformanceEnd = position.periodOfPerformanceEnd
     val taskId = position.taskId
     val bemerkung = position.bemerkung.abbreviate(30)
+    val toBeInvoiced: Boolean
+
+    init {
+        if (position.deleted) {
+            throw IllegalArgumentException("Position is deleted: $position")
+        }
+        toBeInvoiced = if (status != null && status.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
+                false
+            } else if (order?.auftragsStatus != AuftragsStatus.ABGESCHLOSSEN && status != AuftragsPositionsStatus.ABGESCHLOSSEN) {
+                false
+            } else vollstaendigFakturiert != true
+    }
 }
