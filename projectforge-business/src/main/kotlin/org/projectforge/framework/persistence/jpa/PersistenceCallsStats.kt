@@ -35,6 +35,10 @@ import org.projectforge.common.extensions.format
  * Multiple calls stats aren't supported, the last one wins and overwrites any exiting stats.
  * If you want to use it in a multithreaded context, you have to synchronize it.
  * Please note, that the indirect database calls e.g. on lazy loading aren't counted.
+ *
+ * Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
+ * org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
+ *
  */
 class PersistenceCallsStats(val entityManager: EntityManager, val extended: Boolean) {
     enum class CallType { CRITERIA_UPDATE, FIND, GET_REFERENCE, MERGE, PERSIST, REMOVE, UPDATE, QUERY, SELECT }
@@ -67,8 +71,11 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
     val updateCount: Long
     val insertCount: Long
     val deleteCount: Long
-    val loadCount: Long
     val fetchCount: Long
+    val collectionFetchCount: Long
+    val collectionRecreateCount: Long
+    val collectionRemoveCount: Long
+    val collectionUpdateCount: Long
     val statistics: StatisticsImplementor
 
     init {
@@ -79,7 +86,11 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
         updateCount = statistics.entityUpdateCount
         insertCount = statistics.entityInsertCount
         deleteCount = statistics.entityDeleteCount
-        loadCount = statistics.entityLoadCount
+        collectionFetchCount = statistics.collectionFetchCount
+        collectionRecreateCount = statistics.collectionRecreateCount
+        collectionRemoveCount = statistics.collectionRemoveCount
+        collectionUpdateCount = statistics.collectionUpdateCount
+        // entityLoadCount is the number of entity loads (including cache access)
         fetchCount = statistics.entityFetchCount
     }
 
@@ -102,16 +113,18 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
         sb.append("read=").append(countMap.filter { readOperations.contains(it.key.method) }.values.sum()).append(",")
         sb.append("write=").append(countMap.filter { writeOperations.contains(it.key.method) }.values.sum()).append("}")
         sb.append(", SessionStats(global)={")
-        val total = statistics.queryExecutionCount - queryCount + statistics.entityUpdateCount - updateCount +
-                statistics.entityInsertCount - insertCount + statistics.entityDeleteCount - deleteCount +
-                statistics.entityLoadCount - loadCount + statistics.entityFetchCount - fetchCount
-        sb.append("total=").append(total)
-        append(sb, "query", statistics.queryExecutionCount, queryCount)
-        append(sb, "update", statistics.entityUpdateCount, updateCount)
-        append(sb, "insert", statistics.entityInsertCount, insertCount)
-        append(sb, "delete", statistics.entityDeleteCount, deleteCount)
-        append(sb, "load", statistics.entityLoadCount, loadCount)
-        append(sb, "fetch", statistics.entityFetchCount, fetchCount)
+        val sb2 = StringBuilder()
+        var total = append(sb2, "query", statistics.queryExecutionCount, queryCount)
+        total += append(sb2, "fetch", statistics.entityFetchCount, fetchCount)
+        total += append(sb2, "update", statistics.entityUpdateCount, updateCount)
+        total += append(sb2, "insert", statistics.entityInsertCount, insertCount)
+        total += append(sb2, "delete", statistics.entityDeleteCount, deleteCount)
+        total += append(sb2, "collectionFetch", statistics.collectionFetchCount, collectionFetchCount)
+        total += append(sb2, "collectionUpdate", statistics.collectionUpdateCount, collectionUpdateCount)
+        total += append(sb2, "collectionRemove", statistics.collectionRemoveCount, collectionRemoveCount)
+        total += append(sb2, "collectionRecreate", statistics.collectionRecreateCount, collectionRecreateCount)
+        sb.append("total=").append(total.format())
+        sb.append(sb2.toString())
         sb.append("}")
         if (extended) {
             sb.appendLine()
@@ -126,9 +139,10 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
         return sb.toString()
     }
 
-    private fun append(sb: StringBuilder, key: String, newValue: Long, savedValue: Long) {
-        if (savedValue == newValue) return
+    private fun append(sb: StringBuilder, key: String, newValue: Long, savedValue: Long): Long {
+        if (savedValue == newValue) return 0
         sb.append(",").append(key).append("=").append((newValue - savedValue).format())
+        return newValue - savedValue
     }
 
     companion object {
