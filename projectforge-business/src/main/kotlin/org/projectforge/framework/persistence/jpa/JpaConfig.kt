@@ -23,6 +23,7 @@
 
 package org.projectforge.framework.persistence.jpa
 
+import org.hibernate.cache.jcache.internal.JCacheRegionFactory
 import org.hibernate.cfg.AvailableSettings
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -47,7 +48,7 @@ open class JpaConfig {
     private val hibernateUseSqlComments = false
 
     @Value("\${hibernate.generate_statistics}")
-    private val hibernateGenerateStatistics = false
+    private val hibernateGenerateStatistics = true
 
     @Value("\${hibernate.hbm2ddl.auto}")
     private val hibernateHbm2ddlAuto: String? = null
@@ -65,7 +66,6 @@ open class JpaConfig {
         factoryBean.jpaVendorAdapter = vendorAdapter
 
         val properties = Properties()
-        properties.setProperty("hibernate.hbm2ddl.auto", hibernateHbm2ddlAuto)
         //properties.put(AvailableSettings.DIALECT, hibernateDialect);
         properties[AvailableSettings.SHOW_SQL] = hibernateShowSql
         properties[AvailableSettings.FORMAT_SQL] = hibernateFormatSql
@@ -77,20 +77,15 @@ open class JpaConfig {
         properties[AvailableSettings.AUTOCOMMIT] = false
         properties[AvailableSettings.DEFAULT_BATCH_FETCH_SIZE] = 100
 
+        properties["hibernate.javax.cache.uri"] = "classpath://ehcache.xml" // Works.
+        properties["hibernate.cache.use_second_level_cache"] = true
+        properties["hibernate.cache.use_query_cache"] = true
+        properties["hibernate.cache.region.factory_class"] = JCacheRegionFactory::class.qualifiedName
+        properties["hibernate.javax.cache.provider"] = org.ehcache.jsr107.EhcacheCachingProvider::class.qualifiedName
+
         properties["hibernate.search.backend.directory.root"] = hibernateSearchDirectoryRoot
-        //properties["hibernate.search.backends.lucene.directory.type"] = "local-directory"
-        //properties["hibernate.search.backend.type"] = "lucene"
-        //properties.put(AvailableSettings.DATASOURCE, ds);
         factoryBean.setJpaProperties(properties)
 
         return factoryBean
     }
-
-    /*
-    @Bean
-    open fun transactionManager(entityManagerFactory: EntityManagerFactory?): JpaTransactionManager {
-        val transactionManager = JpaTransactionManager()
-        transactionManager.entityManagerFactory = entityManagerFactory
-        return transactionManager
-    }*/
 }

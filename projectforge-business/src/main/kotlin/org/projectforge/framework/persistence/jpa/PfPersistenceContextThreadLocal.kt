@@ -35,7 +35,6 @@ internal object PfPersistenceContextThreadLocal {
     private val threadLocalReadonly = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalTransactional = ThreadLocal<PfPersistenceContext?>()
     private val threadLocalPersistenceConnectionStats = ThreadLocal<PersistenceConnectionStats?>()
-    private val threadLocalPersistenceCallsStats = ThreadLocal<PersistenceCallsStats?>()
 
     /**
      * Gets context of ThreadLocal with transaction, if exists, or readonly context, if exists. Null, if no context exist.

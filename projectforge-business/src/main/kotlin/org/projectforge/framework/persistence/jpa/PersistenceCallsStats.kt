@@ -23,67 +23,24 @@
 
 package org.projectforge.framework.persistence.jpa
 
-import jakarta.persistence.EntityManager
-import org.hibernate.Session
-import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.stat.spi.StatisticsImplementor
 import org.projectforge.common.extensions.format
 
-/**
- * For performance measurement of persistence calls. Each call of persistenceService (CRUD) is counted.
- * Mustn't be thread-safe, because it is used in a thread-local context.
- * Multiple calls stats aren't supported, the last one wins and overwrites any exiting stats.
- * If you want to use it in a multithreaded context, you have to synchronize it.
- * Please note, that the indirect database calls e.g. on lazy loading aren't counted.
- *
- * Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
- * org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
- *
- */
-class PersistenceCallsStats(val entityManager: EntityManager, val extended: Boolean) {
-    enum class CallType { CRITERIA_UPDATE, FIND, GET_REFERENCE, MERGE, PERSIST, REMOVE, UPDATE, QUERY, SELECT }
-    data class Call(val method: CallType, val sql: String, val detail: String? = null) : Comparable<Call> {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Call) return false
+class PersistenceCallsStats() {
+    var queryCount = 0L
+    var updateCount = 0L
+    var insertCount = 0L
+    var deleteCount = 0L
+    var fetchCount = 0L
+    var collectionFetchCount = 0L
+    var collectionRecreateCount = 0L
+    var collectionRemoveCount = 0L
+    var collectionUpdateCount = 0L
+    var secondLevelCacheHitCount = 0L
+    var secondLevelCachePutCount = 0L
+    var secondLevelCacheMissCount = 0L
 
-            return method == other.method && sql == other.sql
-        }
-
-        override fun hashCode(): Int {
-            var result = method.hashCode()
-            result = 31 * result + sql.hashCode()
-            return result
-        }
-
-        override fun compareTo(other: Call): Int {
-            val res = method.compareTo(other.method)
-            if (res != 0) {
-                return res
-            }
-            return sql.compareTo(other.sql)
-        }
-    }
-
-    val usage = mutableListOf<Call>()
-    val countMap = mutableMapOf<Call, Int>()
-    val queryCount: Long
-    val updateCount: Long
-    val insertCount: Long
-    val deleteCount: Long
-    val fetchCount: Long
-    val collectionFetchCount: Long
-    val collectionRecreateCount: Long
-    val collectionRemoveCount: Long
-    val collectionUpdateCount: Long
-    val secondLevelCacheHitCount: Long
-    val secondLevelCachePutCount: Long
-    val secondLevelCacheMissCount: Long
-    val statistics: StatisticsImplementor
-
-    init {
-        val session = entityManager.unwrap(Session::class.java)
-        statistics = (session.factory as SessionFactoryImplementor).statistics
+    internal constructor(statistics: StatisticsImplementor) : this() {
         // Now, let's get the statistics:
         queryCount = statistics.queryExecutionCount
         updateCount = statistics.entityUpdateCount
@@ -101,63 +58,49 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
         secondLevelCacheMissCount = statistics.secondLevelCacheMissCount
     }
 
-    internal fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
-        add(method, entity, detail.toString())
+    /**
+     * Returns the difference between the current and the given statistics.
+     */
+    fun getStats(statistics: StatisticsImplementor): PersistenceCallsStats {
+        val stats = PersistenceCallsStats()
+        stats.queryCount = statistics.queryExecutionCount - queryCount
+        stats.fetchCount = statistics.entityFetchCount - fetchCount
+        stats.updateCount = statistics.entityUpdateCount - updateCount
+        stats.insertCount = statistics.entityInsertCount - insertCount
+        stats.deleteCount = statistics.entityDeleteCount - deleteCount
+        stats.collectionFetchCount = statistics.collectionFetchCount - collectionFetchCount
+        stats.collectionUpdateCount = statistics.collectionUpdateCount - collectionUpdateCount
+        stats.collectionRemoveCount = statistics.collectionRemoveCount - collectionRemoveCount
+        stats.collectionRecreateCount = statistics.collectionRecreateCount - collectionRecreateCount
+        stats.secondLevelCacheHitCount = statistics.secondLevelCacheHitCount - secondLevelCacheHitCount
+        stats.secondLevelCachePutCount = statistics.secondLevelCachePutCount - secondLevelCachePutCount
+        stats.secondLevelCacheMissCount = statistics.secondLevelCacheHitCount - secondLevelCacheMissCount
+        return stats
     }
 
-    internal fun add(method: CallType, entity: String, detail: String? = null) {
-        val call = Call(method, entity, detail)
-        if (extended) {
-            usage.add(call)
-        }
-        countMap[call] = countMap.getOrDefault(call, 0) + 1
-    }
-
-    fun toString(extended: Boolean = false): String {
-        val sb = StringBuilder()
-        sb.append("PersistenceCallsStats(direct calls)={")
-        sb.append("total=").append(countMap.values.sum()).append(",")
-        sb.append("read=").append(countMap.filter { readOperations.contains(it.key.method) }.values.sum()).append(",")
-        sb.append("write=").append(countMap.filter { writeOperations.contains(it.key.method) }.values.sum()).append("}")
-        sb.append(", SessionStats(global)={")
+    fun append(sb: StringBuilder, statistics: StatisticsImplementor) {
         val sb2 = StringBuilder()
-        var total = append(sb2, "query", statistics.queryExecutionCount, queryCount)
-        total += append(sb2, "fetch", statistics.entityFetchCount, fetchCount)
-        total += append(sb2, "update", statistics.entityUpdateCount, updateCount)
-        total += append(sb2, "insert", statistics.entityInsertCount, insertCount)
-        total += append(sb2, "delete", statistics.entityDeleteCount, deleteCount)
-        total += append(sb2, "collectionFetch", statistics.collectionFetchCount, collectionFetchCount)
-        total += append(sb2, "collectionUpdate", statistics.collectionUpdateCount, collectionUpdateCount)
-        total += append(sb2, "collectionRemove", statistics.collectionRemoveCount, collectionRemoveCount)
-        total += append(sb2, "collectionRecreate", statistics.collectionRecreateCount, collectionRecreateCount)
+        val stats = getStats(statistics)
+        var total = append(sb2, "query", stats.queryCount)
+        total += append(sb2, "fetch", stats.fetchCount)
+        total += append(sb2, "update", stats.updateCount)
+        total += append(sb2, "insert", stats.insertCount)
+        total += append(sb2, "delete", stats.deleteCount)
+        total += append(sb2, "collectionFetch", stats.collectionFetchCount)
+        total += append(sb2, "collectionUpdate", stats.collectionUpdateCount)
+        total += append(sb2, "collectionRemove", stats.collectionRemoveCount)
+        total += append(sb2, "collectionRecreate", stats.collectionRecreateCount)
         sb.append("total=").append(total.format())
         sb.append(sb2.toString())
-        append(sb, "secondLevelCacheHitCount", statistics.secondLevelCacheHitCount, secondLevelCacheHitCount)
-        append(sb, "secondLevelCachePutCount", statistics.secondLevelCachePutCount, secondLevelCachePutCount)
-        append(sb, "secondLevelCacheMissCount", statistics.secondLevelCacheHitCount, secondLevelCacheMissCount)
+        append(sb, "secondLevelCacheHitCount", stats.secondLevelCacheHitCount)
+        append(sb, "secondLevelCachePutCount", stats.secondLevelCachePutCount)
+        append(sb, "secondLevelCacheMissCount", stats.secondLevelCacheHitCount)
         sb.append("}")
-        if (extended) {
-            sb.appendLine()
-            countMap.toSortedMap().forEach { (call, count) ->
-                sb.append("method=").append(call.method).append(",")
-                    .append("call=").append(call.sql).append(",")
-                    .append("count=").append(count).append(",")
-                    .append("}")
-                    .appendLine()
-            }
-        }
-        return sb.toString()
     }
 
-    private fun append(sb: StringBuilder, key: String, newValue: Long, savedValue: Long): Long {
-        if (savedValue == newValue) return 0
-        sb.append(",").append(key).append("=").append((newValue - savedValue).format())
-        return newValue - savedValue
-    }
-
-    companion object {
-        val readOperations = arrayOf(CallType.FIND, CallType.GET_REFERENCE, CallType.QUERY, CallType.SELECT)
-        val writeOperations =
-            arrayOf(CallType.CRITERIA_UPDATE, CallType.MERGE, CallType.PERSIST, CallType.REMOVE, CallType.UPDATE)
+    private fun append(sb: StringBuilder, key: String, value: Long): Long {
+        if (value == 0L) return 0
+        sb.append(",").append(key).append("=").append(value.format())
+        return value
     }
 }

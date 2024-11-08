@@ -180,12 +180,6 @@
             <artifactId>ehcache</artifactId>
             <classifier>jakarta</classifier>
             <version>${org.ehcache.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.glassfish.jaxb</groupId>
-                    <artifactId>jaxb-runtime</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -32,7 +32,7 @@ import org.hibernate.NonUniqueResultException
 import org.projectforge.framework.i18n.InternalErrorException
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.api.IdObject
-import org.projectforge.framework.persistence.jpa.PersistenceCallsStats.CallType
+import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder.CallType
 import org.projectforge.framework.persistence.jpa.PfPersistenceContext.ContextType
 
 private val log = KotlinLogging.logger {}
@@ -53,7 +53,7 @@ class PfPersistenceContext internal constructor(
     var savedStats: PersistenceConnectionStats = PfPersistenceContextThreadLocal.getStatsState().getCopyOfCurrentState()
 
     // Stack for the record call stats:
-    private var callStats: PersistenceCallsStats? = null
+    private var callStats: PersistenceCallsRecorder? = null
 
     val em: EntityManager = entityManagerFactory.createEntityManager()
 
@@ -73,17 +73,21 @@ class PfPersistenceContext internal constructor(
     }
 
     internal fun recordCallsStats(extended: Boolean) {
-        callStats = PersistenceCallsStats(em, extended)
+        callStats = PersistenceCallsRecorder(em, extended)
     }
 
     fun formatStats(withDuration: Boolean = true, extended: Boolean = false): String {
         val callsStatsString = callStats?.toString(extended)
         val stats = PfPersistenceContextThreadLocal.getStatsState().getActivities(savedStats).asString(withDuration)
         return if (callsStatsString != null) {
-            "stats=$stats, callStats==$callsStatsString"
+            "stats=$stats, $callsStatsString"
         } else {
             "stats=$stats´"
         }
+    }
+
+    fun getCallStats(): PersistenceCallsStats {
+        return callStats?.getStats() ?: PersistenceCallsStats()
     }
 
     /* init {
@@ -383,7 +387,7 @@ class PfPersistenceContext internal constructor(
         dbObj: T,
     ): T {
         logAndAdd(
-            PersistenceCallsStats.CallType.MERGE,
+            PersistenceCallsRecorder.CallType.MERGE,
             "${dbObj::class.simpleName}",
             PersistenceCallsStatsBuilder()
                 .param("id", if (dbObj is IdObject<*>) dbObj.id else "???")

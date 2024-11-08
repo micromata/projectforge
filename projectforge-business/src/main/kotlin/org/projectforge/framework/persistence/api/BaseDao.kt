@@ -41,7 +41,7 @@ import org.projectforge.framework.persistence.database.DatabaseDao
 import org.projectforge.framework.persistence.database.DatabaseDao.Companion.createReindexSettings
 import org.projectforge.framework.persistence.history.*
 import org.projectforge.framework.persistence.history.HistoryLoadContext
-import org.projectforge.framework.persistence.jpa.PersistenceCallsStats
+import org.projectforge.framework.persistence.jpa.PersistenceCallsRecorder
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.projectforge.framework.persistence.search.HibernateSearchDependentObjectsReindexer
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.loggedInUser
@@ -255,7 +255,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
                 cq.where(deletedPredicate)  // Fügen Sie die Bedingung zur Abfrage hinzu
             }
             val query = em.createQuery(cq)
-            context.logAndAdd(PersistenceCallsStats.CallType.QUERY, doClass.simpleName, "selectAll")
+            context.logAndAdd(PersistenceCallsRecorder.CallType.QUERY, doClass.simpleName, "selectAll")
             query.resultList
         }
         return filterAccess(list, checkAccess = checkAccess, callAfterLoad = true)
@@ -274,7 +274,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             val root = cr.from(doClass)
             cr.select(root).where(root.get<Any>(idProperty).`in`(idList)).distinct(true)
             context.logAndAdd(
-                PersistenceCallsStats.CallType.QUERY,
+                PersistenceCallsRecorder.CallType.QUERY,
                 doClass.simpleName,
                 "select by ids=${idList.joinToString()}"
             )
