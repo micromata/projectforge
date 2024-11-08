@@ -76,6 +76,9 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
     val collectionRecreateCount: Long
     val collectionRemoveCount: Long
     val collectionUpdateCount: Long
+    val secondLevelCacheHitCount: Long
+    val secondLevelCachePutCount: Long
+    val secondLevelCacheMissCount: Long
     val statistics: StatisticsImplementor
 
     init {
@@ -92,6 +95,10 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
         collectionUpdateCount = statistics.collectionUpdateCount
         // entityLoadCount is the number of entity loads (including cache access)
         fetchCount = statistics.entityFetchCount
+
+        secondLevelCacheHitCount = statistics.secondLevelCacheHitCount
+        secondLevelCachePutCount = statistics.secondLevelCachePutCount
+        secondLevelCacheMissCount = statistics.secondLevelCacheMissCount
     }
 
     internal fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
@@ -125,6 +132,9 @@ class PersistenceCallsStats(val entityManager: EntityManager, val extended: Bool
         total += append(sb2, "collectionRecreate", statistics.collectionRecreateCount, collectionRecreateCount)
         sb.append("total=").append(total.format())
         sb.append(sb2.toString())
+        append(sb, "secondLevelCacheHitCount", statistics.secondLevelCacheHitCount, secondLevelCacheHitCount)
+        append(sb, "secondLevelCachePutCount", statistics.secondLevelCachePutCount, secondLevelCachePutCount)
+        append(sb, "secondLevelCacheMissCount", statistics.secondLevelCacheHitCount, secondLevelCacheMissCount)
         sb.append("}")
         if (extended) {
             sb.appendLine()

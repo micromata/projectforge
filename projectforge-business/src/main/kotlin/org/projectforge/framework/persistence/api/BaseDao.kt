@@ -336,7 +336,7 @@ protected constructor(open var doClass: Class<O>) : IDao<O>, BaseDaoPersistenceL
             checkLoggedInUserSelectAccess()
         }
         val list = dbQuery.select(this, filter, customResultFilters, checkAccess)
-        list.forEach { baseDOChangedRegistry.afterLoad(it) }
+        baseDOChangedRegistry.afterLoad(list)
         return list
     }
 

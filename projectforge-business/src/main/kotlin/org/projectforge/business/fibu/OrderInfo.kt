@@ -41,7 +41,7 @@ private val log = KotlinLogging.logger {}
  * @param order The order to get the information from.
  * @see OrderInfo.calculateAll
  */
-class OrderInfo(order: AuftragDO) : Serializable {
+class OrderInfo() : Serializable {
     class PaymentScheduleInfo(schedule: PaymentScheduleDO) : Serializable {
         val id = schedule.id
         val positionNumber = schedule.positionNumber
@@ -150,30 +150,30 @@ class OrderInfo(order: AuftragDO) : Serializable {
 
     /**
      * For list of orders you should select positions and payment schedules in one query to avoid N+1 problem.
-     * @param positions The positions of the order. If not given, the positions of the order will be lazy loaded (if order is attached).
+     * @param positionInfos The positions of the order. If not given, the positions of the order will be lazy loaded (if order is attached).
      * @param paymentSchedules The payment schedules of the order. If not given, the schedules of the order will be lazy loaded (if order is attached).
      */
     fun calculateAll(
         order: AuftragDO,
-        positions: Collection<AuftragsPositionDO>?,
+        positionInfos: Collection<OrderPositionInfo>?,
         paymentSchedules: Collection<PaymentScheduleDO>?,
     ) {
         updateFields(order, paymentSchedules)
-        netSum = calculateNetSum(positions)
-        orderedNetSum = calculateOrderedNetSum(order, positions)
-        analyzeInvoices(positions) // Calculates invoicedSum and positionAbgeschlossenUndNichtVollstaendigFakturiert.
-        toBeInvoicedSum = calculateToBeInvoicedSum(positions, paymentSchedules)
+        netSum = calculateNetSum(positionInfos)
+        orderedNetSum = calculateOrderedNetSum(order, positionInfos)
+        analyzeInvoices(positionInfos) // Calculates invoicedSum and positionAbgeschlossenUndNichtVollstaendigFakturiert.
+        toBeInvoicedSum = calculateToBeInvoicedSum(positionInfos, paymentSchedules)
         notYetInvoicedSum = orderedNetSum - invoicedSum
-        isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(order, positions, paymentSchedules)
-        personDays = calculatePersonDays(positions)
+        isVollstaendigFakturiert = calculateIsVollstaendigFakturiert(order, positionInfos, paymentSchedules)
+        personDays = calculatePersonDays(positionInfos)
         paymentSchedulesReached =
             paymentSchedules?.any { !it.deleted && it.reached && !it.vollstaendigFakturiert } ?: false
         if (paymentSchedulesReached) {
             log.debug("Payment schedules reached for order: ${order.id}")
             toBeInvoiced = true
         } else {
-            if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || positions?.any { it.status == AuftragsPositionsStatus.ABGESCHLOSSEN } == true) {
-                toBeInvoiced = (positions?.any { it.toBeInvoiced } == true)
+            if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || positionInfos?.any { it.status == AuftragsPositionsStatus.ABGESCHLOSSEN } == true) {
+                toBeInvoiced = (positionInfos?.any { it.toBeInvoiced } == true)
                 if (toBeInvoiced) {
                     log.debug("Finished order and/or positions and to be invoiced: ${order.id}")
                 }
@@ -191,9 +191,9 @@ class OrderInfo(order: AuftragDO) : Serializable {
     /**
      * Analyzes the invoices of the positions and calculates the invoiced sum and the flag positionAbgeschlossenUndNichtVollstaendigFakturiert.
      */
-    private fun analyzeInvoices(positions: Collection<AuftragsPositionDO>?) {
+    private fun analyzeInvoices(positions: Collection<OrderPositionInfo>?) {
         invoicedSum = BigDecimal.ZERO
-        positions?.filter { !it.deleted }?.forEach { pos ->
+        positions?.forEach { pos ->
             RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(pos.id, false)?.let { set ->
                 invoicedSum += RechnungDao.getNettoSumme(set)
                 infoPositions?.find { it.id == pos.id }?.invoicedSum = invoicedSum
@@ -205,12 +205,11 @@ class OrderInfo(order: AuftragDO) : Serializable {
     }
 
     private companion object {
-        fun calculateNetSum(positions: Collection<AuftragsPositionDO>?): BigDecimal {
+        fun calculateNetSum(positions: Collection<OrderPositionInfo>?): BigDecimal {
             positions ?: return BigDecimal.ZERO
             return positions
                 .filter {
-                    !it.deleted &&
-                            it.nettoSumme != null &&
+                    it.nettoSumme != null &&
                             it.status !in listOf(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)
                 }
                 .sumOf { it.nettoSumme ?: BigDecimal.ZERO }
@@ -223,7 +222,7 @@ class OrderInfo(order: AuftragDO) : Serializable {
          * @param positions The positions of the order.
          * @return The total net sum of the order.
          */
-        fun calculateOrderedNetSum(order: AuftragDO, positions: Collection<AuftragsPositionDO>?): BigDecimal {
+        fun calculateOrderedNetSum(order: AuftragDO, positions: Collection<OrderPositionInfo>?): BigDecimal {
             if (order.auftragsStatus?.isNotIn(
                     AuftragsStatus.BEAUFTRAGT,
                     AuftragsStatus.ESKALATION,
@@ -233,7 +232,7 @@ class OrderInfo(order: AuftragDO) : Serializable {
                 return BigDecimal.ZERO
             }
             return positions?.filter {
-                !it.deleted && it.status?.isIn(
+                it.status?.isIn(
                     AuftragsPositionsStatus.ABGESCHLOSSEN,
                     AuftragsPositionsStatus.BEAUFTRAGT,
                     AuftragsPositionsStatus.ESKALATION,
@@ -242,7 +241,7 @@ class OrderInfo(order: AuftragDO) : Serializable {
         }
 
         fun calculateToBeInvoicedSum(
-            positions: Collection<AuftragsPositionDO>?,
+            positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleDO>?
         ): BigDecimal {
             var sum = BigDecimal.ZERO
@@ -251,7 +250,7 @@ class OrderInfo(order: AuftragDO) : Serializable {
                 posWithPaymentReached.add(schedule.positionNumber)
                 schedule.amount?.let { amount -> sum = sum.add(amount) }
             }
-            positions?.filter { !it.deleted && it.toBeInvoiced }?.forEach { pos ->
+            positions?.filter { it.toBeInvoiced }?.forEach { pos ->
                 if (!posWithPaymentReached.contains(pos.number)) {
                     // Amount wasn't already added from payment schedule:
                     pos.nettoSumme?.let { nettoSumme -> sum = sum.add(nettoSumme) }
@@ -269,14 +268,14 @@ class OrderInfo(order: AuftragDO) : Serializable {
          */
         fun calculateIsVollstaendigFakturiert(
             order: AuftragDO,
-            positions: Collection<AuftragsPositionDO>?,
+            positions: Collection<OrderPositionInfo>?,
             paymentSchedules: Collection<PaymentScheduleDO>?
         ): Boolean {
             if (order.auftragsStatus != AuftragsStatus.ABGESCHLOSSEN) {
                 // Only finished orders can be fully invoiced.
                 return false
             }
-            positions?.filter { !it.deleted }?.forEach { pos ->
+            positions?.forEach { pos ->
                 if (pos.vollstaendigFakturiert != true &&
                     (pos.status?.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT) != true)
                 ) {
@@ -285,7 +284,7 @@ class OrderInfo(order: AuftragDO) : Serializable {
                 }
             }
             paymentSchedules?.filter { it.valid && !it.vollstaendigFakturiert }?.forEach { paymentSchedule ->
-                positions?.find { !it.deleted && it.number == paymentSchedule.number }?.let { pos ->
+                positions?.find { it.number == paymentSchedule.number }?.let { pos ->
                     if (pos.status?.isIn(
                             AuftragsPositionsStatus.ABGESCHLOSSEN,
                             AuftragsPositionsStatus.BEAUFTRAGT,
@@ -300,9 +299,9 @@ class OrderInfo(order: AuftragDO) : Serializable {
             return true
         }
 
-        fun calculatePersonDays(positions: Collection<AuftragsPositionDO>?): BigDecimal {
+        fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {
             var result = BigDecimal.ZERO
-            positions?.filter { !it.deleted && it.personDays != null }?.forEach { pos ->
+            positions?.filter { it.personDays != null }?.forEach { pos ->
                 if (pos.status != AuftragsPositionsStatus.ABGELEHNT && pos.status != AuftragsPositionsStatus.ERSETZT) {
                     result += pos.personDays!!
                 }

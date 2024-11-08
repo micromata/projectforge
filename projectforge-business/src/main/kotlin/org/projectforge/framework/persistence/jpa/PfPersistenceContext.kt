@@ -251,6 +251,11 @@ class PfPersistenceContext internal constructor(
     /**
      * No null result values are allowed.
      * @param attached If true, the result will not be detached if of type entity (default is false, meaning detached).
+     * @param namedQuery If true, [EntityManager.createNamedQuery] is used.
+     * @param maxResults If not null, [Query.setMaxResults] is called.
+     * @param lockModeType If not null, [Query.setLockMode] is called.
+     * @param entityGraphName If not null, [EntityManager.getEntityGraph] is called and [Query.setHint] with [ENTITY_GRAPH_HINT_KEY].
+     * @param cacheable If true, [Query.setHint] with "org.hibernate.cacheable" is called.
      */
     fun <T> executeQuery(
         sql: String,
@@ -261,11 +266,13 @@ class PfPersistenceContext internal constructor(
         maxResults: Int? = null,
         lockModeType: LockModeType? = null,
         entityGraphName: String? = null,
+        cacheable: Boolean = false,
     ): List<T> {
         val q = createQuery(
             sql = sql, resultClass = resultClass, keyValues = keyValues, namedQuery = namedQuery,
             debugLog = false, // Log already done, see below.
             entityGraphName = entityGraphName,
+            cacheable = cacheable,
         )
         if (lockModeType != null) {
             q.lockMode = lockModeType
@@ -325,6 +332,7 @@ class PfPersistenceContext internal constructor(
         namedQuery: Boolean = false,
         debugLog: Boolean = true,
         entityGraphName: String? = null,
+        cacheable: Boolean = false,
     ): TypedQuery<T> {
         val query: TypedQuery<T> = if (namedQuery) {
             em.createNamedQuery(sql, resultClass)
@@ -337,6 +345,9 @@ class PfPersistenceContext internal constructor(
         if (entityGraphName != null) {
             val entityGraph = em.getEntityGraph(entityGraphName)
             query.setHint(ENTITY_GRAPH_HINT_KEY, entityGraph)
+        }
+        if (cacheable) {
+            query.setHint("org.hibernate.cacheable", true)
         }
         if (debugLog) {
             logAndAdd(

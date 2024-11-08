@@ -490,7 +490,8 @@ open class AuftragEditForm(parentPage: AuftragEditPage?, data: AuftragDO) :
       data!!.addPosition(AuftragsPositionDO())
     }
     for (position in data!!.positionenIncludingDeleted!!) {
-      val abgeschlossenUndNichtFakturiert = position.toBeInvoiced
+      val orderPositionInfo = OrderPositionInfo(position, data!!.info)
+      val abgeschlossenUndNichtFakturiert = orderPositionInfo.toBeInvoiced
       val positionsPanel: ToggleContainerPanel = object : ToggleContainerPanel(positionsRepeater!!.newChildId()) {
         /**
          * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.wantsOnStatusChangedNotification

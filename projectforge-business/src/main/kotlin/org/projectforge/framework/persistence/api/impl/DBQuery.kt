@@ -184,7 +184,6 @@ open class DBQuery {
                             next
                         )
                     ) {
-                        baseDao.afterLoad(next)
                         list.add(next)
                         if (++resultCounter >= filter.maxRows) {
                             break

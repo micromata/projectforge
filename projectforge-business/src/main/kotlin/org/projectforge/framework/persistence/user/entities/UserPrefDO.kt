@@ -27,6 +27,8 @@ package org.projectforge.framework.persistence.user.entities
 
 import jakarta.persistence.*
 import mu.KotlinLogging
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed
@@ -47,7 +49,6 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_IDS_AND_NAMES_BY_USER_AND_AREA
-import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_NAMES_BY_USER_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
 import java.io.Serializable
 import java.util.*
@@ -85,10 +86,6 @@ private val log = KotlinLogging.logger {}
         query = "from UserPrefDO where user.id=:userId and area=:area and name is null"
     ),
     NamedQuery(
-        name = FIND_NAMES_BY_USER_AND_AREA,
-        query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"
-    ),
-    NamedQuery(
         name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA,
         query = "select id, name from UserPrefDO where user.id=:userId and area=:area order by name"
     ),
@@ -97,6 +94,8 @@ private val log = KotlinLogging.logger {}
         query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"
     )
 )
+@Cacheable(true)
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
@@ -313,8 +312,6 @@ class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
         internal const val FIND_OTHER_BY_USER_AND_AREA_AND_NAME = "UserPrefDO_FindOtherByUserIdAndAreaAndName"
 
         internal const val FIND_BY_USER_ID_AND_AREA_AND_NULLNAME = "UserPrefDO_FindByUserIdAndAreaAndNullName"
-
-        internal const val FIND_NAMES_BY_USER_AND_AREA = "UserPrefDO_FindNamesByUserIdAndArea"
 
         internal const val FIND_IDS_AND_NAMES_BY_USER_AND_AREA = "UserPrefDO_FindIdsAndNamesByUserIdAndArea"
     }

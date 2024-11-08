@@ -90,7 +90,7 @@ class ProjektCache : AbstractCache() {
      */
     override fun refresh() {
         log.info("Initializing ProjektCache ...")
-        persistenceService.runIsolatedReadOnly { context ->
+        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
             this.projektMap = context
                 .executeQuery("from ProjektDO t", ProjektDO::class.java, lockModeType = LockModeType.NONE)
                 .filter { it.id != null }

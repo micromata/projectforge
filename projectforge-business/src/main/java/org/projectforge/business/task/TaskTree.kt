@@ -564,8 +564,9 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                         val taskId = pos.taskId
                         if (taskId != null) {
                             val set = references.getOrPut(taskId) { mutableSetOf() }
-                            val orderInfo = auftragsCache.getOrderInfo(pos.auftragId)
-                            set.add(OrderPositionInfo(pos, orderInfo))
+                            auftragsCache.getOrderPositionInfo(pos.id)?.let {
+                                set.add(it)
+                            }
                         }
                     }
                     resetOrderPersonDays(root!!)

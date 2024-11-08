@@ -377,7 +377,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @get:Transient
     @JsonIgnore
     @CandHIgnore
-    var info = OrderInfo(this)
+    var info = OrderInfo()
 
     @Deprecated("Use info.netSum instead.")
     @get:Transient

@@ -42,12 +42,25 @@ interface BaseDaoPersistenceListener<O : ExtendedBaseDO<Long>> : BaseDOModifiedL
 
     /**
      * This method will be called after loading an object from the database.
-     * Called inside transaction.
+     * Called outside transaction for lists (if called by afterLoad(list), inside transaction otherwise.
      * Does nothing at default.
      * @param obj The loaded object.
      */
     fun afterLoad(obj: O) {
     }
+
+    /**
+     * This method will be called after loading an object from the database.
+     * Called outside transaction.
+     * Does nothing at default.
+     * @param list The loaded object list.
+     * @return The given list itself. Override this method and return another list for avoiding lazy fetching (for example, see AuftragDao).
+     */
+    fun afterLoad(list: List<O>): List<O> {
+        list.forEach { afterLoad(it) }
+        return list
+    }
+
 
     /**
      * This method will be called after inserting.
