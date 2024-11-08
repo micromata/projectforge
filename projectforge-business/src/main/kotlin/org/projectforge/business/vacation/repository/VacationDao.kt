@@ -264,15 +264,6 @@ open class VacationDao : BaseDao<VacationDO>(VacationDO::class.java) {
         return accessChecker.hasRight(loggedInUser, UserRightId.HR_VACATION, false, UserRightValue.READWRITE)
     }
 
-    open fun getCurrentAndFutureVacations(): List<VacationDO> {
-        return persistenceService.executeNamedQuery(
-            VacationDO.FIND_CURRENT_AND_FUTURE,
-            VacationDO::class.java,
-            Pair("endDate", LocalDate.now()),
-            Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
-        )
-    }
-
     private fun isOwnEntry(loggedInUser: PFUserDO, obj: VacationDO, oldObj: VacationDO?): Boolean {
         return if (!isOwnEntry(loggedInUser, obj)) {
             false

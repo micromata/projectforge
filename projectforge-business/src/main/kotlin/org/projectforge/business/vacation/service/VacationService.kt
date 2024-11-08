@@ -285,11 +285,13 @@ open class VacationService {
         return vacationDao.select(idList, checkAccess = false)
     }
 
-    fun selectVacations(): List<VacationDO> {
-        return persistenceService.executeQuery(
-            "SELECT v FROM VacationDO v",
+    open fun getCurrentAndFutureVacations(): List<VacationDO> {
+        return persistenceService.executeNamedQuery(
+            VacationDO.FIND_CURRENT_AND_FUTURE,
             VacationDO::class.java,
-            entityGraphName = "Vacation.withOtherReplacementIds",
+            Pair("endDate", LocalDate.now()),
+            Pair("statusList", listOf(VacationStatus.APPROVED, VacationStatus.IN_PROGRESS)),
+            entityGraphName = VacationDO.ENTITY_GRAPH_WITH_OTHER_REPLACEMENTIDS
         )
     }
 
