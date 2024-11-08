@@ -1,4 +1,5 @@
 Aktuell:
+- AuftragListe: fakturiertsum nicht berechnet.
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
   - Auftrag editieren: massenhaft SQLs

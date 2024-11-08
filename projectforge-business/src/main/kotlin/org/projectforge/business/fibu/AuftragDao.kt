@@ -497,7 +497,12 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     }
 
     override fun afterLoad(obj: AuftragDO) {
-        auftragsCache.setOrderInfo(obj, checkRefresh = false)
+        auftragsCache.setOrderInfo(obj)
+    }
+
+    override fun afterLoad(list: List<AuftragDO>): List<AuftragDO> {
+        // TODO: Fetches all order positions, payment schedules and auftrag of positions!
+        return super.afterLoad(list)
     }
 
     override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?, isModified: Boolean) {

@@ -126,7 +126,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       @Override
       protected String getTooltip()
       {
-        final PFUserDO user = getModel().getObject();
+        final PFUserDO user = WicketSupport.getUserGroupCache().getUserIfNotInitialized(getModel().getObject());
         if (user == null) {
           return null;
         }
@@ -177,8 +177,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
             if (value == null) {
               return "";
             }
-            final PFUserDO user = (PFUserDO) value;
-            return user.getUsername();
+            return WicketSupport.getUserGroupCache().getUser(((PFUserDO) value).getId()).getUsername();
           }
 
         };

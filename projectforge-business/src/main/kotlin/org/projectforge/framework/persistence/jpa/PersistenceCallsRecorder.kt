@@ -27,7 +27,6 @@ import jakarta.persistence.EntityManager
 import org.hibernate.Session
 import org.hibernate.engine.spi.SessionFactoryImplementor
 import org.hibernate.stat.spi.StatisticsImplementor
-import org.projectforge.common.extensions.format
 
 /**
  * For performance measurement of persistence calls. Each call of persistenceService (CRUD) is counted.
@@ -74,7 +73,6 @@ internal class PersistenceCallsRecorder(val entityManager: EntityManager, val ex
         val session = entityManager.unwrap(Session::class.java)
         statistics = (session.factory as SessionFactoryImplementor).statistics
         callStats = PersistenceCallsStats(statistics)
-        println("**** init: put=${statistics.secondLevelCachePutCount}, hit=${statistics.secondLevelCacheHitCount}, miss=${statistics.secondLevelCacheMissCount}")
     }
 
     internal fun add(method: CallType, entity: String, detail: PersistenceCallsStatsBuilder) {
@@ -100,7 +98,6 @@ internal class PersistenceCallsRecorder(val entityManager: EntityManager, val ex
         sb.append("read=").append(countMap.filter { readOperations.contains(it.key.method) }.values.sum()).append(",")
         sb.append("write=").append(countMap.filter { writeOperations.contains(it.key.method) }.values.sum()).append("}")
         sb.append(", ")
-        println("**** put=${statistics.secondLevelCachePutCount}, hit=${statistics.secondLevelCacheHitCount}, miss=${statistics.secondLevelCacheMissCount}")
         callStats.append(sb, statistics)
         if (extended) {
             sb.appendLine()
