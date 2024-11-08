@@ -25,8 +25,10 @@ package org.projectforge.business.user
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.hibernate.Hibernate
 import org.projectforge.business.fibu.ProjektDO
 import org.projectforge.business.login.Login
+import org.projectforge.business.scripting.Cache.getProjekt
 import org.projectforge.framework.ToStringUtil
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.jobs.JobHandler
@@ -140,6 +142,19 @@ open class UserGroupCache : AbstractCache() {
             return userMap.values.find { username == it.username }
         }
     }
+
+    /**
+     * Returns the PFUserDO if it is initialized (Hibernate). Otherwise, it will be loaded from the database.
+     * Prevents lazy loadings.
+     */
+    fun getUserIfNotInitialized(user: PFUserDO?): PFUserDO? {
+        val userId = user?.id ?: return null
+        if (Hibernate.isInitialized(user)) {
+            return user
+        }
+        return getUser(userId)
+    }
+
 
     fun getUserByFullname(fullname: String): PFUserDO? {
         if (fullname.isBlank()) {

@@ -64,7 +64,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         auftragId ?: return null
         checkRefresh()
         synchronized(orderPositionMapByPosId) {
-            val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
+            // val list = orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
             return orderPositionMapByPosId.values.filter { it.auftragId == auftragId }
         }
     }
@@ -189,15 +189,9 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
             val nOrderPositionInfosByOrderId = mutableMapOf<Long, MutableList<OrderPositionInfo>>()
             val orders = context.executeQuery("SELECT t FROM AuftragDO t", AuftragDO::class.java)
             orders.forEach { order ->
-                log.debug { "Cached payment schedules for order ${order.id}: ${paymentSchedules[order.id]?.size}" }
-                nOrderInfoMap[order.id!!] =
-                    order.info.also {
-                        it.calculateAll(
-                            order,
-                            nOrderPositionInfosByOrderId[order.id],
-                            paymentSchedules[order.id]
-                        )
-                    }
+                nOrderInfoMap[order.id!!] = order.info.also {
+                    it.updateFields(order)
+                }
             }
             orderPositions.forEach orderPositions@{ (auftragId, positions) ->
                 positions.forEach { pos ->
@@ -212,6 +206,15 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
                     nOrderPositionInfosByOrderId.computeIfAbsent(auftragId) { mutableListOf() }.add(posInfo)
                 }
             }
+            orders.forEach { order ->
+                log.debug { "Cached payment schedules for order ${order.id}: ${paymentSchedules[order.id]?.size}" }
+                order.info.calculateAll(
+                    order,
+                    nOrderPositionInfosByOrderId[order.id],
+                    paymentSchedules[order.id]
+                )
+            }
+
             orderInfoMap = nOrderInfoMap
             orderPositionMapByPosId = nOrderPositionMapByPosId
             orderPositionIdsMapByOrder = nOrderPositionIdsMapByOrder

@@ -47,6 +47,7 @@ import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_BY_USER_ID_AND_AREA_AND_NULLNAME
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_IDS_AND_NAMES_BY_USER_AND_AREA
+import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_NAMES_BY_USER_AND_AREA
 import org.projectforge.framework.persistence.user.entities.UserPrefDO.Companion.FIND_OTHER_BY_USER_AND_AREA_AND_NAME
 import java.io.Serializable
 import java.util.*
@@ -76,16 +77,16 @@ private val log = KotlinLogging.logger {}
         query = "from UserPrefDO where user.id=:userId and area=:area and name=:name"
     ),
     NamedQuery(
-        name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA,
-        query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"
-    ),
-    NamedQuery(
         name = FIND_BY_USER_AND_AREA_AND_ID,
         query = "from UserPrefDO where user.id=:userId and area=:area and id=:id"
     ),
     NamedQuery(
         name = FIND_BY_USER_ID_AND_AREA_AND_NULLNAME,
         query = "from UserPrefDO where user.id=:userId and area=:area and name is null"
+    ),
+    NamedQuery(
+        name = FIND_NAMES_BY_USER_AND_AREA,
+        query = "select name from UserPrefDO where user.id=:userId and area=:area order by name"
     ),
     NamedQuery(
         name = FIND_IDS_AND_NAMES_BY_USER_AND_AREA,
@@ -96,7 +97,7 @@ private val log = KotlinLogging.logger {}
         query = "from UserPrefDO where id<>:id and user.id=:userId and area=:area and name=:name"
     )
 )
-open class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
+class UserPrefDO : AbstractBaseDO<Long>(), IUserPref {
     @IndexedEmbedded(includeDepth = 1)
     @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
     @get:ManyToOne(fetch = FetchType.LAZY)
