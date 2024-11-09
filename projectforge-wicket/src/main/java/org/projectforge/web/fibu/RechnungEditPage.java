@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -158,14 +159,14 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     if ("projektId".equals(property)) {
       getBaseDao().setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
-      if (getData().getProjektId() != null
-              && getData().getProjektId() >= 0
-              && getData().getKundeId() == null
+      if (getData().getProjekt() != null
+              && getData().getProjekt().getId() >= 0
+              && getData().getKunde() == null
               && StringUtils.isBlank(getData().getKundeText())) {
         // User has selected a project and the kunde is not set:
-        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).find(getData().getProjektId());
+        final ProjektDO projekt = WicketSupport.get(ProjektCache.class).getProjektIfNotInitialized(getData().getProjekt());
         if (projekt != null) {
-          getBaseDao().setKunde(getData(), projekt.getKundeId());
+          getBaseDao().setKunde(getData(), projekt.getKunde());
           form.customerSelectPanel.getTextField().modelChanged();
         }
       }

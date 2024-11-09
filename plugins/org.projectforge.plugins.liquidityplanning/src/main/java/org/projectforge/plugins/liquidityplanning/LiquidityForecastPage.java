@@ -94,7 +94,7 @@ public class LiquidityForecastPage extends AbstractStandardFormPage {
             final JFreeChartImage image = new JFreeChartImage(ImagePanel.IMAGE_ID, chartModel, IMAGE_WIDTH, IMAGE_HEIGHT);
             image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
             image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
-            xyPlotImage.addImage(image);
+            xyPlotImage.addImageIfNotPresent(image);
         }
         {
             IModel<JFreeChart> chartModel = new LoadableDetachableModel<>() {
@@ -106,7 +106,7 @@ public class LiquidityForecastPage extends AbstractStandardFormPage {
             final JFreeChartImage image = new JFreeChartImage(ImagePanel.IMAGE_ID, chartModel, IMAGE_WIDTH, IMAGE_HEIGHT);
             image.add(AttributeModifier.replace("width", String.valueOf(IMAGE_WIDTH)));
             image.add(AttributeModifier.replace("height", String.valueOf(IMAGE_HEIGHT)));
-            barChartImage.addImage(image);
+            barChartImage.addImageIfNotPresent(image);
         }
     }
 

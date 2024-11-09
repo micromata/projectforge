@@ -848,10 +848,10 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
             }
             // Now read all projects with their references to tasks:
             projektDao.selectAll(checkAccess = false).forEach { project ->
-                if (project.deleted || project.taskId == null) {
+                if (project.deleted || project.task?.id == null) {
                     return@forEach
                 }
-                val node = nTaskMap[project.taskId]
+                val node = nTaskMap[project.task?.id]
                 node.let { n ->
                     if (n == null) {
                         log.error { "Oups, should not occur: project references a non existing task: $project" }

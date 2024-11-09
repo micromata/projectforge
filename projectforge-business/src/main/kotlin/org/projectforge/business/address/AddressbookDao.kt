@@ -45,13 +45,7 @@ open class AddressbookDao : BaseDao<AddressbookDO>(AddressbookDO::class.java) {
     private lateinit var userDao: UserDao
 
     @Autowired
-    private lateinit var groupService: GroupService
-
-    @Autowired
     private lateinit var historyFormatUtils: HistoryFormatUtils
-
-    @Autowired
-    private lateinit var userService: UserService
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS

@@ -34,6 +34,7 @@ import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
+import org.projectforge.business.fibu.kost.KundeCache;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
 import org.projectforge.web.wicket.WicketUtils;
@@ -140,7 +141,8 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true && projektSelectPanel.getModelObject() != null) {
+          KundeDO kunde = WicketSupport.get(KundeCache.class).getKundeIfNotInitialized(getData().getKunde());
+          if (kunde == null && StringUtils.isBlank(getData().getKundeText()) == true && projektSelectPanel.getModelObject() != null) {
             getData().setKunde(projektSelectPanel.getModelObject().getKunde());
           }
           target.add(customerSelectPanel.getTextField());

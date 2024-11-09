@@ -175,15 +175,15 @@ open class ProjektDao : BaseDao<ProjektDO>(ProjektDO::class.java) {
     }
 
     override fun afterInsertOrModify(obj: ProjektDO, operationType: OperationType) {
-        obj.taskId?.let { taskId ->
+        obj.task?.id?.let { taskId ->
             taskTree.internalSetProject(taskId, obj)
         }
     }
 
     override fun afterUpdate(obj: ProjektDO, dbObj: ProjektDO?, isModified: Boolean) {
-        if (dbObj?.taskId != null && obj.taskId == null) {
+        if (dbObj?.task?.id != null && obj.task?.id == null) {
             // Project task was removed:
-            taskTree.internalSetProject(dbObj.taskId!!, null)
+            taskTree.internalSetProject(dbObj.task?.id!!, null)
         }
     }
 

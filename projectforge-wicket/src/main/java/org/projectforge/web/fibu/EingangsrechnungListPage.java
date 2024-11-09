@@ -155,7 +155,7 @@ public class EingangsrechnungListPage
             @Override
             public void populateItem(final Item item, final String componentId, final IModel rowModel) {
                 final EingangsrechnungDO rechnung = (EingangsrechnungDO) rowModel.getObject();
-                final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(rechnung.getKontoId());
+                final KontoDO konto = WicketSupport.get(KontoCache.class).getKontoIfNotInitialized(rechnung.getKonto());
                 item.add(new Label(componentId, konto != null ? konto.formatKonto() : ""));
                 cellItemListener.populateItem(item, componentId, rowModel);
             }
@@ -262,14 +262,9 @@ public class EingangsrechnungListPage
             @Override
             public void addMapping(final PropertyMapping mapping, final Object entry, final Field field) {
                 if ("konto".equals(field.getName()) == true) {
-                    Integer kontoNummer = null;
-                    final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
-                    if (kontoId != null) {
-                        final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
-                        if (konto != null) {
-                            kontoNummer = konto.getNummer();
-                        }
-                    }
+                    EingangsrechnungDO invoice = (EingangsrechnungDO) entry;
+                    KontoDO konto = WicketSupport.get(KontoCache.class).getKontoIfNotInitialized(invoice.getKonto());
+                    Integer kontoNummer = konto != null ? konto.getNummer() : null;
                     mapping.add(field.getName(), kontoNummer != null ? kontoNummer : "");
                 } else {
                     super.addMapping(mapping, entry, field);
@@ -282,14 +277,8 @@ public class EingangsrechnungListPage
             @Override
             protected void addMappings(final PropertyMapping mapping, final Object entry) {
                 final EingangsrechnungDO invoice = (EingangsrechnungDO) entry;
-                String kontoBezeichnung = null;
-                final Long kontoId = ((EingangsrechnungDO) entry).getKontoId();
-                if (kontoId != null) {
-                    final KontoDO konto = WicketSupport.get(KontoCache.class).getKonto(kontoId);
-                    if (konto != null) {
-                        kontoBezeichnung = konto.getBezeichnung();
-                    }
-                }
+                KontoDO konto = WicketSupport.get(KontoCache.class).getKontoIfNotInitialized(invoice.getKonto());
+                String kontoBezeichnung = (konto != null) ? konto.getBezeichnung() : null;
                 mapping.add("kontoBezeichnung", kontoBezeichnung != null ? kontoBezeichnung : "");
                 mapping.add("grossSum", invoice.getInfo().getGrossSum());
                 mapping.add("netSum", invoice.getInfo().getNetSum());
