@@ -166,12 +166,13 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         toBeInvoicedCounter = null // Force recalculation.
     }
 
-    /*override fun setExpired() {
-        synchronized(orderPositionMapByPosId) {
+    override fun setExpired() {
+        /*synchronized(orderPositionMapByPosId) {
             orderPositionMapByPosId.clear()
-        }
+        }*/
+        super.setExpired()
         toBeInvoicedCounter = null // Force recalculation.
-    }*/
+    }
 
     override fun refresh() {
         log.info("Refreshing AuftragsCache...")

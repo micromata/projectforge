@@ -10,6 +10,12 @@ Aktuell:
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
 
+postrgesql.conf:
+ log_lock_waits = on
+ deadlock_timeout = '500ms'
+ log_min_duration_statement = 1000  # Optional: loggt Abfragen, die länger als 1 Sekunde dauern
+
+
 - Suche:
   - Suche in Urlaubskorrekturen
   - Suche in History

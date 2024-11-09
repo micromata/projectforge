@@ -81,6 +81,7 @@ class AuftragsJdbcService {
             override fun mapRow(rs: ResultSet, rowNum: Int): AuftragsPositionDO {
                 return AuftragsPositionDO().also {
                     it.id = getLong(rs, "pk")
+                    getLong(rs, "auftrag_fk")?.let { auftragId -> it.auftrag = AuftragDO().also { it.id = auftragId } }
                     it.number = rs.getShort("number")
                     it.deleted = rs.getBoolean("deleted")
                     it.titel = getString(rs, "titel")
