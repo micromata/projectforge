@@ -23,10 +23,12 @@
 
 package org.projectforge.business.fibu
 
+import com.github.javaparser.Position.pos
 import mu.KotlinLogging
 import org.projectforge.business.fibu.kost.Kost1DO
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostZuweisungDO
+import org.projectforge.framework.persistence.database.JdbcUtils
 import org.projectforge.framework.persistence.database.JdbcUtils.getBigDecimal
 import org.projectforge.framework.persistence.database.JdbcUtils.getInt
 import org.projectforge.framework.persistence.database.JdbcUtils.getLocalDate
@@ -57,13 +59,16 @@ class RechnungJdbcService {
             if (entityClass == RechnungDO::class) SELECT_RECHNUNG_WITH_KOST else SELECT_EINGANGS_RECHNUNG_WITH_KOST
         jdbcTemplate.query(sql, ResultSetExtractor { rs ->
             while (rs.next()) {
-                val rechnungId = rs.getLong("rechnungId")
+                val rechnungId = rs.getLong("rechnung_id")
                 val rechnung = rechnungen.computeIfAbsent(rechnungId) {
                     val instance = entityClass.createInstance()
                     // r.pk,r.deleted,r.status,r.nummer,r.discountmaturity,r.discountpercent
                     instance.also {
                         it.id = rechnungId
                         it.deleted = rs.getBoolean("deleted")
+                        it.bezahlDatum = getLocalDate(rs, "bezahl_datum")
+                        it.faelligkeit = getLocalDate(rs, "faelligkeit")
+                        it.zahlBetrag = getBigDecimal(rs, "zahl_betrag")
                         it.discountMaturity = getLocalDate(rs, "discountmaturity")
                         it.discountPercent = getBigDecimal(rs, "discountpercent")
                         if (it is RechnungDO) {
@@ -72,7 +77,7 @@ class RechnungJdbcService {
                         }
                     }
                 }
-                val posId = getLong(rs, "posId")
+                val posId = getLong(rs, "pos_id")
                 var pos = rechnung.positionen?.find { it.id == posId } as? AbstractRechnungsPositionDO ?: run {
                     val instance = if (rechnung is RechnungDO) {
                         RechnungsPositionDO().also {
@@ -97,7 +102,7 @@ class RechnungJdbcService {
                     }
                     instance
                 }
-                val kostId = getLong(rs, "kostId")
+                val kostId = getLong(rs, "kost_id")
                 if (pos.kostZuweisungen?.any { it.id == kostId } == true) {
                     log.error { "KostZuweisung already exists: $kostId for invoice $rechnungId and position $posId. (shouldn't occur.)" }
                     continue
@@ -114,7 +119,7 @@ class RechnungJdbcService {
                 pos.kostZuweisungen!!.add(kost)
             }
         })
-        return rechnungen.map { RechnungCalculator.calculate(it.value) }
+        return rechnungen.map { RechnungCalculator.calculate(it.value, useCaches = false) }
     }
 
     fun selectRechnungsPositionenWithAuftragPosition(): List<RechnungsPositionDO> {
@@ -148,20 +153,20 @@ class RechnungJdbcService {
         """.trimIndent()
 
         private val SELECT_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnungId,r.deleted,r.status,r.nummer,r.discountmaturity,r.discountpercent,
-                   p.pk as posId,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
-                   k.pk as kostId,k.netto,k.index,k.kost1_fk,k.kost2_fk
+            SELECT r.pk as rechnung_id,r.deleted,r.status,r.nummer,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
+                   p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
+                   k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_rechnung r
             LEFT JOIN t_fibu_rechnung_position p ON p.rechnung_fk = r.pk
             LEFT JOIN t_fibu_kost_zuweisung k ON k.rechnungs_pos_fk = p.pk
         """.trimIndent()
         private val SELECT_EINGANGS_RECHNUNG_WITH_KOST = """
-            SELECT r.pk as rechnungId,r.deleted,r.discountmaturity,r.discountpercent,
-                   p.pk as posId,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
-                   k.pk as kostId,k.netto,k.index,k.kost1_fk,k.kost2_fk
+            SELECT r.pk as rechnung_id,r.deleted,r.bezahl_datum,r.zahl_betrag,r.faelligkeit,r.discountmaturity,r.discountpercent,
+                   p.pk as pos_id,p.number,p.menge,p.einzel_netto,p.vat,p.s_text,
+                   k.pk as kost_id,k.netto,k.index,k.kost1_fk,k.kost2_fk
             FROM t_fibu_eingangsrechnung r
-            LEFT JOIN t_fibu_rechnung_position p ON p.rechnung_fk = r.pk
-            LEFT JOIN t_fibu_kost_zuweisung k ON k.rechnungs_pos_fk = p.pk
+            LEFT JOIN t_fibu_eingangsrechnung_position p ON p.eingangsrechnung_fk = r.pk
+            LEFT JOIN t_fibu_kost_zuweisung k ON k.eingangsrechnungs_pos_fk = p.pk
         """.trimIndent()
     }
 }

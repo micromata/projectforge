@@ -29,6 +29,17 @@ import java.time.LocalDate
 import java.util.Date
 
 object JdbcUtils {
+    fun debugColumnResult(rs: ResultSet, vararg columnNames: String): String {
+        return columnNames.joinToString { columnName ->
+            val sb = StringBuilder()
+            sb.append(columnName).append(":")
+            val value = rs.getObject(columnName)
+            val wasNull = rs.wasNull()
+            sb.append("value=[").append(value).append("], wasNull=").append(wasNull)
+            sb.toString()
+        }
+    }
+
     /**
      * Returns the value of the specified column as a String.
      * If the value is SQL NULL, the method returns null.
