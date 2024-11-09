@@ -128,7 +128,12 @@ abstract class AbstractRechnungCache(
         rechnungJdbcService.selectRechnungInfos(entityClass).forEach { rechnungInfo ->
             nInvoiceInfoMap[rechnungInfo.id] = rechnungInfo.also { info ->
                 info.positions?.forEach { pos ->
-                    nInvoicePosInfoMap[pos.id!!] = pos
+                    val posId = pos.id
+                    if (posId != null) {
+                        nInvoicePosInfoMap[posId] = pos
+                    } else {
+                        log.error { "Position without id found in invoice: ${info.id}." }
+                    }
                 }
             }
         }

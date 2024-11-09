@@ -52,11 +52,11 @@ object RechnungCalculator {
             return info
         }
         rechnung.info = info
-        info.faelligkeitOrDiscountMaturity = rechnung.discountMaturity.let {
+        info.faelligkeitOrDiscountMaturity = info.discountMaturity.let {
             if (it != null && !info.isBezahlt && !it.isBefore(LocalDate.now())) {
-                rechnung.discountMaturity
+                info.discountMaturity
             } else {
-                rechnung.faelligkeit
+                info.faelligkeit
             }
         }
         val posInfoList = mutableListOf<RechnungPosInfo>()
@@ -86,20 +86,16 @@ object RechnungCalculator {
         info.kostZuweisungenFehlbetrag = info.netSum - info.kostZuweisungenNetSum
         info.grossSumWithDiscount = calculateGrossSumWithDiscount(rechnung)
 
-        val zahlBetrag = rechnung.zahlBetrag
+        val zahlBetrag = info.zahlBetrag
         info.isBezahlt = if (info.netSum.compareTo(BigDecimal.ZERO) == 0) {
             true
-        } else if (rechnung.bezahlDatum != null && zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0) {
-            if (rechnung is RechnungDO) {
-                rechnung.status == RechnungStatus.BEZAHLT
-            } else {
-                true
-            }
+        } else if (info.bezahlDatum != null && zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0) {
+            info.status == RechnungStatus.BEZAHLT
         } else {
             false
         }
         info.isUeberfaellig = false
-        if (!info.isBezahlt && rechnung.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
+        if (!info.isBezahlt && info.faelligkeit?.isBefore(PFDay.today().localDate) == true) {
             info.isUeberfaellig = true
         }
         return info

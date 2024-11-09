@@ -29,6 +29,9 @@ import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDate
 
+/**
+ * Information about an invoice for [RechnungDO] and [EingangsrechnungDO] (debitors and creditors).
+ */
 class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
     val id = invoice.id ?: -1
     val deleted = invoice.deleted
@@ -50,7 +53,15 @@ class RechnungInfo(invoice: AbstractRechnungDO) : Serializable {
      */
     var grossSumWithDiscount = BigDecimal.ZERO
 
+    val bezahlDatum = invoice.bezahlDatum
+
     val zahlBetrag = invoice.zahlBetrag
+
+    val faelligkeit = invoice.faelligkeit
+
+    val discountMaturity = invoice.discountMaturity
+
+    var status: RechnungStatus? = if (invoice is RechnungDO) invoice.status else null
 
     /**
      * @return The total sum of all cost assignment net amounts of all positions.
