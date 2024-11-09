@@ -48,9 +48,6 @@ public class TaskKostTest extends AbstractTestBase {
     private TaskTree taskTree;
 
     @Autowired
-    AccessDao accessDao;
-
-    @Autowired
     ProjektDao projektDao;
 
     @Autowired

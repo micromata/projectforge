@@ -26,43 +26,42 @@ package org.projectforge.business.fibu
 import org.projectforge.common.i18n.I18nEnum
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Florian Blumenstein
  */
-enum class AuftragsPositionsStatus(
+enum class AuftragsPositionsPaymentType(key: String) : I18nEnum {
+    FESTPREISPAKET("festpreispaket"), TIME_AND_MATERIALS("time_and_materials"), PAUSCHALE("pauschale");
+
+    private val key: String
+
     /**
-     * @return The key suffix will be used e. g. for i18n.
+     * The key will be used e. g. for i18n.
+     *
+     * @return
      */
-    val key: String
-) : I18nEnum {
-    IN_ERSTELLUNG("in_erstellung"),
-    POTENZIAL("potenzial"),
-    GELEGT("gelegt"),
-    LOI("loi"),
-    BEAUFTRAGT("beauftragt"),
-    ABGESCHLOSSEN("abgeschlossen"),
-    ABGELEHNT("abgelehnt"),
-    ERSETZT("ersetzt"),
-    ESKALATION("eskalation"),
-    OPTIONAL("optional");
-
-    override val i18nKey: String
-        /**
-         * @return The full i18n key including the i18n prefix "fibu.auftrag.position.status.".
-         */
-        get() = "fibu.auftrag.position.status.$key"
-
-    fun isIn(vararg status: AuftragsPositionsStatus): Boolean {
-        return status.contains(this)
+    fun getKey(): String {
+        return key
     }
 
-    fun isNotIn(vararg status: AuftragsPositionsStatus): Boolean {
-        return !isIn(status = status)
+    init {
+        this.key = key
     }
+
+    fun isIn(vararg auftragsPositionsPaymentType: AuftragsPositionsPaymentType?): Boolean {
+        for (paymentType in auftragsPositionsPaymentType) {
+            if (this == paymentType) {
+                return true
+            }
+        }
+        return false
+    }
+
+    override val i18nKey: String?
+        get() = "fibu.auftrag.position.paymenttype." + key
 
     companion object {
-        fun safeValueOf(name: String?): AuftragsPositionsStatus? {
+        fun safeValueOf(name: String?): AuftragsPositionsPaymentType? {
             name ?: return null
-            return AuftragsPositionsStatus.entries.firstOrNull { it.name == name }
+            return AuftragsPositionsPaymentType.entries.firstOrNull { it.name == name }
         }
     }
 }

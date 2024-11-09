@@ -79,4 +79,11 @@ enum class AuftragsStatus(
     fun isNotIn(vararg status: AuftragsStatus): Boolean {
         return !isIn(status = status)
     }
+
+    companion object {
+        fun safeValueOf(name: String?): AuftragsStatus? {
+            name ?: return null
+            return AuftragsStatus.entries.firstOrNull { it.name == name }
+        }
+    }
 }

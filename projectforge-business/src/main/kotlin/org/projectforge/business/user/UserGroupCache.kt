@@ -478,9 +478,8 @@ open class UserGroupCache : AbstractCache() {
                 }
             }
             this.rightMap = rMap
-            log.info("Initializing of UserGroupCache done. Found ${uMap.size} entries.")
             Login.getInstance().afterUserGroupCacheRefresh(users, groups)
-            log.info { "UserGroupCache.refresh done. ${context.formatStats()}" }
+            log.info { "UserGroupCache.refresh done (found ${uMap.size} entries.) ${context.formatStats()}" }
         }
         Thread {
             jobHandler.checkStatus()
