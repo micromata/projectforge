@@ -48,7 +48,7 @@ object Cache {
         timesheet.user = getUser(timesheet.userId)
         val kost2 = getKost2(timesheet.kost2Id)
         val projekt = getProjektByKost2(timesheet.kost2Id)
-        val kunde = getKunde(projekt?.kundeId)
+        val kunde = getKunde(projekt?.kunde?.id)
         projekt?.let { it.kunde = kunde }
         kost2?.let { it.projekt = projekt }
         timesheet.kost2 = kost2
@@ -86,6 +86,6 @@ object Cache {
 
     fun getKundeByKost2(kost2Id: Long?): KundeDO? {
         val projekt = getProjektByKost2(kost2Id) ?: return null
-        return getKunde(projekt.kundeId)
+        return getKunde(projekt.kunde?.id)
     }
 }

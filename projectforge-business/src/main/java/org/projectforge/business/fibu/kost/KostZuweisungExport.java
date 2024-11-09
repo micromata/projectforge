@@ -48,227 +48,219 @@ import java.util.List;
 @Component
 public class KostZuweisungExport {
 
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KostZuweisungExport.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KostZuweisungExport.class);
 
-  private class MyContentProvider extends MyXlsContentProvider {
-    public MyContentProvider(final ExportWorkbook workbook) {
-      super(workbook);
+    private class MyContentProvider extends MyXlsContentProvider {
+        public MyContentProvider(final ExportWorkbook workbook) {
+            super(workbook);
+        }
+
+        @Override
+        public ContentProvider newInstance() {
+            return new MyContentProvider(this.workbook);
+        }
     }
 
-    @Override
-    public ContentProvider newInstance() {
-      return new MyContentProvider(this.workbook);
+    private enum InvoicesCol {
+        BRUTTO("fibu.common.brutto", MyXlsContentProvider.LENGTH_CURRENCY), //
+        VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_PERCENT), //
+        KONTO("fibu.buchungssatz.konto", 14), //
+        REFERENZ("fibu.common.reference", MyXlsContentProvider.LENGTH_STD), //
+        DATE("date", MyXlsContentProvider.LENGTH_DATE), //
+        GEGENKONTO("fibu.buchungssatz.gegenKonto", 14), //
+        KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
+        KOST2("fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
+        TEXT("description", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
+        BETREFF("fibu.rechnung.betreff", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
+        KORREKTUR("fibu.common.fehlBetrag", MyXlsContentProvider.LENGTH_CURRENCY);
+
+        final String theTitle;
+
+        final int width;
+
+        InvoicesCol(final String theTitle, final int width) {
+            this.theTitle = theTitle;
+            this.width = (short) width;
+        }
     }
-  }
 
-  private enum InvoicesCol {
-    BRUTTO("fibu.common.brutto", MyXlsContentProvider.LENGTH_CURRENCY), //
-    VAT("fibu.common.vat", MyXlsContentProvider.LENGTH_PERCENT), //
-    KONTO("fibu.buchungssatz.konto", 14), //
-    REFERENZ("fibu.common.reference", MyXlsContentProvider.LENGTH_STD), //
-    DATE("date", MyXlsContentProvider.LENGTH_DATE), //
-    GEGENKONTO("fibu.buchungssatz.gegenKonto", 14), //
-    KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
-    KOST2("fibu.kost2", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), //
-    TEXT("description", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
-    BETREFF("fibu.rechnung.betreff", MyXlsContentProvider.LENGTH_EXTRA_LONG), //
-    KORREKTUR("fibu.common.fehlBetrag", MyXlsContentProvider.LENGTH_CURRENCY);
-
-    final String theTitle;
-
-    final int width;
-
-    InvoicesCol(final String theTitle, final int width) {
-      this.theTitle = theTitle;
-      this.width = (short) width;
-    }
-  }
-
-  /**
-   * Export all cost assignements of the given invoices as excel list.
-   *
-   * @param list
-   * @return
-   */
-  public byte[] exportRechnungen(final List<? extends AbstractRechnungDO> list,
-                                 final String sheetTitle) {
-    final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
-    for (final AbstractRechnungDO rechnung : list) {
-      if (rechnung.getAbstractPositionen() != null) {
-        for (final AbstractRechnungsPositionDO position : rechnung.getAbstractPositionen()) {
-          if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
-            for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
-              if (NumberHelper.isZeroOrNull(zuweisung.getBrutto())) {
-                // Skip entries with zero amounts.
-                continue;
-              }
-              zuweisungen.add(zuweisung);
+    /**
+     * Export all cost assignements of the given invoices as excel list.
+     *
+     * @param list
+     * @return
+     */
+    public byte[] exportRechnungen(final List<? extends AbstractRechnungDO> list,
+                                   final String sheetTitle) {
+        final List<KostZuweisungDO> zuweisungen = new ArrayList<>();
+        for (final AbstractRechnungDO rechnung : list) {
+            if (rechnung.getAbstractPositionen() != null) {
+                for (final AbstractRechnungsPositionDO position : rechnung.getAbstractPositionen()) {
+                    if (CollectionUtils.isNotEmpty(position.getKostZuweisungen())) {
+                        for (final KostZuweisungDO zuweisung : position.getKostZuweisungen()) {
+                            if (NumberHelper.isZeroOrNull(zuweisung.getBrutto())) {
+                                // Skip entries with zero amounts.
+                                continue;
+                            }
+                            zuweisungen.add(zuweisung);
+                        }
+                    } else {
+                        final KostZuweisungDO zuweisung = new KostZuweisungDO();
+                        if (position instanceof RechnungsPositionDO) {
+                            zuweisung.setRechnungsPosition((RechnungsPositionDO) position);
+                        } else {
+                            zuweisung.setEingangsrechnungsPosition((EingangsrechnungsPositionDO) position);
+                        }
+                        zuweisungen.add(zuweisung);
+                    }
+                }
             }
-          } else {
-            final KostZuweisungDO zuweisung = new KostZuweisungDO();
-            if (position instanceof RechnungsPositionDO) {
-              zuweisung.setRechnungsPosition((RechnungsPositionDO) position);
+        }
+        return export(zuweisungen, sheetTitle);
+    }
+
+    /**
+     * Exports the filtered list as table.
+     */
+    public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle) {
+        var kontoCache = WicketSupport.get(KontoCache.class);
+        log.info("Exporting kost zuweisung list.");
+        final ExportWorkbook xls = new ExportWorkbook();
+        final ContentProvider contentProvider = new MyContentProvider(xls);
+        // create a default Date format and currency column
+        xls.setContentProvider(contentProvider);
+
+        final ExportSheet sheet = xls.addSheet(sheetTitle);
+        sheet.createFreezePane(0, 1);
+
+        final ExportColumn[] cols = new ExportColumn[InvoicesCol.values().length];
+        int i = 0;
+        for (final InvoicesCol col : InvoicesCol.values()) {
+            cols[i++] = new I18nExportColumn(col, col.theTitle, col.width);
+        }
+
+        // column property names
+        sheet.setColumns(cols);
+
+        final ContentProvider sheetProvider = sheet.getContentProvider();
+        sheetProvider.putFormat(InvoicesCol.BRUTTO, "#,##0.00;[Red]-#,##0.00");
+        sheetProvider.putFormat(InvoicesCol.VAT, "#0%");
+        sheetProvider.putFormat(InvoicesCol.KORREKTUR, "#,##0.00;[Red]-#,##0.00");
+        sheetProvider.putFormat(InvoicesCol.KOST1, "#");
+        sheetProvider.putFormat(InvoicesCol.KOST2, "#");
+        sheetProvider.putFormat(InvoicesCol.DATE, "dd.MM.yyyy");
+
+        for (final KostZuweisungDO zuweisung : list) {
+            final PropertyMapping mapping = new PropertyMapping();
+            final AbstractRechnungsPositionDO position;
+            final AbstractRechnungDO rechnung;
+            final String referenz;
+            final String text;
+            if (zuweisung.getRechnungsPosition() != null) {
+                position = zuweisung.getRechnungsPosition();
+                rechnung = ((RechnungsPositionDO) position).getRechnung();
+                final RechnungDO r = (RechnungDO) rechnung;
+                referenz = String.valueOf(r.getNummer());
+                text = ProjektFormatter.formatProjektKundeAsString(r.getProjekt(), r.getKunde(), r.getKundeText());
             } else {
-              zuweisung.setEingangsrechnungsPosition((EingangsrechnungsPositionDO) position);
+                position = zuweisung.getEingangsrechnungsPosition();
+                rechnung = ((EingangsrechnungsPositionDO) position).getEingangsrechnung();
+                final EingangsrechnungDO r = (EingangsrechnungDO) rechnung;
+                referenz = r.getReferenz();
+                text = r.getKreditor();
             }
-            zuweisungen.add(zuweisung);
-          }
+            final BigDecimal grossSum = position.getInfo().getGrossSum();
+
+            BigDecimal korrektur = null;
+            if (grossSum.compareTo(position.getInfo().getKostZuweisungGrossSum()) != 0) {
+                korrektur = CurrencyHelper.getGrossAmount(position.getInfo().getKostZuweisungNetFehlbetrag(), position.getVat());
+                if (NumberHelper.isZeroOrNull(korrektur)) {
+                    korrektur = null;
+                }
+            }
+            mapping.add(InvoicesCol.BRUTTO, zuweisung.getBrutto());
+            if (NumberHelper.isNotZero(position.getVat())) {
+                mapping.add(InvoicesCol.VAT, position.getVat());
+            } else {
+                mapping.add(InvoicesCol.VAT, BigDecimal.ZERO);
+            }
+            KontoDO konto = null;
+            if (rechnung instanceof RechnungDO) {
+                konto = kontoCache.getKontoIfNotInitialized(rechnung.getKonto());
+            } else if (rechnung instanceof EingangsrechnungDO) {
+                konto = kontoCache.getKontoIfNotInitialized(rechnung.getKonto());
+            }
+            Integer kontoNummer = (konto != null) ? konto.getNummer() : null;
+            mapping.add(InvoicesCol.KONTO, kontoNummer != null ? kontoNummer : "");
+            mapping.add(InvoicesCol.REFERENZ, StringHelper.removeNonDigitsAndNonASCIILetters(referenz));
+            mapping.add(InvoicesCol.DATE, rechnung.getDatum());
+            mapping.add(InvoicesCol.GEGENKONTO, "");
+            mapping.add(InvoicesCol.KOST1, zuweisung.getKost1() != null ? zuweisung.getKost1().getNummer() : "");
+            mapping.add(InvoicesCol.KOST2, zuweisung.getKost2() != null ? zuweisung.getKost2().getNummer() : "");
+            mapping.add(InvoicesCol.TEXT, text);
+            mapping.add(InvoicesCol.BETREFF, rechnung.getBetreff());
+            mapping.add(InvoicesCol.KORREKTUR, korrektur);
+            sheet.addRow(mapping.getMapping(), 0);
         }
-      }
-    }
-    return export(zuweisungen, sheetTitle);
-  }
-
-  /**
-   * Exports the filtered list as table.
-   */
-  public byte[] export(final List<KostZuweisungDO> list, final String sheetTitle) {
-    var kontoCache = WicketSupport.get(KontoCache.class);
-    log.info("Exporting kost zuweisung list.");
-    final ExportWorkbook xls = new ExportWorkbook();
-    final ContentProvider contentProvider = new MyContentProvider(xls);
-    // create a default Date format and currency column
-    xls.setContentProvider(contentProvider);
-
-    final ExportSheet sheet = xls.addSheet(sheetTitle);
-    sheet.createFreezePane(0, 1);
-
-    final ExportColumn[] cols = new ExportColumn[InvoicesCol.values().length];
-    int i = 0;
-    for (final InvoicesCol col : InvoicesCol.values()) {
-      cols[i++] = new I18nExportColumn(col, col.theTitle, col.width);
+        addAccounts(xls, contentProvider);
+        return xls.getAsByteArray();
     }
 
-    // column property names
-    sheet.setColumns(cols);
+    private enum AccountsCol {
+        NUMBER("fibu.konto.nummer", 16), //
+        NAME("fibu.konto.bezeichnung", MyXlsContentProvider.LENGTH_STD), //
+        STATUS("status", 14), //
+        DATE_OF_LAST_MODIFICATION("lastUpdate", MyXlsContentProvider.LENGTH_TIMESTAMP), //
+        DATE_OF_CREATION("created", MyXlsContentProvider.LENGTH_TIMESTAMP), //
+        DESCRIPTION("comment", MyXlsContentProvider.LENGTH_EXTRA_LONG);
 
-    final ContentProvider sheetProvider = sheet.getContentProvider();
-    sheetProvider.putFormat(InvoicesCol.BRUTTO, "#,##0.00;[Red]-#,##0.00");
-    sheetProvider.putFormat(InvoicesCol.VAT, "#0%");
-    sheetProvider.putFormat(InvoicesCol.KORREKTUR, "#,##0.00;[Red]-#,##0.00");
-    sheetProvider.putFormat(InvoicesCol.KOST1, "#");
-    sheetProvider.putFormat(InvoicesCol.KOST2, "#");
-    sheetProvider.putFormat(InvoicesCol.DATE, "dd.MM.yyyy");
+        final String theTitle;
 
-    for (final KostZuweisungDO zuweisung : list) {
-      final PropertyMapping mapping = new PropertyMapping();
-      final AbstractRechnungsPositionDO position;
-      final AbstractRechnungDO rechnung;
-      final String referenz;
-      final String text;
-      if (zuweisung.getRechnungsPosition() != null) {
-        position = zuweisung.getRechnungsPosition();
-        rechnung = ((RechnungsPositionDO) position).getRechnung();
-        final RechnungDO r = (RechnungDO) rechnung;
-        referenz = String.valueOf(r.getNummer());
-        text = ProjektFormatter.formatProjektKundeAsString(r.getProjekt(), r.getKunde(), r.getKundeText());
-      } else {
-        position = zuweisung.getEingangsrechnungsPosition();
-        rechnung = ((EingangsrechnungsPositionDO) position).getEingangsrechnung();
-        final EingangsrechnungDO r = (EingangsrechnungDO) rechnung;
-        referenz = r.getReferenz();
-        text = r.getKreditor();
-      }
-      final BigDecimal grossSum = position.getInfo().getGrossSum();
+        final int width;
 
-      BigDecimal korrektur = null;
-      if (grossSum.compareTo(position.getInfo().getKostZuweisungGrossSum()) != 0) {
-        korrektur = CurrencyHelper.getGrossAmount(position.getInfo().getKostZuweisungNetFehlbetrag(), position.getVat());
-        if (NumberHelper.isZeroOrNull(korrektur)) {
-          korrektur = null;
+        AccountsCol(final String theTitle, final int width) {
+            this.theTitle = theTitle;
+            this.width = (short) width;
         }
-      }
-      mapping.add(InvoicesCol.BRUTTO, zuweisung.getBrutto());
-      if (NumberHelper.isNotZero(position.getVat())) {
-        mapping.add(InvoicesCol.VAT, position.getVat());
-      } else {
-        mapping.add(InvoicesCol.VAT, BigDecimal.ZERO);
-      }
-      Integer kontoNummer = null;
-      if (rechnung instanceof RechnungDO) {
-        final KontoDO konto = kontoCache.getKonto(((RechnungDO) rechnung));
-        if (konto != null) {
-          kontoNummer = konto.getNummer();
+    }
+
+    private void addAccounts(final ExportWorkbook xls, final ContentProvider contentProvider) {
+        final ExportSheet sheet = xls.addSheet(ThreadLocalUserContext.getLocalizedString("fibu.konto.konten"));
+        sheet.createFreezePane(0, 1);
+
+        final ExportColumn[] cols = new ExportColumn[AccountsCol.values().length];
+        int i = 0;
+        for (final AccountsCol col : AccountsCol.values()) {
+            cols[i++] = new I18nExportColumn(col, col.theTitle, col.width);
         }
-      } else if (rechnung instanceof EingangsrechnungDO) {
-        final Long kontoId = ((EingangsrechnungDO) rechnung).getKontoId();
-        if (kontoId != null) {
-          final KontoDO konto = kontoCache.getKonto(kontoId);
-          if (konto != null) {
-            kontoNummer = konto.getNummer();
-          }
+
+        // column property names
+        sheet.setColumns(cols);
+
+        final ContentProvider sheetProvider = sheet.getContentProvider();
+        sheetProvider.putFormat(AccountsCol.DATE_OF_LAST_MODIFICATION, "dd.MM.yyyy HH:mm");
+        sheetProvider.putFormat(AccountsCol.DATE_OF_CREATION, "dd.MM.yyyy HH:mm");
+        sheetProvider.putFormat(AccountsCol.NUMBER, "#");
+
+        final QueryFilter filter = new QueryFilter();
+        filter.addOrder(SortProperty.desc("lastUpdate"));
+        final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
+
+        final PropertyMapping mapping = new PropertyMapping();
+        for (final KontoDO konto : list) {
+            mapping.add(AccountsCol.NUMBER, konto.getNummer());
+            mapping.add(AccountsCol.NAME, konto.getBezeichnung());
+            mapping.add(AccountsCol.DATE_OF_LAST_MODIFICATION, konto.getLastUpdate());
+            mapping.add(AccountsCol.DATE_OF_CREATION, konto.getCreated());
+            String status = "";
+            if (konto.getDeleted()) {
+                status = ThreadLocalUserContext.getLocalizedString("deleted");
+            } else if (konto.getStatus() != null) {
+                status = ThreadLocalUserContext.getLocalizedString(konto.getStatus().getI18nKey());
+            }
+            mapping.add(AccountsCol.STATUS, status);
+            mapping.add(AccountsCol.DESCRIPTION, konto.getDescription());
+            sheet.addRow(mapping.getMapping(), 0);
         }
-      }
-      mapping.add(InvoicesCol.KONTO, kontoNummer != null ? kontoNummer : "");
-      mapping.add(InvoicesCol.REFERENZ, StringHelper.removeNonDigitsAndNonASCIILetters(referenz));
-      mapping.add(InvoicesCol.DATE, rechnung.getDatum());
-      mapping.add(InvoicesCol.GEGENKONTO, "");
-      mapping.add(InvoicesCol.KOST1, zuweisung.getKost1() != null ? zuweisung.getKost1().getNummer() : "");
-      mapping.add(InvoicesCol.KOST2, zuweisung.getKost2() != null ? zuweisung.getKost2().getNummer() : "");
-      mapping.add(InvoicesCol.TEXT, text);
-      mapping.add(InvoicesCol.BETREFF, rechnung.getBetreff());
-      mapping.add(InvoicesCol.KORREKTUR, korrektur);
-      sheet.addRow(mapping.getMapping(), 0);
     }
-    addAccounts(xls, contentProvider);
-    return xls.getAsByteArray();
-  }
-
-  private enum AccountsCol {
-    NUMBER("fibu.konto.nummer", 16), //
-    NAME("fibu.konto.bezeichnung", MyXlsContentProvider.LENGTH_STD), //
-    STATUS("status", 14), //
-    DATE_OF_LAST_MODIFICATION("lastUpdate", MyXlsContentProvider.LENGTH_TIMESTAMP), //
-    DATE_OF_CREATION("created", MyXlsContentProvider.LENGTH_TIMESTAMP), //
-    DESCRIPTION("comment", MyXlsContentProvider.LENGTH_EXTRA_LONG);
-
-    final String theTitle;
-
-    final int width;
-
-    AccountsCol(final String theTitle, final int width) {
-      this.theTitle = theTitle;
-      this.width = (short) width;
-    }
-  }
-
-  private void addAccounts(final ExportWorkbook xls, final ContentProvider contentProvider) {
-    final ExportSheet sheet = xls.addSheet(ThreadLocalUserContext.getLocalizedString("fibu.konto.konten"));
-    sheet.createFreezePane(0, 1);
-
-    final ExportColumn[] cols = new ExportColumn[AccountsCol.values().length];
-    int i = 0;
-    for (final AccountsCol col : AccountsCol.values()) {
-      cols[i++] = new I18nExportColumn(col, col.theTitle, col.width);
-    }
-
-    // column property names
-    sheet.setColumns(cols);
-
-    final ContentProvider sheetProvider = sheet.getContentProvider();
-    sheetProvider.putFormat(AccountsCol.DATE_OF_LAST_MODIFICATION, "dd.MM.yyyy HH:mm");
-    sheetProvider.putFormat(AccountsCol.DATE_OF_CREATION, "dd.MM.yyyy HH:mm");
-    sheetProvider.putFormat(AccountsCol.NUMBER, "#");
-
-    final QueryFilter filter = new QueryFilter();
-    filter.addOrder(SortProperty.desc("lastUpdate"));
-    final List<KontoDO> list = WicketSupport.get(KontoDao.class).select(filter);
-
-    final PropertyMapping mapping = new PropertyMapping();
-    for (final KontoDO konto : list) {
-      mapping.add(AccountsCol.NUMBER, konto.getNummer());
-      mapping.add(AccountsCol.NAME, konto.getBezeichnung());
-      mapping.add(AccountsCol.DATE_OF_LAST_MODIFICATION, konto.getLastUpdate());
-      mapping.add(AccountsCol.DATE_OF_CREATION, konto.getCreated());
-      String status = "";
-      if (konto.getDeleted()) {
-        status = ThreadLocalUserContext.getLocalizedString("deleted");
-      } else if (konto.getStatus() != null) {
-        status = ThreadLocalUserContext.getLocalizedString(konto.getStatus().getI18nKey());
-      }
-      mapping.add(AccountsCol.STATUS, status);
-      mapping.add(AccountsCol.DESCRIPTION, konto.getDescription());
-      sheet.addRow(mapping.getMapping(), 0);
-    }
-  }
 }

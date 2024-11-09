@@ -218,20 +218,6 @@ open class ProjektDO : DefaultBaseDO(), DisplayNameCapable {
             this.identifier
         } else this.name
 
-    val kundeId: Long?
-        @Transient
-        get() = if (this.kunde == null) {
-            null
-        } else kunde!!.nummer
-
-    val taskId: Long?
-        @Transient
-        get() = if (this.task != null) task!!.id else null
-
-    val kontoId: Long?
-        @Transient
-        get() = if (konto != null) konto!!.id else null
-
     /**
      * @see .getNummer
      */

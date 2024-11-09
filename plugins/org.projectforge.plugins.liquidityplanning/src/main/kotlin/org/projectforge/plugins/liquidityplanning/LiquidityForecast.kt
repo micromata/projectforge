@@ -162,11 +162,11 @@ class LiquidityForecast() : Serializable {
             val timeForPayment = date.daysBetween(dateOfPayment).toInt()
             val amount: Int = invoice.info.grossSum.toInt()
             // Store values for different groups:
-            val projectId = invoice.projektId
+            val projectId = invoice.projekt?.id
             if (projectId != null) {
                 ensureAndAddDebitorPaymentValue("project#$projectId", timeForPayment, amount)
             }
-            val customerId = invoice.kundeId
+            val customerId = invoice.kunde?.id
             if (customerId != null) {
                 ensureAndAddDebitorPaymentValue("customer#$customerId", timeForPayment, amount)
             }

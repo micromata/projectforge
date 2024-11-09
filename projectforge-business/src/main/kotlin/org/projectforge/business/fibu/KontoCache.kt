@@ -85,7 +85,7 @@ open class KontoCache : AbstractCache() {
             return null
         }
         checkRefresh()
-        var konto = getKonto(project.kontoId)
+        var konto = getKonto(project.konto?.id)
         if (konto != null) {
             return konto
         }
@@ -126,13 +126,13 @@ open class KontoCache : AbstractCache() {
             return null
         }
         checkRefresh()
-        var konto = getKonto(invoice.kontoId)
+        var konto = getKonto(invoice.konto?.id)
         if (konto != null) {
             return konto
         }
         val project = projektCache.getProjektIfNotInitialized(invoice.projekt)
         if (project != null) {
-            konto = getKonto(project.kontoId)
+            konto = getKonto(project.konto?.id)
             if (konto != null) {
                 return konto
             }

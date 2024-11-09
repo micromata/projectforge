@@ -127,6 +127,15 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
 
     /**
      * @param rechnung
+     * @param kundeId  If null, then kunde will be set to null;
+     */
+    fun setKunde(rechnung: RechnungDO, kunde: KundeDO?) {
+        kunde ?: return
+        setKunde(rechnung, kunde.id!!)
+    }
+
+    /**
+     * @param rechnung
      * @param projektId If null, then projekt will be set to null;
      */
     fun setProjekt(rechnung: RechnungDO, projektId: Long) {
@@ -229,8 +238,8 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
             throw UserException("fibu.rechnung.error.statusBezahltErfordertZahlBetrag")
         }
 
-        val projektId = rechnung.projektId
-        val kundeId = rechnung.kundeId
+        val projektId = rechnung.projekt?.id
+        val kundeId = rechnung.kunde?.id
         val kundeText = rechnung.kundeText
         if (projektId == null && kundeId == null && kundeText.isNullOrEmpty()) {
             throw UserException("fibu.rechnung.error.kundeTextOderProjektRequired")

@@ -129,18 +129,6 @@ open class RechnungDO : AbstractRechnungDO(), Comparable<RechnungDO> {
     @get:Column(name = "period_of_performance_end")
     open var periodOfPerformanceEnd: LocalDate? = null
 
-    val kundeId: Long?
-        @Transient
-        get() = if (this.kunde == null) {
-            null
-        } else kunde!!.nummer
-
-    val projektId: Long?
-        @Transient
-        get() = if (this.projekt == null) {
-            null
-        } else projekt!!.id
-
     @PersistenceBehavior(autoUpdateCollectionEntries = true)
     @JsonManagedReference
     @IndexedEmbedded(includeDepth = 3)

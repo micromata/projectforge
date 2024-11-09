@@ -37,6 +37,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.excel.*;
 import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
+import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
@@ -147,9 +148,18 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
                         "kundeAsString", cellItemListener));
         columns.add(
                 new CellItemListenerPropertyColumn<RechnungDO>(getString("fibu.projekt"), getSortable("projekt.name", sortable),
-                        "projekt.name", cellItemListener));
+                        "projekt.name", cellItemListener) {
+                    @Override
+                    public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
+                                             final IModel<RechnungDO> rowModel) {
+                        final RechnungDO invoice = rowModel.getObject();
+                        final ProjektDO projekt = WicketSupport.get(ProjektCache.class).getProjektIfNotInitialized(invoice.getProjekt());
+                        item.add(new Label(componentId, projekt != null ? projekt.getName() : ""));
+                        cellItemListener.populateItem(item, componentId, rowModel);
+                    }
+                });
         if (WicketSupport.get(KontoCache.class).isEmpty() == false) {
-            columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener) {
+            columns.add(new CellItemListenerPropertyColumn<>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener) {
                 /**
                  * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
                  *      java.lang.String, org.apache.wicket.model.IModel)
@@ -185,11 +195,11 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         columns.add(new CellItemListenerPropertyColumn<>(getString("fibu.periodOfPerformance.to"),
                 getSortable("periodOfPerformanceEnd", sortable), "periodOfPerformanceEnd", cellItemListener));
 
-        columns.add(new CurrencyPropertyColumn<RechnungDO>(getString("fibu.common.netto"), getSortable("netSum", sortable),
-                "netSum",
+        columns.add(new CurrencyPropertyColumn<>(getString("fibu.common.netto"), getSortable("info.netSum", sortable),
+                "info.netSum",
                 cellItemListener));
-        columns.add(new CurrencyPropertyColumn<RechnungDO>(getString("fibu.common.brutto"),
-                getSortable("grossSum", sortable), "grossSum",
+        columns.add(new CurrencyPropertyColumn<>(getString("fibu.common.brutto"),
+                getSortable("info.grossSum", sortable), "info.grossSum",
                 cellItemListener));
         // columns.add(new CurrencyPropertyColumn<RechnungDO>(getString("fibu.rechnung.zahlBetrag.short"), getSortable("zahlBetrag", sortable),
         // "zahlBetrag",

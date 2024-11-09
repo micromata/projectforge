@@ -150,11 +150,6 @@ abstract class AbstractRechnungDO : DefaultBaseDO(), IRechnung {
         @Transient
         get() = this::info.isInitialized
 
-    val kontoId: Long?
-        @Transient
-        get() = konto?.id
-
-
     override fun recalculate() {
         val date = PFDateTime.fromOrNull(this.datum)
         // recalculate the transient fields

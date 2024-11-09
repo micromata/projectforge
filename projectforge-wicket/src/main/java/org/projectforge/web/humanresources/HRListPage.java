@@ -176,8 +176,9 @@ public class HRListPage extends AbstractListPage<HRListForm, HRViewDao, HRViewUs
                                         public void onClick() {
                                             // Redirect to time sheet list page and show the corresponding time sheets.
                                             final PageParameters parameters = new PageParameters();
+                                            var task = project.getTask();
                                             parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
-                                            parameters.add(TimesheetListPage.PARAMETER_KEY_TASK_ID, project.getTaskId());
+                                            parameters.add(TimesheetListPage.PARAMETER_KEY_TASK_ID, (task != null) ? task.getId() : null);
                                             parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, PFDateTime.from(filter.getStartDay()).getEpochMilli());
                                             parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, PFDateTime.from(filter.getStopDay()).getEpochMilli());
                                             parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());

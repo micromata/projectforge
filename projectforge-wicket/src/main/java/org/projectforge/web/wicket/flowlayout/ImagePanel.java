@@ -83,4 +83,17 @@ public class ImagePanel extends Panel
     add(image);
     return this;
   }
+
+  /**
+   * @param image
+   * @return this for chaining.
+   */
+  public ImagePanel addImageIfNotPresent(final WebComponent image)
+  {
+    if (get(IMAGE_ID) != null) {
+      return this;
+    }
+    add(image);
+    return this;
+  }
 }

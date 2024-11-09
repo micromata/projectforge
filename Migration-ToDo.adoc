@@ -1,11 +1,20 @@
 Aktuell:
+- Bezahlte Debitorenrechnungen werden alle als Offen geführt.
+- Update caches after single load or modification.
+- Kreditorenlist: es wird gefetched wie blöde.
+- LiquidityList: es wird gefetched wie blöde.
+- Kostzuweisungsexport: es wird gefetched wie blöde.
 - AuftragListe: fakturiertsum nicht berechnet.
+- 2024-11-09T16:18:19.834Z user:kai  WARN 23413 --- [projectforge-application] [0.1-8080-exec-2] o.p.business.user.AbstractUserPrefCache  : Can't deserialize user preferences: null, userId=2, area=null, key='TeamCalendarPage.userPrefs' (may-be ok after a new ProjectForge release). string=!rO0AB...vnj7nRSToOXX1PrEWobDsFAAA=
+
 - remove all BaseDO.xxxId (lazy fetch) and replace callee by baseDO?.id
 - Entitygraphen nutzen: ConflictVacationCache, AuftragCache etc.
   - Auftrag editieren: massenhaft SQLs
   - employeeSalaryList: lädt wie blöde nach dem Editieren. (Excel-Exports auch zuviele SQLs)
   - AddressKampagnen: ebd. (massenhaft SQLs)
 - Suche nach Kontonummer in KontoDO
+
+- Test: Kostzuweisungsexport, Rechnungserzeugung
 
 - Lazy-Breakpoint: AbstractLazyInitializer.initialize (#170)
 org.hibernate.persister.entity.AbstractEntityPersister#generateSelectLazy:
