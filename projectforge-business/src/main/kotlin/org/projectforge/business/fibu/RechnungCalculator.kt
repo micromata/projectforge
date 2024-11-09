@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.projectforge.business.fibu.AbstractRechnungsStatistik.Companion.rechnungCache
 import org.projectforge.framework.time.PFDay
 import org.projectforge.framework.utils.CurrencyHelper
 import org.projectforge.framework.utils.NumberHelper
@@ -46,7 +45,8 @@ object RechnungCalculator {
      * @oaram rechnung The invoice to calculate the values for (positions and positions.kostZuweisungen will be fetched).
      * @return The calculated values.
      */
-    fun calculate(rechnung: AbstractRechnungDO): RechnungInfo {
+    @JvmOverloads
+    fun calculate(rechnung: AbstractRechnungDO, useCaches: Boolean = true): RechnungInfo {
         val info = RechnungInfo(rechnung)
         if (rechnung.deleted) {
             return info
@@ -64,7 +64,9 @@ object RechnungCalculator {
             if (pos.deleted) {
                 return@forEach
             }
-            var posInfo = rechnungCache.getRechnungPosInfo(pos.id)
+            var posInfo = if (useCaches) {
+                rechnungCache.getRechnungPosInfo(pos.id)
+            } else null
             if (posInfo == null) {
                 posInfo = RechnungPosInfo(info, pos as AbstractRechnungsPositionDO)
             }

@@ -42,7 +42,7 @@ import java.sql.ResultSet
 import java.sql.SQLException
 
 /**
- * Uses jdbc instead of Hibernate for avoiding deadlocks.
+ * Uses jdbc instead of Hibernate for faster access to the database.
  */
 @Service
 class AuftragsJdbcService {

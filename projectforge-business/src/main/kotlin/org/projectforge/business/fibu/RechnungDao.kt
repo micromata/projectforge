@@ -68,7 +68,7 @@ open class RechnungDao : BaseDao<RechnungDO>(RechnungDO::class.java) {
      * @return the rechnungCache
      */
     @Autowired
-    lateinit var rechnungCache: RechnungCache
+    private lateinit var rechnungCache: RechnungCache
 
     override val additionalSearchFields: Array<String>
         get() = ADDITIONAL_SEARCH_FIELDS

@@ -24,8 +24,9 @@
 package org.projectforge.business.fibu
 
 import mu.KotlinLogging
+import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.cache.AbstractCache
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
+import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
@@ -35,8 +36,8 @@ private val log = KotlinLogging.logger {}
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 abstract class AbstractRechnungCache(
-    val entityClass: Class<out AbstractRechnungDO>,
-    protected val persistenceService: PfPersistenceService,
+    val entityClass: KClass<out AbstractRechnungDO>,
+    protected val rechnungJdbcService: RechnungJdbcService,
 ) : AbstractCache() {
     private val entityName = entityClass.simpleName
 
@@ -119,25 +120,20 @@ abstract class AbstractRechnungCache(
      */
     override fun refresh() {
         log.info("Initializing cache (${entityName})...")
-        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            // This method must not be synchronized because it works with new copies of maps.
-            log.info("Getting all invoices ($entityName)...")
-            val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
-            val nInvoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
-            persistenceService.executeQuery(
-                "FROM $entityName t left join fetch t.positionen p left join fetch t.positionen.kostZuweisungen",
-                entityClass,
-            ).forEach { rechnung ->
-                nInvoiceInfoMap[rechnung.id!!] = RechnungCalculator.calculate(rechnung).also { info ->
-                    info.positions?.forEach { pos ->
-                        nInvoicePosInfoMap[pos.id!!] = pos
-                    }
-
+        val duration = LogDuration()
+        // This method must not be synchronized because it works with new copies of maps.
+        log.info("Getting all invoices ($entityName)...")
+        val nInvoiceInfoMap = mutableMapOf<Long, RechnungInfo>()
+        val nInvoicePosInfoMap = mutableMapOf<Long, RechnungPosInfo>()
+        rechnungJdbcService.selectRechnungInfos(entityClass).forEach { rechnungInfo ->
+            nInvoiceInfoMap[rechnungInfo.id] = rechnungInfo.also { info ->
+                info.positions?.forEach { pos ->
+                    nInvoicePosInfoMap[pos.id!!] = pos
                 }
             }
-            this.invoiceInfoMap = nInvoiceInfoMap
-            this.invoicePosInfoMap = nInvoicePosInfoMap
-            log.info { "Initializing cache (${entityName}) done. ${context.formatStats()}" }
         }
+        this.invoiceInfoMap = nInvoiceInfoMap
+        this.invoicePosInfoMap = nInvoicePosInfoMap
+        log.info { "Initializing cache (${entityName}) done: ${duration.toSeconds()}." }
     }
 }

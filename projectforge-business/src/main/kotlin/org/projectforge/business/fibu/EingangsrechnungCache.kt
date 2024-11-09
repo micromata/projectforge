@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu
 
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.stereotype.Component
 
 // private val log = KotlinLogging.logger {}
@@ -34,5 +33,5 @@ import org.springframework.stereotype.Component
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-internal class EingangsrechnungCache(persistenceService: PfPersistenceService) :
-    AbstractRechnungCache(EingangsrechnungDO::class.java, persistenceService)
+internal class EingangsrechnungCache(rechnungJdbcService: RechnungJdbcService) :
+    AbstractRechnungCache(EingangsrechnungDO::class, rechnungJdbcService)

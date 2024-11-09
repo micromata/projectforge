@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -126,7 +127,7 @@ public class OrderExport {
         addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
         addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
         mapping.add(OrderCol.COMPLETELY_INVOICED, orderInfo.isVollstaendigFakturiert() ? "x" : "");
-        final Set<RechnungPosInfo> invoicePositions = rechnungCache
+        final List<RechnungPosInfo> invoicePositions = rechnungCache
                 .getRechnungsPosInfosByAuftragId(order.getId());
         mapping.add(OrderCol.INVOICES, getInvoices(invoicePositions));
         mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_BEGIN, order.getPeriodOfPerformanceBegin());
@@ -199,7 +200,7 @@ public class OrderExport {
         addCurrency(mapping, PosCol.INVOICED, invoicedSum);
         addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
         mapping.add(PosCol.COMPLETELY_INVOICED, pos.getVollstaendigFakturiert() ? "x" : "");
-        final Set<RechnungPosInfo> invoicePositions = rechnungCache
+        final Collection<RechnungPosInfo> invoicePositions = rechnungCache
                 .getRechnungsPosInfosByAuftragsPositionId(pos.getId());
         mapping.add(PosCol.INVOICES, getInvoices(invoicePositions));
         if (PeriodOfPerformanceType.OWN.equals(pos.getPeriodOfPerformanceType())) {
@@ -246,7 +247,7 @@ public class OrderExport {
         mapping.add(PaymentsCol.SCHEDULE_DATE, scheduleDO.getScheduleDate());
     }
 
-    private String getInvoices(final Set<RechnungPosInfo> invoicePositions) {
+    private String getInvoices(final Collection<RechnungPosInfo> invoicePositions) {
         final StringBuilder sb = new StringBuilder();
         if (invoicePositions != null) {
             String delimiter = "";

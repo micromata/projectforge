@@ -21,41 +21,44 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public enum RechnungStatus implements I18nEnum
-{
-  GEPLANT("geplant"), GESTELLT("gestellt"), ZAHLUNGSERINNERUNG1("zahlungserinnerung1"), ZAHLUNGSERINNERUNG2("zahlungserinnerung2"), GEMAHNT(
-      "gemahnt"), STORNIERT("storniert"), BEZAHLT("bezahlt");
+enum class RechnungStatus(key: String) : I18nEnum {
+    GEPLANT("geplant"), GESTELLT("gestellt"), ZAHLUNGSERINNERUNG1("zahlungserinnerung1"), ZAHLUNGSERINNERUNG2("zahlungserinnerung2"), GEMAHNT(
+        "gemahnt"
+    ),
+    STORNIERT("storniert"), BEZAHLT("bezahlt");
 
-  private String key;
+    private val key: String
 
-  /**
-   * The key will be used e. g. for i18n.
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
+    /**
+     * The key will be used e. g. for i18n.
+     * @return
+     */
+    fun getKey(): String {
+        return key
+    }
 
-  /**
-   * @return The full i18n key including the i18n prefix "fibu.rechnung.status.".
-   */
-  public String getI18nKey()
-  {
-    return "fibu.rechnung.status." + key;
-  }
+    /**
+     * @return The full i18n key including the i18n prefix "fibu.rechnung.status.".
+     */
+    override val i18nKey: String?
+        get() = "fibu.rechnung.status." + key
 
-  RechnungStatus(String key)
-  {
-    this.key = key;
-  }
+    init {
+        this.key = key
+    }
+
+    companion object {
+        fun safeValueOf(name: String?): RechnungStatus? {
+            name ?: return null
+            return RechnungStatus.entries.firstOrNull { it.name == name }
+        }
+    }
 }

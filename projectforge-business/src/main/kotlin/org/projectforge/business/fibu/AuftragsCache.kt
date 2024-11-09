@@ -42,7 +42,7 @@ private val log = KotlinLogging.logger {}
 @Service
 class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
     @Autowired
-    private lateinit var auftragsJdbcService: AuftragsJdbcService // For avoiding deadlocks.
+    private lateinit var auftragsJdbcService: AuftragsJdbcService
 
     @Autowired
     private lateinit var rechnungDao: RechnungDao

@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,8 +33,8 @@ import org.springframework.stereotype.Component
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-class RechnungCache(persistenceService: PfPersistenceService) :
-    AbstractRechnungCache(RechnungDO::class.java, persistenceService) {
+class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
+    AbstractRechnungCache(RechnungDO::class, rechnungJdbcService) {
     @Autowired
     private lateinit var auftragsCache: AuftragsCache
 
@@ -67,7 +66,7 @@ class RechnungCache(persistenceService: PfPersistenceService) :
         return set
     }
 
-    fun getRechnungsPosInfosByAuftragId(auftragId: Long?): Set<RechnungPosInfo>? {
+    fun getRechnungsPosInfosByAuftragId(auftragId: Long?): List<RechnungPosInfo>? {
         auftragId ?: return null
         return auftragsRechnungCache.getRechnungsPosInfoByAuftragId(auftragId)
     }
@@ -82,9 +81,18 @@ class RechnungCache(persistenceService: PfPersistenceService) :
     }
 
     fun update(invoice: RechnungDO) {
-        synchronized(invoiceInfoMap) {
-            invoiceInfoMap[invoice.id!!] = RechnungCalculator.calculate(invoice)
+        val rechnungInfo = synchronized(invoiceInfoMap) {
+            RechnungCalculator.calculate(invoice, useCaches = false).also {
+                invoiceInfoMap[invoice.id!!] = it
+            }
         }
+        synchronized(invoiceInfoMap) {
+            rechnungInfo.positions?.forEach { posInfo ->
+                invoicePosInfoMap[invoice.id!!] = posInfo
+            }
+        }
+
+        // TODO: Update rechungPosInfo
         auftragsRechnungCache.setExpired() // Invalidate cache.
     }
 

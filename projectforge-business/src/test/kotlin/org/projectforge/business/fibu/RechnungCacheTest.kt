@@ -37,6 +37,9 @@ class RechnungCacheTest : AbstractTestBase() {
     private lateinit var auftragDao: AuftragDao
 
     @Autowired
+    private lateinit var rechnungCache: RechnungCache
+
+    @Autowired
     private lateinit var rechnungDao: RechnungDao
 
     @Test
@@ -55,8 +58,9 @@ class RechnungCacheTest : AbstractTestBase() {
             auftrag.nummer = auftragDao.getNextNumber(auftrag)
             auftragDao.insert(auftrag)
         }
+        lateinit var rechnung1: RechnungDO
         persistenceService.runInTransaction {
-            val rechnung1 = RechnungDO()
+            rechnung1 = RechnungDO()
             var position = RechnungsPositionDO()
             position.auftragsPosition = auftrag.getPosition(1.toShort())
             position.einzelNetto = BigDecimal("100")
@@ -71,8 +75,8 @@ class RechnungCacheTest : AbstractTestBase() {
             rechnung1.datum = today.localDate
             rechnung1.faelligkeit = LocalDate.now()
             rechnung1.projekt = initTestDB.addProjekt(null, 1, "foo")
-            rechnungDao.insert(rechnung1)
         }
+        rechnungDao.insert(rechnung1)
         lateinit var rechnung2: RechnungDO
         persistenceService.runInTransaction {
             rechnung2 = RechnungDO()
@@ -87,34 +91,35 @@ class RechnungCacheTest : AbstractTestBase() {
             rechnung2.projekt = initTestDB.addProjekt(null, 1, "foo")
             rechnungDao.insert(rechnung2)
         }
-        var set = rechnungDao.rechnungCache.getRechnungsPosInfosByAuftragId(auftrag.id)
-        Assertions.assertEquals(3, set!!.size, "3 invoice positions expected.")
-        val it = set.iterator()
-        var posInfo = it.next() // Positions are ordered.
-        Assertions.assertEquals("1.1", posInfo.text)
-        posInfo = it.next()
-        Assertions.assertEquals("1.2", posInfo.text)
-        posInfo = it.next()
-        Assertions.assertEquals("2.1", posInfo.text)
-        Assertions.assertEquals(0, BigDecimal("700").compareTo(getNettoSumme(set)))
+        var posInfos: Collection<RechnungPosInfo>? = rechnungCache.getRechnungsPosInfosByAuftragId(auftrag.id)
+        Assertions.assertEquals(3, posInfos!!.size, "3 invoice positions expected.")
+        // The positions are sorted by invoice number and position number.
+        posInfos.elementAt(0).let {
+            Assertions.assertEquals(0, BigDecimal("100").compareTo(it.netSum))
+        }
+        posInfos.elementAt(1).let {
+            Assertions.assertEquals(0, BigDecimal("200").compareTo(it.netSum))
+        }
+        posInfos.elementAt(2).let {
+            Assertions.assertEquals(0, BigDecimal("400").compareTo(it.netSum))
+        }
+        Assertions.assertEquals(0, BigDecimal("700").compareTo(getNettoSumme(posInfos)))
 
-        set = rechnungDao.rechnungCache
-            .getRechnungsPosInfosByAuftragsPositionId(auftrag.getPosition(1.toShort())!!.id)
-        Assertions.assertEquals(2, set!!.size, "2 invoice positions expected.")
-        Assertions.assertEquals(0, BigDecimal("500").compareTo(getNettoSumme(set)))
+        posInfos = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftrag.getPosition(1.toShort())!!.id)
+        Assertions.assertEquals(2, posInfos!!.size, "2 invoice positions expected.")
+        Assertions.assertEquals(0, BigDecimal("500").compareTo(getNettoSumme(posInfos)))
 
-        set = rechnungDao.rechnungCache
-            .getRechnungsPosInfosByAuftragsPositionId(auftrag.getPosition(2.toShort())!!.id)
-        Assertions.assertEquals(1, set!!.size, "1 invoice positions expected.")
-        Assertions.assertEquals(0, BigDecimal("200").compareTo(getNettoSumme(set)))
+        posInfos = rechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftrag.getPosition(2.toShort())!!.id)
+        Assertions.assertEquals(1, posInfos!!.size, "1 invoice positions expected.")
+        Assertions.assertEquals(0, BigDecimal("200").compareTo(getNettoSumme(posInfos)))
 
         persistenceService.runInTransaction { context ->
             val rechnung = rechnungDao.find(rechnung2.id)
             rechnung!!.positionen!![0].auftragsPosition = null
             rechnungDao.update(rechnung)
         }
-        set = rechnungDao.rechnungCache.getRechnungsPosInfosByAuftragId(auftrag.id)
-        Assertions.assertEquals(2, set!!.size, "2 invoice positions expected.")
-        Assertions.assertEquals(0, BigDecimal("300").compareTo(getNettoSumme(set)))
+        posInfos = rechnungCache.getRechnungsPosInfosByAuftragId(auftrag.id)
+        Assertions.assertEquals(2, posInfos!!.size, "2 invoice positions expected.")
+        Assertions.assertEquals(0, BigDecimal("300").compareTo(getNettoSumme(posInfos)))
     }
 }
