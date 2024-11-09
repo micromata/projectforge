@@ -52,11 +52,13 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.UserRightDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Service
 import java.sql.SQLException
 import java.util.*
 import java.util.function.Consumer
 import javax.sql.DataSource
+import org.springframework.jdbc.core.JdbcTemplate
 
 private val log = KotlinLogging.logger {}
 
@@ -70,9 +72,6 @@ class DatabaseService {
 
     @Autowired
     private lateinit var userDao: UserDao
-
-    @Autowired
-    private lateinit var userPasswordDao: UserPasswordDao
 
     @Autowired
     private lateinit var userGroupCache: UserGroupCache
@@ -109,6 +108,10 @@ class DatabaseService {
 
     private var databaseExecutor: DatabaseExecutor? = null
 
+    @Bean
+    fun jdbcTemplate(dataSource: DataSource): JdbcTemplate {
+        return JdbcTemplate(dataSource)
+    }
 
     /**
      * If the database is empty (user list is empty) then a admin user and ProjectForge root task will be created.

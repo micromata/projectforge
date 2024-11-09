@@ -85,9 +85,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     private lateinit var projektDao: ProjektDao
 
     @Autowired
-    private lateinit var rechnungCache: RechnungCache
-
-    @Autowired
     private lateinit var sendMail: SendMail
 
     @Autowired

@@ -26,6 +26,16 @@ package org.projectforge.framework.persistence.jpa
 import org.hibernate.stat.spi.StatisticsImplementor
 import org.projectforge.common.extensions.format
 
+/**
+ * Statistics about the persistence calls.
+ * This class is used to get the difference between two statistics.
+ * The difference is calculated by subtracting the values of the given statistics from the current statistics.
+ * The result is a new instance of this class.
+ * The statistics are read from the given statistics object.
+ * The statistics use the Hibernate statistics object [StatisticsImplementor].
+ * Please note: The statistics are global, so if any other thread is doing database operations, these values are also counted!
+ * But it gives you a first impression of the database operations.
+ */
 class PersistenceCallsStats() {
     var queryCount = 0L
     var updateCount = 0L

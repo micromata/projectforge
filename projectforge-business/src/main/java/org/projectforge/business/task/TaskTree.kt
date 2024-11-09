@@ -36,6 +36,7 @@ import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.fibu.kost.KostCache
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
+import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.AccessDao
 import org.projectforge.framework.access.GroupTaskAccessDO
 import org.projectforge.framework.access.OperationType
@@ -554,6 +555,8 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
         get() {
             synchronized(this) {
                 if (this.orderPositionReferencesDirty) {
+                    log.info{"TaskTree: refreshing order position references..."}
+                    val duration = LogDuration()
                     val references = mutableMapOf<Long, MutableSet<OrderPositionInfo>>()
                     persistenceService.runIsolatedReadOnly { context ->
                         persistenceService.executeQuery(
@@ -582,6 +585,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                     }
                     this.orderPositionReferences = references
                     this.orderPositionReferencesDirty = false
+                    log.info{"TaskTree: refreshing order position references done: $duration"}
                 }
                 return this.orderPositionReferences
             }
@@ -779,7 +783,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
     }
 
     /**
-     * Should only called by test suite!
+     * Should only be called by test suite!
      */
     fun clear() {
         this.root = null

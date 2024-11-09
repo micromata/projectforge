@@ -21,49 +21,47 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
  * Can't use LabelValueBean because XStream doesn't support generics (does it?).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public enum PaymentType implements I18nEnum
-{
-  BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash"), SALARY("salary"), CREDIT("credit");
+enum class PaymentType(key: String) : I18nEnum {
+    BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash"), SALARY("salary"), CREDIT("credit");
 
-  private String key;
+    private val key: String
 
-  /**
-   * @return The key suffix will be used e. g. for i18n.
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  /**
-   * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
-   */
-  public String getI18nKey()
-  {
-    return "fibu.payment.type." + key;
-  }
-
-  PaymentType(final String key)
-  {
-    this.key = key;
-  }
-
-  public boolean isIn(final PaymentType... type)
-  {
-    for (final PaymentType t : type) {
-      if (this == t) {
-        return true;
-      }
+    /**
+     * @return The key suffix will be used e. g. for i18n.
+     */
+    fun getKey(): String {
+        return key
     }
-    return false;
-  }
+
+    override val i18nKey: String?
+        get() = "fibu.payment.type." + key
+
+    init {
+        this.key = key
+    }
+
+    fun isIn(vararg type: PaymentType?): Boolean {
+        for (t in type) {
+            if (this == t) {
+                return true
+            }
+        }
+        return false
+    }
+
+    companion object {
+        fun safeValueOf(name: String?): PaymentType? {
+            name ?: return null
+            return PaymentType.entries.firstOrNull { it.name == name }
+        }
+    }
 }

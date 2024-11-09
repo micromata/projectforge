@@ -21,47 +21,44 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
-/**
- * @author Florian Blumenstein
- */
-public enum AuftragsPositionsPaymentType implements I18nEnum
-{
+enum class PeriodOfPerformanceType(key: String) : I18nEnum {
+    SEEABOVE("seeabove"),
+    OWN("own");
 
-  FESTPREISPAKET("festpreispaket"), TIME_AND_MATERIALS("time_and_materials"), PAUSCHALE("pauschale");
+    private val key: String
 
-  private String key;
-
-  /**
-   * The key will be used e. g. for i18n.
-   *
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  AuftragsPositionsPaymentType(String key)
-  {
-    this.key = key;
-  }
-
-  public boolean isIn(AuftragsPositionsPaymentType... auftragsPositionsPaymentType)
-  {
-    for (AuftragsPositionsPaymentType paymentType : auftragsPositionsPaymentType) {
-      if (this == paymentType) {
-        return true;
-      }
+    /**
+     * The key will be used e. g. for i18n.
+     * @return
+     */
+    fun getKey(): String {
+        return key
     }
-    return false;
-  }
 
-  public String getI18nKey()
-  {
-    return "fibu.auftrag.position.paymenttype." + key;
-  }
+    init {
+        this.key = key
+    }
+
+    fun isIn(vararg status: PeriodOfPerformanceType?): Boolean {
+        for (st in status) {
+            if (this == st) {
+                return true
+            }
+        }
+        return false
+    }
+
+    override val i18nKey: String?
+        get() = "fibu.periodOfPerformance.type." + key
+
+    companion object {
+        fun safeValueOf(name: String?): PeriodOfPerformanceType? {
+            name ?: return null
+            return PeriodOfPerformanceType.entries.firstOrNull { it.name == name }
+        }
+    }
 }

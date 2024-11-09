@@ -86,6 +86,9 @@ class PfPersistenceContext internal constructor(
         }
     }
 
+    /**
+     * Returns the call stats of the current context.
+     */
     fun getCallStats(): PersistenceCallsStats {
         return callStats?.getStats() ?: PersistenceCallsStats()
     }

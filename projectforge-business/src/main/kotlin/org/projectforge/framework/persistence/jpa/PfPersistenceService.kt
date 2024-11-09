@@ -89,7 +89,7 @@ open class PfPersistenceService {
     /**
      * Uses the current EntityManager for the block or a new one, if no EntityManager is set in ThreadLocal before.
      * If no EntityManager is set in ThreadLocal before, a new EntityManager will be created and set in ThreadLocal.
-     * @see runInNewReadOnlyContext
+     * @see internalRunIsolatedReadOnly
      */
     fun <T> runReadOnly(
         block: (context: PfPersistenceContext) -> T
@@ -98,7 +98,7 @@ open class PfPersistenceService {
         if (context != null) {
             return context.run(block)
         }
-        return runInNewReadOnlyContext(recordCallStats = false, recordCallStatsExtended = false, block)
+        return internalRunIsolatedReadOnly(recordCallStats = false, recordCallStatsExtended = false, block)
     }
 
     /**
@@ -112,7 +112,7 @@ open class PfPersistenceService {
         recordCallStatsExtended: Boolean = false,
         block: (context: PfPersistenceContext) -> T
     ): T {
-        return runInNewReadOnlyContext(
+        return internalRunIsolatedReadOnly(
             recordCallStats = recordCallStats,
             recordCallStatsExtended = recordCallStatsExtended, block
         )
@@ -169,7 +169,7 @@ open class PfPersistenceService {
      * Creates a new PfPersistenceContext (EntityManager), also if any EntityManager is available in ThreadLocal.
      * Any previous readonly context in ThreadLocal will be restored after finishing the block.
      */
-    private fun <T> runInNewReadOnlyContext(
+    private fun <T> internalRunIsolatedReadOnly(
         recordCallStats: Boolean,
         recordCallStatsExtended: Boolean = false,
         block: (context: PfPersistenceContext) -> T

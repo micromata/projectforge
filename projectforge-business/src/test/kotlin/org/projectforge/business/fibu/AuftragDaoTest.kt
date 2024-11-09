@@ -194,22 +194,20 @@ class AuftragDaoTest : AbstractTestBase() {
             logon(TEST_USER)
             checkNoAccess(id, auftrag1, "Other")
         }
-        persistenceService.runInTransaction { _ ->
-            logon(TEST_PROJECT_MANAGER_USER)
-            projektDao.select(ProjektFilter())
-            checkNoAccess(auftrag1.id, "Project manager")
-            checkNoWriteAccess(auftrag1, "Project manager")
-            checkHasUpdateAccess(auftrag2.id)
+        logon(TEST_PROJECT_MANAGER_USER)
+        projektDao.select(ProjektFilter())
+        checkNoAccess(auftrag1.id, "Project manager")
+        checkNoWriteAccess(auftrag1, "Project manager")
+        checkHasUpdateAccess(auftrag2.id)
 
-            logon(TEST_PROJECT_ASSISTANT_USER)
-            projektDao.select(ProjektFilter())
-            checkHasUpdateAccess(auftrag1.id)
-            checkNoAccess(auftrag2.id, "Project assistant")
-            checkNoWriteAccess(auftrag2, "Project assistant")
+        logon(TEST_PROJECT_ASSISTANT_USER)
+        projektDao.select(ProjektFilter())
+        checkHasUpdateAccess(auftrag1.id)
+        checkNoAccess(auftrag2.id, "Project assistant")
+        checkNoWriteAccess(auftrag2, "Project assistant")
 
-            logon(TEST_ADMIN_USER)
-            checkNoAccess(id, auftrag1, "Admin ")
-        }
+        logon(TEST_ADMIN_USER)
+        checkNoAccess(id, auftrag1, "Admin ")
     }
 
     @Test
@@ -285,7 +283,7 @@ class AuftragDaoTest : AbstractTestBase() {
             right.value = UserRightValue.PARTLYREADWRITE
             userRightDao.update(right)
             group!!.assignedUsers!!.add(user)
-            groupDao.update(group!!) // User is now in project manager group.
+            groupDao.update(group) // User is now in project manager group.
             logon(user)
             auftragDao.find(auftragId, attached = true)!! // Attached is important, otherwise deadlock.
         }

@@ -24,6 +24,7 @@
 package org.projectforge.framework.persistence.jpa
 
 import org.projectforge.common.extensions.formatMillis
+import org.projectforge.common.logging.LogDuration
 
 /**
  * Mustn't be thread-safe, because it is used in a thread-local context.
@@ -53,10 +54,9 @@ class PersistenceConnectionStats {
         private set
 
     /**
-     * Userd for performance measurement.
-     * Only set by [getActivities].
+     * Used for performance measurement.
      */
-    var timeInMillis: Long? = null
+    var logDuration: LogDuration? = null
         private set
 
     /**
@@ -97,7 +97,7 @@ class PersistenceConnectionStats {
         copy.createdReadonlies = createdReadonlies
         copy.activeReadonlies = activeReadonlies
         copy.activeTransactions = activeTransactions
-        copy.timeInMillis = System.currentTimeMillis()
+        copy.logDuration = LogDuration()
         return copy
     }
 
@@ -109,7 +109,7 @@ class PersistenceConnectionStats {
         copy.activeTransactionsSinceLastSave = activeTransactions - oldState.activeTransactions
         copy.activeTransactions = activeTransactions
         copy.activeReadonlies = activeReadonlies
-        copy.timeInMillis = oldState.timeInMillis
+        copy.logDuration = oldState.logDuration
         return copy
     }
 
@@ -144,8 +144,8 @@ class PersistenceConnectionStats {
         }
         sb.append("]")
         if (withDuration) {
-            timeInMillis?.let { millis ->
-                sb.append(",duration=").append((System.currentTimeMillis() - millis).formatMillis())
+            logDuration?.let {
+                sb.append(",duration=").append(it)
             }
         }
         sb.append("]")
@@ -159,7 +159,6 @@ class PersistenceConnectionStats {
 
     companion object {
         internal fun create(
-            timeInMillis: Long? = System.currentTimeMillis(),
             createdReadonlies: Int = 0,
             createdTransactions: Int = 0,
             activeReadonlies: Int = 0,
@@ -168,7 +167,7 @@ class PersistenceConnectionStats {
             activeTransactionsSinceLastSave: Int = 0,
         ): PersistenceConnectionStats {
             return PersistenceConnectionStats().also {
-                it.timeInMillis = timeInMillis
+                it.logDuration = LogDuration()
                 it.createdReadonlies = createdReadonlies
                 it.createdTransactions = createdTransactions
                 it.activeReadonlies = activeReadonlies

@@ -21,47 +21,47 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.fibu;
+package org.projectforge.business.fibu
 
-import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.common.i18n.I18nEnum
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
  */
-public enum AuftragsPositionsArt implements I18nEnum
-{
-  CHANGE_REQUEST("change_request"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG("wartung"), NEUENTWICKLUNG("neuentwicklung");
+enum class AuftragsPositionsArt(key: String) : I18nEnum {
+    CHANGE_REQUEST("change_request"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG("wartung"), NEUENTWICKLUNG("neuentwicklung");
 
-  private String key;
+    private val key: String
 
-  /**
-   * The key will be used e. g. for i18n.
-   *
-   * @return
-   */
-  public String getKey()
-  {
-    return key;
-  }
-
-  AuftragsPositionsArt(String key)
-  {
-    this.key = key;
-  }
-
-  public boolean isIn(AuftragsPositionsArt... auftragsPositionsArt)
-  {
-    for (AuftragsPositionsArt art : auftragsPositionsArt) {
-      if (this == art) {
-        return true;
-      }
+    /**
+     * The key will be used e. g. for i18n.
+     *
+     * @return
+     */
+    fun getKey(): String {
+        return key
     }
-    return false;
-  }
 
-  public String getI18nKey()
-  {
-    return "fibu.auftrag.position.art." + key;
-  }
+    init {
+        this.key = key
+    }
 
+    fun isIn(vararg auftragsPositionsArt: AuftragsPositionsArt?): Boolean {
+        for (art in auftragsPositionsArt) {
+            if (this == art) {
+                return true
+            }
+        }
+        return false
+    }
+
+    override val i18nKey: String?
+        get() = "fibu.auftrag.position.art." + key
+
+    companion object {
+        fun safeValueOf(name: String?): AuftragsPositionsArt? {
+            name ?: return null
+            return AuftragsPositionsArt.entries.firstOrNull { it.name == name }
+        }
+    }
 }

@@ -25,6 +25,7 @@ package org.projectforge.business.fibu
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
@@ -41,10 +42,10 @@ private val log = KotlinLogging.logger {}
 @Service
 class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
     @Autowired
-    private lateinit var rechnungDao: RechnungDao
+    private lateinit var auftragsJdbcService: AuftragsJdbcService // For avoiding deadlocks.
 
     @Autowired
-    private lateinit var persistenceService: PfPersistenceService
+    private lateinit var rechnungDao: RechnungDao
 
     private var orderInfoMap = mutableMapOf<Long, OrderInfo>()
 
@@ -71,6 +72,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
 
     fun getOrderPositionInfo(auftragsPositionId: Long?): OrderPositionInfo? {
         auftragsPositionId ?: return null
+        checkRefresh()
         synchronized(orderPositionMapByPosId) {
             return orderPositionMapByPosId[auftragsPositionId]
         }
@@ -173,54 +175,47 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
 
     override fun refresh() {
         log.info("Refreshing AuftragsCache...")
+        val duration = LogDuration()
         // Don't use fetch.
-        persistenceService.runIsolatedReadOnly(recordCallStats = true) { context ->
-            val orderPositions = context.executeQuery(
-                "SELECT pos FROM AuftragsPositionDO pos WHERE pos.deleted = false",
-                AuftragsPositionDO::class.java
-            ).groupBy { it.auftragId }
-            val paymentSchedules = context.executeQuery(
-                "SELECT pos FROM PaymentScheduleDO pos WHERE pos.deleted = false",
-                PaymentScheduleDO::class.java
-            ).groupBy { it.auftragId }
-            val nOrderInfoMap = mutableMapOf<Long, OrderInfo>()
-            val nOrderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
-            val nOrderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
-            val nOrderPositionInfosByOrderId = mutableMapOf<Long, MutableList<OrderPositionInfo>>()
-            val orders = context.executeQuery("SELECT t FROM AuftragDO t", AuftragDO::class.java)
-            orders.forEach { order ->
-                nOrderInfoMap[order.id!!] = order.info.also {
-                    it.updateFields(order)
-                }
+        val orderPositions = auftragsJdbcService.selectNonDeletedAuftragsPositions().groupBy { it.auftragId }
+        val orders = auftragsJdbcService.selectAuftragsList()
+        val paymentSchedules = auftragsJdbcService.selectNonDeletedPaymentSchedules().groupBy { it.auftragId }
+        val nOrderInfoMap = mutableMapOf<Long, OrderInfo>()
+        val nOrderPositionMapByPosId = mutableMapOf<Long, OrderPositionInfo>()
+        val nOrderPositionIdsMapByOrder = mutableMapOf<Long, MutableList<Long>>()
+        val nOrderPositionInfosByOrderId = mutableMapOf<Long, MutableList<OrderPositionInfo>>()
+        orders.forEach { order ->
+            nOrderInfoMap[order.id!!] = order.info.also {
+                it.updateFields(order)
             }
-            orderPositions.forEach orderPositions@{ (auftragId, positions) ->
-                positions.forEach { pos ->
-                    val orderInfo = nOrderInfoMap[auftragId]
-                    if (orderInfo == null) {
-                        log.error { "Internal error: Order #$auftragId not found for position $pos" }
-                        return@orderPositions
-                    }
-                    val posInfo = OrderPositionInfo(pos, orderInfo)
-                    nOrderPositionMapByPosId[pos.id!!] = posInfo
-                    nOrderPositionIdsMapByOrder.computeIfAbsent(auftragId!!) { mutableListOf() }.add(pos.id!!)
-                    nOrderPositionInfosByOrderId.computeIfAbsent(auftragId) { mutableListOf() }.add(posInfo)
-                }
-            }
-            orders.forEach { order ->
-                log.debug { "Cached payment schedules for order ${order.id}: ${paymentSchedules[order.id]?.size}" }
-                order.info.calculateAll(
-                    order,
-                    nOrderPositionInfosByOrderId[order.id],
-                    paymentSchedules[order.id]
-                )
-            }
-
-            orderInfoMap = nOrderInfoMap
-            orderPositionMapByPosId = nOrderPositionMapByPosId
-            orderPositionIdsMapByOrder = nOrderPositionIdsMapByOrder
-            toBeInvoicedCounter = null // Force recalculation.
-            log.info { "AuftragsCache.refresh done. ${context.formatStats()}" }
         }
+        orderPositions.forEach orderPositions@{ (auftragId, positions) ->
+            positions.forEach { pos ->
+                val orderInfo = nOrderInfoMap[auftragId]
+                if (orderInfo == null) {
+                    log.error { "Internal error: Order #$auftragId not found for position $pos" }
+                    return@orderPositions
+                }
+                val posInfo = OrderPositionInfo(pos, orderInfo)
+                nOrderPositionMapByPosId[pos.id!!] = posInfo
+                nOrderPositionIdsMapByOrder.computeIfAbsent(auftragId!!) { mutableListOf() }.add(pos.id!!)
+                nOrderPositionInfosByOrderId.computeIfAbsent(auftragId) { mutableListOf() }.add(posInfo)
+            }
+        }
+        orders.forEach { order ->
+            log.debug { "Cached payment schedules for order ${order.id}: ${paymentSchedules[order.id]?.size}" }
+            order.info.calculateAll(
+                order,
+                nOrderPositionInfosByOrderId[order.id],
+                paymentSchedules[order.id]
+            )
+        }
+
+        orderInfoMap = nOrderInfoMap
+        orderPositionMapByPosId = nOrderPositionMapByPosId
+        orderPositionIdsMapByOrder = nOrderPositionIdsMapByOrder
+        toBeInvoicedCounter = null // Force recalculation.
+        log.info { "AuftragsCache.refresh done: ${duration.toSeconds()}" }
     }
 
     /**
