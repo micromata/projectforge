@@ -42,7 +42,9 @@ abstract class AbstractRechnungsPositionDO : DefaultBaseDO(), DisplayNameCapable
         @Transient
         get() = "$number"
 
-    @PropertyInfo(i18nKey = "fibu.rechnung.nummer")
+    /**
+     * The position number, starting with 1.
+     */
     @get:Column
     open var number: Short = 0
 
