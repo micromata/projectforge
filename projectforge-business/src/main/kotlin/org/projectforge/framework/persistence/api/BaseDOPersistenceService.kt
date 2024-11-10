@@ -119,9 +119,8 @@ class BaseDOPersistenceService {
                 log.error(ex) { "${ex.message} while saving object: ${ToStringUtil.toJsonString(obj)}" }
                 throw ex
             }
-            em.detach(obj)
-            baseDao?.changedRegistry?.afterInsert(obj)
         }
+        baseDao?.changedRegistry?.afterInsert(obj)
         baseDao?.changedRegistry?.afterInsertOrModify(obj, operationType = OperationType.INSERT)
     }
 

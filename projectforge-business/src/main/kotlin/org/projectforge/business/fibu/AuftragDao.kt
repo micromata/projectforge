@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
 import jakarta.persistence.Tuple
 import jakarta.persistence.criteria.JoinType
 import org.apache.commons.collections4.CollectionUtils
@@ -69,8 +70,8 @@ import java.util.stream.Collectors
 
 @Service
 open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
-    @Autowired
-    private lateinit var auftragsCache: AuftragsCache
+    // Not autowired (due to cyclic dependency).
+    internal lateinit var auftragsCache: AuftragsCache
 
     @Autowired
     private lateinit var configurationService: ConfigurationService
@@ -500,10 +501,6 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
     override fun afterLoad(list: List<AuftragDO>): List<AuftragDO> {
         // TODO: Fetches all order positions, payment schedules and auftrag of positions!
         return super.afterLoad(list)
-    }
-
-    override fun afterUpdate(obj: AuftragDO, dbObj: AuftragDO?, isModified: Boolean) {
-        auftragsCache.setExpired(obj)
     }
 
     fun validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(auftrag: AuftragDO) {

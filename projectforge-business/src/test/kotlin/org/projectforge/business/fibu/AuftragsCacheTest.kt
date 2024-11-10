@@ -39,6 +39,9 @@ class AuftragsCacheTest : AbstractTestBase() {
     private lateinit var auftragsCache: AuftragsCache
 
     @Autowired
+    private lateinit var auftragsCacheService: AuftragsCacheService
+
+    @Autowired
     private lateinit var rechnungDao: RechnungDao
 
     @Test
@@ -58,6 +61,7 @@ class AuftragsCacheTest : AbstractTestBase() {
             it.nummer = auftragDao.nextNumber
         }
         auftragDao.insert(order, checkAccess = false)
+        Assertions.assertNotNull(auftragDao.find(order.id, false))
         var orderInfo = auftragsCache.getOrderInfo(order.id)
         Assertions.assertNotNull(orderInfo, "Order with id=${order.id} not found.")
         assertSame(300, orderInfo!!.akquiseSum, "Akquise sum.")
