@@ -45,6 +45,13 @@ enum class AuftragsPositionsStatus(
     ESKALATION("eskalation"),
     OPTIONAL("optional");
 
+    val orderState: AuftragsOrderState
+        get() = when (this) {
+            IN_ERSTELLUNG, POTENZIAL, GELEGT, LOI, OPTIONAL -> AuftragsOrderState.POTENTIAL
+            BEAUFTRAGT, ABGESCHLOSSEN, ESKALATION -> AuftragsOrderState.ORDERED
+            ABGELEHNT, ERSETZT -> AuftragsOrderState.LOST
+        }
+
     override val i18nKey: String
         /**
          * @return The full i18n key including the i18n prefix "fibu.auftrag.position.status.".

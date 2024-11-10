@@ -392,13 +392,13 @@ open class ForecastExport { // open needed by Wicket.
         )
         sheet.setIntValue(row, ForecastCol.PT.header, pos.personDays?.toInt() ?: 0)
         sheet.setBigDecimalValue(
-            row, ForecastCol.NETTOSUMME.header, pos.nettoSumme
+            row, ForecastCol.NETTOSUMME.header, pos.netSum
                 ?: BigDecimal.ZERO
         ).cellStyle = ctx.currencyCellStyle
 
         val orderInfo = ordersCache.getOrderInfo(order.id)
         val posInfo = orderInfo?.getInfoPosition(pos.id)
-        val netSum = pos.nettoSumme ?: BigDecimal.ZERO
+        val netSum = pos.netSum ?: BigDecimal.ZERO
         val invoicedSum = posInfo?.invoicedSum ?: BigDecimal.ZERO
         val probabilityNetSum = ForecastUtils.computeProbabilityNetSum(order, pos)
         val toBeInvoicedSum = if (probabilityNetSum > invoicedSum) probabilityNetSum - invoicedSum else BigDecimal.ZERO

@@ -74,10 +74,9 @@ class RechnungCache(rechnungJdbcService: RechnungJdbcService) :
     @JvmOverloads
     fun getRechnungsPosInfosByAuftragsPositionId(
         auftragsPositionId: Long?,
-        checkRefresh: Boolean = true
     ): Set<RechnungPosInfo>? {
         auftragsPositionId ?: return null
-        return auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPositionId, checkRefresh)
+        return auftragsRechnungCache.getRechnungsPosInfosByAuftragsPositionId(auftragsPositionId)
     }
 
     fun update(invoice: RechnungDO) {

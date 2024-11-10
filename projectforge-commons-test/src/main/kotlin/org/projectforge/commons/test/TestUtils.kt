@@ -111,12 +111,61 @@ class TestUtils(modulName: String) {
         }
 
         /**
-         * Asserts that the given [expected] value is equal to the given [actual] value.
-         * The values are considered equal if their values are equals, independent of the scale.
+         * Calls [assertSame] with the standard epsilon.
          */
-        fun assertEquals(expected: BigDecimal, actual: BigDecimal?, message: String? = null) {
-            Assertions.assertNotNull(actual, message)
-            Assertions.assertTrue(expected.compareTo(actual) == 0, message)
+        fun assertSame(
+            expected: Number,
+            actual: Number?,
+            message: String? = null,
+        ) {
+            assertSame(expected, actual, STANDARD_EPSILON, message)
         }
+
+        /**
+         * Asserts that the given [expected] value is equal to the given [actual] value.
+         * The values are considered equal if their values are equals, independent of the scale or within the given [epsilon].
+         * If the [actual] value is `null`, the assertion fails.
+         * @param expected The expected value
+         * @param actual The actual value
+         * @param epsilon The epsilon for the comparison
+         */
+        fun assertSame(
+            expected: Number,
+            actual: Number?,
+            epsilon: BigDecimal = STANDARD_EPSILON,
+            message: String? = null,
+        ) {
+            Assertions.assertNotNull(actual, message)
+            val expectedBigDecimal = asBigDecimal(expected)
+            val actualBigDecimal = asBigDecimal(actual!!)
+            if ((expectedBigDecimal - actualBigDecimal).abs() > epsilon) {
+                // Exception will be thrown, use assertEquals to get a better message (including the expected and actual values):
+                Assertions.assertEquals(expectedBigDecimal, actualBigDecimal, message)
+            }
+        }
+
+        /**
+         * Asserts that the given [actual] value is zero, independent of the scale.
+         */
+        fun assertZero(vararg actual: Number?, message: String? = null) {
+            actual.forEach {
+                Assertions.assertNotNull(it, message)
+                assertSame(0, it, message)
+            }
+        }
+
+        private fun asBigDecimal(value: Number): BigDecimal {
+            return when (value) {
+                is BigDecimal -> value
+                is Long -> value.toBigDecimal()
+                is Int -> value.toBigDecimal()
+                is Short -> BigDecimal(value.toInt())
+                is Float -> value.toBigDecimal()
+                is Double -> value.toBigDecimal()
+                else -> BigDecimal(value.toDouble())
+            }
+        }
+
+        private val STANDARD_EPSILON = BigDecimal("0.000001")
     }
 }

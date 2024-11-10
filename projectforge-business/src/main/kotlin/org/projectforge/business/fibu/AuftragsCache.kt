@@ -29,7 +29,6 @@ import org.projectforge.common.logging.LogDuration
 import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.api.BaseDOModifiedListener
-import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -40,7 +39,7 @@ private val log = KotlinLogging.logger {}
  * Open needed by Wicket's SpringBean.
  */
 @Service
-class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<RechnungDO> {
+class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
     @Autowired
     private lateinit var auftragsJdbcService: AuftragsJdbcService
 
@@ -58,7 +57,7 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
     @PostConstruct
     private fun init() {
         instance = this
-        rechnungDao.register(this)
+        rechnungDao.register(rechnungListener)
     }
 
     fun getOrderPositionInfosByAuftragId(auftragId: Long?): Collection<OrderPositionInfo>? {
@@ -219,13 +218,15 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR), BaseDOModifiedListener<
         log.info { "AuftragsCache.refresh done: ${duration.toSeconds()}" }
     }
 
-    /**
-     * Set order as expired, if any invoice on this order was changed.
-     */
-    override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
-        obj.positionen?.forEach { pos ->
-            pos.auftragsPosition?.auftrag?.let {
-                setExpired(it)
+    private val rechnungListener = object : BaseDOModifiedListener<RechnungDO> {
+        /**
+         * Set order as expired, if any invoice on this order was changed.
+         */
+        override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+            obj.positionen?.forEach { pos ->
+                pos.auftragsPosition?.auftrag?.let {
+                    setExpired(it)
+                }
             }
         }
     }

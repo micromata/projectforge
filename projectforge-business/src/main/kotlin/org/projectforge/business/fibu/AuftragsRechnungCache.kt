@@ -23,9 +23,13 @@
 
 package org.projectforge.business.fibu
 
+import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.projectforge.business.fibu.AuftragsCache.Companion.instance
 import org.projectforge.common.logging.LogDuration
+import org.projectforge.framework.access.OperationType
 import org.projectforge.framework.cache.AbstractCache
+import org.projectforge.framework.persistence.api.BaseDOModifiedListener
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.TreeSet
@@ -47,6 +51,9 @@ class AuftragsRechnungCache : AbstractCache() {
     private lateinit var rechnungCache: RechnungCache
 
     @Autowired
+    private lateinit var rechnungDao: RechnungDao
+
+    @Autowired
     private lateinit var rechnungJdbcService: RechnungJdbcService
 
     /**
@@ -60,6 +67,11 @@ class AuftragsRechnungCache : AbstractCache() {
     private var invoicePositionMapByAuftragsPositionId = mapOf<Long, MutableSet<RechnungPosInfo>>()
 
     private var invoicePositionMapByRechnungId = mapOf<Long, MutableSet<RechnungPosInfo>>()
+
+    @PostConstruct
+    private fun init() {
+        rechnungDao.register(rechnungListener)
+    }
 
     /**
      * Returns the invoice positions assigned to the order.
@@ -77,12 +89,9 @@ class AuftragsRechnungCache : AbstractCache() {
 
     fun getRechnungsPosInfosByAuftragsPositionId(
         auftragsPositionId: Long?,
-        checkRefresh: Boolean = true,
     ): Set<RechnungPosInfo>? {
         auftragsPositionId ?: return null
-        if (checkRefresh) {
-            checkRefresh()
-        }
+        checkRefresh()
         return invoicePositionMapByAuftragsPositionId[auftragsPositionId]
     }
 
@@ -126,5 +135,14 @@ class AuftragsRechnungCache : AbstractCache() {
         this.invoicePositionMapByAuftragsPositionId = mapByAuftragsPositionId
         this.invoicePositionMapByRechnungId = mapByRechnungsPositionMapByRechnungId
         log.info { "Initializing of AuftragsRechnungCache done: ${duration.toSeconds()}." }
+    }
+
+    private val rechnungListener = object : BaseDOModifiedListener<RechnungDO> {
+        /**
+         * Set order as expired, if any invoice on this order was changed.
+         */
+        override fun afterInsertOrModify(obj: RechnungDO, operationType: OperationType) {
+            setExpired()
+        }
     }
 }

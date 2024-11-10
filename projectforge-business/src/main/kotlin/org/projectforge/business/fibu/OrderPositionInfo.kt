@@ -23,9 +23,12 @@
 
 package org.projectforge.business.fibu
 
+import mu.KotlinLogging
 import org.projectforge.common.extensions.abbreviate
 import java.io.Serializable
 import java.math.BigDecimal
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Cached information about an order position.
@@ -37,28 +40,69 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     val auftragId = order.id
     val auftragNummer = order.nummer
     val titel = position.titel
-    var invoicedSum = BigDecimal.ZERO
-    val status = position.status
+    val status = position.status ?: AuftragsPositionsStatus.POTENZIAL //  default value shouldn't occur!
     val paymentType = position.paymentType
     val art = position.art
     val personDays = position.personDays
-    val nettoSumme = position.nettoSumme
-    val vollstaendigFakturiert = position.vollstaendigFakturiert
+
+    /** netSum of the order position in database. */
+    val dbNetSum = position.nettoSumme ?: BigDecimal.ZERO
+
+    /**
+     * For finished postio
+     */
+    val vollstaendigFakturiert =
+        position.vollstaendigFakturiert == true && status == AuftragsPositionsStatus.ABGESCHLOSSEN
     val periodOfPerformanceType = position.periodOfPerformanceType
     val periodOfPerformanceBegin = position.periodOfPerformanceBegin
     val periodOfPerformanceEnd = position.periodOfPerformanceEnd
     val taskId = position.taskId
     val bemerkung = position.bemerkung.abbreviate(30)
-    val toBeInvoiced: Boolean
+
+    /**
+     * True if the position should be invoiced.
+     * For lost positions [AuftragsOrderState.LOST] false.
+     * For closed orders [AuftragsStatus.ABGESCHLOSSEN] and closed positions [AuftragsPositionsStatus.ABGESCHLOSSEN] true if not fully invoiced.
+     * Otherwise, false.
+     * @see recalculate
+     */
+    var toBeInvoiced: Boolean = false
+
+    /**
+     * The net sum for ordered positions ([AuftragsOrderState.ORDERED]), otherwise, 0.
+     * @see calculate
+     */
+    var orderedNetSum = BigDecimal.ZERO
+
+    /**
+     * The net sum of the position as stored in database if the position isn't rejected or replaced.
+     * For lost positions [AuftragsOrderState.LOST] 0.
+     */
+    var netSum = BigDecimal.ZERO
+
+    var invoicedSum = BigDecimal.ZERO
 
     init {
+        if (position.status == null) {
+            log.error { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
+        }
         if (position.deleted) {
             throw IllegalArgumentException("Position is deleted: $position")
         }
-        toBeInvoiced = if (status != null && status.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
-                false
-            } else if (order?.auftragsStatus != AuftragsStatus.ABGESCHLOSSEN && status != AuftragsPositionsStatus.ABGESCHLOSSEN) {
-                false
-            } else vollstaendigFakturiert != true
+        recalculate(order)
+    }
+
+    fun recalculate(order: OrderInfo) {
+        netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
+        orderedNetSum = if (order.auftragsStatus.orderState == AuftragsOrderState.ORDERED) netSum else BigDecimal.ZERO
+        toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
+            false
+        } else if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || status == AuftragsPositionsStatus.ABGESCHLOSSEN) {
+            !vollstaendigFakturiert
+        } else false
+        invoicedSum = BigDecimal.ZERO
+        RechnungCache.instance.getRechnungsPosInfosByAuftragsPositionId(id)?.let { set ->
+            invoicedSum += RechnungDao.getNettoSumme(set)
+        }
     }
 }

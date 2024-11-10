@@ -143,8 +143,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                         sb.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
                                 .append(getString("projectmanagement.personDays.short")).append(") ");
                     }
-                    if (pos.getNettoSumme() != null) {
-                        sb.append(CurrencyFormatter.format(pos.getNettoSumme()));
+                    if (pos.getDbNetSum() != null) {
+                        sb.append(CurrencyFormatter.format(pos.getDbNetSum()));
                         if (StringUtils.isNotBlank(pos.getTitel()) == true) {
                             sb.append(": ").append(pos.getTitel());
                         }
