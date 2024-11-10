@@ -192,7 +192,7 @@ class OrderInfo() : Serializable {
             log.debug("Payment schedules reached for order: ${order.id}")
             toBeInvoiced = true
         } else {
-            if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || positionInfos?.any { it.status == AuftragsPositionsStatus.ABGESCHLOSSEN } == true) {
+            if (order.auftragsStatus == AuftragsStatus.ABGESCHLOSSEN || positionInfos?.any { it.status == AuftragsStatus.ABGESCHLOSSEN } == true) {
                 toBeInvoiced = (positionInfos?.any { it.toBeInvoiced } == true)
                 if (toBeInvoiced) {
                     log.debug("Finished order and/or positions and to be invoiced: ${order.id}")
@@ -259,7 +259,7 @@ class OrderInfo() : Serializable {
         fun calculatePersonDays(positions: Collection<OrderPositionInfo>?): BigDecimal {
             var result = BigDecimal.ZERO
             positions?.filter { it.personDays != null }?.forEach { pos ->
-                if (pos.status != AuftragsPositionsStatus.ABGELEHNT && pos.status != AuftragsPositionsStatus.ERSETZT) {
+                if (pos.status != AuftragsStatus.ABGELEHNT && pos.status != AuftragsStatus.ERSETZT) {
                     result += pos.personDays!!
                 }
             }

@@ -28,7 +28,7 @@ import org.projectforge.framework.persistence.api.impl.CustomResultFilter
 
 private val log = KotlinLogging.logger {}
 
-class AuftragsPositionsStatusFilter(val values: List<AuftragsPositionsStatus>) : CustomResultFilter<AuftragDO> {
+class AuftragsPositionsStatusFilter(val values: List<AuftragsStatus>) : CustomResultFilter<AuftragDO> {
     override fun match(list: MutableList<AuftragDO>, element: AuftragDO): Boolean {
         if (values.isEmpty()) {
             return true
@@ -45,9 +45,9 @@ class AuftragsPositionsStatusFilter(val values: List<AuftragsPositionsStatus>) :
         fun create(valuesAsStrings: Array<String>): AuftragsPositionsStatusFilter {
             val values = valuesAsStrings.mapNotNull {
                 try {
-                    AuftragsPositionsStatus.valueOf(it)
+                    AuftragsStatus.valueOf(it)
                 } catch (ex: Exception) {
-                    log.error { "Ignore unknown value '$it' of type ${AuftragsPositionsStatus::class.java.name}." }
+                    log.error { "Ignore unknown value '$it' of type ${AuftragsStatus::class.java.name}." }
                     null
                 }
             }

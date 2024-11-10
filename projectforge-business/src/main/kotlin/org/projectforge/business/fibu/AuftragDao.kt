@@ -233,7 +233,7 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             queryFilter.add(
                 or(
                     eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
-                    eq("positionen.status", AuftragsPositionsStatus.ABGESCHLOSSEN),
+                    eq("positionen.status", AuftragsStatus.ABGESCHLOSSEN),
                     eq("paymentSchedules.reached", true)
                 )
             )

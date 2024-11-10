@@ -50,13 +50,13 @@ class ForecastExportTest : AbstractTestBase() {
         logon(TEST_FINANCE_USER)
         val today = PFDay.now()
         val baseDate = today.plusMonths(-4)
-        val order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        val order1 = createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3), baseDate.plusMonths(4))
         //order1.addPaymentSchedule()
 
-        createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsPositionsStatus.BEAUFTRAGT,
+        createTimeAndMaterials(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.BEAUFTRAGT,
                 1000.0, baseDate,
                 baseDate.plusMonths(1), baseDate.plusMonths(4),
                 baseDate.plusMonths(2), baseDate.plusMonths(3))
@@ -64,7 +64,7 @@ class ForecastExportTest : AbstractTestBase() {
         val order3 = createOrder(today, AuftragsStatus.IN_ERSTELLUNG,
                 today.plusMonths(1), today.plusMonths(5))
         //order1.addPaymentSchedule()
-        addPosition(order3, 1, AuftragsPositionsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
+        addPosition(order3, 1, AuftragsStatus.IN_ERSTELLUNG, 4000.00, AuftragsPositionsPaymentType.FESTPREISPAKET)
         auftragDao.insert(order3)
 
         val filter = AuftragFilter()
@@ -89,7 +89,7 @@ class ForecastExportTest : AbstractTestBase() {
         }
     }
 
-    private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsPositionsStatus,
+    private fun createTimeAndMaterials(orderStatus: AuftragsStatus, posStatus: AuftragsStatus,
                                        monthlyAmount: Double, date: PFDay, periodStart: PFDay, periodEnd: PFDay, vararg invoiceMonth: PFDay)
             : AuftragDO {
         var order = createOrder(date, orderStatus, periodStart, periodEnd)
@@ -123,7 +123,7 @@ class ForecastExportTest : AbstractTestBase() {
 
     private fun addPosition(order: AuftragDO,
                             number: Short,
-                            status: AuftragsPositionsStatus,
+                            status: AuftragsStatus,
                             netSum: Double,
                             paymentType: AuftragsPositionsPaymentType,
                             periodOfPerformanceBegin: PFDay? = null,

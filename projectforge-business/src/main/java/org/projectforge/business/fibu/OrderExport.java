@@ -134,7 +134,7 @@ public class OrderExport {
         mapping.add(OrderCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
         mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
 
-        final PFUserDO contactPerson = UserGroupCache.getInstance().getUser(order.getContactPersonId());
+        final PFUserDO contactPerson = UserGroupCache.getInstance().getUserIfNotInitialized(order.getContactPerson());
         mapping.add(OrderCol.CONTACT_PERSON, contactPerson != null ? contactPerson.getFullname() : "");
         mapping.add(OrderCol.REFERENCE, order.getReferenz());
         mapping.add(OrderCol.COMMENT, order.getBemerkung());
@@ -191,8 +191,8 @@ public class OrderExport {
         BigDecimal invoicedSum = posInfo != null ? posInfo.getInvoicedSum() : BigDecimal.ZERO;
         BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
         if (pos.getStatus() != null) {
-            if (pos.getStatus().equals(AuftragsPositionsStatus.ABGELEHNT) || pos.getStatus().equals(AuftragsPositionsStatus.ERSETZT) || pos.getStatus()
-                    .equals(AuftragsPositionsStatus.OPTIONAL)) {
+            if (pos.getStatus().equals(AuftragsStatus.ABGELEHNT) || pos.getStatus().equals(AuftragsStatus.ERSETZT) || pos.getStatus()
+                    .equals(AuftragsStatus.OPTIONAL)) {
                 toBeInvoicedSum = BigDecimal.ZERO;
             }
         }

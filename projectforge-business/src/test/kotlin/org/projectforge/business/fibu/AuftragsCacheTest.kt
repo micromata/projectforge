@@ -47,19 +47,19 @@ class AuftragsCacheTest : AbstractTestBase() {
             it.addPosition(AuftragsPositionDO().also { pos ->
                 pos.titel = "Pos 1"
                 pos.nettoSumme = 100.toBigDecimal()
-                pos.status = AuftragsPositionsStatus.GELEGT
+                pos.status = AuftragsStatus.GELEGT
             })
             it.addPosition(AuftragsPositionDO().also { pos ->
                 pos.titel = "Pos 2"
                 pos.nettoSumme = 200.toBigDecimal()
-                pos.status = AuftragsPositionsStatus.GELEGT
+                pos.status = AuftragsStatus.GELEGT
             })
             it.auftragsStatus = AuftragsStatus.GELEGT
             it.nummer = auftragDao.nextNumber
         }
         auftragDao.insert(order, checkAccess = false)
         var orderInfo = auftragsCache.getOrderInfo(order.id)
-        Assertions.assertNotNull(orderInfo)
+        Assertions.assertNotNull(orderInfo, "Order with id=${order.id} not found.")
         assertSame(300, orderInfo!!.akquiseSum, "Akquise sum.")
         assertSame(300, orderInfo.netSum, "Net sum.")
         orderInfo.apply {

@@ -38,16 +38,16 @@ object ForecastUtils { // open needed by Wicket.
 
     @JvmStatic
     val auftragsPositionsStatusToShow = listOf(
-        //AuftragsPositionsStatus.ABGELEHNT,
-        //AuftragsPositionsStatus.ABGESCHLOSSEN,
-        AuftragsPositionsStatus.BEAUFTRAGT,
-        //AuftragsPositionsStatus.ERSETZT,
-        //AuftragsPositionsStatus.ESKALATION,
-        AuftragsPositionsStatus.GELEGT,
-        AuftragsPositionsStatus.IN_ERSTELLUNG,
-        AuftragsPositionsStatus.LOI,
-        //AuftragsPositionsStatus.OPTIONAL,
-        AuftragsPositionsStatus.POTENZIAL
+        //AuftragsStatus.ABGELEHNT,
+        //AuftragsStatus.ABGESCHLOSSEN,
+        AuftragsStatus.BEAUFTRAGT,
+        //AuftragsStatus.ERSETZT,
+        //AuftragsStatus.ESKALATION,
+        AuftragsStatus.GELEGT,
+        AuftragsStatus.IN_ERSTELLUNG,
+        AuftragsStatus.LOI,
+        //AuftragsStatus.OPTIONAL,
+        AuftragsStatus.POTENZIAL
     )
 
     @JvmStatic
@@ -89,16 +89,16 @@ object ForecastUtils { // open needed by Wicket.
         // See ForecastExportProbabilities.xlsx
         // Excel rows: Order 1-4
         if (order.auftragsStatus?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
-            || pos.status?.isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT) == true
+            || pos.status?.isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT) == true
         ) {
             return BigDecimal.ZERO
         }
         // Excel rows: Order 5-6
-        if (pos.status?.isIn(AuftragsPositionsStatus.POTENZIAL, AuftragsPositionsStatus.OPTIONAL) == true) {
+        if (pos.status?.isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.OPTIONAL) == true) {
             return getGivenProbability(order, BigDecimal.ZERO)
         }
         // Excel rows: Order 7
-        if (pos.status == AuftragsPositionsStatus.BEAUFTRAGT) {
+        if (pos.status == AuftragsStatus.BEAUFTRAGT) {
             return BigDecimal.ONE
         }
         // Excel rows: Order 8
@@ -117,14 +117,14 @@ object ForecastUtils { // open needed by Wicket.
             ) == true
         ) {
             if (pos.status?.isIn(
-                    AuftragsPositionsStatus.ESKALATION,
-                    AuftragsPositionsStatus.GELEGT,
-                    AuftragsPositionsStatus.IN_ERSTELLUNG
+                    AuftragsStatus.ESKALATION,
+                    AuftragsStatus.GELEGT,
+                    AuftragsStatus.IN_ERSTELLUNG
                 ) == true
             ) {
                 // Excel rows: Order 11
                 return getGivenProbability(order, POINT_FIVE)
-            } else if (pos.status == AuftragsPositionsStatus.LOI) {
+            } else if (pos.status == AuftragsStatus.LOI) {
                 // Excel rows: Order 12
                 return getGivenProbability(order, POINT_NINE)
             }
@@ -132,9 +132,9 @@ object ForecastUtils { // open needed by Wicket.
         // Excel rows: Order 13
         if (order.auftragsStatus == AuftragsStatus.LOI
             && pos.status?.isIn(
-                AuftragsPositionsStatus.ESKALATION,
-                AuftragsPositionsStatus.GELEGT,
-                AuftragsPositionsStatus.IN_ERSTELLUNG
+                AuftragsStatus.ESKALATION,
+                AuftragsStatus.GELEGT,
+                AuftragsStatus.IN_ERSTELLUNG
             ) == true
         ) {
             return getGivenProbability(order, POINT_NINE)

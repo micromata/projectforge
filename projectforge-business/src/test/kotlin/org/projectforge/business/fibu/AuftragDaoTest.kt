@@ -120,7 +120,7 @@ class AuftragDaoTest : AbstractTestBase() {
                 it.auftragsStatus = AuftragsStatus.ABGESCHLOSSEN
                 val position = createOrderPos()
                 position.vollstaendigFakturiert = true
-                position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
+                position.status = AuftragsStatus.ABGESCHLOSSEN
                 it.addPosition(position)
             }
             id3 = auftragDao.insert(auftrag3)
@@ -399,7 +399,7 @@ class AuftragDaoTest : AbstractTestBase() {
             auftrag1 = auftragDao.find(id1)!! // Attached is important, otherwise deadlock.
             logon(TEST_PROJECT_MANAGER_USER)
             position = auftrag1.positionenIncludingDeleted!![0]
-            position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
+            position.status = AuftragsStatus.ABGESCHLOSSEN
             position.vollstaendigFakturiert = true
             try {
                 suppressErrorLogs {
@@ -414,7 +414,7 @@ class AuftragDaoTest : AbstractTestBase() {
         persistenceService.runInTransaction { _ ->
             logon(TEST_FINANCE_USER)
             position = auftrag1.positionenIncludingDeleted!![0]
-            position.status = AuftragsPositionsStatus.ABGESCHLOSSEN
+            position.status = AuftragsStatus.ABGESCHLOSSEN
             position.vollstaendigFakturiert = true
             auftragDao.update(auftrag1)
         }
@@ -659,7 +659,7 @@ class AuftragDaoTest : AbstractTestBase() {
 
     private fun createOrderPos(): AuftragsPositionDO {
         return AuftragsPositionDO().also {
-            it.status = AuftragsPositionsStatus.GELEGT
+            it.status = AuftragsStatus.GELEGT
         }
     }
 

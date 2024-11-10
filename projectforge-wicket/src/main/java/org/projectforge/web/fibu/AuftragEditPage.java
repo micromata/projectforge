@@ -25,9 +25,11 @@ package org.projectforge.web.fibu;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.kost.ProjektCache;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.EntityCopyStatus;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.PFDay;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.WicketSupport;
@@ -77,8 +79,8 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
     if ("projektId".equals(property)) {
       WicketSupport.get(AuftragDao.class).setProjekt(getData(), (Long) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
-      if (getData().getProjektId() != null && getData().getProjektId() >= 0) {
-        final ProjektDO projekt = WicketSupport.get(ProjektDao.class).find(getData().getProjektId());
+      final ProjektDO projekt = WicketSupport.get(ProjektCache.class).getProjektIfNotInitialized(getData().getProjekt());
+      if (projekt != null) {
         form.setKundePmHobmAndSmIfEmpty(projekt, null);
       }
     } else if ("kundeId".equals(property)) {
@@ -176,7 +178,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
         auftrag.setErfassungsDatum(today);
         auftrag.setEntscheidungsDatum(today);
       }
-      if (auftrag.getContactPersonId() == null && getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
+      if (auftrag.getContactPerson() == null && getAccessChecker().isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
         WicketSupport.get(AuftragDao.class).setContactPerson(auftrag, getUser().getId());
         form.setSendEMailNotification(false);
       }
