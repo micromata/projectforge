@@ -1,7 +1,8 @@
 Aktuell:
-- fakturiert in Aufträgen ist 0
+- Abgeschlossene Auftrage: to be invoiced (unabhängig von Position)
+- Auftragspositionen, die lt. PaymentSchedule zu fakturieren sind, sind nicht toBeInvoiced.
+- Suche nach Auftragsnummern in Auftragsliste
 - to be invoiced count in Auftrag
-- AuftragListe: fakturiertsum nicht berechnet.
 - Update caches after single load or modification.
 - LiquidityList: es wird gefetched wie blöde.
 - Forecast in Auftragslist fehlerhaft

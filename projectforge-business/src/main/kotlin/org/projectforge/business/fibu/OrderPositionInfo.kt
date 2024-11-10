@@ -35,6 +35,7 @@ private val log = KotlinLogging.logger {}
  */
 class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serializable {
     val id = position.id
+    val deleted = position.deleted // Deleted positions shouldn't occur.
     val number = position.number
     val auftrag = order
     val auftragId = order.id
@@ -51,8 +52,7 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
     /**
      * For finished postio
      */
-    val vollstaendigFakturiert =
-        position.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
+    val vollstaendigFakturiert = position.vollstaendigFakturiert == true && status == AuftragsStatus.ABGESCHLOSSEN
     val periodOfPerformanceType = position.periodOfPerformanceType
     val periodOfPerformanceBegin = position.periodOfPerformanceBegin
     val periodOfPerformanceEnd = position.periodOfPerformanceEnd
@@ -93,27 +93,33 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
      */
     var toBeInvoicedSum = BigDecimal.ZERO
 
+    /**
+     * Net sum of ordered positions minus invoiced sum.
+     */
     var notYetInvoiced = BigDecimal.ZERO
 
     init {
-        if (position.status == null) {
-            log.error { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
-        }
+        /*if (position.status == null) {
+            log.info { "Position without status: $position shouldn't occur. Assuming POTENZIAL." }
+        }*/
         if (position.deleted) {
             throw IllegalArgumentException("Position is deleted: $position")
         }
-        recalculate()
+        recalculate(order)
     }
 
     /**
      * The fields are independent of the order status. The OrderInfo parent object has to consider the order status.
+     * @param order The parent order. If the order is closed, the ordered position are considered as to be invoiced.
      */
-    fun recalculate() {
+    fun recalculate(order: OrderInfo) {
         netSum = if (status.orderState != AuftragsOrderState.LOST) dbNetSum else BigDecimal.ZERO
         orderedNetSum = if (status.orderState == AuftragsOrderState.ORDERED) netSum else BigDecimal.ZERO
         toBeInvoiced = if (status.orderState == AuftragsOrderState.LOST) {
             false
-        } else if (status == AuftragsStatus.ABGESCHLOSSEN) {
+        } else if (status == AuftragsStatus.ABGESCHLOSSEN ||
+            (order.status == AuftragsStatus.ABGESCHLOSSEN && status.orderState == AuftragsOrderState.ORDERED)
+        ) {
             !vollstaendigFakturiert
         } else false
         invoicedSum = BigDecimal.ZERO
@@ -121,11 +127,25 @@ class OrderPositionInfo(position: AuftragsPositionDO, order: OrderInfo) : Serial
             invoicedSum += RechnungDao.getNettoSumme(set)
         }
         toBeInvoicedSum = if (toBeInvoiced) netSum - invoicedSum else BigDecimal.ZERO
-        notYetInvoiced = if (status.orderState != AuftragsOrderState.LOST) {
+        notYetInvoiced = if (status.orderState == AuftragsOrderState.ORDERED && !vollstaendigFakturiert) {
             netSum - invoicedSum
         } else {
             BigDecimal.ZERO
         }
+        if (notYetInvoiced < BigDecimal.ZERO) {
+            notYetInvoiced = BigDecimal.ZERO
+        }
         akquiseSum = if (status.orderState == AuftragsOrderState.POTENTIAL) dbNetSum else BigDecimal.ZERO
+        if (deleted) {
+            // Leave the values for invoicedSum untouched.
+            netSum = BigDecimal.ZERO
+            orderedNetSum = BigDecimal.ZERO
+            toBeInvoiced = false
+            toBeInvoicedSum = BigDecimal.ZERO
+            notYetInvoiced = BigDecimal.ZERO
+            akquiseSum = BigDecimal.ZERO
+            return
+        }
+
     }
 }

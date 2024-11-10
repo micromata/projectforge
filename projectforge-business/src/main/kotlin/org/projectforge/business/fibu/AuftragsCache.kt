@@ -114,6 +114,11 @@ class AuftragsCache : AbstractCache(8 * TICKS_PER_HOUR) {
         }
         synchronized(orderInfoMap) {
             val counter = orderInfoMap.values.count { it.toBeInvoiced }
+            log.debug {
+                "To be invoiced counter=$counter: ${
+                    orderInfoMap.values.filter { it.toBeInvoiced }.joinToString { it.nummer.toString() }
+                }"
+            }
             toBeInvoicedCounter = counter
             return counter
         }

@@ -258,17 +258,9 @@ open class AuftragDao : BaseDao<AuftragDO>(AuftragDO::class.java) {
             }
         }
 
-        createCriterionForErfassungsDatum(myFilter).ifPresent { predicate: DBPredicate? ->
-            queryFilter.add(
-                predicate!!
-            )
-        }
+        createCriterionForErfassungsDatum(myFilter).ifPresent { predicate: DBPredicate -> queryFilter.add(predicate) }
 
-        createCriterionForPeriodOfPerformance(myFilter).ifPresent { predicate: DBPredicate? ->
-            queryFilter.add(
-                predicate!!
-            )
-        }
+        createCriterionForPeriodOfPerformance(myFilter).ifPresent { predicate: DBPredicate -> queryFilter.add(predicate) }
 
         queryFilter.addOrder(desc("nummer"))
 

@@ -52,6 +52,7 @@ import org.projectforge.business.user.UserGroupCache
 import org.projectforge.framework.json.*
 import org.projectforge.framework.persistence.user.entities.GroupDO
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.framework.time.PFDateTime
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.sql.Timestamp
@@ -169,6 +170,8 @@ class ToStringUtil {
             module.addSerializer(java.sql.Date::class.java, SqlDateSerializer())
             module.addSerializer(LocalDate::class.java, LocalDateSerializer())
             module.addSerializer(LocalTime::class.java, LocalTimeSerializer())
+            module.addSerializer(PFDateTime::class.java, PFDateTimeSerializer())
+            module.addDeserializer(PFDateTime::class.java, PFDateTimeDeserializer())
             module.addSerializer(AddressbookDO::class.java, AddressbookSerializer())
             module.addSerializer(AbstractLazyInitializer::class.java, HibernateProxySerializer())
 

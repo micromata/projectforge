@@ -314,9 +314,6 @@ object SortAndCheckI18nPropertiesMain {
   }
 
   internal fun reduceMultiLine(value: String): String {
-    if (value.contains("smartphone")) {
-      println(value)
-    }
     return if (value.contains("\\\n")) {
       return "${value.substringBefore("\\\n")}... (multiline)"
     } else {
