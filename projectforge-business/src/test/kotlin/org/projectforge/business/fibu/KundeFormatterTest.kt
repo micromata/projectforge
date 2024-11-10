@@ -29,23 +29,23 @@ import org.junit.jupiter.api.Test
 class KundeFormatterTest {
     @Test
     fun testFormatting() {
-        Assertions.assertEquals("", KundeFormatter.formatKundeAsString(null, null))
-        Assertions.assertEquals("", KundeFormatter.formatKundeAsString(null, ""))
-        Assertions.assertEquals("text", KundeFormatter.formatKundeAsString(null, "text"))
+        Assertions.assertEquals("", KundeFormatter.internalFormatKundeAsString(null, null))
+        Assertions.assertEquals("", KundeFormatter.internalFormatKundeAsString(null, ""))
+        Assertions.assertEquals("text", KundeFormatter.internalFormatKundeAsString(null, "text"))
 
         val kunde = KundeDO()
-        Assertions.assertEquals("", KundeFormatter.formatKundeAsString(kunde, null))
-        Assertions.assertEquals("", KundeFormatter.formatKundeAsString(kunde, ""))
-        Assertions.assertEquals("text", KundeFormatter.formatKundeAsString(kunde, "text"))
+        Assertions.assertEquals("", KundeFormatter.internalFormatKundeAsString(kunde, null))
+        Assertions.assertEquals("", KundeFormatter.internalFormatKundeAsString(kunde, ""))
+        Assertions.assertEquals("text", KundeFormatter.internalFormatKundeAsString(kunde, "text"))
 
         kunde.name = ""
-        Assertions.assertEquals("", KundeFormatter.formatKundeAsString(kunde, null))
-        Assertions.assertEquals("", KundeFormatter.formatKundeAsString(kunde, ""))
-        Assertions.assertEquals("text", KundeFormatter.formatKundeAsString(kunde, "text"))
+        Assertions.assertEquals("", KundeFormatter.internalFormatKundeAsString(kunde, null))
+        Assertions.assertEquals("", KundeFormatter.internalFormatKundeAsString(kunde, ""))
+        Assertions.assertEquals("text", KundeFormatter.internalFormatKundeAsString(kunde, "text"))
 
         kunde.name = "ACME"
-        Assertions.assertEquals("ACME", KundeFormatter.formatKundeAsString(kunde, null))
-        Assertions.assertEquals("ACME", KundeFormatter.formatKundeAsString(kunde, ""))
-        Assertions.assertEquals("text; ACME", KundeFormatter.formatKundeAsString(kunde, "text"))
+        Assertions.assertEquals("ACME", KundeFormatter.internalFormatKundeAsString(kunde, null))
+        Assertions.assertEquals("ACME", KundeFormatter.internalFormatKundeAsString(kunde, ""))
+        Assertions.assertEquals("text; ACME", KundeFormatter.internalFormatKundeAsString(kunde, "text"))
     }
 }

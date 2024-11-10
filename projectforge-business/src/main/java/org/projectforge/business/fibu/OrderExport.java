@@ -25,6 +25,7 @@ package org.projectforge.business.fibu;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.projectforge.business.excel.*;
+import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.user.UserGroupCache;
@@ -108,8 +109,8 @@ public class OrderExport {
         mapping.add(OrderCol.DATE_OF_DESICION, order.getEntscheidungsDatum());
         mapping.add(OrderCol.ORDER_DATE, order.getBeauftragungsDatum());
         mapping.add(OrderCol.STATUS,
-                order.getAuftragsStatus() != null
-                        ? ThreadLocalUserContext.getLocalizedString(order.getAuftragsStatus().getI18nKey()) : "");
+                order.getStatus() != null
+                        ? ThreadLocalUserContext.getLocalizedString(order.getStatus().getI18nKey()) : "");
         mapping.add(OrderCol.STATUS_COMMENT, order.getStatusBeschreibung());
         mapping.add(OrderCol.PROJECT, order.getProjektAsString());
         final ProjektDO project = order.getProjekt();
@@ -183,7 +184,7 @@ public class OrderExport {
                 pos.getPaymentType() != null ? ThreadLocalUserContext.getLocalizedString(pos.getPaymentType().getI18nKey()) : "");
         mapping.add(PosCol.STATUS,
                 pos.getStatus() != null ? ThreadLocalUserContext.getLocalizedString(pos.getStatus().getI18nKey()) :
-                        (order.getAuftragsStatus() != null ? ThreadLocalUserContext.getLocalizedString(order.getAuftragsStatus().getI18nKey()) : ""));
+                        (order.getStatus() != null ? ThreadLocalUserContext.getLocalizedString(order.getStatus().getI18nKey()) : ""));
         mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
         var orderInfo = auftragsCache.getOrderInfo(order);
         var posInfo = orderInfo.getInfoPosition(pos.getId());
@@ -214,7 +215,8 @@ public class OrderExport {
         }
         mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
         mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
-        final TaskNode node = taskTree.getTaskNodeById(pos.getTaskId());
+        final TaskDO task = pos.getTask();
+        final TaskNode node = task != null ? taskTree.getTaskNodeById(task.getId()) : null;
         mapping.add(PosCol.TASK, node != null ? node.getTask().getTitle() : "");
         mapping.add(PosCol.COMMENT, pos.getBemerkung());
     }

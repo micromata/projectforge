@@ -87,20 +87,20 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                 // Avoid lazy loading:
                 final KundeDO kunde = WicketSupport.get(KundeCache.class).getKundeIfNotInitialized(auftrag.getKunde());
                 auftrag.setKunde(kunde);
-                if (auftrag.getAuftragsStatus() == null) {
+                if (auftrag.getStatus() == null) {
                     // Should not occur:
                     return;
                 }
                 final boolean isDeleted = auftrag.getDeleted()
-                        || auftrag.getAuftragsStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT);
+                        || auftrag.getStatus().isIn(AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT);
                 appendCssClasses(item, auftrag.getId(), auftrag.getDeleted());
                 if (isDeleted) {
                     // Do nothing further.
                 } else if (orderInfo.getToBeInvoiced()) {
                     appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
-                } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI)) {
+                } else if (auftrag.getStatus().isIn(AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI)) {
                     appendCssClasses(item, RowCssClass.SUCCESS_ROW);
-                } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.ESKALATION)) {
+                } else if (auftrag.getStatus().isIn(AuftragsStatus.ESKALATION)) {
                     appendCssClasses(item, RowCssClass.IMPORTANT_ROW);
                 }
             }
@@ -221,8 +221,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         columns.add(
                 new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(
 
-                        getString("status")), "auftragsStatusAsString",
-                        "auftragsStatusAsString", cellItemListener));
+                        getString("status")), "statusAsString",
+                        "statusAsString", cellItemListener));
         return columns;
     }
 

@@ -124,7 +124,7 @@ class RechnungCacheTest : AbstractTestBase() {
 
     private fun createOrder(): AuftragDO {
         return AuftragDO().also {
-            it.auftragsStatus = AuftragsStatus.GELEGT
+            it.status = AuftragsStatus.GELEGT
         }
     }
 

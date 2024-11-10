@@ -166,7 +166,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
             final AuftragDO auftrag = new AuftragDO()
                     .addPosition(pos1)
                     .addPosition(pos2);
-            auftrag.setAuftragsStatus(AuftragsStatus.GELEGT);
+            auftrag.setStatus(AuftragsStatus.GELEGT);
             auftrag.setNummer(auftragDao.getNextNumber(auftrag));
             auftragDao.insert(auftrag);
             return null;

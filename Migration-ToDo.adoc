@@ -1,11 +1,6 @@
 Aktuell:
-- Abgeschlossene Auftrage: to be invoiced (unabhängig von Position)
-- Auftragspositionen, die lt. PaymentSchedule zu fakturieren sind, sind nicht toBeInvoiced.
 - Suche nach Auftragsnummern in Auftragsliste
-- to be invoiced count in Auftrag
 - Update caches after single load or modification.
-- LiquidityList: es wird gefetched wie blöde.
-- Forecast in Auftragslist fehlerhaft
 - Kostzuweisungsexport: es wird gefetched wie blöde.
 - 2024-11-09T16:18:19.834Z user:kai  WARN 23413 --- [projectforge-application] [0.1-8080-exec-2] o.p.business.user.AbstractUserPrefCache  : Can't deserialize user preferences: null, userId=2, area=null, key='TeamCalendarPage.userPrefs' (may-be ok after a new ProjectForge release). string=!rO0AB...vnj7nRSToOXX1PrEWobDsFAAA=
 

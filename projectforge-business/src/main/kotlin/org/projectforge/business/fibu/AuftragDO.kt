@@ -120,7 +120,7 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
     @FullTextField
     @get:Enumerated(EnumType.STRING)
     @get:Column(name = "status", length = 30)
-    open var auftragsStatus: AuftragsStatus? = null
+    open var status: AuftragsStatus? = null
 
     @PropertyInfo(i18nKey = "contactPerson")
     @IndexedEmbedded(includeDepth = 1)
@@ -378,12 +378,12 @@ open class AuftragDO : DefaultBaseDO(), DisplayNameCapable, AttachmentsInfo {
      * @return FAKTURIERT if isVollstaendigFakturiert == true, otherwise AuftragsStatus as String.
      */
     @get:Transient
-    val auftragsStatusAsString: String?
+    val statusAsString: String?
         get() {
             if (info.isVollstaendigFakturiert) {
                 return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert")
             }
-            return if (auftragsStatus != null) I18nHelper.getLocalizedMessage(auftragsStatus!!.i18nKey) else null
+            return if (status != null) I18nHelper.getLocalizedMessage(status!!.i18nKey) else null
         }
 
     private fun addUser(result: ArrayList<String>, user: PFUserDO?) {

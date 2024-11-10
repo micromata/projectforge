@@ -46,13 +46,6 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         @Transient
         get() = OldKostFormatter.formatKunde(this)
 
-    @get:Transient
-    override var id: Long?
-        get() = nummer
-        set(value) {
-            nummer = value
-        }
-
     /**
      * Kundennummer.
      *
@@ -62,6 +55,16 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
     @get:Id
     @get:Column(name = "pk")
     open var nummer: Long? = null
+
+    /**
+     * Don't use this field directly. Use [nummer] instead. Otherwise, the kunde object will be fetched from the database.
+     */
+    @get:Transient
+    override var id: Long?
+        get() = nummer
+        set(value) {
+            nummer = value
+        }
 
     @PropertyInfo(i18nKey = "fibu.kunde.name")
     @FullTextField
@@ -128,10 +131,6 @@ open class KundeDO : AbstractHistorizableBaseDO<Long>(), DisplayNameCapable {
         get() = if (StringUtils.isNotBlank(this.identifier)) {
             this.identifier
         } else this.name
-
-    val kontoId: Long?
-        @Transient
-        get() = konto?.id
 
     companion object {
         const val MAX_ID = 999L

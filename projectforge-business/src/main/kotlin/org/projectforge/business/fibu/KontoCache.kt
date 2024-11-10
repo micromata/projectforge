@@ -28,7 +28,6 @@ import org.apache.commons.collections4.MapUtils
 import org.hibernate.Hibernate
 import org.projectforge.business.fibu.kost.KundeCache
 import org.projectforge.business.fibu.kost.ProjektCache
-import org.projectforge.business.scripting.Cache.getKunde
 import org.projectforge.framework.cache.AbstractCache
 import org.projectforge.framework.persistence.jpa.PfPersistenceService
 import org.springframework.beans.factory.annotation.Autowired
@@ -85,13 +84,13 @@ open class KontoCache : AbstractCache() {
             return null
         }
         checkRefresh()
-        var konto = getKonto(project.konto?.id)
+        var konto = getKontoIfNotInitialized(project.konto)
         if (konto != null) {
             return konto
         }
         val customer = project.kunde
         if (customer != null) {
-            konto = getKonto(customer.kontoId)
+            konto = getKontoIfNotInitialized(customer.konto)
         }
         return konto
     }
@@ -126,20 +125,20 @@ open class KontoCache : AbstractCache() {
             return null
         }
         checkRefresh()
-        var konto = getKonto(invoice.konto?.id)
+        var konto = getKontoIfNotInitialized(invoice.konto)
         if (konto != null) {
             return konto
         }
         val project = projektCache.getProjektIfNotInitialized(invoice.projekt)
         if (project != null) {
-            konto = getKonto(project.konto?.id)
+            konto = getKontoIfNotInitialized(project.konto)
             if (konto != null) {
                 return konto
             }
         }
         var kunde = kundeCache.getKundeIfNotInitialized(invoice.kunde)
         if (kunde != null) {
-            konto = getKonto(kunde.konto?.id)
+            konto = getKontoIfNotInitialized(kunde.konto)
         }
         if (konto != null) {
             return konto
@@ -147,7 +146,7 @@ open class KontoCache : AbstractCache() {
         if (project != null) {
             kunde = kundeCache.getKundeIfNotInitialized(project.kunde)
             if (kunde != null) {
-                konto = getKonto(kunde.kontoId)
+                konto = getKontoIfNotInitialized(kunde.konto)
             }
         }
         return konto

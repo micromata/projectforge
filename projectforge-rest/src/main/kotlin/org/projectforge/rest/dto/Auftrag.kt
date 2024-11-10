@@ -50,7 +50,7 @@ class Auftrag(
     var periodOfPerformanceBegin: LocalDate? = null,
     var periodOfPerformanceEnd: LocalDate? = null,
     var probabilityOfOccurrence: Int? = null,
-    var auftragsStatus: AuftragsStatus? = null,
+    var status: AuftragsStatus? = null,
     override var attachmentsCounter: Int? = null,
     override var attachmentsSize: Long? = null,
     override var attachments: List<Attachment>? = null,

@@ -46,7 +46,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
 
   override val displayName: String
     @Transient
-    get() = "$auftragId:$number"
+    get() = "$auftrag?.id:$number"
 
   /**
    * Not used as object due to performance reasons.
@@ -89,23 +89,6 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
   @get:Column(name = "vollstaendig_fakturiert", nullable = false)
   open var vollstaendigFakturiert: Boolean = false
 
-  val toBeInvoiced: Boolean
-    @Transient
-    get() = valid && reached && !vollstaendigFakturiert
-
-  /**
-   * Not deleted and amount is given > 0,00.
-   */
-  val valid: Boolean
-    @Transient
-    get() = !deleted && (amount ?: BigDecimal.ZERO) > BigDecimal.ZERO
-
-  val auftragId: Long?
-    @Transient
-    get() = if (this.auftrag == null) {
-      null
-    } else auftrag!!.id
-
   val isEmpty: Boolean
     @Transient
     get() {
@@ -123,7 +106,7 @@ open class PaymentScheduleDO : DefaultBaseDO(), DisplayNameCapable {
       if (this.number != o!!.number) {
         return false
       }
-      return this.auftragId == o.auftragId
+      return this.auftrag?.id == o.auftrag?.id
     }
     return false
   }

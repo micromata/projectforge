@@ -74,7 +74,7 @@ internal class I18nKeysSourceAnalyzer {
         val srcMainDirs = SourcesUtils.getSrcMainDirs()
         srcMainDirs.forEach { main ->
             val resourcesDir = SourcesUtils.getSubDir(main, "resources")
-            println("$resourcesDir")
+            // println("$resourcesDir")
             if (resourcesDir != null) {
                 val propertiesFiles = SourcesUtils.listFiles(resourcesDir, "properties")
                 propertiesFiles.filter { it.name.endsWith("_en.properties") }.forEach {

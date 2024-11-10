@@ -57,7 +57,7 @@ class AuftragsCacheService {
                     order.deleted = getBoolean(tuple, "deleted")!!
                     order.created = getDate(tuple, "created")
                     order.titel = getString(tuple, "titel")
-                    order.auftragsStatus = tuple.get("status", AuftragsStatus::class.java)
+                    order.status = tuple.get("status", AuftragsStatus::class.java)
                     order.nummer = getInt(tuple, "nummer")
                     order.angebotsDatum = getLocalDate(tuple, "angebotsDatum")
                     order.erfassungsDatum = getLocalDate(tuple, "erfassungsDatum")
@@ -129,7 +129,7 @@ class AuftragsCacheService {
 
     companion object {
         private val SELECT_ORDERS = """
-            SELECT a.id as id,a.deleted as deleted,a.created as created,a.titel as titel,a.auftragsStatus as status,
+            SELECT a.id as id,a.deleted as deleted,a.created as created,a.titel as titel,a.status as status,
                    a.nummer as nummer,a.angebotsDatum as angebotsDatum,a.erfassungsDatum as erfassungsDatum,
                    a.entscheidungsDatum as entscheidungsDatum,a.bemerkung as bemerkung,
                    a.probabilityOfOccurrence as probabilityOfOccurrence,

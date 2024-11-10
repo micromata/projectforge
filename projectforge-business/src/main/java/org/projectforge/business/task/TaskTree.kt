@@ -564,7 +564,7 @@ class TaskTree : AbstractCache(TICKS_PER_HOUR),
                             AuftragsPositionDO::class.java
                         )
                     }.forEach { pos ->
-                        val taskId = pos.taskId
+                        val taskId = pos.task?.id
                         if (taskId != null) {
                             val set = references.getOrPut(taskId) { mutableSetOf() }
                             auftragsCache.getOrderPositionInfo(pos.id)?.let {
